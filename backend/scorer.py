@@ -309,9 +309,11 @@ All except Consumer are highly labable. Consumer → Score 0-3, add "consumer_pr
 
 **Azure Cloud Slice:** Runs natively on Azure (IaaS/PaaS) and the service is supported by Skillable? → skillable_path: "A1"
 ALL Azure services are supported (after security review). Bicep and ARM JSON templates both work. This is Skillable's broadest cloud fabric.
+⚠️ Entra ID / Azure SSO is a major advantage: every Azure Cloud Slice subscription includes an Entra ID tenant. If the product authenticates via Entra ID or Azure SSO, Skillable can pre-configure the app to use that tenant automatically — clean per-learner isolation with no separate credential pool, no manual login, no credential management overhead. This elevates the path significantly compared to products that require separate identity systems.
 - Rich APIs + full resource lifecycle: 20-24, tier: "Best - Rich APIs"
+- Entra ID / Azure SSO authentication (app pre-configured to use tenant): 18-22, tier: "Best - Rich APIs" (note the Entra ID advantage explicitly in evidence)
 - Credential pool recyclable: 15-19, tier: "Next Best - Credential Pool"
-- Azure SSO only: 11-15, tier: "Manual - Azure SSO"
+- Azure SSO but requires manual learner login steps: 11-15, tier: "Manual - Azure SSO"
 - Trial accounts: 7-11, tier: "Manual - Trial Accounts" (credit card → 4-7, add flags)
 
 **AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → skillable_path: "A1"
@@ -359,6 +361,7 @@ VM/Datacenter (Hyper-V/Docker) ≥15: 1.0x | Any path ≥20: 1.0x | Tech 12-19 n
 ## STEP 6 — Labability Intelligence Signals (use these to enrich technical evidence)
 
 When you see any of these signals in the research, note them explicitly in evidence or summary:
+- **Entra ID / Azure SSO support**: Major advantage for Azure Cloud Slice — Skillable provisions an Entra ID tenant with every Azure subscription. If the product authenticates via Entra ID or Azure SSO, the app can be pre-configured to use that tenant automatically. Zero credential management, clean per-learner isolation, no manual login. Note this explicitly and score Technical Orchestrability toward the high end of the Azure Cloud Slice tier.
 - **Azure Marketplace / AWS Marketplace listing**: Strong signal — confirms cloud-native deployment or partner-published image; directly compatible with Skillable Cloud Slice or Azure/AWS fabric.
 - **Bicep or ARM templates available**: If the product deploys via Bicep or ARM JSON, lab authors can reuse those templates directly in Skillable Azure Cloud Slice. Note explicitly — this dramatically reduces lab build effort.
 - **Docker Hub image or public container registry**: VM/container fabric ready; lab authors can pull and configure without building from scratch.
