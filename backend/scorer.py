@@ -301,6 +301,8 @@ All except Consumer are highly labable. Consumer → Score 0-3, add "consumer_pr
 **Hyper-V / VMware / Docker fabric — Check FIRST:** Does it run in VMs (Hyper-V/VMware) or Docker containers? → skillable_path: "B"
 ⚠️ The VM/container image IS the lab. No runtime provisioning APIs needed. Any software that installs on Windows or Linux scores 18-25.
 ⚠️ Default to Hyper-V. Both Hyper-V and VMware ESX are exceptionally mature; Skillable standardizes on Hyper-V due to Broadcom's extreme VMware cost increases. Note this explicitly in Technical Orchestrability evidence.
+⚠️ Exception — recommend ESX over Hyper-V when: (1) the product requires nested virtualization (running a hypervisor inside the lab, e.g. VMware Player, VirtualBox, ESXi) AND the nested software is not itself Hyper-V, or (2) socket-based software licensing is a factor — on ESX, VMs with ≤24 vCPUs run on 1 physical socket; >24 vCPUs split across 2 sockets, which doubles per-socket license costs.
+⚠️ GPU or specialist hardware (e.g. NVIDIA A100/H100) is NOT available in Skillable datacenters — must use cloud VM (Azure or AWS). Cloud VMs are significantly more expensive than datacenter VMs. Flag this as a Blocker if the product requires GPU.
 ⚠️ Docker is appropriate only for genuinely container-native products. Note that nested virtualization is not supported, and large images must be pre-baked into the lab at build time. If a product can run on either Hyper-V or Docker, recommend Hyper-V.
 - VM + rich APIs for outcome validation: 22-25, tier: "VM - Best Case"
 - VM + admin console + scripting/CLI: 20-22, tier: "VM - Best Case"
@@ -339,9 +341,16 @@ The `technical_orchestrability` evidence bullets are SA handoff notes — writte
 - **Configure:** What automation sets up the lab starting state — PowerShell, CLI, REST API calls, seed data, user accounts, license application.
 - **Score:** How Skillable validates that the learner completed each task — REST API checks, PowerShell assertions, CLI output, Azure Resource Graph queries, AI Vision. Be specific about what is being checked.
 - **Reset / Teardown:** How the environment is cleaned up between learners — VM snapshot revert, API teardown call, subscription deletion. Note if this is automatic on the Hyper-V fabric.
-- **License / Access Note:** (include only if relevant) NFR license, dev tier, trial, or Marketplace image available — or flag if licensing is a blocker that needs vendor engagement.
+- **License / Access Note:** (include only if relevant) NFR license, dev tier, trial, or Marketplace image available — or flag if licensing is a blocker that needs vendor engagement. For socket-licensed software on ESX: note whether the expected VM size stays under 24 vCPUs (1 socket) or requires more (2 sockets, doubled license cost).
 
 Keep each bullet to 1–2 sentences. These should be directional enough for an SA to start solutioning, not a full technical spec.
+
+SA build notes (reference when relevant — do not include all of these, only what applies):
+- Hyper-V/ESX Integration Services or VMware Tools must be installed in the VM for Skillable automation and scoring to work (LCA/ABA activities, screen commands, heartbeat detection)
+- Recommended max 4 vCPUs per VM (diminishing returns beyond that); RAM is the primary cost driver — size to actual need
+- Multi-VM labs: configure startup delays to prevent resource conflicts at launch; set a default VM for display order
+- Nested virtualization (running a hypervisor inside the VM) requires the Nested Virtualization option enabled in the lab profile; use ESX as the host fabric when the nested software is not Hyper-V
+- For cloud VMs (Azure/AWS): start from an AWS AMI or Azure Gallery image; install Skillable VM Cloud Integration Services for automation to function
 
 **Workflow Complexity (0-25):**
 - AI-embedded features requiring iterative practice: +6
