@@ -278,11 +278,11 @@ PRODUCT_SCORING_PROMPT = """You are an expert analyst helping Skillable evaluate
 
 ## About Skillable
 Skillable orchestrates software in cloud VMs and datacenters so learners practice real workflows in safe, instrumented environments.
-- **Skillable Datacenter**: Native Hyper-V, VMware ESX, and Docker. ANY software that installs on Windows or Linux runs here.
-- **Cloud Slice - Azure**: Provisions isolated Azure subscriptions per learner. Also supports M365 tenant provisioning.
-- **Cloud Slice - AWS**: Provisions isolated AWS accounts per learner.
+- **Skillable Datacenter**: Native Hyper-V, VMware ESX, and Docker. ANY software that installs on Windows or Linux runs here. Hyper-V and VMware ESX are both exceptionally mature fabrics — Skillable recommends Hyper-V as the primary choice due to extreme cost increases imposed by Broadcom on VMware licensing. When recommending this path, note Hyper-V specifically (not ESX) unless the customer has a specific ESX dependency.
+- **Cloud Slice - Azure**: Provisions isolated Azure subscriptions per learner. Supports ALL Azure services (after Skillable Security Review). Also supports M365 tenant provisioning, Bicep templates (compiles to ARM at launch), and ARM JSON templates. This is Skillable's most capable and flexible cloud fabric.
+- **Cloud Slice - AWS**: Provisions isolated AWS accounts per learner. Supports a broad set of AWS services including EC2, RDS, S3, Lambda, DynamoDB, CloudFormation, ECS, EKS, API Gateway, Kinesis, SNS, SQS, Step Functions, Glue, CloudWatch, VPC, IAM, Route 53, Secrets Manager, and more. Notable gaps: SageMaker, most AI/ML services (Comprehend, Rekognition, Lex, Polly, Transcribe), ElastiCache, GuardDuty, CodeBuild/CodePipeline. Both Azure and AWS fabrics are actively developed — AWS support is expanding regularly.
 - **Skillable Simulations**: For scenarios where real labs are impractical.
-- Labs include automated scoring via API, PowerShell, CLI, and AI Vision.
+- Labs include automated scoring via API, PowerShell, CLI, Azure Resource Graph queries, and AI Vision.
 
 You will receive research for ONE product. Score it and output a single product JSON object.
 
@@ -300,16 +300,25 @@ All except Consumer are highly labable. Consumer → Score 0-3, add "consumer_pr
 ## STEP 3 — Determine Skillable Path
 **Hyper-V / VMware / Docker fabric — Check FIRST:** Does it run in VMs (Hyper-V/VMware) or Docker? → skillable_path: "B"
 ⚠️ The VM image IS the lab. No runtime provisioning APIs needed. Any software that installs on Windows or Linux scores 18-25.
+⚠️ Always recommend Hyper-V as the default VM fabric — both Hyper-V and VMware ESX are mature, but Skillable standardizes on Hyper-V due to Broadcom's extreme VMware cost increases. Mention this context explicitly in the Technical Orchestrability evidence when recommending the VM path, so the SA and customer understand why Hyper-V is preferred over ESX.
 - VM + rich APIs for outcome validation: 22-25, tier: "VM - Best Case"
 - VM + admin console + scripting/CLI: 20-22, tier: "VM - Best Case"
 - VM + meaningful admin workflows: 18-20, tier: "VM - Standard"
 - VM + limited interaction: 15-18, tier: "VM - Standard"
 - Impractical (GPU farm, 100GB+, mainframe): 10-15, tier: "VM - Complex Install"
 
-**Azure Cloud Slice / AWS Cloud Slice:** Runs natively on Azure or AWS (IaaS/PaaS)? → skillable_path: "A1"
-- Rich APIs: 20-24, tier: "Best - Rich APIs"
+**Azure Cloud Slice:** Runs natively on Azure (IaaS/PaaS) and the service is supported by Skillable? → skillable_path: "A1"
+ALL Azure services are supported (after security review). Bicep and ARM JSON templates both work. This is Skillable's broadest cloud fabric.
+- Rich APIs + full resource lifecycle: 20-24, tier: "Best - Rich APIs"
 - Credential pool recyclable: 15-19, tier: "Next Best - Credential Pool"
-- Azure SSO: 11-15, tier: "Manual - Azure SSO"
+- Azure SSO only: 11-15, tier: "Manual - Azure SSO"
+- Trial accounts: 7-11, tier: "Manual - Trial Accounts" (credit card → 4-7, add flags)
+
+**AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → skillable_path: "A1"
+Supported: EC2, RDS, S3, Lambda, DynamoDB, CloudFormation, ECS, EKS, API Gateway, Kinesis, SNS, SQS, Step Functions, Glue, CloudWatch, VPC, IAM, Route 53, Secrets Manager, and more.
+Not yet supported: SageMaker, Comprehend, Rekognition, Lex, Polly, Transcribe, ElastiCache, GuardDuty, CodeBuild/Pipeline — if a product relies primarily on these, note the gap.
+- Rich APIs + full resource lifecycle: 20-24, tier: "Best - Rich APIs"
+- Credential pool recyclable: 15-19, tier: "Next Best - Credential Pool"
 - Trial accounts: 7-11, tier: "Manual - Trial Accounts" (credit card → 4-7, add flags)
 
 **Custom API Provisioning:** Vendor's own cloud (not Azure/AWS)? → skillable_path: "A2"
@@ -351,12 +360,14 @@ VM/Datacenter (Hyper-V/Docker) ≥15: 1.0x | Any path ≥20: 1.0x | Tech 12-19 n
 
 When you see any of these signals in the research, note them explicitly in evidence or summary:
 - **Azure Marketplace / AWS Marketplace listing**: Strong signal — confirms cloud-native deployment or partner-published image; directly compatible with Skillable Cloud Slice or Azure/AWS fabric.
+- **Bicep or ARM templates available**: If the product deploys via Bicep or ARM JSON, lab authors can reuse those templates directly in Skillable Azure Cloud Slice. Note explicitly — this dramatically reduces lab build effort.
 - **Docker Hub image or public container registry**: VM/container fabric ready; lab authors can pull and configure without building from scratch.
-- **GitHub repository with deployment scripts (Terraform, Ansible, Helm, CloudFormation)**: Confirms automation capability; automated outcome scoring likely viable.
+- **GitHub repository with deployment scripts (Terraform, Ansible, Helm, CloudFormation, Bicep)**: Confirms automation capability; automated outcome scoring likely viable.
 - **NFR / Developer / Trial license**: Confirms Skillable can obtain a license for lab authoring without a commercial agreement.
 - **Existing CloudShare / Appsembler / Instruqt labs**: Confirms hands-on training demand exists; potential Skillable migration opportunity — note explicitly.
 - **Existing Skillable labs found**: Note directly — this is an active or past Skillable engagement signal.
 - **Deployment guide, system requirements, installation docs**: Confirms VM install viability; mention specific doc URL if found.
+- **AWS service dependency check**: If the product runs on AWS, verify its core services are on Skillable's supported list. Flag explicitly if key dependencies (SageMaker, AI/ML services, ElastiCache, GuardDuty, CodePipeline) are not yet supported.
 
 ## STEP 7 — Generate Product Recommendation (2-5 crisp bullets)
 Never use "Path A", "Path B", or "Path C" in the output — use the actual fabric/mechanism names instead.
