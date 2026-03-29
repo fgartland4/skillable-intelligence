@@ -475,9 +475,15 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
   Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
 REQUIRED bullets: Delivery Path, Scoring Rationale, Essential Technical Resource, Next Step.
-OPTIONAL (include when applicable): Similar Products Already in Skillable, Sample Tasks, Blockers, Note.
+OPTIONAL (include when applicable): Similar Products Already in Skillable, Sample Tasks, Program Fit, Blockers, Note.
 Total: 4-7 bullets. Never use "Path A", "Path B", or "Path C".
 Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
+
+**Embed training URLs as markdown links wherever relevant.** The research contains URLs for training catalogs, on-demand course pages, certification programs, ILT/vILT calendars, and partner portals. When a URL is available and relevant, embed it as a markdown link directly in the bullet text — do not list URLs separately. Examples of where to embed:
+- Program Fit bullet: link the training catalog or on-demand page (e.g. "Customer Training & Enablement ([Training Academy](https://...))")
+- Program Fit or Scoring Rationale: link the certification page if found (e.g. "[Certified Administrator exam](https://...)")
+- Next Step: link the partner portal or ATP program page if relevant
+Only embed URLs that appeared in the research — do not fabricate or guess URLs.
 
 Output `recommendation` as a JSON array of strings, one string per bullet (including the **bold label**). 4-6 items.
 
