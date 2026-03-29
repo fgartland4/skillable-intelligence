@@ -558,6 +558,7 @@ Return ONLY valid JSON — a single product object:
     "skillable_path": "A1|A2|B|C|Unknown",
     "path_tier": "VM - Best Case|VM - Standard|VM - Complex Install|Best - Rich APIs|Next Best - Credential Pool|Manual - Azure SSO|Manual - Trial Accounts|Simulation|Not Viable|Unknown",
     "skillable_mechanism": "Skillable Datacenter|Cloud Slice - Azure/AWS|Cloud Slice - Vendor Cloud|Skillable Simulation|Unclear",
+    "fabric": "Hyper-V|ESX|Docker|Azure Cloud Slice|AWS Cloud Slice|Custom API|Simulation|Unclear",
     "user_personas": ["Administrator", "Developer"],
     "lab_highlight": "3–5 word badge phrase — what makes this product inherently hands-on. Must fit on one line. Examples: 'Deep config complexity', 'Misconfigure it, something breaks', 'Build the AI pipeline yourself', 'Multi-VM network topology', 'Real API orchestration required'. Only include if genuinely compelling. Leave empty string if nothing stands out.",
     "poor_match_flags": [],

@@ -797,8 +797,9 @@
                                 {% set pt = product.path_tier or '' %}
                                 <div class="delivery-path-line">
                                     {% if path == 'B' %}
-                                        {% if 'Docker' in (product.recommendation | join(' ')) or 'container' in (product.recommendation | join(' ')) %}Hyper-V / Docker fabric running in Skillable datacenters
-                                        {% elif 'VMware' in (product.recommendation | join(' ')) %}VMware ESX fabric running in Skillable datacenters
+                                        {% set fabric = product.fabric | default('') %}
+                                        {% if fabric == 'ESX' %}VMware ESX fabric running in Skillable datacenters
+                                        {% elif fabric == 'Docker' %}Docker fabric running in Skillable datacenters
                                         {% else %}Hyper-V fabric running in Skillable datacenters{% endif %}
                                     {% elif path in ['A1', 'A'] %}Azure Cloud Slice — isolated subscription per learner
                                     {% elif path == 'A2' %}Custom API provisioning — vendor cloud, per-learner instance
