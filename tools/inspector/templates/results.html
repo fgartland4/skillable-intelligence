@@ -744,9 +744,10 @@
                     <span style="display:flex; align-items:center; gap:10px;">
                     Skillable Recommendation
                     {% if path == 'B' %}
-                        {% if 'Docker' in rec_text or 'docker' in rec_text or 'container' in rec_text %}
+                        {% set fabric = product.fabric | default('') %}
+                        {% if fabric == 'Docker' %}
                         <span class="rec-fabric">Docker Container Fabric</span>
-                        {% elif 'VMware' in rec_text or 'ESX' in rec_text or 'vSphere' in rec_text %}
+                        {% elif fabric == 'ESX' %}
                         <span class="rec-fabric">VMware ESX Fabric</span>
                         {% else %}
                         <span class="rec-fabric">Hyper-V Fabric</span>
