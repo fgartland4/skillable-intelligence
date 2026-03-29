@@ -561,7 +561,7 @@ Return ONLY valid JSON — a single product object:
     "name": "Product Name",
     "product_url": "https://vendor.com/product-page — canonical product page URL, not the homepage",
     "category": "Category",
-    "description": "Brief description",
+    "description": "1-2 sentence description written for a Skillable seller or SE who has never heard of this product. State what the product does, who uses it, and what problem it solves — no assumed knowledge. Example: 'Tanium Asset is an IT asset management module that gives security and operations teams real-time visibility into hardware and software inventory across every endpoint in the environment, regardless of location or connectivity.'",
     "deployment_model": "self-hosted|cloud|hybrid|saas-only",
     "skillable_path": "A1|A2|B|C|Unknown",
     "path_tier": "VM - Best Case|VM - Standard|VM - Complex Install|Best - Rich APIs|Next Best - Credential Pool|Manual - Azure SSO|Manual - Trial Accounts|Simulation|Not Viable|Unknown",
