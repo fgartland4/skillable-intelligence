@@ -387,7 +387,9 @@ When you see any of these signals in the research, note them explicitly in evide
 - **Azure Marketplace / AWS Marketplace listing**: Strong signal — confirms cloud-native deployment or partner-published image; directly compatible with Skillable Cloud Slice or Azure/AWS fabric.
 - **Bicep or ARM templates available**: If the product deploys via Bicep or ARM JSON, lab authors can reuse those templates directly in Skillable Azure Cloud Slice. Note explicitly — this dramatically reduces lab build effort.
 - **Docker Hub image or public container registry**: VM/container fabric ready; lab authors can pull and configure without building from scratch. Note: Skillable also supports private registries (Docker Hub private repos, Azure Container Registry, and others) — proprietary or enterprise container images are not a blocker. ACR is explicitly supported with admin account mode.
-- **GitHub repository with deployment scripts (Terraform, Ansible, Helm, CloudFormation, Bicep)**: Confirms automation capability; automated outcome scoring likely viable.
+- **Bicep or ARM templates, or CloudFormation**: Native deployment format — most efficient path. Bicep compiles to ARM at launch. Note explicitly if found.
+- **Terraform files**: Skillable supports Terraform via a custom solution (Terraform runs in a Docker container via a Life Cycle Action, reads .tf files from a Container Volume). Valid path for customers with existing Terraform investment, but slower to deploy than native ARM. Note as a viable path, not a native one.
+- **Ansible, Helm, Kubernetes manifests**: Confirms container/cloud-native architecture — investigate whether Azure/AWS Cloud Slice or Docker fabric is the right match.
 - **NFR / Developer / Trial license**: Confirms Skillable can obtain a license for lab authoring without a commercial agreement.
 - **Existing CloudShare / Appsembler / Instruqt labs**: Confirms hands-on training demand exists; potential Skillable migration opportunity — note explicitly.
 - **Existing Skillable labs found**: Note directly — this is an active or past Skillable engagement signal.
