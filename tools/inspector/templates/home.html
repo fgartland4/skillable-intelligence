@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labability Intelligence Engine — Skillable</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0;
+            min-height: 100vh;
+        }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; padding: 16px 32px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.9); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; }
+        .nav-logo img { height: 28px; }
+        .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
+        .nav-title { font-size: 0.875rem; color: #6b9e88; font-weight: 500; letter-spacing: 0.03em; }
+
+        /* Hero */
+        .hero { text-align: center; padding: 80px 20px 60px; }
+        .hero-eyebrow {
+            display: inline-block; font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            color: #24ED9B; border: 1px solid rgba(36,237,155,0.3);
+            padding: 5px 14px; border-radius: 20px; margin-bottom: 24px;
+            background: rgba(36,237,155,0.06);
+        }
+        .hero h1 {
+            font-size: 2.8rem; font-weight: 800; line-height: 1.15;
+            color: #e8f5f0; max-width: 600px; margin: 0 auto 16px;
+            letter-spacing: -0.02em;
+        }
+        .hero h1 span { color: #24ED9B; }
+        .hero-sub { color: #6b9e88; font-size: 1.05rem; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+
+        /* Search card */
+        .container { max-width: 720px; margin: 0 auto; padding: 0 20px 80px; }
+        .search-card {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 16px; padding: 36px; margin-bottom: 40px;
+            box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.8rem; color: #6b9e88; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+        .form-group input {
+            width: 100%; padding: 13px 16px;
+            border-radius: 10px; border: 1px solid #1e3329;
+            background: #06100c; color: #e8f5f0;
+            font-size: 1rem; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus { border-color: #24ED9B; box-shadow: 0 0 0 3px rgba(36,237,155,0.12); }
+        .form-group input::placeholder { color: #3d6655; }
+        .form-group .hint { font-size: 0.78rem; color: #3d6655; margin-top: 6px; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 13px 32px; background: #24ED9B; color: #06100c;
+            border: none; border-radius: 10px; font-size: 0.95rem;
+            font-weight: 700; cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.01em;
+        }
+        .btn:hover { background: #1dd88a; box-shadow: 0 0 24px rgba(36,237,155,0.3); }
+        .btn:disabled { background: #1e3329; color: #3d6655; cursor: not-allowed; box-shadow: none; }
+
+        /* Recent analyses */
+        .section-heading {
+            font-size: 0.68rem; font-weight: 600; color: #2a4a3a;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+        .recent-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .recent-item {
+            padding: 7px 4px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #0d1a14;
+        }
+        .recent-item:last-child { border-bottom: none; }
+        .recent-item a { color: #4a7a62; text-decoration: none; font-size: 0.85rem; font-weight: 500; }
+        .recent-item a:hover { color: #24ED9B; }
+        .recent-item .meta { color: #2a4a3a; font-size: 0.75rem; }
+        .score-pill {
+            color: #3d6655; font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-logo">
+            <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="hero-eyebrow">Labability Intelligence Engine</div>
+        <h1>Which products are ready for <span>Skillable labs?</span></h1>
+        <p class="hero-sub">AI-powered research and scoring to identify your best lab opportunities and partnership targets.</p>
+    </div>
+
+    <div class="container">
+        <div class="search-card">
+            <form method="POST" action="/inspector/discover" id="analyzeForm">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+                    <div class="form-group" style="margin-bottom:0">
+                        <label for="company_name">Organization</label>
+                        <input type="text" id="company_name" name="company_name"
+                            placeholder="Pick a card, any card…" autofocus>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0">
+                        <label for="product_name">Product</label>
+                        <input type="text" id="product_name" name="product_name"
+                            placeholder="Who makes this anyway?">
+                    </div>
+                </div>
+                <div class="form-group hint" style="margin-bottom:20px; margin-top:-10px; text-align:center;">
+                    Fill in what you know — organization, product, or both
+                </div>
+                <div style="text-align:center;">
+                    <button type="submit" class="btn" id="submitBtn" disabled>
+                        <span>Research</span>
+                        <span>&#8594;</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div style="text-align:center; margin-top:-24px; margin-bottom:32px;">
+            <a href="/inspector/marketing" style="font-size:0.78rem; color:#2a4a3a; text-decoration:none; letter-spacing:0.03em;">Ideal Customer Finder &rarr;</a>
+        </div>
+
+        {% if recent %}
+        <div class="section-heading">Recent</div>
+        <ul class="recent-list">
+            {% for item in recent[:6] %}
+            <li class="recent-item">
+                <a href="/inspector/results/{{ item.analysis_id }}">{{ item.company_name }}</a>
+                <span class="meta score-pill">{{ item.analyzed_at[:10] }} &middot; {{ item.top_score }}/100</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+    <script>
+        const btn = document.getElementById('submitBtn');
+        const orgInput = document.getElementById('company_name');
+        const prodInput = document.getElementById('product_name');
+        function checkReady() {
+            btn.disabled = !(orgInput.value.trim() || prodInput.value.trim());
+        }
+        orgInput.addEventListener('input', checkReady);
+        prodInput.addEventListener('input', checkReady);
+        document.getElementById('analyzeForm').addEventListener('submit', function() {
+            btn.disabled = true;
+            btn.innerHTML = '<span>Researching...</span>';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ data.company_name }} — Labability Analysis</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0; min-height: 100vh;
+        }
+        a { color: #24ED9B; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; padding: 16px 32px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.92); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .nav img { height: 28px; }
+        .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
+        .nav-title { font-size: 0.875rem; color: #6b9e88; font-weight: 500; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back { display: inline-block; margin-bottom: 28px; color: #6b9e88; font-size: 0.85rem; }
+        .back:hover { color: #24ED9B; text-decoration: none; }
+
+        /* Org type badges */
+        .org-badge {
+            display: inline-block; font-size: 0.62rem; padding: 4px 10px;
+            border-radius: 20px; vertical-align: middle; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase; margin-left: 12px;
+        }
+        .org-software    { background: rgba(112,0,255,0.12); color: #a78bfa; border: 1px solid rgba(112,0,255,0.25); }
+        .org-training    { background: rgba(245,158,11,0.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .org-academic    { background: rgba(139,92,246,0.1);  color: #c4b5fd; border: 1px solid rgba(139,92,246,0.25); }
+        .org-integrator  { background: rgba(20,184,166,0.1);  color: #2dd4bf; border: 1px solid rgba(20,184,166,0.25); }
+        .org-distributor { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+        .org-services    { background: rgba(148,163,184,0.08);color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
+
+        /* Company header */
+        .company-header { margin-bottom: 36px; }
+        .company-header h1 { font-size: 2.2rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; line-height: 1.2; }
+        .company-header .desc { color: #6b9e88; margin-top: 10px; line-height: 1.6; font-size: 0.83rem; }
+        .company-header .meta { color: #3d6655; font-size: 0.82rem; margin-top: 8px; }
+
+        /* Top blocks — side by side */
+        .top-blocks { display: flex; gap: 16px; margin-bottom: 28px; align-items: stretch; }
+        .top-blocks .composite-card { flex: 1; margin-bottom: 0; }
+        .consumption-summary-card {
+            flex: 1; display: flex; flex-direction: column; justify-content: space-between;
+            background: linear-gradient(135deg, #0d1a14 0%, #0f2019 100%);
+            border: 1px solid rgba(36,237,155,0.25); border-radius: 16px; padding: 24px 28px;
+            box-shadow: 0 0 40px rgba(36,237,155,0.07);
+        }
+        .consumption-summary-card .card-label {
+            font-size: 0.65rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 16px;
+        }
+        @media (max-width: 700px) { .top-blocks { flex-direction: column; } }
+
+        /* Composite score card */
+        .composite-card {
+            background: linear-gradient(135deg, #0d1a14 0%, #0f2019 100%);
+            border: 1px solid rgba(36,237,155,0.25);
+            border-radius: 16px; padding: 24px 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 0 40px rgba(36,237,155,0.07);
+        }
+        .composite-card .card-label {
+            font-size: 0.65rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 16px;
+        }
+        .composite-body {
+            display: flex; align-items: center; gap: 0;
+        }
+        .composite-hero {
+            display: flex; flex-direction: column; justify-content: center;
+            padding-right: 28px; flex-shrink: 0;
+        }
+        .composite-hero .value {
+            font-size: 3.2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
+        }
+        .composite-hero .denom { font-size: 1.2rem; color: #3d6655; font-weight: 400; }
+        .composite-divider {
+            width: 1px; background: #1e3329; align-self: stretch;
+            flex-shrink: 0; margin: 0 24px;
+        }
+        .composite-inputs {
+            flex: 1; display: flex; flex-direction: column; gap: 10px;
+        }
+        .composite-input {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+        }
+        .input-left { flex: 1; min-width: 0; }
+        .input-label {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.08em; font-weight: 700;
+        }
+        .input-sublabel { font-size: 0.78rem; color: #a8d5c2; margin-top: 3px; font-weight: 500; }
+        .input-right { text-align: left; flex-shrink: 0; }
+        .input-score {
+            font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+        }
+        .input-denom { font-size: 0.78rem; color: #3d6655; font-weight: 400; }
+        .input-weight {
+            font-size: 0.62rem; font-weight: 700; color: #3d6655;
+            background: #122019; border-radius: 4px; padding: 2px 7px;
+            letter-spacing: 0.04em; display: block; margin-top: 4px;
+        }
+        .composite-input-sep { height: 1px; background: #1e3329; margin: 2px 0; }
+        .score-high { color: #24ED9B; }
+        .score-mid  { color: #f59e0b; }
+        .score-low  { color: #f87171; }
+        .gated-note { font-size: 0.67rem; color: #f87171; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+        .composite-equation {
+            font-size: 0.72rem; color: #3d6655; line-height: 1.5;
+            border-top: 1px solid #1e3329; margin-top: 16px; padding-top: 12px;
+        }
+        .composite-equation .eq-math { color: #4a7a62; font-variant-numeric: tabular-nums; }
+        .composite-equation .eq-cap  { color: #f87171; }
+
+        /* Section heading */
+        .section-heading {
+            font-size: 0.7rem; font-weight: 700; color: #3d6655;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 16px; margin-top: 8px;
+        }
+
+        /* Product cards */
+        .product-card {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 16px; padding: 30px; margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+        .product-card:hover { border-color: #2a4a3a; }
+
+        .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+        .product-name { font-size: 1.35rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.01em; }
+        .product-category { color: #6b9e88; font-size: 0.82rem; margin-top: 3px; }
+        .product-deploy {
+            display: inline-block; background: #122019; color: #6b9e88;
+            padding: 3px 10px; border-radius: 6px; font-size: 0.72rem; margin-top: 5px;
+        }
+        .total-score { text-align: right; min-width: 80px; }
+        .total-score .score-num { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+        .total-score .out-of { font-size: 0.8rem; color: #3d6655; font-weight: 400; }
+        .product-desc { color: #6b9e88; font-size: 0.875rem; margin-bottom: 18px; line-height: 1.6; }
+
+        /* Lab highlight badge */
+        .lab-highlight-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.68rem; padding: 3px 10px; border-radius: 20px;
+            font-weight: 600; margin-left: 10px; vertical-align: middle;
+            background: rgba(245,158,11,0.08); color: #f59e0b;
+            border: 1px solid rgba(245,158,11,0.2);
+            letter-spacing: 0.01em;
+        }
+
+        /* Poor match flags */
+        .poor-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+        .flag-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 600;
+            background: rgba(248,113,113,0.08); color: #f87171;
+            border: 1px solid rgba(248,113,113,0.2);
+        }
+
+        /* Recommendation */
+        .recommendation {
+            background: rgba(36,237,155,0.04); border-left: 2px solid #24ED9B;
+            border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 20px;
+            font-size: 0.875rem; color: #a8d5c2; line-height: 1.65;
+        }
+        .rec-label {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #24ED9B; font-weight: 700; margin-bottom: 5px;
+        }
+        .rec-bullets {
+            margin: 6px 0 0 0; padding-left: 18px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .rec-bullets li { line-height: 1.5; }
+        .rec-bullets li strong { color: #24ED9B; font-weight: 600; }
+        .rec-link { color: #24ED9B; text-decoration: none; border-bottom: 1px solid rgba(36,237,155,0.3); }
+        .rec-link:hover { border-bottom-color: #24ED9B; }
+        .product-name-link { color: inherit; border-bottom: 1px solid rgba(168,213,194,0.4); text-decoration: none; }
+        .product-name-link:hover { border-bottom-color: #a8d5c2; }
+        .rec-fabric {
+            background: rgba(112,0,255,0.12); color: #a78bfa;
+            border: 1px solid rgba(112,0,255,0.25);
+            padding: 2px 9px; border-radius: 4px;
+            font-size: 0.68rem; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: none; white-space: nowrap;
+        }
+
+        /* Skillable path bar */
+        .mechanism-bar {
+            background: #06100c; border: 1px solid #1e3329; border-radius: 10px;
+            padding: 12px 16px; margin-bottom: 20px;
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+        }
+        .mech-label { font-size: 0.68rem; color: #3d6655; text-transform: uppercase; letter-spacing: 0.08em; margin-right: 2px; }
+        .mech-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
+        }
+        .mech-datacenter { background: rgba(36,237,155,0.1);  color: #24ED9B; border: 1px solid rgba(36,237,155,0.2); }
+        .mech-cloudslice { background: rgba(112,0,255,0.12);  color: #a78bfa; border: 1px solid rgba(112,0,255,0.2); }
+        .mech-simulation { background: rgba(245,158,11,0.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+        .mech-unclear    { background: #122019; color: #6b9e88; }
+        .tier-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 600; background: #0d1a14; color: #3d6655;
+            border: 1px solid #1e3329;
+        }
+        .tier-best   { border-color: rgba(36,237,155,0.3);  color: #24ED9B; }
+        .tier-next   { border-color: rgba(112,0,255,0.3);   color: #a78bfa; }
+        .tier-manual { border-color: rgba(245,158,11,0.3);  color: #f59e0b; }
+        .api-badge {
+            font-size: 0.72rem; color: #3d6655;
+            max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .persona-badge {
+            display: inline-block; background: #0d1a14; color: #6b9e88;
+            border: 1px solid #1e3329; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.72rem; margin-top: 5px; margin-left: 6px;
+        }
+
+        /* Score dimensions */
+        .dimensions { display: flex; flex-direction: column; margin-bottom: 22px; }
+        .dim { display: grid; grid-template-columns: 1fr 180px; gap: 24px; align-items: start; padding: 18px 0; border-bottom: 1px solid #122019; }
+        .dim:last-child { border-bottom: none; padding-bottom: 0; }
+        .dim-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #3d6655; margin-bottom: 8px; }
+        .dim-score-col { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 2px; }
+        .dim-score-num { font-weight: 900; font-size: 1.8rem; letter-spacing: -0.03em; line-height: 1; text-align: center; }
+        .dim-score-denom { font-size: 0.72rem; color: #3d6655; font-weight: 400; }
+        .bar-track { height: 4px; background: #1e3329; border-radius: 2px; overflow: hidden; width: 100%; }
+        .bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+        .bar-fill.high { background: #24ED9B; }
+        .bar-fill.mid  { background: #f59e0b; }
+        .bar-fill.low  { background: #f87171; }
+        .dim-summary { font-size: 0.78rem; color: #3d6655; margin-top: 4px; line-height: 1.5; }
+        .delivery-path-line { font-size: 0.78rem; color: #24ED9B; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+        .delivery-path-tier { font-size: 0.72rem; color: #6b9e88; font-weight: 400; }
+
+        /* Evidence */
+        .evidence-toggle {
+            background: none; border: 1px solid #1e3329; color: #3d6655;
+            padding: 5px 12px; border-radius: 6px; font-size: 0.75rem;
+            cursor: pointer; margin-top: 8px; transition: all 0.15s;
+        }
+        .evidence-toggle:hover { border-color: #24ED9B; color: #24ED9B; }
+        .evidence-list { display: none; margin-top: 10px; }
+        .evidence-list.open { display: block; }
+        .evidence-item {
+            font-size: 0.78rem; color: #6b9e88; padding: 6px 0;
+            border-bottom: 1px solid #0d1a14; line-height: 1.4;
+            word-break: break-word; overflow-wrap: break-word;
+        }
+        .evidence-item:last-child { border-bottom: none; }
+        .evidence-disclaimer {
+            font-size: 0.68rem; color: #3d6655; margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* Org & Contacts */
+        .org-banner {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: #06100c; border: 1px solid #1e3329; border-radius: 10px;
+            padding: 14px 16px; margin-bottom: 12px;
+        }
+        .org-banner-body { flex: 1; min-width: 0; }
+        .section-title {
+            font-size: 0.68rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; margin-bottom: 6px; font-weight: 700;
+        }
+        .org-name { font-weight: 700; color: #e8f5f0; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .org-type-tag {
+            display: inline-block; background: #122019; color: #6b9e88;
+            padding: 2px 7px; border-radius: 4px; font-size: 0.65rem;
+        }
+        .org-desc { font-size: 0.82rem; color: #6b9e88; margin-top: 5px; line-height: 1.4; }
+        .contacts-groups { margin-top: 4px; }
+        .contacts-group-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; padding: 6px 0 4px; margin-top: 8px;
+        }
+        .contacts-group-label.dm  { color: #a78bfa; }
+        .contacts-group-label.inf { color: #24ED9B; }
+        .contact-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 9px 12px; background: #06100c; border: 1px solid #1e3329;
+            border-radius: 8px; margin-bottom: 5px;
+        }
+        .contact-row-main { flex: 1; min-width: 0; }
+        .contact-name { font-weight: 600; color: #e8f5f0; font-size: 0.875rem; line-height: 1.2; }
+        .contact-name a { color: #e8f5f0; }
+        .contact-name a:hover { color: #24ED9B; }
+        .contact-li-icon { font-size: 0.65rem; color: #24ED9B; margin-left: 4px; vertical-align: middle; }
+        .contact-title { font-size: 0.78rem; color: #6b9e88; margin-top: 2px; line-height: 1.3; }
+        .contact-relevance { font-size: 0.72rem; color: #3d6655; margin-top: 5px; line-height: 1.35; }
+
+        /* Lab concepts */
+        .lab-concepts { margin-top: 14px; }
+        .lab-concepts-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px;
+        }
+        .lab-concept {
+            background: rgba(112,0,255,0.08); color: #a78bfa;
+            border: 1px solid rgba(112,0,255,0.15);
+            padding: 5px 12px; border-radius: 6px; font-size: 0.78rem;
+            line-height: 1.4;
+        }
+
+        /* Score bar entrance animation */
+        @keyframes bar-enter { from { width: 0; } }
+        .bar-fill { animation: bar-enter 0.7s ease-out; }
+
+        /* Consumption Potential */
+        .consumption-card {
+            background: #06100c; border: 1px solid #1e3329;
+            border-radius: 12px; padding: 20px 22px; margin-top: 18px;
+        }
+        .consumption-header {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 14px;
+        }
+        .consumption-title {
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655;
+        }
+        .consumption-directional {
+            font-size: 0.65rem; color: #2a4a3a; font-style: italic;
+        }
+        .consumption-table {
+            width: 100%; border-collapse: collapse; font-size: 0.8rem;
+            margin-bottom: 14px;
+        }
+        .consumption-table th {
+            text-align: left; font-size: 0.62rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #3d6655; font-weight: 700;
+            padding: 0 12px 8px 0; border-bottom: 1px solid #122019;
+        }
+        .consumption-table th:first-child { padding-right: 0; }
+        .consumption-table th:not(:first-child) { text-align: center; padding-left: 12px; padding-right: 0; }
+        .consumption-table td {
+            padding: 8px 12px 8px 0; color: #a8d5c2; border-bottom: 1px solid #0d1a14;
+            vertical-align: top;
+        }
+        .consumption-table td:first-child { padding-right: 0; }
+        .consumption-table td:not(:first-child) { text-align: right; color: #6b9e88; white-space: nowrap; padding-left: 12px; padding-right: 0; }
+        .consumption-table tr:last-child td { border-bottom: none; }
+        .consumption-motion-label { font-weight: 500; color: #a8d5c2; }
+        .consumption-motion-rationale { font-size: 0.7rem; color: #3d6655; margin-top: 2px; }
+        .consumption-total-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            padding: 12px 0 10px; border-top: 1px solid #1e3329; margin-top: 4px;
+        }
+        .consumption-total-label { font-size: 0.72rem; color: #6b9e88; font-weight: 600; }
+        .consumption-total-value {
+            font-size: 1.05rem; font-weight: 800; color: #24ED9B; letter-spacing: -0.01em;
+        }
+        .consumption-acv {
+            font-size: 0.72rem; color: #3d6655; margin-top: 2px; text-align: right;
+        }
+        .consumption-methodology {
+            font-size: 0.68rem; color: #2a4a3a; font-style: italic;
+            line-height: 1.5; border-top: 1px solid #122019; padding-top: 10px; margin-top: 4px;
+        }
+        .consumption-methodology::before { content: "ⓘ "; color: #3d6655; }
+
+        /* Customer rollup */
+        .rollup-card {
+            background: linear-gradient(135deg, #0a1812 0%, #0d1e18 100%);
+            border: 1px solid rgba(36,237,155,0.15);
+            border-radius: 16px; padding: 26px 28px; margin-top: 28px;
+        }
+        .rollup-card h2 {
+            font-size: 1.1rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.01em; margin-bottom: 4px;
+        }
+        .rollup-subtitle { font-size: 0.78rem; color: #3d6655; margin-bottom: 18px; }
+        .rollup-table {
+            width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 14px;
+        }
+        .rollup-table th {
+            text-align: left; font-size: 0.62rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #3d6655; font-weight: 700;
+            padding: 0 12px 8px 0; border-bottom: 1px solid #1e3329;
+        }
+        .rollup-table th:not(:first-child) { text-align: right; }
+        .rollup-table td {
+            padding: 9px 12px 9px 0; border-bottom: 1px solid #0d1a14;
+            color: #a8d5c2; vertical-align: middle;
+        }
+        .rollup-table td:not(:first-child) { text-align: right; color: #6b9e88; }
+        .rollup-table tr:last-child td { border-bottom: none; }
+        .rollup-summary { border-top: 2px solid rgba(36,237,155,0.2); margin-top: 16px; padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+        .rollup-summary-row { display: flex; justify-content: space-between; align-items: baseline; }
+        .rollup-summary-label { font-size: 0.82rem; color: #6b9e88; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .rollup-summary-value { font-size: 1.3rem; font-weight: 900; color: #24ED9B; letter-spacing: -0.02em; }
+        .rollup-total {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 0 0; border-top: 1px solid #1e3329;
+        }
+        .rollup-total-label { font-size: 0.82rem; color: #6b9e88; font-weight: 600; }
+        .rollup-total-value { font-size: 1.3rem; font-weight: 900; color: #24ED9B; letter-spacing: -0.02em; }
+        .rollup-acv-note { font-size: 0.72rem; color: #3d6655; margin-top: 6px; text-align: center; }
+
+        /* Partnership readiness */
+        .partnership-card {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 16px; padding: 30px; margin-top: 36px;
+        }
+        .partnership-card h2 {
+            font-size: 1.3rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.01em; margin-bottom: 4px;
+        }
+        .pr-subtitle { font-size: 0.8rem; color: #3d6655; margin-bottom: 24px; }
+
+        /* Two-column layout for all PR sections */
+        .pr-row {
+            display: grid; grid-template-columns: 1fr 200px; gap: 24px;
+            align-items: start; padding: 20px 0;
+            border-bottom: 1px solid #122019;
+        }
+        .pr-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .pr-row-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 10px;
+        }
+        .pr-bullets {
+            margin: 0; padding-left: 18px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .pr-bullets li { font-size: 0.875rem; color: #a8d5c2; line-height: 1.5; }
+        .pr-bullets li strong { color: #24ED9B; font-weight: 600; }
+        .pr-bullets li a { color: #24ED9B; text-decoration: none; border-bottom: 1px solid rgba(36,237,155,0.3); }
+        .pr-bullets li a:hover { border-bottom-color: #24ED9B; }
+        .pr-score-col {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-start; padding-top: 4px; gap: 8px;
+        }
+        .pr-score-num {
+            font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
+            text-align: center;
+        }
+        .pr-score-denom { font-size: 0.78rem; color: #3d6655; font-weight: 400; }
+        .pr-score-label {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.08em; font-weight: 700; text-align: center;
+        }
+        .pr-bar-track { width: 100%; height: 5px; background: #1e3329; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+        .pr-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; animation: bar-enter 0.7s ease-out; }
+
+        /* Technical details disclosure */
+        .tech-details { margin-top: 20px; }
+        .tech-details > summary {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px; background: #06100c; border: 1px solid #1e3329;
+            border-radius: 8px; cursor: pointer; list-style: none;
+            font-size: 0.72rem; color: #3d6655; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            transition: color 0.15s, border-color 0.15s;
+            user-select: none;
+        }
+        .tech-details > summary::-webkit-details-marker { display: none; }
+        .rec-details > summary { color: #24ED9B; border-color: rgba(36,237,155,0.2); }
+        .tech-details.rec-details > summary:hover { color: #7fffd4; }
+        .rec-details[open] > summary { color: #24ED9B; }
+        .rec-details .recommendation { border-left: 2px solid #24ED9B; border-radius: 0 0 10px 10px; margin-top: 0; }
+        .tech-details > summary:hover { color: #6b9e88; border-color: rgba(36,237,155,0.2); }
+        .tech-details > summary .det-arrow { font-size: 1rem; font-weight: 400; flex-shrink: 0; }
+        .tech-details[open] > summary { color: #6b9e88; border-color: rgba(36,237,155,0.15); border-radius: 8px 8px 0 0; }
+        .tech-details-content {
+            border: 1px solid rgba(36,237,155,0.12); border-top: none;
+            border-radius: 0 0 8px 8px; padding: 20px 20px 12px;
+        }
+
+        /* Product nav strip */
+        .product-nav {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-top: 12px; margin-bottom: 24px;
+        }
+        .product-nav-item {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 8px; padding: 7px 14px;
+            font-size: 0.82rem; color: #a8d5c2; text-decoration: none;
+            transition: border-color 0.15s, background 0.15s;
+            white-space: nowrap;
+        }
+        .product-nav-item:hover { border-color: rgba(36,237,155,0.3); background: #0f1e17; text-decoration: none; color: #e8f5f0; }
+        .pnav-score { font-weight: 800; font-size: 0.88rem; }
+
+        @media (max-width: 768px) {
+            .composite-body { flex-direction: column; }
+            .composite-divider { width: 100%; height: 1px; margin: 16px 0; }
+            .composite-hero { padding-right: 0; padding-bottom: 0; }
+            .dimensions { grid-template-columns: 1fr; }
+            .pr-row { grid-template-columns: 1fr; }
+            .product-header { flex-direction: column; }
+            .total-score { text-align: left; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+        <div class="nav-divider"></div>
+        <span style="font-size:0.875rem;color:#6b9e88;">Labability Intelligence Engine</span>
+    </nav>
+
+    <div class="container">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+            <a href="/inspector/" class="back" style="margin-bottom:0;">&larr; Back to Search</a>
+            {% if data.discovery_id %}
+            <a href="/inspector/select/{{ data.discovery_id }}" class="back" style="margin-bottom:0;color:#3d6655;">&#8635; Choose Different Products</a>
+            {% endif %}
+        </div>
+
+        <!-- Company Header -->
+        <div class="company-header">
+            <h1>
+                {{ data.company_name }}
+                {% set ot = data.organization_type %}
+                {% if ot == 'software_company' %}
+                <span class="org-badge org-software">Software Company</span>
+                {% elif ot == 'training_organization' %}
+                <span class="org-badge org-training">Training Organization</span>
+                {% elif ot == 'academic_institution' %}
+                <span class="org-badge org-academic">Academic Institution</span>
+                {% elif ot == 'systems_integrator' %}
+                <span class="org-badge org-integrator">Systems Integrator</span>
+                {% elif ot == 'technology_distributor' %}
+                <span class="org-badge org-distributor">Technology Distributor</span>
+                {% elif ot == 'professional_services' %}
+                <span class="org-badge org-services">Professional Services</span>
+                {% else %}
+                <span class="org-badge org-services">{{ ot|replace('_',' ')|title }}</span>
+                {% endif %}
+            </h1>
+            {% if data.company_description %}
+            <p class="desc">{{ data.company_description }}</p>
+            {% endif %}
+            <div class="meta">
+                {% if data.company_url %}<a href="{{ data.company_url }}" target="_blank">{{ data.company_url }}</a> &middot; {% endif %}
+                Analyzed {{ data.analyzed_at[:10] if data.analyzed_at else '' }} &middot;
+                {% set ot = data.organization_type %}
+                {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}
+                {{ data.products|length }} programs scored
+                {% else %}
+                {{ data.products|length }} products scored
+                {% endif %}
+            </div>
+        </div>
+
+        {% set ns = namespace(total_low=0, total_high=0, acv_low=0.0, acv_high=0.0, has_cp=false) %}
+        {% for product in data.products %}
+            {% set cp = product.get('consumption_potential', {}) %}
+            {% if cp and cp.get('annual_hours_high', 0) > 0 %}
+                {% set ns.total_low = ns.total_low + cp.get('annual_hours_low', 0) %}
+                {% set ns.total_high = ns.total_high + cp.get('annual_hours_high', 0) %}
+                {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
+                {% elif product.skillable_path == 'C' %}{% set r_lo = 5 %}{% set r_hi = 5 %}
+                {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set r_lo = cp.get('vm_rate_estimate') %}{% set r_hi = cp.get('vm_rate_estimate') %}
+                {% else %}{% set r_lo = 12 %}{% set r_hi = 55 %}{% endif %}
+                {% set ns.acv_low = ns.acv_low + cp.get('annual_hours_low', 0) * r_lo %}
+                {% set ns.acv_high = ns.acv_high + cp.get('annual_hours_high', 0) * r_hi %}
+                {% set ns.has_cp = true %}
+            {% endif %}
+        {% endfor %}
+
+        <!-- Top blocks: Opportunity Score + Consumption Summary side by side -->
+        <div class="top-blocks">
+        {% set weights = data._composite_weights or "65% Product / 35% Partnership" %}
+        {% set prod_weight = "65%" if "65% Product" in weights else "35%" %}
+        {% set part_weight = "35%" if "35% Partnership" in weights else "65%" %}
+        {% set pw_int = prod_weight | replace('%','') | int %}
+        {% set prw_int = part_weight | replace('%','') | int %}
+        {% set top = data.products[0]._total_score if data.products else 0 %}
+        {% set raw_composite = ((top * pw_int / 100) + (data._pr_total * prw_int / 100)) | round | int %}
+        {% set gate_threshold = 20 if data.organization_type in ['training_organization','systems_integrator','technology_distributor','professional_services'] else 30 %}
+        {% set channel_orgs = ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}
+        {% set is_channel = data.organization_type in channel_orgs %}
+        {% set org_label = data.organization_type | replace('_', ' ') | title %}
+        {% set cs = data._composite_score %}
+
+        <div class="composite-card">
+            <div class="card-label">Overall Opportunity Score</div>
+            <div class="composite-body">
+
+                <!-- Hero: composite score -->
+                <div class="composite-hero">
+                    <div class="value {% if cs >= 70 %}score-high{% elif cs >= 40 %}score-mid{% else %}score-low{% endif %}">
+                        {{ cs }}<span class="denom">/100</span>
+                    </div>
+                    {% if data._composite_gated %}
+                    <div class="gated-note">&#9888; Gated</div>
+                    {% endif %}
+                </div>
+
+                <div class="composite-divider"></div>
+
+                <!-- Inputs: top product + partnership stacked -->
+                <div class="composite-inputs">
+                    <div class="composite-input">
+                        <div class="input-right">
+                            <span class="input-score {% if top >= 70 %}score-high{% elif top >= 40 %}score-mid{% else %}score-low{% endif %}">{{ top }}<span class="input-denom">/100</span></span>
+                            <span class="input-weight">× {{ prod_weight }}</span>
+                        </div>
+                        <div class="input-left">
+                            <div class="input-label">Top Product Labability</div>
+                            <div class="input-sublabel">{{ data.products[0].name if data.products else '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="composite-input-sep"></div>
+                    <div class="composite-input">
+                        <div class="input-right">
+                            <span class="input-score {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}<span class="input-denom">/100</span></span>
+                            <span class="input-weight">× {{ part_weight }}</span>
+                        </div>
+                        <div class="input-left">
+                            <div class="input-label">Partnership Readiness</div>
+                            <div class="input-sublabel">
+                                {% set pr = data._pr_total %}
+                                {% if pr >= 75 %}Mature, well-established partner ecosystem
+                                {% elif pr >= 60 %}Strong training org with real scale
+                                {% elif pr >= 45 %}Growing program, solid foundation
+                                {% elif pr >= 30 %}Early-stage, promising signals present
+                                {% else %}Limited partnership readiness signals
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Equation explanation -->
+            <div class="composite-equation">
+                <div>{% if is_channel %}As a <span class="eq-math">{{ org_label }}</span>, partnership readiness carries more weight.{% else %}As a <span class="eq-math">{{ org_label }}</span>, product labability carries more weight.{% endif %}</div>
+                <div><span class="eq-math">{{ top }}</span> (product) &times; {{ prod_weight }} + <span class="eq-math">{{ data._pr_total }}</span> (partnership) &times; {{ part_weight }} =
+                {% if data._composite_gated %}<span class="eq-math">{{ raw_composite }}</span> raw, <span class="eq-cap">capped at {{ cs }}</span> &mdash; labability needs to reach {{ gate_threshold }}{% else %}<span class="eq-math">{{ cs }}</span>{% endif %}</div>
+            </div>
+        </div>
+
+        {% if ns.has_cp %}
+        <div class="consumption-summary-card">
+            <div class="card-label">Total Consumption Potential</div>
+            <div class="rollup-summary" style="border-top:none;margin-top:0;padding-top:0;flex:1;justify-content:center;">
+                <div style="color:#f59e0b;font-size:0.72rem;margin-bottom:8px;">&#9888; Based on {{ data.products | length }} of {% if data.total_products_discovered and data.total_products_discovered > data.products | length %}{{ data.total_products_discovered }}{% else %}{{ data.products | length }}{% endif %} products analyzed — full potential may be higher.</div>
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated Annual Lab Hours</span>
+                    <span class="rollup-summary-value">{{ "{:,}".format(ns.total_low) }}–{{ "{:,}".format(ns.total_high) }}</span>
+                </div>
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated ACV Potential</span>
+                    <span class="rollup-summary-value">${{ "{:,}".format(ns.acv_low | int) }}–${{ "{:,}".format(ns.acv_high | int) }}</span>
+                </div>
+            </div>
+            <div class="rollup-acv-note" style="margin-top:12px;">Cloud Slice @$10.50/hr · VM @$12–$55/hr · Simulation @$5/hr — <em>rates are estimates, verify before use</em></div>
+        </div>
+        {% endif %}
+
+        </div><!-- /top-blocks -->
+
+        <!-- Product Cards -->
+        {% set ot = data.organization_type %}
+        <div class="section-heading">
+            {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}
+            Programs &amp; Practice Areas — ranked by labability
+            {% else %}
+            Products Scored — ranked by labability
+            {% endif %}
+        </div>
+
+        <!-- Product Nav Strip -->
+        {% if data.products|length > 1 %}
+        <div class="product-nav">
+            {% for product in data.products %}
+            <a href="#product-{{ loop.index }}" class="product-nav-item">
+                <span class="pnav-score {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ product._total_score }}</span>
+                <span>{{ product.name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for product in data.products %}
+        <div class="product-card" id="product-{{ loop.index }}">
+            <div class="product-header">
+                <div>
+                    <div class="product-name">
+                        {{ product.name }}
+                        {% if product.lab_highlight %}
+                        <span class="lab-highlight-badge">&#10024; {{ product.lab_highlight }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-category">{{ product.category }}</div>
+                    {% if product.deployment_model and product.deployment_model != 'unknown' %}
+                    <span class="product-deploy">{{ product.deployment_model }}</span>
+                    {% endif %}
+                    {% for persona in product.user_personas %}
+                    <span class="persona-badge">{{ persona }}</span>
+                    {% endfor %}
+                </div>
+                <div class="total-score">
+                    <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
+                        {{ product._total_score }}
+                    </div>
+                    <div class="out-of">/100</div>
+                </div>
+            </div>
+
+            {% if product.description %}
+            <div class="product-desc">{{ product.description | link_product_name(product.name, product.product_url) }}</div>
+            {% endif %}
+
+            {% if product.poor_match_flags %}
+            <div class="poor-flags">
+                {% for flag in product.poor_match_flags %}
+                <span class="flag-badge">&#9888; {{ flag|replace('_',' ')|title }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if product.recommendation %}
+            {% set path = product.skillable_path %}
+            {% set mech = product.skillable_mechanism or '' %}
+            {% set rec_text = product.recommendation | join(' ') %}
+            <details class="tech-details rec-details">
+                <summary>
+                    <span style="display:flex; align-items:center; gap:10px;">
+                    Skillable Recommendation
+                    {% if path == 'B' %}
+                        {% if 'Docker' in rec_text or 'docker' in rec_text or 'container' in rec_text %}
+                        <span class="rec-fabric">Docker Container Fabric</span>
+                        {% elif 'VMware' in rec_text or 'ESX' in rec_text or 'vSphere' in rec_text %}
+                        <span class="rec-fabric">VMware ESX Fabric</span>
+                        {% else %}
+                        <span class="rec-fabric">Hyper-V Fabric</span>
+                        {% endif %}
+                    {% elif path == 'A1' %}
+                        {% if 'AWS' in mech or 'AWS' in rec_text %}
+                        <span class="rec-fabric">AWS Cloud Slice</span>
+                        {% else %}
+                        <span class="rec-fabric">Azure Cloud Slice</span>
+                        {% endif %}
+                    {% elif path == 'A2' %}
+                        <span class="rec-fabric">Custom API Provisioning</span>
+                    {% elif path == 'C' %}
+                        <span class="rec-fabric">Skillable Simulation</span>
+                    {% endif %}
+                    </span>
+                </summary>
+                <div class="recommendation">
+                    <ul class="rec-bullets">
+                        {% for bullet in product.recommendation %}
+                        <li>{{ bullet | linkify }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </details>
+            {% endif %}
+
+            <details class="tech-details">
+                <summary>Technical Details &amp; Score Breakdown</summary>
+                <div class="tech-details-content">
+
+
+                    {% set dims = [
+                        ("Technical Orchestrability", product.labability_score.technical_orchestrability, 25),
+                        ("Workflow Complexity", product.labability_score.workflow_complexity, 25),
+                        ("Training & Enablement Maturity", product.labability_score.training_ecosystem, 25),
+                        ("Market & Strategic Fit", product.labability_score.market_fit, 25)
+                    ] %}
+                    <div class="dimensions">
+                        {% for label, dim, mx in dims %}
+                        {% set tier = 'high' if dim.score >= (mx*0.72)|int else ('mid' if dim.score >= (mx*0.40)|int else 'low') %}
+                        <div class="dim">
+                            <div>
+                                <div class="dim-label">{{ label }}</div>
+                                {% if loop.first and (product.skillable_mechanism or product.skillable_path) %}
+                                {% set path = product.skillable_path %}
+                                {% set mech = product.skillable_mechanism or '' %}
+                                {% set pt = product.path_tier or '' %}
+                                <div class="delivery-path-line">
+                                    {% if path == 'B' %}
+                                        {% if 'Docker' in (product.recommendation | join(' ')) or 'container' in (product.recommendation | join(' ')) %}Hyper-V / Docker fabric running in Skillable datacenters
+                                        {% elif 'VMware' in (product.recommendation | join(' ')) %}VMware ESX fabric running in Skillable datacenters
+                                        {% else %}Hyper-V fabric running in Skillable datacenters{% endif %}
+                                    {% elif path in ['A1', 'A'] %}Azure Cloud Slice — isolated subscription per learner
+                                    {% elif path == 'A2' %}Custom API provisioning — vendor cloud, per-learner instance
+                                    {% elif path == 'C' %}Skillable Simulation
+                                    {% elif mech %}{{ mech }}
+                                    {% endif %}
+                                    {% if pt and pt not in ['Unknown', 'N/A', ''] %} &nbsp;·&nbsp; <span class="delivery-path-tier">{{ pt }}</span>{% endif %}
+                                </div>
+                                {% endif %}
+                                <ul class="pr-bullets">
+                                    {% if dim.evidence %}
+                                        {% for ev in dim.evidence %}
+                                        <li>{{ ev.claim | bold_labels }}</li>
+                                        {% endfor %}
+                                    {% elif dim.summary %}
+                                        <li class="dim-summary">{{ dim.summary }}</li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <div class="dim-score-col">
+                                <div class="dim-score-num score-{{ tier }}">{{ dim.score }}<span class="dim-score-denom">/{{ mx }}</span></div>
+                                <div class="bar-track" style="width:100%"><div class="bar-fill {{ tier }}" style="width:{{ [((dim.score/mx*100)|int),100]|min }}%"></div></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if product.lab_concepts %}
+                    <div style="margin-top:16px;">
+                        <div class="section-title">Suggested Lab Concepts</div>
+                        <div class="lab-concepts-grid">
+                        {% for concept in product.lab_concepts %}
+                        <div class="lab-concept">{{ concept }}</div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </details>
+
+            <details class="tech-details">
+                <summary>Responsible Organization &amp; Key Contacts</summary>
+                <div class="tech-details-content">
+
+                <div class="section-title">Owning Organization</div>
+                <div class="org-banner">
+                    <div class="org-banner-body">
+                        {% if product.owning_org %}
+                        <div class="org-name">
+                            {{ product.owning_org.name }}
+                            <span class="org-type-tag">{{ product.owning_org.type|replace('_',' ')|title }}</span>
+                        </div>
+                        {% if product.owning_org.description %}<div class="org-desc">{{ product.owning_org.description }}</div>{% endif %}
+                        {% else %}
+                        <div class="org-desc">Not identified</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="section-title">Key Contacts</div>
+                {% if product.contacts %}
+                {% set dms_named = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
+                {% set dms_unknown = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
+                {% set infs_named = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
+                {% set infs_unknown = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
+                <div class="contacts-groups">
+                    {% if dms_named %}
+                    <div class="contacts-group-label dm">Decision Makers</div>
+                    {% for contact in dms_named %}
+                    <div class="contact-row">
+                        <div class="contact-row-main">
+                            <div class="contact-name">
+                                {% if contact.linkedin_url %}
+                                <a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;" title="LinkedIn"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                {% else %}{{ contact.name }}{% endif %}
+                            </div>
+                            <div class="contact-title">{{ contact.title }}</div>
+                            {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% if infs_named %}
+                    <div class="contacts-group-label inf">Key Influencers</div>
+                    {% for contact in infs_named %}
+                    <div class="contact-row">
+                        <div class="contact-row-main">
+                            <div class="contact-name">
+                                {% if contact.linkedin_url %}
+                                <a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;" title="LinkedIn"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                {% else %}{{ contact.name }}{% endif %}
+                            </div>
+                            <div class="contact-title">{{ contact.title }}</div>
+                            {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% set all_unknown = dms_unknown + infs_unknown %}
+                    {% if all_unknown %}
+                    <div class="contacts-group-label" style="color:#3d6655;margin-top:10px;">Suggested Searches</div>
+                    {% for contact in all_unknown %}
+                    <div class="contact-row" style="opacity:0.6;border-style:dashed;">
+                        <div class="contact-row-main">
+                            <div class="contact-name" style="color:#6b9e88;font-style:italic;">{{ contact.title }}</div>
+                            {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="org-desc">No contacts identified</div>
+                {% endif %}
+
+                </div>
+            </details>
+
+            {% set cp = product.get('consumption_potential', {}) %}
+            {% if cp and cp.get('annual_hours_high', 0) > 0 %}
+            <details class="tech-details">
+            <summary>Consumption Potential</summary>
+            <div class="consumption-card" style="margin-top:0;border-top-left-radius:0;border-top-right-radius:0;border-top:none;">
+                <div class="consumption-header">
+                    <div class="consumption-directional">Directional estimate — see methodology below</div>
+                </div>
+                <table class="consumption-table">
+                    <thead>
+                        <tr>
+                            <th style="width:100%">Motion</th>
+                            <th>Total<br>People</th>
+                            <th>Adopt %</th>
+                            <th>Lab Hrs</th>
+                            <th><strong>Total Est Lab Hours</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for motion in cp.get('motions', []) | sort(attribute='population_high', reverse=true) %}
+                        {% set pop_lo = motion.get('population_low', 0) %}
+                        {% set pop_hi = motion.get('population_high', 0) %}
+                        {% set adopt = motion.get('adoption_pct', 0) %}
+                        {% set hrs_lo = motion.get('hours_low', 0) %}
+                        {% set hrs_hi = motion.get('hours_high', 0) %}
+                        {% set est_lo = (pop_lo * adopt * hrs_lo) | int %}
+                        {% set est_hi = (pop_hi * adopt * hrs_hi) | int %}
+                        <tr>
+                            <td>
+                                <div class="consumption-motion-label">{{ motion.get('label', '') }}</div>
+                                {% if motion.get('rationale') %}<div class="consumption-motion-rationale">{{ motion.get('rationale') }}</div>{% endif %}
+                            </td>
+                            <td>{{ "{:,}".format(pop_lo) }}–{{ "{:,}".format(pop_hi) }}</td>
+                            <td>{{ (adopt * 100) | int }}%</td>
+                            <td>{{ hrs_lo | int }}–{{ hrs_hi | int }}</td>
+                            <td><strong>{{ "{:,}".format(est_lo) }}–{{ "{:,}".format(est_hi) }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if product.skillable_path in ['A', 'A1', 'A2'] %}
+                    {% set rate_lo = 10.5 %}{% set rate_hi = 10.5 %}{% set rate_label = "@$10.50/hr Cloud Slice" %}
+                {% elif product.skillable_path == 'C' %}
+                    {% set rate_lo = 5 %}{% set rate_hi = 5 %}{% set rate_label = "@$5/hr Simulation" %}
+                {% elif cp.get('vm_rate_estimate', 0) > 0 %}
+                    {% set rate_lo = cp.get('vm_rate_estimate') %}{% set rate_hi = cp.get('vm_rate_estimate') %}{% set rate_label = "@$" ~ cp.get('vm_rate_estimate') ~ "/hr VM (estimated complexity)" %}
+                {% else %}
+                    {% set rate_lo = 12 %}{% set rate_hi = 55 %}{% set rate_label = "@$12–$55/hr VM (simple→exotic)" %}
+                {% endif %}
+                <div class="rollup-summary">
+                    <div class="rollup-summary-row">
+                        <span class="rollup-summary-label">Estimated Annual Lab Hours</span>
+                        <span class="rollup-summary-value">{{ "{:,}".format(cp.get('annual_hours_low', 0)) }}–{{ "{:,}".format(cp.get('annual_hours_high', 0)) }}</span>
+                    </div>
+                    <div class="rollup-summary-row">
+                        <span class="rollup-summary-label">Estimated ACV Potential</span>
+                        <span class="rollup-summary-value">${{ "{:,}".format((cp.get('annual_hours_low', 0) * rate_lo) | int) }}–${{ "{:,}".format((cp.get('annual_hours_high', 0) * rate_hi) | int) }}</span>
+                    </div>
+                    <div class="rollup-acv-note">{{ rate_label }} — <em>rates are estimates, verify before use</em></div>
+                </div>
+                {% if cp.get('methodology_note') %}
+                <div class="consumption-methodology">{{ cp.get('methodology_note') }}</div>
+                {% endif %}
+            </div>
+            </details>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Partnership Readiness -->
+        {% set pr = data.partnership_readiness %}
+        <div class="product-card" style="margin-top:36px;">
+            <div class="product-header">
+                <div>
+                    <div class="product-name">Partnership Readiness</div>
+                    <div class="product-category">{{ data._composite_weights }} weighting applied to Overall Opportunity Score</div>
+                </div>
+                <div class="total-score">
+                    <div class="score-num {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}</div>
+                    <div class="out-of">/100</div>
+                </div>
+            </div>
+
+            {% macro pr_bullets(dim) %}
+            <ul class="pr-bullets">
+                {% if dim.evidence %}
+                    {% for ev in dim.evidence %}
+                    <li>{{ ev.claim | bold_labels }}</li>
+                    {% endfor %}
+                {% elif dim.summary %}
+                    {% for sentence in dim.summary.split('. ') %}
+                    {% if sentence.strip() %}<li>{{ sentence.strip().rstrip('.') }}</li>{% endif %}
+                    {% endfor %}
+                {% endif %}
+            </ul>
+            {% endmacro %}
+
+            {% macro pr_dim_details(label, dim, mx) %}
+            {% set pct = ((dim.score / mx) * 100) | round | int %}
+            {% set tier = 'high' if pct >= 72 else ('mid' if pct >= 40 else 'low') %}
+            <details class="tech-details">
+                <summary>
+                    <span style="display:flex;align-items:center;gap:12px;">
+                        {{ label }}
+                        <span class="score-{{ tier }}" style="font-size:0.82rem;font-weight:800;">{{ pct }}<span style="font-size:0.65rem;color:#3d6655;font-weight:400;">%</span></span>
+                    </span>
+                </summary>
+                <div class="tech-details-content">
+                    {{ pr_bullets(dim) }}
+                </div>
+            </details>
+            {% endmacro %}
+
+            {% if pr.organizational_dna and (pr.organizational_dna.summary or pr.organizational_dna.evidence) %}
+            {{ pr_dim_details("Organizational DNA", pr.organizational_dna, 10) }}
+            {% endif %}
+            {{ pr_dim_details("Training Org Maturity", pr.training_org_maturity, 35) }}
+            {{ pr_dim_details("Partner Program", pr.partner_program, 27) }}
+            {{ pr_dim_details("Customer Success", pr.customer_success, 35) }}
+            {{ pr_dim_details("Tech & Integration Readiness", pr.tech_readiness, 10) }}
+        </div>
+
+        <!-- Customer Consumption Rollup -->
+        {% if ns.has_cp and data.products|length > 0 %}
+        <div class="rollup-card">
+            <h2>Total Customer Consumption Potential</h2>
+            <p class="rollup-subtitle">Sum across all scored products — directional, order-of-magnitude estimate</p>
+            <table class="rollup-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th><strong>Est. Lab Hours</strong></th>
+                        <th><strong>Est. ACV Potential</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in data.products %}
+                    {% set cp = product.get('consumption_potential', {}) %}
+                    {% if cp and cp.get('annual_hours_high', 0) > 0 %}
+                    {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
+                    {% elif product.skillable_path == 'C' %}{% set p_rlo = 5 %}{% set p_rhi = 5 %}
+                    {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set p_rlo = cp.get('vm_rate_estimate') %}{% set p_rhi = cp.get('vm_rate_estimate') %}
+                    {% else %}{% set p_rlo = 12 %}{% set p_rhi = 55 %}{% endif %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td><strong>{{ "{:,}".format(cp.get('annual_hours_low', 0)) }}–{{ "{:,}".format(cp.get('annual_hours_high', 0)) }}</strong></td>
+                        <td><strong>${{ "{:,}".format((cp.get('annual_hours_low', 0) * p_rlo) | int) }}–${{ "{:,}".format((cp.get('annual_hours_high', 0) * p_rhi) | int) }}</strong></td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="rollup-summary">
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated Annual Lab Hours</span>
+                    <span class="rollup-summary-value">{{ "{:,}".format(ns.total_low) }}–{{ "{:,}".format(ns.total_high) }}</span>
+                </div>
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated ACV Potential</span>
+                    <span class="rollup-summary-value">${{ "{:,}".format(ns.acv_low | int) }}–${{ "{:,}".format(ns.acv_high | int) }}</span>
+                </div>
+                <div class="rollup-acv-note">Cloud Slice @$10.50/hr · VM @$12–$55/hr · Simulation @$5/hr — <em>rates are estimates, verify before use</em></div>
+                <div class="rollup-acv-note" style="margin-top:6px;color:#f59e0b;">&#9888; Based on {{ data.products | length }} of {% if data.total_products_discovered and data.total_products_discovered > data.products | length %}{{ data.total_products_discovered }}{% else %}{{ data.products | length }}{% endif %} products analyzed — full potential may be higher.</div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+<script>
+  // Inject explicit toggle arrows into all collapsible sections — more reliable than CSS ::after on <summary>
+  document.querySelectorAll('.tech-details > summary').forEach(s => {
+    const arrow = document.createElement('span');
+    arrow.className = 'det-arrow';
+    arrow.textContent = '▾';
+    s.appendChild(arrow);
+    const details = s.closest('details');
+    details.addEventListener('toggle', () => {
+      arrow.textContent = details.open ? '▴' : '▾';
+    });
+  });
+</script>
+</body>
+</html>

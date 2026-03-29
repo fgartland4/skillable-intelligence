@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoring {{ company_name }}...</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .card {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 20px; padding: 52px 48px;
+            text-align: center; max-width: 580px; width: 92%;
+            box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 30px 80px rgba(0,0,0,0.5);
+        }
+        .logo { margin-bottom: 32px; }
+        .logo img { height: 32px; }
+        .eyebrow {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #6b9e88; margin-bottom: 10px;
+        }
+        .company-name {
+            font-size: 2rem; font-weight: 800; color: #e8f5f0;
+            margin-bottom: 6px; letter-spacing: -0.02em;
+        }
+        .product-count { color: #3d6655; font-size: 0.85rem; margin-bottom: 36px; }
+
+        /* Steps */
+        .steps { text-align: left; margin-bottom: 32px; }
+        .step {
+            display: flex; align-items: center; gap: 14px;
+            padding: 11px 0; border-bottom: 1px solid #122019;
+        }
+        .step:last-child { border-bottom: none; }
+
+        /* Step icon — spinning ring on active */
+        .step-icon {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #0d1a14; border: 1px solid #1e3329;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; flex-shrink: 0; color: #3d6655;
+            transition: all 0.3s; position: relative;
+        }
+        .step-icon.active {
+            border-color: rgba(36,237,155,0.35); color: #24ED9B;
+            box-shadow: 0 0 0 3px rgba(36,237,155,0.08);
+        }
+        .step-icon.active::after {
+            content: '';
+            position: absolute; inset: -4px; border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: #24ED9B;
+            border-right-color: rgba(36,237,155,0.35);
+            animation: spin 0.85s linear infinite;
+        }
+        .step-icon.done {
+            background: rgba(36,237,155,0.1);
+            border-color: #24ED9B; color: #24ED9B;
+        }
+        .step-label { color: #3d6655; font-size: 0.875rem; transition: color 0.3s; line-height: 1.4; }
+        .step-label.active { color: #e8f5f0; font-weight: 500; }
+        .step-label.done { color: #4a7a62; }
+
+        /* Claude scoring sub-hint */
+        .step-hint {
+            font-size: 0.75rem; color: #3d6655; margin-top: 3px;
+            transition: opacity 0.4s;
+        }
+
+        /* Logo mark progress — below steps, visually connected */
+        .mark-progress {
+            margin: 4px auto 24px;
+            display: flex; justify-content: center; align-items: center; gap: 16px;
+        }
+        .mark-track {
+            flex: 1; height: 3px; background: #122019; border-radius: 2px; overflow: hidden;
+        }
+        .mark-fill {
+            height: 100%; width: 0%; background: #24ED9B;
+            border-radius: 2px; transition: width 0.6s ease;
+        }
+        .mark-el { transition: fill 0.45s ease; }
+        @keyframes mark-pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        .mark-active { animation: mark-pulse 1.2s ease-in-out infinite; }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status { color: #3d6655; font-size: 0.8rem; min-height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="logo">
+            <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+        </div>
+        <div class="eyebrow">Scoring</div>
+        <div class="company-name">{{ company_name }}</div>
+        <div class="product-count">Researching Product Labability &amp; Partnership Maturity for <strong>{{ product_count }}</strong> product{{ 's' if product_count != 1 else '' }}…</div>
+
+        <div class="steps">
+            <div class="step" id="step-tech">
+                <div class="step-icon active" id="icon-tech">⟳</div>
+                <div>
+                    <div class="step-label active" id="label-tech">Scouring technical docs, APIs &amp; deployment guides</div>
+                </div>
+            </div>
+            <div class="step" id="step-train">
+                <div class="step-icon" id="icon-train">⟳</div>
+                <div>
+                    <div class="step-label" id="label-train">Finding training (ATP, gray market) &amp; certification programs</div>
+                </div>
+            </div>
+            <div class="step" id="step-ai">
+                <div class="step-icon" id="icon-ai">⟳</div>
+                <div>
+                    <div class="step-label" id="label-ai">Researching product focus areas, AI features &amp; target personas</div>
+                </div>
+            </div>
+            <div class="step" id="step-partner">
+                <div class="step-icon" id="icon-partner">⟳</div>
+                <div>
+                    <div class="step-label" id="label-partner">Analyzing channel partners, enablement resources, roadshows &amp; hands-on events</div>
+                </div>
+            </div>
+            <div class="step" id="step-contacts">
+                <div class="step-icon" id="icon-contacts">⟳</div>
+                <div>
+                    <div class="step-label" id="label-contacts">Identifying training and enablement organizational structures &amp; contacts</div>
+                </div>
+            </div>
+            <div class="step" id="step-claude">
+                <div class="step-icon" id="icon-claude">⟳</div>
+                <div>
+                    <div class="step-label" id="label-claude">Scoring with Claude AI &amp; generating report</div>
+                    <div class="step-hint" id="hint-claude"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress track — visually anchors the steps above -->
+        <div class="mark-progress">
+            <div class="mark-track"><div class="mark-fill" id="mark-fill"></div></div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="28.5 -0.5 21.5 38.5" width="32" height="54">
+                <path id="mark-i" class="mark-el mark-active"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M31.8203 36.3587H35.4225V22.8284H31.8203V36.3587Z" fill="#e8f5f0"/>
+                <path id="mark-l1" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M38.511 36.3587H42.118V17.5439H38.511V36.3587Z" fill="#1e3329"/>
+                <path id="mark-l2" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M45.2032 36.3586H48.8134V10.2878H45.2032V36.3586Z" fill="#1e3329"/>
+                <path id="mark-check" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M45.8683 0L33.957 13.3398L32.3133 11.8098L29.9446 14.4504L33.9397 18.3333L48.2779 2.34634L45.8683 0Z" fill="#1e3329"/>
+            </svg>
+        </div>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        const researchSteps = [
+            { icon: 'icon-tech',     label: 'label-tech'     },
+            { icon: 'icon-train',    label: 'label-train'    },
+            { icon: 'icon-ai',       label: 'label-ai'       },
+            { icon: 'icon-partner',  label: 'label-partner'  },
+            { icon: 'icon-contacts', label: 'label-contacts' },
+        ];
+        const claudeStep = { icon: 'icon-claude', label: 'label-claude' };
+
+        // SSE-driven step index — each incoming research message advances one step
+        let sseResearchIndex = 0;
+        let scoringStarted = false;
+        let claudeHintTimer = null;
+
+        const totalSteps = 6; // 5 research + claude
+        function setProgress(n) {
+            document.getElementById('mark-fill').style.width = Math.round((n / totalSteps) * 100) + '%';
+        }
+
+        function markDone(step) {
+            document.getElementById(step.icon).className = 'step-icon done';
+            document.getElementById(step.icon).textContent = '✓';
+            document.getElementById(step.label).className = 'step-label done';
+        }
+        function markActive(step) {
+            document.getElementById(step.icon).className = 'step-icon active';
+            document.getElementById(step.icon).textContent = '';
+            document.getElementById(step.label).className = 'step-label active';
+        }
+
+        function litMark(id, color) {
+            const el = document.getElementById(id);
+            el.classList.remove('mark-active');
+            el.setAttribute('fill', color);
+        }
+        function activeMark(id, color) {
+            const el = document.getElementById(id);
+            el.setAttribute('fill', color);
+            el.classList.add('mark-active');
+        }
+
+        // Claude scoring sub-hints — cycle while waiting for parallel Claude calls
+        const claudeHints = [
+            "Evaluating technical deployment signals…",
+            "Calibrating against known Skillable benchmarks…",
+            "Assessing training ecosystem maturity…",
+            "Scoring workflow complexity & pedagogical value…",
+            "Evaluating partnership readiness signals…",
+            "Mapping market fit & strategic alignment…",
+            "Identifying key contacts & organizational structure…",
+            "Generating recommendations…",
+        ];
+        let hintIndex = 0;
+        function startClaudeHints() {
+            const el = document.getElementById('hint-claude');
+            el.textContent = claudeHints[hintIndex % claudeHints.length];
+            claudeHintTimer = setInterval(() => {
+                hintIndex++;
+                el.style.opacity = 0;
+                setTimeout(() => {
+                    el.textContent = claudeHints[hintIndex % claudeHints.length];
+                    el.style.opacity = 1;
+                }, 400);
+            }, 7000);
+        }
+
+        function startScoring() {
+            if (scoringStarted) return;
+            scoringStarted = true;
+            // Mark any remaining research steps done
+            researchSteps.forEach(markDone);
+            markActive(claudeStep);
+            setProgress(5);
+            litMark('mark-i',  '#e8f5f0');
+            litMark('mark-l1', '#e8f5f0');
+            activeMark('mark-l2', '#e8f5f0');
+            startClaudeHints();
+        }
+
+        function finishClaude() {
+            clearInterval(claudeHintTimer);
+            document.getElementById('hint-claude').textContent = '';
+            litMark('mark-l2', '#e8f5f0');
+            activeMark('mark-check', '#24ED9B');
+        }
+
+        // SSE — each research status message advances one step in sequence
+        const source = new EventSource("/inspector/score/progress/{{ job_id }}");
+        source.onmessage = function(e) {
+            const msg = e.data;
+            if (msg.startsWith("status:")) {
+                const text = msg.slice(7);
+
+                if (text.toLowerCase().includes("scoring")) {
+                    startScoring();
+                } else if (text.toLowerCase().includes("generating")) {
+                    finishClaude();
+                } else if (sseResearchIndex < researchSteps.length) {
+                    // Advance to this research step
+                    if (sseResearchIndex > 0) markDone(researchSteps[sseResearchIndex - 1]);
+                    markActive(researchSteps[sseResearchIndex]);
+                    setProgress(sseResearchIndex);
+                    // Light logo bars at milestones
+                    if (sseResearchIndex === 1) { litMark('mark-i', '#e8f5f0'); activeMark('mark-l1', '#e8f5f0'); }
+                    if (sseResearchIndex === 3) { litMark('mark-l1', '#e8f5f0'); }
+                    sseResearchIndex++;
+                }
+
+            } else if (msg.startsWith("done:")) {
+                source.close();
+                finishClaude();
+                setTimeout(() => {
+                    markDone(claudeStep);
+                    setProgress(6);
+                    litMark('mark-check', '#24ED9B');
+                    document.getElementById("status").textContent = "Complete — loading results...";
+                    window.location.href = "/inspector/results/" + msg.slice(5);
+                }, 600);
+            } else if (msg.startsWith("error:")) {
+                source.close();
+                document.getElementById("status").textContent = "Error: " + msg.slice(6);
+            }
+        };
+        source.onerror = function() {
+            document.getElementById("status").textContent = "Something went wrong. Please try again.";
+        };
+    </script>
+</body>
+</html>
