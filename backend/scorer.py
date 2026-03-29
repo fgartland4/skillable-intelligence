@@ -423,25 +423,27 @@ Estimate annual lab consumption potential for this product if the customer stand
 
 Estimate each motion independently based on research signals. Population sizes will vary significantly — let the data drive the estimates, not the order above.
 
+⚠️ CONSERVATIVE BY DEFAULT. These estimates will be seen by sellers, executives, and customers. An estimate that proves accurate builds trust. An estimate that proves inflated destroys it. When any input is uncertain, use the lower end. Do not optimize for impressiveness — optimize for defensibility.
+
 For each motion estimate:
-- `population_low` / `population_high`: plausible range of people per year who could take labs (use install base, ATP network size, team sizes as anchors). Keep ranges tight — high should be no more than 1.5× low (e.g. 1,000–1,500, not 1,000–5,000). Wide ranges signal uncertainty, not precision. When in doubt, go conservative.
-- `hours_low` / `hours_high`: hands-on lab hours only — not total learning time. If a course or program is 10 hours total, typically 30–50% is hands-on lab time (3–5 hrs). Do not count lectures, videos, reading, or assessments. Keep the ratio to ≤1.5× (e.g. 2–3 hrs, not 2–8 hrs).
-- `adoption_pct`: the realistic fraction of that population who would actually take a structured lab — this is almost always a small minority. Use these as hard ceilings by motion type:
-  - Certification / PBT: 0.02–0.05 (2–5%) — only a dedicated few pursue certification in any given year
-  - Customer Onboarding: 0.03–0.08 (3–8%) — most onboarding is guided by a rep, not lab-based
-  - ATP / Channel Enablement: 0.08–0.15 (8–15%) — partner reps who complete structured labs, not the full partner headcount
-  - General Practice & Skilling: 0.03–0.08 (3–8%) — self-directed lab usage is a small minority of total users
-  - Employee Technical Enablement: 0.10–0.20 (10–20%) — internal technical staff are the highest adopters, but most employees never touch a lab
-  Never exceed 0.25. If you find yourself above these ceilings, your population estimate is too broad — narrow it to the actively engaged subset first.
-- `rationale`: 1-sentence explanation of your estimate anchors
+- `population_low` / `population_high`: the actively engaged subset who would realistically participate in structured lab training — NOT the total addressable market or full install base. Use install base, ATP network size, team sizes as anchors, then apply hard realism: what fraction of that population is actively engaged in formal training programs today? Start from that subset, not the total. Keep ranges tight — high should be no more than 1.5× low (e.g. 500–750, not 500–5,000). Wide ranges signal uncertainty. When in doubt, narrow the population further and use the low end.
+- `hours_low` / `hours_high`: hands-on lab hours only — not total learning time. Typical ratio is 20–40% of total course time (not 50%). A 10-hour course → 2–4 lab hours. Do not count lectures, videos, reading, or assessments. Keep the ratio ≤1.5× (e.g. 2–3 hrs, not 2–8 hrs).
+- `adoption_pct`: the realistic fraction of the population who would actually complete a structured lab in a given year. These are HARD CEILINGS — do not exceed them, and default to the low end unless you have strong evidence of high lab engagement:
+  - Certification / PBT: 0.02–0.04 (2–4%) — only the most dedicated pursue certification each year; most people who could certify don't
+  - Customer Onboarding: 0.02–0.05 (2–5%) — most onboarding is rep-led or self-service, not structured lab-based
+  - ATP / Channel Enablement: 0.05–0.10 (5–10%) — partner reps who actively complete labs, not total partner headcount
+  - General Practice & Skilling: 0.02–0.05 (2–5%) — self-directed lab usage is a small minority; most practitioners learn by doing in production
+  - Employee Technical Enablement: 0.08–0.15 (8–15%) — internal technical staff are highest adopters, but most employees never touch a formal lab
+  Never exceed 0.20 under any circumstances. If you're near the ceiling, your population is too broad — narrow it first.
+- `rationale`: 1-sentence explanation citing the specific signal that anchors your estimate (e.g. "Based on ~200 active ATPs per public partner directory and 10% completion rate for structured lab programs")
 
 Then provide:
-- `annual_hours_low`: sum of (population_low × hours_low × adoption_pct) across all motions, rounded to integer
-- `annual_hours_high`: sum of (population_high × hours_high × adoption_pct) across all motions, rounded to integer
+- `annual_hours_low`: sum of (population_low × hours_low × adoption_pct) across all motions, rounded to integer. This is the "realistic today" figure — what a reasonable first-year engagement might look like.
+- `annual_hours_high`: sum of (population_high × hours_high × adoption_pct) across all motions, rounded to integer. This is the "mature engagement" ceiling — what a well-established program at good adoption looks like. It should not feel like a stretch goal.
 - `vm_rate_estimate`: for VM/Datacenter (Path B) products only — estimate the lab environment complexity and set an appropriate $/hr between $12 and $55. Use $12 for simple single-VM labs, $20–25 for moderate (a few VMs or services), $30–40 for complex multi-VM with networking, $55 for exotic large environments (GPU, large clusters, specialized hardware). Set to 0 for Cloud Slice (Path A) and Simulation (Path C) products.
-- `methodology_note`: 1-2 sentence visible caveat acknowledging these are directional estimates based on publicly available signals, not commitments
+- `methodology_note`: 2-3 sentences shown directly to the user. Acknowledge that estimates are based on publicly available signals and are intentionally conservative — they reflect realistic engagement, not theoretical maximums. Name the 1-2 primary signals used (install base, ATP count, company headcount, etc.).
 
-⚠️ These are directional estimates, not guesses. Anchor every number to a real signal from the research (install base size, ATP partner count, company headcount, event attendance). A tight, well-reasoned range is far more useful than a wide one. The methodology note will be shown directly to users — write it plainly and honestly.
+⚠️ A seller seeing these numbers will use them in conversations with customers and executives. If the numbers can't be defended with publicly available evidence, they should be lower. Directional and defensible beats impressive and wrong every time.
 
 ## Output Format
 ⚠️ MAXIMUM 3 evidence items per dimension. Fewer is better — one strong, specific bullet is preferable to three vague or redundant ones. Do not pad.
