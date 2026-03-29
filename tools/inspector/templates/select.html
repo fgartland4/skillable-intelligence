@@ -158,10 +158,10 @@
 
             <div class="product-grid">
                 {% set all_products = discovery.products %}
-                {% set highly_likely = all_products | selectattr('likely_labable', 'equalto', 'highly_likely') | list | sort(attribute='priority', default=999) %}
-                {% set likely = all_products | selectattr('likely_labable', 'equalto', 'likely') | list | sort(attribute='priority', default=999) %}
-                {% set less_likely = all_products | selectattr('likely_labable', 'equalto', 'less_likely') | rejectattr('category', 'equalto', 'Training & Certification') | list | sort(attribute='priority', default=999) %}
-                {% set not_likely = all_products | selectattr('likely_labable', 'equalto', 'not_likely') | rejectattr('category', 'equalto', 'Training & Certification') | list | sort(attribute='priority', default=999) %}
+                {% set highly_likely = all_products | selectattr('likely_labable', 'equalto', 'highly_likely') | list | sort(attribute='priority') %}
+                {% set likely = all_products | selectattr('likely_labable', 'equalto', 'likely') | list | sort(attribute='priority') %}
+                {% set less_likely = all_products | selectattr('likely_labable', 'equalto', 'less_likely') | rejectattr('category', 'equalto', 'Training & Certification') | list | sort(attribute='priority') %}
+                {% set not_likely = all_products | selectattr('likely_labable', 'equalto', 'not_likely') | rejectattr('category', 'equalto', 'Training & Certification') | list | sort(attribute='priority') %}
                 {% set training_products = all_products | selectattr('category', 'equalto', 'Training & Certification') | list | sort(attribute='name') %}
 
                 {% if highly_likely %}
