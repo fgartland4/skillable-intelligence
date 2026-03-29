@@ -424,6 +424,7 @@ When you see any of these signals in the research, note them explicitly in evide
 - **Existing CloudShare / Appsembler / Instruqt labs**: Confirms hands-on training demand exists; potential Skillable migration opportunity — note explicitly.
 - **Existing Skillable labs found**: Note directly — this is an active or past Skillable engagement signal.
 - **Deployment guide, system requirements, installation docs**: Confirms VM install viability; mention specific doc URL if found.
+- **xAPI / Tin Can API requirement**: Skillable does not currently support xAPI (Experience API). If research surfaces the vendor mentioning xAPI, LRS (Learning Record Store), or Tin Can API as a requirement for their learning data infrastructure, flag it in Blockers — the SE needs to verify whether this is a hard requirement before committing. Note: this signal rarely appears in automated research; it more often surfaces in technical conversations. Flag it when found so it doesn't become a surprise late in the deal.
 - **AWS service dependency check**: If the product runs on AWS, verify its core services are on Skillable's supported list. Flag explicitly if key dependencies (SageMaker, AI/ML services, ElastiCache, GuardDuty, CodePipeline) are not yet supported.
 
 ## STEP 7 — Generate Product Recommendation (2-5 crisp bullets)
