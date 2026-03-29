@@ -770,6 +770,16 @@
                         <li>{{ bullet | linkify }}</li>
                         {% endfor %}
                     </ul>
+                    {% if product.lab_concepts %}
+                    <div style="margin-top:16px; padding: 0 20px 16px;">
+                        <div class="section-title">Suggested Lab Concepts</div>
+                        <div class="lab-concepts-grid">
+                        {% for concept in product.lab_concepts %}
+                        <div class="lab-concept">{{ concept }}</div>
+                        {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </details>
             {% endif %}
@@ -826,17 +836,6 @@
                         </div>
                         {% endfor %}
                     </div>
-
-                    {% if product.lab_concepts %}
-                    <div style="margin-top:16px;">
-                        <div class="section-title">Suggested Lab Concepts</div>
-                        <div class="lab-concepts-grid">
-                        {% for concept in product.lab_concepts %}
-                        <div class="lab-concept">{{ concept }}</div>
-                        {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
 
                 </div>
             </details>
