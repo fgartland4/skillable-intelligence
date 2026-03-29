@@ -432,10 +432,12 @@ Never use "Path A", "Path B", or "Path C" in the output — use the actual fabri
 
 Each bullet MUST start with a bold label in the format "**Label:** rest of sentence." Use ONLY these labels:
 
-- **Delivery Path:** [fabric and delivery mechanism — state plainly]
+- **Delivery Path:** [fabric and delivery mechanism — state plainly. When recommending ESX, always state the specific reason explicitly: either (a) "ESX required — product runs a nested hypervisor (e.g. VMware Player/ESXi/VirtualBox) inside the lab VM that is not Hyper-V" or (b) "ESX preferred — socket-based licensing applies; VMs over 24 vCPUs would span 2 sockets on Hyper-V, doubling per-socket license cost." When recommending Hyper-V where ESX would also work, add: "ESX is also available at higher cost if the customer prefers it."]
   Examples: "**Delivery Path:** Hyper-V fabric — installs clean on Windows Server."
             "**Delivery Path:** Azure Cloud Slice — isolated Azure subscription per learner."
             "**Delivery Path:** Custom API provisioning — Skillable calls vendor APIs per learner."
+            "**Delivery Path:** VMware ESX fabric — required because the lab runs a nested ESXi hypervisor inside the VM, which is not supported on Hyper-V."
+            "**Delivery Path:** Hyper-V fabric — installs on Windows Server VM; ESX also available at higher cost if customer prefers VMware."
 
 - **Scoring Rationale:** [1-2 strongest signals that drove the score — be specific. Do NOT mention existing Skillable customer status here — that belongs in the Similar Products bullet, not here.]
   Example: "**Scoring Rationale:** Deep admin workflows (workflow designer, case config, role-based access) plus a formal partner ATP program drive the high score."
