@@ -46,6 +46,9 @@ app.jinja_loader = jinja2.ChoiceLoader([
     jinja2.FileSystemLoader(str(_TOOLS_DIR / "prospector" / "templates")),
 ])
 
+# Custom Jinja2 tests not available in this version
+app.jinja_env.tests['match'] = lambda value, pattern: bool(_re.match(pattern, str(value or '')))
+
 # SSE stream timeout — abandon after this many seconds with no terminal message
 _SSE_TIMEOUT = 600  # 10 minutes
 
