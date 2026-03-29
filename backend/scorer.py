@@ -327,8 +327,15 @@ Not yet supported: SageMaker, Comprehend, Rekognition, Lex, Polly, Transcribe, E
 - Credential pool recyclable: 15-19, tier: "Next Best - Credential Pool"
 - Trial accounts: 7-11, tier: "Manual - Trial Accounts" (credit card → 4-7, add flags)
 
-**Custom API Provisioning:** Vendor's own cloud (not Azure/AWS)? → skillable_path: "A2"
-- Rich APIs, isolated instances: 14-18 | Credential pool: 10-14 | SSO: 7-11 | Trial: 4-8 | No isolation: 1-4
+**Custom API Provisioning (BYOC):** Vendor's own cloud (not Azure/AWS)? → skillable_path: "A2"
+Skillable calls this Bring Your Own Cloud (BYOC). Life Cycle Actions (LCAs) handle provisioning, waiting, and teardown via the vendor's API. Salesforce sandboxes are the canonical example.
+⚠️ If the vendor's platform requires MFA for API authentication → automated task scoring is NOT possible. Falls back to MCQ/fill-in-blank only. Score accordingly — this is a meaningful capability gap.
+⚠️ Long provisioning times (e.g., Salesforce sandbox = up to 10 hours) require Pre-Instancing (Skillable support-only feature) to pre-build environments before the learner arrives.
+- Rich APIs for all lifecycle phases (provision, configure, score, teardown), isolated instance per learner: 14-18
+- Credential pool recyclable (no per-learner isolation but usable): 10-14
+- SSO only (no per-learner instance): 7-11
+- Trial accounts: 4-8 (credit card → 2-5, add flags)
+- No isolation mechanism: 1-4
 
 **Skillable Simulation:** When real labs not practical (too long, too costly, data sensitivity) → skillable_path: "C", score 5-10
 
@@ -386,6 +393,7 @@ VM/Datacenter (Hyper-V/Docker) ≥15: 1.0x | Any path ≥20: 1.0x | Tech 12-19 n
 ## STEP 6 — Labability Intelligence Signals (use these to enrich technical evidence)
 
 When you see any of these signals in the research, note them explicitly in evidence or summary:
+- **Microsoft 365 End User apps (Word, Excel, SharePoint, Teams, Copilot, OneDrive, etc.)**: Skillable provides automated M365 tenant provisioning via Azure Cloud Slice using Skillable-owned tenants — no credit card or MFA required. Three tiers: Base (E3 — core apps + Entra ID P1), Full (E5 — adds Power BI Pro + Entra ID P2), Full+AI (E7, coming soon — adds Copilot + Agent 365). Teams, Power BI Premium, Power Automate Premium available as add-ons. Concurrent user licensing model (sold in increments of 15/50, annual). Note this explicitly for any product in the M365 End User space — clean automated path. Contrast with M365 Administration scenarios (managing tenant, Global Admin tasks) which require trial accounts with potential credit card/MFA for custom labs (or Microsoft-provided tenant for MOC/Learning Partners only) — score Admin scenarios lower due to trial account friction.
 - **Entra ID / Azure SSO support**: Major advantage for Azure Cloud Slice — Skillable provisions an Entra ID tenant with every Azure subscription. If the product authenticates via Entra ID or Azure SSO, the app can be pre-configured to use that tenant automatically. Zero credential management, clean per-learner isolation, no manual login. Note this explicitly and score Technical Orchestrability toward the high end of the Azure Cloud Slice tier.
 - **Azure Marketplace / AWS Marketplace listing**: Strong signal — confirms cloud-native deployment or partner-published image; directly compatible with Skillable Cloud Slice or Azure/AWS fabric.
 - **Bicep or ARM templates available**: If the product deploys via Bicep or ARM JSON, lab authors can reuse those templates directly in Skillable Azure Cloud Slice. Note explicitly — this dramatically reduces lab build effort.
