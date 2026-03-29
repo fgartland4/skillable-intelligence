@@ -413,9 +413,6 @@ def api_analyze():
         return jsonify({"error": str(exc)}), 500
 
 
-app.register_blueprint(inspector)
-
-
 # ---------------------------------------------------------------------------
 # Prospector Blueprint (stub — Phase 4)
 # ---------------------------------------------------------------------------
@@ -429,9 +426,6 @@ def prospector_home():
     return render_template("prospector.html")
 
 
-app.register_blueprint(prospector)
-
-
 # ---------------------------------------------------------------------------
 # Designer Blueprint (stub — Phase 3)
 # ---------------------------------------------------------------------------
@@ -443,9 +437,6 @@ designer = Blueprint("designer", __name__, url_prefix="/designer")
 @designer.route("")
 def designer_home():
     return render_template("designer.html")
-
-
-app.register_blueprint(designer)
 
 
 # ---------------------------------------------------------------------------
@@ -607,6 +598,12 @@ def marketing_export(job_id: str):
         mimetype="text/csv",
         headers={"Content-Disposition": f"attachment; filename=labability-batch-{job_id}.csv"},
     )
+
+
+# Register all blueprints after all routes are defined
+app.register_blueprint(inspector)
+app.register_blueprint(prospector)
+app.register_blueprint(designer)
 
 
 if __name__ == "__main__":
