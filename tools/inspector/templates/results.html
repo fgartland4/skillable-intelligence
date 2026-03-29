@@ -721,6 +721,14 @@
                     </div>
                     <div class="out-of">/100</div>
                 </div>
+                {% set tech = product.labability_score.technical_orchestrability.score | default(0) %}
+                {% if tech >= 20 %}{% set mult_label = "1.0× (tech ≥ 20 — any path)" %}
+                {% elif tech >= 15 and product.skillable_path == 'B' %}{% set mult_label = "1.0× (datacenter VM — full multiplier)" %}
+                {% elif tech >= 12 %}{% set mult_label = "0.75× (tech 12–19)" %}
+                {% elif tech >= 6 %}{% set mult_label = "0.40× (tech 6–11 — limited provisioning)" %}
+                {% else %}{% set mult_label = "0.15× (tech 0–5 — not viable)" %}
+                {% endif %}
+                <div style="font-size:0.72rem; color:#6b9e88; margin-top:4px; text-align:center;">Multiplier: {{ mult_label }}</div>
             </div>
 
             {% if product.description %}

@@ -59,8 +59,17 @@ _SSE_TIMEOUT = 600  # 10 minutes
 
 @app.template_filter('bold_labels')
 def bold_labels(text):
-    """Convert **text** markdown to <strong>text</strong> HTML."""
-    result = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', str(text))
+    """Convert **text** markdown to <strong>text</strong> HTML.
+    Labels matching warning patterns render in red."""
+    _WARNING_LABELS = {'Blockers', 'Blocker', 'Note', 'Warning', 'Risk', 'Limitation'}
+    def _replace(m):
+        label = m.group(1)
+        # Check if the bold text starts with a known warning label (before the colon)
+        first_word = label.split(':')[0].strip()
+        if first_word in _WARNING_LABELS:
+            return f'<strong style="color:#e05252;">{label}</strong>'
+        return f'<strong>{label}</strong>'
+    result = _re.sub(r'\*\*(.+?)\*\*', _replace, str(text))
     return Markup(result)
 
 
