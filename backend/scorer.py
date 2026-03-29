@@ -437,7 +437,7 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
             "**Delivery Path:** Azure Cloud Slice — isolated Azure subscription per learner."
             "**Delivery Path:** Custom API provisioning — Skillable calls vendor APIs per learner."
 
-- **Scoring Rationale:** [1-2 strongest signals that drove the score — be specific]
+- **Scoring Rationale:** [1-2 strongest signals that drove the score — be specific. Do NOT mention existing Skillable customer status here — that belongs in the Similar Products bullet, not here.]
   Example: "**Scoring Rationale:** Deep admin workflows (workflow designer, case config, role-based access) plus a formal partner ATP program drive the high score."
 
 - **Similar Products Already in Skillable:** [one short factual sentence naming an active Skillable customer with same delivery model — include ONLY when the parallel is genuinely strong]
