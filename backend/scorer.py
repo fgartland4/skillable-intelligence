@@ -568,7 +568,7 @@ Return ONLY valid JSON — a single product object:
     "skillable_mechanism": "Skillable Datacenter|Cloud Slice - Azure/AWS|Cloud Slice - Vendor Cloud|Skillable Simulation|Unclear",
     "fabric": "Hyper-V|ESX|Docker|Azure Cloud Slice|AWS Cloud Slice|Custom API|Simulation|Unclear",
     "user_personas": ["Administrator", "Developer"],
-    "lab_highlight": "3–5 word badge phrase — what makes this product inherently hands-on. Must fit on one line. Examples: 'Deep config complexity', 'Misconfigure it, something breaks', 'Build the AI pipeline yourself', 'Multi-VM network topology', 'Real API orchestration required'. Only include if genuinely compelling. Leave empty string if nothing stands out.",
+    "lab_highlight": "3–5 word badge phrase answering: WHY is this product a great Skillable lab candidate? NOT a product description — the SE already knows what the product does. The badge must capture what makes it inherently hands-on or uniquely suited to lab delivery. Ask: 'What would be lost if a learner just watched a demo instead of doing it?' Good: 'Misconfigure it, something breaks', 'Every action is API-scoreable', 'Multi-VM topology required', 'Real API orchestration required', 'Config decisions have real consequences', 'Hands-on or nothing sticks', 'Build the pipeline yourself'. Bad (product descriptions — do NOT use): 'Endpoint security platform', 'Real-time asset inventory', 'Data protection solution', 'Cloud-native monitoring'. Only include if genuinely compelling. Leave empty string if nothing stands out.",
     "poor_match_flags": [],
     "api_scoring_potential": "Full|Partial|Minimal|None",
     "recommendation": ["Bullet 1", "Bullet 2", "Bullet 3"],
