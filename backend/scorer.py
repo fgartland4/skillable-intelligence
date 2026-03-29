@@ -402,12 +402,23 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
 - **Next Step:** [what the rep should do — pursue aggressively / pilot with X / monitor API roadmap / do not pursue until Y]
   Example: "**Next Step:** Pursue — strong technical fit and active partner ecosystem. Start with their Professional Services team."
 
-- **Note:** [for critical flags only — credit card required, locked APIs, GPU dependency, willing buyer/unwilling product team]
+- **Blockers:** [include whenever Skillable has a current platform gap that meaningfully limits what we can deliver for this product — 1-2 specific, honest items. This is about Skillable's limitations, not the product's. Examples of blockers:
+  - An AWS product whose core workflow depends on a service Skillable doesn't yet support (e.g. SageMaker, GuardDuty, ElastiCache)
+  - A product that requires a GPU or specialized hardware environment Skillable can't provision
+  - A licensing model where no NFR/dev tier exists and vendor engagement is required before any lab can be built
+  - A cloud product that has no per-tenant isolation mechanism, making clean learner separation impossible today
+  Be specific — name the service, license type, or capability gap. One sentence per blocker. Omit this bullet entirely if there are no meaningful Skillable-side gaps.]
+  Examples: "**Blockers:** AWS SageMaker (core to this product's ML pipeline) is not yet supported in Skillable's AWS Cloud Slice fabric — limits hands-on ML workflow coverage until Skillable adds support."
+            "**Blockers:** No NFR or developer license program found — Skillable would need direct vendor engagement to obtain lab environments before authoring can begin."
+            "**Blockers:** Product requires GPU instances (A100/H100) — not currently available in Skillable's VM fabric; limits AI model training scenarios."
+
+- **Note:** [for other critical flags — credit card required, locked APIs, willing buyer/unwilling product team]
   Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
 REQUIRED bullets: Delivery Path, Scoring Rationale, Essential Technical Resource, Next Step.
-OPTIONAL (include when strong): Similar Products Already in Skillable, Sample Tasks, Note.
-Total: 4-6 bullets. Never use "Path A", "Path B", or "Path C".
+OPTIONAL (include when applicable): Similar Products Already in Skillable, Sample Tasks, Blockers, Note.
+Total: 4-7 bullets. Never use "Path A", "Path B", or "Path C".
+Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
 
 Output `recommendation` as a JSON array of strings, one string per bullet (including the **bold label**). 4-6 items.
 
