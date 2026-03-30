@@ -984,6 +984,8 @@
                 {% if product.contacts %}
                 {% set dms_named = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
                 {% set infs_named = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
+                {% set dms_unknown = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
+                {% set infs_unknown = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
                 <div class="contacts-groups">
                     {# ── Macro: render one contact row, with alumni highlight if relevance mentions prior Skillable customer ── #}
                     {% macro contact_row(contact) %}
