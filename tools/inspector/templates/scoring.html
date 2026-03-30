@@ -172,6 +172,7 @@
         </div>
 
         <div class="status" id="status"></div>
+        <div id="timer" style="font-size:0.72rem;color:#2a4a3a;margin-top:10px;">0:00 elapsed</div>
     </div>
 
     <script>
@@ -301,6 +302,13 @@
         source.onerror = function() {
             document.getElementById("status").textContent = "Something went wrong. Please try again.";
         };
+
+        const _t0 = Date.now();
+        setInterval(() => {
+            const s = Math.floor((Date.now() - _t0) / 1000);
+            document.getElementById('timer').textContent =
+                `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')} elapsed`;
+        }, 1000);
     </script>
 </body>
 </html>

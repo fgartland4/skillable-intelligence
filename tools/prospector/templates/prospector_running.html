@@ -45,6 +45,7 @@
         }
         .btn-cancel:hover { border-color: rgba(248,113,113,0.4); color: #f87171; }
         .btn-cancel:disabled { opacity: 0.4; cursor: default; }
+        .timer { font-size: 0.75rem; color: #2a4a3a; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -59,6 +60,7 @@
             <div class="progress-bar-fill" id="progress-bar"></div>
         </div>
         <div class="progress-text" id="progress-text">0 / {{ company_count }} complete</div>
+        <div class="timer" id="timer">0:00 elapsed</div>
         <button class="btn-cancel" id="btn-cancel" onclick="cancelRun()">Cancel run</button>
     </div>
 
@@ -93,6 +95,22 @@
             }
         };
         es.onerror = function() { es.close(); };
+
+        const startTime = Date.now();
+        const timerEl = document.getElementById('timer');
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const em = Math.floor(elapsed / 60), es = elapsed % 60;
+            const eStr = `${em}:${es.toString().padStart(2,'0')}`;
+            if (completed > 0 && completed < total) {
+                const rate = elapsed / completed;
+                const rem = Math.max(0, Math.round(rate * (total - completed)));
+                const rm = Math.floor(rem / 60), rs = rem % 60;
+                timerEl.textContent = `${eStr} elapsed · ~${rm}:${rs.toString().padStart(2,'0')} remaining`;
+            } else {
+                timerEl.textContent = `${eStr} elapsed`;
+            }
+        }, 1000);
 
         function cancelRun() {
             const btn = document.getElementById('btn-cancel');
