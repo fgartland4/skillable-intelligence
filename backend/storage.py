@@ -46,6 +46,28 @@ def load_analysis(analysis_id: str) -> dict | None:
         return json.load(f)
 
 
+def find_analysis_by_discovery_id(discovery_id: str) -> dict | None:
+    """Return the most recent analysis that came from this discovery_id, or None."""
+    if not os.path.exists(DATA_DIR):
+        return None
+    for filename in sorted(os.listdir(DATA_DIR), reverse=True):
+        if not filename.endswith(".json"):
+            continue
+        filepath = os.path.join(DATA_DIR, filename)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if data.get("discovery_id") == discovery_id:
+                return {
+                    "analysis_id": data.get("analysis_id", filename.replace(".json", "")),
+                    "company_name": data.get("company_name", ""),
+                    "analyzed_at": data.get("analyzed_at", ""),
+                }
+        except Exception:
+            continue
+    return None
+
+
 def save_batch_job(job_id: str, data: dict) -> None:
     filepath = os.path.join(BATCH_DIR, f"{job_id}.json")
     with open(filepath, "w", encoding="utf-8") as f:

@@ -447,10 +447,6 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
             "**Similar Products Already in Skillable:** Cohesity and Commvault are both active Skillable customers in data protection."
             "**Similar Products Already in Skillable:** Tanium is an active Skillable customer in endpoint security."
 
-- **Sample Tasks:** [2-3 concrete, specific things a practitioner would DO in this lab — not generic, tied to this product's actual workflows]
-  Examples: "**Sample Tasks:** Configure a content workflow in Workflow Designer, set up AP automation rules, troubleshoot a failed document capture pipeline."
-            "**Sample Tasks:** Deploy a backup policy, simulate a ransomware recovery, validate restored data integrity via REST API."
-
 - **Essential Technical Resource:** [ALWAYS include — who the Skillable rep should ask their champion to connect them with, and why. If a specific API or developer docs URL is known, embed it as a markdown link: [API Docs](https://url)]
   - VM-installable (Hyper-V/Docker): "**Essential Technical Resource:** Ask your champion to connect you with their Professional Services or Implementation Engineering team — they build customer environments and know exactly what automation is available."
   - Cloud/SaaS (Azure Cloud Slice or Custom API): "**Essential Technical Resource:** Ask your champion to connect you with their Solutions Engineering or Sales Engineering team — they own the provisioning APIs and can confirm per-learner isolation in 15 minutes."
@@ -475,7 +471,8 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
   Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
 REQUIRED bullets: Delivery Path, Scoring Rationale, Essential Technical Resource, Next Step.
-OPTIONAL (include when applicable): Similar Products Already in Skillable, Sample Tasks, Program Fit, Blockers, Note.
+OPTIONAL (include when applicable): Similar Products Already in Skillable, Program Fit, Blockers, Note.
+Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
 Total: 4-7 bullets. Never use "Path A", "Path B", or "Path C".
 Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
 

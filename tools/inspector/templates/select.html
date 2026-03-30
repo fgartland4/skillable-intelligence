@@ -135,6 +135,9 @@
 
     <div class="container">
         <a href="/inspector/" class="back">&larr; New Search</a>
+        {% if existing_analysis %}
+        <a href="/inspector/results/{{ existing_analysis.analysis_id }}" style="display:inline-block; float:right; margin-bottom:24px; padding:8px 18px; background:rgba(36,237,155,0.08); border:1px solid rgba(36,237,155,0.25); border-radius:8px; color:#24ED9B; font-size:0.85rem; font-weight:600;">View Previous Results &rarr;</a>
+        {% endif %}
         <h1>{{ discovery.company_name }}</h1>
         {% if discovery.company_description %}
         <div class="company-desc">{{ discovery.company_description }}</div>

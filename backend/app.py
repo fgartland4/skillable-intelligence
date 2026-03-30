@@ -21,6 +21,7 @@ from storage import (
     save_analysis, load_analysis, list_analyses,
     save_discovery, load_discovery,
     save_batch_job, load_batch_job,
+    find_analysis_by_discovery_id,
 )
 from models import compute_labability_total
 
@@ -65,8 +66,12 @@ def bold_labels(text):
     def _replace(m):
         label = m.group(1)
         # Check if the bold text starts with a known warning label (before the colon)
-        first_word = label.split(':')[0].strip()
+        colon_pos = label.find(':')
+        first_word = (label[:colon_pos] if colon_pos != -1 else label).strip()
         if first_word in _WARNING_LABELS:
+            if colon_pos != -1:
+                # Only color the label word; leave the rest of the bold text normal
+                return f'<strong><span style="color:#e05252;">{label[:colon_pos]}</span>{label[colon_pos:]}</strong>'
             return f'<strong style="color:#e05252;">{label}</strong>'
         return f'<strong>{label}</strong>'
     result = _re.sub(r'\*\*(.+?)\*\*', _replace, str(text))
@@ -240,7 +245,8 @@ def select_products(discovery_id: str):
     for i, p in enumerate(discovery.get("products", []), start=1):
         if not p.get("priority"):
             p["priority"] = i
-    return render_template("select.html", discovery=discovery)
+    existing_analysis = find_analysis_by_discovery_id(discovery_id)
+    return render_template("select.html", discovery=discovery, existing_analysis=existing_analysis)
 
 
 # Phase 2: Scoring
@@ -264,25 +270,51 @@ def score():
 
     def run_scoring():
         try:
-            research_messages = [
-                "status:Scouring technical docs, APIs & deployment guides",
-                "status:Finding training (ATP and gray) & certification programs",
-                "status:Researching product focus areas, AI features & target personas",
-                "status:Analyzing channel partners, enablement resources, roadshows & hands-on events",
-                "status:Identifying training and enablement organizational structures & contacts",
-            ]
-            def push_research_messages():
-                for i, msg in enumerate(research_messages):
-                    _push(job_id, msg)
-                    if i < len(research_messages) - 1:
-                        threading.Event().wait(5)
+            # Check if research is fully cached for all selected products
+            cache = discovery.get("_research_cache", {})
+            cached_names = set(cache.get("researched_products", []))
+            selected_names = {p["name"] for p in selected_products}
 
-            msg_thread = threading.Thread(target=push_research_messages, daemon=True)
-            msg_thread.start()
+            if selected_names <= cached_names:
+                # All selected products already researched — skip web searches
+                _push(job_id, "status:Loading cached research data")
+                research = {
+                    "company_name": company_name,
+                    "selected_products": selected_products,
+                    "search_results": cache.get("search_results", {}),
+                    "page_contents": cache.get("page_contents", {}),
+                }
+            else:
+                research_messages = [
+                    "status:Scouring technical docs, APIs & deployment guides",
+                    "status:Finding training (ATP and gray) & certification programs",
+                    "status:Researching product focus areas, AI features & target personas",
+                    "status:Analyzing channel partners, enablement resources, roadshows & hands-on events",
+                    "status:Identifying training and enablement organizational structures & contacts",
+                ]
+                def push_research_messages():
+                    for i, msg in enumerate(research_messages):
+                        _push(job_id, msg)
+                        if i < len(research_messages) - 1:
+                            threading.Event().wait(5)
 
-            research = research_products(company_name, selected_products)
+                msg_thread = threading.Thread(target=push_research_messages, daemon=True)
+                msg_thread.start()
+
+                research = research_products(company_name, selected_products)
+                msg_thread.join()
+
+                # Save research to discovery cache for future re-runs
+                merged_search = {**cache.get("search_results", {}), **research["search_results"]}
+                merged_pages = {**cache.get("page_contents", {}), **research["page_contents"]}
+                updated_discovery = {**discovery, "_research_cache": {
+                    "researched_products": list(cached_names | selected_names),
+                    "search_results": merged_search,
+                    "page_contents": merged_pages,
+                }}
+                save_discovery(discovery_id, updated_discovery)
+
             research["discovery_data"] = discovery
-            msg_thread.join()
 
             _push(job_id, "status:Scoring with Claude AI")
             analysis = score_selected_products(research)

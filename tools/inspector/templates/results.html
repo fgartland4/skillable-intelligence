@@ -150,7 +150,9 @@
             display: inline-block; background: #122019; color: #6b9e88;
             padding: 3px 10px; border-radius: 6px; font-size: 0.72rem; margin-top: 5px;
         }
-        .total-score { text-align: right; min-width: 80px; }
+        .score-right { display: flex; align-items: flex-start; gap: 12px; flex-shrink: 0; }
+        .mult-info { text-align: right; font-size: 0.70rem; color: #6b9e88; line-height: 1.6; padding-top: 6px; white-space: nowrap; }
+        .total-score { text-align: right; min-width: 70px; }
         .total-score .score-num { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
         .total-score .out-of { font-size: 0.8rem; color: #3d6655; font-weight: 400; }
         .product-desc { color: #6b9e88; font-size: 0.875rem; margin-bottom: 18px; line-height: 1.6; }
@@ -715,20 +717,25 @@
                     <span class="persona-badge">{{ persona }}</span>
                     {% endfor %}
                 </div>
-                <div class="total-score">
-                    <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
-                        {{ product._total_score }}
-                    </div>
-                    <div class="out-of">/100</div>
-                </div>
                 {% set tech = product.labability_score.technical_orchestrability.score | default(0) %}
-                {% if tech >= 20 %}{% set mult_label = "1.0× (tech ≥ 20 — any path)" %}
-                {% elif tech >= 15 and product.skillable_path == 'B' %}{% set mult_label = "1.0× (datacenter VM — full multiplier)" %}
-                {% elif tech >= 12 %}{% set mult_label = "0.75× (tech 12–19)" %}
-                {% elif tech >= 6 %}{% set mult_label = "0.40× (tech 6–11 — limited provisioning)" %}
-                {% else %}{% set mult_label = "0.15× (tech 0–5 — not viable)" %}
-                {% endif %}
-                <div style="font-size:0.72rem; color:#6b9e88; margin-top:4px; text-align:center;">Multiplier: {{ mult_label }}</div>
+                {% set adjusted = product._total_score - tech %}
+                {% if tech >= 20 %}{% set mult_val = "1.0×" %}
+                {% elif tech >= 15 and product.skillable_path == 'B' %}{% set mult_val = "1.0×" %}
+                {% elif tech >= 12 %}{% set mult_val = "0.75×" %}
+                {% elif tech >= 6 %}{% set mult_val = "0.40×" %}
+                {% else %}{% set mult_val = "0.15×" %}{% endif %}
+                <div class="score-right">
+                    <div class="mult-info">
+                        <div>Multiplier: {{ mult_val }}</div>
+                        <div>{{ tech }} + {{ adjusted }} = {{ product._total_score }}</div>
+                    </div>
+                    <div class="total-score">
+                        <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
+                            {{ product._total_score }}
+                        </div>
+                        <div class="out-of">/100</div>
+                    </div>
+                </div>
             </div>
 
             {% if product.description %}
