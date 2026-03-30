@@ -15,7 +15,7 @@ from lxml import etree
 
 DOCS_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_PATH = os.path.join(DOCS_DIR, "Skillable-Intelligence-Executive-Briefing.docx")
-LOGO_PATH = os.path.join(DOCS_DIR, "..", "static", "img", "skillable-logo.png")
+LOGO_PATH = r"C:\Users\Frank.Gartland\OneDrive - Skillable\Sales Enablement\Keep\z-Skillable Logos\Skillable Logo\Default@4x.png"
 
 # Colors
 DARK_GREEN = RGBColor(0x1A, 0x4D, 0x35)
@@ -26,7 +26,7 @@ PAGE_NUM_GRAY = RGBColor(0x88, 0x88, 0x88)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 DARK_TEXT = RGBColor(0x1A, 0x1A, 0x1A)
 ROW_ALT = "F0F5F2"
-FONT_NAME = "Arial"
+FONT_NAME = "Calibri"
 
 
 # ── XML helpers ────────────────────────────────────────────────────────────────
@@ -190,12 +190,12 @@ def build_footer(doc):
         color = OxmlElement("w:color")
         color.set(qn("w:val"), "888888")
         sz = OxmlElement("w:sz")
-        sz.set(qn("w:val"), "18")  # 9pt
+        sz.set(qn("w:val"), "16")  # 8pt
         szCs = OxmlElement("w:szCs")
-        szCs.set(qn("w:val"), "18")
+        szCs.set(qn("w:val"), "16")
         font = OxmlElement("w:rFonts")
-        font.set(qn("w:ascii"), "Arial")
-        font.set(qn("w:hAnsi"), "Arial")
+        font.set(qn("w:ascii"), "Calibri")
+        font.set(qn("w:hAnsi"), "Calibri")
         rpr.append(font)
         rpr.append(sz)
         rpr.append(szCs)
