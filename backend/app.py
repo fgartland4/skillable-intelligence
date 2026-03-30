@@ -570,6 +570,7 @@ def prospector_run():
 
     threading.Thread(target=run_batch, daemon=True).start()
     return render_template("prospector_running.html", job_id=job_id,
+                           company_names=company_names,
                            company_count=len(company_names))
 
 
