@@ -374,6 +374,38 @@ CUSTOMER_BENCHMARKS = [
         "score_guidance": "LOW product labability (8-15 total after multiplier). Partnership readiness may score 60-75 independently. The composite gate (Lab < 30 → composite capped at 25) applies here — do not let high partnership readiness inflate pursuit priority.",
     },
     {
+        "company": "HPE (bare metal orchestration scenario) / Cohesity bare metal use case",
+        "relationship": "SCENARIO ANCHOR — bare metal orchestration hard stop (Do Not Pursue)",
+        "org_type": "software_company",
+        "products_and_paths": [
+            "Any product where the customer wants Skillable to provision, reset, or manage physical bare metal servers, network hardware, HSMs, or storage arrays with no virtualization layer"
+        ],
+        "expansion_arc": [
+            "Skillable engaged HPE on a scenario involving bare metal server orchestration — reset and re-provision physical lab hardware per learner. Technically out of scope: Skillable's entire fabric is virtualized (Hyper-V, ESX, Docker, Cloud Slice). No bare metal provisioning capability exists.",
+            "Cost and complexity analysis confirmed: too expensive to attempt even as a one-off, and not a strategic direction for the platform. Cohesity raised a similar bare metal scenario that was also not pursued.",
+            "Cisco has mentioned bare metal requirements in isolated conversations — flag and redirect to Skillable Simulations or a hardware-vendor-specific lab solution.",
+        ],
+        "key_signals": {
+            "technical": "Physical hardware orchestration — provision, clone, reset, or manage physical servers or network gear. No virtualization layer. Skillable cannot snapshot or fork physical hardware state per learner. This is not a gap that will be closed; it is a fundamental architecture boundary.",
+            "workflow": "Scenarios that look like this: 'We want learners to configure a real HPE ProLiant server from bare metal', 'We need to reset a physical storage array between learner sessions', 'We want to practice firmware flashing on real hardware'.",
+            "training_ecosystem": "Training need is real and demand may be genuine — but a different delivery partner is required (vendor-owned physical lab facilities, specialized hardware-in-loop vendors).",
+            "market_fit": "Hardware-centric vendors (HPE, Dell, NetApp, Pure Storage, Juniper physical appliances, Palo Alto hardware) sometimes raise this. Most accept VMs or simulators as a substitute — only flag bare metal when the customer is explicit that real hardware is required.",
+            "partnership_readiness": "High partnership readiness scores are possible and valid — the training relationship is worth maintaining. The blocker is purely technical.",
+        },
+        "warning": (
+            "⚠️ BARE METAL HARD STOP — Do Not Pursue as a lab delivery scenario. "
+            "Redirect options: (1) Skillable Simulations for non-interactive demo scenarios. "
+            "(2) VM-based equivalents — most enterprise server software installs fine in a Hyper-V/ESX VM and learners cannot tell the difference for software workflows. "
+            "(3) Acknowledge the gap honestly and maintain the relationship for the software-side training they DO have. "
+            "Important distinction: hardware-locked LICENSING (BIOS GUID-based activation) is NOT a blocker — Skillable pins BIOS GUIDs in VM profiles. Only flag when physical hardware orchestration itself is the requirement."
+        ),
+        "score_guidance": (
+            "BARE METAL HARD STOP: total product labability 5-15. technical_orchestrability 0-5, workflow_depth 2-6, training_ecosystem 1-4. "
+            "Add 'bare_metal_required' to poor_match_flags. Set Next Step to Do Not Pursue. "
+            "Note: if the same company also has software products that install in VMs (e.g., HPE also sells OneView, Nimble storage software, Aruba network management software), score THOSE products separately and normally — only the bare metal scenario triggers the hard stop."
+        ),
+    },
+    {
         "company": "Facebook / Meta consumer products",
         "relationship": "POOR MATCH — canonical consumer product poor match",
         "org_type": "software_company",
@@ -497,6 +529,12 @@ Skillable orchestrates software in cloud VMs and datacenters so learners practic
 You will receive research for ONE product. Score it and output a single product JSON object.
 
 Follow Steps 1-5 and Step 7 from the scoring rubric below.
+
+## STEP 0 — Bare Metal Hard Stop
+Does this product require orchestrating **physical bare metal hardware** — i.e., the customer wants Skillable to provision, reset, or manage actual physical servers, network gear, HSMs, or hardware with no virtualization layer?
+If YES → Score technical_orchestrability 0-5, total score 5-15, add "bare_metal_required" to poor_match_flags. Set Next Step to Do Not Pursue.
+⚠️ Skillable's fabric is entirely virtualized (Hyper-V, ESX, Docker, Cloud Slice). There is no bare metal provisioning capability. Labs cannot snapshot, clone, or reset physical hardware. This is rarely worth pursuing — flag it immediately and move on.
+⚠️ Important distinction: hardware-locked *licensing* (BIOS GUID-based activation) is NOT a blocker — Skillable can pin BIOS GUIDs in VM profiles. The flag applies only when the *orchestration of physical hardware itself* is the requirement.
 
 ## STEP 1 — API Automation Gate
 Can provisioning, user account creation, license application, and environment configuration be done programmatically without learner action?
