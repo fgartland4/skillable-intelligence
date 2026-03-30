@@ -2,7 +2,7 @@
 
 > Prospector runs the same intelligence pipeline as Inspector across a batch of companies at once — producing a ranked table of labability fit, partnership signals, and outreach contacts so you know exactly where to focus before you invest a single sales cycle.
 >
-> For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md).
+> For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md). For guidance on how to interpret findings, confidence levels, and where hallucination risk is highest, see [Before You Read the Scores](intelligence-platform.md#before-you-read-the-scores).
 
 ---
 

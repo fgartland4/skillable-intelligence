@@ -109,7 +109,7 @@ class ConsumptionPotential:
     motions: list[ConsumptionMotion] = field(default_factory=list)
     annual_hours_low: int = 0
     annual_hours_high: int = 0
-    vm_rate_estimate: int = 0       # $/hr: Cloud $5, Standard VM $12–15, Large VM $45–55, Simulation $0
+    vm_rate_estimate: int = 0       # $/hr: Cloud $10.50, Standard VM $12–15, Large VM $45–55, Simulation $5
     methodology_note: str = ""      # visible caveat displayed in report
 
 

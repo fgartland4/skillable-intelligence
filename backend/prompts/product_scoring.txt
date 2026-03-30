@@ -408,10 +408,10 @@ Then provide:
 - `annual_hours_low`: sum of (population_low × hours_low × adoption_pct) across all motions, rounded to integer. This is the "realistic today" figure — what a reasonable first-year engagement might look like.
 - `annual_hours_high`: sum of (population_high × hours_high × adoption_pct) across all motions, rounded to integer. This is the "mature engagement" ceiling — what a well-established program at good adoption looks like. It should not feel like a stretch goal.
 - `vm_rate_estimate`: the estimated Skillable lab cost in $/hr for this product's delivery path. Use these values:
-  - Cloud Slice (Path A1/A2): **$5** — all cloud labs, regardless of which Azure/AWS services are used
+  - Cloud Slice (Path A1/A2): **$10.50** — all cloud labs, regardless of which Azure/AWS services are used
   - Standard VM lab (Path B — 1 to 3 VMs, typical complexity): **$12–15** — use $12 for a clean single-VM install, $15 for 2–3 VMs or minor service dependencies
   - Large or complex VM lab (Path B — many VMs, multiple networks, GPU, large clusters, or specialized hardware): **$45–55** — use $45 for demanding multi-VM setups, $55 for exotic or GPU-required environments
-  - Simulation (Path C): **$0** — no live environment provisioned
+  - Simulation (Path C): **$5** — no live environment, but AI Vision compute and platform overhead still apply
   When in doubt between standard and large VM, use standard ($12–15). Only reach for the $45–55 range when the lab topology genuinely requires many VMs or complex networking.
 - `methodology_note`: 2-3 sentences shown directly to the user. Acknowledge that estimates are based on publicly available signals and are intentionally conservative — they reflect realistic engagement, not theoretical maximums. Name the 1-2 primary signals used (install base, ATP count, company headcount, etc.).
 

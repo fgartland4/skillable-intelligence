@@ -2,7 +2,7 @@
 
 > Inspector takes a single company name and produces a fully scored, evidence-backed assessment of which products could become Skillable lab programs — and what it would actually take to build them.
 >
-> For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md).
+> For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md). For guidance on how to interpret findings, confidence levels, and where hallucination risk is highest, see [Before You Read the Scores](intelligence-platform.md#before-you-read-the-scores).
 
 ---
 
@@ -243,12 +243,12 @@ Population ranges are also required to stay tight — the high end should be no 
 
 | Delivery Path | Environment | $/hr |
 |---|---|---|
-| Cloud Slice (Path A1/A2) | Any Azure or AWS lab | $5 |
+| Cloud Slice (Path A1/A2) | Any Azure or AWS lab | $10.50 |
 | Standard VM (Path B) | 1–3 VMs, typical complexity | $12–15 |
 | Large/Complex VM (Path B) | Many VMs, multiple networks, GPU, large clusters | $45–55 |
-| Simulation (Path C) | No live environment | $0 |
+| Simulation (Path C) | AI Vision compute + platform overhead, no live environment | $5 |
 
-The Cloud Slice rate ($5) is a Skillable platform overhead rate — it applies regardless of which Azure or AWS services are used in the lab, and it is separate from any Azure/AWS consumption costs the customer pays through their cloud subscription. The VM rate reflects environment complexity: a clean single-VM install gets $12, 2–3 VMs get $15, and demanding topologies (multi-VM with networking, GPU) reach $45–55. Claude is instructed to default to the standard VM tier unless the product genuinely requires a large environment — the $45–55 range should be rare.
+The Cloud Slice rate ($10.50) is a Skillable platform overhead rate — it applies regardless of which Azure or AWS services are used in the lab, and is separate from any Azure/AWS consumption costs the customer pays through their cloud subscription. Simulation ($5) reflects AI Vision compute and platform overhead even though no live environment is provisioned. The VM rate reflects environment complexity: a clean single-VM install gets $12, 2–3 VMs get $15, and demanding topologies (multi-VM with networking, GPU) reach $45–55. Claude defaults to the standard VM tier unless the product genuinely requires a large environment — the $45–55 range should be rare.
 
 **Inspector does not trust Claude's arithmetic.** After the scoring call returns, the server recomputes every annual hours total from the parsed motion fields — population midpoint × hours per user per year × adoption % — and replaces whatever figures Claude produced. Claude reasons well about the inputs; it is not a reliable calculator at the motion-summation level.
 
