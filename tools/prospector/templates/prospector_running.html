@@ -76,15 +76,26 @@
         es.onmessage = function(e) {
             const msg = e.data;
             if (msg.startsWith("status:")) {
+                const text = msg.slice(7);
                 const line = document.createElement("div");
                 line.className = "status-line";
-                line.textContent = msg.slice(7);
+                line.textContent = text;
+                // Tag with company name if it's an "Analyzing X..." message
+                const m = text.match(/^Analyzing (.+)\.\.\.$/);
+                if (m) line.dataset.company = m[1];
                 log.appendChild(line);
                 log.scrollTop = log.scrollHeight;
             } else if (msg.startsWith("progress:")) {
                 completed++;
                 progressText.textContent = `${completed} / ${total} complete`;
                 progressBar.style.width = `${Math.round((completed / total) * 100)}%`;
+                // Update the matching log line to show completion
+                const name = msg.slice(9);
+                const match = log.querySelector(`[data-company="${name}"]`);
+                if (match) {
+                    match.textContent = `✓ ${name}`;
+                    match.style.color = '#3d6655';
+                }
             } else if (msg.startsWith("done:")) {
                 es.close();
                 window.location.href = `/prospector/results/${msg.slice(5)}`;
