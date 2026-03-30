@@ -437,7 +437,7 @@
         .pr-bullets li a { color: #a8d5c2; text-decoration: none; border-bottom: 1px solid rgba(168,213,194,0.3); }
         .pr-bullets li a:hover { border-bottom-color: #a8d5c2; }
 
-        /* SA Guidance bullets — actionable recommendations */
+        /* Solutioning Guidance bullets — actionable recommendations */
         .guidance-label {
             font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
             color: #3d6655; margin-bottom: 8px; margin-top: 14px;
@@ -850,7 +850,7 @@
                     {% elif tech_dim.summary %}<p class="dim-summary">{{ tech_dim.summary }}</p>{% endif %}
                     {% if ns.s1 %}
                     <div class="guidance-section">
-                    <div class="guidance-label">SA Guidance</div>
+                    <div class="guidance-label">Solutioning Guidance</div>
                     <ul class="rec-bullets">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
                     </div>{% endif %}
                 </div>
@@ -893,7 +893,7 @@
                     {% elif te_dim.summary %}<p class="dim-summary">{{ te_dim.summary }}</p>{% endif %}
                     {% if ns.s3 %}
                     <div class="guidance-section">
-                    <div class="guidance-label">SA Guidance</div>
+                    <div class="guidance-label">Solutioning Guidance</div>
                     <ul class="rec-bullets">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
                     </div>{% endif %}
                 </div>
@@ -914,7 +914,7 @@
                     {% elif mf_dim.summary %}<p class="dim-summary">{{ mf_dim.summary }}</p>{% endif %}
                     {% if ns.s4 %}
                     <div class="guidance-section">
-                    <div class="guidance-label">SA Guidance</div>
+                    <div class="guidance-label">Solutioning Guidance</div>
                     <ul class="rec-bullets">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
                     </div>{% endif %}
                 </div>
