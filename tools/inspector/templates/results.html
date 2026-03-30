@@ -321,6 +321,7 @@
         .seg-wf   { background:#3b82f6; }
         .seg-te   { background:#a78bfa; }
         .seg-mf   { background:#f59e0b; }
+        .seg-lm   { background:#24ED9B; }
         .seg-low  { background:#f87171; }
         .seg-score { font-size:0.9rem; font-weight:900; line-height:1; pointer-events:none; letter-spacing:-0.01em; text-shadow:0 1px 3px rgba(0,0,0,0.45); color:rgba(255,255,255,0.95); }
 
@@ -464,18 +465,6 @@
         /* JS-injected toggle arrow (shared by dim-section + tech-details) */
         .det-arrow { font-size: 0.82rem; color: #6b9e88; flex-shrink: 0; margin-left: auto; padding-left: 6px; }
 
-        /* Lab Maturity Signals collapsibles */
-        .tech-details { margin-bottom: 2px; }
-        .tech-details > summary {
-            display: flex; align-items: center; gap: 10px;
-            padding: 7px 0; cursor: pointer; user-select: none;
-            font-size: 0.88rem; font-weight: 700; color: #a8d5c2;
-            border-bottom: 1px solid #122019; list-style: none;
-        }
-        .tech-details > summary::-webkit-details-marker { display: none; }
-        .tech-details > summary::marker { content: ''; }
-        .tech-details[open] > summary { border-bottom-color: transparent; }
-        .tech-details-content { padding: 8px 0 10px 10px; }
 
         /* Dimension section collapsibles */
         .dim-section { margin-bottom: 6px; }
@@ -494,6 +483,7 @@
         .dim-section-te   > summary:hover, .dim-section-te[open]   > summary { border-color: rgba(167,139,250,0.3); }
         .dim-section-mf   > summary:hover, .dim-section-mf[open]   > summary { border-color: rgba(245,158,11,0.3); }
         .dim-section-cons > summary:hover, .dim-section-cons[open] > summary { border-color: rgba(36,237,155,0.2); }
+        .dim-section-lm   > summary:hover, .dim-section-lm[open]   > summary { border-color: rgba(36,237,155,0.3); }
         .expand-toggle {
             text-align: right; margin-top: 6px; margin-bottom: 2px;
         }
@@ -510,6 +500,7 @@
         .dim-sec-dot-wf   { background: #3b82f6; }
         .dim-sec-dot-te   { background: #a78bfa; }
         .dim-sec-dot-mf   { background: #f59e0b; }
+        .dim-sec-dot-lm   { background: #24ED9B; }
         .dim-sec-name { flex: 1; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b9e88; }
         .dim-sec-score { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
         .dim-sec-bar { height: 5px; border-radius: 3px; overflow: hidden; }
@@ -517,6 +508,7 @@
         .dim-sec-bar-wf   { background: rgba(59,130,246,0.12); }
         .dim-sec-bar-te   { background: rgba(167,139,250,0.12); }
         .dim-sec-bar-mf   { background: rgba(245,158,11,0.12); }
+        .dim-sec-bar-lm   { background: rgba(36,237,155,0.12); }
         .dim-sec-bar-fill { height: 100%; border-radius: 3px; animation: bar-enter 0.7s ease-out; transition: width 0.6s ease; }
         .dim-sec-content {
             border: 1px solid #1e3329; border-top: none;
@@ -1104,13 +1096,15 @@
 
             {% macro pr_dim_details(label, dim, mx) %}
             {% set pct = ((dim.score / mx) * 100) | round | int %}
-            {% set tier = 'high' if pct >= 72 else ('mid' if pct >= 40 else 'low') %}
-            <details class="tech-details">
+            {% set tier = 'score-high' if pct >= 72 else ('score-mid' if pct >= 40 else 'score-low') %}
+            <details class="dim-section dim-section-lm">
                 <summary>
-                    {{ label }}
-                    <span class="score-{{ tier }}" style="font-size:0.82rem;font-weight:800;margin-left:auto;">{{ pct }}<span style="font-size:0.65rem;color:#3d6655;font-weight:400;">%</span></span>
+                    <span class="dim-sec-dot dim-sec-dot-lm"></span>
+                    <span class="dim-sec-name">{{ label }}</span>
+                    <span class="dim-sec-score {{ tier }}">{{ dim.score }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ {{ mx }}</span></span>
                 </summary>
-                <div class="tech-details-content">
+                <div class="dim-sec-content">
+                    <div class="dim-sec-bar dim-sec-bar-lm" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if pct < 40 %}seg-low{% else %}seg-lm{% endif %}" style="width:{{ [pct,100]|min }}%;"></div></div>
                     {{ pr_bullets(dim) }}
                 </div>
             </details>
@@ -1182,7 +1176,7 @@
     </div>
 <script>
   // Inject explicit toggle arrows into all collapsible sections — more reliable than CSS ::after on <summary>
-  document.querySelectorAll('.dim-section > summary, .tech-details > summary').forEach(s => {
+  document.querySelectorAll('.dim-section > summary').forEach(s => {
     const arrow = document.createElement('span');
     arrow.className = 'det-arrow';
     arrow.textContent = '▾';
