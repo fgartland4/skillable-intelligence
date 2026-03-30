@@ -533,10 +533,9 @@ Use ONLY these labels for the standard bullets:
 
 - **Program Fit:** [which of the standard program types these labs serve, and the business outcome. Include when 2+ program types apply — this is the reusability/ROI case. Format: "**Program Fit:** Customer Training & Enablement (ILT, on-demand catalog) + Channel Enablement (technical demos, SE credentials) — a single lab investment drives adoption, reduces churn, and shortens deal cycles." Standard program types: Customer Training & Enablement (ILT/vILT, on-demand catalog, certification — drives adoption & reduces churn), Channel & Technical Seller Enablement (bootcamps, demos, tailored PoCs, SE credentials — reduces deal cycles, shortens time to revenue), Employee Training & Enablement (internal bootcamps, on-demand courses, assessments — reduces time to resolution, increases efficiency), Customer & Partner Events (adoption campaigns, product launches, exam launches — drives loyalty, generates qualified leads). Omit this bullet if only one program type applies and it's already obvious from context.]
 
-- **Similar Products Already in Skillable:** [one short factual sentence naming an active Skillable customer with same delivery model — include ONLY when the parallel is genuinely strong]
-  Examples: "**Similar Products Already in Skillable:** Hyland OnBase and Microsoft Windows Server both run on Skillable's Hyper-V fabric today."
-            "**Similar Products Already in Skillable:** Cohesity and Commvault are both active Skillable customers in data protection."
-            "**Similar Products Already in Skillable:** Tanium is an active Skillable customer in endpoint security."
+- **Similar Products Already in Skillable:** [one short sentence naming ANOTHER PRODUCT FROM THIS SAME COMPANY that is already live in Skillable — include ONLY when the research confirms this directly. This bullet exists to show the customer "we already work with you on X — adding Y follows the same pattern." Do NOT name other companies or competitors here; a seller showing this report to the customer should never see a competitor's name in this field. Omit entirely if no same-company parallel is confirmed.]
+  Examples: "**Similar Products Already in Skillable:** Hyland OnBase is already live on Skillable's Hyper-V fabric — Nuxeo follows the same install pattern."
+            "**Similar Products Already in Skillable:** Microsoft Windows Server already runs on Skillable Hyper-V — Azure Defender follows the same VM fabric path."
 
 - **Next Step:** [what the rep should do — pursue aggressively / pilot with X / monitor API roadmap / do not pursue until Y]
   Example: "**Next Step:** Pursue — strong technical fit and active partner ecosystem. Start with their Professional Services team."
