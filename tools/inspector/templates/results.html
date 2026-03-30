@@ -731,18 +731,7 @@
                     <span class="persona-badge">{{ persona }}</span>
                     {% endfor %}
                 </div>
-                {% set tech = product.labability_score.technical_orchestrability.score | default(0) %}
-                {% set adjusted = product._total_score - tech %}
-                {% if tech >= 32 %}{% set mult_val = "1.0×" %}
-                {% elif tech >= 24 and product.skillable_path == 'B' %}{% set mult_val = "1.0×" %}
-                {% elif tech >= 19 %}{% set mult_val = "0.75×" %}
-                {% elif tech >= 10 %}{% set mult_val = "0.40×" %}
-                {% else %}{% set mult_val = "0.15×" %}{% endif %}
                 <div class="score-right">
-                    <div class="mult-info">
-                        <div>Multiplier: {{ mult_val }}</div>
-                        <div>{{ tech }} + {{ adjusted }} = {{ product._total_score }}</div>
-                    </div>
                     <div class="total-score">
                         <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
                             {{ product._total_score }}
