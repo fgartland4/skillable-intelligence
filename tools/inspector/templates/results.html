@@ -841,7 +841,7 @@
                 <summary>
                     <span class="dim-sec-dot dim-sec-dot-tech"></span>
                     <span class="dim-sec-name">Product Labability</span>
-                    <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}</span>                </summary>
+                    <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 40</span></span>                </summary>
                 <div class="dim-sec-content">
                     <div class="dim-sec-bar dim-sec-bar-tech" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"></div></div>
                     {% if tech_dim.evidence %}
@@ -862,7 +862,7 @@
                 <summary>
                     <span class="dim-sec-dot dim-sec-dot-wf"></span>
                     <span class="dim-sec-name">Likely Impact of Hands-On</span>
-                    <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}</span>                </summary>
+                    <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 30</span></span>                </summary>
                 <div class="dim-sec-content">
                     <div class="dim-sec-bar dim-sec-bar-wf" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}" style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"></div></div>
                     {% if wf_dim.evidence %}
@@ -884,7 +884,7 @@
                 <summary>
                     <span class="dim-sec-dot dim-sec-dot-te"></span>
                     <span class="dim-sec-name">Content Team Maturity</span>
-                    <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}</span>                </summary>
+                    <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 20</span></span>                </summary>
                 <div class="dim-sec-content">
                     <div class="dim-sec-bar dim-sec-bar-te" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc3h < 8 %}seg-low{% else %}seg-te{% endif %}" style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"></div></div>
                     {% if te_dim.evidence %}
@@ -905,7 +905,7 @@
                 <summary>
                     <span class="dim-sec-dot dim-sec-dot-mf"></span>
                     <span class="dim-sec-name">Market &amp; Strategic Fit</span>
-                    <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}</span>                </summary>
+                    <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 10</span></span>                </summary>
                 <div class="dim-sec-content">
                     <div class="dim-sec-bar dim-sec-bar-mf" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc4h < 4 %}seg-low{% else %}seg-mf{% endif %}" style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"></div></div>
                     {% if mf_dim.evidence %}
