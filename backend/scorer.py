@@ -104,17 +104,31 @@ CUSTOMER_BENCHMARKS = [
     },
     {
         "company": "Commvault",
-        "relationship": "Active Skillable customer — data protection with AI features benchmark",
+        "relationship": "Active Skillable customer — canonical expansion arc benchmark and highest-engagement success story",
         "org_type": "software_company",
-        "products_and_paths": ["Commvault Cloud (Azure Cloud Slice / Hyper-V fabric) — data protection with embedded AI"],
+        "products_and_paths": ["Commvault Cloud (Azure Cloud Slice / Hyper-V fabric) — data protection and cyber resilience with embedded AI"],
+        "expansion_arc": [
+            "Phase 1 (entry): Internal SE / presales enablement — sales engineers practicing the product before customer demos. This is the most common entry point for Skillable: a VP of SE or Sales Enablement who needs reps who can actually demo the product hands-on, not just talk through slides.",
+            "Phase 2: Customer training — onboarding and ongoing labs for customers learning to operate the product. Lab investment made in Phase 1 is reused with minor adaptation.",
+            "Phase 3: Partner training — reseller and channel partner technical enablement, same labs now serve the ATP/Learning Partner network.",
+            "Phase 4 (in progress): Scored labs — adding Activity Based Assessment and Performance Based Testing to validate learner outcomes, not just provide practice.",
+            "Phase 5 (planned): Certification integration — labs embedded in formal Commvault certification exams as PBT components. This is the deepest strategic integration — Skillable becomes infrastructure for the certification program, not just a training add-on.",
+        ],
         "key_signals": {
-            "technical": "Hybrid deployment. APIs for provisioning, recovery validation, and scoring lab outcomes.",
-            "workflow": "Complex data management workflows. AI-powered recovery and threat detection features that partners and customers practice hands-on in labs.",
-            "training_ecosystem": "Commvault training programs. Partner enablement. Labs for AI feature adoption.",
-            "market_fit": "Data protection/cyber resilience is core Skillable territory.",
-            "partnership_readiness": "Dedicated training org. Partner program. AI features driving new training demand.",
+            "technical": "Hybrid deployment (on-premises + cloud). APIs for provisioning environments, validating backup and recovery outcomes, and scoring learner actions. Strong REST API surface across the data protection lifecycle.",
+            "workflow": "Complex data management workflows: backup policy configuration, recovery orchestration, threat detection, anomaly response, data governance. AI-powered recovery and threat detection features requiring hands-on iterative practice — product is too complex to learn by watching.",
+            "training_ecosystem": "Dedicated training organization. Customer training catalog. Partner enablement program. Now building scored labs and evaluating labs for certification — the full Skillable value chain. Commvault loves Skillable and is expanding aggressively.",
+            "market_fit": "Data protection/cyber resilience is core Skillable territory. AI-powered cyber resilience features (anomaly detection, automated recovery) are exactly the kind of embedded AI that drives hands-on lab demand.",
+            "partnership_readiness": "Strong training org. Active and growing partner program. The expansion arc from SE enablement → customer training → partner training → scored labs → certification is the ideal partnership trajectory.",
         },
-        "score_guidance": "HIGH benchmark — AI-embedded workflows drive hands-on lab demand even for existing customers who need to learn new AI features.",
+        "score_guidance": (
+            "HIGH benchmark — strong on all dimensions. "
+            "THE canonical example of the Skillable expansion arc: entry through SE enablement, then customer training, then partner, then scoring, then certification. "
+            "When scoring any data protection, cyber resilience, or enterprise infrastructure company with similar characteristics, expect a comparable trajectory. "
+            "IMPORTANT CALIBRATION SIGNAL: The expansion from SE enablement to customer/partner training to certification happened because the technical investment scales — the same lab built for SEs is adapted for customers and partners. "
+            "Products with this characteristic (complex enough to need hands-on SE prep, used by customers and partners who also need training, moving toward certification) should score HIGH on partnership readiness AND consume across all 5 non-events motions. "
+            "Score guidance: labability 75-90, partnership readiness 78-90."
+        ),
     },
     {
         "company": "CompTIA",
@@ -869,6 +883,10 @@ def _build_benchmarks_text() -> str:
         lines.append(f"\n### {b['company']} ({b['relationship']})")
         if "products_and_paths" in b:
             lines.append(f"Products and paths: {'; '.join(b['products_and_paths'])}")
+        if "expansion_arc" in b:
+            lines.append("Customer expansion arc (use this to calibrate consumption motions and partnership trajectory):")
+            for phase in b["expansion_arc"]:
+                lines.append(f"  - {phase}")
         for dim, desc in b.get("key_signals", {}).items():
             lines.append(f"- **{dim}**: {desc}")
         if b.get("warning"):
