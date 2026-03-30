@@ -15,6 +15,7 @@ from storage import (
     find_analysis_by_company_name,
     save_prospector_run, load_prospector_run,
     append_poor_fit_feedback, load_poor_fit_companies,
+    load_discovery,
 )
 
 import logging
@@ -406,8 +407,13 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
             total_likely = sum(1 for p in products if 20 <= p.get("_total_score", 0) < 50)
             total_not = sum(1 for p in products if p.get("_total_score", 0) < 20)
 
-            # Partnership signals may not exist on old analyses — degrade gracefully
+            # Partnership signals — load from associated discovery if available
             ps = {}
+            discovery_id = cached.get("discovery_id")
+            if discovery_id:
+                disc = load_discovery(discovery_id)
+                if disc:
+                    ps = disc.get("partnership_signals") or {}
 
             skillable_path = ""
             if org_type == "academic_institution":
