@@ -38,11 +38,17 @@
         .progress-meta { display: flex; justify-content: space-between; margin-top: 7px; font-size: 0.72rem; color: #3d6655; }
 
         /* Two-column company list */
+        .company-grid-wrap {
+            border: 1px solid #1e3329; border-radius: 10px; overflow: hidden;
+            max-height: 360px; overflow-y: auto;
+        }
+        .company-grid-wrap::-webkit-scrollbar { width: 6px; }
+        .company-grid-wrap::-webkit-scrollbar-track { background: #0d1a14; }
+        .company-grid-wrap::-webkit-scrollbar-thumb { background: #1e3329; border-radius: 3px; }
         .company-grid {
             display: grid;
-            grid-template-columns: 1fr auto;
+            grid-template-columns: 1fr 40px;
             gap: 0;
-            border: 1px solid #1e3329; border-radius: 10px; overflow: hidden;
         }
         .company-row {
             display: contents;
@@ -57,7 +63,7 @@
         .company-row:last-child .col-name,
         .company-row:last-child .col-status { border-bottom: none; }
         .company-row .col-name { color: #6b9e88; }
-        .company-row .col-status { justify-content: flex-end; min-width: 120px; }
+        .company-row .col-status { justify-content: center; }
 
         /* Status states */
         .status-waiting { width: 8px; height: 8px; background: #1e3329; border-radius: 50%; }
@@ -105,15 +111,17 @@
             </div>
         </div>
 
-        <div class="company-grid" id="company-grid">
-            {% for name in company_names %}
-            <div class="company-row" id="row-{{ loop.index0 }}" data-name="{{ name | e }}">
-                <div class="col-name" id="name-{{ loop.index0 }}">{{ name }}</div>
-                <div class="col-status" id="status-{{ loop.index0 }}">
-                    <span class="status-waiting">Waiting</span>
+        <div class="company-grid-wrap">
+            <div class="company-grid" id="company-grid">
+                {% for name in company_names %}
+                <div class="company-row" id="row-{{ loop.index0 }}" data-name="{{ name | e }}">
+                    <div class="col-name" id="name-{{ loop.index0 }}">{{ name }}</div>
+                    <div class="col-status" id="status-{{ loop.index0 }}">
+                        <span class="status-waiting"></span>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
 
         <div class="card-footer">
