@@ -493,6 +493,16 @@
         .dim-section-te   > summary:hover, .dim-section-te[open]   > summary { border-color: rgba(167,139,250,0.3); }
         .dim-section-mf   > summary:hover, .dim-section-mf[open]   > summary { border-color: rgba(245,158,11,0.3); }
         .dim-section-cons > summary:hover, .dim-section-cons[open] > summary { border-color: rgba(36,237,155,0.2); }
+        .expand-toggle {
+            text-align: right; margin-top: 6px; margin-bottom: 2px;
+        }
+        .expand-toggle button {
+            background: none; border: none; cursor: pointer; padding: 2px 4px;
+            font-size: 0.7rem; color: #2a4a3a; letter-spacing: 0.03em;
+            font-family: inherit; transition: color 0.15s;
+        }
+        .expand-toggle button:hover { color: #6b9e88; }
+        .expand-toggle .tog-sep { color: #1e3329; font-size: 0.7rem; }
         .dim-sec-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
         .dim-sec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
         .dim-sec-dot-tech { background: #24ED9B; }
@@ -952,6 +962,12 @@
             </details>
             {% endif %}
 
+            <div class="expand-toggle">
+                <button onclick="toggleCard(this,true)">expand all</button>
+                <span class="tog-sep">·</span>
+                <button onclick="toggleCard(this,false)">collapse all</button>
+            </div>
+
             {# ── Next Steps ── #}
             {% if ns.sNxt or product.owning_org or product.contacts %}
             <div class="next-who-section">
@@ -1175,6 +1191,12 @@
       arrow.textContent = details.open ? '▴' : '▾';
     });
   });
+
+  // Expand / collapse all within a single product card
+  function toggleCard(btn, open) {
+    const card = btn.closest('.product-card');
+    card.querySelectorAll('details.dim-section').forEach(d => { d.open = open; });
+  }
 </script>
 </body>
 </html>
