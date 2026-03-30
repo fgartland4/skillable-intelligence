@@ -34,6 +34,20 @@
         .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
         .back { display: inline-block; margin-bottom: 28px; color: #6b9e88; font-size: 0.85rem; }
         .back:hover { color: #24ED9B; text-decoration: none; }
+        .cache-banner {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(36,237,155,0.04); border: 1px solid rgba(36,237,155,0.12);
+            border-radius: 8px; padding: 9px 16px; margin-bottom: 24px;
+            font-size: 0.78rem; color: #3d6655;
+        }
+        .cache-banner .cache-date { color: #6b9e88; }
+        .cache-banner form { margin: 0; }
+        .cache-banner button {
+            background: none; border: 1px solid #1e3329; color: #6b9e88;
+            padding: 4px 12px; border-radius: 6px; font-size: 0.75rem;
+            font-family: inherit; cursor: pointer; transition: all 0.15s;
+        }
+        .cache-banner button:hover { border-color: rgba(36,237,155,0.4); color: #24ED9B; }
 
         /* Org type badges */
         .org-badge {
@@ -587,6 +601,19 @@
             <a href="/inspector/select/{{ data.discovery_id }}" class="back" style="margin-bottom:0;color:#3d6655;">&#8635; Choose Different Products</a>
             {% endif %}
         </div>
+
+        {% if from_cache %}
+        {% set cached_date = data.analyzed_at[:10] if data.analyzed_at else '' %}
+        <div class="cache-banner">
+            <span>&#128274; Cached result</span>
+            {% if cached_date %}<span class="cache-date">{{ cached_date }}</span>{% endif %}
+            <form method="POST" action="/inspector/discover">
+                <input type="hidden" name="company_name" value="{{ data.company_name }}">
+                <input type="hidden" name="force_refresh" value="1">
+                <button type="submit">&#8635; Re-run fresh</button>
+            </form>
+        </div>
+        {% endif %}
 
         <!-- Company Header -->
         <div class="company-header">

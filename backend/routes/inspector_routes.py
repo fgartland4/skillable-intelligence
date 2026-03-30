@@ -10,14 +10,33 @@ from flask import Blueprint, render_template, request, redirect, url_for, Respon
 from core import _push, _sse_stream, _attach_scores, _compute_composite
 from researcher import discover_products, research_products, resolve_company_from_product
 from scorer import discover_products_with_claude, score_selected_products
+from datetime import datetime, timezone, timedelta
+
 from storage import (
     save_analysis, load_analysis, list_analyses,
     save_discovery, load_discovery,
     find_analysis_by_discovery_id,
+    find_analysis_by_company_name,
+    find_discovery_by_company_name,
 )
 
 import logging
 log = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Cache TTL
+# ---------------------------------------------------------------------------
+CACHE_TTL_DAYS = 45
+
+def _cache_is_fresh(timestamp_str: str) -> bool:
+    """Return True if an ISO timestamp is within CACHE_TTL_DAYS of now."""
+    if not timestamp_str:
+        return False
+    try:
+        dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+        return (datetime.now(timezone.utc) - dt).days < CACHE_TTL_DAYS
+    except Exception:
+        return False
 
 # ---------------------------------------------------------------------------
 # Inspector Blueprint
@@ -39,6 +58,7 @@ def home():
 def discover():
     company_name = request.form.get("company_name", "").strip()
     product_name = request.form.get("product_name", "").strip()
+    force_refresh = request.form.get("force_refresh") == "1"
 
     if not company_name and not product_name:
         return redirect(url_for("inspector.home"))
@@ -53,6 +73,23 @@ def discover():
         known_products = None
         search_label = company_name
 
+    if not force_refresh:
+        # ── Level 1: complete analysis cache ──────────────────────────────────
+        cached_analysis = find_analysis_by_company_name(company_name)
+        if cached_analysis and _cache_is_fresh(cached_analysis.get("analyzed_at", "")):
+            aid = cached_analysis.get("analysis_id", "")
+            if aid:
+                log.info("Inspector cache hit (analysis) for %s → %s", company_name, aid)
+                return redirect(url_for("inspector.results", analysis_id=aid) + "?cached=1")
+
+        # ── Level 2: discovery cache (skip searches, go straight to product select) ──
+        cached_disc = find_discovery_by_company_name(company_name)
+        if cached_disc and _cache_is_fresh(cached_disc.get("created_at", "")):
+            disc_id = cached_disc.get("discovery_id", "")
+            if disc_id:
+                log.info("Inspector cache hit (discovery) for %s → %s", company_name, disc_id)
+                return redirect(url_for("inspector.select_products", discovery_id=disc_id) + "?cached=1")
+
     discovery_id = str(uuid.uuid4())[:8]
 
     def run_discovery():
@@ -62,6 +99,7 @@ def discover():
             _push(discovery_id, "status:Analyzing product portfolio...")
             discovery = discover_products_with_claude(findings)
             discovery["discovery_id"] = discovery_id
+            discovery["created_at"] = datetime.now(timezone.utc).isoformat()
             discovery["known_products"] = known_products or []
             for key in ("training_programs", "atp_signals", "training_catalog",
                         "partner_ecosystem", "partner_portal", "cs_signals",
@@ -195,7 +233,8 @@ def results(analysis_id: str):
         return "Analysis not found", 404
 
     _attach_scores(data)
-    return render_template("results.html", data=data)
+    from_cache = request.args.get("cached") == "1"
+    return render_template("results.html", data=data, from_cache=from_cache)
 
 
 # Product detail page

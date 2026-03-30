@@ -621,6 +621,8 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
         }
         # Save discovery data and link it to the analysis so the cache path can reload it
         discovery_id = str(uuid.uuid4())[:8]
+        from datetime import datetime, timezone
+        discovery["created_at"] = datetime.now(timezone.utc).isoformat()
         save_discovery(discovery_id, discovery)
 
         analysis = score_selected_products(research)

@@ -71,6 +71,26 @@ def find_analysis_by_company_name(company_name: str) -> dict | None:
     return None
 
 
+def find_discovery_by_company_name(company_name: str) -> dict | None:
+    """Return the most recent discovery dict for a company name (case-insensitive), or None."""
+    if not os.path.exists(DISCOVERY_DIR):
+        return None
+    needle = company_name.lower().strip()
+    files = [f for f in os.listdir(DISCOVERY_DIR) if f.endswith(".json")]
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(DISCOVERY_DIR, f)), reverse=True)
+    for filename in files:
+        filepath = os.path.join(DISCOVERY_DIR, filename)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if data.get("company_name", "").lower().strip() == needle:
+                return data
+        except Exception as e:
+            log.warning("Skipping corrupted discovery file %s: %s", filename, e)
+            continue
+    return None
+
+
 def find_analysis_by_discovery_id(discovery_id: str) -> dict | None:
     """Return the most recent analysis that came from this discovery_id, or None."""
     if not os.path.exists(DATA_DIR):
