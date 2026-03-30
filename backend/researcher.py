@@ -11,6 +11,14 @@ load_dotenv(Path(__file__).parent / ".env", override=True)
 
 _SERPER_API_KEY = os.environ.get("SERPER_API_KEY", "")
 
+# Known Skillable customers — used to find alumni at prospect companies.
+# Update when new active customers are added to CUSTOMER_BENCHMARKS in scorer.py.
+_SKILLABLE_CUSTOMER_NAMES = [
+    "Cohesity", "Tanium", "Tableau", "Salesforce", "Hyland", "Commvault",
+    "Microsoft", "Cisco", "NVIDIA", "CompTIA", "ISACA", "SANS", "EC-Council",
+    "CREST", "National Instruments", "Emerson",
+]
+
 
 def _fetch_page_text(url: str, max_chars: int = 8000) -> str:
     """Fetch a URL and return its text content."""
@@ -176,6 +184,9 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         ("org_cert",        f"site:linkedin.com/in/ {company_name} Chief OR VP OR SVP OR Director OR \"Head of\" certification OR \"certification program\" OR \"technical certification\""),
         # (4) Director-level influencers + catch-all for orgs with non-standard titles
         ("org_directors",   f"site:linkedin.com/in/ {company_name} Director OR \"Head of\" \"technical training\" OR \"technical enablement\" OR \"training and certification\" OR \"global training\" OR \"enablement\""),
+        # (5) Alumni signal — prospect employees with prior experience at known Skillable customers
+        #     in training, education, enablement, or certification roles
+        ("org_alumni",      f"site:linkedin.com/in/ {company_name} ({' OR '.join(_SKILLABLE_CUSTOMER_NAMES[:8])}) training OR education OR enablement OR certification"),
     ]
     if known_products:
         queries.append(("known", f"{company_name} {' '.join(known_products)} software"))
@@ -224,7 +235,8 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         "cs_signals":       all_results.get("cs", []),
         "lms_signals":      all_results.get("lms", []),
         "org_contacts":     (all_results.get("org_cx_edu", []) + all_results.get("org_partner_ena", [])
-                             + all_results.get("org_cert", []) + all_results.get("org_directors", [])),
+                             + all_results.get("org_cert", []) + all_results.get("org_directors", [])
+                             + all_results.get("org_alumni", [])),
         "page_contents":    page_contents,
     }
 

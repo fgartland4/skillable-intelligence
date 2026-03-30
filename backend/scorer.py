@@ -864,6 +864,8 @@ If no qualifying person can be identified from the research, use "Unknown - sear
 
 If no qualifying Director-level or above person can be identified, leave the influencers list empty — do NOT name a lower-level person just to fill the slot.
 
+**Alumni signal — always surface this when found:** If a contact's research snippet indicates they previously worked at a known Skillable customer (Cohesity, Tanium, Hyland, Commvault, Microsoft, Cisco, NVIDIA, CompTIA, ISACA, SANS, EC-Council, etc.) in a training, education, enablement, or certification role, flag this explicitly in their `relevance` field. Example: "Former Head of Customer Education at Cohesity — already knows Skillable's platform; highest-priority warm outreach." This is one of the strongest buying signals available — prioritize these contacts above all others regardless of current title.
+
 **❌ EXCLUDE Learning & Development (L&D) roles entirely** — both as named contacts and as "Unknown - search for [title]" suggestions. L&D owns internal employee training: compliance courses, onboarding, corporate LMS. They do not build or buy external technical lab content for software products or partner programs. Titles to exclude: Learning & Development Manager/Director/VP, Chief Learning Officer (CLO) unless scope is clearly external, Employee Development, HR Training, Talent Development.
 
 Return ONLY valid JSON — a single product object:
