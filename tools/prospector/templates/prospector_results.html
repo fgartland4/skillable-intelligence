@@ -44,59 +44,27 @@
         h1 { font-size: 1.8rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; margin-bottom: 6px; }
         .subtitle { color: #6b9e88; font-size: 0.875rem; margin-bottom: 30px; }
 
-        /* Results table */
+        /* Results table — data-first, minimal chrome */
         .results-table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; background: #0d1a14; border-radius: 14px; overflow: hidden; border: 1px solid #1e3329; }
-        thead tr { border-bottom: 1px solid #1e3329; }
+        table { width: 100%; border-collapse: collapse; background: #0d1a14; border: 1px solid #1e3329; border-radius: 10px; overflow: hidden; }
+        thead tr { border-bottom: 1px solid #1e3329; background: #0a1610; }
         th {
-            text-align: left; font-size: 0.62rem; text-transform: uppercase;
-            letter-spacing: 0.1em; color: #3d6655; font-weight: 700;
-            padding: 14px 14px; white-space: nowrap;
+            text-align: left; font-size: 0.65rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #3d6655; font-weight: 700;
+            padding: 10px 12px; white-space: nowrap;
         }
-        th.num { text-align: center; }
-        td { padding: 14px 14px; border-bottom: 1px solid #0d1a14; vertical-align: middle; font-size: 0.875rem; }
+        td { padding: 9px 12px; border-bottom: 1px solid #111e17; vertical-align: top; font-size: 0.82rem; color: #a8d5c2; line-height: 1.4; }
         tr:last-child td { border-bottom: none; }
-        tr.flagged td { opacity: 0.45; }
-        tr:hover:not(.flagged) td { background: #0f1e17; }
+        tr.flagged td { opacity: 0.35; }
+        tr:hover:not(.flagged) td { background: #0e1c15; }
 
-        .rank-num { font-size: 1.1rem; font-weight: 900; color: #3d6655; text-align: center; min-width: 32px; }
-        .rank-num.top { color: #24ED9B; }
-        .company-name { font-weight: 700; color: #e8f5f0; }
-        .company-url { font-size: 0.72rem; color: #3d6655; margin-top: 2px; }
-        .product-name { color: #a8d5c2; font-size: 0.85rem; }
-
-        /* Skillable Path badge */
-        .path-badge {
-            display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em;
-            padding: 3px 9px; border-radius: 20px; white-space: nowrap;
-        }
-        .path-labable    { background: rgba(36,237,155,0.12);  color: #24ED9B; }
-        .path-simulations{ background: rgba(245,158,11,0.12);  color: #f59e0b; }
-        .path-dnp        { background: rgba(248,113,113,0.10); color: #f87171; }
-
-        .score-cell { text-align: center; }
-        .score-val { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; }
-        .score-high { color: #24ED9B; }
-        .score-mid  { color: #f59e0b; }
-        .score-low  { color: #f87171; }
-        .score-sub  { font-size: 0.62rem; color: #3d6655; }
-
-        .contact-name { font-weight: 600; color: #e8f5f0; font-size: 0.85rem; }
-        .contact-title { font-size: 0.75rem; color: #6b9e88; margin-top: 2px; }
-        .li-link { display: inline-block; font-size: 0.7rem; color: #24ED9B; margin-left: 5px; vertical-align: middle; }
-        .view-link { font-size: 0.78rem; white-space: nowrap; }
-        .no-data { color: #2a4a3a; font-size: 0.8rem; font-style: italic; }
-
-        /* Labability counts */
-        .lab-counts { display: flex; gap: 8px; }
-        .lab-chip { font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
-        .lab-chip-h { background: rgba(36,237,155,0.12); color: #24ED9B; }
-        .lab-chip-l { background: rgba(245,158,11,0.10); color: #f59e0b; }
-        .lab-chip-n { background: rgba(100,116,139,0.10); color: #64748b; }
-
-        /* Partnership signals */
-        .signal-val { font-size: 0.82rem; color: #a8d5c2; }
-        .signal-none { color: #2a4a3a; font-size: 0.8rem; }
+        .cell-primary { color: #e8f5f0; font-weight: 600; }
+        .cell-secondary { color: #6b9e88; font-size: 0.75rem; margin-top: 1px; }
+        .cell-dim { color: #2a4a3a; }
+        .li-link { color: #3d6655; margin-left: 4px; font-size: 0.72rem; }
+        .li-link:hover { color: #24ED9B; }
+        .view-link { font-size: 0.78rem; white-space: nowrap; color: #6b9e88; }
+        .view-link:hover { color: #24ED9B; }
 
         /* Flag as poor fit */
         .btn-flag {
@@ -199,53 +167,35 @@
                 </thead>
                 <tbody>
                     {% for row in rows %}
-                    {% set path_cls = 'path-labable' if row.skillable_path == 'Labable' else ('path-simulations' if row.skillable_path == 'Simulations' else 'path-dnp') %}
                     <tr id="row-{{ loop.index }}" {% if row.get('flagged_poor_fit') %}class="flagged"{% endif %}>
-                        <td><div class="rank-num {% if loop.index <= 3 %}top{% endif %}">{{ loop.index }}</div></td>
+                        <td class="cell-dim">{{ loop.index }}</td>
                         <td>
-                            <div class="company-name">{{ row.company_name }}</div>
-                            {% if row.company_url %}<div class="company-url"><a href="{{ row.company_url }}" target="_blank">{{ row.company_url }}</a></div>{% endif %}
+                            <span class="cell-primary">{{ row.company_name }}</span>
+                            {% if row.company_url %}<div class="cell-secondary"><a href="{{ row.company_url }}" target="_blank" class="view-link">{{ row.company_url }}</a></div>{% endif %}
                         </td>
-                        <td><div class="product-name">{{ row.top_product or '—' }}</div></td>
+                        <td>{{ row.top_product or '—' }}</td>
+                        <td>{{ row.skillable_path or '—' }}</td>
+                        <td>{{ row.lab_score if row.lab_score else '—' }}</td>
+                        <td>{{ row.partnership_score if row.partnership_score else '—' }}</td>
+                        <td>{{ row.composite_score if row.composite_score else '—' }}</td>
                         <td>
-                            {% if row.skillable_path %}
-                            <span class="path-badge {{ path_cls }}">{{ row.skillable_path }}</span>
-                            {% else %}<span class="no-data">—</span>{% endif %}
+                            {%- set parts = [] -%}
+                            {%- if row.total_highly_labable -%}{%- set _ = parts.append(row.total_highly_labable|string + 'H') -%}{%- endif -%}
+                            {%- if row.total_likely_labable -%}{%- set _ = parts.append(row.total_likely_labable|string + 'L') -%}{%- endif -%}
+                            {%- if row.total_not_labable -%}{%- set _ = parts.append(row.total_not_labable|string + 'N') -%}{%- endif -%}
+                            {{ parts | join(' / ') or '—' }}
                         </td>
-                        <td class="score-cell">
-                            <div class="score-val {% if row.lab_score >= 70 %}score-high{% elif row.lab_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ row.lab_score }}</div>
-                            <div class="score-sub">/100</div>
-                        </td>
-                        <td class="score-cell">
-                            <div class="score-val {% if row.partnership_score >= 70 %}score-high{% elif row.partnership_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ row.partnership_score }}</div>
-                            <div class="score-sub">/100</div>
-                        </td>
-                        <td class="score-cell">
-                            <div class="score-val {% if row.composite_score >= 70 %}score-high{% elif row.composite_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ row.composite_score }}</div>
-                            <div class="score-sub">/100</div>
-                        </td>
-                        <td>
-                            <div class="lab-counts">
-                                {% if row.total_highly_labable %}<span class="lab-chip lab-chip-h">{{ row.total_highly_labable }} High</span>{% endif %}
-                                {% if row.total_likely_labable %}<span class="lab-chip lab-chip-l">{{ row.total_likely_labable }} Likely</span>{% endif %}
-                                {% if row.total_not_labable %}<span class="lab-chip lab-chip-n">{{ row.total_not_labable }} Not</span>{% endif %}
-                                {% if not row.total_highly_labable and not row.total_likely_labable and not row.total_not_labable %}<span class="no-data">—</span>{% endif %}
-                            </div>
-                        </td>
-                        <td><span class="{{ 'signal-val' if row.atp_program else 'signal-none' }}">{{ row.atp_program or '—' }}</span></td>
-                        <td><span class="{{ 'signal-val' if row.channel_program else 'signal-none' }}">{{ row.channel_program or '—' }}</span></td>
-                        <td><span class="{{ 'signal-val' if row.ondemand_library else 'signal-none' }}">{{ row.ondemand_library or '—' }}</span></td>
-                        <td><span class="{{ 'signal-val' if row.cert_program else 'signal-none' }}">{{ row.cert_program or '—' }}</span></td>
-                        <td><span class="{{ 'signal-val' if row.existing_lab_partner else 'signal-none' }}">{{ row.existing_lab_partner or '—' }}</span></td>
+                        <td>{{ row.atp_program or '—' }}</td>
+                        <td>{{ row.channel_program or '—' }}</td>
+                        <td>{{ row.ondemand_library or '—' }}</td>
+                        <td>{{ row.cert_program or '—' }}</td>
+                        <td>{{ row.existing_lab_partner or '—' }}</td>
                         <td>
                             {% set cname = row.top_contact_name or '' %}
                             {% if cname and 'unknown' not in cname.lower() and 'search for' not in cname.lower() %}
-                            <div class="contact-name">
-                                {{ cname }}
-                                {% if row.top_contact_linkedin %}<a href="{{ row.top_contact_linkedin }}" target="_blank" class="li-link">&#128279;</a>{% endif %}
-                            </div>
-                            <div class="contact-title">{{ row.top_contact_title }}</div>
-                            {% else %}<span class="no-data">—</span>{% endif %}
+                                <span class="cell-primary">{{ cname }}</span>{% if row.top_contact_linkedin %}<a href="{{ row.top_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% endif %}
+                                {% if row.top_contact_title %}<div class="cell-secondary">{{ row.top_contact_title }}</div>{% endif %}
+                            {% else %}—{% endif %}
                         </td>
                         <td>
                             {% if row.analysis_id %}
