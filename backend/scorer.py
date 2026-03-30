@@ -545,7 +545,19 @@ If no qualifying person can be identified from the research, use "Unknown - sear
 - Anyone whose title suggests they deliver or create content rather than own the budget and strategy
 - Solutions Engineers, Sales Engineers, Field Enablement (these are influencers, not buyers)
 
-**Good targets (influencer):** Director of Training/Enablement (one level below VP), Sr. Instructional Designer (technical content), Partner Program Manager, Certification Program Manager, Solutions Engineering lead.
+**Good targets (influencer) — Director level or above ONLY:**
+- Director of Training / Director of Partner Enablement / Director of Customer Education / Director of Certification
+- Senior Director of Training or Enablement (when a VP exists above them)
+- Partner Program Director / Certification Program Director
+- Solutions Engineering Director or Sr. Manager (when they own SE/presales enablement)
+
+**❌ NOT influencers — exclude these entirely:**
+- Managers, Specialists, Coordinators, or individual contributors in any training or enablement role
+- Instructional Designers, Instructional Design Managers, Training Professionals, Enablement Managers
+- Anyone whose title suggests they create or deliver content rather than own a program budget
+- Any title below Director level
+
+If no qualifying Director-level or above person can be identified, leave the influencers list empty — do NOT name a lower-level person just to fill the slot.
 
 **❌ EXCLUDE Learning & Development (L&D) roles entirely** — both as named contacts and as "Unknown - search for [title]" suggestions. L&D owns internal employee training: compliance courses, onboarding, corporate LMS. They do not build or buy external technical lab content for software products or partner programs. Titles to exclude: Learning & Development Manager/Director/VP, Chief Learning Officer (CLO) unless scope is clearly external, Employee Development, HR Training, Talent Development.
 
