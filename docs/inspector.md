@@ -1,128 +1,146 @@
 # Skillable Intelligence — Inspector
 
-> Inspector is the deep-analysis tool in the Skillable Intelligence platform. It takes a single company and produces a fully scored, evidence-backed assessment of every product that could become a Skillable lab program.
+> Inspector takes a single company name and produces a fully scored, evidence-backed assessment of which products could become Skillable lab programs — and what it would actually take to build them.
 >
 > For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md).
 
 ---
 
-## 1. What Problem Does Inspector Solve?
+## Why Inspector Exists
 
-Before a discovery call, a Solution Engineer typically spends one to three hours manually researching a company — reading product documentation, scanning training portals, checking Marketplace listings, and piecing together a picture of whether a lab program is even viable. That research lives in a browser history and a handful of notes. When the next SE picks up the same account, or when the first SE circles back after six months, the process starts over from zero.
+Before a discovery call, a Solution Engineer typically spends one to three hours doing pre-call research. They're reading product documentation, scanning training portals, checking Azure Marketplace listings, poking around Docker Hub, and generally trying to answer one question: *is this company actually a good candidate for a lab program?* That research lives in a browser history and a few bullet points in a notes app. When the next SE picks up the same account six months later, or when the AE wants to qualify the logo before asking for SE time at all, the process starts from zero.
 
-Inspector automates the same research an SE would do, but with consistency, depth, and speed that manual research can't match. It runs 12 parallel web searches during discovery, fetches and reads multiple source pages, and passes all of that evidence through calibrated scoring prompts that have been anchored against real Skillable customer deployments. The output is a structured CompanyAnalysis: a composite score, per-product labability scores broken down by dimension, a recommended Skillable delivery path, a consumption potential model, evidence claims with source URLs, and a prioritized list of contacts. Because results are cached for 45 days, the next person who opens the same company sees the full analysis instantly rather than triggering another research pass.
+The problem isn't just the wasted hours. It's the inconsistency. Manual research is only as good as the person doing it and the time they had. One SE knows to check for a Docker image as a fast proxy for deployment automability. Another doesn't. One knows that MFA on the API is a soft constraint that caps the Skillable path at A2. Another calls it a blocker. These judgment calls compound across the team and produce analysis that doesn't travel well — from SE to AE, from this quarter to next quarter, from one territory to another.
 
-That output serves two distinct conversations. For a Solution Engineer preparing for a technical discovery call, Inspector surfaces the specific product-level signals that matter: Technical Orchestrability score, Skillable Path determination, provisioning risk flags, and the Essential Technical Resource — the one open question that must be resolved before a pilot can start. For an Account Executive qualifying a logo before investing SE time, Inspector surfaces the composite score and the "pursue / pilot / monitor / do not pursue" recommendation alongside the names of the decision makers most likely to own a lab initiative.
+Inspector automates the same research a strong SE would do, but with consistency, depth, and speed that manual research can't match. It runs 12 parallel web searches during discovery, fetches and reads company pages, and passes all of that evidence through calibrated scoring prompts anchored against real Skillable customer deployments. The output is a structured `CompanyAnalysis`: a composite score, per-product labability scores broken down by dimension, a recommended Skillable delivery path, a consumption potential model, evidence claims with source URLs, and a prioritized list of contacts. Because results are cached for 45 days, the next person who opens the same company sees the full analysis instantly rather than triggering another research pass.
 
-Inspector is also the starting point for the Designer tool. When scoring completes, a "Design Lab Program →" button appears in the results dashboard. Clicking it carries the `analysis_id`, company name, product scores, and recommended contacts directly into Designer Phase 1, eliminating manual re-entry of everything Inspector already discovered. The two tools are designed to flow sequentially: Inspector answers whether a lab program is worth building; Designer answers how to build it.
-
----
-
-## 2. Personas
-
-### Solution Engineer (Primary)
-
-The SE is Inspector's primary user. Before a discovery call or pilot proposal, the SE opens Inspector, enters the company name, selects the products most likely to become lab programs, and runs a full scoring pass. What they need from the output is specific and technical: per-product scores broken down by dimension, the Skillable Path determination (A1, A2, B, C), the Essential Technical Resource flag that identifies the single highest-priority open question, and the consumption estimates they can use to anchor a business case. Inspector replaces the hours of pre-call research an SE would otherwise do manually, and it surfaces the technical proof points — API surface, provisioning model, Marketplace presence, competitive lab signals — in a format that maps directly to Skillable's delivery architecture.
-
-Typical trigger: An AE brings in a new logo and the SE needs to get up to speed before the first technical conversation.
-
-### Account Executive
-
-The AE uses Inspector to qualify a logo before asking for SE time. The signals they need are high-level: composite score, the pursuit recommendation, and the names of the decision makers and influencers most likely to own a training or enablement initiative. They are not reading the evidence section or interpreting dimension scores; they want to know whether this account is worth a deeper investment and who to call.
-
-Typical trigger: An SDR passes a warm account, or the AE is preparing for a QBR and needs to identify expansion logos in their territory.
-
-### Technical Sales Manager / Customer Success Manager
-
-The TSM or CSM uses Inspector on accounts that are already customers, looking for expansion opportunities. They want to know which products the customer has that haven't been incorporated into a lab program yet, what the lab maturity signals look like for the organization, and who the relevant contacts are for an expansion conversation. Inspector's Lab Maturity Score is particularly useful here because it surfaces organizational readiness signals — training org structure, partner program depth, LMS usage — that indicate whether the customer has the infrastructure to absorb an expanded program.
-
-Typical trigger: Renewal prep, QBR preparation, or an active expansion motion where the CSM needs to identify the next program to propose.
+Inspector is also the starting point for the Designer tool. When scoring completes, a "Design Lab Program →" button appears in the results dashboard. Clicking it carries the `analysis_id`, company name, product scores, and recommended contacts directly into Designer Phase 1. The two tools are designed to flow sequentially: Inspector answers *whether* a lab program is worth building. Designer answers *how* to build it.
 
 ---
 
-## 3. The Inspector Workflow
+## Who Uses Inspector
 
-Inspector executes in four sequential phases: Discovery, Product Selection, Deep Research + Scoring, and Results.
+**Solution Engineers** are Inspector's primary users, and the tool was built around their workflow. Before a discovery call or pilot proposal, an SE opens Inspector, enters the company name, selects the products most likely to become lab programs, and runs a full scoring pass. What they need from the output is specific and technical: per-product scores broken down by dimension, the Skillable Path determination (A1, A2, B, or C), the Essential Technical Resource flag that identifies the single highest-priority open question before a pilot can start, and consumption estimates they can use to anchor a business case. Inspector replaces the hours of pre-call research an SE would otherwise do manually and surfaces the technical proof points — API surface, provisioning model, Marketplace presence, competitive lab signals — in a format that maps directly to Skillable's delivery architecture. Typical trigger: an AE brings in a new logo and the SE needs to get up to speed before the first technical conversation.
 
-### Phase 1: Discovery
+**Account Executives** use Inspector to qualify a logo before committing SE time to it. The signals they need are high-level: composite score, the pursuit recommendation, and the names of the decision makers most likely to own a training or enablement initiative. They are not reading the evidence section or interpreting dimension breakdowns — they want to know whether this account is worth a deeper investment and who to call. Typical trigger: an SDR passes a warm account, or the AE is preparing for a QBR and needs to identify expansion logos in their territory.
 
-The user enters a company name on the Inspector home page. If they know specific products they want to evaluate, they can enter those as well — Inspector will resolve the parent company automatically and include those products in the discovery output. The Research Engine immediately fires 12 parallel web searches across six query categories: product portfolio, training and certification catalog, authorized training partner (ATP) signals, customer success and onboarding motion, organizational and contact signals, and (if known products were supplied) targeted queries for each named product. While searches run, the company homepage and up to five additional high-value pages are fetched in parallel and read by Claude.
-
-Inspector-specific discovery queries include searches for Marketplace listings (Azure, AWS, or Google Cloud), Docker Hub and container availability, NFR or developer license programs, AI and Copilot feature announcements, and hands-on labs offered by competitive platforms (CloudShare, Instruqt, Appsembler). These signals are lightweight proxies for Technical Orchestrability — if a product is on the Azure Marketplace or has a public Docker image, its deployment model is almost certainly automatable without bare-metal dependencies.
-
-Claude reads all fetched content and produces a structured discovery output: organization type, a product list with labability tiers assigned to each product (`highly_likely`, `likely`, `less_likely`, `not_likely`), identified deployment models, candidate Skillable paths, a company description, and partnership signals. The organization type is also resolved at this stage — one of six values: `software_company`, `academic_institution`, `training_organization`, `systems_integrator`, `technology_distributor`, or `professional_services`. This classification drives the scoring weights and the composite formula used in Phase 3.
-
-Discovery results are cached for 45 days, keyed by company name. If a fresh cache entry exists for the company, all Phase 1 web research is skipped entirely and the system moves directly to product selection using the cached output.
-
-### Phase 2: Product Selection
-
-Products returned from discovery are organized into four grouped sections by labability tier: Highly Likely, Likely, Less Likely, and Not Likely. This grouping is the user's signal about where to focus scoring resources. Deep research and Claude scoring per product involves multiple API calls and meaningful token volume; running the full pipeline on every product the company makes would be slow and expensive for products that discovery has already flagged as poor candidates.
-
-The user selects up to three products to score. A "Select All Likely Labable" shortcut pre-checks all products in the Highly Likely and Likely tiers, which is the right default for most analyses. Products that Inspector identified as belonging to other companies — competitive products that appeared in the research — are shown in a separate section and excluded from scoring; they provide context but are not candidates for a Skillable program. If a product was scored in a previous Inspector run, it shows a badge indicating that cached research is available, meaning scoring will be faster.
-
-### Phase 3: Deep Research + Scoring
-
-For each selected product, the Research Engine runs 9 additional product-specific web searches targeting: deployment and technical architecture documentation, training and certification catalog, REST API / CLI / PowerShell surface area, AI and Copilot feature availability, Azure and AWS Marketplace listings, Docker Hub images, NFR or developer trial license programs, system requirements and hardware dependencies, and competitive hands-on lab offerings. Up to three high-value pages are fetched per product and read alongside the search results. Research results are stored per product within the discovery cache file — if a product was previously researched in an earlier session, its cached results are used directly and no web queries are re-run.
-
-Once research is complete for all selected products, the scoring pass runs fully in parallel: one Claude call per product covering all four labability dimensions (Technical Orchestrability, Workflow Complexity, Training Ecosystem Maturity, Market and Strategic Fit), one Claude call for the Lab Maturity score, one Claude call for Consumption Potential, one for Contacts, and one for Recommendations. All of these calls execute concurrently. Each individual call has a 5-minute timeout; the full scoring pass has a 10-minute timeout enforced via the SSE stream.
-
-Progress is streamed to the user in real time via Server-Sent Events (SSE). Six descriptive steps are shown during the scoring pass, updating as each stage completes, so the user has a clear signal of what's happening rather than watching a spinner.
-
-### Phase 4: Results
-
-When all scoring calls complete, the results dashboard renders the full analysis. See Section 4.8 for a detailed description of what the results page surfaces and how it is structured.
+**Technical Sales Managers and Customer Success Managers** use Inspector on existing accounts, looking for expansion opportunities. They want to know which products haven't been incorporated into a lab program yet, what the Lab Maturity signals look like, and who the relevant contacts are for an expansion conversation. Inspector's Lab Maturity Score is particularly useful here — it surfaces organizational readiness signals like training org structure, partner program depth, and LMS usage that indicate whether a customer has the infrastructure to absorb an expanded program. Typical trigger: renewal prep, QBR preparation, or an active expansion motion where the CSM needs to identify the next program to propose.
 
 ---
 
-## 4. Components
+## What Inspector Delivers
 
-### 4.1 Discovery Engine
+At the end of a full Inspector run, you have a `CompanyAnalysis` that contains everything an SE needs to walk into a discovery call prepared. For each scored product: a 0–100 labability score with dimension-level breakdowns, a Skillable Path determination (A1/A2/B/C), evidence claims sourced to specific URLs and organized by the lab lifecycle (Provision → Configure → Score → Teardown), and a set of recommendations that includes the single most important open technical question blocking a pilot. At the company level: an org type classification, a Lab Maturity score that gauges organizational readiness independently of any specific product, a Consumption Potential table projecting lab volume across six business motions, and a contact list with role types and inferred ownership of a lab program conversation.
 
-**Purpose:** Resolve what the company makes and which products are candidates for lab programs, without committing to expensive per-product research.
+That output serves two conversations simultaneously. The SE gets the technical depth they need to run an informed discovery call. The AE gets the composite score and pursuit recommendation they need to decide whether to invest.
 
-**Research approach:** 12 parallel web searches across six query categories — product portfolio, training and certification, ATP and partner program, customer success, organizational and contact signals, and targeted product queries if known products were supplied. The company homepage and up to five additional high-value pages are fetched in parallel. Inspector-specific discovery queries cover Marketplace listings, Docker/container availability, NFR or developer license programs, AI feature announcements, and competitive lab platform presence.
+---
 
-**Sources:** Official product and company pages, training portals, partner program landing pages, LinkedIn snippets (via search snippet results, not direct scrape), press releases, and Marketplace catalog pages.
+## How Inspector Works
 
-**Output:** Organization type (one of six values), product list with labability tier per product, deployment models, Skillable path candidates, company description, and partnership signals.
+Inspector executes in four sequential phases, and understanding the flow explains why the tool produces what it produces.
 
-**Cache:** 45-day discovery cache keyed by company name. A cache hit skips all Phase 1 web research entirely.
+**Discovery** is the phase where Inspector figures out what the company makes. The user enters a company name — optionally with specific products they already know about — and the Research Engine immediately fires 12 parallel web searches across six query categories: product portfolio, training and certification catalog, authorized training partner signals, customer success and onboarding motion, organizational and contact signals, and targeted queries for any named products. While searches run, the company homepage and up to five additional high-value pages are fetched and read in parallel. Inspector-specific discovery queries include searches for Marketplace listings (Azure, AWS, Google Cloud), Docker Hub and container availability, NFR and developer license programs, AI and Copilot feature announcements, and hands-on labs offered by competitive platforms (CloudShare, Instruqt, Appsembler). From all of this, Claude produces a structured discovery output: organization type (one of six values), a product list with labability tiers assigned to each product, deployment models, candidate Skillable paths, a company description, and partnership signals. If a 45-day discovery cache entry exists for the company, all of this Phase 1 research is skipped entirely.
 
-### 4.2 Product Selection Interface
+**Product Selection** is where the user decides where to invest the full scoring pass. Discovery tiers products as `highly_likely`, `likely`, `less_likely`, or `not_likely` based on lightweight signals — deployment model, product category, Marketplace presence. These are directionally accurate estimates, not final judgments. The selection interface surfaces them transparently so the user can make an informed choice about which three products to score. Deep research and scoring per product involves meaningful API call volume and token cost; running the full pipeline on every product a company makes would be slow and expensive for candidates that discovery has already flagged as poor fits.
 
-**Purpose:** Let the user focus scoring resources on the products most likely to be worth the investment.
+**Deep Research and Scoring** is where the real work happens. For each selected product, the Research Engine runs 9 additional web searches and fetches up to 3 high-value pages, targeting specific evidence categories: deployment architecture, training catalog, REST API / CLI / PowerShell surface, AI features, Marketplace listings, Docker images, NFR license programs, system requirements, and competitive lab offerings. Once research completes for all selected products, every scoring call runs fully in parallel — one call per product for the four labability dimensions, one for Lab Maturity, one for Consumption Potential, one for Contacts, and one for Recommendations. Each individual call has a 5-minute timeout; the full scoring pass has a 10-minute total timeout enforced via the SSE stream. Progress is streamed in real time through six descriptive steps so the user has a clear signal of what's happening rather than watching a spinner.
 
-**Why it matters:** Discovery assigns labability tiers using lightweight signals — deployment model, product category, platform type, Marketplace presence — without running expensive per-product research. Those tiers are directionally accurate and give the user an informed starting point, but they are estimates. The selection interface surfaces them transparently so the user can make an informed choice about where to invest the full scoring pass.
+**Results** is when the full analysis renders. The dashboard surfaces everything — scores, evidence, paths, consumption table, contacts, recommendations — in a format designed to support both a technical discovery conversation and an executive qualification conversation. A "Design Lab Program →" button appears at the top when scoring is complete, ready to carry the analysis into Designer.
 
-**Behavior:** Products are grouped by tier (Highly Likely, Likely, Less Likely, Not Likely). Up to three products can be selected for scoring. The "Select All Likely Labable" shortcut pre-checks all Highly Likely and Likely products. Competitive products (products belonging to other companies that appeared in research) are shown separately and excluded from the selection. Previously-scored products display a badge indicating cached research is available.
+---
 
-### 4.3 Research Engine (Product-Level)
+## The Research Layer
 
-**Purpose:** Gather product-specific evidence to support scoring across all four labability dimensions.
+**Why:** Before a single dimension can be scored, Inspector needs to know what the company makes, how it deploys, and what kind of training ecosystem surrounds its products. The Research Layer is what produces that raw material — systematically, in parallel, and with enough depth to support evidence-backed scoring rather than inference from product category alone.
 
-**Research approach:** 9 web searches per product, each targeting a specific evidence category: deployment and technical architecture, training and certification catalog, REST API / CLI / PowerShell surface area, AI and Copilot features, Azure and AWS Marketplace listings, Docker Hub images, NFR or developer trial license programs, system requirements and hardware dependencies, and competitive hands-on lab offerings (CloudShare, Instruqt, Appsembler). Up to three high-value pages are fetched per product and read alongside search snippets.
+**What:** Structured web research across two phases — a company-level discovery pass that maps the product landscape and assigns labability tiers, followed by a product-level deep research pass that generates the specific evidence needed for scoring. All research is cached to avoid redundant work on repeat analyses.
 
-**Sources:** Technical documentation sites, API reference pages, deployment and admin guides, training catalogs, Azure and AWS Marketplace, Docker Hub, GitHub repositories, competitive lab platform catalogs.
+**How:** Discovery fires first, producing a product list with labability tiers. The user selects up to three products. Product-level research runs on those selections, generating the evidence corpus that flows directly into the parallel scoring calls.
 
-**Cache:** Research results are stored per product within the discovery cache file. If a product was researched in a previous session for the same company, those results are reused — only products being scored for the first time trigger new web queries.
+---
 
-### 4.4 Scoring Engine
+### Discovery Engine
 
-**Purpose:** Translate product-level research evidence into structured, calibrated scores across all four labability dimensions.
+**Why it exists:** Running full per-product research on every product a company makes before the user has indicated which products matter is expensive and slow. Discovery solves this by producing a low-cost preliminary map — enough to tier the products, orient the user, and target the deeper research pass.
 
-**How it works:** The full scoring model is described in [intelligence-platform.md](intelligence-platform.md) §5. Inspector runs the complete scoring pass: all four product labability dimensions, the Lab Maturity score, Consumption Potential, Contacts, and Recommendations — all in parallel Claude calls. The four product dimensions and their weights are:
+**What it does:** Produces a structured company-level output: organization type (one of six values: `software_company`, `academic_institution`, `training_organization`, `systems_integrator`, `technology_distributor`, `professional_services`), a complete product list with a labability tier per product (`highly_likely`, `likely`, `less_likely`, `not_likely`), deployment model signals, candidate Skillable paths, a company description, and partnership signals. This classification is not cosmetic — the org type drives the composite score formula and the Lab Maturity rubric adjustments used in Phase 3.
 
-| Dimension | Max Score |
-|---|---|
-| Technical Orchestrability | 40 |
-| Workflow Complexity | 30 |
-| Training Ecosystem Maturity | 20 |
-| Market & Strategic Fit | 10 |
-| **Total** | **100** |
+**How it works:** 12 parallel web searches fire across six query categories: product portfolio, training and certification catalog, authorized training partner signals, customer success and onboarding motion, organizational and contact signals, and targeted queries for any named products the user supplied. Simultaneously, the company homepage and up to five additional high-value pages are fetched and read in parallel. Inspector-specific discovery queries target the signals that most directly proxy for technical orchestrability before committing to per-product research: Azure/AWS/Google Cloud Marketplace listings, Docker Hub and container image availability, NFR or developer license programs, AI and Copilot feature announcements, and competitive lab platform presence (CloudShare, Instruqt, Appsembler). A product on the Azure Marketplace or with a public Docker image has almost certainly cleared the bare-metal dependency hurdle before a single scoring prompt runs. Discovery results are cached for 45 days keyed by company name. A cache hit skips all Phase 1 web research entirely and jumps directly to product selection.
 
-**Calibration:** Scoring prompts contain embedded benchmarks derived from real Skillable customer deployments. These calibration anchors ensure that a score of 70 in Inspector reflects a consistent standard of product fit across different analyses and different analysts running the tool.
+---
 
-**Key constraints enforced by the scoring engine:**
+### Product-Level Research Engine
+
+**Why it exists:** Company-level discovery can identify that a product exists and estimate its labability tier from category signals and Marketplace presence. It cannot score Technical Orchestrability or flag a provisioning time risk. That requires dedicated, product-specific research that reads the actual technical documentation, API reference, and system requirements for each candidate.
+
+**What it does:** Produces a product-specific evidence corpus — search results plus fetched page content — covering every dimension needed for scoring. This corpus is what the scoring calls receive as their evidence input. Without it, scoring would be inference from product names. With it, scoring is inference from actual technical documentation.
+
+**How it works:** For each selected product, 9 web searches run in parallel, each targeting a specific evidence category:
+
+1. Deployment and technical architecture documentation
+2. Training and certification catalog
+3. REST API / CLI / PowerShell surface area
+4. AI and Copilot feature availability
+5. Azure and AWS Marketplace listings
+6. Docker Hub images
+7. NFR or developer trial license programs
+8. System requirements and hardware dependencies
+9. Competitive hands-on lab offerings (CloudShare, Instruqt, Appsembler)
+
+Up to three high-value pages are fetched per product and read alongside search snippets. Sources include technical documentation sites, API reference pages, deployment and admin guides, training catalogs, Marketplace listing pages, Docker Hub, GitHub repositories, and competitive lab platform catalogs. Research results are stored per product within the discovery cache file. If a product was researched in a previous Inspector session for the same company, those results are reused — only products being scored for the first time trigger new web queries.
+
+---
+
+### Caching
+
+**Why it exists:** A full Inspector run — 12 discovery searches, up to 9 product searches each for three products, multiple page fetches, and eight parallel scoring calls — takes real time and incurs real cost. Running the whole pipeline every time someone opens a company that was analyzed last week would be wasteful and would erode trust in the tool. Caching makes repeat access instant and makes incremental analysis (scoring a new product for a company that's already been discovered) fast and cheap.
+
+**What it does:** Three independent cache levels allow Inspector to skip work at whatever granularity is appropriate for the request, from returning a full analysis instantly to skipping only the web searches for a specific product that was already researched.
+
+**How it works:**
+
+| Level | TTL | Key | What It Stores | When It Triggers |
+|---|---|---|---|---|
+| Full analysis cache | 45 days | `company_name` | Complete `CompanyAnalysis` including all product scores, Lab Maturity, contacts, recommendations, consumption potential | Inspector has been fully run for this company before |
+| Discovery cache | 45 days | `company_name` | Discovery output: product list with labability tiers, org type, deployment models, partnership signals | Company was discovered but some products may not have been scored |
+| Research cache | Per-discovery | `company_name` + `product_name` | Web search results and fetched page contents for a specific product | Product was researched in a previous Inspector session for this company |
+
+Cache hit behavior is layered: a full analysis hit skips everything and returns the stored results instantly. A discovery hit skips all Phase 1 web research, loads the cached product list and org type, and goes directly to product selection — per-product research and scoring still run for products that haven't been scored before. A research hit skips product-level web searches for that product but still runs the Claude scoring calls on the cached research content; the API calls execute, but no new web queries are issued.
+
+A force-refresh checkbox on the Inspector home page bypasses all three cache levels. Checking it before submitting a company name triggers a full re-run: new discovery searches, new product research, new scoring calls, and an overwrite of all cached data for that company.
+
+---
+
+## The Scoring Layer
+
+**Why:** Raw research evidence — search snippets, fetched page content, Docker Hub hits — doesn't directly answer "should we pursue this account?" That answer requires structured judgment: calibrated, consistent, and traceable back to specific evidence. The Scoring Layer is where evidence becomes scores, and scores become a recommendation.
+
+**What:** Four parallel scoring components produce the full output: a product labability score across four dimensions, a Lab Maturity score across five dimensions, a Composite Score that combines the two into a single pursuit signal, and a Consumption Potential estimate that quantifies what "pursuing" would actually mean in volume and revenue terms.
+
+**How:** All scoring calls run fully in parallel after research completes. Each call receives the evidence corpus gathered during the Research Layer and returns structured scores, evidence citations, and flags. Parallel execution is load-bearing — waiting for each call sequentially on a three-product analysis would add significant latency to an already long operation.
+
+---
+
+### Scoring Engine
+
+**Why it exists:** Translating product research into a consistent 0–100 labability score requires calibrated judgment calls — calls that need to produce the same result whether the analyst is an experienced SE who's built a hundred lab programs or someone running their first Inspector analysis. The Scoring Engine embeds that calibration into the prompts.
+
+**What it does:** Produces a 0–100 labability score for each selected product, broken down across four dimensions. Also determines the Skillable Path (A1/A2/B/C/Unknown) and identifies any constraint flags that affect delivery viability or path assignment.
+
+**How it works:** One Claude call per product covers all four labability dimensions simultaneously:
+
+| Dimension | Max Score | What It Measures |
+|---|---|---|
+| Technical Orchestrability | 40 | Can the product be provisioned, configured, and torn down programmatically? API surface, deployment model, containerization, Marketplace presence |
+| Workflow Complexity | 30 | How complex is the lab workflow? Multi-step configurations, dependency chains, realistic exercise design |
+| Training Ecosystem Maturity | 20 | How developed is the training infrastructure around this product? Catalog depth, certification programs, partner training |
+| Market & Strategic Fit | 10 | Is the market moving in a direction that makes labs strategically relevant? |
+| **Total** | **100** | — |
+
+Scoring prompts contain embedded calibration benchmarks derived from real Skillable customer deployments. These anchors ensure that a 70 in Inspector reflects a consistent standard across different analyses and different people running the tool — not just a Claude judgment call on that day's evidence.
+
+The scoring engine also enforces specific constraint logic based on detected signals:
 
 | Constraint Signal | Scoring Behavior |
 |---|---|
@@ -130,15 +148,17 @@ When all scoring calls complete, the results dashboard renders the full analysis
 | MFA on API authentication | Risk flag on Technical Orchestrability; Path A2 ceiling applied |
 | Provisioning time > 30 minutes | Pre-Instancing flag added to recommendations |
 | No DELETE endpoint detected | Resource leak risk flag on Technical Orchestrability |
-| Hardware-locked licensing (BIOS GUID) | Not a blocker — Skillable pins BIOS GUIDs; flag noted but not penalized |
+| Hardware-locked licensing (BIOS GUID) | Not a blocker — Skillable pins BIOS GUIDs; flag noted, not penalized |
 
-### 4.5 Lab Maturity Scorer
+---
 
-**Purpose:** Score the company's organizational readiness to build, deliver, and scale a lab program — independently of any specific product's technical characteristics.
+### Lab Maturity Scorer
 
-**How it works:** The Lab Maturity score is produced by a dedicated Claude call that runs in parallel with the product scoring calls. It evaluates the company across five dimensions based on evidence gathered during discovery and product research.
+**Why it exists:** A product that scores 85 for Technical Orchestrability is still a poor investment if the company has no training function, no partner program, and no internal capacity to build or maintain lab content. Lab Maturity captures the organizational side of the equation — independently of any specific product's technical characteristics.
 
-**Five dimensions:**
+**What it does:** Produces a 0–100 Lab Maturity score that reflects the company's organizational readiness to build, deliver, and scale a lab program. This score runs in parallel with the product scoring calls — it's a company-level judgment, not a per-product one.
+
+**How it works:** One dedicated Claude call evaluates the company across five dimensions based on evidence gathered during discovery and product research:
 
 | Dimension | Max Raw Score | What It Measures |
 |---|---|---|
@@ -149,15 +169,17 @@ When all scoring calls complete, the results dashboard renders the full analysis
 | Tech & Integration Readiness | 10 | LMS in use, xAPI/SCORM/LTI history, integration readiness signals |
 | **Raw Maximum** | **117** | — |
 
-**Normalization:** The five dimensions are not equally weighted by design, and their raw totals intentionally exceed 100. The normalized score is computed as: `raw_score ÷ 1.17 = normalized 0–100`.
+The five dimensions are not equally weighted by design, and their raw totals intentionally exceed 100. The normalized score is computed as: `raw_score ÷ 1.17 = normalized 0–100`. Scoring rubrics are adjusted by organization type — a training organization without its own certification program is penalized less heavily than a software company with no training function, because the organizational models and expectations genuinely differ.
 
-**Org-type adjustment:** Scoring rubrics are adjusted by organization type. A training organization that lacks its own certification program is penalized less heavily than a software company with no training function — the expectations differ because the organizational models differ.
+---
 
-### 4.6 Composite Score Engine
+### Composite Score Engine
 
-**Purpose:** Produce a single number that combines product fit and organizational readiness into a score that drives the pursuit recommendation.
+**Why it exists:** Product labability and Lab Maturity measure different things, and the right way to combine them depends on what kind of company you're looking at. A software company with a great product but no training function is a different conversation than a training organization with a mature delivery infrastructure but a technically challenging product. The Composite Score Engine handles that distinction explicitly rather than pretending a single fixed formula works for everyone.
 
-**Formula:** The composite weights differ based on the organization type resolved during discovery.
+**What it does:** Produces a single 0–100 composite score that drives the "pursue / pilot / monitor / do not pursue" recommendation. The formula weights and gating rules differ by org type.
+
+**How it works:**
 
 | Org Type | Product Labability Weight | Lab Maturity Weight |
 |---|---|---|
@@ -171,13 +193,17 @@ When all scoring calls complete, the results dashboard renders the full analysis
 | Software company with Product score < 30 | Composite capped at 25 |
 | Channel org with Product score < 20 | Composite capped at 30 |
 
-**Why the asymmetry exists:** For a software company, the product is the program — if the product cannot be provisioned, scored, and torn down automatically, no amount of organizational readiness makes a scalable lab program viable. A high Lab Maturity score with a failing product score should not produce a composite that suggests viability. For a channel organization (training orgs, SIs, distributors, academic institutions), the primary investment signal is the delivery machine — their organizational infrastructure, partner network, and training catalog. These organizations can build effective programs even with products that score lower technically, provided their delivery and distribution capabilities are strong. The gating rules protect against composite scores that would mislead a pursuit recommendation in either direction.
+The asymmetry is intentional. For a software company, the product *is* the program — if it can't be provisioned, scored, and torn down automatically, no amount of organizational readiness makes a scalable lab program viable. A high Lab Maturity score sitting on top of a failing product score should not produce a composite that implies viability. For a channel organization — training orgs, SIs, distributors, academic institutions — the primary investment signal is the delivery machine. These organizations can build effective programs even with products that score lower technically, provided their delivery infrastructure and distribution capabilities are strong. The gating rules protect against composite scores that would mislead a pursuit recommendation in either direction.
 
-### 4.7 Consumption Potential Model
+---
 
-**Purpose:** Translate product labability signals into a volume and revenue estimate that can anchor the business case portion of a discovery conversation.
+### Consumption Potential Model
 
-**Six consumption motions:**
+**Why it exists:** A composite score of 72 is useful for prioritization. It does not answer the question an AE or TSM needs answered before building a business case: *what would this actually be worth?* Consumption Potential translates product fit signals into volume and revenue estimates that can anchor the business conversation.
+
+**What it does:** Projects lab consumption across six business motions, producing a per-motion estimate of population, hours, adoption, and annual lab hours. Combined with a VM rate estimate, this produces the revenue range that goes into a business case.
+
+**How it works:** One Claude call produces estimates for all six motions simultaneously:
 
 | Motion | What It Represents |
 |---|---|
@@ -188,67 +214,64 @@ When all scoring calls complete, the results dashboard renders the full analysis
 | Employee Enablement | Internal training for SE, CSM, TSM, and support staff |
 | Events | Conference labs, tech days, POC demos, and hosted hands-on experiences |
 
-**Per-motion estimate fields:** Population range (low and high), hours per user per year, adoption percentage, and annual hours total.
+Per-motion estimate fields: population range (low and high), hours per user per year, adoption percentage, and annual hours total. VM rate is estimated as a $/hr range reflecting the deployment complexity of the product, from $12/hr (simple cloud slice) to $55/hr (complex multi-VM). A value of 0 indicates a SaaS or cloud-slice path where VM rate is not applicable.
 
-**VM rate estimate:** A $/hr range for VM-based lab delivery (range: $12–$55/hr). A value of 0 indicates the product follows a SaaS or cloud-slice path where VM rate is not applicable.
+Inspector does not trust Claude's arithmetic on the annual hours totals. After the scoring call returns, the server recomputes every total from the parsed motion fields — population midpoint × hours per user per year × adoption % — and replaces whatever figures Claude produced directly. Claude is good at reasoning about numbers; it is not a reliable calculator at scale.
 
-**Arithmetic integrity:** Inspector does not trust Claude's arithmetic on the annual hours totals. The totals are recomputed server-side from the parsed motion fields (population midpoint × hours/user/year × adoption %) after the scoring call returns, and the recomputed values replace any figures Claude produced directly.
+---
 
-### 4.8 Results Dashboard
+## The Results Layer
 
-**Purpose:** Surface the full analysis in a format that supports both a technical discovery conversation and an executive qualification conversation.
+**Why:** Research and scoring produce a lot of structured data. The Results Layer is what makes that data useful — surfacing it in a format that supports a technical discovery conversation, an executive qualification conversation, and a handoff to the next tool in the workflow, all from the same output.
 
-**What the results page shows:**
+**What:** A results dashboard that renders the full `CompanyAnalysis` — scores, evidence, paths, consumption table, contacts, and recommendations — plus a handoff button that carries the analysis into Designer, and an API endpoint that makes the full pipeline available programmatically for batch use cases like Prospector.
+
+**How:** The dashboard renders when all parallel scoring calls complete. The handoff button navigates to Designer pre-populated with everything Inspector already knows. The API endpoint runs the full pipeline synchronously and returns the `CompanyAnalysis` as a single JSON payload, bypassing the streaming interface for callers that don't need it.
+
+---
+
+### Results Dashboard
+
+**Why it exists:** A structured JSON payload full of scores and evidence is not a discovery call prep tool. The dashboard is what turns the `CompanyAnalysis` into something an SE can open the morning of a call and walk into the room ready.
+
+**What it does:** Renders the full analysis in a format that supports both technical depth and executive-level qualification. Every score is traceable to specific evidence, and every recommendation is grounded in what the research actually found.
+
+**How it works:** The results page surfaces the following:
 
 - **Company overview:** Organization name, description, org type, composite score, pursuit recommendation, and analysis date.
-- **Per-product labability scores:** Dimension breakdown (Technical Orchestrability, Workflow Complexity, Training Ecosystem Maturity, Market and Strategic Fit), total score, Skillable Path determination, and any risk or qualification flags.
-- **Evidence:** Every score is backed by evidence claims that follow the lab lifecycle — Provision → Configure → Score → Teardown. Each claim is labeled in bold by the aspect it supports, and includes the source URL and page title so the SE can verify or follow up directly.
-- **Skillable Path:** One of A1 (Azure Cloud Slice), A2 (Custom API/BYOC), B (VM Lab), C (Simulation), or Unknown — determined by the scoring engine based on deployment model, API surface, and Marketplace signals.
-- **Consumption Potential table:** All six motions with population range, hours/user/year, adoption %, annual hours total, and VM rate estimate.
+- **Per-product labability scores:** Dimension breakdown (Technical Orchestrability, Workflow Complexity, Training Ecosystem Maturity, Market and Strategic Fit), total score, Skillable Path determination (A1 / A2 / B / C / Unknown), and any risk or qualification flags.
+- **Evidence:** Every score is backed by evidence claims organized by the lab lifecycle — Provision → Configure → Score → Teardown. Each claim is labeled by the aspect it supports and includes the source URL and page title so the SE can verify or follow up directly.
 - **Lab Maturity score:** Company-level score with dimension breakdown and supporting evidence.
-- **Contacts:** Decision makers and influencers for each product and for the company overall, with title, inferred role in a lab program conversation, and source.
-- **Recommendations:** Per product — Delivery Path, Scoring Approach, Essential Technical Resource (the single highest-priority open question blocking a pilot), and Next Step. Recommendations are grounded in the evidence gathered during research, not generated from a template.
-- **"Design Lab Program →" handoff button:** Appears when scoring is complete. See Section 4.9.
+- **Consumption Potential table:** All six motions with population range, hours per user per year, adoption %, annual hours total, and VM rate estimate.
+- **Contacts:** Decision makers and influencers for each product and the company overall, with title, inferred role in a lab program conversation, and source.
+- **Recommendations:** Per product — Delivery Path, Scoring Approach, Essential Technical Resource (the single highest-priority open question blocking a pilot), and Next Step. These are grounded in the evidence, not generated from a template.
+- **"Design Lab Program →" handoff button:** Appears when scoring is complete. See below.
 
-**Export:** A CSV export of all scored products is available from the results page. Columns include company name, product name, composite score, product labability score, Lab Maturity score, Skillable Path, and org type.
-
-### 4.9 Inspector → Designer Handoff
-
-**Purpose:** Eliminate manual re-entry of everything Inspector already knows when the SE is ready to build a lab program.
-
-**How it works:** When scoring completes, the results page displays a "Design Lab Program →" button. Clicking it navigates to `/designer?analysis_id={id}`. Designer reads the Inspector analysis and pre-fills Phase 1: company name, the scored products with their labability scores, recommended Skillable path, and the top contacts identified for each product. The SE arrives in Designer already oriented — they are refining and approving a pre-populated program structure rather than starting from a blank form.
-
-**Provenance tracking:** The `inspector_analysis_id` is stored on the Designer program record. If Inspector is subsequently re-run on the same company — for example after a 45-day cache expiry or a force-refresh — Designer displays a "⚠ Source analysis updated" badge on the program, prompting the SE to review whether any scores or contacts have changed materially.
+A CSV export of all scored products is available from the results page. Columns include company name, product name, composite score, product labability score, Lab Maturity score, Skillable Path, and org type.
 
 ---
 
-## 5. Caching Architecture
+### Inspector → Designer Handoff
 
-Inspector uses three cache levels. All are keyed by company name and stored in the analysis file system. They operate independently, meaning a hit at a higher level does not require hits at lower levels.
+**Why it exists:** When an SE finishes an Inspector analysis and decides a lab program is worth building, the last thing they should have to do is manually re-enter everything Inspector already knows into the first screen of Designer. The handoff eliminates that gap entirely.
 
-| Level | TTL | Key | What It Stores | When It Triggers |
-|---|---|---|---|---|
-| Full analysis cache | 45 days | `company_name` | Complete `CompanyAnalysis` including all product scores, Lab Maturity, contacts, recommendations, consumption potential | Inspector has been fully run for this company before |
-| Discovery cache | 45 days | `company_name` | Discovery output: product list with labability tiers, org type, deployment models, partnership signals | Company was discovered but some products may not have been scored |
-| Research cache | Per-discovery | `company_name` + `product_name` | Web search results and fetched page contents for a specific product | Product was researched in a previous Inspector session for this company |
+**What it does:** Carries the full context of an Inspector analysis into Designer Phase 1 — company name, scored products with labability scores and recommended Skillable paths, and the top contacts identified for each product. The SE arrives in Designer already oriented, refining and approving a pre-populated program structure rather than starting from a blank form.
 
-**Cache hit behavior:**
-
-- **Full analysis hit:** Skip everything. Return the stored results instantly to the results dashboard.
-- **Discovery hit:** Skip all Phase 1 web research. Load the cached product list and org type, go directly to product selection. Per-product research and scoring still run for any products that haven't been scored before.
-- **Research hit:** Skip product-level web searches for that product. Run Claude scoring on the cached research content — the API calls and scoring logic still execute, but no new web queries are issued.
-
-**Force refresh:** A force-refresh checkbox on the Inspector home page bypasses all three cache levels. Checking it before submitting a company name triggers a full re-run: new discovery searches, new product research, new scoring calls, and an overwrite of all cached data for that company.
+**How it works:** When scoring completes, the results page displays a "Design Lab Program →" button. Clicking it navigates to `/designer?analysis_id={id}`. Designer reads the Inspector analysis and pre-fills Phase 1 with everything it found. The `inspector_analysis_id` is stored on the Designer program record for provenance tracking — if Inspector is subsequently re-run on the same company (after a 45-day cache expiry or a force-refresh), Designer displays a "⚠ Source analysis updated" badge on the program, prompting the SE to review whether any scores or contacts have changed materially.
 
 ---
 
-## 6. API Access
+### API Access
 
-Inspector exposes a headless endpoint for batch or programmatic use cases where streaming and the product selection interface are not needed.
+**Why it exists:** Inspector's streaming interface and product selection step are designed for an SE sitting at a browser. Prospector, which runs Inspector-quality analyses across an entire target account list in batch, doesn't need either of those things. The API endpoint exposes the full pipeline in a form that programmatic callers can use directly.
+
+**What it does:** Accepts a company name and an optional list of known products, runs the complete Inspector pipeline, and returns the full `CompanyAnalysis` JSON as a single synchronous response. No streaming, no product selection step, no browser required.
+
+**How it works:**
 
 **`POST /inspector/api/analyze`**
 
-**Request body:**
+Request body:
 
 ```json
 {
@@ -257,11 +280,9 @@ Inspector exposes a headless endpoint for batch or programmatic use cases where 
 }
 ```
 
-**Returns:** Full `CompanyAnalysis` JSON, including all discovered products with labability tiers, all scored products with dimension scores and evidence, Lab Maturity score, contacts, consumption potential, and recommendations.
+Returns the full `CompanyAnalysis` JSON, including all discovered products with labability tiers, all scored products with dimension scores and evidence, Lab Maturity score, contacts, consumption potential, and recommendations.
 
-**Behavior:** This endpoint bypasses the discovery and research caches and runs the full pipeline synchronously. There is no streaming — the response is returned as a single JSON payload when the complete pipeline finishes. The `known_products` field, if supplied, seeds the product list and adds targeted discovery queries for each named product.
-
-**Usage:** This endpoint is called by Prospector when it needs a full Inspector-quality analysis as part of a batch run. Rather than duplicating the research and scoring pipeline, Prospector delegates to Inspector's API and stores the returned `CompanyAnalysis` under the Prospector account record.
+This endpoint bypasses the discovery and research caches and runs the full pipeline synchronously. The `known_products` field, if supplied, seeds the product list and adds targeted discovery queries for each named product. Prospector calls this endpoint when it needs Inspector-quality analysis as part of a batch run — rather than duplicating the research and scoring pipeline, Prospector delegates to Inspector and stores the returned `CompanyAnalysis` under the Prospector account record.
 
 ---
 

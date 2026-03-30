@@ -1,18 +1,20 @@
 # Skillable Intelligence Platform — Shared Architecture
 
-> This document describes the shared research, evidence, and scoring infrastructure used by both Inspector and Prospector. Individual tool documents reference and extend this foundation.
+> This document describes the shared research, evidence, and scoring infrastructure that powers Designer, Inspector, and Prospector. Individual tool documents reference and extend this foundation.
 
 ---
 
 ## 1. What Problem Does This Platform Solve?
 
-Skillable sells lab infrastructure. The hardest part of that sale is the early qualification question:
+Skillable Intelligence started with a question about lab program design: *what would it take to give a Solution Engineer or lab author everything they need to build a great lab program — the right content, the right environment, the right scoring approach — without starting from a blank page every time?*
 
-> *"Is this company's product actually suitable for hands-on lab training — and is the company ready to invest in building it?"*
+The answer turned out to require deep knowledge: knowledge of the product being trained on, of the learner's role and workflow, of Skillable's delivery capabilities, and of what "good" looks like across the programs Skillable has already built. **Designer** was built first to answer that question — and the intelligence it needed to do that well became the foundation for everything that followed.
 
-Answering that question today requires a Solution Engineer to spend hours researching a company, reading documentation, inferring technical architecture from product pages, and pattern-matching against past deals. That knowledge lives in people's heads, it takes too long, and it doesn't scale.
+Once that foundation existed, a second question surfaced: could the same research and scoring intelligence help sellers and SEs understand whether a company's product is worth pursuing as a lab program *before* investing in design? That became **Inspector** — a deep per-company analysis that runs the same research pipeline and applies a structured scoring model grounded in Skillable's real platform capabilities.
 
-**Skillable Intelligence automates that qualification process.** It researches companies and their products using the same signals a skilled SE would look for, applies a structured scoring model grounded in Skillable's real platform capabilities, and surfaces findings in a format that drives a confident conversation — whether that's an account exec qualifying a new logo or an SE building a pilot proposal.
+Then the marketing team asked an obvious follow-on: *could we do this for a list of companies?* That became **Prospector** — a lighter, parallel version of Inspector tuned for throughput over depth, built to rank a batch of companies by labability fit so sales and marketing can prioritize outreach intelligently.
+
+The three tools share a common intelligence stack. Every analysis — whether it's a full Designer program build, an Inspector deep-dive on a single company, or a Prospector batch scan — runs through the same research engine, the same evidence extraction model, and the same scoring rubrics. The difference is in how much of that pipeline each tool invokes and what it does with the result.
 
 ---
 
@@ -26,7 +28,7 @@ Layer 2: Evidence Extraction     — Claude reads sources, extracts labeled clai
 Layer 3: Scoring + Recommendations — structured rubrics mapped to Skillable capabilities
 ```
 
-These layers are shared across Inspector and Prospector, though Prospector runs a lighter version (one product, no deep research) for throughput.
+These layers are shared across all three tools. Inspector runs the full pipeline — discovery plus deep per-product research. Prospector runs a lighter version (discovery only, one product, no deep research) for throughput. Designer consumes Inspector's scored output and applies additional intelligence to generate program structure, lab content, and environment specifications.
 
 ---
 

@@ -1,212 +1,187 @@
 # Skillable Intelligence — Prospector
 
-> Prospector is the batch-analysis tool in the Skillable Intelligence platform. It takes a list of companies and produces a ranked table of labability fit, surfacing the highest-potential accounts for outreach or deeper Inspector analysis.
+> Prospector runs the same intelligence pipeline as Inspector across a batch of companies at once — producing a ranked table of labability fit, partnership signals, and outreach contacts so you know exactly where to focus before you invest a single sales cycle.
 >
 > For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md).
 
 ---
 
-## 1. What Problem Does Prospector Solve?
+## Why Prospector Exists
 
-Marketing and field teams typically work from large TAM lists — databases of hundreds or thousands of companies within a target vertical or segment. Without a systematic way to prioritize these, there is no mechanism for distinguishing companies whose products are genuinely good candidates for Skillable's lab platform from those that are a poor fit. The result is wasted outreach cycles and campaigns built on undifferentiated lists.
+Inspector exists to go deep on a single account. It runs a two-phase research pipeline, surfaces every relevant product, lets you select the one you care about, and produces a fully evidence-backed recommendation with delivery paths, consumption estimates, and the exact technical question your SE should ask in discovery. It's designed for when you already know an account matters and you need everything.
 
-Without qualification, every company on a list receives the same pitch regardless of whether their product is technically labable, whether they already have a training ecosystem in place, or whether they have any organizational readiness to adopt a lab-based learning motion. This is inefficient for field teams and creates noise in pipeline metrics — high-activity, low-conversion outreach that obscures where real demand exists.
+The problem is that most of the time you don't know that yet. You have a list.
 
-Prospector addresses this by running a lightweight version of Inspector's research pipeline across a batch of companies in parallel. Each company is analyzed using the same discovery-phase searches that Inspector uses — surfacing deployment model, training ecosystem, partner program, certification structure, and existing labs — then scored on both product labability and organizational readiness. The output is a ranked table of composite scores that sales and marketing can use immediately to prioritize outreach, build ABM target lists, identify accounts ready for a full Inspector analysis, and eliminate known poor-fit companies from future runs.
+The request that kicked off Prospector was simple: marketing had seen Inspector work and asked whether it could run the same analysis across a list of companies — not one at a time through the UI, but as a batch job they could kick off and come back to. The answer was yes, but with a deliberate trade-off. Running Inspector's full two-phase pipeline across 25 companies in parallel would be slow, expensive, and produce a lot of detail nobody needed at the prioritization stage. What marketing actually needed was signal — enough to separate the Highly Labable from the Do Not Pursues, get a contact name and LinkedIn URL, and export the result into their ABM tool.
 
-The Prospector → Inspector handoff is a first-class workflow. Every row in Prospector's results table links directly to a full Inspector report if one exists, and if it doesn't, clicking the link pre-fills the Inspector home screen for a one-click deep-dive. The intended flow is: Prospector surfaces the top 3–5 accounts from a batch, then Inspector goes deep on those.
+So Prospector became Inspector's lighter sibling. It runs the same discovery phase — the same 12 parallel searches that surface deployment model, training ecosystem, partner program, certification structure, and existing labs — but it skips the deep Phase 2 product research and the interactive selection workflow. It auto-selects the single highest-labability product, scores it from discovery context, computes the same composite score Inspector would produce, and moves on to the next company. A 25-company batch that would take hours to run manually through Inspector completes in 5–8 minutes.
 
----
-
-## 2. Personas
-
-### Marketing / Demand Generation
-
-Marketing and demand generation teams use Prospector to build a prioritized target list for a campaign or ABM motion. They typically start with a large unqualified list — purchased from ZoomInfo, pulled from a vertical database, or assembled from event registrations — and need to reduce it to a set of high-confidence targets before investing in campaign spend or content personalization.
-
-**Needs:** Ranked composite score table, top contact name and LinkedIn URL, CSV or Excel export for upload into Salesforce or HubSpot.
-
-**Typical triggers:** New vertical initiative, event list qualification, quarterly pipeline build.
-
-### Account Executive / SDR
-
-AEs and SDRs use Prospector to qualify a cold list before investing outreach time. Rather than working through a list sequentially and discovering poor-fit companies through failed conversations, they run the list through Prospector first and direct their energy at accounts with strong labability and organizational readiness signals.
-
-**Needs:** Composite score, "Labable / Simulations / Do Not Pursue" Skillable Path signal, top contact title to confirm they're reaching the right person.
-
-**Typical triggers:** Post-conference attendee list, SDR prospect list from ZoomInfo or LinkedIn Sales Navigator.
-
-### Solution Engineer (light use)
-
-SEs use Prospector for lightweight account scanning ahead of team planning sessions. Rather than pulling full Inspector reports on a large set of accounts, they run a batch scan to see which accounts already have high scores (and therefore existing Inspector reports) and which need deeper attention.
-
-**Needs:** Composite signal per account, direct link to full Inspector analysis for high-scoring accounts.
-
-**Typical triggers:** Territory planning, partner QBR prep, pre-sales team review.
+The intended flow was baked in from the start: Prospector surfaces the top 3–5 accounts from a batch, then Inspector goes deep on those. The Score Report link on every Prospector row makes that handoff a single click.
 
 ---
 
-## 3. The Prospector Workflow
+## Who Uses Prospector
 
-### Input
+**Marketing and demand generation teams** are the primary users. They typically start with a large unqualified list — pulled from ZoomInfo, assembled from event registrations, or sourced from a vertical database — and need to cut it down to high-confidence ABM targets before committing campaign spend. Prospector takes that raw list and gives them a ranked composite score, a Skillable Path signal (Labable / Simulations / Do Not Pursue), top contact name and LinkedIn URL, and a clean CSV or styled Excel export ready for upload into Salesforce or HubSpot. Typical triggers: a new vertical initiative, event list qualification, or quarterly pipeline build.
 
-Prospector accepts companies in two modes:
+**AEs and SDRs** use Prospector to avoid working a bad list. Instead of discovering poor-fit companies through failed conversations, they run the list through Prospector first and direct their energy at accounts where the composite score is strong and the Skillable Path signal says there's something to pursue. The contact title is particularly useful here — it's one quick confirmation that the outreach is going to the right person. Typical triggers: a post-conference attendee list, a prospect list from LinkedIn Sales Navigator.
 
-- **Paste mode:** Comma-separated or newline-separated company names pasted directly into the input box.
-- **CSV upload:** First column is used as the company name list; a header row containing the word "company" is automatically skipped.
+**Solution engineers** reach for Prospector in lighter-touch situations — territory planning, partner QBR prep, pre-sales team reviews where the goal is a quick scan of a set of accounts, not a full deep-dive on any one of them. The Score Report link is what makes it useful for SEs specifically: any account with a high score almost certainly has an existing Inspector cache hit, so the Prospector row becomes a direct link to the full analysis.
 
-The batch limit is **25 companies per run**. A **"Force refresh"** checkbox bypasses both the full analysis cache and discovery cache, forcing fresh web research for every company in the batch regardless of cached results.
+---
 
-### Analysis Pipeline (per company)
+## What Prospector Delivers
 
-Each company goes through a lightweight research-and-score pass:
+You submit a list of up to 25 companies. Somewhere between 5 and 8 minutes later (depending on API response times and how many cache hits you get), you have a ranked table sorted by composite score.
 
-1. **Discovery phase** — Runs the same 12 parallel web searches as Inspector Phase 1, covering company overview, product overview, deployment model, training programs, certification structure, partner programs, API and developer ecosystem, pricing model, existing hands-on labs, gray market labs, technical documentation, and market context.
-2. **Product selection** — Automatically selects the single highest-labability product from discovery output. No selection interface is presented. If multiple products are in the `highly_likely` tier, the first one returned by the model is used.
-3. **Lightweight scoring** — Scores the selected product from discovery context only, without Phase 2 deep research. Produces the same `ProductLababilityScore` data model as Inspector, but from shallower evidence.
-4. **Lab Maturity scoring** — Runs the same organizational readiness model as Inspector, from discovery context.
-5. **Composite scoring** — Applies the same formula and gating rules as Inspector (see [intelligence-platform.md](intelligence-platform.md) §5.4).
-6. **Contact extraction** — Surfaces the top 2 contacts for outreach.
+Every row contains: the company's rank and name, a breakdown of product counts by labability tier (Highly Labable / Likely / Not Labable), the name of the top product that drove the score, the Lab Score for that product (0–100, color-coded green/amber/red), the Skillable Path label, a Lab Maturity score for organizational readiness, the Composite score that combines both, a set of partnership signal checkmarks (ATP Program, Channel Program, Existing Lab Partner, ILT/vILT, On-Demand, Certifications, Gray Market), two contacts with name, title, and LinkedIn URL, and a Score Report link that connects directly to Inspector.
 
-**What Prospector skips compared to Inspector:**
+You can export that table as a CSV or a dark-themed Excel file. You can flag companies as poor fits with a reason, and they'll be permanently excluded from future runs. And when you're ready to go deeper on any account, one click takes you there.
 
-- No interactive product selection step (always takes the top product automatically)
-- No Phase 2 deep research (9-query product-specific search batch)
-- No per-product page fetches (technical docs, API references, Docker Hub, Marketplace listings)
-- No Consumption Potential model
-- No per-product recommendations (Delivery Path, Scoring Approach, Essential Technical Resource)
+---
 
-**Why the lighter pass is still valid:** Discovery searches surface the most important signals — deployment model, training ecosystem, partner program, and existing labs. These are sufficient to rank companies by relative fit. The score will be less precise than a full Inspector score, and Technical Orchestrability scores in particular tend to be conservative because that dimension benefits most from Phase 2 deep research. But the composite score is directionally accurate enough for prioritization.
+## How Prospector Works
 
-### Concurrency and Throughput
+You paste in company names — comma-separated or newline-separated — or upload a CSV (first column is used as the company list; a header row containing the word "company" is automatically skipped). You can also check "Force refresh" if you want fresh research regardless of what's cached.
 
-- Up to **6 companies** are analyzed in parallel, controlled by a semaphore.
-- **Per-company timeout: 3 minutes (180 seconds).** Companies that exceed this are marked as skipped and processing continues with the rest of the batch.
-- A 25-company batch typically completes in **5–8 minutes** depending on API response times.
-- Progress is streamed live via SSE. Each company progresses through states: `waiting → analyzing → done / cache / timeout`. Cache hits display a date stamp ("From cache — 3/15/2026"). Timeouts display a skipped indicator with the company name.
+The moment you submit, the batch job spins up. Up to 6 companies are analyzed in parallel, and a live progress feed streams each company's state back to the UI: waiting, analyzing, done, or cache (with a date stamp showing how old the cached result is). Companies that don't complete within 3 minutes are marked as skipped and the batch continues without them.
+
+For each company in the batch, the analysis follows six steps. First, the same 12 parallel discovery searches that Inspector runs — surfacing deployment model, training programs, certifications, partner program, API and developer ecosystem, pricing, existing labs, and gray market activity. Second, automatic selection of the single highest-labability product from discovery output; if multiple products share the top tier, the first one returned is used, and that selection is logged in the job record. Third, lightweight scoring of that product from discovery context — the same `ProductLababilityScore` model as Inspector, but without the Phase 2 deep research evidence. Fourth, Lab Maturity scoring for organizational readiness. Fifth, composite scoring using the same formula and gating rules as Inspector. Sixth, extraction of the top 2 contacts.
+
+When all companies are done (or timed out), the results table renders sorted by composite score. The poor-fit registry runs before any of this — companies flagged in previous runs are stripped from the input list before analysis begins, so they never consume API calls or semaphore slots.
+
+---
+
+## The Batch Orchestration Layer
+
+**Why:** Running 25 analyses in parallel without rate-limiting or timeout enforcement would make the platform fragile — a few slow API responses would hold up the entire batch, and the UI would have no way to show meaningful progress.
+
+**What:** Controlled parallel execution across the full company list, with per-company timeouts, a cancel endpoint, and live SSE progress streaming back to the UI.
+
+**How:** Each company is submitted as a background thread. A semaphore caps concurrency at 6 simultaneous analyses. Timeout enforcement uses `concurrent.futures.wait()` with a 180-second parameter per company. SSE messages carry per-company state transitions that the UI renders as individual progress indicators.
+
+### Batch Job Manager
+
+**Why it exists:** To coordinate parallel analysis across a list of companies without overwhelming the API or blocking the UI.
+
+**What it does:** Manages thread lifecycle, semaphore acquisition, timeout enforcement, and cancellation — turning a flat list of company names into a controlled, observable parallel workload.
+
+**How it works:** Companies are submitted as background threads. A semaphore limits concurrency to 6. Per-company timeout is 180 seconds via `concurrent.futures.wait()`. Companies that exceed the timeout are marked `skipped` with a timeout reason; the batch loop moves on to the next company rather than waiting. A cancel endpoint (`POST /prospector/cancel/<job_id>`) sets a cancellation flag on the job; the loop checks this flag before initiating each new company, and companies already in-flight at cancellation time are allowed to complete or timeout normally. Progress is tracked via the same SSE infrastructure as Inspector, with messages that distinguish cache hits (with date stamp), active analyses, timeouts, and errors.
 
 ### Caching
 
-Prospector participates in the shared platform cache (see [intelligence-platform.md](intelligence-platform.md) §4 for cache infrastructure details):
+**Why it exists:** Running fresh web research for every company in every batch would be slow and expensive — and most of the time the data hasn't changed.
 
-- **Full analysis cache (45 days):** If Inspector has already scored a company, Prospector uses that cached result instantly — no web research is performed for that company.
-- **Discovery cache (45 days):** If a discovery pass has been run recently (by Prospector or Inspector), the product list and discovery context are reused, skipping Phase 1 searches.
-- Cache hits are shown with a date stamp in the progress view so analysts know how fresh the data is.
+**What it does:** Makes cache hits effectively instant (a 45-day-old Inspector result for a company is still the right result for prioritization), and reduces research cost for companies that have been partially analyzed before.
 
-### Results Table
+**How it works:** Two cache layers, both 45 days, both shared with Inspector. The full analysis cache: if Inspector has previously scored a company, Prospector uses that result immediately with no web research. The discovery cache: if a discovery pass has run recently (by either tool), the product list and discovery context are reused, skipping Phase 1 searches entirely. Cache hits show a date stamp in the progress view — "From cache — 3/15/2026" — so analysts know how fresh the data is.
 
-Results are sorted by composite score descending. The table columns are:
+---
+
+## The Analysis Layer
+
+**Why:** Getting from a company name to a composite score requires resolving the company's product footprint, scoring the top product, assessing organizational readiness, and combining both signals — in that order, from discovery-level evidence only.
+
+**What:** Four components that take raw discovery output and produce a ranked composite score plus two contacts, without any of the deep per-product research that Inspector's Phase 2 provides.
+
+**How:** Discovery runs first, producing the product list and evidence context. Product selection happens automatically. The lightweight scorer and Lab Maturity model run against that discovery context. The composite engine combines the results. Contacts are extracted in parallel.
+
+### Discovery Engine
+
+**Why it exists:** You can't score a company's labability without first understanding what it makes, how it's deployed, and whether it already has a training ecosystem.
+
+**What it does:** Runs 12 parallel web searches covering the full range of discovery intents — company overview, product overview, deployment model, training programs, certification structure, partner programs, API and developer ecosystem, pricing, existing labs, gray market labs, technical documentation, and market context — and extracts structured evidence from the results.
+
+**How it works:** This is the same discovery engine Inspector uses for Phase 1 — same 12 queries, same search intents, same evidence extraction model. See [intelligence-platform.md](intelligence-platform.md) §3 for the full Research Engine description. After discovery completes, Prospector takes the single top product ranked highest by labability tier, rather than surfacing a selection interface. If multiple products share the `highly_likely` tier, the first one returned by the model is used. The selected product and the reason for its selection are logged in the job record.
+
+### Lightweight Scorer
+
+**Why it exists:** Prospector needs a calibrated labability score without running Inspector's full Phase 2 deep research on every company in the batch.
+
+**What it does:** Produces a `ProductLababilityScore` and `LabMaturityScore` from discovery-level evidence alone — the same data models as Inspector, built from shallower inputs.
+
+**How it works:** The scoring prompt is identical to Inspector's. The difference is the evidence fed into it: discovery search summaries and fetched content from the company homepage, top product pages, and training and partner program pages. No Phase 2 product-specific searches. No fetched technical documentation, API reference pages, or Docker Hub listings. This means Technical Orchestrability scores will tend to be conservative — that dimension benefits most from the Phase 2 deep-dive, because containerization signals, REST API coverage, and SDK availability are often buried in technical docs that discovery doesn't reliably surface. The other dimensions — Content Richness, Training Ecosystem, Market Reach — are less affected by the lighter pass. The composite score is directionally accurate enough for prioritization; it just shouldn't be treated as a final verdict.
+
+### Composite Score Engine
+
+**Why it exists:** Lab Score and Lab Maturity need to be combined into a single ranking signal so the results table has a meaningful sort order.
+
+**What it does:** Produces a composite score (0–100) that gates and weights both dimensions according to the same rules Inspector uses.
+
+**How it works:** Same formula, same weight definitions, same gating rules as Inspector. See [intelligence-platform.md](intelligence-platform.md) §5.4 for the full specification. Prospector applies these with no modifications — the only difference from Inspector composite scores is that the Lab Score input is derived from lighter evidence, which propagates into the composite result.
+
+### Contact Extractor
+
+**Why it exists:** A prioritization table that tells you a company scores 84 on composite but gives you no idea who to contact isn't actionable.
+
+**What it does:** Surfaces the two most relevant contacts per company — name, title, and LinkedIn URL — using role-type logic that differs between academic institutions and software companies.
+
+**How it works:** For academic institutions, the extractor prefers contacts with titles containing faculty, curriculum, dean, or registrar. For software companies, it prioritizes `decision_maker` role types first (VP Training, Director of Learning, Head of Technical Education), then falls back to `influencer` or `champion` roles. If fewer than 2 contacts are found, available fields are populated and missing fields are left blank rather than substituting lower-quality contacts.
+
+---
+
+## The Results Layer
+
+**Why:** A ranked table is only as good as what you can do with it — the results need to be readable in the platform, exportable into CRM and marketing automation tools, and automatically cleaned of companies that have already been disqualified.
+
+**What:** A sorted, color-coded results table with full export support, and a persistent registry that keeps disqualified companies out of future runs.
+
+**How:** Results render sorted by composite score descending, with score coloring applied across all numeric columns. Export produces either a flat CSV or a dark-themed Excel file ready for direct stakeholder delivery. The poor-fit registry runs upstream of the analysis pipeline so flagged companies never appear in the results at all.
+
+### Results Table and Export
+
+**Why it exists:** To turn a batch analysis into something that can be acted on immediately — either in the platform or in an external tool.
+
+**What it does:** Renders the full ranked results with 26 columns of data per company, applies visual score coloring, and produces named export files in CSV or Excel format.
+
+**How it works:** Results are sorted by composite score descending. Score coloring applies green (`#24ED9B`) for scores ≥ 70, amber (`#F59E0B`) for scores ≥ 40, and red (`#F87171`) for scores below 40.
+
+The full column set:
 
 | Column | Description |
 |---|---|
 | **Rank** | Position in composite score order (1 = highest) |
 | **Company** | Company name, linked to company URL |
-| **Product Counts** | Counts of products by labability tier: Highly Labable / Likely / Not Labable |
+| **Product Counts** | Counts by labability tier: Highly Labable / Likely / Not Labable |
 | **Top Product** | Name of the highest-scoring product analyzed |
-| **Lab Score** | Labability score of the top product (0–100), color-coded green / amber / red |
-| **Skillable Path** | For software: "Labable", "Simulations", or "Do Not Pursue". For academic: school name or "Academic — High Potential" / "Academic — Emerging" / "Not a Fit" |
+| **Lab Score** | Labability score of the top product (0–100), color-coded |
+| **Skillable Path** | Software: "Labable", "Simulations", or "Do Not Pursue". Academic: school name or tier label |
 | **Lab Maturity** | Organizational readiness score (0–100) |
 | **Composite** | Weighted combination of Lab Score and Lab Maturity (0–100) |
 | **Partnership Signals** | Checkmarks or counts for: ATP Program, Channel Program, Existing Lab Partner, ILT/vILT, On-Demand, Certifications, Gray Market |
 | **Contact 1** | Name, title, LinkedIn URL |
 | **Contact 2** | Name, title, LinkedIn URL |
-| **Score Report** | Link to full Inspector analysis (if cached), or pre-filled Inspector link for a one-click deep-dive |
+| **Score Report** | Link to full Inspector analysis (cache hit) or pre-filled Inspector link (no cache) |
 
-### Path Labels
+**Path labels — software companies:**
 
-**Software companies:**
-
-- Lab Score ≥ 50 → **"Labable"** (with delivery sublabel: Cloud Slice / Custom API / VM Lab based on Skillable Path)
+- Lab Score ≥ 50 → **"Labable"** (with delivery sublabel: Cloud Slice / Custom API / VM Lab)
 - Lab Score ≥ 20 → **"Simulations"**
 - Lab Score < 20 → **"Do Not Pursue"**
 
-**Academic institutions:**
+**Path labels — academic institutions:**
 
 - No technology programs found → **"Not a Fit"**
 - Has technology programs, school is a known Skillable anchor → **School name displayed**
 - Has technology programs, high score → **"Academic — High Potential"**
 - Has technology programs, lower score → **"Academic — Emerging"**
 
-### Flagging Poor-Fit Companies
-
-Any row in the results table can be flagged as a poor fit with a brief reason. Flagged companies are excluded from all future Prospector runs — they are filtered out before analysis begins so no API calls are wasted on known non-candidates.
-
-Flagged companies appear in a **"Skipped"** section at the bottom of the results page with their reason and the date flagged. The flag record includes: company name, reason text, UTC timestamp, and the job ID where the flag was created.
-
----
-
-## 4. Components
-
-### 4.1 Batch Job Manager
-
-**Purpose:** Coordinate parallel analysis across a list of companies without overwhelming the API or blocking the UI.
-
-**Implementation:** Each company in the batch is submitted as a background thread. A semaphore limits concurrency to 6 simultaneous analyses. Per-company timeout enforcement uses `concurrent.futures.wait()` with a 180-second timeout parameter. Companies that exceed the timeout are marked as `skipped` with a timeout reason, and the batch loop continues with remaining companies.
-
-**Cancellation:** A cancel endpoint (`POST /prospector/cancel/<job_id>`) sets a cancellation flag on the job. The batch loop checks this flag before initiating analysis on each new company. Companies already in-flight at cancellation time are allowed to complete or timeout normally.
-
-**Progress tracking:** Uses the same SSE infrastructure as Inspector (see [intelligence-platform.md](intelligence-platform.md) §4). SSE messages distinguish between cache hits (with date), active analyses, timeouts, and errors, so the UI can render appropriate per-company state indicators.
-
-### 4.2 Discovery Engine (shared with Inspector)
-
-**Purpose:** Resolve the company's products and partnership signals from public sources.
-
-See [intelligence-platform.md](intelligence-platform.md) §3 for the full Research Engine description. Prospector runs the same 12-query discovery pass as Inspector Phase 1, covering the same search intents and using the same evidence extraction model.
-
-**Prospector-specific behavior:** After discovery completes, Prospector takes the single top product — the one ranked highest by labability tier — rather than presenting a product selection interface to the user. If multiple products share the `highly_likely` tier, the first one returned by the model is used. This selection is logged in the job record so analysts can see which product drove the score.
-
-### 4.3 Lightweight Scorer
-
-**Purpose:** Produce a calibrated labability and maturity score from discovery-level context only, without the deep per-product research that Inspector's Phase 2 provides.
-
-**Input:** Discovery output — search result summaries, fetched content from the company homepage, top product pages, training and partner program pages.
-
-**Output:** The same `ProductLababilityScore` and `LabMaturityScore` data models as Inspector, but derived from shallower evidence. The scoring prompt is identical to Inspector's; the difference is in the evidence fed into it.
-
-**Why scores may differ from Inspector:** Inspector's Phase 2 adds 9 product-specific searches plus fetched content from technical documentation, API reference pages, and Docker Hub. These sources frequently unlock Technical Orchestrability evidence — containerization signals, REST API coverage, SDK availability — that discovery-level searches do not reliably surface. Expect Prospector's Technical Orchestrability dimension to be conservative relative to a full Inspector score. The other dimensions (Content Richness, Training Ecosystem, Market Reach) are less affected by the lighter pass.
-
-### 4.4 Composite Score Engine (shared with Inspector)
-
-**Purpose:** Combine Product Labability and Lab Maturity into a single ranking signal for the results table.
-
-See [intelligence-platform.md](intelligence-platform.md) §5.4 for the full formula, weight definitions, and gating rules. Prospector uses the same weights and gating rules as Inspector with no modifications.
-
-### 4.5 Contact Extractor
-
-**Purpose:** Surface the two most relevant contacts per company so the results table is immediately actionable for outreach.
-
-**Selection logic:**
-
-- **Academic institutions:** Prefers contacts with titles containing faculty, curriculum, dean, or registrar.
-- **Software companies:** Prefers `decision_maker` role type first (VP Training, Director of Learning, Head of Technical Education), then `influencer` or `champion` roles.
-
-**Output:** Name, title, and LinkedIn URL for the top 2 contacts. If fewer than 2 contacts are found, available fields are populated and missing fields are left blank rather than substituting lower-quality contacts.
-
-### 4.6 Results Table and Export
-
-**Purpose:** Deliver a ranked, actionable table that can be used directly in the platform or exported into a CRM or marketing automation tool.
-
 **Export formats:**
 
 - **CSV:** 26 columns, filename pattern: `Prospector-{YYYY-MM-DD}-{count}-{job_id[:6]}.csv`
-- **Excel (.xlsx):** Same 26 columns, professionally styled for direct delivery to stakeholders:
-  - Header row: dark background (`#06100C`), centered text, frozen pane
-  - Data rows: dark background (`#0D1A14`)
-  - Score column coloring: Green (`#24ED9B`) for scores ≥ 70, Amber (`#F59E0B`) for scores ≥ 40, Red (`#F87171`) for scores < 40
+- **Excel (.xlsx):** 26 columns, dark-themed and styled for direct stakeholder delivery — header row background `#06100C`, data row background `#0D1A14`, frozen pane, score column coloring using the same green/amber/red thresholds
 
-### 4.7 Poor-Fit Registry
+### Poor-Fit Registry
 
-**Purpose:** Prevent known poor-fit companies from re-entering future Prospector runs, keeping batches focused on genuinely qualified targets.
+**Why it exists:** Without a memory of disqualified companies, every batch run risks re-analyzing accounts that have already been evaluated and ruled out — wasting API calls and semaphore slots on known non-candidates.
 
-**Implementation:** Flagged company names are stored in a persistent poor-fit list. On each new Prospector run, the input list is filtered against this registry before analysis begins, using a case-insensitive match. Filtered companies never consume API calls or semaphore slots.
+**What it does:** Maintains a persistent list of flagged companies that are stripped from future batch inputs before analysis begins. Flagged companies appear in a collapsible "Skipped" section at the bottom of the results page so analysts can confirm the right companies were excluded.
 
-**Flag data stored per entry:** Company name, reason text (free-form, entered by the analyst), UTC timestamp of flag creation, and the job ID where the flag was created. This record is available for audit and can be reviewed or cleared by platform administrators.
-
-**Results presentation:** A collapsible "Skipped" section at the bottom of the results page lists all companies filtered by the poor-fit registry, along with their flag reason and date, so analysts can confirm the right companies were excluded.
+**How it works:** Any row in the results table can be flagged with a free-form reason. The flag record stores company name, reason text, UTC timestamp, and the job ID where the flag was created. On each new Prospector run, the input list is filtered against this registry using a case-insensitive match before any analysis threads are started — flagged companies never consume API calls or semaphore slots. The registry is available for audit and can be reviewed or cleared by platform administrators.
 
 ---
 
-## 5. Prospector vs. Inspector — When to Use Which
+## Prospector vs. Inspector — When to Use Which
 
 | Signal | Use Prospector | Use Inspector |
 |---|---|---|
@@ -220,13 +195,15 @@ See [intelligence-platform.md](intelligence-platform.md) §5.4 for the full form
 | You need an Essential Technical Resource question | | ✓ |
 | You want to seed Designer with scoring context | | ✓ |
 
+The rule of thumb: Prospector tells you *which* accounts are worth your time. Inspector tells you *what to do* with those accounts.
+
 ---
 
-## 6. Prospector → Inspector Handoff
+## Prospector → Inspector Handoff
 
-Every row in Prospector's results table includes a **Score Report** link in the final column. If Inspector has already scored the company (cache hit), this link opens the full Inspector results page directly. If no Inspector analysis exists for the company, clicking the link pre-fills the Inspector home screen with the company name for a one-click deep-dive — no manual entry required.
+Every row in Prospector's results table includes a Score Report link in the final column. If Inspector has already analyzed the company, the link opens the full Inspector results page directly — no waiting, no research, instant deep-dive. If no Inspector analysis exists, clicking the link pre-fills the Inspector home screen with the company name so the only thing standing between you and a full analysis is a single click.
 
-This handoff is the intended flow. Prospector is not meant to replace Inspector; it is meant to focus it. Run a 25-company batch, identify the top 3–5 accounts by composite score and Skillable Path signal, then use Inspector to build the full evidence-backed analysis on those accounts before investing SE time or crafting a tailored pitch.
+This handoff is the intended workflow. Prospector is not trying to replace Inspector — it's trying to make Inspector more effective by giving it a focused target list rather than a sprawling cold one. Run a 25-company batch, identify the top 3–5 accounts by composite score and Skillable Path signal, and then let Inspector build the full evidence-backed analysis on those accounts before you invest SE time or craft a tailored pitch. Prospector focuses. Inspector goes deep.
 
 ---
 
