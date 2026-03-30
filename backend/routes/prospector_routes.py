@@ -292,7 +292,7 @@ def prospector_export_csv(job_id: str):
 
     csv_bytes = output.getvalue().encode("utf-8-sig")  # BOM for Excel compatibility
     export_date = datetime.date.today().isoformat()
-    export_filename = f"Prospector-{export_date}-{len(rows)}companies-{job_id[:6]}.csv"
+    export_filename = f"Prospector-{export_date}-{len(rows)}-{job_id[:6]}.csv"
     return Response(
         csv_bytes,
         mimetype="text/csv",
@@ -425,7 +425,7 @@ def prospector_export(job_id: str):
     wb.save(out)
     out.seek(0)
     export_date = datetime.date.today().isoformat()
-    export_filename = f"Prospector-{export_date}-{len(rows)}companies-{job_id[:6]}.xlsx"
+    export_filename = f"Prospector-{export_date}-{len(rows)}-{job_id[:6]}.xlsx"
     return Response(
         out.getvalue(),
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
