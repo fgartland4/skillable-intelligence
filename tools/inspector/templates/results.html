@@ -297,13 +297,21 @@
         .product-acv-hours { font-size: 0.68rem; color: #3d6655; margin-top: 1px; }
 
         /* Composite segmented bar (Layer 1 + Layer 2) */
-        .comp-seg-bar { display:flex; height:6px; gap:2px; width:100%; }
-        .seg-block { border-radius:2px; position:relative; overflow:hidden; background:#1e3329; }
-        .seg-fill { height:100%; position:absolute; top:0; left:0; border-radius:2px; animation: bar-enter 0.7s ease-out; transition: width 0.7s ease; }
+        .comp-seg-bar { display:flex; height:20px; gap:3px; width:100%; }
+        /* Track: faint identity color — always shows which dimension */
+        .seg-block { border-radius:4px; position:relative; overflow:hidden; }
+        .seg-block-tech { background:rgba(36,237,155,0.12); }
+        .seg-block-wf   { background:rgba(59,130,246,0.12); }
+        .seg-block-te   { background:rgba(167,139,250,0.12); }
+        .seg-block-mf   { background:rgba(245,158,11,0.12); }
+        /* Fill: identity color when healthy, red when low */
+        .seg-fill { height:100%; position:absolute; top:0; left:0; border-radius:4px; animation: bar-enter 0.7s ease-out; transition: width 0.7s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; }
         .seg-tech { background:#24ED9B; }
         .seg-wf   { background:#3b82f6; }
         .seg-te   { background:#a78bfa; }
         .seg-mf   { background:#f59e0b; }
+        .seg-low  { background:#f87171; }
+        .seg-score { font-size:0.6rem; font-weight:900; line-height:1; pointer-events:none; letter-spacing:-0.01em; text-shadow:0 1px 3px rgba(0,0,0,0.45); color:rgba(255,255,255,0.95); }
 
         /* Layer 2 — consumption summary inside collapsible */
         .l2-consumption {
@@ -760,10 +768,10 @@
                 {% if _has_blocker %}<span class="verdict-badge verdict-pass">&#9632; Blocker</span>{% endif %}
             </div>
             <div class="comp-seg-bar" style="margin-bottom:8px;">
-                <div class="seg-block" style="width:40%;"><div class="seg-fill seg-tech" style="width:{{ [(_sc1h/40*100)|int, 100]|min }}%;"></div></div>
-                <div class="seg-block" style="width:30%;"><div class="seg-fill seg-wf"   style="width:{{ [(_sc2h/30*100)|int, 100]|min }}%;"></div></div>
-                <div class="seg-block" style="width:20%;"><div class="seg-fill seg-te"   style="width:{{ [(_sc3h/20*100)|int, 100]|min }}%;"></div></div>
-                <div class="seg-block" style="width:10%;"><div class="seg-fill seg-mf"   style="width:{{ [(_sc4h/10*100)|int, 100]|min }}%;"></div></div>
+                <div class="seg-block seg-block-tech" style="width:40%;"><div class="seg-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc1h }}</span></div></div>
+                <div class="seg-block seg-block-wf"   style="width:30%;"><div class="seg-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}"   style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc2h }}</span></div></div>
+                <div class="seg-block seg-block-te"   style="width:20%;"><div class="seg-fill {% if _sc3h < 8  %}seg-low{% else %}seg-te{% endif %}"   style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc3h }}</span></div></div>
+                <div class="seg-block seg-block-mf"   style="width:10%;"><div class="seg-fill {% if _sc4h < 4  %}seg-low{% else %}seg-mf{% endif %}"   style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc4h }}</span></div></div>
             </div>
             {% if _cph and _cph.get('annual_hours_high', 0) > 0 %}
             <div class="product-acv">
@@ -837,13 +845,6 @@
                 {% set sc2 = wf_dim.score | default(0) %}
                 {% set sc3 = te_dim.score | default(0) %}
                 {% set sc4 = mf_dim.score | default(0) %}
-                <div class="comp-seg-bar" style="margin-bottom:16px;">
-                    <div class="seg-block" style="width:40%;"><div class="seg-fill seg-tech" style="width:{{ [(sc1/40*100)|int,100]|min }}%;"></div></div>
-                    <div class="seg-block" style="width:30%;"><div class="seg-fill seg-wf"   style="width:{{ [(sc2/30*100)|int,100]|min }}%;"></div></div>
-                    <div class="seg-block" style="width:20%;"><div class="seg-fill seg-te"   style="width:{{ [(sc3/20*100)|int,100]|min }}%;"></div></div>
-                    <div class="seg-block" style="width:10%;"><div class="seg-fill seg-mf"   style="width:{{ [(sc4/10*100)|int,100]|min }}%;"></div></div>
-                </div>
-
                 {% set cp = product.get('consumption_potential', {}) %}
                 {% if cp and cp.get('annual_hours_high', 0) > 0 %}
                 {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set rate_lo = 10.5 %}{% set rate_hi = 10.5 %}
