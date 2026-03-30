@@ -168,14 +168,14 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         ("cs",              f"{company_name} customer success onboarding professional services"),
         ("lms",             f"{company_name} LMS learning management system platform"),
         # Org & contacts — 4 targeted queries covering the 3 key functions:
-        # (1) Customer education/training decision makers
-        ("org_cx_edu",      f"site:linkedin.com/in/ {company_name} VP OR SVP OR \"Head of\" \"customer education\" OR \"customer training\" OR \"customer enablement\" OR \"customer success enablement\""),
-        # (2) Partner / channel enablement decision makers
-        ("org_partner_ena", f"site:linkedin.com/in/ {company_name} VP OR SVP OR \"Head of\" \"partner enablement\" OR \"channel enablement\" OR \"partner education\" OR \"partner training\""),
+        # (1) Customer education/training leaders (CxO through VP/Head of)
+        ("org_cx_edu",      f"site:linkedin.com/in/ {company_name} Chief OR VP OR SVP OR EVP OR \"Head of\" \"customer education\" OR \"customer training\" OR \"customer enablement\" OR \"learning officer\""),
+        # (2) Partner / channel enablement leaders
+        ("org_partner_ena", f"site:linkedin.com/in/ {company_name} Chief OR VP OR SVP OR EVP OR \"Head of\" \"partner enablement\" OR \"channel enablement\" OR \"partner education\" OR \"partner training\" OR \"global enablement\""),
         # (3) Certification program leaders
-        ("org_cert",        f"site:linkedin.com/in/ {company_name} VP OR Director OR \"Head of\" certification OR \"certification program\" OR \"technical certification\" OR \"exam\""),
-        # (4) Director-level influencers across all three areas
-        ("org_directors",   f"site:linkedin.com/in/ {company_name} Director \"technical training\" OR \"technical enablement\" OR \"learning and development\" OR \"training and certification\" OR \"global enablement\""),
+        ("org_cert",        f"site:linkedin.com/in/ {company_name} Chief OR VP OR SVP OR Director OR \"Head of\" certification OR \"certification program\" OR \"technical certification\""),
+        # (4) Director-level influencers + catch-all for orgs with non-standard titles
+        ("org_directors",   f"site:linkedin.com/in/ {company_name} Director OR \"Head of\" \"technical training\" OR \"technical enablement\" OR \"training and certification\" OR \"global training\" OR \"enablement\""),
     ]
     if known_products:
         queries.append(("known", f"{company_name} {' '.join(known_products)} software"))

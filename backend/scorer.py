@@ -831,15 +831,15 @@ Then provide:
 
 Contacts are company-level, not product-level — the same training and enablement leaders own decisions across all products. Select contacts from the company research and populate the same list on every product for this company. Target people who own external technical training, partner enablement, or certification — the three functions a Skillable rep would call to discuss building or expanding hands-on labs.
 
-**Good targets (decision_maker) — VP level or "Head of" equivalent ONLY:**
+**Good targets (decision_maker) — C-suite, VP level, or "Head of" equivalent:**
 These titles own the budget, strategy, and vendor relationships for external technical training:
-- VP of Training / VP of Partner Enablement / VP of Technical Enablement / VP of Customer Education
-- Head of Customer Education / Head of Global Enablement / Head of Partner Enablement / Head of Certification
-- Chief Training Officer / Chief Learning Officer (only if scope is clearly external)
-- SVP or GM of [Company] Academy or University
+- Chief Learning Officer (CLO) / Chief Education Officer / Chief Enablement Officer
+- EVP / SVP / VP of Training / Partner Enablement / Technical Enablement / Customer Education / Global Enablement
+- Head of Customer Education / Head of Global Enablement / Head of Partner Enablement / Head of Certification / Head of Training
+- GM of [Company] Academy or University
 - Senior Director of Training or Enablement (only if they clearly run the function end-to-end with no VP above them)
 
-The key test: does this person OWN the training function and have authority to sign a vendor agreement? If yes → decision_maker. If no → influencer or exclude.
+The key test: does this person OWN the training or enablement function and have authority to sign a vendor agreement? If yes → decision_maker. If no → influencer or exclude.
 
 If no qualifying person can be identified from the research, use "Unknown - search for [title]" — do NOT name a lower-level person as a decision maker just to fill the slot.
 
