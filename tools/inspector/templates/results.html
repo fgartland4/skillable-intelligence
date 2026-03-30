@@ -682,8 +682,8 @@
                 {% else %}{% set mult_val = "0.15×" %}{% endif %}
                 <div class="score-right">
                     <div class="mult-info">
-                        <div>Multiplier</div>
-                        <div>{{ mult_val }} &nbsp;{{ tech }} + {{ adjusted }} = {{ product._total_score }}</div>
+                        <div>Multiplier: {{ mult_val }}</div>
+                        <div>{{ tech }} + {{ adjusted }} = {{ product._total_score }}</div>
                     </div>
                     <div class="total-score">
                         <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
@@ -725,7 +725,7 @@
               {% set bl = bullet | lower %}
               {% if 'delivery path' in bl or 'scoring approach' in bl or 'scoring rationale' in bl or 'essential technical' in bl or 'blockers' in bl or 'blocker' in bl %}
                 {% set ns.s1 = ns.s1 + [bullet] %}
-              {% elif 'program fit' in bl or 'similar product' in bl or 'enablement maturity' in bl or 'certification' in bl %}
+              {% elif 'program fit' in bl or 'enablement maturity' in bl or 'certification' in bl %}
                 {% set ns.s3 = ns.s3 + [bullet] %}
               {% else %}
                 {% set ns.s4 = ns.s4 + [bullet] %}
@@ -762,7 +762,7 @@
                             {% if tech_dim.evidence %}{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif tech_dim.summary %}<li class="dim-summary">{{ tech_dim.summary }}</li>{% endif %}
                         </ul>
-                        {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:10px; padding-top:10px; border-top:1px solid #1e3329;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                        {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
                         <div class="dim-score-num score-{{ t1 }}">{{ sc1 }}<span class="dim-score-denom">/25</span></div>
@@ -805,7 +805,7 @@
                             {% if te_dim.evidence %}{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif te_dim.summary %}<li class="dim-summary">{{ te_dim.summary }}</li>{% endif %}
                         </ul>
-                        {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:10px; padding-top:10px; border-top:1px solid #1e3329;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                        {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
                         <div class="dim-score-num score-{{ t3 }}">{{ sc3 }}<span class="dim-score-denom">/25</span></div>
@@ -823,7 +823,7 @@
                             {% if mf_dim.evidence %}{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif mf_dim.summary %}<li class="dim-summary">{{ mf_dim.summary }}</li>{% endif %}
                         </ul>
-                        {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:10px; padding-top:10px; border-top:1px solid #1e3329;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                        {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
                         <div class="dim-score-num score-{{ t4 }}">{{ sc4 }}<span class="dim-score-denom">/25</span></div>
