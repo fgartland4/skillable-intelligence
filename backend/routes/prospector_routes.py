@@ -47,6 +47,18 @@ def _fmt_labability_method(path: str) -> str:
     return _PATH_LABELS.get(path or "", "")
 
 
+def _fmt_cache_date(analyzed_at: str) -> str:
+    """Return M/D/YYYY from an ISO datetime string, or empty string on failure."""
+    if not analyzed_at:
+        return ""
+    try:
+        from datetime import datetime, timezone
+        dt = datetime.fromisoformat(analyzed_at.replace("Z", "+00:00"))
+        return f"{dt.month}/{dt.day}/{dt.year}"
+    except Exception:
+        return ""
+
+
 def _derive_academic_path(lab_score: int, school_name: str | None, has_tech_programs: bool) -> str:
     """Map academic institution signals to a Skillable path label.
 
@@ -136,7 +148,11 @@ def prospector_run():
                             row["skillable_path"] = _derive_skillable_path(row.get("lab_score", 0))
                         row["flagged_poor_fit"] = False
                     results[name] = row or {"company_name": name, "error": "Analysis failed"}
-                    _push(job_id, f"progress:{name}")
+                    if row and row.get("_from_cache"):
+                        cache_date = row.get("_cache_date", "")
+                        _push(job_id, f"cache:{name}|{cache_date}")
+                    else:
+                        _push(job_id, f"progress:{name}")
 
         threads = [threading.Thread(target=analyze_one, args=(n,), daemon=True) for n in company_names]
         for t in threads:
@@ -527,6 +543,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                 "ilt_vilt": "✓" if ps.get("ilt_vilt") else "",
                 "gray_market": "✓" if ps.get("gray_market") else "",
                 "_from_cache": True,
+                "_cache_date": _fmt_cache_date(cached.get("analyzed_at", "")),
             }
 
     # ── Full research path ───────────────────────────────────────────────────

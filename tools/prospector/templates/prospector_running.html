@@ -49,13 +49,14 @@
         .company-grid-wrap::-webkit-scrollbar-thumb { background: #1e3329; border-radius: 3px; }
         .company-grid {
             display: grid;
-            grid-template-columns: 1fr 52px;
+            grid-template-columns: 1fr auto 52px;
             gap: 0;
         }
         .company-row {
             display: contents;
         }
         .company-row .col-name,
+        .company-row .col-source,
         .company-row .col-status {
             padding: 9px 14px;
             border-bottom: 1px solid #0d1a14;
@@ -63,9 +64,16 @@
             display: flex; align-items: center;
         }
         .company-row:last-child .col-name,
+        .company-row:last-child .col-source,
         .company-row:last-child .col-status { border-bottom: none; }
         .company-row .col-name { color: #6b9e88; }
         .company-row .col-status { justify-content: center; }
+        .company-row .col-source {
+            font-size: 0.68rem; color: #2a4a3a; white-space: nowrap;
+            justify-content: flex-end; padding-right: 6px;
+        }
+        .col-source.is-fetching { color: #3d6655; }
+        .col-source.is-cache    { color: #2a4a3a; }
 
         /* Status states */
         .status-waiting { width: 8px; height: 8px; background: #1e3329; border-radius: 50%; }
@@ -119,6 +127,7 @@
                 {% for name in company_names %}
                 <div class="company-row" id="row-{{ loop.index0 }}" data-name="{{ name | e }}">
                     <div class="col-name" id="name-{{ loop.index0 }}">{{ name }}</div>
+                    <div class="col-source" id="source-{{ loop.index0 }}"></div>
                     <div class="col-status" id="status-{{ loop.index0 }}">
                         <span class="status-waiting"></span>
                     </div>
@@ -144,6 +153,14 @@
             nameMap[row.dataset.name] = i;
         });
 
+        function setSource(name, text, cls) {
+            const i = nameMap[name];
+            if (i === undefined) return;
+            const el = document.getElementById(`source-${i}`);
+            el.textContent = text;
+            el.className = 'col-source ' + (cls || '');
+        }
+
         function setStatus(name, state) {
             const i = nameMap[name];
             if (i === undefined) return;
@@ -152,15 +169,18 @@
             if (state === 'analyzing') {
                 nameEl.className = 'col-name is-analyzing';
                 statusEl.innerHTML = '<span class="status-analyzing"></span>';
+                setSource(name, 'fetching…', 'is-fetching');
             } else if (state === 'done') {
                 nameEl.className = 'col-name is-done';
                 statusEl.innerHTML = '<span class="status-done">✓</span>';
             } else if (state === 'timeout') {
                 nameEl.className = 'col-name is-done';
                 statusEl.innerHTML = '<span class="status-timeout" title="Skipped — exceeded 3 min limit">⏱</span>';
+                setSource(name, '', '');
             } else if (state === 'error') {
                 nameEl.className = 'col-name';
                 statusEl.innerHTML = '<span class="status-error">✗</span>';
+                setSource(name, '', '');
             }
         }
 
@@ -171,10 +191,21 @@
                 const text = msg.slice(7);
                 const m = text.match(/^Analyzing (.+)\.\.\.$/);
                 if (m) setStatus(m[1], 'analyzing');
+            } else if (msg.startsWith("cache:")) {
+                completed++;
+                const payload = msg.slice(6);
+                const sep = payload.indexOf('|');
+                const name = sep >= 0 ? payload.slice(0, sep) : payload;
+                const date = sep >= 0 ? payload.slice(sep + 1) : '';
+                setStatus(name, 'done');
+                setSource(name, date ? `from cache (${date})` : 'from cache', 'is-cache');
+                document.getElementById('progress-text').textContent = `${completed} / ${total} complete`;
+                document.getElementById('progress-bar').style.width = `${Math.round((completed / total) * 100)}%`;
             } else if (msg.startsWith("progress:")) {
                 completed++;
                 const name = msg.slice(9);
                 setStatus(name, 'done');
+                setSource(name, '', '');
                 document.getElementById('progress-text').textContent = `${completed} / ${total} complete`;
                 document.getElementById('progress-bar').style.width = `${Math.round((completed / total) * 100)}%`;
             } else if (msg.startsWith("timeout:")) {
