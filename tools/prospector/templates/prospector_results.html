@@ -70,7 +70,8 @@
         .score-high { color: #24ED9B; font-weight: 700; }
         .score-mid  { color: #f59e0b; font-weight: 700; }
         .score-low  { color: #f87171; font-weight: 700; }
-        .td-top-product { max-width: 180px; word-break: break-word; }
+        .td-top-product { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .td-contact     { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .td-li { white-space: nowrap; text-align: center; }
 
         /* Flag as poor fit */
@@ -218,7 +219,7 @@
                         <td>{{ row.ondemand_library or '—' }}</td>
                         <td>{{ row.gray_market or '—' }}</td>
                         <td>{{ row.cert_program or '—' }}</td>
-                        <td>
+                        <td class="td-contact">
                             {% set cname = row.top_contact_name or '' %}
                             {% if cname and 'unknown' not in cname.lower() and 'search for' not in cname.lower() %}
                                 <span class="cell-primary">{{ cname }}</span>
@@ -227,7 +228,7 @@
                         <td class="td-li">
                             {% if row.top_contact_linkedin %}<a href="{{ row.top_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% else %}—{% endif %}
                         </td>
-                        <td>
+                        <td class="td-contact">
                             {% set cname2 = row.second_contact_name or '' %}
                             {% if cname2 and 'unknown' not in cname2.lower() and 'search for' not in cname2.lower() %}
                                 <span class="cell-primary" style="font-weight:500;">{{ cname2 }}</span>
