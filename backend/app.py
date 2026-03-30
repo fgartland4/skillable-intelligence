@@ -143,7 +143,7 @@ def _sse_stream(job_id: str, poll_interval: float = 0.3):
 # Composite score helper (single source of truth)
 # ---------------------------------------------------------------------------
 
-_CHANNEL_ORGS = {"training_organization", "systems_integrator", "technology_distributor", "professional_services"}
+_CHANNEL_ORGS = {"training_organization", "systems_integrator", "technology_distributor", "professional_services", "academic_institution"}
 
 
 def _compute_composite(top_lab: int, pr_score: int, org_type: str) -> tuple[int, bool, str]:

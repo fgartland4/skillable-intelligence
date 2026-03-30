@@ -47,6 +47,7 @@ class ProductLababilityScore:
     workflow_complexity: DimensionScore = field(default_factory=DimensionScore)
     training_ecosystem: DimensionScore = field(default_factory=DimensionScore)
     market_fit: DimensionScore = field(default_factory=DimensionScore)
+    path: str = ""  # mirrors Product.skillable_path for correct multiplier in .total
 
     @property
     def total(self) -> int:
@@ -56,7 +57,7 @@ class ProductLababilityScore:
             + self.training_ecosystem.score
             + self.market_fit.score
         )
-        return compute_labability_total(tech, other)
+        return compute_labability_total(tech, other, self.path)
 
 
 @dataclass

@@ -1080,6 +1080,7 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
                 workflow_complexity=_parse_dimension(scores.get("workflow_complexity", {})),
                 training_ecosystem=_parse_dimension(scores.get("training_ecosystem", {})),
                 market_fit=_parse_dimension(scores.get("market_fit", {})),
+                path={"A": "A1"}.get(p.get("skillable_path", ""), p.get("skillable_path", "Unknown")),
             ),
             owning_org=owning_org,
             contacts=contacts,

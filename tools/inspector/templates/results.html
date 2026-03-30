@@ -480,7 +480,21 @@
         .rec-details > summary { color: #24ED9B; border-color: rgba(36,237,155,0.2); }
         .tech-details.rec-details > summary:hover { color: #7fffd4; }
         .rec-details[open] > summary { color: #24ED9B; }
-        .rec-details .recommendation { border-left: 2px solid #24ED9B; border-radius: 0 0 10px 10px; margin-top: 0; }
+        .rec-details .recommendation { border-left: 2px solid #24ED9B; border-radius: 0 0 10px 10px; margin-top: 0; padding: 6px 0 4px; }
+        /* Inner subsections inside Skillable Recommendations */
+        .inner-details { margin-top: 8px; }
+        .inner-details > summary {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 14px; background: #0a1810; border: 1px solid #1e3329;
+            border-radius: 6px; cursor: pointer; list-style: none;
+            font-size: 0.70rem; color: #3d6655; font-weight: 700;
+            letter-spacing: 0.07em; text-transform: uppercase;
+            transition: color 0.15s, border-color 0.15s; user-select: none;
+        }
+        .inner-details > summary::-webkit-details-marker { display: none; }
+        .inner-details > summary:hover { color: #6b9e88; border-color: rgba(36,237,155,0.2); }
+        .inner-details[open] > summary { color: #6b9e88; border-color: rgba(36,237,155,0.15); border-radius: 6px 6px 0 0; }
+        .inner-details-content { border: 1px solid rgba(36,237,155,0.10); border-top: none; border-radius: 0 0 6px 6px; padding: 16px 18px 10px; }
         .tech-details > summary:hover { color: #6b9e88; border-color: rgba(36,237,155,0.2); }
         .tech-details > summary .det-arrow { font-size: 1rem; font-weight: 400; flex-shrink: 0; }
         .tech-details[open] > summary { color: #6b9e88; border-color: rgba(36,237,155,0.15); border-radius: 8px 8px 0 0; }
@@ -772,133 +786,145 @@
               {% endif %}
             {% endfor %}
 
-            {# ── Section 1: Technical Orchestrability & Performance Scoring ── #}
-            {% set sc1 = tech_dim.score | default(0) %}
-            {% set t1 = 'high' if sc1 >= 18 else ('mid' if sc1 >= 10 else 'low') %}
-            <details class="tech-details">
+            {# ── Parent: Skillable Recommendations ── #}
+            <details class="tech-details rec-details">
                 <summary>
-                    <span style="display:flex; align-items:center; gap:8px;">
-                        Technical Orchestrability &amp; Performance Scoring
+                    <span style="display:flex; align-items:center; gap:10px;">
+                        Skillable Recommendations
                         {% if path == 'B' %}
-                            {% if fabric == 'Docker' %}<span class="rec-fabric">Docker</span>
-                            {% elif fabric == 'ESX' %}<span class="rec-fabric">VMware ESX</span>
-                            {% else %}<span class="rec-fabric">Hyper-V</span>{% endif %}
+                            {% if fabric == 'Docker' %}<span class="rec-fabric">Docker Container Fabric</span>
+                            {% elif fabric == 'ESX' %}<span class="rec-fabric">VMware ESX Fabric</span>
+                            {% else %}<span class="rec-fabric">Hyper-V Fabric</span>{% endif %}
                         {% elif path == 'A1' %}
                             {% if 'AWS' in mech or 'AWS' in rec_text %}<span class="rec-fabric">AWS Cloud Slice</span>
                             {% else %}<span class="rec-fabric">Azure Cloud Slice</span>{% endif %}
-                        {% elif path == 'A2' %}<span class="rec-fabric">Custom API</span>
-                        {% elif path == 'C' %}<span class="rec-fabric">Simulation</span>
+                        {% elif path == 'A2' %}<span class="rec-fabric">Custom API Provisioning</span>
+                        {% elif path == 'C' %}<span class="rec-fabric">Skillable Simulation</span>
                         {% endif %}
                     </span>
-                    <span style="display:flex; align-items:center; gap:10px;">
-                        <span class="dim-score-num score-{{ t1 }}" style="font-size:1.1rem;">{{ sc1 }}<span class="dim-score-denom">/25</span></span>
-                        <span class="det-arrow">›</span>
-                    </span>
                 </summary>
-                <div class="tech-details-content">
-                    <div class="bar-track" style="margin-bottom:16px;"><div class="bar-fill {{ t1 }}" style="width:{{ [(sc1/25*100)|int,100]|min }}%"></div></div>
-                    {% if path or mech %}
-                    <div class="delivery-path-line">
-                        {% if path == 'B' %}
-                            {% if fabric == 'ESX' %}VMware ESX fabric running in Skillable datacenters
-                            {% elif fabric == 'Docker' %}Docker fabric running in Skillable datacenters
-                            {% else %}Hyper-V fabric running in Skillable datacenters{% endif %}
-                        {% elif path in ['A1', 'A'] %}Azure Cloud Slice — isolated subscription per learner
-                        {% elif path == 'A2' %}Custom API provisioning — vendor cloud, per-learner instance
-                        {% elif path == 'C' %}Skillable Simulation
-                        {% elif mech %}{{ mech }}{% endif %}
-                        {% if pt and pt not in ['Unknown', 'N/A', ''] %} &nbsp;·&nbsp; <span class="delivery-path-tier">{{ pt }}</span>{% endif %}
-                    </div>
-                    {% endif %}
-                    <ul class="pr-bullets">
-                        {% if tech_dim.evidence %}{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                        {% elif tech_dim.summary %}<li class="dim-summary">{{ tech_dim.summary }}</li>{% endif %}
-                    </ul>
-                    {% if ns.s1 %}
-                    <div style="margin-top:14px; padding-top:14px; border-top:1px solid #1e3329;">
-                        <ul class="rec-bullets">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
-                    </div>
-                    {% endif %}
-                </div>
-            </details>
+                <div class="recommendation">
 
-            {# ── Section 2: Workflow Complexity ── #}
-            {% set sc2 = wf_dim.score | default(0) %}
-            {% set t2 = 'high' if sc2 >= 18 else ('mid' if sc2 >= 10 else 'low') %}
-            <details class="tech-details">
-                <summary>
-                    <span>Workflow Complexity</span>
-                    <span style="display:flex; align-items:center; gap:10px;">
-                        <span class="dim-score-num score-{{ t2 }}" style="font-size:1.1rem;">{{ sc2 }}<span class="dim-score-denom">/25</span></span>
-                        <span class="det-arrow">›</span>
-                    </span>
-                </summary>
-                <div class="tech-details-content">
-                    <div class="bar-track" style="margin-bottom:16px;"><div class="bar-fill {{ t2 }}" style="width:{{ [(sc2/25*100)|int,100]|min }}%"></div></div>
-                    <ul class="pr-bullets">
-                        {% if wf_dim.evidence %}{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                        {% elif wf_dim.summary %}<li class="dim-summary">{{ wf_dim.summary }}</li>{% endif %}
-                    </ul>
-                    {% if product.lab_concepts %}
-                    <div style="margin-top:16px; padding-top:14px; border-top:1px solid #1e3329;">
-                        <div class="section-title">Suggested Lab Concepts</div>
-                        <div class="lab-concepts-grid">
-                            {% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}
+                {# ── Section 1: Technical Orchestrability & Performance Scoring ── #}
+                {% set sc1 = tech_dim.score | default(0) %}
+                {% set t1 = 'high' if sc1 >= 18 else ('mid' if sc1 >= 10 else 'low') %}
+                <details class="inner-details">
+                    <summary>
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            Technical Orchestrability &amp; Performance Scoring
+                        </span>
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <span class="dim-score-num score-{{ t1 }}" style="font-size:1rem;">{{ sc1 }}<span class="dim-score-denom">/25</span></span>
+                            <span class="det-arrow">›</span>
+                        </span>
+                    </summary>
+                    <div class="inner-details-content">
+                        <div class="bar-track" style="margin-bottom:14px;"><div class="bar-fill {{ t1 }}" style="width:{{ [(sc1/25*100)|int,100]|min }}%"></div></div>
+                        {% if path or mech %}
+                        <div class="delivery-path-line">
+                            {% if path == 'B' %}
+                                {% if fabric == 'ESX' %}VMware ESX fabric running in Skillable datacenters
+                                {% elif fabric == 'Docker' %}Docker fabric running in Skillable datacenters
+                                {% else %}Hyper-V fabric running in Skillable datacenters{% endif %}
+                            {% elif path in ['A1', 'A'] %}Azure Cloud Slice — isolated subscription per learner
+                            {% elif path == 'A2' %}Custom API provisioning — vendor cloud, per-learner instance
+                            {% elif path == 'C' %}Skillable Simulation
+                            {% elif mech %}{{ mech }}{% endif %}
+                            {% if pt and pt not in ['Unknown', 'N/A', ''] %} &nbsp;·&nbsp; <span class="delivery-path-tier">{{ pt }}</span>{% endif %}
                         </div>
+                        {% endif %}
+                        <ul class="pr-bullets">
+                            {% if tech_dim.evidence %}{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
+                            {% elif tech_dim.summary %}<li class="dim-summary">{{ tech_dim.summary }}</li>{% endif %}
+                        </ul>
+                        {% if ns.s1 %}
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #1e3329;">
+                            <ul class="rec-bullets">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                </div>
-            </details>
+                </details>
 
-            {# ── Section 3: Training & Enablement Maturity ── #}
-            {% set sc3 = te_dim.score | default(0) %}
-            {% set t3 = 'high' if sc3 >= 18 else ('mid' if sc3 >= 10 else 'low') %}
-            <details class="tech-details">
-                <summary>
-                    <span>Training &amp; Enablement Maturity</span>
-                    <span style="display:flex; align-items:center; gap:10px;">
-                        <span class="dim-score-num score-{{ t3 }}" style="font-size:1.1rem;">{{ sc3 }}<span class="dim-score-denom">/25</span></span>
-                        <span class="det-arrow">›</span>
-                    </span>
-                </summary>
-                <div class="tech-details-content">
-                    <div class="bar-track" style="margin-bottom:16px;"><div class="bar-fill {{ t3 }}" style="width:{{ [(sc3/25*100)|int,100]|min }}%"></div></div>
-                    <ul class="pr-bullets">
-                        {% if te_dim.evidence %}{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                        {% elif te_dim.summary %}<li class="dim-summary">{{ te_dim.summary }}</li>{% endif %}
-                    </ul>
-                    {% if ns.s3 %}
-                    <div style="margin-top:14px; padding-top:14px; border-top:1px solid #1e3329;">
-                        <ul class="rec-bullets">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                {# ── Section 2: Workflow Complexity ── #}
+                {% set sc2 = wf_dim.score | default(0) %}
+                {% set t2 = 'high' if sc2 >= 18 else ('mid' if sc2 >= 10 else 'low') %}
+                <details class="inner-details">
+                    <summary>
+                        <span>Workflow Complexity</span>
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <span class="dim-score-num score-{{ t2 }}" style="font-size:1rem;">{{ sc2 }}<span class="dim-score-denom">/25</span></span>
+                            <span class="det-arrow">›</span>
+                        </span>
+                    </summary>
+                    <div class="inner-details-content">
+                        <div class="bar-track" style="margin-bottom:14px;"><div class="bar-fill {{ t2 }}" style="width:{{ [(sc2/25*100)|int,100]|min }}%"></div></div>
+                        <ul class="pr-bullets">
+                            {% if wf_dim.evidence %}{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
+                            {% elif wf_dim.summary %}<li class="dim-summary">{{ wf_dim.summary }}</li>{% endif %}
+                        </ul>
+                        {% if product.lab_concepts %}
+                        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #1e3329;">
+                            <div class="section-title">Suggested Lab Concepts</div>
+                            <div class="lab-concepts-grid">
+                                {% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                </div>
-            </details>
+                </details>
 
-            {# ── Section 4: Strategic Fit & Next Steps ── #}
-            {% set sc4 = mf_dim.score | default(0) %}
-            {% set t4 = 'high' if sc4 >= 18 else ('mid' if sc4 >= 10 else 'low') %}
-            <details class="tech-details">
-                <summary>
-                    <span>Strategic Fit &amp; Next Steps</span>
-                    <span style="display:flex; align-items:center; gap:10px;">
-                        <span class="dim-score-num score-{{ t4 }}" style="font-size:1.1rem;">{{ sc4 }}<span class="dim-score-denom">/25</span></span>
-                        <span class="det-arrow">›</span>
-                    </span>
-                </summary>
-                <div class="tech-details-content">
-                    <div class="bar-track" style="margin-bottom:16px;"><div class="bar-fill {{ t4 }}" style="width:{{ [(sc4/25*100)|int,100]|min }}%"></div></div>
-                    <ul class="pr-bullets">
-                        {% if mf_dim.evidence %}{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                        {% elif mf_dim.summary %}<li class="dim-summary">{{ mf_dim.summary }}</li>{% endif %}
-                    </ul>
-                    {% if ns.s4 %}
-                    <div style="margin-top:14px; padding-top:14px; border-top:1px solid #1e3329;">
-                        <ul class="rec-bullets">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                {# ── Section 3: Training & Enablement Maturity ── #}
+                {% set sc3 = te_dim.score | default(0) %}
+                {% set t3 = 'high' if sc3 >= 18 else ('mid' if sc3 >= 10 else 'low') %}
+                <details class="inner-details">
+                    <summary>
+                        <span>Training &amp; Enablement Maturity</span>
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <span class="dim-score-num score-{{ t3 }}" style="font-size:1rem;">{{ sc3 }}<span class="dim-score-denom">/25</span></span>
+                            <span class="det-arrow">›</span>
+                        </span>
+                    </summary>
+                    <div class="inner-details-content">
+                        <div class="bar-track" style="margin-bottom:14px;"><div class="bar-fill {{ t3 }}" style="width:{{ [(sc3/25*100)|int,100]|min }}%"></div></div>
+                        <ul class="pr-bullets">
+                            {% if te_dim.evidence %}{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
+                            {% elif te_dim.summary %}<li class="dim-summary">{{ te_dim.summary }}</li>{% endif %}
+                        </ul>
+                        {% if ns.s3 %}
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #1e3329;">
+                            <ul class="rec-bullets">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                </div>
-            </details>
+                </details>
+
+                {# ── Section 4: Strategic Fit & Next Steps ── #}
+                {% set sc4 = mf_dim.score | default(0) %}
+                {% set t4 = 'high' if sc4 >= 18 else ('mid' if sc4 >= 10 else 'low') %}
+                <details class="inner-details">
+                    <summary>
+                        <span>Strategic Fit &amp; Next Steps</span>
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <span class="dim-score-num score-{{ t4 }}" style="font-size:1rem;">{{ sc4 }}<span class="dim-score-denom">/25</span></span>
+                            <span class="det-arrow">›</span>
+                        </span>
+                    </summary>
+                    <div class="inner-details-content">
+                        <div class="bar-track" style="margin-bottom:14px;"><div class="bar-fill {{ t4 }}" style="width:{{ [(sc4/25*100)|int,100]|min }}%"></div></div>
+                        <ul class="pr-bullets">
+                            {% if mf_dim.evidence %}{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
+                            {% elif mf_dim.summary %}<li class="dim-summary">{{ mf_dim.summary }}</li>{% endif %}
+                        </ul>
+                        {% if ns.s4 %}
+                        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #1e3329;">
+                            <ul class="rec-bullets">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                </details>
+
+                </div>{# end .recommendation #}
+            </details>{# end Skillable Recommendations #}
 
             <details class="tech-details">
                 <summary>Responsible Organization &amp; Key Contacts</summary>

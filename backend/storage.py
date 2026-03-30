@@ -50,9 +50,9 @@ def find_analysis_by_discovery_id(discovery_id: str) -> dict | None:
     """Return the most recent analysis that came from this discovery_id, or None."""
     if not os.path.exists(DATA_DIR):
         return None
-    for filename in sorted(os.listdir(DATA_DIR), reverse=True):
-        if not filename.endswith(".json"):
-            continue
+    files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json")]
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(DATA_DIR, f)), reverse=True)
+    for filename in files:
         filepath = os.path.join(DATA_DIR, filename)
         try:
             with open(filepath, "r", encoding="utf-8") as f:
