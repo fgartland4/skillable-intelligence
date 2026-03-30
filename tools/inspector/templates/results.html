@@ -1024,7 +1024,7 @@
                 {# 1. Action + owning org (or verdict fallback) #}
                 <li class="nxt-li">
                   {% if product.owning_org %}
-                    <strong>{{ ns3.action }}</strong> a conversation with <strong>{{ product.owning_org.name }}</strong>{% if product.owning_org.type %} ({{ product.owning_org.type|replace('_',' ')|title }}){% endif %}{% if product.owning_org.description %} — {{ product.owning_org.description }}{% endif %}
+                    <strong>{{ ns3.action }}</strong> a conversation with <strong>{{ product.owning_org.name }}</strong>{% if product.owning_org.type %} ({{ product.owning_org.type|replace('_',' ')|title }}){% endif %}{% if product.owning_org.description %}: {{ product.owning_org.description }}{% endif %}
                   {% elif ns2.verdict %}
                     {% if ':**' in ns2.verdict[0] %}{% set _vt = ns2.verdict[0].split(':**', 1)[1].strip() %}{% else %}{% set _vt = ns2.verdict[0] %}{% endif %}
                     <strong>{{ ns3.action }}:</strong> {{ _vt | linkify }}
