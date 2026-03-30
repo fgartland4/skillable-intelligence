@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -17,6 +17,18 @@ class DimensionScore:
     score: int = 0
     evidence: list[Evidence] = field(default_factory=list)
     summary: str = ""
+
+
+def compute_product_score(p: dict) -> int:
+    """Compute the labability total from a product dict loaded from JSON storage."""
+    scores = p.get("labability_score") or {}
+    tech = scores.get("technical_orchestrability", {}).get("score", 0)
+    other = sum(
+        s.get("score", 0)
+        for k, s in scores.items()
+        if k != "technical_orchestrability" and isinstance(s, dict)
+    )
+    return compute_labability_total(tech, other, p.get("skillable_path", ""))
 
 
 def compute_labability_total(tech: int, other: int, path: str = "") -> int:
@@ -160,7 +172,7 @@ class CompanyAnalysis:
     partnership_readiness: PartnershipReadinessScore = field(
         default_factory=PartnershipReadinessScore
     )
-    analyzed_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    analyzed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     analysis_id: str = ""
     discovery_id: str = ""
     total_products_discovered: int = 0
@@ -168,21 +180,6 @@ class CompanyAnalysis:
     @property
     def top_products(self) -> list[Product]:
         return sorted(self.products, key=lambda p: p.labability_score.total, reverse=True)
-
-
-@dataclass
-class MarketingRow:
-    """Lightweight summary row for the marketing batch results table."""
-    company_name: str
-    company_url: str = ""
-    top_product: str = ""
-    lab_score: int = 0
-    partnership_score: int = 0
-    composite_score: int = 0
-    top_contact_name: str = ""
-    top_contact_title: str = ""
-    top_contact_linkedin: str = ""
-    analysis_id: str = ""
 
 
 @dataclass
@@ -198,6 +195,9 @@ class ProspectorRow:
     top_contact_name: str = ""
     top_contact_title: str = ""
     top_contact_linkedin: str = ""
+    second_contact_name: str = ""
+    second_contact_title: str = ""
+    second_contact_linkedin: str = ""
     analysis_id: str = ""
     flagged_poor_fit: bool = False
     # Product labability counts (from discovery phase)
@@ -212,10 +212,3 @@ class ProspectorRow:
     existing_lab_partner: str = ""    # platform name, "DIY", or blank
 
 
-@dataclass
-class PoorFitFeedback:
-    """Feedback record when a Prospector result is flagged as a poor fit."""
-    company_name: str
-    job_id: str
-    reason: str = ""
-    flagged_at: str = field(default_factory=lambda: datetime.now().isoformat())

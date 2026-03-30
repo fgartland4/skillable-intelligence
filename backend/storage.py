@@ -1,10 +1,13 @@
 """JSON file storage for analysis and discovery results."""
 
 import json
+import logging
 import os
 import uuid
+
+log = logging.getLogger(__name__)
 from dataclasses import asdict
-from models import CompanyAnalysis, compute_labability_total
+from models import CompanyAnalysis, compute_product_score
 from config import DATA_DIR
 
 DISCOVERY_DIR = os.path.join(os.path.dirname(__file__), "data", "discoveries")
@@ -62,7 +65,8 @@ def find_analysis_by_company_name(company_name: str) -> dict | None:
                 data = json.load(f)
             if data.get("company_name", "").lower().strip() == needle:
                 return data
-        except Exception:
+        except Exception as e:
+            log.warning("Skipping corrupted analysis file %s: %s", filename, e)
             continue
     return None
 
@@ -84,32 +88,24 @@ def find_analysis_by_discovery_id(discovery_id: str) -> dict | None:
                     "company_name": data.get("company_name", ""),
                     "analyzed_at": data.get("analyzed_at", ""),
                 }
-        except Exception:
+        except Exception as e:
+            log.warning("Skipping corrupted analysis file %s: %s", filename, e)
             continue
     return None
 
 
-def save_batch_job(job_id: str, data: dict) -> None:
+def save_prospector_run(job_id: str, data: dict) -> None:
     filepath = os.path.join(BATCH_DIR, f"{job_id}.json")
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
-def load_batch_job(job_id: str) -> dict | None:
+def load_prospector_run(job_id: str) -> dict | None:
     filepath = os.path.join(BATCH_DIR, f"{job_id}.json")
     if not os.path.exists(filepath):
         return None
     with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
-
-
-def save_prospector_run(job_id: str, data: dict) -> None:
-    """Store a Prospector batch run (reuses batch storage)."""
-    save_batch_job(job_id, data)
-
-
-def load_prospector_run(job_id: str) -> dict | None:
-    return load_batch_job(job_id)
 
 
 def append_poor_fit_feedback(feedback: dict) -> None:
@@ -120,7 +116,8 @@ def append_poor_fit_feedback(feedback: dict) -> None:
         with open(filepath, "r", encoding="utf-8") as f:
             try:
                 existing = json.load(f)
-            except Exception:
+            except Exception as e:
+                log.warning("poor_fit.json corrupted, starting fresh: %s", e)
                 existing = []
     existing.append(feedback)
     with open(filepath, "w", encoding="utf-8") as f:
@@ -136,7 +133,8 @@ def load_poor_fit_companies() -> set:
         try:
             data = json.load(f)
             return {d.get("company_name", "").lower() for d in data}
-        except Exception:
+        except Exception as e:
+            log.warning("Failed to load poor_fit.json: %s", e)
             return set()
 
 
@@ -155,13 +153,7 @@ def list_analyses() -> list[dict]:
             total_hours_low = 0
             total_hours_high = 0
             for p in data.get("products") or []:
-                s = p.get("labability_score") or {}
-                tech = s.get("technical_orchestrability", {}).get("score", 0)
-                other = sum(
-                    d.get("score", 0) for k, d in s.items()
-                    if k != "technical_orchestrability" and isinstance(d, dict)
-                )
-                total = compute_labability_total(tech, other, p.get("skillable_path", ""))
+                total = compute_product_score(p)
                 if total > top_score:
                     top_score = total
                 cp = p.get("consumption_potential") or {}
@@ -176,7 +168,7 @@ def list_analyses() -> list[dict]:
                 "total_hours_low": total_hours_low,
                 "total_hours_high": total_hours_high,
             })
-        except Exception:
-            # Skip corrupted files rather than crashing the home page
+        except Exception as e:
+            log.warning("Skipping corrupted analysis file %s: %s", filename, e)
             continue
     return results
