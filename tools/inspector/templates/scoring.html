@@ -171,7 +171,7 @@
                     d="M45.8683 0L33.957 13.3398L32.3133 11.8098L29.9446 14.4504L33.9397 18.3333L48.2779 2.34634L45.8683 0Z" fill="#1e3329"/>
             </svg>
         </div>
-        <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-top:6px;margin-bottom:12px;">deep research and scoring processes have been running for 0:00</div>
+        <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-top:6px;margin-bottom:12px;">research and scoring has been running for <strong>0:00</strong></div>
 
         <div class="status" id="status"></div>
     </div>
@@ -307,8 +307,8 @@
         const _t0 = Date.now();
         setInterval(() => {
             const s = Math.floor((Date.now() - _t0) / 1000);
-            document.getElementById('timer').textContent =
-                `deep research and scoring processes have been running for ${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+            document.getElementById('timer').innerHTML =
+                `research and scoring has been running for <strong>${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}</strong>`;
         }, 1000);
     </script>
 </body>

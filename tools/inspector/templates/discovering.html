@@ -67,7 +67,7 @@
             <div class="dot"></div>
             <div class="dot"></div>
         </div>
-        <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-top:16px;">deep research and scoring processes have been running for 0:00</div>
+        <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-top:16px;">research and scoring has been running for <strong>0:00</strong></div>
     </div>
 
     <script>
@@ -91,8 +91,8 @@
         const _t0 = Date.now();
         setInterval(() => {
             const s = Math.floor((Date.now() - _t0) / 1000);
-            document.getElementById('timer').textContent =
-                `deep research and scoring processes have been running for ${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+            document.getElementById('timer').innerHTML =
+                `research and scoring has been running for <strong>${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}</strong>`;
         }, 1000);
     </script>
 </body>
