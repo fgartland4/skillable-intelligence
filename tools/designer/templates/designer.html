@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=29">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div id="app">
@@ -15,7 +15,7 @@
         <aside id="sidebar">
             <div class="sidebar-header">
                 <a href="https://www.skillable.com" target="_blank" rel="noopener noreferrer" class="sidebar-logo-link">
-                    <img src="img/skillable-logo.png?v=2" alt="Skillable logo" class="sidebar-logo">
+                    <img src="{{ url_for('static', filename='img/skillable-logo.png') }}" alt="Skillable logo" class="sidebar-logo">
                 </a>
             </div>
 
@@ -268,50 +268,15 @@
                     </div>
                     <div class="settings-grid">
 
-                        <!-- AI Provider — spans full width -->
+                        <!-- AI Provider — server-configured -->
                         <div class="settings-section settings-full-width">
                             <h3 class="settings-section-title">AI Provider</h3>
                             <div class="settings-grid">
                                 <div>
-                                    <div class="form-group">
-                                        <label for="settings-ai-provider">Provider</label>
-                                        <select id="settings-ai-provider">
-                                            <option value="claude">Claude API (Anthropic)</option>
-                                            <option value="openai">OpenAI API</option>
-                                            <option value="custom">Custom Endpoint</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="settings-api-key">API Key</label>
-                                        <div class="api-key-row">
-                                            <input type="password" id="settings-api-key" placeholder="sk-... or your API key">
-                                            <button type="button" class="btn btn-outline btn-sm" id="settings-toggle-key">Show</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="form-group">
-                                        <label for="settings-model">Model</label>
-                                        <select id="settings-model">
-                                            <optgroup label="Claude (Anthropic)" data-provider="claude">
-                                                <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (recommended)</option>
-                                                <option value="claude-opus-4-6">Claude Opus 4.6</option>
-                                                <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fast)</option>
-                                            </optgroup>
-                                            <optgroup label="OpenAI" data-provider="openai">
-                                                <option value="gpt-4o">GPT-4o (recommended)</option>
-                                                <option value="gpt-4o-mini">GPT-4o Mini (fast)</option>
-                                                <option value="gpt-4.1">GPT-4.1</option>
-                                            </optgroup>
-                                            <optgroup label="Custom" data-provider="custom">
-                                                <option value="">Enter model in endpoint config</option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
-                                    <div class="form-group" id="settings-endpoint-group" style="display:none;">
-                                        <label for="settings-endpoint">Endpoint URL</label>
-                                        <input type="text" id="settings-endpoint" placeholder="https://your-api.example.com/v1/chat/completions">
-                                    </div>
+                                    <p style="color:#6b9e88;font-size:0.85rem;margin:0 0 10px;">
+                                        Powered by <strong style="color:#a8d5c2;">Claude Sonnet 4.6</strong> via the Skillable Intelligence backend.
+                                        The API key is configured server-side — no credentials needed here.
+                                    </p>
                                     <div class="form-group">
                                         <label>&nbsp;</label>
                                         <div class="api-key-row">
@@ -467,18 +432,18 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="js/markdown.js?v=29"></script>
-    <script src="js/frameworks.js?v=29"></script>
-    <script src="js/catalog.js?v=29"></script>
-    <script src="js/store.js?v=29"></script>
-    <script src="js/settings.js?v=29"></script>
-    <script src="js/chat.js?v=29"></script>
-    <script src="js/exporter.js?v=29"></script>
-    <script src="js/phase1.js?v=29"></script>
-    <script src="js/phase2.js?v=29"></script>
-    <script src="js/studio-features.js?v=29"></script>
-    <script src="js/phase3.js?v=29"></script>
-    <script src="js/phase4.js?v=29"></script>
-    <script src="js/app.js?v=29"></script>
+    <script src="{{ url_for('static', filename='js/markdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/frameworks.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/catalog.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/exporter.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/phase1.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/phase2.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/studio-features.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/phase3.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/phase4.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

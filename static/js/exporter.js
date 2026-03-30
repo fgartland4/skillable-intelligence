@@ -1,6 +1,6 @@
 /**
- * exporter.js — Converts Lab Program Designer v3 data to Skillable Lab on Demand (LOD) export format.
- * Generates ZIP packages containing data.json for LOD import.
+ * exporter.js — Converts Lab Program Designer v3 data to Skillable Studio export format.
+ * Generates ZIP packages containing data.json for Skillable Studio import.
  * Also provides BOM CSV export and clean JSON export.
  *
  * Depends on: Store (global IIFE), JSZip (loaded globally).
@@ -40,7 +40,7 @@ const Exporter = (() => {
         'custom': { os: 'Custom Image', platformId: 2 },
     };
 
-    // Difficulty to LOD Level mapping
+    // Difficulty to Skillable Studio level mapping
     const levelMap = {
         'beginner': 100,
         'intermediate': 200,
@@ -446,10 +446,10 @@ const Exporter = (() => {
         return 'multi';
     }
 
-    // ── Main export: project to Skillable LOD ────────────────────
+    // ── Main export: project to Skillable Studio ────────────────────
 
     /**
-     * Convert a v3 project to Skillable LOD export format.
+     * Convert a v3 project to Skillable Studio export format.
      * Creates a Lab Series with Lab Profiles for each blueprint.
      */
     function projectToSkillable(project, options) {

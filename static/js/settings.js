@@ -1,26 +1,15 @@
 /**
- * settings.js — Settings management and AI provider integration for Lab Program Designer v3.
+ * settings.js — Settings management for Lab Program Designer v3.
  *
- * Manages user preferences, branding, default references, and AI API routing.
+ * Manages user preferences, branding, and default references.
+ * AI API calls route through the Skillable Intelligence backend — no API key required in browser.
  * All settings are persisted in localStorage under 'labdesigner_settings'.
  */
 
 const Settings = (() => {
     const STORAGE_KEY = 'labdesigner_settings';
 
-    const DEFAULT_MODELS = {
-        claude: 'claude-sonnet-4-20250514',
-        openai: 'gpt-4o',
-        custom: 'default',
-    };
-
     const DEFAULTS = {
-        // AI Provider
-        aiProvider: 'claude',
-        apiKey: '',
-        model: DEFAULT_MODELS.claude,
-        customEndpoint: '',
-
         // Lab Defaults
         defaultSeatTime: 45,
         activitiesPerLab: 5,
@@ -117,123 +106,24 @@ const Settings = (() => {
 
     // ── AI Provider Helpers ──
 
-    function getDefaultModel(provider) {
-        return DEFAULT_MODELS[provider] || DEFAULT_MODELS.claude;
-    }
-
     function isConfigured() {
-        if (!_settings) load();
-        return !!_settings.apiKey;
+        return true;  // API key lives server-side in .env — always configured
     }
 
     // ── AI API Calls ──
 
     async function callAI(messages, options = {}) {
-        if (!_settings) load();
-        if (!_settings.apiKey) {
-            throw new Error('No API key configured. Go to Settings to add one.');
-        }
-
-        const provider = _settings.aiProvider || 'claude';
-
-        switch (provider) {
-            case 'claude':  return _callClaude(messages, options);
-            case 'openai':  return _callOpenAI(messages, options);
-            case 'custom':  return _callCustom(messages, options);
-            default:        throw new Error(`Unknown AI provider: ${provider}`);
-        }
-    }
-
-    async function _callClaude(messages, options) {
-        const systemMsg = messages.find(m => m.role === 'system');
-        const chatMessages = messages.filter(m => m.role !== 'system');
-
-        const body = {
-            model: _settings.model || DEFAULT_MODELS.claude,
-            max_tokens: options.maxTokens || 4096,
-            messages: chatMessages.map(m => ({ role: m.role, content: m.content })),
-        };
-
-        if (systemMsg) {
-            body.system = systemMsg.content;
-        }
-
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch('/designer/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': _settings.apiKey,
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-direct-browser-access': 'true',
-            },
-            body: JSON.stringify(body),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages, max_tokens: options.maxTokens || 4096 }),
         });
-
         if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Claude API error (${res.status}): ${err}`);
+            const err = await res.json().catch(() => ({ error: res.statusText }));
+            throw new Error(err.error || `Server error (${res.status})`);
         }
-
         const data = await res.json();
-        return data.content?.[0]?.text || '';
-    }
-
-    async function _callOpenAI(messages, options) {
-        const body = {
-            model: _settings.model || DEFAULT_MODELS.openai,
-            max_tokens: options.maxTokens || 4096,
-            messages: messages.map(m => ({ role: m.role, content: m.content })),
-        };
-
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${_settings.apiKey}`,
-            },
-            body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`OpenAI API error (${res.status}): ${err}`);
-        }
-
-        const data = await res.json();
-        return data.choices?.[0]?.message?.content || '';
-    }
-
-    async function _callCustom(messages, options) {
-        const endpoint = _settings.customEndpoint;
-        if (!endpoint) {
-            throw new Error('Custom endpoint URL is not configured. Go to Settings to add one.');
-        }
-
-        const body = {
-            model: _settings.model || DEFAULT_MODELS.custom,
-            max_tokens: options.maxTokens || 4096,
-            messages: messages.map(m => ({ role: m.role, content: m.content })),
-        };
-
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${_settings.apiKey}`,
-            },
-            body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Custom API error (${res.status}): ${err}`);
-        }
-
-        const data = await res.json();
-        // Support both Claude-style and OpenAI-style response formats
-        return data.content?.[0]?.text
-            || data.choices?.[0]?.message?.content
-            || JSON.stringify(data);
+        return data.text || '';
     }
 
     async function testConnection() {
@@ -281,7 +171,6 @@ const Settings = (() => {
         removeDefaultReference,
         callAI,
         testConnection,
-        getDefaultModel,
         isConfigured,
     };
 })();
