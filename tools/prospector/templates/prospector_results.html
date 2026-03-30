@@ -70,7 +70,7 @@
         .score-high { color: #24ED9B; font-weight: 700; }
         .score-mid  { color: #f59e0b; font-weight: 700; }
         .score-low  { color: #f87171; font-weight: 700; }
-        .td-top-product { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .td-top-product { max-width: 180px; word-break: break-word; }
         .td-li { white-space: nowrap; text-align: center; }
 
         /* Flag as poor fit */
@@ -175,7 +175,7 @@
                         <th class="td-li">LI</th>
                         <th>Contact 2</th>
                         <th class="td-li">LI</th>
-                        <th>Report</th>
+                        <th>Score Report</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -188,7 +188,7 @@
                         <td class="num">{% if row.total_highly_labable %}<span>{{ row.total_highly_labable }}</span>{% else %}<span class="cell-dim">0</span>{% endif %}</td>
                         <td class="num">{% if row.total_likely_labable %}<span>{{ row.total_likely_labable }}</span>{% else %}<span class="cell-dim">0</span>{% endif %}</td>
                         <td class="num">{% if row.total_not_labable %}<span>{{ row.total_not_labable }}</span>{% else %}<span class="cell-dim">0</span>{% endif %}</td>
-                        <td class="td-top-product" title="{{ row.top_product }}">{{ row.top_product or '—' }}</td>
+                        <td class="td-top-product">{{ row.top_product or '—' }}</td>
                         <td class="num">
                             {%- set ls = row.lab_score or 0 -%}
                             {%- if ls >= 70 -%}<span class="score-high">{{ ls }}</span>
@@ -222,7 +222,6 @@
                             {% set cname = row.top_contact_name or '' %}
                             {% if cname and 'unknown' not in cname.lower() and 'search for' not in cname.lower() %}
                                 <span class="cell-primary">{{ cname }}</span>
-                                {% if row.top_contact_title %}<div class="cell-secondary">{{ row.top_contact_title }}</div>{% endif %}
                             {% else %}—{% endif %}
                         </td>
                         <td class="td-li">
@@ -232,7 +231,6 @@
                             {% set cname2 = row.second_contact_name or '' %}
                             {% if cname2 and 'unknown' not in cname2.lower() and 'search for' not in cname2.lower() %}
                                 <span class="cell-primary" style="font-weight:500;">{{ cname2 }}</span>
-                                {% if row.second_contact_title %}<div class="cell-secondary">{{ row.second_contact_title }}</div>{% endif %}
                             {% else %}—{% endif %}
                         </td>
                         <td class="td-li">
@@ -240,7 +238,7 @@
                         </td>
                         <td>
                             {% if row.analysis_id %}
-                            <a href="/inspector/results/{{ row.analysis_id }}" class="view-link">Full Report &rarr;</a>
+                            <a href="/inspector/results/{{ row.analysis_id }}" class="view-link">View &rarr;</a>
                             {% else %}
                             <a href="/inspector/?prefill={{ row.company_name | urlencode }}" class="view-link">Run &rarr;</a>
                             {% endif %}
