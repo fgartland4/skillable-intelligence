@@ -167,9 +167,15 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         # Customer success & LMS
         ("cs",              f"{company_name} customer success onboarding professional services"),
         ("lms",             f"{company_name} LMS learning management system platform"),
-        # Org & contacts
-        ("org_contacts",    f"site:linkedin.com/in/ {company_name} VP OR Director \"customer education\" OR \"partner enablement\" OR \"technical training\""),
-        ("org_contacts2",   f"site:linkedin.com/in/ {company_name} \"head of training\" OR \"technical enablement\" OR \"partner enablement\" OR \"certification\""),
+        # Org & contacts — 4 targeted queries covering the 3 key functions:
+        # (1) Customer education/training decision makers
+        ("org_cx_edu",      f"site:linkedin.com/in/ {company_name} VP OR SVP OR \"Head of\" \"customer education\" OR \"customer training\" OR \"customer enablement\" OR \"customer success enablement\""),
+        # (2) Partner / channel enablement decision makers
+        ("org_partner_ena", f"site:linkedin.com/in/ {company_name} VP OR SVP OR \"Head of\" \"partner enablement\" OR \"channel enablement\" OR \"partner education\" OR \"partner training\""),
+        # (3) Certification program leaders
+        ("org_cert",        f"site:linkedin.com/in/ {company_name} VP OR Director OR \"Head of\" certification OR \"certification program\" OR \"technical certification\" OR \"exam\""),
+        # (4) Director-level influencers across all three areas
+        ("org_directors",   f"site:linkedin.com/in/ {company_name} Director \"technical training\" OR \"technical enablement\" OR \"learning and development\" OR \"training and certification\" OR \"global enablement\""),
     ]
     if known_products:
         queries.append(("known", f"{company_name} {' '.join(known_products)} software"))
@@ -217,7 +223,8 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         "partner_portal":   all_results.get("partner_portal", []),
         "cs_signals":       all_results.get("cs", []),
         "lms_signals":      all_results.get("lms", []),
-        "org_contacts":     all_results.get("org_contacts", []) + all_results.get("org_contacts2", []),
+        "org_contacts":     (all_results.get("org_cx_edu", []) + all_results.get("org_partner_ena", [])
+                             + all_results.get("org_cert", []) + all_results.get("org_directors", [])),
         "page_contents":    page_contents,
     }
 
@@ -236,7 +243,6 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
         queries.append((f"train_{name}",   f"{company_name} {name} training certification hands-on lab"))
         queries.append((f"api_{name}",     f"{company_name} {name} REST API CLI PowerShell automation developer documentation"))
         queries.append((f"ai_{name}",      f"{company_name} {name} AI Copilot generative AI features hands-on practice"))
-        queries.append((f"contact_{name}", f"site:linkedin.com/in/ {company_name} {name} training enablement certification"))
         # Labability intelligence signals
         queries.append((f"marketplace_{name}", f"{name} Azure Marketplace OR AWS Marketplace listing"))
         queries.append((f"docker_{name}",  f"{name} Docker image container deployment GitHub"))
@@ -259,7 +265,7 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
         api_results = all_results.get(f"api_{name}", [])
         if api_results and api_results[0].get("url"):
             fetch_targets.append((f"api_{name}", api_results[0]["url"]))
-        # ai_, contact_ are snippet-only (LinkedIn blocks scraping; AI features covered by tech/train pages)
+        # ai_ is snippet-only — AI features are covered by tech/train pages
 
     page_contents = _fetch_pages_parallel(fetch_targets, max_chars=3500)
 
