@@ -771,10 +771,13 @@ _LABABLE_ORDER = {"highly_likely": 0, "likely": 1, "less_likely": 2, "not_likely
 
 
 def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> dict | None:
-    """Run full discovery + score for a single company (top 1 product).
+    """Discovery + score for a single company (top 1 product) — Prospector mode.
 
-    If a prior analysis exists for this company name and force_refresh is False,
-    the cached result is returned immediately without any web research or Claude calls.
+    Skips research_products() entirely. Scoring runs from discovery context only,
+    which eliminates ~9 Serper searches and ~3 page fetches per company.
+
+    If a prior analysis exists and force_refresh is False, returns cached result
+    without any web or Claude calls.
     """
     # ── Cache lookup ────────────────────────────────────────────────────────
     if not force_refresh:
@@ -858,8 +861,15 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
         if not selected:
             return None
 
-        research = research_products(company_name, selected)
-        research["discovery_data"] = discovery
+        # Prospector mode: skip deep product research — score from discovery context only.
+        # Eliminates ~9 Serper searches + 3 page fetches per company.
+        research = {
+            "company_name": company_name,
+            "selected_products": selected,
+            "search_results": {},
+            "page_contents": {},
+            "discovery_data": discovery,
+        }
         analysis = score_selected_products(research)
         analysis_id = save_analysis(analysis)
 
