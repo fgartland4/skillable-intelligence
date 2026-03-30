@@ -131,6 +131,40 @@ CUSTOMER_BENCHMARKS = [
         ),
     },
     {
+        "company": "NVIDIA",
+        "relationship": "Active Skillable customer — CREATE AI certification benchmark; third-party exam delivery provider integration",
+        "org_type": "software_company",
+        "products_and_paths": [
+            "NVIDIA AI Operations certification (cloud VM fabric with GPU — Azure or AWS GPU instances; exam delivered through Certiverse)",
+            "NVIDIA AI Infrastructure certification (cloud VM fabric with GPU — same delivery model)",
+            "NVIDIA AI Networking certification (cloud VM fabric with GPU — covers InfiniBand, NVLink, networking for AI workloads)",
+        ],
+        "expansion_arc": [
+            "Entry point: PBT embedded in third-party exam delivery — NVIDIA labs are delivered through Certiverse (NVIDIA's exam delivery provider), not a Skillable-hosted portal. Skillable provisions the lab environment; Certiverse delivers the exam wrapper. This is a distinct integration pattern: Skillable as lab infrastructure behind a third-party EDP.",
+            "Scope at entry: three active certification exams — AI Operations, AI Infrastructure, AI Networking. Multi-exam from the start, not a pilot.",
+            "Global scale signal: adding Simplified Chinese version of AI Operations exam — confirms international delivery commitment and Skillable's ability to support multilingual certification at scale.",
+            "Natural next phases: expansion to more NVIDIA certification tracks (AI Developer, CUDA, NIM/NeMo, Triton), events labs at GTC (NVIDIA's flagship conference), partner/reseller technical enablement.",
+        ],
+        "key_signals": {
+            "technical": "GPU is the core requirement — NVIDIA certification labs require GPU-capable environments. Path is cloud VMs with GPU (Azure N-series or AWS P/G instances via Compute Gallery or EC2 AMI), not Skillable's standard Hyper-V datacenter (GPU not available there). This is the canonical use case for cloud VM lab environments — premium cost justified by GPU requirement. Lab content covers DGX/HGX system management, NGC (NVIDIA GPU Cloud) operations, InfiniBand/NVLink networking configuration, AI model deployment workflows.",
+            "workflow": "AI Operations: deploy, configure, and manage NVIDIA AI infrastructure (DGX systems, GPU clusters, monitoring). AI Infrastructure: provision GPU compute, configure storage and networking, validate AI workload deployment. AI Networking: configure InfiniBand fabric, NVLink topology, RDMA, network validation for AI training workloads. All three are deeply technical, multi-step, and entirely impossible to learn without hands-on practice on real (or real-equivalent) infrastructure.",
+            "training_ecosystem": "NVIDIA certifications are among the most strategically important in the AI infrastructure market — NVIDIA-certified engineers are in high demand. Three active PBT exams at launch, with Simplified Chinese localization showing global scale commitment. GTC (GPU Technology Conference) is NVIDIA's flagship annual event — tens of thousands of attendees, a major potential events consumption motion. NVIDIA Deep Learning Institute (DLI) is a mature training org with global reach.",
+            "market_fit": "CREATE AI — NVIDIA builds, trains, and deploys AI infrastructure. Maximum market fit score. The most strategically important company in AI infrastructure. NVIDIA-certified engineers are in immediate market demand. This is the highest-value AI certification segment Skillable operates in.",
+            "partnership_readiness": "NVIDIA Deep Learning Institute is a mature, well-resourced training organization. Three certification exams live at launch. Simplified Chinese localization shows strategic investment. Certiverse EDP integration confirms commitment to a professional exam delivery experience. GTC conference is a massive untapped events opportunity.",
+        },
+        "score_guidance": (
+            "HIGHEST TIER for AI infrastructure / CREATE AI companies. "
+            "THIRD-PARTY EDP INTEGRATION PATTERN: When a company uses a third-party exam delivery provider (Certiverse, PSI, Pearson VUE, Prometric), "
+            "Skillable functions as the lab infrastructure layer behind that EDP — not a standalone portal. "
+            "This is a valid and growing integration pattern; do not score it lower because Skillable isn't the front-end. "
+            "GPU REQUIREMENT: Cloud VMs (Azure or AWS) with GPU instances are the correct path for AI infrastructure labs requiring GPU. "
+            "The premium cost is justified; flag GPU as a path note, not a blocker, for NVIDIA-class products. "
+            "MULTILINGUAL DELIVERY: Simplified Chinese localization confirms Skillable supports global certification delivery — "
+            "note this as a capability when companies ask about international reach. "
+            "Score guidance: labability 78-92, partnership readiness 82-92."
+        ),
+    },
+    {
         "company": "National Instruments (NI) / Emerson",
         "relationship": "Active Skillable customer — PBT-first entry pattern, industrial/test & measurement benchmark",
         "org_type": "software_company",
