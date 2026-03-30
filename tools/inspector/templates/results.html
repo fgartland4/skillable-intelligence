@@ -515,9 +515,9 @@
             transition: border-color 0.15s;
             user-select: none;
         }
-        .dim-section > summary::-webkit-details-marker { display: none; }
-        .dim-section > summary::marker { display: none; }
         .dim-section > summary { list-style: none; }
+        .dim-section > summary::-webkit-details-marker { display: none; }
+        .dim-section > summary::marker { content: ''; font-size: 0; }
         .dim-sec-arrow { transition: transform 0.2s ease; display: inline-block; }
         .dim-section[open] > summary .dim-sec-arrow { transform: rotate(180deg); }
         .dim-section[open] > summary { border-radius: 8px 8px 0 0; }
