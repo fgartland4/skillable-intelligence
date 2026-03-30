@@ -624,13 +624,13 @@ def main():
 
     add_bullet(doc,
         " No scalable way to build target lists. Identifying companies with the right training ecosystems, technical products, and partner programs for a Skillable conversation currently requires manual research at every stage.",
-        bold_prefix="Targeting & Lead Qualification:")
+        bold_prefix="Leverage Labability for Targeting & Lead Qualification:")
     add_bullet(doc,
         " No fast way to qualify a company once identified. SEs and AMs spend hours researching whether a prospect\u2019s products are technically buildable as Skillable labs \u2014 time that compounds across every territory.",
-        bold_prefix="Accelerate Discovery:")
+        bold_prefix="Accelerate Discovery with AI-Powered Labability Scoring:")
     add_bullet(doc,
         " No starting point for lab program design. When an SE wants to propose a lab program, they start from a blank page \u2014 no structure, no connection to the research already done on the company.",
-        bold_prefix="Facilitate Lab Design & Decrease TTV:")
+        bold_prefix="Leverage AI-Generated Intelligence to Design Programs and Lab Templates:")
 
     closing = add_body(doc, "Skillable Intelligence addresses all three.", space_before=40, space_after=100)
     closing.runs[0].font.bold = True
