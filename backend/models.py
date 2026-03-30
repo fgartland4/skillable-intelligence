@@ -200,6 +200,16 @@ class ProspectorRow:
     top_contact_linkedin: str = ""
     analysis_id: str = ""
     flagged_poor_fit: bool = False
+    # Product labability counts (from discovery phase)
+    total_highly_labable: int = 0
+    total_likely_labable: int = 0
+    total_not_labable: int = 0
+    # Partnership signals (from discovery phase)
+    atp_program: str = ""             # program name or blank
+    channel_program: str = ""         # program name or blank
+    ondemand_library: str = ""        # course count or blank
+    cert_program: str = ""            # cert count or blank
+    existing_lab_partner: str = ""    # platform name, "DIY", or blank
 
 
 @dataclass

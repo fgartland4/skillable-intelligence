@@ -505,7 +505,14 @@ Return ONLY valid JSON:
       "category": "Category",
       "competitive_context": "One sentence on how this competes with the target company's products"
     }
-  ]
+  ],
+  "partnership_signals": {
+    "atp_program": "Name of their Authorized Training Partner program, or null if none found. Example: 'Cisco Learning Partner Program', 'Hyland University ATP'.",
+    "channel_program": "Name of their channel/reseller partner program, or null if none found. Example: 'VMware Partner Connect', 'Cohesity PartnerVantage'.",
+    "ondemand_library": "Integer — approximate number of on-demand courses/videos available, or null if not found. Extract from training page copy like '500+ courses' → 500. If library exists but count not found, use -1.",
+    "cert_program": "Integer — number of distinct certifications offered, or null if no program found. 0 = no certification program detected. Extract from cert page listings.",
+    "existing_lab_partner": "Name of the hands-on lab platform they currently use, or null if none detected. Use 'DIY' if they describe building their own lab environment. Use 'CloudShare', 'Instruqt', 'Skytap', 'Appsembler', or other platform name if found in research. Many companies will be DIY — flag it."
+  }
 }
 """
 

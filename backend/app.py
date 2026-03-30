@@ -652,8 +652,11 @@ def prospector_export(job_id: str):
 
     headers = ["#", "Company", "Top Product", "Skillable Path",
                "Lab Score", "Partnership", "Composite",
+               "Highly Labable Products", "Likely Labable Products", "Not Labable Products",
+               "ATP Program", "Channel Program", "On-Demand Library", "Cert Program",
+               "Existing Lab Partner",
                "Top Contact", "Title", "LinkedIn", "Full Analysis", "Notes"]
-    col_widths = [4, 26, 28, 16, 11, 11, 11, 22, 24, 12, 14, 30]
+    col_widths = [4, 26, 28, 16, 11, 11, 11, 10, 10, 10, 26, 26, 14, 12, 18, 22, 24, 12, 14, 30]
 
     for col, (h, w) in enumerate(zip(headers, col_widths), 1):
         cell = ws.cell(row=1, column=col, value=h)
@@ -684,24 +687,36 @@ def prospector_export(job_id: str):
             row.get("top_product", ""),
             path,
             lab, prtn, comp,
+            row.get("total_highly_labable", ""),
+            row.get("total_likely_labable", ""),
+            row.get("total_not_labable", ""),
+            row.get("atp_program", ""),
+            row.get("channel_program", ""),
+            row.get("ondemand_library", ""),
+            row.get("cert_program", ""),
+            row.get("existing_lab_partner", ""),
             row.get("top_contact_name", ""),
             row.get("top_contact_title", ""),
             row.get("top_contact_linkedin", ""),
             f"/inspector/results/{aid}" if aid else "",
-            "",  # Notes column — blank for user to fill
+            "",  # Notes — blank for user to fill
         ]
+        # Center columns: #(1), scores(5,6,7), product counts(8,9,10), ondemand(13), cert(14)
+        center_cols = {1, 5, 6, 7, 8, 9, 10, 13, 14}
         for col, val in enumerate(values, 1):
             cell = ws.cell(row=i, column=col, value=val)
             cell.fill = PatternFill("solid", fgColor="FF0D1A14")
             cell.border = thin_border
             cell.alignment = Alignment(vertical="center",
-                                       horizontal="center" if col in (1,5,6,7,10,11) else "left")
+                                       horizontal="center" if col in center_cols else "left")
             if col in (5, 6, 7):
-                cell.font = Font(bold=True, color=score_color(val), size=9)
+                cell.font = Font(bold=True, color=score_color(val if isinstance(val, int) else 0), size=9)
             elif col == 4:
                 cell.font = Font(bold=True, color=path_colors.get(path, white), size=9)
             elif col == 1:
                 cell.font = Font(color=muted, size=9, bold=True)
+            elif col in (8, 9, 10):
+                cell.font = Font(color=green_mid, size=9)
             else:
                 cell.font = default_font
         ws.row_dimensions[i].height = 16
@@ -783,6 +798,24 @@ def _quick_analyze_company(company_name: str) -> dict | None:
         contacts = top_product.get("contacts") or []
         dm = next((c for c in contacts if c.get("role_type") == "decision_maker"), None) or (contacts[0] if contacts else None)
 
+        # Product labability counts from discovery phase
+        all_disc = discovery.get("products", [])
+        total_highly  = sum(1 for p in all_disc if p.get("likely_labable") == "highly_likely")
+        total_likely  = sum(1 for p in all_disc if p.get("likely_labable") == "likely")
+        total_not     = sum(1 for p in all_disc if p.get("likely_labable") in ("less_likely", "not_likely"))
+
+        # Partnership signals from discovery Claude output
+        ps = discovery.get("partnership_signals", {})
+
+        def _fmt_ondemand(val):
+            if val is None: return ""
+            if val == -1: return "Yes"
+            return str(val) if val > 0 else ""
+
+        def _fmt_cert(val):
+            if val is None: return ""
+            return str(val)
+
         return {
             "company_name": data.get("company_name", company_name),
             "company_url": data.get("company_url", ""),
@@ -794,6 +827,14 @@ def _quick_analyze_company(company_name: str) -> dict | None:
             "top_contact_title": dm.get("title", "") if dm else "",
             "top_contact_linkedin": dm.get("linkedin_url", "") if dm else "",
             "analysis_id": analysis_id,
+            "total_highly_labable": total_highly,
+            "total_likely_labable": total_likely,
+            "total_not_labable": total_not,
+            "atp_program": ps.get("atp_program") or "",
+            "channel_program": ps.get("channel_program") or "",
+            "ondemand_library": _fmt_ondemand(ps.get("ondemand_library")),
+            "cert_program": _fmt_cert(ps.get("cert_program")),
+            "existing_lab_partner": ps.get("existing_lab_partner") or "",
         }
     except Exception:
         traceback.print_exc()
@@ -802,7 +843,7 @@ def _quick_analyze_company(company_name: str) -> dict | None:
 
 @inspector.route("/marketing")
 def marketing():
-    return render_template("marketing.html")
+    return redirect(url_for("prospector.prospector_home"), 301)
 
 
 @inspector.route("/marketing/run", methods=["POST"])
