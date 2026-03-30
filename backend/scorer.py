@@ -131,6 +131,37 @@ CUSTOMER_BENCHMARKS = [
         ),
     },
     {
+        "company": "National Instruments (NI) / Emerson",
+        "relationship": "Active Skillable customer — PBT-first entry pattern, industrial/test & measurement benchmark",
+        "org_type": "software_company",
+        "products_and_paths": [
+            "LabVIEW (Hyper-V fabric — installs on Windows; graphical programming environment for instrument control and data acquisition)",
+            "TestStand (Hyper-V fabric — installs on Windows; sequential test execution and management framework)",
+            "NI DAQmx / hardware-software platforms (Hyper-V fabric — software component installs on Windows; hardware simulation possible in VM)",
+        ],
+        "expansion_arc": [
+            "Entry point: Performance Based Testing (PBT) — NI came to Skillable specifically to launch certification assessments, not training labs first. This is the reverse of the typical arc and an important calibration pattern: some companies prioritize credential integrity and assessment before building a training catalog.",
+            "Natural next phase: Training labs that feed the PBT pipeline — learners need hands-on practice before taking the performance-based exam, so the lab catalog grows organically as a prerequisite to certification.",
+            "Long-term: Customer training, partner/distributor enablement, potentially NI Connect conference labs.",
+        ],
+        "key_signals": {
+            "technical": "LabVIEW and TestStand install on Windows — clean Hyper-V path. LabVIEW is a graphical dataflow programming environment; learners build and debug VI (Virtual Instrument) programs. TestStand manages test sequences programmatically. Both are inherently hands-on — you cannot learn LabVIEW by watching a demo, you must build and wire diagrams yourself. Strong VM labability: software installs cleanly, has rich scripting surfaces for scoring, and complex enough to require multi-hour lab sessions.",
+            "workflow": "LabVIEW: design data acquisition VIs, instrument drivers, real-time measurement loops, FPGA programming, debugging broken VIs. TestStand: build test sequences, configure step types, deploy to targets, analyze results. Multiple role types (developer, test engineer, systems integrator). Deep DTDS coverage across all five phases. Troubleshooting broken VI architectures is a canonical PBT scenario.",
+            "training_ecosystem": "NI has a formal certification program — NI Certified LabVIEW Associate Developer (CLAD), Certified LabVIEW Developer (CLD), Certified LabVIEW Architect (CLA). These are well-regarded credentials in the test & measurement engineering community. NI Connect (formerly NIWeek) is NI's annual flagship conference — historically held in Austin, large engineering community, strong hands-on workshop tradition. Emerson acquisition (2023) brings additional resources and potential for expanded global enablement.",
+            "market_fit": "Industrial/OT and Test & Measurement — specialized but deeply embedded in aerospace, automotive, semiconductor, energy, and defense. Engineers who use NI products are technically sophisticated and certification-motivated. Certification is a signal of technical depth, not just training maturity.",
+            "partnership_readiness": "Mature certification program (CLAD/CLD/CLA) already established. NI came to Skillable specifically for PBT — they understand what they want and are motivated buyers. Emerson parent provides resources. NI Connect conference is a natural events consumption motion.",
+        },
+        "score_guidance": (
+            "HIGH benchmark for industrial/test & measurement software companies with certification programs. "
+            "PBT-FIRST ENTRY PATTERN: NI came to Skillable for certification assessment before building a training catalog. "
+            "When scoring any company with an existing technical certification program (especially engineering or developer certifications), "
+            "the PBT/Certification motion may be the PRIMARY entry point, not the capstone. Score certification-ready companies higher on "
+            "Training & Enablement Maturity even if they lack an ATP network — a mature cert program is a direct Skillable entry vector. "
+            "NI Connect conference is a significant events consumption signal for this category. "
+            "Score guidance: labability 72-85, partnership readiness 70-82."
+        ),
+    },
+    {
         "company": "CompTIA",
         "relationship": "Active Skillable customer — certification body benchmark",
         "org_type": "training_organization",
