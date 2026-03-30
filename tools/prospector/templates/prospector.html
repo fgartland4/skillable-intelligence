@@ -1,26 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prospector — Skillable Intelligence</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f4f6f3; color:#1a2e24; margin:0; padding:0; }
-    .container { max-width:700px; margin:80px auto; padding:0 24px; text-align:center; }
-    .badge { display:inline-block; font-size:0.72rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#5a8a70; background:#e8f0ec; border-radius:4px; padding:4px 10px; margin-bottom:16px; }
-    h1 { font-size:2rem; font-weight:700; margin:0 0 12px; }
-    p { color:#4a6a5a; font-size:1rem; line-height:1.6; }
-    .coming-soon { display:inline-block; margin-top:32px; padding:12px 28px; background:#2a4a3a; color:#fff; border-radius:8px; font-size:0.9rem; font-weight:600; text-decoration:none; }
-    .back { display:block; margin-top:24px; color:#5a8a70; text-decoration:none; font-size:0.85rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ideal Customer Prospector — Skillable Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0; min-height: 100vh;
+        }
+        a { color: #24ED9B; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .nav {
+            display: flex; align-items: center; padding: 16px 32px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.92); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .nav img { height: 28px; }
+        .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
+        .nav-tool { font-size: 0.875rem; color: #6b9e88; }
+        .nav-sep { color: #1e3329; margin: 0 10px; }
+        .nav-tool-active { color: #a8d5c2; font-weight: 600; }
+        .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+        .back { display: inline-block; margin-bottom: 32px; color: #6b9e88; font-size: 0.85rem; }
+        .back:hover { color: #24ED9B; text-decoration: none; }
+        h1 { font-size: 1.8rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .subtitle { color: #6b9e88; font-size: 0.875rem; margin-bottom: 36px; line-height: 1.6; }
+
+        .mode-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; overflow: hidden; border: 1px solid #1e3329; }
+        .mode-tab {
+            flex: 1; padding: 11px 16px; text-align: center; cursor: pointer;
+            font-size: 0.82rem; font-weight: 600; color: #3d6655;
+            background: #06100c; border: none; transition: all 0.15s;
+        }
+        .mode-tab.active { background: #0d1a14; color: #a8d5c2; }
+        .mode-tab:hover:not(.active) { color: #6b9e88; }
+
+        .form-card { background: #0d1a14; border: 1px solid #1e3329; border-radius: 16px; padding: 28px; }
+        .field-label {
+            display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 10px;
+        }
+        .drop-zone {
+            width: 100%; background: #06100c; border: 1.5px dashed #1e3329; border-radius: 10px;
+            padding: 36px 24px; text-align: center; cursor: pointer; transition: border-color 0.15s;
+            position: relative;
+        }
+        .drop-zone:hover, .drop-zone.drag-over { border-color: rgba(36,237,155,0.4); }
+        .drop-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .drop-icon { font-size: 1.6rem; margin-bottom: 10px; color: #2a4a3a; }
+        .drop-label { font-size: 0.88rem; color: #6b9e88; }
+        .drop-label strong { color: #24ED9B; }
+        .drop-hint { font-size: 0.72rem; color: #2a4a3a; margin-top: 6px; }
+        .drop-selected { font-size: 0.82rem; color: #a8d5c2; margin-top: 10px; display: none; }
+
+        textarea {
+            width: 100%; background: #06100c; border: 1px solid #1e3329; border-radius: 10px;
+            color: #e8f5f0; font-family: inherit; font-size: 0.9rem; padding: 14px 16px;
+            resize: vertical; min-height: 180px; line-height: 1.6; transition: border-color 0.15s;
+        }
+        textarea:focus { outline: none; border-color: rgba(36,237,155,0.4); }
+        textarea::placeholder { color: #2a4a3a; }
+        .field-hint { font-size: 0.72rem; color: #3d6655; margin-top: 8px; line-height: 1.5; }
+        .submit-row { display: flex; align-items: center; gap: 16px; margin-top: 22px; }
+        .btn-primary {
+            background: #24ED9B; color: #06100c; border: none;
+            padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s;
+        }
+        .btn-primary:hover { opacity: 0.88; }
+        .info-box {
+            background: rgba(36,237,155,0.04); border-left: 2px solid rgba(36,237,155,0.3);
+            border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 28px;
+            font-size: 0.82rem; color: #6b9e88; line-height: 1.6;
+        }
+        .info-box strong { color: #a8d5c2; }
+        .mode-panel { display: none; }
+        .mode-panel.active { display: block; }
+        .pf-notice {
+            font-size: 0.75rem; color: #3d6655; margin-top: 14px; padding-top: 14px;
+            border-top: 1px solid #1e3329;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="badge">Skillable Intelligence</div>
-    <h1>Prospector</h1>
-    <p>Batch-analyze a list of companies to identify the best candidates for Skillable lab programs. Rank by labability fit, export to CSV, and hand off to Inspector for deep-dive analysis.</p>
-    <span class="coming-soon">Coming in Phase 4</span>
-    <a href="/inspector/" class="back">&larr; Go to Inspector</a>
-  </div>
+    <nav class="nav">
+        <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+        <div class="nav-divider"></div>
+        <a href="/inspector/" class="nav-tool">Inspector</a>
+        <span class="nav-sep">·</span>
+        <span class="nav-tool nav-tool-active">Prospector</span>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back">&larr; Home</a>
+
+        <h1>Ideal Customer Prospector</h1>
+        <p class="subtitle">Upload a list of companies to score each one for product labability and partnership readiness. Results are ranked and exportable to Excel.</p>
+
+        <div class="info-box">
+            <strong>How it works:</strong> For each company, the engine discovers their top product and scores it — labability signals, partnership readiness, and recommended Skillable path. Results are ranked by Overall Opportunity Score with a direct link to run a full Inspector analysis on any company.
+        </div>
+
+        <div class="mode-tabs">
+            <button class="mode-tab active" onclick="switchMode('csv', this)">&#8679; Upload CSV</button>
+            <button class="mode-tab" onclick="switchMode('paste', this)">&#9998; Paste List</button>
+        </div>
+
+        <div class="form-card">
+            <div id="panel-csv" class="mode-panel active">
+                <form method="POST" action="/prospector/run" enctype="multipart/form-data">
+                    <label class="field-label">CSV File</label>
+                    <div class="drop-zone" id="drop-zone">
+                        <input type="file" name="csv_file" accept=".csv" id="csv-input" onchange="fileSelected(this)">
+                        <div class="drop-icon">&#128196;</div>
+                        <div class="drop-label">Drop your CSV here or <strong>browse</strong></div>
+                        <div class="drop-hint">First column = Company Name. Header row is skipped automatically.</div>
+                        <div class="drop-selected" id="file-selected-label"></div>
+                    </div>
+                    <div class="field-hint" style="margin-top:10px;">Works with ZoomInfo exports, ABM lists, or any CSV where the first column is the company name.</div>
+                    <div class="submit-row">
+                        <button type="submit" class="btn-primary">Run Prospector &rarr;</button>
+                    </div>
+                    {% if poor_fit_count %}
+                    <div class="pf-notice">{{ poor_fit_count }} previously flagged poor-fit {{ 'company' if poor_fit_count == 1 else 'companies' }} will be skipped automatically.</div>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div id="panel-paste" class="mode-panel">
+                <form method="POST" action="/prospector/run">
+                    <label class="field-label" for="companies">Company Names</label>
+                    <textarea id="companies" name="companies"
+                        placeholder="Cohesity&#10;Tanium&#10;UiPath&#10;Commvault&#10;Hyland"></textarea>
+                    <div class="field-hint">One company per line (or comma-separated). Limit to 25 companies per batch for best results.</div>
+                    <div class="submit-row">
+                        <button type="submit" class="btn-primary">Run Prospector &rarr;</button>
+                    </div>
+                    {% if poor_fit_count %}
+                    <div class="pf-notice">{{ poor_fit_count }} previously flagged poor-fit {{ 'company' if poor_fit_count == 1 else 'companies' }} will be skipped automatically.</div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchMode(mode, btn) {
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('panel-' + mode).classList.add('active');
+        }
+        function fileSelected(input) {
+            const label = document.getElementById('file-selected-label');
+            if (input.files.length) {
+                label.textContent = '✓ ' + input.files[0].name;
+                label.style.display = 'block';
+            }
+        }
+        const dz = document.getElementById('drop-zone');
+        if (dz) {
+            dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+            dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+            dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); });
+        }
+    </script>
 </body>
 </html>

@@ -9,9 +9,11 @@ from config import DATA_DIR
 
 DISCOVERY_DIR = os.path.join(os.path.dirname(__file__), "data", "discoveries")
 BATCH_DIR = os.path.join(os.path.dirname(__file__), "data", "batch")
+FEEDBACK_DIR = os.path.join(os.path.dirname(__file__), "data", "feedback")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(DISCOVERY_DIR, exist_ok=True)
 os.makedirs(BATCH_DIR, exist_ok=True)
+os.makedirs(FEEDBACK_DIR, exist_ok=True)
 
 
 def save_discovery(discovery_id: str, data: dict) -> str:
@@ -80,6 +82,43 @@ def load_batch_job(job_id: str) -> dict | None:
         return None
     with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def save_prospector_run(job_id: str, data: dict) -> None:
+    """Store a Prospector batch run (reuses batch storage)."""
+    save_batch_job(job_id, data)
+
+
+def load_prospector_run(job_id: str) -> dict | None:
+    return load_batch_job(job_id)
+
+
+def append_poor_fit_feedback(feedback: dict) -> None:
+    """Append a poor fit flag (with optional reason) to the feedback log."""
+    filepath = os.path.join(FEEDBACK_DIR, "poor_fit.json")
+    existing = []
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            try:
+                existing = json.load(f)
+            except Exception:
+                existing = []
+    existing.append(feedback)
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(existing, f, indent=2)
+
+
+def load_poor_fit_companies() -> set:
+    """Return lowercase set of company names previously flagged as poor fit."""
+    filepath = os.path.join(FEEDBACK_DIR, "poor_fit.json")
+    if not os.path.exists(filepath):
+        return set()
+    with open(filepath, "r", encoding="utf-8") as f:
+        try:
+            data = json.load(f)
+            return {d.get("company_name", "").lower() for d in data}
+        except Exception:
+            return set()
 
 
 def list_analyses() -> list[dict]:

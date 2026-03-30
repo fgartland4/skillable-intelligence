@@ -183,3 +183,29 @@ class MarketingRow:
     top_contact_title: str = ""
     top_contact_linkedin: str = ""
     analysis_id: str = ""
+
+
+@dataclass
+class ProspectorRow:
+    """Summary row for the Prospector results table."""
+    company_name: str
+    company_url: str = ""
+    top_product: str = ""
+    lab_score: int = 0
+    partnership_score: int = 0
+    composite_score: int = 0
+    skillable_path: str = ""          # "Labable" | "Simulations" | "Do Not Pursue"
+    top_contact_name: str = ""
+    top_contact_title: str = ""
+    top_contact_linkedin: str = ""
+    analysis_id: str = ""
+    flagged_poor_fit: bool = False
+
+
+@dataclass
+class PoorFitFeedback:
+    """Feedback record when a Prospector result is flagged as a poor fit."""
+    company_name: str
+    job_id: str
+    reason: str = ""
+    flagged_at: str = field(default_factory=lambda: datetime.now().isoformat())

@@ -22,6 +22,8 @@ from storage import (
     save_discovery, load_discovery,
     save_batch_job, load_batch_job,
     find_analysis_by_discovery_id,
+    save_prospector_run, load_prospector_run,
+    append_poor_fit_feedback, load_poor_fit_companies,
 )
 from models import compute_labability_total
 
@@ -477,16 +479,241 @@ def api_analyze():
 
 
 # ---------------------------------------------------------------------------
-# Prospector Blueprint (stub — Phase 4)
+# Prospector Blueprint
 # ---------------------------------------------------------------------------
 
 prospector = Blueprint("prospector", __name__, url_prefix="/prospector")
 
 
+def _derive_skillable_path(lab_score: int) -> str:
+    """Map a lab score to the three Prospector path labels."""
+    if lab_score >= 50:
+        return "Labable"
+    if lab_score >= 20:
+        return "Simulations"
+    return "Do Not Pursue"
+
+
 @prospector.route("/")
 @prospector.route("")
 def prospector_home():
-    return render_template("prospector.html")
+    poor_fit = load_poor_fit_companies()
+    return render_template("prospector.html", poor_fit_count=len(poor_fit))
+
+
+@prospector.route("/run", methods=["POST"])
+def prospector_run():
+    company_names = []
+
+    # Mode 1: CSV file upload — read first column
+    uploaded = request.files.get("csv_file")
+    if uploaded and uploaded.filename:
+        stream = io.StringIO(uploaded.stream.read().decode("utf-8-sig"))
+        reader = csv.reader(stream)
+        for row in reader:
+            if row and row[0].strip() and row[0].strip().lower() != "company":
+                company_names.append(row[0].strip())
+
+    # Mode 2: pasted text (fallback)
+    if not company_names:
+        raw = request.form.get("companies", "")
+        company_names = [n.strip() for n in raw.replace(",", "\n").splitlines() if n.strip()]
+
+    if not company_names:
+        return redirect(url_for("prospector.prospector_home"))
+
+    # Filter out previously flagged poor fits
+    poor_fit = load_poor_fit_companies()
+    filtered = [n for n in company_names if n.lower() not in poor_fit]
+    skipped = len(company_names) - len(filtered)
+    company_names = filtered
+
+    if not company_names:
+        return redirect(url_for("prospector.prospector_home"))
+
+    job_id = str(uuid.uuid4())[:8]
+    results = {}
+    semaphore = threading.Semaphore(3)
+
+    def run_batch():
+        def analyze_one(name):
+            with semaphore:
+                _push(job_id, f"status:Analyzing {name}...")
+                row = _quick_analyze_company(name)
+                if row:
+                    row["skillable_path"] = _derive_skillable_path(row.get("lab_score", 0))
+                    row["flagged_poor_fit"] = False
+                results[name] = row or {"company_name": name, "error": "Analysis failed"}
+                _push(job_id, f"progress:{name}")
+
+        threads = [threading.Thread(target=analyze_one, args=(n,), daemon=True) for n in company_names]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        save_prospector_run(job_id, {
+            "job_id": job_id,
+            "companies": company_names,
+            "skipped_poor_fit": skipped,
+            "results": results,
+            "status": "done",
+        })
+        _push(job_id, f"done:{job_id}")
+
+    threading.Thread(target=run_batch, daemon=True).start()
+    return render_template("prospector_running.html", job_id=job_id,
+                           company_count=len(company_names))
+
+
+@prospector.route("/status/<job_id>")
+def prospector_status(job_id: str):
+    return Response(stream_with_context(_sse_stream(job_id, poll_interval=0.5)),
+                    mimetype="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@prospector.route("/results/<job_id>")
+def prospector_results(job_id: str):
+    job = load_prospector_run(job_id)
+    if not job:
+        return redirect(url_for("prospector.prospector_home"))
+    results = job.get("results", {})
+    rows = [r for r in results.values() if r and "error" not in r]
+    rows.sort(key=lambda r: r.get("composite_score", 0), reverse=True)
+    for i, r in enumerate(rows):
+        r["rank"] = i + 1
+    errors = [r for r in results.values() if r and "error" in r]
+    return render_template("prospector_results.html", rows=rows, errors=errors,
+                           job_id=job_id,
+                           company_count=len(job.get("companies", [])),
+                           skipped_poor_fit=job.get("skipped_poor_fit", 0))
+
+
+@prospector.route("/flag", methods=["POST"])
+def prospector_flag():
+    data = request.get_json() or {}
+    company_name = data.get("company_name", "").strip()
+    job_id = data.get("job_id", "").strip()
+    reason = data.get("reason", "").strip()
+    if not company_name:
+        return jsonify({"error": "company_name required"}), 400
+
+    from datetime import datetime
+    append_poor_fit_feedback({
+        "company_name": company_name,
+        "job_id": job_id,
+        "reason": reason,
+        "flagged_at": datetime.now().isoformat(),
+    })
+
+    # Mark row as flagged in the stored job
+    job = load_prospector_run(job_id)
+    if job and company_name in job.get("results", {}):
+        job["results"][company_name]["flagged_poor_fit"] = True
+        save_prospector_run(job_id, job)
+
+    return jsonify({"success": True})
+
+
+@prospector.route("/export/<job_id>")
+def prospector_export(job_id: str):
+    import openpyxl
+    from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    job = load_prospector_run(job_id)
+    if not job:
+        return "Job not found", 404
+
+    results = job.get("results", {})
+    rows = sorted([r for r in results.values() if r and "error" not in r],
+                  key=lambda r: r.get("composite_score", 0), reverse=True)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Prospector Results"
+
+    # Color palette
+    green_dark  = "FF0D1A14"
+    green_hi    = "FF24ED9B"
+    green_mid   = "FF6b9e88"
+    amber       = "FFF59E0B"
+    red_soft    = "FFF87171"
+    white       = "FFE8F5F0"
+    muted       = "FF3d6655"
+    bg_header   = "FF06100C"
+
+    header_font  = Font(bold=True, color=green_hi, size=9)
+    default_font = Font(color=white, size=9)
+    muted_font   = Font(color=muted, size=8)
+    thin_side    = Side(style="thin", color="1E3329")
+    thin_border  = Border(bottom=thin_side)
+
+    headers = ["#", "Company", "Top Product", "Skillable Path",
+               "Lab Score", "Partnership", "Composite",
+               "Top Contact", "Title", "LinkedIn", "Full Analysis", "Notes"]
+    col_widths = [4, 26, 28, 16, 11, 11, 11, 22, 24, 12, 14, 30]
+
+    for col, (h, w) in enumerate(zip(headers, col_widths), 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.font = header_font
+        cell.fill = PatternFill("solid", fgColor=bg_header)
+        cell.alignment = Alignment(horizontal="center" if col in (1,5,6,7,10,11) else "left",
+                                   vertical="center")
+        ws.column_dimensions[get_column_letter(col)].width = w
+
+    ws.row_dimensions[1].height = 18
+    ws.freeze_panes = "A2"
+
+    path_colors = {"Labable": green_hi, "Simulations": amber, "Do Not Pursue": red_soft}
+
+    for i, row in enumerate(rows, 2):
+        lab   = row.get("lab_score", 0)
+        prtn  = row.get("partnership_score", 0)
+        comp  = row.get("composite_score", 0)
+        path  = row.get("skillable_path", "")
+        aid   = row.get("analysis_id", "")
+
+        def score_color(s):
+            return green_hi if s >= 70 else (amber if s >= 40 else red_soft)
+
+        values = [
+            row.get("rank", i - 1),
+            row.get("company_name", ""),
+            row.get("top_product", ""),
+            path,
+            lab, prtn, comp,
+            row.get("top_contact_name", ""),
+            row.get("top_contact_title", ""),
+            row.get("top_contact_linkedin", ""),
+            f"/inspector/results/{aid}" if aid else "",
+            "",  # Notes column — blank for user to fill
+        ]
+        for col, val in enumerate(values, 1):
+            cell = ws.cell(row=i, column=col, value=val)
+            cell.fill = PatternFill("solid", fgColor="FF0D1A14")
+            cell.border = thin_border
+            cell.alignment = Alignment(vertical="center",
+                                       horizontal="center" if col in (1,5,6,7,10,11) else "left")
+            if col in (5, 6, 7):
+                cell.font = Font(bold=True, color=score_color(val), size=9)
+            elif col == 4:
+                cell.font = Font(bold=True, color=path_colors.get(path, white), size=9)
+            elif col == 1:
+                cell.font = Font(color=muted, size=9, bold=True)
+            else:
+                cell.font = default_font
+        ws.row_dimensions[i].height = 16
+
+    out = io.BytesIO()
+    wb.save(out)
+    out.seek(0)
+    return Response(
+        out.getvalue(),
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=prospector-{job_id}.xlsx"},
+    )
 
 
 # ---------------------------------------------------------------------------

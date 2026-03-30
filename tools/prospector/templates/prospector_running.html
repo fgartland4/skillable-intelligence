@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospector Running — Skillable Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .card {
+            background: #0d1a14; border: 1px solid #1e3329; border-radius: 20px;
+            padding: 48px; max-width: 560px; width: 100%; text-align: center;
+        }
+        h1 { font-size: 1.5rem; font-weight: 800; color: #e8f5f0; margin-bottom: 8px; }
+        .sub { color: #6b9e88; font-size: 0.875rem; margin-bottom: 32px; }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid #1e3329;
+            border-top-color: #24ED9B; border-radius: 50%;
+            animation: spin 0.9s linear infinite; margin: 0 auto 28px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-log {
+            background: #06100c; border: 1px solid #1e3329; border-radius: 10px;
+            padding: 14px 16px; text-align: left; min-height: 100px; max-height: 240px;
+            overflow-y: auto; font-size: 0.8rem; color: #6b9e88;
+        }
+        .status-line { padding: 3px 0; border-bottom: 1px solid #0d1a14; line-height: 1.4; }
+        .status-line:last-child { border-bottom: none; }
+        .progress-bar-wrap { height: 4px; background: #1e3329; border-radius: 2px; margin: 16px 0 8px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: #24ED9B; border-radius: 2px; transition: width 0.4s ease; width: 0%; }
+        .progress-text { font-size: 0.78rem; color: #3d6655; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="spinner"></div>
+        <h1>Prospector Running</h1>
+        <p class="sub">Scoring {{ company_count }} {{ 'company' if company_count == 1 else 'companies' }} — this will take a few minutes.</p>
+        <div class="status-log" id="log">
+            <div class="status-line">Starting analysis...</div>
+        </div>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+        <div class="progress-text" id="progress-text">0 / {{ company_count }} complete</div>
+    </div>
+
+    <script>
+        const jobId = "{{ job_id }}";
+        const total = {{ company_count }};
+        const log = document.getElementById("log");
+        const progressText = document.getElementById("progress-text");
+        const progressBar = document.getElementById("progress-bar");
+        let completed = 0;
+
+        const es = new EventSource(`/prospector/status/${jobId}`);
+        es.onmessage = function(e) {
+            const msg = e.data;
+            if (msg.startsWith("status:")) {
+                const line = document.createElement("div");
+                line.className = "status-line";
+                line.textContent = msg.slice(7);
+                log.appendChild(line);
+                log.scrollTop = log.scrollHeight;
+            } else if (msg.startsWith("progress:")) {
+                completed++;
+                progressText.textContent = `${completed} / ${total} complete`;
+                progressBar.style.width = `${Math.round((completed / total) * 100)}%`;
+            } else if (msg.startsWith("done:")) {
+                es.close();
+                window.location.href = `/prospector/results/${msg.slice(5)}`;
+            } else if (msg.startsWith("error:")) {
+                es.close();
+                log.innerHTML += `<div class="status-line" style="color:#f87171;">Error: ${msg.slice(6)}</div>`;
+                progressText.textContent = "An error occurred.";
+            }
+        };
+        es.onerror = function() { es.close(); };
+    </script>
+</body>
+</html>
