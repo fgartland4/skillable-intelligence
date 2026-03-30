@@ -15,7 +15,7 @@ from storage import (
     find_analysis_by_company_name,
     save_prospector_run, load_prospector_run,
     append_poor_fit_feedback, load_poor_fit_companies,
-    load_discovery,
+    save_discovery, load_discovery,
 )
 
 import datetime
@@ -476,17 +476,25 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                 dm = next((c for c in contacts if c.get("role_type") == "decision_maker"), None) or (contacts[0] if contacts else None)
                 dm2 = next((c for c in contacts if c != dm and c.get("role_type") in ("influencer", "champion")), None) or next((c for c in contacts if c != dm), None)
 
-            total_highly = sum(1 for p in products if p.get("likely_labable") == "highly_likely")
-            total_likely = sum(1 for p in products if p.get("likely_labable") == "likely")
-            total_not    = sum(1 for p in products if p.get("likely_labable") in ("less_likely", "not_likely"))
-
-            # Partnership signals — load from associated discovery if available
+            # Partnership signals + full product counts — load from discovery file
             ps = {}
+            all_disc_products = []
             discovery_id = cached.get("discovery_id")
             if discovery_id:
                 disc = load_discovery(discovery_id)
                 if disc:
                     ps = disc.get("partnership_signals") or {}
+                    all_disc_products = disc.get("products") or []
+                else:
+                    log.warning("Discovery file missing for %s (discovery_id=%s)", company_name, discovery_id)
+            else:
+                log.warning("No discovery_id on cached analysis for %s — partnership signals unavailable", company_name)
+
+            # Use full discovery product list for counts; fall back to scored products
+            count_source = all_disc_products if all_disc_products else products
+            total_highly = sum(1 for p in count_source if p.get("likely_labable") == "highly_likely")
+            total_likely = sum(1 for p in count_source if p.get("likely_labable") == "likely")
+            total_not    = sum(1 for p in count_source if p.get("likely_labable") in ("less_likely", "not_likely"))
 
             skillable_path = top_product.get("skillable_path", "")
             if org_type == "academic_institution":
@@ -580,7 +588,12 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
             "page_contents": {},
             "discovery_data": discovery,
         }
+        # Save discovery data and link it to the analysis so the cache path can reload it
+        discovery_id = str(uuid.uuid4())[:8]
+        save_discovery(discovery_id, discovery)
+
         analysis = score_selected_products(research)
+        analysis.discovery_id = discovery_id
         analysis_id = save_analysis(analysis)
 
         data = load_analysis(analysis_id)
