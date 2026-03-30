@@ -354,16 +354,26 @@ Every evidence `claim` bullet MUST start with a **2–3 word bold label** follow
 
 The `technical_orchestrability` evidence bullets are SA handoff notes — written for a Skillable Solution Architect who needs to understand why this product is or is not labable, and how to approach building it.
 
-**Tell a logical story in 3–5 bullets.** There is no fixed label set — choose labels that fit THIS product's story. Lead with the signal that most determines whether and how a lab gets built. A product with a clean VM install story leads with that. A product with a critical API blocker leads with that. Follow a narrative order that makes sense: typically what it is → how it deploys → what you can automate → what's hard or blocked.
+**Tell the technical labability story in 3–6 bullets following the natural lab lifecycle arc:**
+
+**1. Provision** — How does the environment get stood up? VM image on Hyper-V, cloud subscription (Azure/AWS), or a vendor API call that spins up an isolated instance? Name the specific install mechanism, deployment model, or provisioning pattern. If provisioning is a strength (clean silent install, native cloud service, Marketplace image), say so. If it's a risk or blocker (no isolation mechanism, GPU required, 10-hour provisioning time), flag it.
+
+**2. Configure** — What gets the lab to its starting state? User accounts, permissions, seed data, licenses, service configuration, network topology. Name what's automatable and what isn't. MFA on admin accounts, GUI-only setup steps, and missing dev/NFR tiers all belong here as risks or blockers.
+
+**3. Score** — What does the product expose for validating learner work? REST API, PowerShell/CLI module, queryable config state, observable service status? Be specific about what's accessible. If the only interface is a GUI with no programmatic surface, that's a meaningful constraint — flag it. If there's a rich API, name what it covers.
+
+**4. Teardown** — Only include when teardown requires explicit action. For VM/Hyper-V labs, skip this entirely — snapshot revert is automatic, it's never a concern. For cloud subscriptions (Azure/AWS), one sentence is enough — auto-deleted at lab end. For BYOC/custom API products, this IS a real build task — the vendor API must have a DELETE or deprovision endpoint, and the absence of one is a `— Risk` or `— Blocker`.
 
 Each bullet MUST begin with a **2–4 word bold label:** `**Label:** finding.`
 The label names the specific signal — not a generic category. 1–2 sentences per bullet.
+Use `— Risk` or `— Blocker` suffix on any label that signals a problem: `**License Model — Risk:**`, `**Teardown API — Blocker:**`
+Do NOT use Skillable platform terms in evidence claims (LCA, Life Cycle Action, Pre-Build, Post-Build, Cloud Slice, Scoring Bot, AI Vision, ABA, PBT — those belong in Scoring Approach and Delivery Path bullets).
 
-**Do NOT use Skillable platform terms in evidence claims.** (LCA, Life Cycle Action, Pre-Build, Post-Build, Cloud Slice, Scoring Bot, AI Vision, ABA, PBT belong in Scoring Approach and Delivery Path bullets — not here.)
-Use `— Risk` or `— Blocker` suffix on any label that signals a problem: `**License Model — Risk:**`, `**API Access — Blocker:**`
-
-Example labels — use these or invent better ones for the specific product:
-`**Windows Install:**` · `**Linux Installer:**` · `**Docker Image:**` · `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Admin Console:**` · `**Web UI Only:**` · `**License Model:**` · `**NFR Program:**` · `**Dev Tier:**` · `**Entra ID SSO:**` · `**Tenant Isolation:**` · `**Silent Install:**` · `**Offline Activation:**` · `**Nested Virtualization:**` · `**GPU Required:**` · `**Provisioning Time:**` · `**Multi-VM Topology:**`
+Example labels by phase:
+- Provision: `**Windows Install:**` · `**Linux Installer:**` · `**Docker Image:**` · `**Azure Service:**` · `**Vendor Sandbox API:**` · `**Provisioning Time — Risk:**` · `**No Isolation — Blocker:**`
+- Configure: `**PowerShell Config:**` · `**REST Seed Data:**` · `**License Activation:**` · `**MFA Dependency — Risk:**` · `**GUI Setup Only — Risk:**` · `**NFR Program:**`
+- Score: `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Config File State:**` · `**GUI Only — Risk:**` · `**No Scoring Surface — Blocker:**`
+- Teardown: `**Auto Teardown:**` (cloud/VM) · `**Deprovision API:**` · `**No DELETE Endpoint — Risk:**`
 
 SA build notes (reference when relevant — do not surface in evidence claims):
 - Hyper-V/ESX Integration Services or VMware Tools must be installed in the VM for Skillable automation and scoring to work (LCA/ABA activities, screen commands, heartbeat detection)
