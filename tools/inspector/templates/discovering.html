@@ -62,12 +62,12 @@
         <div class="eyebrow">Researching</div>
         <div class="company-name">{{ search_label }}</div>
         <div class="status" id="status">Starting research...</div>
-        <div id="timer" style="font-size:0.72rem;color:#2a4a3a;margin-top:10px;">0:00 elapsed</div>
         <div class="dots">
             <div class="dot"></div>
             <div class="dot"></div>
             <div class="dot"></div>
         </div>
+        <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-top:16px;">deep research and scoring processes have been running for 0:00</div>
     </div>
 
     <script>
@@ -92,7 +92,7 @@
         setInterval(() => {
             const s = Math.floor((Date.now() - _t0) / 1000);
             document.getElementById('timer').textContent =
-                `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')} elapsed`;
+                `deep research and scoring processes have been running for ${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
         }, 1000);
     </script>
 </body>
