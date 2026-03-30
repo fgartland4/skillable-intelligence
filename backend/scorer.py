@@ -857,12 +857,9 @@ def discover_products_with_claude(findings: dict) -> dict:
 
 def _build_benchmarks_text() -> str:
     """Build calibration benchmarks text for product scoring calls."""
-    key_companies = {"Microsoft", "Hyland", "Cohesity", "Workday", "Facebook / Meta consumer products"}
     lines = ["\n## Scoring Calibration: Known Skillable Customers",
              "Use these benchmarks to calibrate scores. Do not copy — use to ensure consistency."]
     for b in CUSTOMER_BENCHMARKS:
-        if b["company"] not in key_companies:
-            continue
         lines.append(f"\n### {b['company']} ({b['relationship']})")
         if "products_and_paths" in b:
             lines.append(f"Products and paths: {'; '.join(b['products_and_paths'])}")
@@ -1136,6 +1133,7 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
             skillable_path={"A": "A1"}.get(p.get("skillable_path", ""), p.get("skillable_path", "Unknown")),
             path_tier=p.get("path_tier", "Unknown"),
             skillable_mechanism=p.get("skillable_mechanism", ""),
+            fabric=p.get("fabric", ""),
             user_personas=p.get("user_personas", []),
             lab_highlight=p.get("lab_highlight", ""),
             poor_match_flags=p.get("poor_match_flags", []),

@@ -110,6 +110,7 @@ class Product:
     skillable_path: str = ""            # "A1", "A2", "B", "C", "Unknown"
     path_tier: str = ""                 # "Best - Rich APIs", "Next Best - Credential Pool", etc.
     skillable_mechanism: str = ""       # "Skillable Datacenter", "Cloud Slice - Azure/AWS", etc.
+    fabric: str = ""                    # "Hyper-V", "ESX", "Docker", "Azure Cloud Slice", "AWS Cloud Slice", "Custom API", "Simulation", "Unclear"
     user_personas: list[str] = field(default_factory=list)  # e.g. ["IT Admin / Operator", "Developer / Engineer"]
     product_url: str = ""               # canonical product page URL
     lab_highlight: str = ""              # free-form short phrase — what makes this a great hands-on candidate

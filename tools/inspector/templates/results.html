@@ -209,6 +209,12 @@
             border: 1px solid #1e3329; padding: 3px 10px; border-radius: 6px;
             font-size: 0.72rem; margin-top: 5px; margin-left: 6px;
         }
+        .fabric-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 600; margin-top: 5px; margin-left: 6px;
+            background: rgba(36,237,155,0.07); color: #24ED9B;
+            border: 1px solid rgba(36,237,155,0.18);
+        }
 
         /* Score dimensions */
         .dimensions { display: flex; flex-direction: column; margin-bottom: 22px; }
@@ -751,6 +757,9 @@
                     {% if product.deployment_model and product.deployment_model != 'unknown' %}
                     <span class="product-deploy">{{ product.deployment_model }}</span>
                     {% endif %}
+                    {% if product.fabric and product.fabric not in ('', 'Unclear') %}
+                    <span class="fabric-badge">{{ product.fabric }}</span>
+                    {% endif %}
                     {% for persona in product.user_personas %}
                     <span class="persona-badge">{{ persona }}</span>
                     {% endfor %}
@@ -809,18 +818,26 @@
             </div>
             {% endif %}
 
-            {# ── Bullet routing ── #}
+            {# ── Bullet routing — extract bold label prefix, route on that only ── #}
+            {# Every bullet is **Label:** or **Label — Risk:** or **Label — Blocker:** text     #}
+            {# We extract everything before :** and strip ** + Risk/Blocker suffixes.            #}
+            {# Routing on full bullet text causes false matches when body text contains keywords #}
             {% set ns = namespace(s1=[], s3=[], s4=[], sNxt=[]) %}
             {% for bullet in (product.recommendation or []) %}
               {% set bl = bullet | lower %}
-              {% if 'next step' in bl or 'essential technical' in bl or bl.startswith('**note') %}
+              {% if ':**' in bl %}
+                {% set _label = bl.split(':**')[0].replace('**','').replace(' \u2014 risk','').replace(' \u2014 blocker','').replace(' — risk','').replace(' — blocker','').strip() %}
+              {% else %}
+                {% set _label = bl.lstrip('*').split(':')[0].strip() %}
+              {% endif %}
+              {% if _label.startswith('next step') or _label.startswith('essential technical') or _label.startswith('note') %}
                 {% set ns.sNxt = ns.sNxt + [bullet] %}
-              {% elif 'delivery path' in bl or 'scoring approach' in bl or 'scoring rationale' in bl or 'blockers' in bl or 'blocker' in bl or 'similar product' in bl %}
-                {% set ns.s1 = ns.s1 + [bullet] %}
-              {% elif 'program fit' in bl or 'enablement maturity' in bl or 'certification' in bl %}
+              {% elif _label.startswith('program fit') or _label.startswith('certification program') or _label.startswith('training program') or _label == 'enablement maturity' %}
                 {% set ns.s3 = ns.s3 + [bullet] %}
               {% else %}
-                {% set ns.s4 = ns.s4 + [bullet] %}
+                {# Default: Product Labability — delivery path, scoring approach, blockers,    #}
+                {# similar product, custom technical labels (pre-instancing, gpu, docker, etc.) #}
+                {% set ns.s1 = ns.s1 + [bullet] %}
               {% endif %}
             {% endfor %}
 
