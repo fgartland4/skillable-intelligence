@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Maturity Signals — {{ data.company_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0;
+            min-height: 100vh;
+        }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; padding: 14px 28px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.9); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 10;
+            gap: 16px;
+        }
+        .nav img { height: 26px; }
+        .nav-divider { width: 1px; height: 18px; background: #1e3329; }
+        .nav-company { font-size: 0.875rem; color: #6b9e88; font-weight: 600; }
+        .nav-score-badge {
+            margin-left: auto;
+            font-size: 1rem; font-weight: 900; letter-spacing: -0.01em;
+            padding: 4px 14px; border-radius: 8px; border: 1px solid;
+        }
+        .nav-score-badge.score-high { color: #24ED9B; border-color: rgba(36,237,155,0.4); background: rgba(36,237,155,0.08); }
+        .nav-score-badge.score-mid  { color: #f59e0b; border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
+        .nav-score-badge.score-low  { color: #f87171; border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); }
+        .back-link {
+            font-size: 0.8rem; color: #6b9e88; text-decoration: none;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .back-link:hover { color: #24ED9B; }
+
+        /* Page */
+        .container { max-width: 780px; margin: 0 auto; padding: 36px 20px 80px; }
+
+        /* Card */
+        .lm-card {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .lm-header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            padding: 24px 28px 20px; border-bottom: 1px solid #1a2e22;
+            gap: 16px;
+        }
+        .lm-title {
+            font-size: 1.4rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.02em; margin-bottom: 4px;
+        }
+        .lm-subtitle {
+            font-size: 0.78rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.08em; font-weight: 600;
+        }
+        .score-block { text-align: right; flex-shrink: 0; }
+        .score-num {
+            font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -0.03em;
+        }
+        .score-num.score-high { color: #24ED9B; }
+        .score-num.score-mid  { color: #f59e0b; }
+        .score-num.score-low  { color: #f87171; }
+        .score-denom { font-size: 0.75rem; color: #3d6655; font-weight: 500; }
+
+        /* Dimensions */
+        .dims-body { padding: 8px 0; }
+
+        details.dim-details { border-bottom: 1px solid #0f1f18; }
+        details.dim-details:last-child { border-bottom: none; }
+        details.dim-details > summary {
+            display: flex; align-items: center; gap: 12px;
+            padding: 13px 28px; cursor: pointer; list-style: none;
+            font-size: 0.88rem; color: #c0d8cc; font-weight: 600;
+            user-select: none;
+        }
+        details.dim-details > summary::-webkit-details-marker { display: none; }
+        details.dim-details > summary:hover { background: rgba(36,237,155,0.03); }
+        .dim-pct {
+            font-size: 0.82rem; font-weight: 800; margin-left: auto;
+        }
+        .dim-pct.score-high { color: #24ED9B; }
+        .dim-pct.score-mid  { color: #f59e0b; }
+        .dim-pct.score-low  { color: #f87171; }
+        .det-arrow { font-size: 0.78rem; color: #3d6655; flex-shrink: 0; }
+        details[open] .det-arrow { color: #6b9e88; }
+
+        .dim-content { padding: 0 28px 16px 28px; }
+        .dim-summary-text {
+            font-size: 0.83rem; color: #6b9e88; line-height: 1.55;
+            margin-bottom: 10px;
+        }
+        .ev-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+        .ev-list li {
+            font-size: 0.8rem; color: #a0c4b4; line-height: 1.5;
+            padding-left: 12px; position: relative;
+        }
+        .ev-list li::before {
+            content: "·"; position: absolute; left: 0; color: #3d6655;
+        }
+        .ev-list li strong { color: #c0d8cc; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+        <div class="nav-divider"></div>
+        <span class="nav-company">{{ data.company_name }}</span>
+        {% set cs = data._composite_score %}
+        <span class="nav-score-badge {% if cs >= 70 %}score-high{% elif cs >= 40 %}score-mid{% else %}score-low{% endif %}">
+            {{ cs }}/100
+        </span>
+        <a class="back-link" href="/inspector/results/{{ analysis_id }}">&#8592; Full Analysis</a>
+    </nav>
+
+    <div class="container">
+
+        {% set pr = data.lab_maturity or data.partnership_readiness or {} %}
+        {% set pr_score = data._pr_total or 0 %}
+
+        <div class="lm-card">
+            <div class="lm-header">
+                <div>
+                    <div class="lm-title">Lab Maturity Signals</div>
+                    <div class="lm-subtitle">{{ data._composite_weights }} weighting</div>
+                </div>
+                <div class="score-block">
+                    <div class="score-num {% if pr_score >= 70 %}score-high{% elif pr_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ pr_score }}</div>
+                    <div class="score-denom">/100</div>
+                </div>
+            </div>
+
+            {% macro dim_block(label, dim, mx) %}
+            {% if dim %}
+            {% set s = dim.score if dim.score is defined else 0 %}
+            {% set pct = ((s / mx) * 100) | round | int if mx > 0 else 0 %}
+            {% set tier = 'high' if pct >= 72 else ('mid' if pct >= 40 else 'low') %}
+            <details class="dim-details">
+                <summary>
+                    {{ label }}
+                    <span class="dim-pct score-{{ tier }}">{{ pct }}<span style="font-size:0.65rem;color:#3d6655;font-weight:400;">%</span></span>
+                    <span class="det-arrow">▸</span>
+                </summary>
+                <div class="dim-content">
+                    {% if dim.summary %}
+                    <div class="dim-summary-text">{{ dim.summary }}</div>
+                    {% endif %}
+                    {% if dim.evidence %}
+                    <ul class="ev-list">
+                        {% for ev in dim.evidence %}
+                        <li>{{ ev.claim | bold_labels }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </details>
+            {% endif %}
+            {% endmacro %}
+
+            <div class="dims-body">
+                {% if pr.organizational_dna and (pr.organizational_dna.summary or pr.organizational_dna.evidence) %}
+                {{ dim_block("Organizational DNA", pr.organizational_dna, 10) }}
+                {% endif %}
+                {{ dim_block("Training Org Maturity", pr.training_org_maturity, 35) }}
+                {{ dim_block("Partner Program", pr.partner_program, 27) }}
+                {{ dim_block("Customer Success", pr.customer_success, 35) }}
+                {{ dim_block("Tech & Integration Readiness", pr.tech_readiness, 10) }}
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

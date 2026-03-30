@@ -546,12 +546,13 @@ def build_open_questions_2col(doc):
     add_col_bullet(left_cell, "DLP or egress controls affecting calls to Anthropic or Serper APIs?")
 
     add_col_heading(right_cell, "RevOps")
-    add_col_bullet_prefixed(right_cell, "Recommended:", " Add a \u201cProducts\u201d card to the HubSpot Company record listing each scored product as a link to its Inspector detail page, labeled Highly Labable / Likely Labable / Not Labable.")
-    add_col_bullet_prefixed(right_cell, "Recommended:", " Add a \u201cLab Maturity Signals\u201d link on the Company record pointing to the Inspector Lab Maturity Signals card for that company.")
-    add_col_bullet(right_cell, "Standard ZoomInfo export format? Which filters before feeding Prospector?")
-    add_col_bullet(right_cell, "Should Prospector results create new HubSpot Contacts, update existing, or feed a separate object?")
-    add_col_bullet(right_cell, "Who owns the HubSpot integration build \u2014 RevOps, engineering, or third party?")
-    add_col_bullet(right_cell, "How do we track whether an Inspector analysis influenced a pipeline opportunity?")
+    add_col_bullet_prefixed(right_cell, "Recommended:", " Add a \u201cProducts\u201d card to the HubSpot Company record \u2014 each product listed as a link to its Inspector score page, labeled Highly Labable / Likely Labable / Not Labable.")
+    add_col_bullet_prefixed(right_cell, "Recommended:", " Add a \u201cLab Maturity Signals \u2192\u201d link on the Company record pointing to the full lab maturity breakdown page in Inspector.")
+    add_col_bullet_prefixed(right_cell, "Recommended:", " Prospector results should update existing HubSpot Contacts or add new ones \u2014 not a separate object.")
+    add_col_bullet_prefixed(right_cell, "Recommended:", " RevOps owns the HubSpot integration build.")
+    add_col_bullet_prefixed(right_cell, "Recommended:", " Identify the existing HubSpot source attribution field (\u201cLead Source\u201d or equivalent) and confirm the stamp value (e.g., \u201cSkillable Intelligence\u201d) \u2014 enables pipeline influence reporting.")
+    add_col_bullet(right_cell, "Standard ZoomInfo export format? Which filters to apply before feeding Prospector?")
+    add_col_bullet(right_cell, "What other tools are in the RevOps stack (Salesforce, Outreach, Apollo, Sales Navigator, etc.) that should be considered for integration or data handoff?")
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────

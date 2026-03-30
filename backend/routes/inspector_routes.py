@@ -215,6 +215,17 @@ def product_detail(analysis_id: str, product_idx: int):
     return render_template("product_detail.html", data=data, product=product, product_idx=product_idx, analysis_id=analysis_id)
 
 
+# Lab Maturity Signals detail page
+
+@inspector.route("/results/<analysis_id>/lab-maturity")
+def lab_maturity_detail(analysis_id: str):
+    data = load_analysis(analysis_id)
+    if not data:
+        return "Analysis not found", 404
+    _attach_scores(data)
+    return render_template("lab_maturity_detail.html", data=data, analysis_id=analysis_id)
+
+
 # CSV export
 
 @inspector.route("/export/<analysis_id>")
