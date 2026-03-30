@@ -856,13 +856,20 @@
             {% endif %}
 
             {# ── Layer 1: verdict + bar + ACV ── #}
-            <div style="display:flex;align-items:center;gap:10px;margin:14px 0 8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:10px;margin:14px 0 6px;flex-wrap:wrap;">
                 {% if product._total_score >= 75 %}<span class="verdict-badge verdict-strong">Strong Pursue</span>
                 {% elif product._total_score >= 55 %}<span class="verdict-badge verdict-pursue">Pursue</span>
                 {% elif product._total_score >= 35 %}<span class="verdict-badge verdict-monitor">Monitor</span>
                 {% else %}<span class="verdict-badge verdict-pass">Do Not Pursue</span>{% endif %}
                 {% set _has_blocker = product.recommendation and (product.recommendation | join(' ') | lower).find('— blocker') != -1 %}
                 {% if _has_blocker %}<span class="verdict-badge verdict-pass">&#9632; Blocker</span>{% endif %}
+                {% if _cph and _cph.get('annual_hours_high', 0) > 0 %}
+                <span style="flex:1;"></span>
+                <div style="text-align:right;line-height:1.3;">
+                    <div class="product-acv-dollars">${{ "{:,}".format((_cph.get('annual_hours_low',0)*_rate_h)|int) }} – ${{ "{:,}".format((_cph.get('annual_hours_high',0)*_rate_h)|int) }} ACV</div>
+                    <div class="product-acv-hours">{{ "{:,}".format(_cph.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cph.get('annual_hours_high',0)) }} estimated lab hrs/yr</div>
+                </div>
+                {% endif %}
             </div>
             <div class="comp-seg-bar" style="margin-bottom:8px;">
                 <div class="seg-block seg-block-tech" style="width:40%;"><div class="seg-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc1h }}</span></div></div>
@@ -870,12 +877,6 @@
                 <div class="seg-block seg-block-te"   style="width:20%;"><div class="seg-fill {% if _sc3h < 8  %}seg-low{% else %}seg-te{% endif %}"   style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc3h }}</span></div></div>
                 <div class="seg-block seg-block-mf"   style="width:10%;"><div class="seg-fill {% if _sc4h < 4  %}seg-low{% else %}seg-mf{% endif %}"   style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc4h }}</span></div></div>
             </div>
-            {% if _cph and _cph.get('annual_hours_high', 0) > 0 %}
-            <div class="product-acv" style="margin-bottom:18px;">
-                <div class="product-acv-dollars">${{ "{:,}".format((_cph.get('annual_hours_low',0)*_rate_h)|int) }} – ${{ "{:,}".format((_cph.get('annual_hours_high',0)*_rate_h)|int) }} ACV</div>
-                <div class="product-acv-hours">{{ "{:,}".format(_cph.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cph.get('annual_hours_high',0)) }} estimated lab hrs/yr</div>
-            </div>
-            {% endif %}
 
             {# ── Bullet routing — extract bold label prefix, route on that only ── #}
             {# Every bullet is **Label:** or **Label — Risk:** or **Label — Blocker:** text     #}
@@ -926,7 +927,7 @@
             <details class="dim-section dim-section-wf">
                 <summary>
                     <span class="dim-sec-dot dim-sec-dot-wf"></span>
-                    <span class="dim-sec-name">Likely Impact</span>
+                    <span class="dim-sec-name">Likely Impact of Hands-On</span>
                     <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}</span>                </summary>
                 <div class="dim-sec-content">
                     <div class="dim-sec-bar dim-sec-bar-wf" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}" style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"></div></div>
@@ -948,7 +949,7 @@
             <details class="dim-section dim-section-te">
                 <summary>
                     <span class="dim-sec-dot dim-sec-dot-te"></span>
-                    <span class="dim-sec-name">Training &amp; Enablement Maturity</span>
+                    <span class="dim-sec-name">Content Team Maturity</span>
                     <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}</span>                </summary>
                 <div class="dim-sec-content">
                     <div class="dim-sec-bar dim-sec-bar-te" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc3h < 8 %}seg-low{% else %}seg-te{% endif %}" style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"></div></div>
