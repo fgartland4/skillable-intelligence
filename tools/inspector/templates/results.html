@@ -1104,7 +1104,6 @@
                     <span class="dim-sec-score {{ tier }}">{{ dim.score }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ {{ mx }}</span></span>
                 </summary>
                 <div class="dim-sec-content">
-                    <div class="dim-sec-bar dim-sec-bar-lm" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if pct < 40 %}seg-low{% else %}seg-lm{% endif %}" style="width:{{ [pct,100]|min }}%;"></div></div>
                     {{ pr_bullets(dim) }}
                 </div>
             </details>
