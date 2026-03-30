@@ -306,7 +306,7 @@
         .product-acv-hours { font-size: 0.68rem; color: #3d6655; margin-top: 1px; }
 
         /* Composite segmented bar (Layer 1 + Layer 2) */
-        .comp-seg-bar { display:flex; height:20px; gap:3px; width:100%; }
+        .comp-seg-bar { display:flex; height:26px; gap:3px; width:100%; }
         /* Track: faint identity color — always shows which dimension */
         .seg-block { border-radius:4px; position:relative; overflow:hidden; }
         .seg-block-tech { background:rgba(36,237,155,0.12); }
@@ -320,7 +320,7 @@
         .seg-te   { background:#a78bfa; }
         .seg-mf   { background:#f59e0b; }
         .seg-low  { background:#f87171; }
-        .seg-score { font-size:0.78rem; font-weight:900; line-height:1; pointer-events:none; letter-spacing:-0.01em; text-shadow:0 1px 3px rgba(0,0,0,0.45); color:rgba(255,255,255,0.95); }
+        .seg-score { font-size:0.9rem; font-weight:900; line-height:1; pointer-events:none; letter-spacing:-0.01em; text-shadow:0 1px 3px rgba(0,0,0,0.45); color:rgba(255,255,255,0.95); }
 
         /* Layer 2 — consumption summary inside collapsible */
         .l2-consumption {
@@ -853,7 +853,7 @@
               {% else %}
                 {% set _label = bl.lstrip('*').split(':')[0].strip() %}
               {% endif %}
-              {% if _label.startswith('next step') or _label.startswith('essential technical') or _label.startswith('note') %}
+              {% if _label.startswith('next step') or _label.startswith('technical contact') or _label.startswith('note') %}
                 {% set ns.sNxt = ns.sNxt + [bullet] %}
               {% elif _label.startswith('program fit') or _label.startswith('certification program') or _label.startswith('training program') or _label == 'enablement maturity' %}
                 {% set ns.s3 = ns.s3 + [bullet] %}
@@ -993,7 +993,7 @@
                   {% if ':**' in _bl %}{% set _lbl = _bl.split(':**')[0].replace('**','').strip() %}
                   {% else %}{% set _lbl = _bl.lstrip('*').split(':')[0].strip() %}{% endif %}
                   {% if _lbl.startswith('next step') %}{% set ns2.verdict = ns2.verdict + [b] %}
-                  {% elif _lbl.startswith('essential technical') %}{% set ns2.etr = ns2.etr + [b] %}
+                  {% elif _lbl.startswith('technical contact') %}{% set ns2.etr = ns2.etr + [b] %}
                   {% else %}{% set ns2.notes = ns2.notes + [b] %}{% endif %}
                 {% endfor %}
 
@@ -1071,7 +1071,7 @@
                 {# 3. Arm your champion (ETR) #}
                 {% for b in ns2.etr %}
                 {% if ':**' in b %}{% set _btext = b.split(':**', 1)[1].strip() %}{% else %}{% set _btext = b %}{% endif %}
-                <li class="nxt-li"><strong>Arm your champion:</strong> {{ _btext | linkify }}</li>
+                <li class="nxt-li"><strong>Help your champion find:</strong> {{ _btext | linkify }}</li>
                 {% endfor %}
 
                 {# Notes (if any) #}

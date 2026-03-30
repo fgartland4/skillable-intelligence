@@ -716,27 +716,27 @@ Use ONLY these labels for the standard bullets:
 
   "**Scoring Approach:** Azure resource state is fully scriptable via PowerShell in Cloud Slice — policies, role assignments, storage config, and network topology can all be validated automatically. Scoring complexity is moderate; Activity Group Scoring mapped to task categories is the right structure if this product's certification roadmap materializes."
 
-- **Essential Technical Resource:** [REQUIRED — the most specific, actionable contact guidance possible. Never use a generic phrase like "Professional Services team" without naming exactly why that team, what they specifically own, and what the champion should actually say to find them. A seller needs to be able to forward this paragraph to their champion and have the champion know exactly who to find and what to ask.]
-
-  Reason through three things explicitly:
-
-  1. What is the single most important technical question that must be answered before a Skillable lab can be built for this specific product? Be concrete — not "does an API exist" but "can DataProtect be installed silently on Windows Server in a network-isolated environment, and what does license activation look like without internet access?" or "can a fully isolated tenant be provisioned via API with no human intervention, and what OAuth scopes are required?" This is the question that blocks or unblocks the entire lab build.
-
-  2. What team at this company most likely owns the answer? Reason from the product type — do not default to a generic role:
-     - Enterprise VM-installable software: the engineers who build deployment runbooks for enterprise customers — Implementation Engineering, Field Solutions Architecture, or PS engineers who do hands-on installs. NOT general Support or the sales team.
-     - SaaS products with provisioning APIs: whoever owns the tenant provisioning or partner API — Solutions Engineering, Partner Engineering, or Platform Engineering. NOT the developer docs team.
-     - Cloud-native/IaC products: the team that owns ARM/Bicep/CloudFormation deployment templates — DevOps or Platform Engineering. NOT Solutions Architecture.
+- **Essential Technical Resource:** [REQUIRED — SE/SA-facing technical briefing. State the single most important technical question that must be answered before a Skillable lab can be built for this product. Be concrete and specific: not "does an API exist" but "can DataProtect be installed silently on Windows Server in a network-isolated environment, and what does license activation look like without internet access?" This is the question that blocks or unblocks the entire lab build. Then name the team at this company most likely to own the answer — reason from the product type, do not default to a generic role:
+     - Enterprise VM-installable software: Implementation Engineering, Field Solutions Architecture, or PS engineers who build deployment runbooks — NOT general Support.
+     - SaaS products with provisioning APIs: Solutions Engineering, Partner Engineering, or Platform Engineering — whoever owns the tenant provisioning or partner API surface.
+     - Cloud-native/IaC products: the team that owns ARM/Bicep/CloudFormation deployment templates — DevOps or Platform Engineering.
      - CLI/developer tools: Developer Advocates or SDK/Platform Engineering — they know auth edge cases, offline use, and scope requirements.
-     - Products with existing lab infrastructure (CloudShare, Instruqt, Appsembler): whoever manages that existing infrastructure — often a dedicated lab team or DevOps.
-
-  3. What should the champion actually say to find that person? Write a specific internal ask — something they can forward in an email or paste into Slack. Not "ask your champion to connect you with..." — give the actual message the champion sends.
-
-  If a specific API endpoint, developer portal, or deployment doc URL was found in the research, embed it as a markdown link.
+     - Products with existing lab infrastructure (CloudShare, Instruqt, Appsembler): whoever manages that existing infrastructure.
+  If a relevant API endpoint, developer portal, or deployment doc URL was found in the research, embed it as a markdown link.]
 
   Example outputs:
-  "**Essential Technical Resource:** The question that blocks or unblocks everything: can DataProtect be installed silently on Windows Server in a fully network-isolated lab environment, and what does license activation look like without internet access? The team with this answer is Cohesity's Implementation Engineering or Field Solutions team — the engineers who build enterprise deployment runbooks, not general Support. Champion's internal ask: 'Can you connect me with whoever owns the enterprise deployment runbook for DataProtect? Specifically, I need to know if silent/unattended install is supported in an isolated network and what the offline license activation mechanism is.'"
+  "**Essential Technical Resource:** The question that blocks or unblocks everything: can DataProtect be installed silently on Windows Server in a fully network-isolated lab environment, and what does license activation look like without internet access? The team with this answer is Cohesity's Implementation Engineering or Field Solutions — the engineers who build enterprise deployment runbooks, not general Support."
 
-  "**Essential Technical Resource:** The key question: can a fully isolated [product] environment be provisioned programmatically via API with no human intervention, and what credentials or OAuth scopes does that require? The right team is Solutions Engineering or Partner Engineering — whoever owns the provisioning API surface for partners and integrators. Champion's ask: 'Who on your partner engineering or SE team handles API-based environment provisioning? I need to know whether we can spin up a clean, isolated instance per user via API and what service account credentials that requires.'"
+  "**Essential Technical Resource:** Core question: can a fully isolated tenant be provisioned programmatically via API with no human intervention, and what OAuth scopes does that require? The right team is Solutions Engineering or Partner Engineering — whoever owns the provisioning API surface for partners and integrators."
+
+- **Technical Contact:** [REQUIRED — seller-facing, 2 sentences max. Identify the internal role or team the seller's champion needs to find. Then give the seller a one-liner they can hand directly to their champion — something simple enough to forward in a text or Slack message. This is NOT about the technical problem — it is about helping the champion identify a person. No technical jargon. Focus entirely on role identification.]
+
+  Example outputs:
+  "**Technical Contact:** The person your champion needs to find is whoever owns enterprise deployment runbooks for DataProtect — typically in Implementation Engineering or Field Solutions. Ask your champion: 'Who handles hands-on product deployment for our enterprise customers?'"
+
+  "**Technical Contact:** The right contact is whoever owns the provisioning API or partner integration surface — usually Partner Engineering or Platform Engineering. Ask your champion: 'Who at [Company] manages API access for partners building on top of our platform?'"
+
+  "**Technical Contact:** Look for whoever manages the existing CloudShare or Instruqt lab environment — that team owns the lab infrastructure decision. Ask your champion: 'Who runs our current hands-on lab or sandbox environment?'"
 
 - **Program Fit:** [which of the standard program types these labs serve, and the business outcome. Include when 2+ program types apply — this is the reusability/ROI case. Format: "**Program Fit:** Customer Training & Enablement (ILT, on-demand catalog) + Channel Enablement (technical demos, SE credentials) — a single lab investment drives adoption, reduces churn, and shortens deal cycles." Standard program types: Customer Training & Enablement (ILT/vILT, on-demand catalog, certification — drives adoption & reduces churn), Channel & Technical Seller Enablement (bootcamps, demos, tailored PoCs, SE credentials — reduces deal cycles, shortens time to revenue), Employee Training & Enablement (internal bootcamps, on-demand courses, assessments — reduces time to resolution, increases efficiency), Customer & Partner Events (adoption campaigns, product launches, exam launches — drives loyalty, generates qualified leads). Omit this bullet if only one program type applies and it's already obvious from context.]
 
@@ -770,7 +770,7 @@ Use ONLY these labels for the standard bullets:
   - `**Bicep Templates:**` — vendor publishes Bicep templates; lab authors can reuse directly in Azure Cloud Slice
   - `**MFA Dependency — Risk:**` — MFA enforcement on admin accounts will break automated scoring via REST API
 
-REQUIRED bullets: Delivery Path, Scoring Approach, Essential Technical Resource, Next Step.
+REQUIRED bullets: Delivery Path, Scoring Approach, Essential Technical Resource, Technical Contact, Next Step.
 OPTIONAL (include when applicable and genuinely useful — highly encouraged for product-specific context): [Custom Label] (1–2 max), Similar Products Already in Skillable, Program Fit, Blockers, Note.
 Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
 Total: 3–6 bullets. Fewer sharp bullets beats more diluted ones. Never use "Path A", "Path B", or "Path C".
