@@ -805,25 +805,26 @@
             {% set te_dim = product.labability_score.training_ecosystem %}
             {% set mf_dim = product.labability_score.market_fit %}
 
-            {# Sort recommendation bullets into sections using lowercase substring matching        #}
-            {# s1 = Technical Orchestrability: delivery, scoring, essential tech, blockers, similar products #}
-            {# s3 = Training & Enablement Maturity: program fit, certification                 #}
-            {# s4 = Strategic Fit & Next Steps: next step, note, custom labels, catch-all      #}
-            {% set ns = namespace(s1=[], s3=[], s4=[]) %}
+            {# ── Bullet routing ──────────────────────────────────────────────────── #}
+            {# s1   = Row 1 (Can we build it?): delivery, scoring, similar, blockers  #}
+            {# s3   = Row 3 (Is the org ready?): program fit, certification           #}
+            {# s4   = Row 4 (Market fit): custom labels, catch-all                   #}
+            {# sNxt = Next Steps section: next step, essential technical, note        #}
+            {% set ns = namespace(s1=[], s3=[], s4=[], sNxt=[]) %}
             {% for bullet in (product.recommendation or []) %}
               {% set bl = bullet | lower %}
-              {% if 'delivery path' in bl or 'scoring approach' in bl or 'scoring rationale' in bl or 'essential technical' in bl or 'blockers' in bl or 'blocker' in bl or 'similar product' in bl %}
+              {% if 'next step' in bl or 'essential technical' in bl or bl.startswith('**note') %}
+                {% set ns.sNxt = ns.sNxt + [bullet] %}
+              {% elif 'delivery path' in bl or 'scoring approach' in bl or 'scoring rationale' in bl or 'blockers' in bl or 'blocker' in bl or 'similar product' in bl %}
                 {% set ns.s1 = ns.s1 + [bullet] %}
               {% elif 'program fit' in bl or 'enablement maturity' in bl or 'certification' in bl %}
                 {% set ns.s3 = ns.s3 + [bullet] %}
-              {% elif 'next step' in bl or bl.startswith('**note') %}
-                {% set ns.s4 = ns.s4 + [bullet] %}
               {% else %}
                 {% set ns.s4 = ns.s4 + [bullet] %}
               {% endif %}
             {% endfor %}
 
-            {# ── Skillable Recommendations — single collapsible, four .dim rows ── #}
+            {# ── Skillable Recommendations collapsible ───────────────────────────── #}
             <details class="tech-details rec-details">
                 <summary>
                     <span style="display:flex; align-items:center; gap:10px;">
@@ -841,14 +842,58 @@
                     </span>
                 </summary>
                 <div class="recommendation">
+
+                {# ── Layer 2: composite bar + consumption motions ── #}
+                {% set sc1 = tech_dim.score | default(0) %}
+                {% set sc2 = wf_dim.score | default(0) %}
+                {% set sc3 = te_dim.score | default(0) %}
+                {% set sc4 = mf_dim.score | default(0) %}
+                <div class="comp-seg-bar" style="margin-bottom:16px;">
+                    <div class="seg-block" style="width:40%;"><div class="seg-fill seg-tech" style="width:{{ [(sc1/40*100)|int,100]|min }}%;"></div></div>
+                    <div class="seg-block" style="width:30%;"><div class="seg-fill seg-wf"   style="width:{{ [(sc2/30*100)|int,100]|min }}%;"></div></div>
+                    <div class="seg-block" style="width:20%;"><div class="seg-fill seg-te"   style="width:{{ [(sc3/20*100)|int,100]|min }}%;"></div></div>
+                    <div class="seg-block" style="width:10%;"><div class="seg-fill seg-mf"   style="width:{{ [(sc4/10*100)|int,100]|min }}%;"></div></div>
+                </div>
+
+                {% set cp = product.get('consumption_potential', {}) %}
+                {% if cp and cp.get('annual_hours_high', 0) > 0 %}
+                {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set rate_lo = 10.5 %}{% set rate_hi = 10.5 %}
+                {% elif product.skillable_path == 'C' %}{% set rate_lo = 5.0 %}{% set rate_hi = 5.0 %}
+                {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set rate_lo = cp.get('vm_rate_estimate') %}{% set rate_hi = cp.get('vm_rate_estimate') %}
+                {% else %}{% set rate_lo = 12.0 %}{% set rate_hi = 55.0 %}{% endif %}
+                <div class="l2-consumption">
+                    <div class="l2-cons-header">Estimated Consumption Potential</div>
+                    {% for m in cp.get('motions', []) %}
+                    {% set mh_low  = (m.get('population_low',  0) * m.get('hours_low',  0) * m.get('adoption_pct', 0)) | int %}
+                    {% set mh_high = (m.get('population_high', 0) * m.get('hours_high', 0) * m.get('adoption_pct', 0)) | int %}
+                    {% if mh_high > 0 %}
+                    <div class="l2-cons-row">
+                        <span class="l2-cons-label">{{ m.get('label', '') }}</span>
+                        <span class="l2-cons-value">{{ "{:,}".format(mh_low) }}–{{ "{:,}".format(mh_high) }} hrs</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="l2-cons-total">
+                        <span class="l2-cons-total-label">Annual Potential</span>
+                        <div style="text-align:right;">
+                            <div class="l2-cons-acv">${{ "{:,}".format((cp.get('annual_hours_low',0) * rate_lo)|int) }} – ${{ "{:,}".format((cp.get('annual_hours_high',0) * rate_hi)|int) }}</div>
+                            <div class="l2-cons-hrs">{{ "{:,}".format(cp.get('annual_hours_low',0)) }}–{{ "{:,}".format(cp.get('annual_hours_high',0)) }} lab hrs/yr</div>
+                        </div>
+                    </div>
+                    {% if cp.get('methodology_note') %}
+                    <div class="consumption-methodology" style="margin-top:10px;">{{ cp.get('methodology_note') }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {# ── Four scoring rows ───────────────────────────────────────────── #}
                 <div class="dimensions">
 
-                {# ── Row 1: Technical Orchestrability & Performance Scoring ── #}
-                {% set sc1 = tech_dim.score | default(0) %}
-                {% set t1 = 'high' if sc1 >= 18 else ('mid' if sc1 >= 10 else 'low') %}
+                {# Row 1 — Can we build it? (40%) #}
+                {% set t1 = 'high' if sc1 >= 29 else ('mid' if sc1 >= 16 else 'low') %}
                 <div class="dim">
                     <div>
-                        <div class="dim-label">Technical Orchestrability &amp; Performance Scoring</div>
+                        <div class="dim-label">Can we build it? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Technical Orchestrability</span></div>
                         <ul class="pr-bullets">
                             {% if tech_dim.evidence %}{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif tech_dim.summary %}<li class="dim-summary">{{ tech_dim.summary }}</li>{% endif %}
@@ -856,23 +901,22 @@
                         {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t1 }}">{{ sc1 }}<span class="dim-score-denom">/25</span></div>
-                        <div class="bar-track" style="width:100%;"><div class="bar-fill {{ t1 }}" style="width:{{ [(sc1/25*100)|int,100]|min }}%;"></div></div>
+                        <div class="dim-score-num score-{{ t1 }}">{{ sc1 }}<span class="dim-score-denom">/40</span></div>
+                        <div class="bar-track"><div class="bar-fill {{ t1 }}" style="width:{{ [(sc1/40*100)|int,100]|min }}%;"></div></div>
                     </div>
                 </div>
 
-                {# ── Row 2: Workflow Complexity ── #}
-                {% set sc2 = wf_dim.score | default(0) %}
-                {% set t2 = 'high' if sc2 >= 18 else ('mid' if sc2 >= 10 else 'low') %}
+                {# Row 2 — Is it worth doing labs? (30%) #}
+                {% set t2 = 'high' if sc2 >= 21 else ('mid' if sc2 >= 12 else 'low') %}
                 <div class="dim">
                     <div>
-                        <div class="dim-label">Workflow Complexity</div>
+                        <div class="dim-label">Is it worth doing labs? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Workflow Complexity</span></div>
                         <ul class="pr-bullets">
                             {% if wf_dim.evidence %}{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif wf_dim.summary %}<li class="dim-summary">{{ wf_dim.summary }}</li>{% endif %}
                         </ul>
                         {% if product.lab_concepts %}
-                        <div style="margin-top:14px;">
+                        <div style="margin-top:12px;">
                             <div class="section-title">Suggested Lab Concepts</div>
                             <div class="lab-concepts-grid">
                                 {% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}
@@ -881,17 +925,16 @@
                         {% endif %}
                     </div>
                     <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t2 }}">{{ sc2 }}<span class="dim-score-denom">/25</span></div>
-                        <div class="bar-track" style="width:100%;"><div class="bar-fill {{ t2 }}" style="width:{{ [(sc2/25*100)|int,100]|min }}%;"></div></div>
+                        <div class="dim-score-num score-{{ t2 }}">{{ sc2 }}<span class="dim-score-denom">/30</span></div>
+                        <div class="bar-track"><div class="bar-fill {{ t2 }}" style="width:{{ [(sc2/30*100)|int,100]|min }}%;"></div></div>
                     </div>
                 </div>
 
-                {# ── Row 3: Training & Enablement Maturity ── #}
-                {% set sc3 = te_dim.score | default(0) %}
-                {% set t3 = 'high' if sc3 >= 18 else ('mid' if sc3 >= 10 else 'low') %}
+                {# Row 3 — Is the org ready? (20%) #}
+                {% set t3 = 'high' if sc3 >= 14 else ('mid' if sc3 >= 8 else 'low') %}
                 <div class="dim">
                     <div>
-                        <div class="dim-label">Training &amp; Enablement Maturity</div>
+                        <div class="dim-label">Is the org ready? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Training &amp; Enablement Maturity</span></div>
                         <ul class="pr-bullets">
                             {% if te_dim.evidence %}{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif te_dim.summary %}<li class="dim-summary">{{ te_dim.summary }}</li>{% endif %}
@@ -899,17 +942,16 @@
                         {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t3 }}">{{ sc3 }}<span class="dim-score-denom">/25</span></div>
-                        <div class="bar-track" style="width:100%;"><div class="bar-fill {{ t3 }}" style="width:{{ [(sc3/25*100)|int,100]|min }}%;"></div></div>
+                        <div class="dim-score-num score-{{ t3 }}">{{ sc3 }}<span class="dim-score-denom">/20</span></div>
+                        <div class="bar-track"><div class="bar-fill {{ t3 }}" style="width:{{ [(sc3/20*100)|int,100]|min }}%;"></div></div>
                     </div>
                 </div>
 
-                {# ── Row 4: Strategic Fit & Next Steps ── #}
-                {% set sc4 = mf_dim.score | default(0) %}
-                {% set t4 = 'high' if sc4 >= 18 else ('mid' if sc4 >= 10 else 'low') %}
+                {# Row 4 — Strategically aligned? (10%) #}
+                {% set t4 = 'high' if sc4 >= 7 else ('mid' if sc4 >= 4 else 'low') %}
                 <div class="dim" style="border-bottom:none; padding-bottom:0;">
                     <div>
-                        <div class="dim-label">Strategic Fit &amp; Next Steps</div>
+                        <div class="dim-label">Strategically aligned? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Market &amp; Strategic Fit</span></div>
                         <ul class="pr-bullets">
                             {% if mf_dim.evidence %}{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif mf_dim.summary %}<li class="dim-summary">{{ mf_dim.summary }}</li>{% endif %}
@@ -917,12 +959,23 @@
                         {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t4 }}">{{ sc4 }}<span class="dim-score-denom">/25</span></div>
-                        <div class="bar-track" style="width:100%;"><div class="bar-fill {{ t4 }}" style="width:{{ [(sc4/25*100)|int,100]|min }}%;"></div></div>
+                        <div class="dim-score-num score-{{ t4 }}">{{ sc4 }}<span class="dim-score-denom">/10</span></div>
+                        <div class="bar-track"><div class="bar-fill {{ t4 }}" style="width:{{ [(sc4/10*100)|int,100]|min }}%;"></div></div>
                     </div>
                 </div>
 
                 </div>{# end .dimensions #}
+
+                {# ── Next Steps ──────────────────────────────────────────────────── #}
+                {% if ns.sNxt %}
+                <div class="next-steps-section">
+                    <div class="next-steps-label">Next Steps</div>
+                    <ul class="rec-bullets">
+                        {% for b in ns.sNxt %}<li>{{ b | linkify }}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
                 </div>{# end .recommendation #}
             </details>{# end Skillable Recommendations #}
 
@@ -1004,72 +1057,6 @@
                 </div>
             </details>
 
-            {% set cp = product.get('consumption_potential', {}) %}
-            {% if cp and cp.get('annual_hours_high', 0) > 0 %}
-            <details class="tech-details">
-            <summary>Consumption Potential</summary>
-            <div class="consumption-card" style="margin-top:0;border-top-left-radius:0;border-top-right-radius:0;border-top:none;">
-                <div class="consumption-header">
-                    <div class="consumption-directional">Directional estimate — see methodology below</div>
-                </div>
-                <table class="consumption-table">
-                    <thead>
-                        <tr>
-                            <th style="width:100%">Motion</th>
-                            <th>Total<br>People</th>
-                            <th>Adopt %</th>
-                            <th>Lab Hrs</th>
-                            <th><strong>Total Est Lab Hours</strong></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for motion in cp.get('motions', []) | sort(attribute='population_high', reverse=true) %}
-                        {% set pop_lo = motion.get('population_low', 0) %}
-                        {% set pop_hi = motion.get('population_high', 0) %}
-                        {% set adopt = motion.get('adoption_pct', 0) %}
-                        {% set hrs_lo = motion.get('hours_low', 0) %}
-                        {% set hrs_hi = motion.get('hours_high', 0) %}
-                        {% set est_lo = (pop_lo * adopt * hrs_lo) | int %}
-                        {% set est_hi = (pop_hi * adopt * hrs_hi) | int %}
-                        <tr>
-                            <td>
-                                <div class="consumption-motion-label">{{ motion.get('label', '') }}</div>
-                                {% if motion.get('rationale') %}<div class="consumption-motion-rationale">{{ motion.get('rationale') }}</div>{% endif %}
-                            </td>
-                            <td>{{ "{:,}".format(pop_lo) }}–{{ "{:,}".format(pop_hi) }}</td>
-                            <td>{{ (adopt * 100) | int }}%</td>
-                            <td>{{ hrs_lo | int }}–{{ hrs_hi | int }}</td>
-                            <td><strong>{{ "{:,}".format(est_lo) }}–{{ "{:,}".format(est_hi) }}</strong></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% if product.skillable_path in ['A', 'A1', 'A2'] %}
-                    {% set rate_lo = 10.5 %}{% set rate_hi = 10.5 %}{% set rate_label = "@$10.50/hr Cloud Slice" %}
-                {% elif product.skillable_path == 'C' %}
-                    {% set rate_lo = 5 %}{% set rate_hi = 5 %}{% set rate_label = "@$5/hr Simulation" %}
-                {% elif cp.get('vm_rate_estimate', 0) > 0 %}
-                    {% set rate_lo = cp.get('vm_rate_estimate') %}{% set rate_hi = cp.get('vm_rate_estimate') %}{% set rate_label = "@$" ~ cp.get('vm_rate_estimate') ~ "/hr VM (estimated complexity)" %}
-                {% else %}
-                    {% set rate_lo = 12 %}{% set rate_hi = 55 %}{% set rate_label = "@$12–$55/hr VM (simple→exotic)" %}
-                {% endif %}
-                <div class="rollup-summary">
-                    <div class="rollup-summary-row">
-                        <span class="rollup-summary-label">Estimated Annual Lab Hours</span>
-                        <span class="rollup-summary-value">{{ "{:,}".format(cp.get('annual_hours_low', 0)) }}–{{ "{:,}".format(cp.get('annual_hours_high', 0)) }}</span>
-                    </div>
-                    <div class="rollup-summary-row">
-                        <span class="rollup-summary-label">Estimated ACV Potential</span>
-                        <span class="rollup-summary-value">${{ "{:,}".format((cp.get('annual_hours_low', 0) * rate_lo) | int) }}–${{ "{:,}".format((cp.get('annual_hours_high', 0) * rate_hi) | int) }}</span>
-                    </div>
-                    <div class="rollup-acv-note">{{ rate_label }} — <em>rates are estimates, verify before use</em></div>
-                </div>
-                {% if cp.get('methodology_note') %}
-                <div class="consumption-methodology">{{ cp.get('methodology_note') }}</div>
-                {% endif %}
-            </div>
-            </details>
-            {% endif %}
         </div>
         {% endfor %}
 
