@@ -155,7 +155,7 @@ def build_header(doc, logo_path):
 
     # Logo paragraph
     logo_p = header.add_paragraph()
-    logo_p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    logo_p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     set_paragraph_spacing(logo_p, before=0, after=40)
 
     run = logo_p.add_run()
@@ -311,10 +311,11 @@ def build_flow_and_deps_table(doc):
         tblBorders.append(b)
     tblPr.append(tblBorders)
 
+    # Full content width: 8.5" page - 0.85" margins × 2 = 6.8" = 9792 DXA
     left_cell = outer.rows[0].cells[0]
     right_cell = outer.rows[0].cells[1]
-    left_cell.width = Twips(2520)
-    right_cell.width = Twips(6840)
+    left_cell.width = Twips(2160)
+    right_cell.width = Twips(7632)
 
     for cell in [left_cell, right_cell]:
         tc = cell._tc
@@ -428,7 +429,8 @@ def build_flow_and_deps_table(doc):
         ["HubSpot", "Destination for qualified leads & opportunity data", "Revenue Operations"],
     ]
     # Col widths inside right cell (6840 DXA total, minus small left pad)
-    dep_col_w = [2000, 3240, 1560]
+    # Dep table fills right cell (7632 DXA): Dependency | Purpose | Owner
+    dep_col_w = [2200, 3832, 1600]
 
     dep_tbl = right_cell.add_table(rows=1 + len(dep_rows), cols=3)
     dep_tbl.alignment = WD_TABLE_ALIGNMENT.LEFT
