@@ -173,7 +173,6 @@
                         <td class="cell-dim">{{ loop.index }}</td>
                         <td>
                             <span class="cell-primary">{{ row.company_name }}</span>
-                            {% if row.company_url %}<div class="cell-secondary"><a href="{{ row.company_url }}" target="_blank" class="view-link">{{ row.company_url }}</a></div>{% endif %}
                         </td>
                         <td>{{ row.top_product or '—' }}</td>
                         <td>{{ row.skillable_path or '—' }}</td>
