@@ -87,6 +87,17 @@
         .view-link { font-size: 0.78rem; white-space: nowrap; }
         .no-data { color: #2a4a3a; font-size: 0.8rem; font-style: italic; }
 
+        /* Labability counts */
+        .lab-counts { display: flex; gap: 8px; }
+        .lab-chip { font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+        .lab-chip-h { background: rgba(36,237,155,0.12); color: #24ED9B; }
+        .lab-chip-l { background: rgba(245,158,11,0.10); color: #f59e0b; }
+        .lab-chip-n { background: rgba(100,116,139,0.10); color: #64748b; }
+
+        /* Partnership signals */
+        .signal-val { font-size: 0.82rem; color: #a8d5c2; }
+        .signal-none { color: #2a4a3a; font-size: 0.8rem; }
+
         /* Flag as poor fit */
         .btn-flag {
             background: none; border: 1px solid #1e3329; color: #3d6655;
@@ -175,6 +186,12 @@
                         <th class="num">Lab Score</th>
                         <th class="num">Partnership</th>
                         <th class="num">Composite</th>
+                        <th>Labability</th>
+                        <th>ATP Program</th>
+                        <th>Channel Program</th>
+                        <th>On-demand</th>
+                        <th>Certifications</th>
+                        <th>Lab Partner</th>
                         <th>Top Contact</th>
                         <th>Full Analysis</th>
                         <th></th>
@@ -208,13 +225,27 @@
                             <div class="score-sub">/100</div>
                         </td>
                         <td>
-                            {% if row.top_contact_name %}
+                            <div class="lab-counts">
+                                {% if row.total_highly_labable %}<span class="lab-chip lab-chip-h">{{ row.total_highly_labable }} High</span>{% endif %}
+                                {% if row.total_likely_labable %}<span class="lab-chip lab-chip-l">{{ row.total_likely_labable }} Likely</span>{% endif %}
+                                {% if row.total_not_labable %}<span class="lab-chip lab-chip-n">{{ row.total_not_labable }} Not</span>{% endif %}
+                                {% if not row.total_highly_labable and not row.total_likely_labable and not row.total_not_labable %}<span class="no-data">—</span>{% endif %}
+                            </div>
+                        </td>
+                        <td><span class="{{ 'signal-val' if row.atp_program else 'signal-none' }}">{{ row.atp_program or '—' }}</span></td>
+                        <td><span class="{{ 'signal-val' if row.channel_program else 'signal-none' }}">{{ row.channel_program or '—' }}</span></td>
+                        <td><span class="{{ 'signal-val' if row.ondemand_library else 'signal-none' }}">{{ row.ondemand_library or '—' }}</span></td>
+                        <td><span class="{{ 'signal-val' if row.cert_program else 'signal-none' }}">{{ row.cert_program or '—' }}</span></td>
+                        <td><span class="{{ 'signal-val' if row.existing_lab_partner else 'signal-none' }}">{{ row.existing_lab_partner or '—' }}</span></td>
+                        <td>
+                            {% set cname = row.top_contact_name or '' %}
+                            {% if cname and 'unknown' not in cname.lower() and 'search for' not in cname.lower() %}
                             <div class="contact-name">
-                                {{ row.top_contact_name }}
+                                {{ cname }}
                                 {% if row.top_contact_linkedin %}<a href="{{ row.top_contact_linkedin }}" target="_blank" class="li-link">&#128279;</a>{% endif %}
                             </div>
                             <div class="contact-title">{{ row.top_contact_title }}</div>
-                            {% else %}<span class="no-data">Not identified</span>{% endif %}
+                            {% else %}<span class="no-data">—</span>{% endif %}
                         </td>
                         <td>
                             {% if row.analysis_id %}
