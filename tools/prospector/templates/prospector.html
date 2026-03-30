@@ -90,6 +90,12 @@
             font-size: 0.75rem; color: #3d6655; margin-top: 14px; padding-top: 14px;
             border-top: 1px solid #1e3329;
         }
+        .refresh-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 14px; padding-top: 14px; border-top: 1px solid #1e3329;
+        }
+        .refresh-row input[type="checkbox"] { accent-color: #24ED9B; width: 14px; height: 14px; cursor: pointer; }
+        .refresh-row label { font-size: 0.75rem; color: #3d6655; cursor: pointer; user-select: none; }
     </style>
 </head>
 <body>
@@ -131,6 +137,10 @@
                     <div class="submit-row">
                         <button type="submit" class="btn-primary">Run Prospector &rarr;</button>
                     </div>
+                    <div class="refresh-row">
+                        <input type="checkbox" id="force-refresh-csv" name="force_refresh" value="1">
+                        <label for="force-refresh-csv">Force refresh — ignore cached results and re-run research</label>
+                    </div>
                     {% if poor_fit_count %}
                     <div class="pf-notice">{{ poor_fit_count }} previously flagged poor-fit {{ 'company' if poor_fit_count == 1 else 'companies' }} will be skipped automatically.</div>
                     {% endif %}
@@ -145,6 +155,10 @@
                     <div class="field-hint">One company per line (or comma-separated). Limit to 25 companies per batch for best results.</div>
                     <div class="submit-row">
                         <button type="submit" class="btn-primary">Run Prospector &rarr;</button>
+                    </div>
+                    <div class="refresh-row">
+                        <input type="checkbox" id="force-refresh-paste" name="force_refresh" value="1">
+                        <label for="force-refresh-paste">Force refresh — ignore cached results and re-run research</label>
                     </div>
                     {% if poor_fit_count %}
                     <div class="pf-notice">{{ poor_fit_count }} previously flagged poor-fit {{ 'company' if poor_fit_count == 1 else 'companies' }} will be skipped automatically.</div>

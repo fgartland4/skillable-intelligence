@@ -48,6 +48,25 @@ def load_analysis(analysis_id: str) -> dict | None:
         return json.load(f)
 
 
+def find_analysis_by_company_name(company_name: str) -> dict | None:
+    """Return the most recent full analysis dict for a company name (case-insensitive), or None."""
+    if not os.path.exists(DATA_DIR):
+        return None
+    needle = company_name.lower().strip()
+    files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json")]
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(DATA_DIR, f)), reverse=True)
+    for filename in files:
+        filepath = os.path.join(DATA_DIR, filename)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if data.get("company_name", "").lower().strip() == needle:
+                return data
+        except Exception:
+            continue
+    return None
+
+
 def find_analysis_by_discovery_id(discovery_id: str) -> dict | None:
     """Return the most recent analysis that came from this discovery_id, or None."""
     if not os.path.exists(DATA_DIR):

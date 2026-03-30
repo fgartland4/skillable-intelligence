@@ -22,6 +22,7 @@ from storage import (
     save_discovery, load_discovery,
     save_batch_job, load_batch_job,
     find_analysis_by_discovery_id,
+    find_analysis_by_company_name,
     save_prospector_run, load_prospector_run,
     append_poor_fit_feedback, load_poor_fit_companies,
 )
@@ -532,6 +533,8 @@ def prospector_run():
     if not company_names:
         return redirect(url_for("prospector.prospector_home"))
 
+    force_refresh = request.form.get("force_refresh") == "1"
+
     job_id = str(uuid.uuid4())[:8]
     results = {}
     semaphore = threading.Semaphore(3)
@@ -544,7 +547,7 @@ def prospector_run():
                 if job_id in _cancelled_jobs:
                     return
                 _push(job_id, f"status:Analyzing {name}...")
-                row = _quick_analyze_company(name)
+                row = _quick_analyze_company(name, force_refresh=force_refresh)
                 if row:
                     row["skillable_path"] = _derive_skillable_path(row.get("lab_score", 0))
                     row["flagged_poor_fit"] = False
@@ -767,8 +770,77 @@ def designer_home():
 _LABABLE_ORDER = {"highly_likely": 0, "likely": 1, "less_likely": 2, "not_likely": 3}
 
 
-def _quick_analyze_company(company_name: str) -> dict | None:
-    """Run full discovery + score for a single company (top 1 product)."""
+def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> dict | None:
+    """Run full discovery + score for a single company (top 1 product).
+
+    If a prior analysis exists for this company name and force_refresh is False,
+    the cached result is returned immediately without any web research or Claude calls.
+    """
+    # ── Cache lookup ────────────────────────────────────────────────────────
+    if not force_refresh:
+        cached = find_analysis_by_company_name(company_name)
+        if cached:
+            products = cached.get("products") or []
+            for p in products:
+                scores = p.get("labability_score") or {}
+                tech = scores.get("technical_orchestrability", {}).get("score", 0)
+                other = sum(s.get("score", 0) for k, s in scores.items()
+                            if k != "technical_orchestrability" and isinstance(s, dict))
+                p["_total_score"] = compute_labability_total(tech, other, p.get("skillable_path", ""))
+            products.sort(key=lambda p: p.get("_total_score", 0), reverse=True)
+
+            pr = cached.get("partnership_readiness") or {}
+            pr_raw = sum(s.get("score", 0) for s in pr.values() if isinstance(s, dict))
+            pr_total = min(100, round(pr_raw / 1.17))
+
+            top_product = products[0] if products else {}
+            lab_score = top_product.get("_total_score", 0)
+            org_type = cached.get("organization_type", "software_company")
+            composite, _, _ = _compute_composite(lab_score, pr_total, org_type)
+
+            contacts = top_product.get("contacts") or []
+            dm = next((c for c in contacts if c.get("role_type") == "decision_maker"), None) or (contacts[0] if contacts else None)
+
+            # Rebuild product counts from the stored discovery (approximated from products list)
+            total_highly = sum(1 for p in products if p.get("_total_score", 0) >= 50)
+            total_likely = sum(1 for p in products if 20 <= p.get("_total_score", 0) < 50)
+            total_not = sum(1 for p in products if p.get("_total_score", 0) < 20)
+
+            def _fmt_ondemand(val):
+                if val is None: return ""
+                if val == -1: return "Yes"
+                return str(val) if val > 0 else ""
+
+            def _fmt_cert(val):
+                if val is None: return ""
+                return str(val)
+
+            # Partnership signals may not exist on old analyses — degrade gracefully
+            ps = {}
+
+            return {
+                "company_name": cached.get("company_name", company_name),
+                "company_url": cached.get("company_url", ""),
+                "top_product": top_product.get("name", ""),
+                "lab_score": lab_score,
+                "partnership_score": pr_total,
+                "composite_score": composite,
+                "top_contact_name": dm.get("name", "") if dm else "",
+                "top_contact_title": dm.get("title", "") if dm else "",
+                "top_contact_linkedin": dm.get("linkedin_url", "") if dm else "",
+                "analysis_id": cached.get("analysis_id", ""),
+                "total_highly_labable": total_highly,
+                "total_likely_labable": total_likely,
+                "total_not_labable": total_not,
+                "atp_program": ps.get("atp_program") or "",
+                "channel_program": ps.get("channel_program") or "",
+                "ondemand_library": _fmt_ondemand(ps.get("ondemand_library")),
+                "cert_program": _fmt_cert(ps.get("cert_program")),
+                "existing_lab_partner": ps.get("existing_lab_partner") or "",
+                "_from_cache": True,
+            }
+
+    # ── Full research path ───────────────────────────────────────────────────
     try:
         findings = discover_products(company_name)
         discovery = discover_products_with_claude(findings)
