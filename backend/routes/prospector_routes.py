@@ -95,7 +95,7 @@ def prospector_run():
 
     job_id = str(uuid.uuid4())[:8]
     results = {}
-    semaphore = threading.Semaphore(3)
+    semaphore = threading.Semaphore(6)
 
     def run_batch():
         def analyze_one(name):

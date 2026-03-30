@@ -102,19 +102,27 @@ def _search_web(query: str, num_results: int = 5) -> list[dict]:
 
 
 def _run_searches_parallel(queries: list[tuple[str, str]], num_results: int = 5) -> dict[str, list[dict]]:
-    """Run multiple searches in parallel. queries is a list of (label, query) tuples."""
+    """Run multiple searches in parallel. queries is a list of (label, query) tuples.
+    Caps total wait time at 25 seconds — any search not finished by then returns empty."""
     results = {}
     with ThreadPoolExecutor(max_workers=12) as executor:
         future_to_label = {
             executor.submit(_search_web, query, num_results): label
             for label, query in queries
         }
-        for future in as_completed(future_to_label):
-            label = future_to_label[future]
-            try:
-                results[label] = future.result()
-            except Exception as e:
-                results[label] = [{"title": "Error", "url": "", "snippet": str(e)}]
+        try:
+            for future in as_completed(future_to_label, timeout=25):
+                label = future_to_label[future]
+                try:
+                    results[label] = future.result()
+                except Exception as e:
+                    results[label] = [{"title": "Error", "url": "", "snippet": str(e)}]
+        except TimeoutError:
+            log.warning("Search batch timed out after 25s — using partial results (%d/%d complete)",
+                        len(results), len(future_to_label))
+            for future, label in future_to_label.items():
+                if label not in results:
+                    results[label] = []
     return results
 
 
@@ -178,18 +186,11 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         # Customer success & LMS
         ("cs",              f"{company_name} customer success onboarding professional services"),
         ("lms",             f"{company_name} LMS learning management system platform"),
-        # Org & contacts — 4 targeted queries covering the 3 key functions:
-        # (1) Customer education/training leaders (CxO through VP/Head of)
-        ("org_cx_edu",      f"site:linkedin.com/in/ {company_name} Chief OR VP OR SVP OR EVP OR \"Head of\" \"customer education\" OR \"customer training\" OR \"customer enablement\" OR \"learning officer\""),
-        # (2) Partner / channel enablement leaders
-        ("org_partner_ena", f"site:linkedin.com/in/ {company_name} Chief OR VP OR SVP OR EVP OR \"Head of\" \"partner enablement\" OR \"channel enablement\" OR \"partner education\" OR \"partner training\" OR \"global enablement\""),
-        # (3) Certification program leaders
-        ("org_cert",        f"site:linkedin.com/in/ {company_name} Chief OR VP OR SVP OR Director OR \"Head of\" certification OR \"certification program\" OR \"technical certification\""),
-        # (4) Director-level influencers + catch-all for orgs with non-standard titles
-        ("org_directors",   f"site:linkedin.com/in/ {company_name} Director OR \"Head of\" \"technical training\" OR \"technical enablement\" OR \"training and certification\" OR \"global training\" OR \"enablement\""),
-        # (5) Alumni signal — prospect employees with prior experience at known Skillable customers
-        #     in training, education, enablement, or certification roles
-        ("org_alumni",      f"site:linkedin.com/in/ {company_name} ({' OR '.join(_SKILLABLE_CUSTOMER_NAMES[:8])}) training OR education OR enablement OR certification"),
+        # Org & contacts — 2 consolidated LinkedIn queries (reduced from 5 to limit rate-limiting):
+        # (1) VP-and-above across all three key functions: customer education, partner enablement, certification
+        ("org_senior",    f"site:linkedin.com/in/ {company_name} (VP OR SVP OR EVP OR Chief OR \"Head of\") (\"customer education\" OR \"customer training\" OR \"customer enablement\" OR \"partner enablement\" OR \"channel enablement\" OR \"partner training\" OR \"certification program\" OR \"technical certification\")"),
+        # (2) Director-level catch-all covering technical training, enablement, and certification
+        ("org_directors", f"site:linkedin.com/in/ {company_name} (Director OR \"Head of\") (\"technical training\" OR \"technical enablement\" OR \"training and certification\" OR \"global training\" OR enablement OR certification)"),
     ]
     if known_products:
         queries.append(("known", f"{company_name} {' '.join(known_products)} software"))
@@ -237,9 +238,7 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         "partner_portal":   all_results.get("partner_portal", []),
         "cs_signals":       all_results.get("cs", []),
         "lms_signals":      all_results.get("lms", []),
-        "org_contacts":     (all_results.get("org_cx_edu", []) + all_results.get("org_partner_ena", [])
-                             + all_results.get("org_cert", []) + all_results.get("org_directors", [])
-                             + all_results.get("org_alumni", [])),
+        "org_contacts":     (all_results.get("org_senior", []) + all_results.get("org_directors", [])),
         "page_contents":    page_contents,
     }
 
