@@ -210,5 +210,7 @@ class ProspectorRow:
     ondemand_library: str = ""        # course count or blank
     cert_program: str = ""            # cert count or blank
     existing_lab_partner: str = ""    # platform name, "DIY", or blank
+    ilt_vilt: str = ""                # "true" or blank
+    gray_market: str = ""             # "true" or blank
 
 

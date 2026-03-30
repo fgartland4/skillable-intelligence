@@ -18,6 +18,7 @@ from storage import (
     load_discovery,
 )
 
+import datetime
 import logging
 log = logging.getLogger(__name__)
 
@@ -35,6 +36,15 @@ def _derive_skillable_path(lab_score: int) -> str:
     if lab_score >= 20:
         return "Simulations"
     return "Do Not Pursue"
+
+
+_PATH_LABELS = {
+    "A1": "Cloud Slice", "A2": "Custom API",
+    "A":  "Cloud Slice", "B":  "VM Lab", "C": "Simulation",
+}
+
+def _fmt_labability_method(path: str) -> str:
+    return _PATH_LABELS.get(path or "", "")
 
 
 def _derive_academic_path(lab_score: int, school_name: str | None, has_tech_programs: bool) -> str:
@@ -261,10 +271,12 @@ def prospector_export_csv(job_id: str):
         ])
 
     csv_bytes = output.getvalue().encode("utf-8-sig")  # BOM for Excel compatibility
+    export_date = datetime.date.today().isoformat()
+    export_filename = f"Prospector-{export_date}-{len(rows)}companies-{job_id[:6]}.csv"
     return Response(
         csv_bytes,
         mimetype="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=prospector-{job_id}.csv"},
+        headers={"Content-Disposition": f"attachment; filename={export_filename}"},
     )
 
 
@@ -382,10 +394,12 @@ def prospector_export(job_id: str):
     out = io.BytesIO()
     wb.save(out)
     out.seek(0)
+    export_date = datetime.date.today().isoformat()
+    export_filename = f"Prospector-{export_date}-{len(rows)}companies-{job_id[:6]}.xlsx"
     return Response(
         out.getvalue(),
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=prospector-{job_id}.xlsx"},
+        headers={"Content-Disposition": f"attachment; filename={export_filename}"},
     )
 
 
@@ -486,7 +500,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                 "lab_score": lab_score,
                 "lab_maturity_score": pr_total,
                 "composite_score": composite,
-                "skillable_path": skillable_path,
+                "skillable_path": _fmt_labability_method(skillable_path) if org_type != "academic_institution" else skillable_path,
                 "top_contact_name": dm.get("name", "") if dm else "",
                 "top_contact_title": dm.get("title", "") if dm else "",
                 "top_contact_linkedin": dm.get("linkedin_url", "") if dm else "",
@@ -502,6 +516,8 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                 "ondemand_library": _fmt_ondemand(ps.get("ondemand_library")),
                 "cert_program": _fmt_cert(ps.get("cert_program")),
                 "existing_lab_partner": ps.get("existing_lab_partner") or "",
+                "ilt_vilt": "✓" if ps.get("ilt_vilt") else "",
+                "gray_market": "✓" if ps.get("gray_market") else "",
                 "_from_cache": True,
             }
 
@@ -541,6 +557,8 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                     "ondemand_library": "",
                     "cert_program": "",
                     "existing_lab_partner": "",
+                    "ilt_vilt": "",
+                    "gray_market": "",
                     "_academic_prefilter": True,
                 }
 
@@ -605,7 +623,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
             "lab_score": lab_score,
             "lab_maturity_score": pr_total,
             "composite_score": composite,
-            "skillable_path": skillable_path,
+            "skillable_path": _fmt_labability_method(skillable_path) if org_type != "academic_institution" else skillable_path,
             "top_contact_name": dm.get("name", "") if dm else "",
             "top_contact_title": dm.get("title", "") if dm else "",
             "top_contact_linkedin": dm.get("linkedin_url", "") if dm else "",
@@ -621,6 +639,8 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
             "ondemand_library": _fmt_ondemand(ps.get("ondemand_library")),
             "cert_program": _fmt_cert(ps.get("cert_program")),
             "existing_lab_partner": ps.get("existing_lab_partner") or "",
+            "ilt_vilt": "✓" if ps.get("ilt_vilt") else "",
+            "gray_market": "✓" if ps.get("gray_market") else "",
         }
     except Exception:
         log.exception("Quick analyze failed for %s", company_name)

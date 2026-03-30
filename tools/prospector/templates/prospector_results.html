@@ -66,6 +66,12 @@
         .li-link:hover { color: #24ED9B; }
         .view-link { font-size: 0.78rem; white-space: nowrap; color: #6b9e88; }
         .view-link:hover { color: #24ED9B; }
+        th.num, td.num { text-align: right; }
+        .score-high { color: #24ED9B; font-weight: 700; }
+        .score-mid  { color: #f59e0b; font-weight: 700; }
+        .score-low  { color: #f87171; font-weight: 700; }
+        .td-top-product { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .td-li { white-space: nowrap; text-align: center; }
 
         /* Flag as poor fit */
         .btn-flag {
@@ -149,67 +155,94 @@
             <table>
                 <thead>
                     <tr>
-                        <th class="num">#</th>
                         <th>Company</th>
+                        <th class="num" title="Highly Labable products">H-Lab</th>
+                        <th class="num" title="Likely Labable products">L-Lab</th>
+                        <th class="num" title="Not Likely Labable products">Not</th>
                         <th>Top Product</th>
-                        <th>Skillable Path</th>
                         <th class="num">Lab Score</th>
+                        <th>Labability Method</th>
                         <th class="num">Lab Maturity</th>
                         <th class="num">Composite</th>
-                        <th>Labability</th>
-                        <th>ATP Program</th>
-                        <th>Channel Program</th>
-                        <th>On-demand</th>
-                        <th>Certifications</th>
-                        <th>Lab Partner</th>
-                        <th title="Contact quality improves when you run a full Inspector analysis on the company">Contacts</th>
-                        <th>Full Analysis</th>
+                        <th title="Authorized Training Partner program">ATP</th>
+                        <th>Channel</th>
+                        <th>Lab Program</th>
+                        <th title="Instructor-Led / Virtual Instructor-Led Training">ILT / vILT</th>
+                        <th>On-Demand</th>
+                        <th title="Gray market / third-party training exists">Gray Mkt</th>
+                        <th>Certs</th>
+                        <th title="Contact quality improves when you run a full Inspector analysis on the company">Contact 1</th>
+                        <th class="td-li">LI</th>
+                        <th>Contact 2</th>
+                        <th class="td-li">LI</th>
+                        <th>Report</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for row in rows %}
                     <tr id="row-{{ loop.index }}" {% if row.get('flagged_poor_fit') %}class="flagged"{% endif %}>
-                        <td class="cell-dim">{{ loop.index }}</td>
                         <td>
                             <span class="cell-primary">{{ row.company_name }}</span>
                         </td>
-                        <td>{{ row.top_product or '—' }}</td>
-                        <td>{{ row.skillable_path or '—' }}</td>
-                        <td>{{ row.lab_score if row.lab_score else '—' }}</td>
-                        <td>{{ row.lab_maturity_score if row.lab_maturity_score else '—' }}</td>
-                        <td>{{ row.composite_score if row.composite_score else '—' }}</td>
-                        <td>
-                            {%- set parts = [] -%}
-                            {%- if row.total_highly_labable -%}{%- set _ = parts.append(row.total_highly_labable|string + 'H') -%}{%- endif -%}
-                            {%- if row.total_likely_labable -%}{%- set _ = parts.append(row.total_likely_labable|string + 'L') -%}{%- endif -%}
-                            {%- if row.total_not_labable -%}{%- set _ = parts.append(row.total_not_labable|string + 'N') -%}{%- endif -%}
-                            {{ parts | join(' / ') or '—' }}
+                        <td class="num">{% if row.total_highly_labable %}<span>{{ row.total_highly_labable }}</span>{% else %}<span class="cell-dim">0</span>{% endif %}</td>
+                        <td class="num">{% if row.total_likely_labable %}<span>{{ row.total_likely_labable }}</span>{% else %}<span class="cell-dim">0</span>{% endif %}</td>
+                        <td class="num">{% if row.total_not_labable %}<span>{{ row.total_not_labable }}</span>{% else %}<span class="cell-dim">0</span>{% endif %}</td>
+                        <td class="td-top-product" title="{{ row.top_product }}">{{ row.top_product or '—' }}</td>
+                        <td class="num">
+                            {%- set ls = row.lab_score or 0 -%}
+                            {%- if ls >= 70 -%}<span class="score-high">{{ ls }}</span>
+                            {%- elif ls >= 40 -%}<span class="score-mid">{{ ls }}</span>
+                            {%- elif ls -%}<span class="score-low">{{ ls }}</span>
+                            {%- else -%}—{%- endif -%}
                         </td>
-                        <td>{{ row.atp_program or '—' }}</td>
-                        <td>{{ row.channel_program or '—' }}</td>
-                        <td>{{ row.ondemand_library or '—' }}</td>
-                        <td>{{ row.cert_program or '—' }}</td>
+                        <td>{{ row.skillable_path or '—' }}</td>
+                        <td class="num">
+                            {%- set lm = row.lab_maturity_score or 0 -%}
+                            {%- if lm >= 70 -%}<span class="score-high">{{ lm }}</span>
+                            {%- elif lm >= 40 -%}<span class="score-mid">{{ lm }}</span>
+                            {%- elif lm -%}<span class="score-low">{{ lm }}</span>
+                            {%- else -%}—{%- endif -%}
+                        </td>
+                        <td class="num">
+                            {%- set cs = row.composite_score or 0 -%}
+                            {%- if cs >= 70 -%}<span class="score-high">{{ cs }}</span>
+                            {%- elif cs >= 40 -%}<span class="score-mid">{{ cs }}</span>
+                            {%- elif cs -%}<span class="score-low">{{ cs }}</span>
+                            {%- else -%}—{%- endif -%}
+                        </td>
+                        <td>{{ '✓' if row.atp_program else '—' }}</td>
+                        <td>{{ '✓' if row.channel_program else '—' }}</td>
                         <td>{{ row.existing_lab_partner or '—' }}</td>
+                        <td>{{ row.ilt_vilt or '—' }}</td>
+                        <td>{{ row.ondemand_library or '—' }}</td>
+                        <td>{{ row.gray_market or '—' }}</td>
+                        <td>{{ row.cert_program or '—' }}</td>
                         <td>
                             {% set cname = row.top_contact_name or '' %}
-                            {% set cname2 = row.second_contact_name or '' %}
                             {% if cname and 'unknown' not in cname.lower() and 'search for' not in cname.lower() %}
-                                <span class="cell-primary">{{ cname }}</span>{% if row.top_contact_linkedin %}<a href="{{ row.top_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% endif %}
+                                <span class="cell-primary">{{ cname }}</span>
                                 {% if row.top_contact_title %}<div class="cell-secondary">{{ row.top_contact_title }}</div>{% endif %}
-                                {% if cname2 and 'unknown' not in cname2.lower() and 'search for' not in cname2.lower() %}
-                                <div style="margin-top:5px;padding-top:5px;border-top:1px solid #1e3329;">
-                                    <span class="cell-primary" style="font-weight:500;">{{ cname2 }}</span>{% if row.second_contact_linkedin %}<a href="{{ row.second_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% endif %}
-                                    {% if row.second_contact_title %}<div class="cell-secondary">{{ row.second_contact_title }}</div>{% endif %}
-                                </div>
-                                {% endif %}
                             {% else %}—{% endif %}
+                        </td>
+                        <td class="td-li">
+                            {% if row.top_contact_linkedin %}<a href="{{ row.top_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% set cname2 = row.second_contact_name or '' %}
+                            {% if cname2 and 'unknown' not in cname2.lower() and 'search for' not in cname2.lower() %}
+                                <span class="cell-primary" style="font-weight:500;">{{ cname2 }}</span>
+                                {% if row.second_contact_title %}<div class="cell-secondary">{{ row.second_contact_title }}</div>{% endif %}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="td-li">
+                            {% if row.second_contact_linkedin %}<a href="{{ row.second_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% else %}—{% endif %}
                         </td>
                         <td>
                             {% if row.analysis_id %}
                             <a href="/inspector/results/{{ row.analysis_id }}" class="view-link">Full Report &rarr;</a>
                             {% else %}
-                            <a href="/inspector/?prefill={{ row.company_name | urlencode }}" class="view-link">Run Inspector &rarr;</a>
+                            <a href="/inspector/?prefill={{ row.company_name | urlencode }}" class="view-link">Run &rarr;</a>
                             {% endif %}
                         </td>
                         <td>
