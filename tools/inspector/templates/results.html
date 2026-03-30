@@ -1135,10 +1135,8 @@
             {% set tier = 'high' if pct >= 72 else ('mid' if pct >= 40 else 'low') %}
             <details class="tech-details">
                 <summary>
-                    <span style="display:flex;align-items:center;gap:12px;">
-                        {{ label }}
-                        <span class="score-{{ tier }}" style="font-size:0.82rem;font-weight:800;">{{ pct }}<span style="font-size:0.65rem;color:#3d6655;font-weight:400;">%</span></span>
-                    </span>
+                    {{ label }}
+                    <span class="score-{{ tier }}" style="font-size:0.82rem;font-weight:800;margin-left:auto;">{{ pct }}<span style="font-size:0.65rem;color:#3d6655;font-weight:400;">%</span></span>
                 </summary>
                 <div class="tech-details-content">
                     {{ pr_bullets(dim) }}
