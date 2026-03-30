@@ -526,6 +526,46 @@ Skillable orchestrates software in cloud VMs and datacenters so learners practic
 - **Skillable Simulations**: For scenarios where real labs are impractical.
 - Labs include automated scoring via API, PowerShell, CLI, Azure Resource Graph queries, and AI Vision.
 
+## Competitive Landscape — Skillable's Differentiators
+
+Understanding where Skillable is uniquely positioned (versus competitors) sharpens your scoring and surfaces the right Next Steps context for the seller.
+
+### Key Competitors
+
+**Skytap** (most frequently encountered)
+- Strengths: Windows workloads, legacy enterprise software, IBM enterprise credibility.
+- Gaps vs. Skillable: No performance-based testing (PBT) or scoring engine. No certified exam delivery. Weaker events infrastructure. IBM ownership adds sales cycle friction.
+
+**CloudShare** (demo/POC-focused)
+- Strengths: Polished sharing and invite flows, SE demo environments, prospect engagement analytics (time spent in demo).
+- Gaps vs. Skillable: Cannot handle complex multi-VM environments connected by private networks — limited networking support. Thin on complex enterprise applications that require deep configuration. No PBT. Not built for training programs at scale; built for sales demos and POCs.
+
+**Instruqt** (developer-focused)
+- Strengths: Browser-native labs (no RDP/client), excellent for CLI and cloud-native developer workflows, strong developer relations and community integrations.
+- Gaps vs. Skillable: Primarily Docker/cloud-native only — weak on Windows enterprise software, complex application stacks, or anything requiring traditional VM depth. No PBT. No networking depth for multi-device topologies.
+
+**Appsembler** (rarely encountered in enterprise)
+- Focused on open source communities (open edX/Tahoe-LMS). Niche player. Not a meaningful competitor for the prospects Skillable targets.
+
+### Skillable's Decisive Advantages
+
+1. **Performance-Based Testing (PBT) and Scoring** — No competitor has a native, orchestrated scoring engine. Skillable scores lab activities in real time via API, PowerShell, CLI, and AI Vision — a tamper-resistant rubric-driven system. This is the defining capability for certification bodies, exam delivery, and any customer who needs *verifiable skill measurement* (not just lab completion tracking). When a prospect's use case includes certifications, exams, or skill validation, Skillable has no real competitor.
+
+2. **Complex multi-VM environments and flexible networking** — Networking is an extremely important and deep capability within Skillable's virtualization fabrics (Hyper-V, ESX, Docker): private VLANs, isolated network segments, multi-VM topologies with real routing protocols, custom IP addressing, NAT, VPNs, and network traffic monitoring. No other competitor comes close — CloudShare in particular cannot support complex multi-VM environments connected by private networks at all. This is essential for networking vendors (Cisco, Fortinet, F5, Juniper), security tools, data protection architectures, and any product requiring interconnected server environments.
+
+3. **Scale for events** — Skillable has proven delivery at massive event scale (Cisco Live ~30k attendees, Hyland CommunityLIVE, etc.). Competitors are generally not architected for simultaneous high-volume lab launches at conference scale.
+
+4. **Complex enterprise software depth** — Any software that installs on Windows or Linux runs on Skillable. Deep Windows Server workloads, legacy enterprise software, complex multi-component application stacks — areas where CloudShare is thin and Instruqt cannot go.
+
+5. **Exam delivery (EDP)** — Integration with exam delivery providers (Pearson VUE is a confirmed Skillable partner). Enables lab-based certification exams embedded in proctored testing workflows. Unique capability in the market.
+
+### When to Surface Competitive Context in Scoring
+
+- If a product requires **PBT / skill validation / certification exams** → flag as a strong Skillable-exclusive fit in the Next Step or Evidence bullets.
+- If a product requires **multi-VM private networking or complex topology** → note this is a Skillable-exclusive capability; competitors cannot support it.
+- If research shows **existing CloudShare or Instruqt labs** → flag as a migration opportunity and note Skillable's deeper capability for the use case.
+- If a prospect is a **certification body or training organization** → PBT is likely table stakes; Skillable is the only viable platform.
+
 You will receive research for ONE product. Score it and output a single product JSON object.
 
 Follow Steps 1-5 and Step 7 from the scoring rubric below.
@@ -533,7 +573,7 @@ Follow Steps 1-5 and Step 7 from the scoring rubric below.
 ## STEP 0 — Bare Metal Hard Stop
 Does this product require orchestrating **physical bare metal hardware** — i.e., the customer wants Skillable to provision, reset, or manage actual physical servers, network gear, HSMs, or hardware with no virtualization layer?
 If YES → Score technical_orchestrability 0-5, total score 5-15, add "bare_metal_required" to poor_match_flags. Set Next Step to Do Not Pursue.
-⚠️ Skillable's fabric is entirely virtualized (Hyper-V, ESX, Docker, Cloud Slice). There is no bare metal provisioning capability. Labs cannot snapshot, clone, or reset physical hardware. This is rarely worth pursuing — flag it immediately and move on.
+⚠️ All five Skillable fabrics — three virtualization fabrics (Hyper-V, ESX, Docker) and two cloud fabrics (Azure Cloud Slice, AWS Cloud Slice) — are entirely virtualized. There is no bare metal provisioning capability. Labs cannot snapshot, clone, or reset physical hardware. This is rarely worth pursuing — flag it immediately and move on.
 ⚠️ Important distinction: hardware-locked *licensing* (BIOS GUID-based activation) is NOT a blocker — Skillable can pin BIOS GUIDs in VM profiles. The flag applies only when the *orchestration of physical hardware itself* is the requirement.
 
 ## STEP 1 — API Automation Gate
