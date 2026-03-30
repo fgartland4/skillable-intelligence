@@ -320,7 +320,7 @@
         .seg-te   { background:#a78bfa; }
         .seg-mf   { background:#f59e0b; }
         .seg-low  { background:#f87171; }
-        .seg-score { font-size:0.6rem; font-weight:900; line-height:1; pointer-events:none; letter-spacing:-0.01em; text-shadow:0 1px 3px rgba(0,0,0,0.45); color:rgba(255,255,255,0.95); }
+        .seg-score { font-size:0.78rem; font-weight:900; line-height:1; pointer-events:none; letter-spacing:-0.01em; text-shadow:0 1px 3px rgba(0,0,0,0.45); color:rgba(255,255,255,0.95); }
 
         /* Layer 2 — consumption summary inside collapsible */
         .l2-consumption {
@@ -508,18 +508,14 @@
         /* Dimension section collapsibles */
         .dim-section { margin-bottom: 6px; }
         .dim-section > summary {
-            display: flex; flex-direction: column;
-            padding: 12px 16px; border-radius: 8px;
-            cursor: pointer; list-style: none;
+            display: flex; align-items: center; gap: 8px;
+            padding: 11px 16px; border-radius: 8px;
+            cursor: pointer;
             border: 1px solid #1e3329; background: #06100c;
             transition: border-color 0.15s;
             user-select: none;
         }
-        .dim-section > summary { list-style: none; }
-        .dim-section > summary::-webkit-details-marker { display: none; }
-        .dim-section > summary::marker { content: ''; font-size: 0; }
-        .dim-sec-arrow { transition: transform 0.2s ease; display: inline-block; }
-        .dim-section[open] > summary .dim-sec-arrow { transform: rotate(180deg); }
+        .dim-section > summary::marker { color: #3d6655; }
         .dim-section[open] > summary { border-radius: 8px 8px 0 0; }
         .dim-section-tech > summary:hover, .dim-section-tech[open] > summary { border-color: rgba(36,237,155,0.3); }
         .dim-section-wf   > summary:hover, .dim-section-wf[open]   > summary { border-color: rgba(59,130,246,0.3); }
@@ -534,7 +530,6 @@
         .dim-sec-dot-mf   { background: #f59e0b; }
         .dim-sec-name { flex: 1; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b9e88; }
         .dim-sec-score { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
-        .dim-sec-arrow { font-size: 0.82rem; color: #3d6655; flex-shrink: 0; }
         .dim-sec-bar { height: 5px; border-radius: 3px; overflow: hidden; }
         .dim-sec-bar-tech { background: rgba(36,237,155,0.12); }
         .dim-sec-bar-wf   { background: rgba(59,130,246,0.12); }
@@ -909,15 +904,11 @@
             {% set _t1 = 'score-high' if _sc1h >= 29 else ('score-mid' if _sc1h >= 16 else 'score-low') %}
             <details class="dim-section dim-section-tech">
                 <summary>
-                    <div class="dim-sec-row">
-                        <span class="dim-sec-dot dim-sec-dot-tech"></span>
-                        <span class="dim-sec-name">Product Labability</span>
-                        <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}</span>
-                        <span class="dim-sec-arrow">▾</span>
-                    </div>
-                    <div class="dim-sec-bar dim-sec-bar-tech"><div class="dim-sec-bar-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"></div></div>
-                </summary>
+                    <span class="dim-sec-dot dim-sec-dot-tech"></span>
+                    <span class="dim-sec-name">Product Labability</span>
+                    <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}</span>                </summary>
                 <div class="dim-sec-content">
+                    <div class="dim-sec-bar dim-sec-bar-tech" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"></div></div>
                     {% if tech_dim.evidence %}
                     <div class="findings-label">Technical Findings</div>
                     <ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
@@ -934,15 +925,11 @@
             {% set _t2 = 'score-high' if _sc2h >= 21 else ('score-mid' if _sc2h >= 12 else 'score-low') %}
             <details class="dim-section dim-section-wf">
                 <summary>
-                    <div class="dim-sec-row">
-                        <span class="dim-sec-dot dim-sec-dot-wf"></span>
-                        <span class="dim-sec-name">Likely Impact</span>
-                        <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}</span>
-                        <span class="dim-sec-arrow">▾</span>
-                    </div>
-                    <div class="dim-sec-bar dim-sec-bar-wf"><div class="dim-sec-bar-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}" style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"></div></div>
-                </summary>
+                    <span class="dim-sec-dot dim-sec-dot-wf"></span>
+                    <span class="dim-sec-name">Likely Impact</span>
+                    <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}</span>                </summary>
                 <div class="dim-sec-content">
+                    <div class="dim-sec-bar dim-sec-bar-wf" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}" style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"></div></div>
                     {% if wf_dim.evidence %}
                     <div class="findings-label">Workflow Signals</div>
                     <ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
@@ -960,15 +947,11 @@
             {% set _t3 = 'score-high' if _sc3h >= 14 else ('score-mid' if _sc3h >= 8 else 'score-low') %}
             <details class="dim-section dim-section-te">
                 <summary>
-                    <div class="dim-sec-row">
-                        <span class="dim-sec-dot dim-sec-dot-te"></span>
-                        <span class="dim-sec-name">Training &amp; Enablement Maturity</span>
-                        <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}</span>
-                        <span class="dim-sec-arrow">▾</span>
-                    </div>
-                    <div class="dim-sec-bar dim-sec-bar-te"><div class="dim-sec-bar-fill {% if _sc3h < 8 %}seg-low{% else %}seg-te{% endif %}" style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"></div></div>
-                </summary>
+                    <span class="dim-sec-dot dim-sec-dot-te"></span>
+                    <span class="dim-sec-name">Training &amp; Enablement Maturity</span>
+                    <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}</span>                </summary>
                 <div class="dim-sec-content">
+                    <div class="dim-sec-bar dim-sec-bar-te" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc3h < 8 %}seg-low{% else %}seg-te{% endif %}" style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"></div></div>
                     {% if te_dim.evidence %}
                     <div class="findings-label">Ecosystem Signals</div>
                     <ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
@@ -985,15 +968,11 @@
             {% set _t4 = 'score-high' if _sc4h >= 7 else ('score-mid' if _sc4h >= 4 else 'score-low') %}
             <details class="dim-section dim-section-mf">
                 <summary>
-                    <div class="dim-sec-row">
-                        <span class="dim-sec-dot dim-sec-dot-mf"></span>
-                        <span class="dim-sec-name">Market &amp; Strategic Fit</span>
-                        <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}</span>
-                        <span class="dim-sec-arrow">▾</span>
-                    </div>
-                    <div class="dim-sec-bar dim-sec-bar-mf"><div class="dim-sec-bar-fill {% if _sc4h < 4 %}seg-low{% else %}seg-mf{% endif %}" style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"></div></div>
-                </summary>
+                    <span class="dim-sec-dot dim-sec-dot-mf"></span>
+                    <span class="dim-sec-name">Market &amp; Strategic Fit</span>
+                    <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}</span>                </summary>
                 <div class="dim-sec-content">
+                    <div class="dim-sec-bar dim-sec-bar-mf" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc4h < 4 %}seg-low{% else %}seg-mf{% endif %}" style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"></div></div>
                     {% if mf_dim.evidence %}
                     <div class="findings-label">Market Signals</div>
                     <ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
@@ -1015,12 +994,9 @@
             {% else %}{% set _r5lo = 12.0 %}{% set _r5hi = 55.0 %}{% endif %}
             <details class="dim-section dim-section-cons">
                 <summary>
-                    <div class="dim-sec-row" style="margin-bottom:0;">
-                        <span class="dim-sec-dot" style="background:rgba(36,237,155,0.5);"></span>
-                        <span class="dim-sec-name">Estimated Consumption Potential</span>
-                        <span class="dim-sec-score score-high" style="font-size:0.85rem;">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }}–${{ "{:,}".format((_cp5.get('annual_hours_high',0)*_r5hi)|int) }}</span>
-                        <span class="dim-sec-arrow">▾</span>
-                    </div>
+                    <span class="dim-sec-dot" style="background:rgba(36,237,155,0.5);"></span>
+                    <span class="dim-sec-name">Estimated Consumption Potential</span>
+                    <span class="dim-sec-score score-high" style="font-size:0.85rem;">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }}–${{ "{:,}".format((_cp5.get('annual_hours_high',0)*_r5hi)|int) }}</span>
                 </summary>
                 <div class="dim-sec-content">
                     {% for m in _cp5.get('motions', []) %}
