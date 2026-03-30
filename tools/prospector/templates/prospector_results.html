@@ -66,7 +66,7 @@
         .li-link:hover { color: #24ED9B; }
         .view-link { font-size: 0.78rem; white-space: nowrap; color: #6b9e88; }
         .view-link:hover { color: #24ED9B; }
-        th.num, td.num { text-align: right; }
+        th.num, td.num { text-align: center; }
         .score-high { color: #24ED9B; font-weight: 700; }
         .score-mid  { color: #f59e0b; font-weight: 700; }
         .score-low  { color: #f87171; font-weight: 700; }
@@ -162,21 +162,21 @@
                         <th class="num">Not Labable</th>
                         <th>Top Product</th>
                         <th class="num">Lab Score</th>
-                        <th>Method</th>
+                        <th class="num">Method</th>
                         <th class="num">Lab Maturity</th>
                         <th class="num">Composite</th>
-                        <th title="Authorized Training Partner program">ATP</th>
-                        <th>Channel</th>
+                        <th class="num" title="Authorized Training Partner program">ATP</th>
+                        <th class="num">Channel</th>
                         <th>Lab Program</th>
-                        <th title="Instructor-Led / Virtual Instructor-Led Training">ILT / vILT</th>
-                        <th>On-Demand</th>
-                        <th title="Gray market / third-party training exists">Gray Mkt</th>
-                        <th>Certs</th>
+                        <th class="num" title="Instructor-Led / Virtual Instructor-Led Training">ILT / vILT</th>
+                        <th class="num">On-Demand</th>
+                        <th class="num" title="Gray market / third-party training exists">Gray Mkt</th>
+                        <th class="num">Certs</th>
                         <th title="Contact quality improves when you run a full Inspector analysis on the company">Contact 1</th>
                         <th class="td-li">LI</th>
                         <th>Contact 2</th>
                         <th class="td-li">LI</th>
-                        <th>Score Report</th>
+                        <th class="num">Score Report</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -197,7 +197,7 @@
                             {%- elif ls -%}<span class="score-low">{{ ls }}</span>
                             {%- else -%}—{%- endif -%}
                         </td>
-                        <td>{{ row.skillable_path or '—' }}</td>
+                        <td class="num">{{ row.skillable_path or '—' }}</td>
                         <td class="num">
                             {%- set lm = row.lab_maturity_score or 0 -%}
                             {%- if lm >= 70 -%}<span class="score-high">{{ lm }}</span>
@@ -212,13 +212,13 @@
                             {%- elif cs -%}<span class="score-low">{{ cs }}</span>
                             {%- else -%}—{%- endif -%}
                         </td>
-                        <td>{{ '✓' if row.atp_program else '—' }}</td>
-                        <td>{{ '✓' if row.channel_program else '—' }}</td>
+                        <td class="num">{{ '✓' if row.atp_program else '—' }}</td>
+                        <td class="num">{{ '✓' if row.channel_program else '—' }}</td>
                         <td>{{ row.existing_lab_partner or '—' }}</td>
-                        <td>{{ row.ilt_vilt or '—' }}</td>
-                        <td>{{ row.ondemand_library or '—' }}</td>
-                        <td>{{ row.gray_market or '—' }}</td>
-                        <td>{{ row.cert_program or '—' }}</td>
+                        <td class="num">{{ row.ilt_vilt or '—' }}</td>
+                        <td class="num">{{ row.ondemand_library or '—' }}</td>
+                        <td class="num">{{ row.gray_market or '—' }}</td>
+                        <td class="num">{{ row.cert_program or '—' }}</td>
                         <td class="td-contact">
                             {% set cname = row.top_contact_name or '' %}
                             {% if cname and 'unknown' not in cname.lower() and 'search for' not in cname.lower() %}
@@ -237,7 +237,7 @@
                         <td class="td-li">
                             {% if row.second_contact_linkedin %}<a href="{{ row.second_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% else %}—{% endif %}
                         </td>
-                        <td>
+                        <td class="num">
                             {% if row.analysis_id %}
                             <a href="/inspector/results/{{ row.analysis_id }}" class="view-link">View &rarr;</a>
                             {% else %}

@@ -101,14 +101,32 @@ def _attach_scores(data: dict) -> None:
 
 
 def _fmt_ondemand(val) -> str:
+    """Normalise on-demand library value: bool/yes/true/-1 → '✓', count → number string."""
     if val is None:
         return ""
+    if isinstance(val, bool):
+        return "✓" if val else ""
     if val == -1:
-        return "Yes"
-    return str(val) if val and val > 0 else ""
+        return "✓"
+    if isinstance(val, (int, float)) and val > 0:
+        return str(int(val))
+    s = str(val).strip().lower()
+    if s in ("yes", "true", "y", "1"):
+        return "✓"
+    if s in ("", "no", "false", "null", "none", "0"):
+        return ""
+    return str(val).strip()
 
 
 def _fmt_cert(val) -> str:
+    """Normalise cert program value: bool/yes/true → '✓', counts stay as numbers."""
     if val is None:
         return ""
-    return str(val)
+    if isinstance(val, bool):
+        return "✓" if val else ""
+    s = str(val).strip().lower()
+    if s in ("yes", "true", "y", "1"):
+        return "✓"
+    if s in ("", "no", "false", "null", "none", "0"):
+        return ""
+    return str(val).strip()
