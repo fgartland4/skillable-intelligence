@@ -248,14 +248,16 @@ def prospector_export_csv(job_id: str):
 
     output = io.StringIO()
     writer = csv.writer(output)
+    # Column order mirrors the web view; exports include extra columns (titles, website)
     writer.writerow([
-        "#", "Company", "Website", "Top Product", "Skillable Path",
-        "Lab Score", "Lab Maturity Score", "Composite Score",
+        "#", "Company", "Website",
         "Highly Labable", "Likely Labable", "Not Labable",
-        "ATP Program", "Channel Program", "On-Demand Library", "Cert Program", "Existing Lab Partner",
-        "Top Contact", "Title", "LinkedIn",
-        "2nd Contact", "2nd Title", "2nd LinkedIn",
-        "Full Analysis URL", "Notes",
+        "Top Product", "Lab Score", "Method", "Lab Maturity", "Composite",
+        "ATP Program", "Channel Program", "Lab Program",
+        "ILT / vILT", "On-Demand", "Gray Market", "Certs",
+        "Contact 1", "Contact 1 Title", "Contact 1 LinkedIn",
+        "Contact 2", "Contact 2 Title", "Contact 2 LinkedIn",
+        "Score Report URL", "Notes",
     ])
     for i, row in enumerate(rows, 1):
         aid = row.get("analysis_id", "")
@@ -263,19 +265,21 @@ def prospector_export_csv(job_id: str):
             i,
             row.get("company_name", ""),
             row.get("company_url", ""),
-            row.get("top_product", ""),
-            row.get("skillable_path", ""),
-            row.get("lab_score", ""),
-            row.get("lab_maturity_score", ""),
-            row.get("composite_score", ""),
             row.get("total_highly_labable", ""),
             row.get("total_likely_labable", ""),
             row.get("total_not_labable", ""),
-            row.get("atp_program", ""),
-            row.get("channel_program", ""),
-            row.get("ondemand_library", ""),
-            row.get("cert_program", ""),
+            row.get("top_product", ""),
+            row.get("lab_score", ""),
+            row.get("skillable_path", ""),
+            row.get("lab_maturity_score", ""),
+            row.get("composite_score", ""),
+            row.get("atp_program", ""),       # full name, not ✓
+            row.get("channel_program", ""),   # full name, not ✓
             row.get("existing_lab_partner", ""),
+            row.get("ilt_vilt", ""),
+            row.get("ondemand_library", ""),
+            row.get("gray_market", ""),
+            row.get("cert_program", ""),
             row.get("top_contact_name", ""),
             row.get("top_contact_title", ""),
             row.get("top_contact_linkedin", ""),
@@ -330,28 +334,35 @@ def prospector_export(job_id: str):
     thin_side    = Side(style="thin", color="1E3329")
     thin_border  = Border(bottom=thin_side)
 
-    headers = ["#", "Company", "Website", "Top Product", "Skillable Path",
-               "Lab Score", "Lab Maturity", "Composite",
-               "Highly Labable Products", "Likely Labable Products", "Not Labable Products",
-               "ATP Program", "Channel Program", "On-Demand Library", "Cert Program",
-               "Existing Lab Partner",
-               "Top Contact", "Title", "LinkedIn",
-               "2nd Contact", "2nd Title", "2nd LinkedIn",
-               "Full Analysis", "Notes"]
-    col_widths = [4, 26, 28, 28, 16, 11, 11, 11, 10, 10, 10, 26, 26, 14, 12, 18, 22, 24, 12, 20, 22, 12, 14, 30]
+    # Column order mirrors the web view; exports include extra columns (titles, website)
+    # Col:  1    2         3        4               5               6
+    headers = ["#", "Company", "Website", "Highly Labable", "Likely Labable", "Not Labable",
+    #          7              8            9         10              11
+               "Top Product", "Lab Score", "Method", "Lab Maturity", "Composite",
+    #          12             13               14             15           16
+               "ATP Program", "Channel Program", "Lab Program", "ILT / vILT", "On-Demand",
+    #          17              18      19           20                  21
+               "Gray Market", "Certs", "Contact 1", "Contact 1 Title", "Contact 1 LinkedIn",
+    #          22           23                  24                    25              26
+               "Contact 2", "Contact 2 Title", "Contact 2 LinkedIn", "Score Report", "Notes"]
+    col_widths = [4, 26, 28, 8, 8, 8, 26, 10, 16, 12, 10, 30, 30, 22, 10, 12, 10, 8, 22, 26, 14, 20, 24, 14, 14, 30]
+
+    # Centered columns: # score/count/value columns
+    center_cols_hdr = {1, 4, 5, 6, 8, 9, 10, 11, 15, 16, 17, 18}
 
     for col, (h, w) in enumerate(zip(headers, col_widths), 1):
         cell = ws.cell(row=1, column=col, value=h)
         cell.font = header_font
         cell.fill = PatternFill("solid", fgColor=bg_header)
-        cell.alignment = Alignment(horizontal="center" if col in (1,6,7,8,9,10,11) else "left",
+        cell.alignment = Alignment(horizontal="center" if col in center_cols_hdr else "left",
                                    vertical="center")
         ws.column_dimensions[get_column_letter(col)].width = w
 
     ws.row_dimensions[1].height = 18
     ws.freeze_panes = "A2"
 
-    path_colors = {"Labable": green_hi, "Simulations": amber, "Do Not Pursue": red_soft}
+    path_colors = {"Cloud Slice": green_hi, "VM Lab": green_hi, "Custom API": amber,
+                   "Simulation": amber, "Not a Fit": red_soft}
 
     for i, row in enumerate(rows, 2):
         lab   = row.get("lab_score", 0)
@@ -364,44 +375,47 @@ def prospector_export(job_id: str):
             return green_hi if s >= 70 else (amber if s >= 40 else red_soft)
 
         values = [
-            row.get("rank", i - 1),
-            row.get("company_name", ""),
-            row.get("company_url", ""),
-            row.get("top_product", ""),
-            path,
-            lab, prtn, comp,
-            row.get("total_highly_labable", ""),
-            row.get("total_likely_labable", ""),
-            row.get("total_not_labable", ""),
-            row.get("atp_program", ""),
-            row.get("channel_program", ""),
-            row.get("ondemand_library", ""),
-            row.get("cert_program", ""),
-            row.get("existing_lab_partner", ""),
-            row.get("top_contact_name", ""),
-            row.get("top_contact_title", ""),
-            row.get("top_contact_linkedin", ""),
-            row.get("second_contact_name", ""),
-            row.get("second_contact_title", ""),
-            row.get("second_contact_linkedin", ""),
-            f"/inspector/results/{aid}" if aid else "",
-            "",  # Notes — blank for user to fill
+            row.get("rank", i - 1),           # 1  #
+            row.get("company_name", ""),       # 2  Company
+            row.get("company_url", ""),        # 3  Website
+            row.get("total_highly_labable", ""), # 4
+            row.get("total_likely_labable", ""), # 5
+            row.get("total_not_labable", ""),  # 6
+            row.get("top_product", ""),        # 7  Top Product
+            lab,                               # 8  Lab Score
+            path,                              # 9  Method
+            prtn,                              # 10 Lab Maturity
+            comp,                              # 11 Composite
+            row.get("atp_program", ""),        # 12 ATP — full name
+            row.get("channel_program", ""),    # 13 Channel — full name
+            row.get("existing_lab_partner", ""), # 14 Lab Program
+            row.get("ilt_vilt", ""),           # 15 ILT/vILT
+            row.get("ondemand_library", ""),   # 16 On-Demand
+            row.get("gray_market", ""),        # 17 Gray Market
+            row.get("cert_program", ""),       # 18 Certs
+            row.get("top_contact_name", ""),   # 19 Contact 1
+            row.get("top_contact_title", ""),  # 20 Contact 1 Title
+            row.get("top_contact_linkedin", ""), # 21 Contact 1 LinkedIn
+            row.get("second_contact_name", ""), # 22 Contact 2
+            row.get("second_contact_title", ""), # 23 Contact 2 Title
+            row.get("second_contact_linkedin", ""), # 24 Contact 2 LinkedIn
+            f"/inspector/results/{aid}" if aid else "", # 25 Score Report
+            "",                                # 26 Notes
         ]
-        # Center columns: #(1), scores(6,7,8), product counts(9,10,11), ondemand(14), cert(15)
-        center_cols = {1, 6, 7, 8, 9, 10, 11, 14, 15}
+        center_cols = {1, 4, 5, 6, 8, 9, 10, 11, 15, 16, 17, 18}
         for col, val in enumerate(values, 1):
             cell = ws.cell(row=i, column=col, value=val)
             cell.fill = PatternFill("solid", fgColor="FF0D1A14")
             cell.border = thin_border
             cell.alignment = Alignment(vertical="center",
                                        horizontal="center" if col in center_cols else "left")
-            if col in (6, 7, 8):
+            if col in (8, 10, 11):
                 cell.font = Font(bold=True, color=score_color(val if isinstance(val, int) else 0), size=9)
-            elif col == 5:
+            elif col == 9:
                 cell.font = Font(bold=True, color=path_colors.get(path, white), size=9)
             elif col == 1:
                 cell.font = Font(color=muted, size=9, bold=True)
-            elif col in (9, 10, 11):
+            elif col in (4, 5, 6):
                 cell.font = Font(color=green_mid, size=9)
             else:
                 cell.font = default_font
