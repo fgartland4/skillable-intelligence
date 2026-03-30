@@ -439,20 +439,66 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
             "**Delivery Path:** VMware ESX fabric — required because the lab runs a nested ESXi hypervisor inside the VM, which is not supported on Hyper-V."
             "**Delivery Path:** Hyper-V fabric — installs on Windows Server VM; ESX also available at higher cost if customer prefers VMware."
 
-- **Scoring Rationale:** [1-2 strongest signals that drove the score — be specific. Do NOT mention existing Skillable customer status here — that belongs in the Similar Products bullet, not here.]
-  Example: "**Scoring Rationale:** Deep admin workflows (workflow designer, case config, role-based access) plus a formal partner ATP program drive the high score."
+- **Scoring Approach:** [REQUIRED — assess whether and how learner performance can be validated in this product's labs using Skillable's PBT and activity scoring capabilities. This is not about the labability score — it is about how a lab author would score a learner's actual work inside the lab. Reason through the following three questions and write one concise paragraph.]
+
+  Question 1 — What scoring surface does this product expose?
+  The answer determines which scoring mechanism is viable:
+  - VM-installable products (Hyper-V/ESX): PowerShell or Bash scripts can validate config state inside the VM — file creation, service status, registry values, hostname/IP config, application config files, database state, running processes. This is the richest automated scoring surface. Skillable Copilot can generate these scripts from natural language descriptions, significantly lowering the build effort.
+  - Cloud-native products (Azure/AWS Cloud Slice): PowerShell, Python, or JavaScript scripts can validate cloud resource state — whether a storage account exists, a policy is assigned, a VNet is configured, a role is assigned, a security group is set correctly. Everything the learner did in the cloud subscription is checkable programmatically.
+  - GUI-heavy products with limited CLI/API surface: AI Vision is the recommended path — Skillable's computer vision evaluates what is on the learner's screen using a natural language prompt. No scripting required. The lab author writes a plain-English description of what the screen should look like when the task is complete. AI Vision is the right answer for any product where the primary interface is a GUI with limited or no programmatic access.
+  - Multi-VM Hyper-V labs: a Scoring Bot is available — a hidden Windows 10 VM that executes PowerShell scripts against other VMs in the lab and returns results to Skillable Studio. Useful when scoring needs to happen from an external vantage point (e.g., checking a service on a target VM from an orchestrator VM). Note: Scoring Bot is Hyper-V only, not ESX.
+  - SaaS/web-only with no customer-accessible API, CLI, or persistent state: automated scoring is limited — note this explicitly and recommend question-based scoring as the fallback.
+
+  Question 2 — What scoring format fits this product's use case?
+  - Activity Based Assessment (ABA): learner gets immediate per-activity feedback and can retry. Best for learning and practice labs where the goal is skill-building with a try/fail/learn loop. Supports adaptive outcomes — correct answer can skip ahead, incorrect answer can redirect to additional resources.
+  - Performance Based Testing (PBT): learner completes all tasks and submits at the end for a grade. No interim verbose feedback. Best for certification, skill validation, and proctored exams. The right format when the goal is validating retention after learning, not guiding the learner through it.
+  - Activity Group Scoring: groups activities into Tasks or Learning Objectives with pass/fail thresholds at the group level. Produces task-based reporting that maps directly to job task analyses and skill frameworks. Recommend when the product has a certification program or when labs will be used for formal skills validation.
+  - Scaled Scoring: maps raw scores to a standardized scale (e.g., 0–1000 with a passing score of 700). Critical for certification vendors who need score consistency across exam versions. If the vendor has an existing certification program with a scaled score standard, note this explicitly — Skillable supports it.
+  - Mixed: automated activities and question-based items (multiple choice, short answer with exact or regex match) can be combined in the same lab. Useful when some outcomes are best validated by script and others by knowledge checks.
+
+  Question 3 — What is the scoring complexity for this specific product?
+  - Simple: binary pass/fail checks (is service running, does file exist, does config value match) — fast to build
+  - Moderate: multi-condition with partial credit (`Set-ActivityResult -Percentage`) — reasonable effort
+  - Advanced: complex cloud resource graphs, multi-VM state chains, GUI-only validation via AI Vision — higher effort but Skillable Copilot and AI Vision reduce build time substantially
+  - Not viable: explicitly state if no scriptable or visual surface exists
+
+  Output format: 2-3 sentences maximum. State clearly what CAN be scored and how (the positive case), then flag any areas that will be difficult or limited (the honest caveat). Do not list every possible option — pick the strongest path and note the hard parts. Be specific to this product, not generic.
+
+  Example outputs:
+  "**Scoring Approach:** DataProtect's REST API and PowerShell module make scoring highly viable — scripts can validate backup policy creation, job status, and recovery point existence from within the lab VM. For learning labs use Activity Based Assessment with per-task feedback; for certification use PBT with Activity Group Scoring mapped to backup and recovery tasks — Scaled Scoring is worth noting given Cohesity's existing certification program."
+
+  "**Scoring Approach:** The primary interface is a GUI dashboard with no documented public CLI or API, so AI Vision is the recommended path — computer vision reads the learner's screen against a plain-English prompt, no scripting needed. Scoring precision will be lower than script-based validation, so supplement with short-answer questions for any high-stakes assessment scenarios."
+
+  "**Scoring Approach:** Azure resource state is fully scriptable via PowerShell in Cloud Slice — policies, role assignments, storage config, and network topology can all be validated automatically. Scoring complexity is moderate; Activity Group Scoring mapped to task categories is the right structure if this product's certification roadmap materializes."
+
+- **Essential Technical Resource:** [REQUIRED — the most specific, actionable contact guidance possible. Never use a generic phrase like "Professional Services team" without naming exactly why that team, what they specifically own, and what the champion should actually say to find them. A seller needs to be able to forward this paragraph to their champion and have the champion know exactly who to find and what to ask.]
+
+  Reason through three things explicitly:
+
+  1. What is the single most important technical question that must be answered before a Skillable lab can be built for this specific product? Be concrete — not "does an API exist" but "can DataProtect be installed silently on Windows Server in a network-isolated environment, and what does license activation look like without internet access?" or "can a fully isolated tenant be provisioned via API with no human intervention, and what OAuth scopes are required?" This is the question that blocks or unblocks the entire lab build.
+
+  2. What team at this company most likely owns the answer? Reason from the product type — do not default to a generic role:
+     - Enterprise VM-installable software: the engineers who build deployment runbooks for enterprise customers — Implementation Engineering, Field Solutions Architecture, or PS engineers who do hands-on installs. NOT general Support or the sales team.
+     - SaaS products with provisioning APIs: whoever owns the tenant provisioning or partner API — Solutions Engineering, Partner Engineering, or Platform Engineering. NOT the developer docs team.
+     - Cloud-native/IaC products: the team that owns ARM/Bicep/CloudFormation deployment templates — DevOps or Platform Engineering. NOT Solutions Architecture.
+     - CLI/developer tools: Developer Advocates or SDK/Platform Engineering — they know auth edge cases, offline use, and scope requirements.
+     - Products with existing lab infrastructure (CloudShare, Instruqt, Appsembler): whoever manages that existing infrastructure — often a dedicated lab team or DevOps.
+
+  3. What should the champion actually say to find that person? Write a specific internal ask — something they can forward in an email or paste into Slack. Not "ask your champion to connect you with..." — give the actual message the champion sends.
+
+  If a specific API endpoint, developer portal, or deployment doc URL was found in the research, embed it as a markdown link.
+
+  Example outputs:
+  "**Essential Technical Resource:** The question that blocks or unblocks everything: can DataProtect be installed silently on Windows Server in a fully network-isolated lab environment, and what does license activation look like without internet access? The team with this answer is Cohesity's Implementation Engineering or Field Solutions team — the engineers who build enterprise deployment runbooks, not general Support. Champion's internal ask: 'Can you connect me with whoever owns the enterprise deployment runbook for DataProtect? Specifically, I need to know if silent/unattended install is supported in an isolated network and what the offline license activation mechanism is.'"
+
+  "**Essential Technical Resource:** The key question: can a fully isolated [product] environment be provisioned programmatically via API with no human intervention, and what credentials or OAuth scopes does that require? The right team is Solutions Engineering or Partner Engineering — whoever owns the provisioning API surface for partners and integrators. Champion's ask: 'Who on your partner engineering or SE team handles API-based environment provisioning? I need to know whether we can spin up a clean, isolated instance per user via API and what service account credentials that requires.'"
+
+- **Program Fit:** [which of the standard program types these labs serve, and the business outcome. Include when 2+ program types apply — this is the reusability/ROI case. Format: "**Program Fit:** Customer Training & Enablement (ILT, on-demand catalog) + Channel Enablement (technical demos, SE credentials) — a single lab investment drives adoption, reduces churn, and shortens deal cycles." Standard program types: Customer Training & Enablement (ILT/vILT, on-demand catalog, certification — drives adoption & reduces churn), Channel & Technical Seller Enablement (bootcamps, demos, tailored PoCs, SE credentials — reduces deal cycles, shortens time to revenue), Employee Training & Enablement (internal bootcamps, on-demand courses, assessments — reduces time to resolution, increases efficiency), Customer & Partner Events (adoption campaigns, product launches, exam launches — drives loyalty, generates qualified leads). Omit this bullet if only one program type applies and it's already obvious from context.]
 
 - **Similar Products Already in Skillable:** [one short factual sentence naming an active Skillable customer with same delivery model — include ONLY when the parallel is genuinely strong]
   Examples: "**Similar Products Already in Skillable:** Hyland OnBase and Microsoft Windows Server both run on Skillable's Hyper-V fabric today."
             "**Similar Products Already in Skillable:** Cohesity and Commvault are both active Skillable customers in data protection."
             "**Similar Products Already in Skillable:** Tanium is an active Skillable customer in endpoint security."
-
-- **Essential Technical Resource:** [ALWAYS include — who the Skillable rep should ask their champion to connect them with, and why. If a specific API or developer docs URL is known, embed it as a markdown link: [API Docs](https://url)]
-  - VM-installable (Hyper-V/Docker): "**Essential Technical Resource:** Ask your champion to connect you with their Professional Services or Implementation Engineering team — they build customer environments and know exactly what automation is available."
-  - Cloud/SaaS (Azure Cloud Slice or Custom API): "**Essential Technical Resource:** Ask your champion to connect you with their Solutions Engineering or Sales Engineering team — they own the provisioning APIs and can confirm per-learner isolation in 15 minutes."
-  - Developer platforms/DevOps: "**Essential Technical Resource:** Ask your champion to connect you with their Developer Advocate or Platform Engineering team — they own the CLI and API docs."
-
-- **Program Fit:** [which of the standard program types these labs serve, and the business outcome. Include when 2+ program types apply — this is the reusability/ROI case. Format: "**Program Fit:** Customer Training & Enablement (ILT, on-demand catalog) + Channel Enablement (technical demos, SE credentials) — a single lab investment drives adoption, reduces churn, and shortens deal cycles." Standard program types: Customer Training & Enablement (ILT/vILT, on-demand catalog, certification — drives adoption & reduces churn), Channel & Technical Seller Enablement (bootcamps, demos, tailored PoCs, SE credentials — reduces deal cycles, shortens time to revenue), Employee Training & Enablement (internal bootcamps, on-demand courses, assessments — reduces time to resolution, increases efficiency), Customer & Partner Events (adoption campaigns, product launches, exam launches — drives loyalty, generates qualified leads). Omit this bullet if only one program type applies and it's already obvious from context.]
 
 - **Next Step:** [what the rep should do — pursue aggressively / pilot with X / monitor API roadmap / do not pursue until Y]
   Example: "**Next Step:** Pursue — strong technical fit and active partner ecosystem. Start with their Professional Services team."
@@ -470,10 +516,10 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
 - **Note:** [for other critical flags — credit card required, locked APIs, willing buyer/unwilling product team]
   Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
-REQUIRED bullets: Delivery Path, Scoring Rationale, Essential Technical Resource, Next Step.
+REQUIRED bullets: Delivery Path, Scoring Approach, Essential Technical Resource, Next Step.
 OPTIONAL (include when applicable): Similar Products Already in Skillable, Program Fit, Blockers, Note.
 Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
-Total: 4-7 bullets. Never use "Path A", "Path B", or "Path C".
+Total: 5-8 bullets. Never use "Path A", "Path B", or "Path C".
 Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
 
 **Embed training URLs as markdown links wherever relevant.** The research contains URLs for training catalogs, on-demand course pages, certification programs, ILT/vILT calendars, and partner portals. When a URL is available and relevant, embed it as a markdown link directly in the bullet text — do not list URLs separately. Examples of where to embed:
