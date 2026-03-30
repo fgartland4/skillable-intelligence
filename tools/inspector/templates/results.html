@@ -741,12 +741,12 @@
             </div>
         </div>
 
-        {% if ns.has_cp %}
         <div class="consumption-summary-card">
             <div class="card-label">
                 Estimated Consumption Potential
                 <span style="color:#3d6655;font-weight:400;"> | </span><span style="color:#f59e0b;font-weight:600;">Based on {{ data.products | length }} of {% if data.total_products_discovered and data.total_products_discovered > data.products | length %}{{ data.total_products_discovered }}{% else %}{{ data.products | length }}{% endif %} Products</span>
             </div>
+            {% if ns.has_cp %}
             <div class="rollup-summary" style="border-top:none;margin-top:0;padding-top:0;flex:1;justify-content:center;">
                 <div class="rollup-summary-row">
                     <span class="rollup-summary-label">Estimated ACV Potential</span>
@@ -759,8 +759,15 @@
                 <div style="color:#f59e0b;font-size:0.70rem;margin-top:8px;text-align:right;">&#9888; Full customer potential<br>may be higher.</div>
             </div>
             <div class="rollup-acv-note" style="margin-top:12px;">Cloud Slice @$10.50/hr · VM @$12–$55/hr · Simulation @$5/hr<br><em>Rates are estimates — verify before use.</em></div>
+            {% else %}
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem;color:#1e3329;margin-bottom:10px;">—</div>
+                    <div style="font-size:0.78rem;color:#3d6655;line-height:1.5;">Product labability scores are too low<br>to generate a reliable consumption estimate.</div>
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
 
         </div><!-- /top-blocks -->
 
@@ -970,9 +977,9 @@
                 </div>
             </details>
 
-            {# ── 5. Estimated Consumption Potential ── #}
-            {% set _cp5 = product.get('consumption_potential', {}) %}
-            {% if _cp5 and _cp5.get('annual_hours_high', 0) > 0 %}
+            {# ── 5. Estimated Consumption Potential ── always shown #}
+            {% set _cp5 = product.get('consumption_potential', {}) or {} %}
+            {% set _cp5_hours = _cp5.get('annual_hours_high', 0) %}
             {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set _r5lo = 10.5 %}{% set _r5hi = 10.5 %}
             {% elif product.skillable_path == 'C' %}{% set _r5lo = 5.0 %}{% set _r5hi = 5.0 %}
             {% elif _cp5.get('vm_rate_estimate', 0) > 0 %}{% set _r5lo = _cp5.get('vm_rate_estimate') %}{% set _r5hi = _cp5.get('vm_rate_estimate') %}
@@ -981,9 +988,14 @@
                 <summary>
                     <span class="dim-sec-dot" style="background:rgba(36,237,155,0.5);"></span>
                     <span class="dim-sec-name">Estimated Consumption Potential</span>
-                    <span class="dim-sec-score score-high" style="font-size:0.85rem;">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }}–${{ "{:,}".format((_cp5.get('annual_hours_high',0)*_r5hi)|int) }}</span>
+                    {% if _cp5_hours > 0 %}
+                    <span class="dim-sec-score score-high" style="font-size:0.85rem;">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }}–${{ "{:,}".format((_cp5_hours*_r5hi)|int) }}</span>
+                    {% else %}
+                    <span class="dim-sec-score" style="font-size:0.78rem;color:#3d6655;">Insufficient data</span>
+                    {% endif %}
                 </summary>
                 <div class="dim-sec-content">
+                    {% if _cp5_hours > 0 %}
                     {% if _cp5.get('motions') %}
                     <div class="l2-cons-grid">
                         <div class="l2-cons-gh">Motion</div>
@@ -1012,14 +1024,19 @@
                     <div class="l2-cons-total">
                         <span class="l2-cons-total-label">Annual Potential</span>
                         <div style="text-align:right;">
-                            <div class="l2-cons-acv">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }} – ${{ "{:,}".format((_cp5.get('annual_hours_high',0)*_r5hi)|int) }}</div>
-                            <div class="l2-cons-hrs">{{ "{:,}".format(_cp5.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cp5.get('annual_hours_high',0)) }} lab hrs/yr</div>
+                            <div class="l2-cons-acv">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }} – ${{ "{:,}".format((_cp5_hours*_r5hi)|int) }}</div>
+                            <div class="l2-cons-hrs">{{ "{:,}".format(_cp5.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cp5_hours) }} lab hrs/yr</div>
                         </div>
                     </div>
                     {% if _cp5.get('methodology_note') %}<div class="consumption-methodology" style="margin-top:10px;">{{ _cp5.get('methodology_note') }}</div>{% endif %}
+                    {% else %}
+                    <p style="font-size:0.78rem;color:#3d6655;padding:8px 0;line-height:1.5;">
+                        Product labability score is too low to generate a meaningful consumption estimate.
+                        Consumption potential is modeled for products with clear lab delivery pathways.
+                    </p>
+                    {% endif %}
                 </div>
             </details>
-            {% endif %}
 
             <div class="expand-toggle">
                 <button onclick="toggleCard(this,true)">expand all</button>
