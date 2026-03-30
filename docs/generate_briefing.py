@@ -107,19 +107,19 @@ def make_run(paragraph, text, size_pt=10, bold=False, italic=False, color=None):
 def add_h1(doc, text):
     p = doc.add_paragraph()
     r = make_run(p, text, size_pt=12, bold=True, color=DARK_GREEN)
-    set_paragraph_spacing(p, before=180, after=60)
+    set_paragraph_spacing(p, before=120, after=40)
     add_paragraph_border_bottom(p, DARK_GREEN_HEX, size=6)
     return p
 
 
-def add_body(doc, text, space_before=0, space_after=80):
+def add_body(doc, text, space_before=0, space_after=60):
     p = doc.add_paragraph()
     make_run(p, text, size_pt=10, color=DARK_TEXT)
     set_paragraph_spacing(p, before=space_before, after=space_after)
     return p
 
 
-def add_bullet(doc, text, bold_prefix=None, space_after=60):
+def add_bullet(doc, text, bold_prefix=None, space_after=40):
     """Add a bullet. If bold_prefix given, render it bold then rest normal."""
     p = doc.add_paragraph(style="List Bullet")
     if bold_prefix:
@@ -235,12 +235,12 @@ def build_footer(doc):
         color2 = OxmlElement("w:color")
         color2.set(qn("w:val"), "888888")
         sz2 = OxmlElement("w:sz")
-        sz2.set(qn("w:val"), "18")
+        sz2.set(qn("w:val"), "16")
         szCs2 = OxmlElement("w:szCs")
-        szCs2.set(qn("w:val"), "18")
+        szCs2.set(qn("w:val"), "16")
         font2 = OxmlElement("w:rFonts")
-        font2.set(qn("w:ascii"), "Arial")
-        font2.set(qn("w:hAnsi"), "Arial")
+        font2.set(qn("w:ascii"), "Calibri")
+        font2.set(qn("w:hAnsi"), "Calibri")
         rpr2.append(font2)
         rpr2.append(sz2)
         rpr2.append(szCs2)
@@ -256,12 +256,12 @@ def build_footer(doc):
         color3 = OxmlElement("w:color")
         color3.set(qn("w:val"), "888888")
         sz3 = OxmlElement("w:sz")
-        sz3.set(qn("w:val"), "18")
+        sz3.set(qn("w:val"), "16")
         szCs3 = OxmlElement("w:szCs")
-        szCs3.set(qn("w:val"), "18")
+        szCs3.set(qn("w:val"), "16")
         font3 = OxmlElement("w:rFonts")
-        font3.set(qn("w:ascii"), "Arial")
-        font3.set(qn("w:hAnsi"), "Arial")
+        font3.set(qn("w:ascii"), "Calibri")
+        font3.set(qn("w:hAnsi"), "Calibri")
         rpr3.append(font3)
         rpr3.append(sz3)
         rpr3.append(szCs3)
@@ -358,7 +358,7 @@ def build_flow_and_deps_table(doc):
         r.font.size = Pt(8)
         r.font.bold = True
         r.font.color.rgb = text_color
-        set_paragraph_spacing(p, before=20, after=20)
+        set_paragraph_spacing(p, before=10, after=10)
         # Add shading to paragraph via paragraph shade
         pPr = p._p.get_or_add_pPr()
         shd = OxmlElement("w:shd")
@@ -394,7 +394,7 @@ def build_flow_and_deps_table(doc):
     r_label.font.size = Pt(8)
     r_label.font.bold = True
     r_label.font.color.rgb = GRAY
-    set_paragraph_spacing(p_label, before=0, after=60)
+    set_paragraph_spacing(p_label, before=0, after=30)
 
     flow_box(left_cell, "ZoomInfo Export", "D0E8DA", DARK_TEXT)
     flow_arrow(left_cell)
@@ -419,7 +419,7 @@ def build_flow_and_deps_table(doc):
     r_dep_label.font.size = Pt(8)
     r_dep_label.font.bold = True
     r_dep_label.font.color.rgb = GRAY
-    set_paragraph_spacing(p_dep_label, before=0, after=60)
+    set_paragraph_spacing(p_dep_label, before=0, after=30)
 
     dep_headers = ["Dependency", "Purpose", "Owner"]
     dep_rows = [
@@ -451,7 +451,8 @@ def build_flow_and_deps_table(doc):
             r.font.color.rgb = DARK_TEXT
             set_cell_background(cell, ROW_ALT if alt else "FFFFFF")
             set_cell_borders(cell, "CCCCCC", size=4)
-        set_cell_margins(cell, 80)
+        set_cell_margins(cell, 50)
+        set_paragraph_spacing(p, before=0, after=0)
 
     for i, h in enumerate(dep_headers):
         dep_cell(dep_tbl.rows[0], i, h, header=True)
@@ -602,7 +603,7 @@ def main():
 
     rule_p = doc.add_paragraph()
     rule_p.add_run("").font.size = Pt(2)
-    set_paragraph_spacing(rule_p, before=0, after=140)
+    set_paragraph_spacing(rule_p, before=0, after=80)
     add_paragraph_border_bottom(rule_p, DARK_GREEN_HEX, size=10)
 
     # ── SECTION 1: Why We Built This ─────────────────────────────────────
@@ -632,7 +633,7 @@ def main():
         " No starting point for lab program design. When an SE wants to propose a lab program, they start from a blank page \u2014 no structure, no connection to the research already done on the company.",
         bold_prefix="Leverage AI-Generated Intelligence to Design Programs and Lab Templates:")
 
-    closing = add_body(doc, "Skillable Intelligence addresses all three.", space_before=40, space_after=100)
+    closing = add_body(doc, "Skillable Intelligence addresses all three.", space_before=20, space_after=60)
     closing.runs[0].font.bold = True
 
     # ── SECTION 2: What It Is ─────────────────────────────────────────────
