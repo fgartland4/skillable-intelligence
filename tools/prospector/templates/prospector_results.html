@@ -160,7 +160,7 @@
                         <th>On-demand</th>
                         <th>Certifications</th>
                         <th>Lab Partner</th>
-                        <th>Top Contact</th>
+                        <th title="Contact quality improves when you run a full Inspector analysis on the company">Contacts</th>
                         <th>Full Analysis</th>
                         <th></th>
                     </tr>
@@ -192,9 +192,16 @@
                         <td>{{ row.existing_lab_partner or '—' }}</td>
                         <td>
                             {% set cname = row.top_contact_name or '' %}
+                            {% set cname2 = row.second_contact_name or '' %}
                             {% if cname and 'unknown' not in cname.lower() and 'search for' not in cname.lower() %}
                                 <span class="cell-primary">{{ cname }}</span>{% if row.top_contact_linkedin %}<a href="{{ row.top_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% endif %}
                                 {% if row.top_contact_title %}<div class="cell-secondary">{{ row.top_contact_title }}</div>{% endif %}
+                                {% if cname2 and 'unknown' not in cname2.lower() and 'search for' not in cname2.lower() %}
+                                <div style="margin-top:5px;padding-top:5px;border-top:1px solid #1e3329;">
+                                    <span class="cell-primary" style="font-weight:500;">{{ cname2 }}</span>{% if row.second_contact_linkedin %}<a href="{{ row.second_contact_linkedin }}" target="_blank" class="li-link">&#8599;</a>{% endif %}
+                                    {% if row.second_contact_title %}<div class="cell-secondary">{{ row.second_contact_title }}</div>{% endif %}
+                                </div>
+                                {% endif %}
                             {% else %}—{% endif %}
                         </td>
                         <td>
