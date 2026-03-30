@@ -280,6 +280,64 @@
         @keyframes bar-enter { from { width: 0; } }
         .bar-fill { animation: bar-enter 0.7s ease-out; }
 
+        /* Verdict badge */
+        .verdict-badge {
+            display: inline-block; font-size: 0.6rem; padding: 3px 10px;
+            border-radius: 20px; font-weight: 800; letter-spacing: 0.08em;
+            text-transform: uppercase; vertical-align: middle;
+        }
+        .verdict-strong { background: rgba(36,237,155,0.15); color: #24ED9B; border: 1px solid rgba(36,237,155,0.3); }
+        .verdict-pursue { background: rgba(36,237,155,0.07); color: #6b9e88; border: 1px solid rgba(36,237,155,0.15); }
+        .verdict-monitor { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .verdict-pass { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+        /* ACV headline on card header */
+        .product-acv { margin-top: 10px; }
+        .product-acv-dollars { font-size: 0.95rem; font-weight: 800; color: #24ED9B; letter-spacing: -0.01em; }
+        .product-acv-hours { font-size: 0.68rem; color: #3d6655; margin-top: 1px; }
+
+        /* Composite segmented bar (Layer 1 + Layer 2) */
+        .comp-seg-bar { display:flex; height:6px; gap:2px; width:100%; }
+        .seg-block { border-radius:2px; position:relative; overflow:hidden; background:#1e3329; }
+        .seg-fill { height:100%; position:absolute; top:0; left:0; border-radius:2px; animation: bar-enter 0.7s ease-out; transition: width 0.7s ease; }
+        .seg-tech { background:#24ED9B; }
+        .seg-wf   { background:#3b82f6; }
+        .seg-te   { background:#a78bfa; }
+        .seg-mf   { background:#f59e0b; }
+
+        /* Layer 2 — consumption summary inside collapsible */
+        .l2-consumption {
+            background: #06100c; border: 1px solid #1e3329;
+            border-radius: 10px; padding: 16px 18px; margin-bottom: 18px;
+        }
+        .l2-cons-header {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 10px;
+        }
+        .l2-cons-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            font-size: 0.78rem; padding: 5px 0; border-bottom: 1px solid #0d1a14;
+        }
+        .l2-cons-row:last-child { border-bottom: none; }
+        .l2-cons-label { color: #6b9e88; }
+        .l2-cons-value { color: #a8d5c2; font-weight: 500; white-space: nowrap; }
+        .l2-cons-total {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 10px 0 0; margin-top: 6px; border-top: 1px solid #1e3329;
+        }
+        .l2-cons-total-label { font-size: 0.72rem; color: #6b9e88; font-weight: 600; }
+        .l2-cons-acv { font-size: 1.1rem; font-weight: 800; color: #24ED9B; letter-spacing: -0.01em; }
+        .l2-cons-hrs { font-size: 0.65rem; color: #3d6655; margin-top: 2px; text-align: right; }
+
+        /* Next Steps section */
+        .next-steps-section {
+            border-top: 1px solid #1e3329; margin-top: 14px; padding-top: 14px;
+        }
+        .next-steps-label {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 8px;
+        }
+
         /* Consumption Potential */
         .consumption-card {
             background: #06100c; border: 1px solid #1e3329;
@@ -675,10 +733,10 @@
                 </div>
                 {% set tech = product.labability_score.technical_orchestrability.score | default(0) %}
                 {% set adjusted = product._total_score - tech %}
-                {% if tech >= 20 %}{% set mult_val = "1.0×" %}
-                {% elif tech >= 15 and product.skillable_path == 'B' %}{% set mult_val = "1.0×" %}
-                {% elif tech >= 12 %}{% set mult_val = "0.75×" %}
-                {% elif tech >= 6 %}{% set mult_val = "0.40×" %}
+                {% if tech >= 32 %}{% set mult_val = "1.0×" %}
+                {% elif tech >= 24 and product.skillable_path == 'B' %}{% set mult_val = "1.0×" %}
+                {% elif tech >= 19 %}{% set mult_val = "0.75×" %}
+                {% elif tech >= 10 %}{% set mult_val = "0.40×" %}
                 {% else %}{% set mult_val = "0.15×" %}{% endif %}
                 <div class="score-right">
                     <div class="mult-info">
@@ -694,8 +752,39 @@
                 </div>
             </div>
 
+            {# ── Layer 1: verdict + composite bar + ACV headline ── #}
+            {% set _sc1h = product.labability_score.technical_orchestrability.score | default(0) %}
+            {% set _sc2h = product.labability_score.workflow_complexity.score | default(0) %}
+            {% set _sc3h = product.labability_score.training_ecosystem.score | default(0) %}
+            {% set _sc4h = product.labability_score.market_fit.score | default(0) %}
+            {% set _cph = product.get('consumption_potential', {}) %}
+            {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set _rate_h = 10.5 %}
+            {% elif product.skillable_path == 'C' %}{% set _rate_h = 5.0 %}
+            {% elif _cph.get('vm_rate_estimate', 0) > 0 %}{% set _rate_h = _cph.get('vm_rate_estimate') %}
+            {% else %}{% set _rate_h = 12.0 %}{% endif %}
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+                {% if product._total_score >= 75 %}<span class="verdict-badge verdict-strong">Strong Pursue</span>
+                {% elif product._total_score >= 55 %}<span class="verdict-badge verdict-pursue">Pursue</span>
+                {% elif product._total_score >= 35 %}<span class="verdict-badge verdict-monitor">Monitor</span>
+                {% else %}<span class="verdict-badge verdict-pass">Do Not Pursue</span>{% endif %}
+                {% set _has_blocker = product.recommendation and (product.recommendation | join(' ') | lower).find('— blocker') != -1 %}
+                {% if _has_blocker %}<span class="verdict-badge verdict-pass">&#9632; Blocker</span>{% endif %}
+            </div>
+            <div class="comp-seg-bar" style="margin-bottom:8px;">
+                <div class="seg-block" style="width:40%;"><div class="seg-fill seg-tech" style="width:{{ [(_sc1h/40*100)|int, 100]|min }}%;"></div></div>
+                <div class="seg-block" style="width:30%;"><div class="seg-fill seg-wf"   style="width:{{ [(_sc2h/30*100)|int, 100]|min }}%;"></div></div>
+                <div class="seg-block" style="width:20%;"><div class="seg-fill seg-te"   style="width:{{ [(_sc3h/20*100)|int, 100]|min }}%;"></div></div>
+                <div class="seg-block" style="width:10%;"><div class="seg-fill seg-mf"   style="width:{{ [(_sc4h/10*100)|int, 100]|min }}%;"></div></div>
+            </div>
+            {% if _cph and _cph.get('annual_hours_high', 0) > 0 %}
+            <div class="product-acv">
+                <div class="product-acv-dollars">${{ "{:,}".format((_cph.get('annual_hours_low', 0) * _rate_h) | int) }} – ${{ "{:,}".format((_cph.get('annual_hours_high', 0) * _rate_h) | int) }} ACV</div>
+                <div class="product-acv-hours">{{ "{:,}".format(_cph.get('annual_hours_low', 0)) }}–{{ "{:,}".format(_cph.get('annual_hours_high', 0)) }} estimated lab hrs/yr</div>
+            </div>
+            {% endif %}
+
             {% if product.description %}
-            <div class="product-desc">{{ product.description | link_product_name(product.name, product.product_url) }}</div>
+            <div class="product-desc" style="margin-top:12px;">{{ product.description | link_product_name(product.name, product.product_url) }}</div>
             {% endif %}
 
             {% if product.poor_match_flags %}
