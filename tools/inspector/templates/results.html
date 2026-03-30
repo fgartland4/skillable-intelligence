@@ -468,14 +468,28 @@
             font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.1em; color: #3d6655; margin-bottom: 10px;
         }
-        .pr-bullets {
-            margin: 0; padding-left: 18px;
-            display: flex; flex-direction: column; gap: 6px;
+        /* Evidence bullets — technical findings, SA reference notes */
+        .findings-label {
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #3d6655; margin-bottom: 8px;
         }
-        .pr-bullets li { font-size: 0.875rem; color: #a8d5c2; line-height: 1.5; }
-        .pr-bullets li strong { color: #24ED9B; font-weight: 600; }
-        .pr-bullets li a { color: #24ED9B; text-decoration: none; border-bottom: 1px solid rgba(36,237,155,0.3); }
-        .pr-bullets li a:hover { border-bottom-color: #24ED9B; }
+        .pr-bullets {
+            margin: 0; padding-left: 16px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .pr-bullets li { font-size: 0.81rem; color: #6b9e88; line-height: 1.55; }
+        .pr-bullets li strong { color: #a8d5c2; font-weight: 600; }
+        .pr-bullets li a { color: #a8d5c2; text-decoration: none; border-bottom: 1px solid rgba(168,213,194,0.3); }
+        .pr-bullets li a:hover { border-bottom-color: #a8d5c2; }
+
+        /* SA Guidance bullets — actionable recommendations */
+        .guidance-label {
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #3d6655; margin-bottom: 8px; margin-top: 14px;
+        }
+        .guidance-section {
+            margin-top: 12px; padding-top: 12px; border-top: 1px solid #122019;
+        }
         .pr-score-col {
             display: flex; flex-direction: column; align-items: center;
             justify-content: flex-start; padding-top: 4px; gap: 8px;
@@ -502,6 +516,10 @@
             user-select: none;
         }
         .dim-section > summary::-webkit-details-marker { display: none; }
+        .dim-section > summary::marker { display: none; }
+        .dim-section > summary { list-style: none; }
+        .dim-sec-arrow { transition: transform 0.2s ease; display: inline-block; }
+        .dim-section[open] > summary .dim-sec-arrow { transform: rotate(180deg); }
         .dim-section[open] > summary { border-radius: 8px 8px 0 0; }
         .dim-section-tech > summary:hover, .dim-section-tech[open] > summary { border-color: rgba(36,237,155,0.3); }
         .dim-section-wf   > summary:hover, .dim-section-wf[open]   > summary { border-color: rgba(59,130,246,0.3); }
@@ -528,8 +546,53 @@
             border-radius: 0 0 8px 8px; padding: 16px 18px;
         }
         /* Next Steps + Who to Engage */
-        .next-who-section { border-top: 1px solid #1e3329; margin-top: 18px; padding-top: 16px; }
+        .next-who-section { border-top: 1px solid #1e3329; margin-top: 18px; padding-top: 18px; display: flex; flex-direction: column; gap: 10px; }
         .next-who-label { font-size: 0.62rem; color: #3d6655; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 8px; }
+
+        /* Verdict card — Next Step */
+        .verdict-card {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 16px; border-radius: 10px; border: 1px solid;
+        }
+        .verdict-card.pursue  { background: rgba(36,237,155,0.06); border-color: rgba(36,237,155,0.25); }
+        .verdict-card.monitor { background: rgba(251,191,36,0.06); border-color: rgba(251,191,36,0.25); }
+        .verdict-card.avoid   { background: rgba(239,68,68,0.06);  border-color: rgba(239,68,68,0.25); }
+        .verdict-card.default { background: #06100c; border-color: #1e3329; }
+        .verdict-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+        .verdict-body { flex: 1; min-width: 0; }
+        .verdict-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+        .verdict-card.pursue  .verdict-label { color: #24ED9B; }
+        .verdict-card.monitor .verdict-label { color: #fbbf24; }
+        .verdict-card.avoid   .verdict-label { color: #ef4444; }
+        .verdict-card.default .verdict-label { color: #6b9e88; }
+        .verdict-text { font-size: 0.83rem; color: #a8d5c2; line-height: 1.55; }
+        .verdict-text strong { color: #24ED9B; font-weight: 600; }
+
+        /* ETR card — Essential Technical Resource */
+        .etr-card {
+            background: #060e0b; border: 1px solid #1e3329; border-left: 3px solid #a78bfa;
+            border-radius: 8px; padding: 12px 14px;
+        }
+        .etr-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #a78bfa; margin-bottom: 6px; }
+        .etr-text { font-size: 0.82rem; color: #a8d5c2; line-height: 1.55; }
+        .etr-text strong { color: #c4b5fd; font-weight: 600; }
+
+        /* Note / Blocker row */
+        .note-row {
+            background: #06100c; border: 1px solid #1e3329; border-radius: 8px;
+            padding: 10px 14px; font-size: 0.82rem; color: #a8d5c2; line-height: 1.5;
+        }
+        .note-row strong { color: #fbbf24; font-weight: 600; }
+        .note-row.blocker strong { color: #ef4444; }
+
+        /* Who to Engage */
+        .who-section-label { font-size: 0.62rem; color: #3d6655; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 10px; margin-top: 6px; }
+        .who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 680px) { .who-grid { grid-template-columns: 1fr; } }
+        .who-col-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+        .who-col-label.dm  { color: #a78bfa; }
+        .who-col-label.inf { color: #24ED9B; }
+        .who-col-label.sug { color: #3d6655; }
 
         /* Product nav strip */
         .product-nav {
@@ -855,9 +918,15 @@
                     <div class="dim-sec-bar dim-sec-bar-tech"><div class="dim-sec-bar-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"></div></div>
                 </summary>
                 <div class="dim-sec-content">
-                    {% if tech_dim.evidence %}<ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% if tech_dim.evidence %}
+                    <div class="findings-label">Technical Findings</div>
+                    <ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
                     {% elif tech_dim.summary %}<p class="dim-summary">{{ tech_dim.summary }}</p>{% endif %}
-                    {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:10px;padding-top:10px;border-top:1px solid #122019;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                    {% if ns.s1 %}
+                    <div class="guidance-section">
+                    <div class="guidance-label">SA Guidance</div>
+                    <ul class="rec-bullets">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                    </div>{% endif %}
                 </div>
             </details>
 
@@ -874,11 +943,13 @@
                     <div class="dim-sec-bar dim-sec-bar-wf"><div class="dim-sec-bar-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}" style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"></div></div>
                 </summary>
                 <div class="dim-sec-content">
-                    {% if wf_dim.evidence %}<ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% if wf_dim.evidence %}
+                    <div class="findings-label">Workflow Signals</div>
+                    <ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
                     {% elif wf_dim.summary %}<p class="dim-summary">{{ wf_dim.summary }}</p>{% endif %}
                     {% if product.lab_concepts %}
-                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #122019;">
-                        <div class="section-title">Suggested Lab Concepts</div>
+                    <div class="guidance-section">
+                        <div class="guidance-label">Suggested Lab Concepts</div>
                         <div class="lab-concepts-grid">{% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}</div>
                     </div>
                     {% endif %}
@@ -898,9 +969,15 @@
                     <div class="dim-sec-bar dim-sec-bar-te"><div class="dim-sec-bar-fill {% if _sc3h < 8 %}seg-low{% else %}seg-te{% endif %}" style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"></div></div>
                 </summary>
                 <div class="dim-sec-content">
-                    {% if te_dim.evidence %}<ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% if te_dim.evidence %}
+                    <div class="findings-label">Ecosystem Signals</div>
+                    <ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
                     {% elif te_dim.summary %}<p class="dim-summary">{{ te_dim.summary }}</p>{% endif %}
-                    {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:10px;padding-top:10px;border-top:1px solid #122019;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                    {% if ns.s3 %}
+                    <div class="guidance-section">
+                    <div class="guidance-label">SA Guidance</div>
+                    <ul class="rec-bullets">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                    </div>{% endif %}
                 </div>
             </details>
 
@@ -917,9 +994,15 @@
                     <div class="dim-sec-bar dim-sec-bar-mf"><div class="dim-sec-bar-fill {% if _sc4h < 4 %}seg-low{% else %}seg-mf{% endif %}" style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"></div></div>
                 </summary>
                 <div class="dim-sec-content">
-                    {% if mf_dim.evidence %}<ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% if mf_dim.evidence %}
+                    <div class="findings-label">Market Signals</div>
+                    <ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
                     {% elif mf_dim.summary %}<p class="dim-summary">{{ mf_dim.summary }}</p>{% endif %}
-                    {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:10px;padding-top:10px;border-top:1px solid #122019;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                    {% if ns.s4 %}
+                    <div class="guidance-section">
+                    <div class="guidance-label">SA Guidance</div>
+                    <ul class="rec-bullets">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                    </div>{% endif %}
                 </div>
             </details>
 
@@ -961,62 +1044,111 @@
             {# ── Next Steps + Who to Engage ── #}
             {% if ns.sNxt or product.owning_org or product.contacts %}
             <div class="next-who-section">
-                {% if ns.sNxt %}
-                <div class="next-who-label">Next Steps</div>
-                <ul class="rec-bullets" style="margin-bottom:16px;">{% for b in ns.sNxt %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
-                {% endif %}
+
+                {# ── Sub-classify sNxt bullets ── #}
+                {% set ns2 = namespace(verdict=[], etr=[], notes=[]) %}
+                {% for b in (ns.sNxt or []) %}
+                  {% set _bl = b | lower %}
+                  {% if ':**' in _bl %}{% set _lbl = _bl.split(':**')[0].replace('**','').strip() %}
+                  {% else %}{% set _lbl = _bl.lstrip('*').split(':')[0].strip() %}{% endif %}
+                  {% if _lbl.startswith('next step') %}
+                    {% set ns2.verdict = ns2.verdict + [b] %}
+                  {% elif _lbl.startswith('essential technical') %}
+                    {% set ns2.etr = ns2.etr + [b] %}
+                  {% else %}
+                    {% set ns2.notes = ns2.notes + [b] %}
+                  {% endif %}
+                {% endfor %}
+
+                {# ── Verdict card (Next Step) ── #}
+                {% for b in ns2.verdict %}
+                  {% set _bl = b | lower %}
+                  {% set _vclass = 'pursue' if 'pursue' in _bl and 'do not' not in _bl else ('avoid' if ('do not pursue' in _bl or 'not viable' in _bl) else ('monitor' if 'monitor' in _bl else 'default')) %}
+                  {% set _vicon = '→' if _vclass == 'pursue' else ('✕' if _vclass == 'avoid' else ('◎' if _vclass == 'monitor' else '→')) %}
+                  <div class="verdict-card {{ _vclass }}">
+                    <div class="verdict-icon">{{ _vicon }}</div>
+                    <div class="verdict-body">
+                      <div class="verdict-label">Next Step</div>
+                      <div class="verdict-text">{{ b | linkify }}</div>
+                    </div>
+                  </div>
+                {% endfor %}
+
+                {# ── ETR card (Essential Technical Resource) ── #}
+                {% for b in ns2.etr %}
+                  <div class="etr-card">
+                    <div class="etr-label">Essential Technical Resource</div>
+                    <div class="etr-text">{{ b | linkify }}</div>
+                  </div>
+                {% endfor %}
+
+                {# ── Notes / Blockers ── #}
+                {% for b in ns2.notes %}
+                  {% set _bl = b | lower %}
+                  {% set _is_blocker = 'blocker' in _bl %}
+                  <div class="note-row{% if _is_blocker %} blocker{% endif %}">{{ b | linkify }}</div>
+                {% endfor %}
+
+                {# ── Who to Engage ── #}
                 {% if product.owning_org or product.contacts %}
-                <div class="next-who-label" style="margin-top:{% if ns.sNxt %}14px{% else %}0{% endif %};">Who to Engage</div>
-                {% if product.owning_org %}
-                <div class="org-banner" style="margin-bottom:10px;">
+                <div>
+                  <div class="who-section-label">Who to Engage</div>
+                  {% if product.owning_org %}
+                  <div class="org-banner" style="margin-bottom:10px;">
                     <div class="org-banner-body">
-                        <div class="org-name">{{ product.owning_org.name }}<span class="org-type-tag">{{ product.owning_org.type|replace('_',' ')|title }}</span></div>
-                        {% if product.owning_org.description %}<div class="org-desc">{{ product.owning_org.description }}</div>{% endif %}
+                      <div class="org-name">{{ product.owning_org.name }}<span class="org-type-tag">{{ product.owning_org.type|replace('_',' ')|title }}</span></div>
+                      {% if product.owning_org.description %}<div class="org-desc">{{ product.owning_org.description }}</div>{% endif %}
                     </div>
-                </div>
-                {% endif %}
-                {% if product.contacts %}
-                {% set dms_named = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set infs_named = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set dms_unknown = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set infs_unknown = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
-                <div class="contacts-groups">
-                    {# ── Macro: render one contact row, with alumni highlight if relevance mentions prior Skillable customer ── #}
-                    {% macro contact_row(contact) %}
-                    {% set _rel_lower = (contact.relevance or '') | lower %}
-                    {% set _is_alumni = 'former' in _rel_lower or 'previously' in _rel_lower %}
-                    <div class="contact-row{% if _is_alumni %} alumni{% endif %}"><div class="contact-row-main">
-                        {% if _is_alumni %}<div><span class="contact-alumni-badge">&#9733; Skillable Alumni</span></div>{% endif %}
-                        <div class="contact-name">{% if contact.linkedin_url %}<a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>{% else %}{{ contact.name }}{% endif %}</div>
-                        <div class="contact-title">{{ contact.title }}</div>
-                        {% if contact.relevance %}<div class="contact-relevance{% if _is_alumni %} alumni{% endif %}">{{ contact.relevance }}</div>{% endif %}
-                    </div></div>
-                    {% endmacro %}
-                    {% if dms_named %}
-                    <div class="contacts-group-label dm">Decision Makers</div>
-                    {% for contact in dms_named %}{{ contact_row(contact) }}{% endfor %}
-                    {% endif %}
-                    {% if infs_named %}
-                    <div class="contacts-group-label inf">Key Influencers</div>
-                    {% for contact in infs_named %}{{ contact_row(contact) }}{% endfor %}
-                    {% endif %}
-                    {% set all_unknown = dms_unknown + infs_unknown %}
-                    {% if all_unknown %}
-                    <div class="contacts-group-label" style="color:#3d6655;margin-top:10px;">Suggested Searches</div>
-                    {% for contact in all_unknown %}
-                    <div class="contact-row" style="opacity:0.6;border-style:dashed;">
+                  </div>
+                  {% endif %}
+                  {% if product.contacts %}
+                  {% set dms_named   = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
+                  {% set infs_named  = product.contacts | selectattr('role_type', 'ne', 'decision_maker')      | rejectattr('name', 'match', '(?i)^unknown') | list %}
+                  {% set dms_unknown = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | selectattr('name',  'match', '(?i)^unknown') | list %}
+                  {% set infs_unknown= product.contacts | selectattr('role_type', 'ne', 'decision_maker')      | selectattr('name',  'match', '(?i)^unknown') | list %}
+                  {# ── contact card macro — alumni detected by explicit [SKILLABLE ALUMNI] marker ── #}
+                  {% macro contact_card(contact) %}
+                  {% set _rel = contact.relevance or '' %}
+                  {% set _is_alumni = '[SKILLABLE ALUMNI]' in _rel %}
+                  {% set _rel_display = _rel.replace('[SKILLABLE ALUMNI]', '').strip() %}
+                  <div class="contact-row{% if _is_alumni %} alumni{% endif %}">
+                    <div class="contact-row-main">
+                      {% if _is_alumni %}<div><span class="contact-alumni-badge">&#9733; Skillable Alumni</span></div>{% endif %}
+                      <div class="contact-name">
+                        {% if contact.linkedin_url %}<a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        {% else %}{{ contact.name }}{% endif %}
+                      </div>
+                      <div class="contact-title">{{ contact.title }}</div>
+                      {% if _rel_display %}<div class="contact-relevance{% if _is_alumni %} alumni{% endif %}">{{ _rel_display }}</div>{% endif %}
+                    </div>
+                  </div>
+                  {% endmacro %}
+                  <div class="who-grid">
+                    <div>
+                      {% if dms_named %}<div class="who-col-label dm">Decision Makers</div>{% for c in dms_named %}{{ contact_card(c) }}{% endfor %}{% endif %}
+                      {% set all_unknown = dms_unknown + infs_unknown %}
+                      {% if all_unknown %}
+                      <div class="who-col-label sug" style="margin-top:{% if dms_named %}10px{% else %}0{% endif %};">Suggested Searches</div>
+                      {% for contact in all_unknown %}
+                      <div class="contact-row" style="opacity:0.6;border-style:dashed;">
                         <div class="contact-row-main">
-                            <div class="contact-name" style="color:#6b9e88;font-style:italic;">{{ contact.title }}</div>
-                            {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
+                          <div class="contact-name" style="color:#6b9e88;font-style:italic;">{{ contact.title }}</div>
+                          {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
                         </div>
+                      </div>
+                      {% endfor %}
+                      {% endif %}
                     </div>
-                    {% endfor %}
-                    {% endif %}
+                    <div>
+                      {% if infs_named %}<div class="who-col-label inf">Key Influencers</div>{% for c in infs_named %}{{ contact_card(c) }}{% endfor %}{% endif %}
+                    </div>
+                  </div>
+                  {% else %}
+                  <div class="org-desc">No contacts identified</div>
+                  {% endif %}
                 </div>
-                {% else %}
-                <div class="org-desc">No contacts identified</div>
                 {% endif %}
-                {% endif %}
+
             </div>
             {% endif %}
 
