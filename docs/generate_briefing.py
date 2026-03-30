@@ -539,11 +539,12 @@ def build_open_questions_2col(doc):
         set_paragraph_spacing(p, before=0, after=50)
 
     add_col_heading(left_cell, "SecOps")
-    add_col_bullet(left_cell, "Process for moving repo to corporate GitHub? Who approves access?")
-    add_col_bullet(left_cell, "Which Azure subscription and resource group for App Service?")
+    add_col_bullet(left_cell, "What\u2019s the process for moving a repo to the corporate GitHub org? Who approves access and sets permissions?")
+    add_col_bullet(left_cell, "Which Azure subscription and resource group should this live in, and what\u2019s the approval process for deploying a new internal tool?")
     add_col_bullet(left_cell, "Standard approach for Entra ID app registration for internal tools?")
-    add_col_bullet(left_cell, "Data classification for JSON analysis files (public info + LinkedIn URLs)?")
-    add_col_bullet(left_cell, "DLP or egress controls affecting calls to Anthropic or Serper APIs?")
+    add_col_bullet(left_cell, "Data classification for JSON analysis files (public company info + LinkedIn URLs)?")
+    add_col_bullet(left_cell, "DLP or egress controls that could affect outbound calls to Anthropic (US) or Serper APIs?")
+    add_col_bullet(left_cell, "Do you require audit logging for internal tools that make external API calls? If so, what\u2019s the standard \u2014 we\u2019d log user, company analyzed, timestamp, and APIs called.")
 
     add_col_heading(right_cell, "RevOps")
     add_col_bullet_prefixed(right_cell, "Recommended:", " Add a \u201cProducts\u201d card to the HubSpot Company record \u2014 each product listed as a link to its Inspector score page, labeled Highly Labable / Likely Labable / Not Labable.")
@@ -652,17 +653,56 @@ def main():
     add_h1(doc, "4.  Security \u2014 What SecOps Needs to Know")
 
     add_bullet(doc,
-        " API keys (Anthropic, Serper) live server-side in a .env file \u2014 never in browser storage or source code. All client-side API calls were eliminated in the most recent build cycle.",
+        " Two API keys in a server-side .env file \u2014 never in browser storage or source code. (1) Anthropic Claude API \u2014 AI research and scoring engine; all three tools depend on it. (2) Serper.dev \u2014 Google Search API used for web research on every company analysis; requires a paid subscription. Both keys move to Azure Key Vault in production.",
         bold_prefix="Credential Handling:")
     add_bullet(doc,
         " Company names, URLs, and product descriptions (public, AI-synthesized). Contact names, titles, and LinkedIn URLs sourced from public web search \u2014 equivalent to a manual Google search. No customer data, financial data, or internal Skillable systems data flows through the platform.",
         bold_prefix="Data Touched:")
     add_bullet(doc,
-        " No user authentication today \u2014 runs locally on a developer machine. Must be resolved before any shared deployment. No database; results stored as flat JSON on local filesystem.",
-        bold_prefix="Current State:")
+        " No user authentication \u2014 currently runs on a developer\u2019s local machine. No database; analysis results stored as flat JSON files on the local filesystem. Results are aggressively cached: re-analyzing a company already in the cache skips all Anthropic and Serper API calls, reducing cost and latency significantly.",
+        bold_prefix="Current State \u2014 Storage & Caching:")
     add_bullet(doc,
-        " API key exposure (low risk today, needs Azure Key Vault in production). Unauthenticated access (needs Entra ID/SSO before deployment). Data residency: AI calls to Anthropic (US), web search through Serper/Google, no internal data egress. GitHub repo currently on personal account \u2014 needs to move to corporate Skillable GitHub with proper access controls.",
+        " API key exposure (low risk today, needs Azure Key Vault in production). Unauthenticated access (needs Entra ID/SSO before any shared deployment). Data residency: AI calls to Anthropic (US), web search via Serper/Google, no internal data egress. Repo currently on personal GitHub account \u2014 needs to move to corporate Skillable org. No audit trail of who ran which analyses.",
         bold_prefix="Risks:")
+
+    # Directory tree
+    add_tiny_space(doc, 6)
+    tree_label = doc.add_paragraph()
+    tree_label.add_run("Current repo structure (github.com/fgartland4/skillable-intelligence):").font.size = Pt(8)
+    tree_label.runs[0].font.name = FONT_NAME
+    tree_label.runs[0].font.color.rgb = GRAY
+    set_paragraph_spacing(tree_label, before=40, after=40)
+
+    TREE_LINES = [
+        "skillable-intelligence/          \u2190 Personal GitHub (fgartland4) \u2014 needs to move to Skillable org",
+        "\u251c\u2500\u2500 backend/                     Flask app: routes, scoring engine, AI calls, storage",
+        "\u251c\u2500\u2500 tools/",
+        "\u2502   \u251c\u2500\u2500 inspector/templates/     Inspector UI",
+        "\u2502   \u251c\u2500\u2500 prospector/templates/    Prospector UI",
+        "\u2502   \u2514\u2500\u2500 designer/                Designer UI + client JS",
+        "\u251c\u2500\u2500 static/                      Shared CSS, JS, images",
+        "\u251c\u2500\u2500 docs/                        Executive briefing + generator",
+        "\u251c\u2500\u2500 .gitignore",
+        "\u2514\u2500\u2500 render.yaml                  Deployment config",
+    ]
+    for line in TREE_LINES:
+        p = doc.add_paragraph()
+        r = p.add_run(line)
+        r.font.name = "Consolas"
+        r.font.size = Pt(8)
+        r.font.color.rgb = DARK_TEXT
+        set_paragraph_spacing(p, before=0, after=0)
+        pPr = p._p.get_or_add_pPr()
+        shd = OxmlElement("w:shd")
+        shd.set(qn("w:val"), "clear")
+        shd.set(qn("w:color"), "auto")
+        shd.set(qn("w:fill"), "F2F5F3")
+        pPr.append(shd)
+        ind = OxmlElement("w:ind")
+        ind.set(qn("w:left"), "200")
+        ind.set(qn("w:right"), "200")
+        pPr.append(ind)
+    add_tiny_space(doc, 6)
 
     # ── SECTION 5: How We're Going to Do This ────────────────────────────
 
