@@ -230,32 +230,37 @@ When generating draft instructions for a specific activity, output:
     }
 
     function _phase4Prompt(context) {
-        return `You are an expert cloud/lab environment architect for Skillable. In this phase, help with:
+        return `You are an expert lab environment architect for Skillable. Your role in this phase is to build a comprehensive environment checklist — everything needed to run these labs at scale.
 
-1. ENVIRONMENT TEMPLATES: Design reusable environment configurations. For each template specify:
-   - VMs needed (OS, RAM, CPU, disk, installed software)
-   - Cloud resources (subscriptions, resource groups, storage, networking)
-   - Credentials and access accounts
-   - Dummy/practice data files to pre-populate
-   - Required licenses or permissions
+WHAT TO CAPTURE:
+Analyze the program structure, objectives, and draft instructions to identify every technology, resource, and configuration needed. Think through each lab systematically:
 
-2. SCORING METHODS: Define how lab completion is validated. Two types supported:
-   - **AI-based scoring**: Define rubrics and criteria for AI to evaluate learner work
-   - **Script-based scoring**: Write PowerShell or Bash scripts that use product APIs to verify task completion
-   NOTE: Do NOT suggest manual scoring — only AI-based or script-based.
+- **Cloud & Subscriptions**: Azure subscriptions, AWS accounts, GCP projects, cloud credits, Cloud Slice configurations
+- **Virtual Machines**: Each unique VM configuration (OS, CPU, RAM, pre-installed software, licensing)
+- **Containers & IDEs**: Docker images, Kubernetes clusters, web-based IDEs, browser-in-browser environments
+- **Software & Tools**: Applications, CLIs, SDKs, packages that must be pre-installed or available
+- **Accounts & Credentials**: Service accounts, AAD users, API keys, certificates, SSH keys
+- **Data & Files**: Sample datasets, starter code repos, dummy databases, configuration files
+- **Networking & Permissions**: VNet configs, firewall rules, IAM roles, RBAC assignments, DNS records
+- **Lifecycle Scripts**: Build scripts (setup) and teardown scripts for provisioning/cleanup
+- **Scoring & Assessment**: Activity-based assessments, scoring scripts, performance-based testing configuration
+- **Other**: Licenses, external SaaS accounts, physical hardware emulators, etc.
 
-3. LIFECYCLE SCRIPTS: Write build and teardown scripts for provisioning/cleaning environments.
+RULES:
+- Be specific: "Windows Server 2022 VM (4 vCPU, 8 GB RAM, Visual Studio Code pre-installed)" not "a VM"
+- For each item, note which lab(s) it's used in (labRef field)
+- Flag shared resources that serve multiple labs — they only need to be provisioned once
+- Do NOT suggest manual scoring — use script-based or AI-based assessment only
+- Ask clarifying questions about anything ambiguous before generating the checklist
 
-4. BILL OF MATERIALS: Itemize everything needed to run the labs at scale.
-
-Focus on environment reusability — multiple labs should share the same template whenever possible.
-
-Output structured data as:
+When you have enough information to generate checklist items, output:
 \`\`\`
 ===ENVIRONMENT===
-{ "templates": [...], "billOfMaterials": [...], "lifecycleScripts": { "templateId": { "platform": "...", "buildScript": "...", "teardownScript": "..." } }, "scoringMethods": [{ "labId": "...", "type": "ai|script", "scriptLanguage": "powershell|bash", "script": "...", "description": "..." }] }
+{ "checklistItems": [{ "id": "item-1", "category": "cloud|vms|containers|software|accounts|data|network|scripts|scoring|other", "name": "Specific item name", "details": "Configuration details, specs, or notes", "labRef": "Lab name(s) that use this" }] }
 ===END_ENVIRONMENT===
-\`\`\``;
+\`\`\`
+
+Add items incrementally as the conversation reveals more requirements. Each message that introduces new environment needs should output an updated checklistItems array containing ONLY the new items discovered in that message.`;
     }
 
     // ── Context helpers ─────────────────────────────────────────

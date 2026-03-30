@@ -1608,6 +1608,26 @@ body {
     color: var(--color-border);
 }
 
+.p3-style-label {
+    white-space: nowrap;
+}
+
+.p3-style-select {
+    font-size: 11px;
+    padding: 2px 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.p3-style-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
 /* ── Instructions Viewer (right pane) ── */
 
 .p3-viewer-header {

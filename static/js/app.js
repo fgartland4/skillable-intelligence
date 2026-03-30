@@ -439,9 +439,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     `Head over to **Phase 2** to generate or define your lab structure first.`
                 );
             } else {
+                const style = currentProject.instructionStyle || 'challenge';
+                const styleLabel = style === 'step-by-step' ? 'step-by-step' : style === 'mixed' ? 'mixed' : 'challenge-based';
                 renderChatMessage('phase3', 'assistant',
-                    `Your lab outline is ready. Let's start drafting instructions for each activity.\n\n` +
-                    `The instruction style defaults to **challenge-based** — you can change it in the Styling tab. Say **"start drafting"** and I'll generate instructions for all your labs.\n\n` +
+                    `Your lab outline is ready. Let's draft instructions for each activity.\n\n` +
+                    `I'll use **${styleLabel}** style by default — just tell me if you'd prefer step-by-step or mixed, or use the Style selector at the bottom of the outline. Say **"start drafting"** and I'll generate instructions for all your labs.\n\n` +
                     `**Keep in mind:** These are draft instructions — scaffolding to give your lab authors a strong head start. Final editing, polish, and QA will happen in Skillable Studio.`
                 );
             }
@@ -551,23 +553,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const p1Complete = p1HasData && currentProject.competencies && currentProject.competencies.length > 0;
         setProgressIcon('phase1', p1Complete ? 'check' : (p1HasData ? 'half' : 'empty'));
 
-        // Phase 2: has program structure
+        // Phase 2: has program structure with at least one lab
         const p2HasData = currentProject.programStructure &&
             currentProject.programStructure.labSeries &&
             currentProject.programStructure.labSeries.length > 0;
-        const p2Complete = p2HasData && currentProject.instructionStyle;
-        setProgressIcon('phase2', p2Complete ? 'check' : (p2HasData ? 'half' : 'empty'));
+        const p2TotalLabs = p2HasData
+            ? currentProject.programStructure.labSeries.reduce((s, ls) => s + (ls.labs || []).length, 0)
+            : 0;
+        setProgressIcon('phase2', p2TotalLabs > 0 ? 'check' : (p2HasData ? 'half' : 'empty'));
 
-        // Phase 3: has lab blueprints with instructions
-        const p3HasData = currentProject.labBlueprints && currentProject.labBlueprints.length > 0;
-        const p3Complete = p3HasData && currentProject.draftInstructions &&
-            Object.keys(currentProject.draftInstructions).length > 0;
-        setProgressIcon('phase3', p3Complete ? 'check' : (p3HasData ? 'half' : 'empty'));
+        // Phase 3: has activities drafted (uses programStructure, not labBlueprints)
+        const p3HasStructure = p2HasData;
+        let p3TotalActivities = 0;
+        let p3DraftedActivities = 0;
+        if (p3HasStructure) {
+            for (const ls of currentProject.programStructure.labSeries) {
+                for (const lab of (ls.labs || [])) {
+                    for (const act of (lab.activities || [])) {
+                        p3TotalActivities++;
+                        if (currentProject.draftInstructions &&
+                            currentProject.draftInstructions[lab.id] &&
+                            currentProject.draftInstructions[lab.id][act.id]) {
+                            p3DraftedActivities++;
+                        }
+                    }
+                }
+            }
+        }
+        const p3Complete = p3TotalActivities > 0 && p3DraftedActivities === p3TotalActivities;
+        setProgressIcon('phase3', p3Complete ? 'check' : (p3DraftedActivities > 0 ? 'half' : (p3HasStructure ? 'empty' : 'empty')));
 
-        // Phase 4: has environment templates or export
-        const p4HasData = (currentProject.environmentTemplates && currentProject.environmentTemplates.length > 0) ||
-            (currentProject.scoringMethods && currentProject.scoringMethods.length > 0);
-        const p4Complete = p4HasData && currentProject.exportHistory && currentProject.exportHistory.length > 0;
+        // Phase 4: has environment checklist items
+        const p4Checklist = currentProject.environmentChecklist || [];
+        const p4HasData = p4Checklist.length > 0;
+        const p4Complete = p4HasData && p4Checklist.every(i => i.status === 'confirmed');
         setProgressIcon('phase4', p4Complete ? 'check' : (p4HasData ? 'half' : 'empty'));
     }
 
@@ -597,17 +616,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSettings() {
         const s = Settings.getAll();
 
-        $('#settings-ai-provider').value = s.aiProvider || 'claude';
-        $('#settings-api-key').value = s.apiKey || '';
-        const provider = s.aiProvider || 'claude';
-        filterModelsByProvider(provider);
-        const modelSelect = $('#settings-model');
-        if (s.model) modelSelect.value = s.model;
-        if (!modelSelect.value) {
-            const firstOpt = $(`#settings-model optgroup[data-provider="${provider}"] option`);
-            if (firstOpt) modelSelect.value = firstOpt.value;
-        }
-        $('#settings-endpoint').value = s.customEndpoint || '';
         const validSeatTimes = ['15-30', '30-45', '45-75', '75-90', '90-120', '120+'];
         const seatTime = validSeatTimes.includes(s.defaultSeatTime) ? s.defaultSeatTime : '45-75';
         $('#settings-default-seat-time').value = seatTime;
@@ -666,19 +674,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Endpoint field visibility
-        toggleEndpointField(s.aiProvider);
-
         // (references are rendered inline via ref URL fields and ref file dropzone)
     }
 
     function bindSettings() {
-        // Provider change
-        $('#settings-ai-provider').addEventListener('change', (e) => {
-            toggleEndpointField(e.target.value);
-            filterModelsByProvider(e.target.value);
-        });
-
         // Custom style guide — auto-add to dropdown on blur
         const customStyleInput = $('#settings-custom-style-url');
         if (customStyleInput) {
@@ -690,19 +689,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-
-        // Toggle key visibility
-        $('#settings-toggle-key').addEventListener('click', () => {
-            const input = $('#settings-api-key');
-            const btn = $('#settings-toggle-key');
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.textContent = 'Hide';
-            } else {
-                input.type = 'password';
-                btn.textContent = 'Show';
-            }
-        });
 
         // Test connection
         $('#settings-test-connection').addEventListener('click', async () => {
@@ -836,13 +822,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function saveSettings() {
-        Settings.set('aiProvider', $('#settings-ai-provider').value);
-        Settings.set('apiKey', $('#settings-api-key').value);
-        Settings.set('model', $('#settings-model').value);
-        Settings.set('customEndpoint', $('#settings-endpoint').value);
-        Settings.set('defaultSeatTime', $('#settings-default-seat-time').value || '45-75');
-        Settings.set('activitiesPerLab', $('#settings-activities-per-lab').value || '3-5');
-        Settings.set('defaultDifficulty', $('#settings-default-difficulty').value);
+        const seatTimeEl = $('#settings-default-seat-time');
+        if (seatTimeEl) Settings.set('defaultSeatTime', seatTimeEl.value || '45-75');
+        const aplEl = $('#settings-activities-per-lab');
+        if (aplEl) Settings.set('activitiesPerLab', aplEl.value || '3-5');
+        const diffEl = $('#settings-default-difficulty');
+        if (diffEl) Settings.set('defaultDifficulty', diffEl.value);
 
         // Naming formula
         const namingInput = $('#settings-naming-formula');

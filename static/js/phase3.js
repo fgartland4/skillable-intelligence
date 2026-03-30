@@ -56,6 +56,20 @@ const Phase3 = (() => {
             outlineBody.addEventListener('click', _handleOutlineClick);
         }
 
+        // Style selector change (outline footer)
+        const outlineFooter = $('#phase3-outline-footer');
+        if (outlineFooter) {
+            outlineFooter.addEventListener('change', (e) => {
+                const select = e.target.closest('.p3-style-select');
+                if (select) {
+                    const projectId = select.dataset.projectId;
+                    Store.setInstructionStyle(projectId, select.value);
+                    const project = Store.getProject(projectId);
+                    _renderOutlineFooter(project);
+                }
+            });
+        }
+
         // Instructions viewer clicks (right pane)
         const viewer = $('#phase3-instructions-viewer');
         if (viewer) {
@@ -295,7 +309,13 @@ const Phase3 = (() => {
             <div class="p3-footer-stats">
                 <span class="p3-stat">${drafted}/${total} activities drafted</span>
                 <span class="p3-stat-sep">&middot;</span>
-                <span class="p3-stat">Style: ${styleLabels[instructionStyle] || instructionStyle}</span>
+                <span class="p3-stat p3-style-label">Style:</span>
+                <select class="p3-style-select" data-project-id="${project.id}" title="Instruction style">
+                    <option value="challenge"${instructionStyle === 'challenge' ? ' selected' : ''}>Challenge-based</option>
+                    <option value="step-by-step"${instructionStyle === 'step-by-step' ? ' selected' : ''}>Step-by-step</option>
+                    <option value="mixed"${instructionStyle === 'mixed' ? ' selected' : ''}>Mixed</option>
+                    <option value="performance-test"${instructionStyle === 'performance-test' ? ' selected' : ''}>Performance Test</option>
+                </select>
             </div>
             ${drafted < total ? `<button class="btn btn-primary btn-sm" data-draft-all data-project-id="${project.id}">Draft All Remaining</button>` : ''}
         `;
