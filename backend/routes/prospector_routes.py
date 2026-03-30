@@ -210,6 +210,64 @@ def prospector_flag():
     return jsonify({"success": True})
 
 
+@prospector.route("/export-csv/<job_id>")
+def prospector_export_csv(job_id: str):
+    job = load_prospector_run(job_id)
+    if not job:
+        return "Job not found", 404
+
+    results = job.get("results", {})
+    rows = sorted([r for r in results.values() if r and "error" not in r],
+                  key=lambda r: r.get("composite_score", 0), reverse=True)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "#", "Company", "Website", "Top Product", "Skillable Path",
+        "Lab Score", "Partnership Score", "Composite Score",
+        "Highly Labable", "Likely Labable", "Not Labable",
+        "ATP Program", "Channel Program", "On-Demand Library", "Cert Program", "Existing Lab Partner",
+        "Top Contact", "Title", "LinkedIn",
+        "2nd Contact", "2nd Title", "2nd LinkedIn",
+        "Full Analysis URL", "Notes",
+    ])
+    for i, row in enumerate(rows, 1):
+        aid = row.get("analysis_id", "")
+        writer.writerow([
+            i,
+            row.get("company_name", ""),
+            row.get("company_url", ""),
+            row.get("top_product", ""),
+            row.get("skillable_path", ""),
+            row.get("lab_score", ""),
+            row.get("partnership_score", ""),
+            row.get("composite_score", ""),
+            row.get("total_highly_labable", ""),
+            row.get("total_likely_labable", ""),
+            row.get("total_not_labable", ""),
+            row.get("atp_program", ""),
+            row.get("channel_program", ""),
+            row.get("ondemand_library", ""),
+            row.get("cert_program", ""),
+            row.get("existing_lab_partner", ""),
+            row.get("top_contact_name", ""),
+            row.get("top_contact_title", ""),
+            row.get("top_contact_linkedin", ""),
+            row.get("second_contact_name", ""),
+            row.get("second_contact_title", ""),
+            row.get("second_contact_linkedin", ""),
+            f"/inspector/results/{aid}" if aid else "",
+            "",  # Notes — blank for user
+        ])
+
+    csv_bytes = output.getvalue().encode("utf-8-sig")  # BOM for Excel compatibility
+    return Response(
+        csv_bytes,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=prospector-{job_id}.csv"},
+    )
+
+
 @prospector.route("/export/<job_id>")
 def prospector_export(job_id: str):
     import openpyxl
