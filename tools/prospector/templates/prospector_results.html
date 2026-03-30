@@ -156,6 +156,12 @@
         {% if skipped_poor_fit %}
         <p class="skipped-notice">&#8212; {{ skipped_poor_fit }} previously flagged poor-fit {{ 'company' if skipped_poor_fit == 1 else 'companies' }} skipped.</p>
         {% endif %}
+        {% if timed_out %}
+        <p class="skipped-notice">&#8212; {{ timed_out|length }} {{ 'company' if timed_out|length == 1 else 'companies' }} skipped after exceeding the 3-minute limit:
+            {% for t in timed_out %}<strong>{{ t.company_name }}</strong>{% if not loop.last %}, {% endif %}{% endfor %}.
+            Re-run individually via Inspector for a full analysis.
+        </p>
+        {% endif %}
 
         {% if rows %}
         <div class="results-table-wrap">

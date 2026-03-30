@@ -535,6 +535,8 @@ def prospector_run():
 
     force_refresh = request.form.get("force_refresh") == "1"
 
+    COMPANY_TIMEOUT_SECS = 180  # 3 minutes — slow orgs are skipped, not waited on
+
     job_id = str(uuid.uuid4())[:8]
     results = {}
     semaphore = threading.Semaphore(3)
@@ -547,12 +549,26 @@ def prospector_run():
                 if job_id in _cancelled_jobs:
                     return
                 _push(job_id, f"status:Analyzing {name}...")
-                row = _quick_analyze_company(name, force_refresh=force_refresh)
-                if row:
-                    row["skillable_path"] = _derive_skillable_path(row.get("lab_score", 0))
-                    row["flagged_poor_fit"] = False
-                results[name] = row or {"company_name": name, "error": "Analysis failed"}
-                _push(job_id, f"progress:{name}")
+
+                result_holder = [None]
+                def _run():
+                    result_holder[0] = _quick_analyze_company(name, force_refresh=force_refresh)
+
+                worker = threading.Thread(target=_run, daemon=True)
+                worker.start()
+                worker.join(timeout=COMPANY_TIMEOUT_SECS)
+
+                if worker.is_alive():
+                    # Timed out — release the slot and move on
+                    results[name] = {"company_name": name, "timed_out": True}
+                    _push(job_id, f"timeout:{name}")
+                else:
+                    row = result_holder[0]
+                    if row:
+                        row["skillable_path"] = _derive_skillable_path(row.get("lab_score", 0))
+                        row["flagged_poor_fit"] = False
+                    results[name] = row or {"company_name": name, "error": "Analysis failed"}
+                    _push(job_id, f"progress:{name}")
 
         threads = [threading.Thread(target=analyze_one, args=(n,), daemon=True) for n in company_names]
         for t in threads:
@@ -597,12 +613,14 @@ def prospector_results(job_id: str):
     if not job:
         return redirect(url_for("prospector.prospector_home"))
     results = job.get("results", {})
-    rows = [r for r in results.values() if r and "error" not in r]
+    rows = [r for r in results.values() if r and "error" not in r and not r.get("timed_out")]
     rows.sort(key=lambda r: r.get("composite_score", 0), reverse=True)
     for i, r in enumerate(rows):
         r["rank"] = i + 1
     errors = [r for r in results.values() if r and "error" in r]
+    timed_out = [r for r in results.values() if r and r.get("timed_out")]
     return render_template("prospector_results.html", rows=rows, errors=errors,
+                           timed_out=timed_out,
                            job_id=job_id,
                            company_count=len(job.get("companies", [])),
                            skipped_poor_fit=job.get("skipped_poor_fit", 0))

@@ -74,6 +74,7 @@
         }
         @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
         .status-done { color: #24ED9B; font-size: 0.88rem; font-weight: 700; line-height: 1; }
+        .status-timeout { color: #6b9e88; font-size: 0.8rem; line-height: 1; }
         .status-error { color: #f87171; font-size: 0.82rem; }
 
         /* Name highlight states */
@@ -153,6 +154,9 @@
             } else if (state === 'done') {
                 nameEl.className = 'col-name is-done';
                 statusEl.innerHTML = '<span class="status-done">✓</span>';
+            } else if (state === 'timeout') {
+                nameEl.className = 'col-name is-done';
+                statusEl.innerHTML = '<span class="status-timeout" title="Skipped — exceeded 3 min limit">⏱</span>';
             } else if (state === 'error') {
                 nameEl.className = 'col-name';
                 statusEl.innerHTML = '<span class="status-error">✗</span>';
@@ -170,6 +174,12 @@
                 completed++;
                 const name = msg.slice(9);
                 setStatus(name, 'done');
+                document.getElementById('progress-text').textContent = `${completed} / ${total} complete`;
+                document.getElementById('progress-bar').style.width = `${Math.round((completed / total) * 100)}%`;
+            } else if (msg.startsWith("timeout:")) {
+                completed++;
+                const name = msg.slice(8);
+                setStatus(name, 'timeout');
                 document.getElementById('progress-text').textContent = `${completed} / ${total} complete`;
                 document.getElementById('progress-bar').style.width = `${Math.round((completed / total) * 100)}%`;
             } else if (msg.startsWith("done:")) {
