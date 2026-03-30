@@ -215,12 +215,12 @@ def build_footer(doc):
         color1 = OxmlElement("w:color")
         color1.set(qn("w:val"), "888888")
         sz1 = OxmlElement("w:sz")
-        sz1.set(qn("w:val"), "18")
+        sz1.set(qn("w:val"), "16")
         szCs1 = OxmlElement("w:szCs")
-        szCs1.set(qn("w:val"), "18")
+        szCs1.set(qn("w:val"), "16")
         font1 = OxmlElement("w:rFonts")
-        font1.set(qn("w:ascii"), "Arial")
-        font1.set(qn("w:hAnsi"), "Arial")
+        font1.set(qn("w:ascii"), "Calibri")
+        font1.set(qn("w:hAnsi"), "Calibri")
         rpr1.append(font1)
         rpr1.append(sz1)
         rpr1.append(szCs1)
@@ -469,7 +469,8 @@ def build_open_questions_2col(doc):
     Open questions rendered as a borderless 2-column table:
     SecOps on left, RevOps on right.
     """
-    outer = doc.add_table(rows=1, cols=2)
+    # 3-column layout: left | spacer | right — spacer adds gutter between columns
+    outer = doc.add_table(rows=1, cols=3)
     outer.alignment = WD_TABLE_ALIGNMENT.LEFT
 
     # Remove borders from the outer table
@@ -489,11 +490,13 @@ def build_open_questions_2col(doc):
     tblPr.append(tblBorders)
 
     left_cell = outer.rows[0].cells[0]
-    right_cell = outer.rows[0].cells[1]
-    left_cell.width = Twips(4500)
-    right_cell.width = Twips(4860)
+    spacer_cell = outer.rows[0].cells[1]
+    right_cell = outer.rows[0].cells[2]
+    left_cell.width = Twips(4400)
+    spacer_cell.width = Twips(480)   # ~1/3" gutter
+    right_cell.width = Twips(4912)
 
-    for cell in [left_cell, right_cell]:
+    for cell in [left_cell, spacer_cell, right_cell]:
         tc = cell._tc
         tcPr = tc.get_or_add_tcPr()
         tcBorders = OxmlElement("w:tcBorders")
@@ -511,6 +514,7 @@ def build_open_questions_2col(doc):
         for p in list(cell.paragraphs):
             p._element.getparent().remove(p._element)
         p = cell.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = p.add_run(text)
         r.font.name = FONT_NAME
         r.font.size = Pt(10)
@@ -698,23 +702,50 @@ def main():
         "\u251c\u2500\u2500 .gitignore",
         "\u2514\u2500\u2500 render.yaml                  Deployment config",
     ]
+
+    # Bordered tree box — single-cell table with thin gray border
+    tree_tbl = doc.add_table(rows=1, cols=1)
+    tree_tbl.alignment = WD_TABLE_ALIGNMENT.LEFT
+    tbl_el = tree_tbl._tbl
+    tblPr_el = tbl_el.find(qn("w:tblPr"))
+    if tblPr_el is None:
+        tblPr_el = OxmlElement("w:tblPr")
+        tbl_el.insert(0, tblPr_el)
+    tblW = OxmlElement("w:tblW")
+    tblW.set(qn("w:w"), "9792")
+    tblW.set(qn("w:type"), "dxa")
+    tblPr_el.append(tblW)
+    tree_tbl_borders = OxmlElement("w:tblBorders")
+    for side in ["top", "left", "bottom", "right"]:
+        b = OxmlElement(f"w:{side}")
+        b.set(qn("w:val"), "single")
+        b.set(qn("w:sz"), "4")
+        b.set(qn("w:space"), "0")
+        b.set(qn("w:color"), "AAAAAA")
+        tree_tbl_borders.append(b)
+    for side in ["insideH", "insideV"]:
+        b = OxmlElement(f"w:{side}")
+        b.set(qn("w:val"), "none")
+        b.set(qn("w:sz"), "0")
+        b.set(qn("w:space"), "0")
+        b.set(qn("w:color"), "auto")
+        tree_tbl_borders.append(b)
+    tblPr_el.append(tree_tbl_borders)
+
+    tree_cell = tree_tbl.rows[0].cells[0]
+    set_cell_background(tree_cell, "F2F5F3")
+    set_cell_margins(tree_cell, 120)
+    for p in list(tree_cell.paragraphs):
+        p._element.getparent().remove(p._element)
+
     for line in TREE_LINES:
-        p = doc.add_paragraph()
+        p = tree_cell.add_paragraph()
         r = p.add_run(line)
         r.font.name = "Consolas"
         r.font.size = Pt(8)
         r.font.color.rgb = DARK_TEXT
         set_paragraph_spacing(p, before=0, after=0)
-        pPr = p._p.get_or_add_pPr()
-        shd = OxmlElement("w:shd")
-        shd.set(qn("w:val"), "clear")
-        shd.set(qn("w:color"), "auto")
-        shd.set(qn("w:fill"), "F2F5F3")
-        pPr.append(shd)
-        ind = OxmlElement("w:ind")
-        ind.set(qn("w:left"), "200")
-        ind.set(qn("w:right"), "200")
-        pPr.append(ind)
+
     add_tiny_space(doc, 6)
 
     # ── SECTION 5: How We're Going to Do This ────────────────────────────
@@ -731,9 +762,16 @@ def main():
         " Instrument usage (companies analyzed, score distributions, pipeline conversion). Complete Designer Phase 2 and 3 prompts and Studio handoff format. Upgrade search API once usage exceeds ~50 Inspector analyses/month. Expand customer benchmarks as new logos close.",
         bold_prefix="Phase 3 \u2014 Expand and Iterate:")
 
-    # ── SECTION 6: Open Questions ─────────────────────────────────────────
+    # ── SECTION 6: Questions & Recommendations ────────────────────────────
 
-    add_h1(doc, "6.  Open Questions")
+    pb = doc.add_paragraph()
+    pb_run = pb.add_run()
+    br = OxmlElement("w:br")
+    br.set(qn("w:type"), "page")
+    pb_run._r.append(br)
+    set_paragraph_spacing(pb, before=0, after=0)
+
+    add_h1(doc, "6.  Questions & Recommendations")
     add_tiny_space(doc, 4)
     build_open_questions_2col(doc)
 
