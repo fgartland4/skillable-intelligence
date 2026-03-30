@@ -352,24 +352,20 @@ Every evidence `claim` bullet MUST start with a **2–3 word bold label** follow
 
 **Technical Orchestrability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we build it?"
 
-The `technical_orchestrability` evidence bullets are SA handoff notes — written for a Skillable Solution Architect who needs to understand how to actually build this lab. Do NOT write research citations here. Write 3–4 concise, actionable bullets using these bold labels:
+The `technical_orchestrability` evidence bullets are SA handoff notes — written for a Skillable Solution Architect who needs to understand why this product is or is not labable, and how to approach building it.
 
-⚠️ **CONTENT SEPARATION RULE — Technical Orchestrability evidence only:**
-Evidence `claim` fields describe **PRODUCT facts** — what the product exposes, how it deploys, what interfaces are accessible. Do NOT reference Skillable platform components (LCA, Life Cycle Action, Automated Activity, Cloud Slice, Pre-Build, Post-Build, First Displayable, Scoring Bot, AI Vision, ABA, PBT, scoring surface) in evidence claims. These belong exclusively in the Scoring Approach recommendation bullet.
-Wrong: `**Score:** PowerShell module enables LCA-driven validation at scoring event.`
-Right: `**Scoring Surface:** PowerShell module exposes backup policy state, job status, and recovery point counts via cmdlets — all queryable programmatically.`
+**Tell a logical story in 3–5 bullets.** There is no fixed label set — choose labels that fit THIS product's story. Lead with the signal that most determines whether and how a lab gets built. A product with a clean VM install story leads with that. A product with a critical API blocker leads with that. Follow a narrative order that makes sense: typically what it is → how it deploys → what you can automate → what's hard or blocked.
 
-All automation in Skillable is delivered via **Life Cycle Actions (LCAs)** — scripts and actions triggered at specific lab events. Key events for SA design: **Pre-Build** (cloud resources deploying, run provisioning LCAs here), **Post-Build** (environment built, VMs may still be starting — run configuration LCAs here), **First Displayable** (all components running, user enters — run final-state LCAs here), **Scoring** (runs before platform scoring, use for pre-scoring validation), **Tearing Down** (run cleanup/teardown LCAs here). LCA actions: Execute Script in VM (PowerShell, Bash, Shell), Execute Script in Container (Bash), Execute Script in Cloud Platform (PowerShell, Python, C#, JavaScript — Azure and AWS both supported), Execute Custom Script (targets external APIs — PowerShell, Python, JavaScript, C#), Send Web Request (GET/POST/DELETE/PUT with @lab tokens — primary BYOC provisioning mechanism). LCAs support Blocking (hold lifecycle until complete), Delay, Repeat (poll until true — use for async provisioning wait loops), and Retry. LCA scripts can set lab variables that surface as @lab replacement tokens in instructions — use this to pass generated credentials, URLs, or resource IDs to the learner.
+Each bullet MUST begin with a **2–4 word bold label:** `**Label:** finding.`
+The label names the specific signal — not a generic category. 1–2 sentences per bullet.
 
-- **Provision:** How Skillable provisions the environment (triggered via Pre-Build LCA). For VM/Hyper-V: describe the VM image, OS, and installed software. For Cloud Slice: describe how the Azure/AWS subscription is provisioned and what gets deployed into it. For Custom API/BYOC: describe the vendor API call (web request or custom script LCA) that spins up the learner environment.
-- **Configure:** What setup is needed to reach the lab's starting state — PowerShell, Python, CLI, REST API calls that create initial data, seed user accounts, apply licenses, or pre-configure the environment. Note any automation blockers (e.g., MFA requirements on admin accounts, GUI-only setup steps, provisioning times over a few minutes).
-- **Scoring Surface:** What the product EXPOSES that enables automated validation — REST API endpoints, PowerShell/CLI modules, queryable state (running services, file existence, registry values, config files, cloud resource properties, database state). Be specific about what data is accessible. Do NOT describe how Skillable uses these — mechanism and scoring format belong in the Scoring Approach recommendation bullet, not here.
-- **Reset / Teardown:** How the environment is cleaned up (Tearing Down LCA) — VM snapshot revert is automatic on Hyper-V; cloud subscriptions/accounts are deleted automatically; BYOC requires an explicit teardown API call or script.
-- **License / Access Note:** (include only if relevant) NFR license, dev tier, trial, or Marketplace image available — or flag if licensing is a blocker that needs vendor engagement. For socket-licensed software on ESX: note whether the expected VM size stays under 24 vCPUs (1 socket) or requires more (2 sockets, doubled license cost).
+**Do NOT use Skillable platform terms in evidence claims.** (LCA, Life Cycle Action, Pre-Build, Post-Build, Cloud Slice, Scoring Bot, AI Vision, ABA, PBT belong in Scoring Approach and Delivery Path bullets — not here.)
+Use `— Risk` or `— Blocker` suffix on any label that signals a problem: `**License Model — Risk:**`, `**API Access — Blocker:**`
 
-Keep each bullet to 1–2 sentences. These should be directional enough for an SA to start solutioning, not a full technical spec.
+Example labels — use these or invent better ones for the specific product:
+`**Windows Install:**` · `**Linux Installer:**` · `**Docker Image:**` · `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Admin Console:**` · `**Web UI Only:**` · `**License Model:**` · `**NFR Program:**` · `**Dev Tier:**` · `**Entra ID SSO:**` · `**Tenant Isolation:**` · `**Silent Install:**` · `**Offline Activation:**` · `**Nested Virtualization:**` · `**GPU Required:**` · `**Provisioning Time:**` · `**Multi-VM Topology:**`
 
-SA build notes (reference when relevant — do not include all of these, only what applies):
+SA build notes (reference when relevant — do not surface in evidence claims):
 - Hyper-V/ESX Integration Services or VMware Tools must be installed in the VM for Skillable automation and scoring to work (LCA/ABA activities, screen commands, heartbeat detection)
 - Recommended max 4 vCPUs per VM (diminishing returns beyond that); RAM is the primary cost driver — size to actual need
 - Multi-VM labs: configure startup delays to prevent resource conflicts at launch; set a default VM for display order
@@ -406,11 +402,13 @@ Scoring signals (sum; cap 25):
 - Multi-component topology: lab environment requires multiple VMs or services (creates complexity that separates into distinct labs): +2
 - Integration complexity: connecting to external systems is a primary, not incidental, workflow: +1
 
-Evidence bullets for this dimension use **2–3 word bold intro:** format. Use these labels where applicable:
-- **Training Scope:** how many distinct learning programs this product naturally warrants, and why (e.g., "DataProtect supports at least 4 distinct programs: backup admin, recovery operations, data governance, disaster recovery planning — each requires a separate lab series")
-- **DTDS Coverage:** which of the 5 DTDS phases are primary user activities (be specific — not just "yes it has admin tasks" but which phases and what they look like in practice)
-- **AI Practice Surface:** if AI-embedded features are present, name them and state why hands-on practice is essential vs. a demo being sufficient
-- **Role Breadth:** the distinct user personas and what separate programs each would require (do not repeat personas from the user_personas field — focus on how role breadth creates distinct program demand)
+Evidence bullets tell the story of why this product does or doesn't justify a multi-lab program. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal. Cover what's relevant — don't force all four labels if fewer tell the story cleanly.
+
+Signals worth naming (use these labels or choose better ones for the product):
+- `**Training Scope:**` how many distinct learning programs this product naturally warrants and why
+- `**DTDS Coverage:**` which of the 5 phases are primary activities — be specific about what each looks like in practice for this product
+- `**AI Practice Surface:**` name the specific AI features and why hands-on practice is essential (not just a demo)
+- `**Role Breadth:**` how distinct personas create separate program demand (don't repeat personas already listed — focus on the demand implication)
 
 **Training & Enablement Maturity (0-20):** This is 20% of the total score. "Is the org ready?" — labs need a delivery vehicle to reach learners. Score the highest applicable combination:
 - ATP/Learning Partner program (channel credentials, technical seller enablement): +8
@@ -422,23 +420,28 @@ Evidence bullets for this dimension use **2–3 word bold intro:** format. Use t
 - Existing labs/sandboxes: +1
 Cap 20.
 
-Evidence bullets use **2–3 word bold intro:** format. Use these labels where applicable:
-- **Training Org:** the named training organization and what it covers (e.g., "[Product] University — role-based certification tracks, annual partner summit with hands-on workshops")
-- **Certification Program:** certification name, credential type, and approximate scale (e.g., "Certified Administrator exam; ~500 active badge holders per LinkedIn")
-- **Partner Network:** ATP/Learning Partner size and structure — how many, what tier requirements exist (e.g., "~150 ATPs listed in the partner directory; gold/platinum tiers require technical certification")
-- **Events / Community:** flagship events with hands-on components, gray market training presence (Udemy, community courses)
-- **Existing Labs:** any CloudShare, Instruqt, Appsembler, or Skillable hands-on labs found — confirms training demand and potential migration opportunity
+Evidence bullets tell the story of how mature the org's delivery infrastructure is. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal.
+
+Signals worth naming (use these labels or choose better ones):
+- `**Training Org:**` the named training organization, what it covers, approximate scale
+- `**Certification Program:**` credential name, type, and scale (e.g., "~500 active badge holders per LinkedIn")
+- `**Partner Network:**` ATP/Learning Partner size and structure — how many, tier requirements
+- `**Events / Community:**` flagship events with hands-on components, gray market training presence
+- `**Existing Labs:**` any CloudShare, Instruqt, Appsembler, or Skillable labs found — confirms demand and migration opportunity
+- `**Gap:**` / `**Missing:**` / `**Limited:**` — use when the score reflects something absent, not just what exists
 
 **Market & Strategic Fit (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Strategically aligned?" — is Skillable the right platform for this product's market?
 Category prior (highest applicable): Cybersecurity: +4 | Cloud Infrastructure: +4 | Networking/SDN: +4 | DevOps: +3 | Data Protection: +3 | Infrastructure/Virtualization: +3 | Data & Analytics: +3 | Data Science & Engineering: +3 | Application Development: +3 | Collaboration: +2 | ERP/CRM: +2 | Healthcare IT: +2 | Legal Tech: +2 | FinTech: +2 | Content Management: +2 | Industrial/OT: +2 | Simple SaaS: +0 | Consumer: +0
 AI additive: Builds/Trains/Deploys AI (CREATE AI): +3 | AI-embedded features with market demand (INCORPORATE AI): +1
 Other: Large/growing install base: +2 | Growing category: +1 | Limited competitor labs: +1. Cap 10.
 
-Evidence bullets use **2–3 word bold intro:** format. Use these labels where applicable:
-- **Category Fit:** product category and Skillable's strength in that space (cite the category prior score and why this product fits it)
-- **Install Base:** scale and enterprise character of the installed base — Fortune 500 count, global customer numbers, or analyst data
-- **AI Signal:** CREATE AI (builds/trains/deploys AI models) or INCORPORATE AI (embedded AI features) — state the specific signal found and the additive score it earns
-- **Competitor Labs:** whether competing products already have Skillable labs (adjacency signal) or the market lacks good hands-on alternatives (demand signal)
+Evidence bullets tell the story of strategic alignment and market opportunity. Write 2–3 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal.
+
+Signals worth naming (use these labels or choose better ones):
+- `**Category Fit:**` product category and why it aligns (or doesn't) with Skillable's core market strength
+- `**Install Base:**` scale and enterprise character — Fortune 500 presence, global customer numbers, analyst positioning
+- `**AI Signal:**` CREATE AI or INCORPORATE AI — name the specific feature and the score it earns
+- `**Competitor Labs:**` whether competing products have Skillable labs (adjacency) or the market lacks hands-on alternatives (demand gap)
 
 ## STEP 5 — Technical Fit Multiplier (for your awareness — system applies it)
 VM/Datacenter (Hyper-V/Docker) ≥24: 1.0x | Any path ≥32: 1.0x | Tech 19-31 non-VM: 0.75x | Tech 10-18: 0.40x | Tech 0-9: 0.15x
