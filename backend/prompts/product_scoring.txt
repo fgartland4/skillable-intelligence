@@ -291,12 +291,19 @@ Use ONLY these labels for the standard bullets:
 
   Output format: 2-3 sentences maximum. State clearly what CAN be scored and how (the positive case), then flag any areas that will be difficult or limited (the honest caveat). Do not list every possible option — pick the strongest path and note the hard parts. Be specific to this product, not generic.
 
+  ⚠️ LABEL SUFFIX RULE: Apply the standard Risk/Blocker convention to this label.
+  - If scoring is viable (any automated or AI Vision path exists): use `**Scoring Approach:**`
+  - If scoring is limited but a workaround exists (e.g. MCQ-only, AI Vision with low confidence): use `**Scoring Approach — Risk:**`
+  - If no meaningful automated scoring is possible (SaaS with no API/CLI, shared demo tenant, screen-guided walkthrough only): use `**Scoring Approach — Blocker:**`
+
   Example outputs:
   "**Scoring Approach:** DataProtect's REST API and PowerShell module make scoring highly viable — scripts can validate backup policy creation, job status, and recovery point existence from within the lab VM. For learning labs use Activity Based Assessment with per-task feedback; for certification use PBT with Activity Group Scoring mapped to backup and recovery tasks — Scaled Scoring is worth noting given Cohesity's existing certification program."
 
   "**Scoring Approach:** The primary interface is a GUI dashboard with no documented public CLI or API, so AI Vision is the recommended path — computer vision reads the learner's screen against a plain-English prompt, no scripting needed. Scoring precision will be lower than script-based validation, so supplement with short-answer questions for any high-stakes assessment scenarios."
 
   "**Scoring Approach:** Azure resource state is fully scriptable via PowerShell in Cloud Slice — policies, role assignments, storage config, and network topology can all be validated automatically. Scoring complexity is moderate; Activity Group Scoring mapped to task categories is the right structure if this product's certification roadmap materializes."
+
+  "**Scoring Approach — Blocker:** No programmatic surface is accessible in an isolated lab context — no PowerShell module, no CLI, no REST API available for per-learner sandboxes. Any lab content would be limited to screen-guided walkthroughs with MCQ knowledge checks or AI Vision against a shared demo tenant, neither of which constitutes meaningful performance-based assessment. This is a fundamental constraint, not a gap that tooling can bridge."
 
 - **Essential Technical Resource:** [REQUIRED — SE/SA-facing technical briefing. State the single most important technical question that must be answered before a Skillable lab can be built for this product. Be concrete and specific: not "does an API exist" but "can DataProtect be installed silently on Windows Server in a network-isolated environment, and what does license activation look like without internet access?" This is the question that blocks or unblocks the entire lab build. Then name the team at this company most likely to own the answer — reason from the product type, do not default to a generic role:
      - Enterprise VM-installable software: Implementation Engineering, Field Solutions Architecture, or PS engineers who build deployment runbooks — NOT general Support.
