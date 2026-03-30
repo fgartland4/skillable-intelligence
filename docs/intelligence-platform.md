@@ -32,6 +32,27 @@ These layers are shared across all three tools. Inspector runs the full pipeline
 
 ---
 
+## Before You Read the Scores
+
+Skillable Intelligence produces a lot of numbers: scores, percentages, population estimates, revenue ranges, contact names, adoption rates. Before any of those numbers get used in a seller conversation or a business case, there are a few things everyone working with this platform should understand.
+
+**We only read what's publicly accessible.** The Research Engine fetches public web pages, reads search snippets, and scrapes technical documentation. It does not authenticate to any vendor system, access paywalled content, or read internal roadmaps. It sees what a well-prepared SE with a browser and a few hours would see — and sometimes less, because not every vendor documents their deployment model clearly on a public page. When the research finds strong evidence, that's genuine signal. When it doesn't, scores reflect that gap — not a judgment that the product is weak.
+
+**Scores are Claude's interpretation of available evidence — not measurements.** A Technical Orchestrability score of 34 means Claude found strong evidence of a clean provisioning path, a REST API with lifecycle coverage, and no blocking dependencies. It does not mean an SE with a test environment confirmed all of this. Every score is calibrated against real Skillable customer deployments (Tanium, Cohesity, Hyland, Microsoft, Cisco, and others) to ensure that a 70 here means the same thing across different analyses and different people running the tool — but calibrated AI judgment is still AI judgment. Treat scores as a strong hypothesis, not a measurement.
+
+**Findings are directional. They are not a substitute for conversation.** The right use of an Inspector or Prospector result is to walk into a discovery call knowing which questions to ask, which risks to probe, and which signals to validate — not to present the score as a verdict. The Essential Technical Resource in each product's recommendation exists specifically for this reason: it is the explicit acknowledgment of the single most important thing the research could not confirm from public sources alone.
+
+**Cached findings may be up to 45 days old.** Both the full analysis cache and the discovery cache have a 45-day TTL. A company's product line, deployment model, API surface, or training ecosystem can change materially in that window. The analysis date is displayed on every result. If you're preparing for a high-stakes conversation on a cached result, consider running a force-refresh — especially if the company has had a recent product announcement, acquisition, or major release.
+
+**AI can and does hallucinate — and some sections are higher-risk than others.** The platform is designed to minimize this through structured prompts, calibration anchors, and server-side validation of arithmetic. But certain outputs carry more inherent uncertainty than others, and the documentation calls these out explicitly where they occur. Two areas where readers should apply particular skepticism:
+
+- **Contacts** — Names and titles are extracted from LinkedIn snippets in search results. These are not scraped directly from LinkedIn profiles; they come from cached Google/Bing snippets that may be months out of date. People change roles constantly. Treat every contact as a starting point for verification, not a confirmed outreach target.
+- **Consumption Potential** — Population ranges, hours-per-user estimates, and adoption rates are AI-generated estimates from public signals. They are deliberately conservative (see §5 for the exact values used), but they are still estimates. The right way to use them in a conversation is directional: this is a signals-based estimate of whether this opportunity is a 50-hour-per-year engagement or a 50,000-hour-per-year engagement, not a projection you should take to a CFO without further validation.
+
+None of this undermines the value of the platform. A well-prepared hypothesis grounded in structured research is dramatically more useful than starting a discovery call cold. The goal is to make sure everyone using these findings knows what they are: a strong, research-backed starting point that gets better the moment a human validates it through conversation.
+
+---
+
 ## 3. Layer 1 — Research Engine
 
 ### 3.1 What It Does

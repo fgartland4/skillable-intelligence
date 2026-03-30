@@ -407,7 +407,12 @@ For each motion estimate:
 Then provide:
 - `annual_hours_low`: sum of (population_low × hours_low × adoption_pct) across all motions, rounded to integer. This is the "realistic today" figure — what a reasonable first-year engagement might look like.
 - `annual_hours_high`: sum of (population_high × hours_high × adoption_pct) across all motions, rounded to integer. This is the "mature engagement" ceiling — what a well-established program at good adoption looks like. It should not feel like a stretch goal.
-- `vm_rate_estimate`: for VM/Datacenter (Path B) products only — estimate the lab environment complexity and set an appropriate $/hr between $12 and $55. Use $12 for simple single-VM labs, $20–25 for moderate (a few VMs or services), $30–40 for complex multi-VM with networking, $55 for exotic large environments (GPU, large clusters, specialized hardware). Set to 0 for Cloud Slice (Path A) and Simulation (Path C) products.
+- `vm_rate_estimate`: the estimated Skillable lab cost in $/hr for this product's delivery path. Use these values:
+  - Cloud Slice (Path A1/A2): **$5** — all cloud labs, regardless of which Azure/AWS services are used
+  - Standard VM lab (Path B — 1 to 3 VMs, typical complexity): **$12–15** — use $12 for a clean single-VM install, $15 for 2–3 VMs or minor service dependencies
+  - Large or complex VM lab (Path B — many VMs, multiple networks, GPU, large clusters, or specialized hardware): **$45–55** — use $45 for demanding multi-VM setups, $55 for exotic or GPU-required environments
+  - Simulation (Path C): **$0** — no live environment provisioned
+  When in doubt between standard and large VM, use standard ($12–15). Only reach for the $45–55 range when the lab topology genuinely requires many VMs or complex networking.
 - `methodology_note`: 2-3 sentences shown directly to the user. Acknowledge that estimates are based on publicly available signals and are intentionally conservative — they reflect realistic engagement, not theoretical maximums. Name the 1-2 primary signals used (install base, ATP count, company headcount, etc.).
 
 ⚠️ A seller seeing these numbers will use them in conversations with customers and executives. If the numbers can't be defended with publicly available evidence, they should be lower. Directional and defensible beats impressive and wrong every time.

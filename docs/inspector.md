@@ -239,16 +239,16 @@ To keep estimates defensible, the scoring prompt enforces hard adoption ceilings
 
 Population ranges are also required to stay tight — the high end should be no more than 1.5× the low (e.g., 500–750, not 500–5,000). Wide ranges signal uncertainty; the prompt instructs the model to narrow the population rather than widen the range.
 
-**VM rate estimates use specific cost tiers.** For VM/Datacenter labs (Path B — Hyper-V, ESX, Docker), the `vm_rate_estimate` field reflects the complexity of the lab environment:
+**Lab cost estimates use specific rate tiers.** These are the exact values used in the scoring prompt and in the results dashboard revenue calculation:
 
-| Environment Complexity | $/hr Estimate |
-|---|---|
-| Simple single-VM | $12 |
-| Moderate (a few VMs or services) | $20–25 |
-| Complex multi-VM with networking | $30–40 |
-| Exotic large environment (GPU, large clusters, specialized hardware) | $55 |
+| Delivery Path | Environment | $/hr |
+|---|---|---|
+| Cloud Slice (Path A1/A2) | Any Azure or AWS lab | $5 |
+| Standard VM (Path B) | 1–3 VMs, typical complexity | $12–15 |
+| Large/Complex VM (Path B) | Many VMs, multiple networks, GPU, large clusters | $45–55 |
+| Simulation (Path C) | No live environment | $0 |
 
-For Cloud Slice labs (Path A1/A2) and Simulation labs (Path C), `vm_rate_estimate` is set to 0. Cloud Slice labs run on Azure or AWS infrastructure — the consumption cost is variable, cloud-provider-specific, and paid separately through the customer's cloud subscription rather than through a Skillable flat rate.
+The Cloud Slice rate ($5) is a Skillable platform overhead rate — it applies regardless of which Azure or AWS services are used in the lab, and it is separate from any Azure/AWS consumption costs the customer pays through their cloud subscription. The VM rate reflects environment complexity: a clean single-VM install gets $12, 2–3 VMs get $15, and demanding topologies (multi-VM with networking, GPU) reach $45–55. Claude is instructed to default to the standard VM tier unless the product genuinely requires a large environment — the $45–55 range should be rare.
 
 **Inspector does not trust Claude's arithmetic.** After the scoring call returns, the server recomputes every annual hours total from the parsed motion fields — population midpoint × hours per user per year × adoption % — and replaces whatever figures Claude produced. Claude reasons well about the inputs; it is not a reliable calculator at the motion-summation level.
 

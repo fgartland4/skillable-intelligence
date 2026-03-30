@@ -657,10 +657,10 @@
             {% if cp and cp.get('annual_hours_high', 0) > 0 %}
                 {% set ns.total_low = ns.total_low + cp.get('annual_hours_low', 0) %}
                 {% set ns.total_high = ns.total_high + cp.get('annual_hours_high', 0) %}
-                {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
-                {% elif product.skillable_path == 'C' %}{% set r_lo = 5 %}{% set r_hi = 5 %}
+                {% if product.skillable_path == 'C' %}{% set r_lo = 0 %}{% set r_hi = 0 %}
                 {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set r_lo = cp.get('vm_rate_estimate') %}{% set r_hi = cp.get('vm_rate_estimate') %}
-                {% else %}{% set r_lo = 12 %}{% set r_hi = 55 %}{% endif %}
+                {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set r_lo = 5 %}{% set r_hi = 5 %}
+                {% else %}{% set r_lo = 12 %}{% set r_hi = 15 %}{% endif %}
                 {% set ns.acv_low = ns.acv_low + cp.get('annual_hours_low', 0) * r_lo %}
                 {% set ns.acv_high = ns.acv_high + cp.get('annual_hours_high', 0) * r_hi %}
                 {% set ns.has_cp = true %}
@@ -829,9 +829,9 @@
             {% set _sc3h = product.labability_score.training_ecosystem.score | default(0) %}
             {% set _sc4h = product.labability_score.market_fit.score | default(0) %}
             {% set _cph = product.get('consumption_potential', {}) %}
-            {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set _rate_h = 10.5 %}
-            {% elif product.skillable_path == 'C' %}{% set _rate_h = 5.0 %}
+            {% if product.skillable_path == 'C' %}{% set _rate_h = 0.0 %}
             {% elif _cph.get('vm_rate_estimate', 0) > 0 %}{% set _rate_h = _cph.get('vm_rate_estimate') %}
+            {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set _rate_h = 5.0 %}
             {% else %}{% set _rate_h = 12.0 %}{% endif %}
             {% set tech_dim = product.labability_score.technical_orchestrability %}
             {% set wf_dim = product.labability_score.workflow_complexity %}
@@ -980,10 +980,10 @@
             {# ── 5. Estimated Consumption Potential ── always shown #}
             {% set _cp5 = product.get('consumption_potential', {}) or {} %}
             {% set _cp5_hours = _cp5.get('annual_hours_high', 0) %}
-            {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set _r5lo = 10.5 %}{% set _r5hi = 10.5 %}
-            {% elif product.skillable_path == 'C' %}{% set _r5lo = 5.0 %}{% set _r5hi = 5.0 %}
+            {% if product.skillable_path == 'C' %}{% set _r5lo = 0.0 %}{% set _r5hi = 0.0 %}
             {% elif _cp5.get('vm_rate_estimate', 0) > 0 %}{% set _r5lo = _cp5.get('vm_rate_estimate') %}{% set _r5hi = _cp5.get('vm_rate_estimate') %}
-            {% else %}{% set _r5lo = 12.0 %}{% set _r5hi = 55.0 %}{% endif %}
+            {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set _r5lo = 5.0 %}{% set _r5hi = 5.0 %}
+            {% else %}{% set _r5lo = 12.0 %}{% set _r5hi = 15.0 %}{% endif %}
             <details class="dim-section dim-section-cons">
                 <summary>
                     <span class="dim-sec-dot" style="background:rgba(36,237,155,0.5);"></span>
@@ -1218,10 +1218,10 @@
                     {% for product in data.products %}
                     {% set cp = product.get('consumption_potential', {}) %}
                     {% if cp and cp.get('annual_hours_high', 0) > 0 %}
-                    {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
-                    {% elif product.skillable_path == 'C' %}{% set p_rlo = 5 %}{% set p_rhi = 5 %}
+                    {% if product.skillable_path == 'C' %}{% set p_rlo = 0 %}{% set p_rhi = 0 %}
                     {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set p_rlo = cp.get('vm_rate_estimate') %}{% set p_rhi = cp.get('vm_rate_estimate') %}
-                    {% else %}{% set p_rlo = 12 %}{% set p_rhi = 55 %}{% endif %}
+                    {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set p_rlo = 5 %}{% set p_rhi = 5 %}
+                    {% else %}{% set p_rlo = 12 %}{% set p_rhi = 15 %}{% endif %}
                     <tr>
                         <td>{{ product.name }}</td>
                         <td><strong>${{ "{:,}".format((cp.get('annual_hours_low', 0) * p_rlo) | int) }}–${{ "{:,}".format((cp.get('annual_hours_high', 0) * p_rhi) | int) }}</strong></td>
