@@ -347,6 +347,9 @@ Skillable calls this Bring Your Own Cloud (BYOC). Life Cycle Actions (LCAs) hand
 
 ## STEP 4 — Score All Dimensions
 
+⚠️ **EVIDENCE FORMAT STANDARD — applies to all four dimensions:**
+Every evidence `claim` bullet MUST start with a **2–3 word bold label** followed by a colon: `**Label:** finding.` No exceptions — bare sentences without a bold intro are not acceptable. Labels should name the specific signal, not a generic category. Bad: `**Evidence:** The product installs on Windows.` Good: `**Windows Install:** Silent installer confirmed in deployment guide.`
+
 **Technical Orchestrability (0-25)** — from Steps 1-3.
 
 The `technical_orchestrability` evidence bullets are SA handoff notes — written for a Skillable Solution Architect who needs to understand how to actually build this lab. Do NOT write research citations here. Write 3–4 concise, actionable bullets using these bold labels:
@@ -384,13 +387,27 @@ SA build notes (reference when relevant — do not include all of these, only wh
 - Lab Webhooks (external integration): If the vendor product requires real-time notification when lab events occur — score passback to an LMS/LRS, unlocking downstream content in the vendor's platform, or triggering external automation when a learner completes — configure Skillable webhooks. Webhooks POST lab instance JSON (user ID, score, completion status, lab profile ID) to a specified external endpoint at any lifecycle event: Pre-Build, Post-Build, First Displayable, Scoring, Scored, Torn Down, Lab Assignment Created, and others. Support the same Blocking/Delay/Retry/Error Action options as LCAs. Note in Configure when the vendor's architecture requires integration with an external tracking or content delivery system — webhooks are a cleaner pattern than having scoring scripts make outbound API calls.
 - User-input variables in instructions: Lab instructions can embed `@lab.TextBox(name)`, `@lab.MaskedTextBox(name)` (passwords), or `@lab.EssayTextBox(name)` input fields — the learner types a value, which is stored as a lab variable and recalled anywhere later via `@lab.Variable(name)` or used in scoring scripts. Useful when a product's workflow requires a learner-entered value (external IP, tenant URL, license key) that downstream instructions or scoring scripts need to reference. Note this in Configure when the product involves user-provided inputs that feed into automated validation.
 
-**Workflow Complexity (0-25):**
-- AI-embedded features requiring iterative practice: +6
-- DTDS: Design (+5), Tailor (+5), Deploy (+5), Support (+5), Troubleshoot (+5)
-- Role-based workflows (+2), multi-VM scenarios (+2), integration complexity (+1). Cap 25.
+**Workflow Complexity (0-25):** This dimension answers one question: does this product justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? High scores belong to products with deep DTDS depth — admins who design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures each represent a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it — there is no skill accumulation that demands structured lab sequences.
 
-**Training & Enablement Maturity (0-25):**
-Programs where labs drive business impact — score the highest applicable combination:
+Scoring signals (sum; cap 25):
+- AI-embedded features requiring iterative hands-on practice (Copilot integration, AI-powered workflows, generative AI capabilities): +6 — cannot be learned by watching; each feature needs its own practice loop
+- DTDS depth — each phase that represents a genuine, distinct user activity for this product:
+  - Design (architecture planning, topology/schema decisions, capacity modeling): +5
+  - Tailor (policy creation, configuration, customization to environment): +5
+  - Deploy (installation, provisioning, release pipeline, migrations): +5
+  - Support (monitoring, alerting, incident response, lifecycle management): +5
+  - Troubleshoot (diagnosing failures in realistic broken states): +5
+- Role breadth: multiple *distinct* personas each needing separate lab programs (e.g., admin + developer + operator): +2
+- Multi-component topology: lab environment requires multiple VMs or services (creates complexity that separates into distinct labs): +2
+- Integration complexity: connecting to external systems is a primary, not incidental, workflow: +1
+
+Evidence bullets for this dimension use **2–3 word bold intro:** format. Use these labels where applicable:
+- **Training Scope:** how many distinct learning programs this product naturally warrants, and why (e.g., "DataProtect supports at least 4 distinct programs: backup admin, recovery operations, data governance, disaster recovery planning — each requires a separate lab series")
+- **DTDS Coverage:** which of the 5 DTDS phases are primary user activities (be specific — not just "yes it has admin tasks" but which phases and what they look like in practice)
+- **AI Practice Surface:** if AI-embedded features are present, name them and state why hands-on practice is essential vs. a demo being sufficient
+- **Role Breadth:** the distinct user personas and what separate programs each would require (do not repeat personas from the user_personas field — focus on how role breadth creates distinct program demand)
+
+**Training & Enablement Maturity (0-25):** Score the highest applicable combination — labs need a delivery vehicle to reach learners, and this dimension measures how mature that vehicle is.
 - ATP/Learning Partner program (channel credentials, technical seller enablement): +10
 - Certification program (customer training, skill validation): +6
 - Events/conferences (product launches, adoption drives, partner events): +5
@@ -400,10 +417,23 @@ Programs where labs drive business impact — score the highest applicable combi
 - Existing labs/sandboxes: +2
 Cap 25.
 
-**Market & Strategic Fit (0-25):**
+Evidence bullets use **2–3 word bold intro:** format. Use these labels where applicable:
+- **Training Org:** the named training organization and what it covers (e.g., "[Product] University — role-based certification tracks, annual partner summit with hands-on workshops")
+- **Certification Program:** certification name, credential type, and approximate scale (e.g., "Certified Administrator exam; ~500 active badge holders per LinkedIn")
+- **Partner Network:** ATP/Learning Partner size and structure — how many, what tier requirements exist (e.g., "~150 ATPs listed in the partner directory; gold/platinum tiers require technical certification")
+- **Events / Community:** flagship events with hands-on components, gray market training presence (Udemy, community courses)
+- **Existing Labs:** any CloudShare, Instruqt, Appsembler, or Skillable hands-on labs found — confirms training demand and potential migration opportunity
+
+**Market & Strategic Fit (0-25):** This dimension measures whether Skillable is the *right platform* for this product's market — category alignment, install base scale, and AI positioning.
 Category prior (highest applicable): Cybersecurity: +9 | Cloud Infrastructure: +9 | Networking/SDN: +9 | DevOps: +8 | Data Protection: +8 | Infrastructure/Virtualization: +8 | Data & Analytics: +8 | Data Science & Engineering: +7 | Application Development: +7 | Collaboration: +5 | ERP/CRM: +5 | Healthcare IT: +5 | Legal Tech: +5 | FinTech: +5 | Content Management: +5 | Industrial/OT: +4 | Simple SaaS: +1 | Consumer: +0
-AI additive: Builds/Trains/Deploys AI: +5 | AI-embedded features with market demand: +2
+AI additive: Builds/Trains/Deploys AI (CREATE AI): +5 | AI-embedded features with market demand (INCORPORATE AI): +2
 Other: Large/growing install base: +5 | ATP pipeline: +4 | Growing category: +3 | Limited competitor labs: +2 | Skillable adjacency: +1. Cap 25.
+
+Evidence bullets use **2–3 word bold intro:** format. Use these labels where applicable:
+- **Category Fit:** product category and Skillable's strength in that space (cite the category prior score and why this product fits it)
+- **Install Base:** scale and enterprise character of the installed base — Fortune 500 count, global customer numbers, or analyst data
+- **AI Signal:** CREATE AI (builds/trains/deploys AI models) or INCORPORATE AI (embedded AI features) — state the specific signal found and the additive score it earns
+- **Competitor Labs:** whether competing products already have Skillable labs (adjacency signal) or the market lacks good hands-on alternatives (demand signal)
 
 ## STEP 5 — Technical Fit Multiplier (for your awareness — system applies it)
 VM/Datacenter (Hyper-V/Docker) ≥15: 1.0x | Any path ≥20: 1.0x | Tech 12-19 non-VM: 0.75x | Tech 6-11: 0.40x | Tech 0-5: 0.15x
@@ -427,17 +457,25 @@ When you see any of these signals in the research, note them explicitly in evide
 - **xAPI / Tin Can API requirement**: Skillable does not currently support xAPI (Experience API). If research surfaces the vendor mentioning xAPI, LRS (Learning Record Store), or Tin Can API as a requirement for their learning data infrastructure, flag it in Blockers — the SE needs to verify whether this is a hard requirement before committing. Note: this signal rarely appears in automated research; it more often surfaces in technical conversations. Flag it when found so it doesn't become a surprise late in the deal.
 - **AWS service dependency check**: If the product runs on AWS, verify its core services are on Skillable's supported list. Flag explicitly if key dependencies (SageMaker, AI/ML services, ElastiCache, GuardDuty, CodePipeline) are not yet supported.
 
-## STEP 7 — Generate Product Recommendation (2-5 crisp bullets)
+## STEP 7 — Generate Product Recommendation (3–5 bullets)
 Never use "Path A", "Path B", or "Path C" in the output — use the actual fabric/mechanism names instead.
 
-Each bullet MUST start with a bold label in the format "**Label:** rest of sentence." Use ONLY these labels:
+Each bullet MUST start with a bold label in the format `**Label:** rest of sentence.`
 
-- **Delivery Path:** [fabric and delivery mechanism — state plainly. When recommending ESX, always state the specific reason explicitly: either (a) "ESX required — product runs a nested hypervisor (e.g. VMware Player/ESXi/VirtualBox) inside the lab VM that is not Hyper-V" or (b) "ESX preferred — socket-based licensing applies; VMs over 24 vCPUs would span 2 sockets on Hyper-V, doubling per-socket license cost." When recommending Hyper-V where ESX would also work, add: "ESX is also available at higher cost if the customer prefers it."]
-  Examples: "**Delivery Path:** Hyper-V fabric — installs clean on Windows Server."
-            "**Delivery Path:** Azure Cloud Slice — isolated Azure subscription per learner."
-            "**Delivery Path:** Custom API provisioning — Skillable calls vendor APIs per learner."
-            "**Delivery Path:** VMware ESX fabric — required because the lab runs a nested ESXi hypervisor inside the VM, which is not supported on Hyper-V."
-            "**Delivery Path:** Hyper-V fabric — installs on Windows Server VM; ESX also available at higher cost if customer prefers VMware."
+⚠️ **RISK / BLOCKER SUFFIX CONVENTION** — For any bullet where the label signals a *problem* rather than a recommendation, append a suffix:
+- `**Label — Risk:**` → renders in orange — use for concerns that may complicate the build but have a viable path forward
+- `**Label — Blocker:**` → renders in red — use for hard stops that must be resolved before Skillable can deliver
+This convention applies to ANY bullet label — Delivery Path, Scoring Approach, Blockers, or a custom label.
+Examples: `**API Access — Blocker:**`, `**License Model — Risk:**`, `**GPU Requirement — Blocker:**`, `**Provisioning Time — Risk:**`
+
+Use ONLY these labels for the standard bullets:
+
+- **Delivery Path:** REQUIRED. ONE bullet per product — state the single recommended fabric/mechanism and the specific reason it's the right choice *for this product's deployment model and workflow*. Do not list multiple paths or add "or alternatively." Be decisive. When recommending ESX, always state the specific reason: either (a) "ESX required — product runs a nested hypervisor (e.g. VMware Player/ESXi/VirtualBox) inside the lab VM that is not Hyper-V" or (b) "ESX preferred — socket-based licensing applies; VMs over 24 vCPUs would span 2 sockets on Hyper-V, doubling per-socket license cost." When recommending Hyper-V where ESX would also work, add at the end: "ESX is also available at higher cost if the customer prefers VMware." Be specific — name the OS, the install method, or the provisioning mechanism that makes this path the right one.
+  Examples: "**Delivery Path:** Hyper-V fabric — installs clean on Windows Server 2022; VM image is the lab, no runtime provisioning APIs needed."
+            "**Delivery Path:** Azure Cloud Slice (CSR) — isolated resource group per learner, Entra ID tenant included for automatic app pre-configuration."
+            "**Delivery Path:** Custom API provisioning — Skillable calls vendor sandbox API per learner at launch, environment ready in ~10 min via Pre-Instancing."
+            "**Delivery Path:** VMware ESX fabric — required because the lab runs a nested ESXi hypervisor inside the VM, which Hyper-V does not support."
+            "**Delivery Path — Risk:** Hyper-V fabric — installs on Windows Server VM, but no public silent-install documentation found; license activation mechanism in isolated networks is unconfirmed."
 
 - **Scoring Approach:** [REQUIRED — assess whether and how learner performance can be validated in this product's labs using Skillable's PBT and activity scoring capabilities. This is not about the labability score — it is about how a lab author would score a learner's actual work inside the lab. Reason through the following three questions and write one concise paragraph.]
 
@@ -516,10 +554,20 @@ Each bullet MUST start with a bold label in the format "**Label:** rest of sente
 - **Note:** [for other critical flags — credit card required, locked APIs, willing buyer/unwilling product team]
   Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
+- **[Custom Label]:** OPTIONAL BUT HIGHLY ENCOURAGED — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `— Risk` or `— Blocker` suffix if the insight signals a problem.
+  Good examples of what belongs here:
+  - `**Pre-Instancing Required:**` — long provisioning time requires pre-built environments before learner arrives
+  - `**License Model — Risk:**` — no NFR/dev tier found; vendor engagement needed before authoring can begin
+  - `**Tenant Isolation:**` — provisioning provides per-learner isolation vs. shared credential pool; clarify tradeoffs
+  - `**GPU Requirement — Blocker:**` — core workflows require GPU not available in Skillable datacenter
+  - `**Docker Image:**` — official Docker Hub image available; lab authors can pull and configure without building from scratch
+  - `**Bicep Templates:**` — vendor publishes Bicep templates; lab authors can reuse directly in Azure Cloud Slice
+  - `**MFA Dependency — Risk:**` — MFA enforcement on admin accounts will break automated scoring via REST API
+
 REQUIRED bullets: Delivery Path, Scoring Approach, Essential Technical Resource, Next Step.
-OPTIONAL (include when applicable): Similar Products Already in Skillable, Program Fit, Blockers, Note.
+OPTIONAL (include when applicable and genuinely useful — highly encouraged for product-specific context): [Custom Label] (1–2 max), Similar Products Already in Skillable, Program Fit, Blockers, Note.
 Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
-Total: 5-8 bullets. Never use "Path A", "Path B", or "Path C".
+Total: 3–6 bullets. Fewer sharp bullets beats more diluted ones. Never use "Path A", "Path B", or "Path C".
 Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
 
 **Embed training URLs as markdown links wherever relevant.** The research contains URLs for training catalogs, on-demand course pages, certification programs, ILT/vILT calendars, and partner portals. When a URL is available and relevant, embed it as a markdown link directly in the bullet text — do not list URLs separately. Examples of where to embed:

@@ -62,15 +62,30 @@ _WARNING_LABELS = {'Blockers', 'Blocker', 'Note', 'Warning', 'Risk', 'Limitation
 
 
 def _apply_bold(text: str) -> str:
-    """Convert **text** to <strong>text</strong> with red coloring for warning labels."""
+    """Convert **text** to <strong>text</strong> with colored labels.
+
+    Suffix convention (from scorer.py):
+      **Label — Blocker:** → label in red   (#e05252)
+      **Label — Risk:**    → label in orange (#f59e0b)
+    Fallback: first-word matches against _WARNING_LABELS → red.
+    """
     def _replace(m):
         label = m.group(1)
         colon_pos = label.find(':')
-        first_word = (label[:colon_pos] if colon_pos != -1 else label).strip()
+        label_text = label[:colon_pos].strip() if colon_pos != -1 else label.strip()
+        rest = label[colon_pos:] if colon_pos != -1 else ''
+
+        # Suffix convention — check before first-word fallback
+        if label_text.endswith('— Blocker') or label_text.endswith('\u2014 Blocker'):
+            return f'<strong><span style="color:#e05252;">{label_text}</span>{rest}</strong>'
+        if label_text.endswith('— Risk') or label_text.endswith('\u2014 Risk'):
+            return f'<strong><span style="color:#f59e0b;">{label_text}</span>{rest}</strong>'
+
+        # Legacy first-word check
+        first_word = label_text.split()[0] if label_text else label_text
         if first_word in _WARNING_LABELS:
-            if colon_pos != -1:
-                return f'<strong><span style="color:#e05252;">{label[:colon_pos]}</span>{label[colon_pos:]}</strong>'
-            return f'<strong style="color:#e05252;">{label}</strong>'
+            return f'<strong><span style="color:#e05252;">{label_text}</span>{rest}</strong>'
+
         return f'<strong>{label}</strong>'
     return _re.sub(r'\*\*(.+?)\*\*', _replace, text)
 
