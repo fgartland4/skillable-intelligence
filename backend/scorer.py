@@ -32,7 +32,7 @@ CUSTOMER_BENCHMARKS = [
         ],
         "use_cases": [
             "Partner training channel: Microsoft Official Courseware delivered through Authorized Training Partners (Skillsoft, Global Knowledge, New Horizons, QA, Firebrand, etc.)",
-            "Events: hands-on labs at Ignite, Build, Microsoft AI Tour, TechConnect — thousands of concurrent labs",
+            "Events: hands-on labs at Ignite (~90,000 attendees), Build (~5,000 in-person + virtual), Microsoft AI Tour (global touring event across 60+ cities), TechConnect (field SE enablement) — Skillable delivers thousands of concurrent labs at these events. This is the high-water mark for events consumption: multi-day events with dense lab tracks, often 10,000+ lab completions across a single conference.",
             "Certification PBT: performance-based testing in official Microsoft exams (AZ-104, SC-300, etc.)",
             "Applied Skills: free scenario-based credentialing program at scale for customers and partners",
             "AI Roadshow: hands-on AI labs at touring events where learners practice Copilot and Azure AI in context",
@@ -62,17 +62,17 @@ CUSTOMER_BENCHMARKS = [
     },
     {
         "company": "Tanium",
-        "relationship": "Active Skillable customer — cybersecurity Hyper-V fabric benchmark",
+        "relationship": "Active Skillable customer — cybersecurity Hyper-V fabric + flagship events benchmark",
         "org_type": "software_company",
         "products_and_paths": ["Tanium Platform (Hyper-V fabric — Skillable Datacenter, agent-based, rich module API)"],
         "key_signals": {
             "technical": "Agent-based, installs in VMs. Rich API covering endpoint detection, patch management, compliance validation.",
             "workflow": "Complex admin workflows: threat hunting, patch management, asset discovery, compliance reporting. Multiple operator roles.",
-            "training_ecosystem": "Tanium Training with role-based certification. Partner technical certification requirements.",
+            "training_ecosystem": "Tanium Training with role-based certification. Partner technical certification requirements. Tanium Converge is Tanium's annual flagship customer and partner conference — Skillable delivers hundreds to thousands of hands-on labs at Converge each year. This is a proven, repeating events consumption motion, not a one-time experiment.",
             "market_fit": "Cybersecurity/endpoint management is Skillable core. Enterprise-only. Limited hands-on lab alternatives.",
             "partnership_readiness": "Strong training org. Tiered partner program. Professional services. Enterprise LMS.",
         },
-        "score_guidance": "HIGH benchmark — comparable to Cohesity. Strong on all dimensions.",
+        "score_guidance": "HIGH benchmark — comparable to Cohesity. Strong on all dimensions. Tanium Converge is a proven events consumption signal — when scoring any cybersecurity or enterprise platform company with a flagship conference, use Tanium Converge as the reference point.",
     },
     {
         "company": "UiPath",
@@ -142,11 +142,11 @@ CUSTOMER_BENCHMARKS = [
         "key_signals": {
             "technical": "OnBase installs on Windows Server in a Hyper-V VM — the VM image IS the lab environment. Lab authors build the pre-configured image once; Skillable spins up copies per learner. No runtime provisioning APIs needed. Workflow Designer, Unity Client, and admin console are script-accessible. High viability on Hyper-V fabric; API richness is a bonus for scoring, not a requirement.",
             "workflow": "Deep admin console. Complex multi-step content management, case management, workflow automation, and AP/AR automation workflows. Admin/operator/end-user role distinction. Troubleshooting, integration configuration, and workflow design are all hands-on activities that cannot be learned by watching.",
-            "training_ecosystem": "Hyland University with formal certification tracks. Hyland Community conferences with hands-on workshops. Growing ATP network. Large gray market training ecosystem (Udemy, consultancy courses).",
+            "training_ecosystem": "Hyland University with formal certification tracks. Growing ATP network. Large gray market training ecosystem (Udemy, consultancy courses). Hyland CommunityLIVE is Hyland's annual flagship customer and partner conference — Skillable delivers hundreds to thousands of hands-on labs at CommunityLIVE each year. This is a proven, repeating events consumption motion alongside the ongoing training catalog.",
             "market_fit": "Content management / ECM is a growing Skillable category. Large enterprise install base. Complex product with training demand from implementation partners.",
-            "partnership_readiness": "Dedicated training org (Hyland University). Partner enablement program. Annual conferences. Professional services arm.",
+            "partnership_readiness": "Dedicated training org (Hyland University). Partner enablement program. CommunityLIVE annual conference. Professional services arm.",
         },
-        "score_guidance": "HIGH benchmark for VM-installable enterprise software. Technical score 18-22 — 'installable in VM + complex admin workflows' is the right tier, NOT 'minimal automation'. Workflow score 18-22 due to deep admin console and DTDS activities. Do not penalize for lacking cloud-native APIs — the Hyper-V fabric is designed exactly for this class of software.",
+        "score_guidance": "HIGH benchmark for VM-installable enterprise software. Technical score 18-22 — 'installable in VM + complex admin workflows' is the right tier, NOT 'minimal automation'. Workflow score 18-22 due to deep admin console and DTDS activities. Do not penalize for lacking cloud-native APIs — the Hyper-V fabric is designed exactly for this class of software. Hyland CommunityLIVE is a proven events consumption signal — when scoring any enterprise software company with a user conference, use CommunityLIVE as a reference point.",
     },
     {
         "company": "Workday",
@@ -474,6 +474,7 @@ When you see any of these signals in the research, note them explicitly in evide
 - **Deployment guide, system requirements, installation docs**: Confirms VM install viability; mention specific doc URL if found.
 - **xAPI / Tin Can API requirement**: Skillable does not currently support xAPI (Experience API). If research surfaces the vendor mentioning xAPI, LRS (Learning Record Store), or Tin Can API as a requirement for their learning data infrastructure, flag it in Blockers — the SE needs to verify whether this is a hard requirement before committing. Note: this signal rarely appears in automated research; it more often surfaces in technical conversations. Flag it when found so it doesn't become a surprise late in the deal.
 - **AWS service dependency check**: If the product runs on AWS, verify its core services are on Skillable's supported list. Flag explicitly if key dependencies (SageMaker, AI/ML services, ElastiCache, GuardDuty, CodePipeline) are not yet supported.
+- **Flagship event / annual conference**: Skillable delivers labs at customer and partner conferences as a major, proven consumption motion. Known examples: Tableau Conference (14,000+ labs / 3-4 days), Tanium Converge, Hyland CommunityLIVE, Microsoft Ignite, Microsoft Build, Microsoft TechConnect, Microsoft AI Tour. If research signals any annual conference, user summit, or product launch event with hands-on content — note the event name, approximate scale (attendees), and cadence. This feeds the Events & Conferences consumption motion in STEP 8. Look for: "{company} conference", "{company} summit", "{company} {product} live", "hands-on labs" mentioned in event marketing. Events like these can generate more lab completions in 3 days than months of ongoing training — they are high-priority signals, not afterthoughts.
 
 ## STEP 7 — Generate Product Recommendation (3–5 bullets)
 Never use "Path A", "Path B", or "Path C" in the output — use the actual fabric/mechanism names instead.
@@ -597,13 +598,14 @@ Output `recommendation` as a JSON array of strings, one string per bullet (inclu
 
 ## STEP 8 — Consumption Potential
 
-Estimate annual lab consumption potential for this product if the customer standardized on Skillable for all training and enablement motions. Break into 5 motions:
+Estimate annual lab consumption potential for this product if the customer standardized on Skillable for all training and enablement motions. Break into 6 motions:
 
 - **Customer Onboarding & Enablement** — new customers getting started with the product; onboarding programs, guided setup labs
 - **Authorized Training Partners & Channel Enablement** — ATP network, resellers, and channel partners who deliver or sell training on this product
 - **General Practice & Skilling Experiences** — ongoing skills development for existing users, admins, and practitioners; self-paced and instructor-led upskilling
 - **Certification / PBT** — performance-based testing and proctored certification exams
 - **Employee Technical Enablement** — internal SEs, presales, professional services, and support staff who need hands-on product skills
+- **Events & Conferences** — annual flagship events, user conferences, product launch labs, trade show hands-on tracks. Skillable delivers labs at events including Microsoft Ignite, Microsoft Build, Microsoft TechConnect, Microsoft AI Tour, Tableau Conference, Tanium Converge, Hyland CommunityLIVE, and many others. These are some of the highest-density consumption moments Skillable sees: a single 3-day event can generate more lab completions than months of ongoing training. **Only include this motion if research signals a real flagship event or conference** — do not fabricate one. If no conference signal is found, set all values to 0 and note in rationale.
 
 Estimate each motion independently based on research signals. Population sizes will vary significantly — let the data drive the estimates, not the order above.
 
@@ -611,15 +613,18 @@ Estimate each motion independently based on research signals. Population sizes w
 
 For each motion estimate:
 - `population_low` / `population_high`: the actively engaged subset who would realistically participate in structured lab training — NOT the total addressable market or full install base. Use install base, ATP network size, team sizes as anchors, then apply hard realism: what fraction of that population is actively engaged in formal training programs today? Start from that subset, not the total. Keep ranges tight — high should be no more than 1.5× low (e.g. 500–750, not 500–5,000). Wide ranges signal uncertainty. When in doubt, narrow the population further and use the low end.
+  - For Events & Conferences: population = total annual event attendees (sum across all events per year if multiple). This is the one motion where population is concrete — event registration data is often public.
 - `hours_low` / `hours_high`: hands-on lab hours only — not total learning time. Typical ratio is 20–40% of total course time (not 50%). A 10-hour course → 2–4 lab hours. Do not count lectures, videos, reading, or assessments. Keep the ratio ≤1.5× (e.g. 2–3 hrs, not 2–8 hrs).
+  - For Events & Conferences: lab sessions are shorter than training courses — typical event lab is 1–3 hours. Use 1–2 hrs for quick hands-on demos, 2–3 hrs for full workshop-style labs.
 - `adoption_pct`: the realistic fraction of the population who would actually complete a structured lab in a given year. These are HARD CEILINGS — do not exceed them, and default to the low end unless you have strong evidence of high lab engagement:
   - Certification / PBT: 0.02–0.04 (2–4%) — only the most dedicated pursue certification each year; most people who could certify don't
   - Customer Onboarding: 0.02–0.05 (2–5%) — most onboarding is rep-led or self-service, not structured lab-based
   - ATP / Channel Enablement: 0.05–0.10 (5–10%) — partner reps who actively complete labs, not total partner headcount
   - General Practice & Skilling: 0.02–0.05 (2–5%) — self-directed lab usage is a small minority; most practitioners learn by doing in production
   - Employee Technical Enablement: 0.08–0.15 (8–15%) — internal technical staff are highest adopters, but most employees never touch a formal lab
-  Never exceed 0.20 under any circumstances. If you're near the ceiling, your population is too broad — narrow it first.
-- `rationale`: 1-sentence explanation citing the specific signal that anchors your estimate (e.g. "Based on ~200 active ATPs per public partner directory and 10% completion rate for structured lab programs")
+  - Events & Conferences: 0.30–0.70 (30–70%) — people attend conferences specifically to do labs; adoption is much higher than for ongoing training. Use 0.50–0.70 for dedicated hands-on events where labs are the primary draw (Tableau Conference, Tanium Converge, Hyland CommunityLIVE). Use 0.30–0.50 when labs are one track among many sessions. Never exceed 0.80.
+  Never exceed 0.80 under any circumstances (Events only); never exceed 0.20 for all other motions. If you're near the ceiling for non-event motions, your population is too broad — narrow it first.
+- `rationale`: 1-sentence explanation citing the specific signal that anchors your estimate (e.g. "Based on ~200 active ATPs per public partner directory and 10% completion rate for structured lab programs"; for events: "Based on reported ~3,000 annual conference attendees at [Event Name] and 50% lab adoption for hands-on conference tracks")
 
 Then provide:
 - `annual_hours_low`: sum of (population_low × hours_low × adoption_pct) across all motions, rounded to integer. This is the "realistic today" figure — what a reasonable first-year engagement might look like.
@@ -708,7 +713,8 @@ Return ONLY valid JSON — a single product object:
         {"label": "Authorized Training Partners & Channel Enablement", "population_low": 0, "population_high": 0, "hours_low": 0, "hours_high": 0, "adoption_pct": 0.0, "rationale": "..."},
         {"label": "General Practice & Skilling Experiences", "population_low": 0, "population_high": 0, "hours_low": 0, "hours_high": 0, "adoption_pct": 0.0, "rationale": "..."},
         {"label": "Certification / PBT", "population_low": 0, "population_high": 0, "hours_low": 0, "hours_high": 0, "adoption_pct": 0.0, "rationale": "..."},
-        {"label": "Employee Technical Enablement", "population_low": 0, "population_high": 0, "hours_low": 0, "hours_high": 0, "adoption_pct": 0.0, "rationale": "..."}
+        {"label": "Employee Technical Enablement", "population_low": 0, "population_high": 0, "hours_low": 0, "hours_high": 0, "adoption_pct": 0.0, "rationale": "..."},
+        {"label": "Events & Conferences", "population_low": 0, "population_high": 0, "hours_low": 0, "hours_high": 0, "adoption_pct": 0.0, "rationale": "No flagship conference signal found in research — set to 0."}
       ],
       "annual_hours_low": 0,
       "annual_hours_high": 0,
