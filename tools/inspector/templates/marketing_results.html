@@ -128,7 +128,7 @@
                         <th>Company</th>
                         <th>Top Product</th>
                         <th class="num">Lab Score</th>
-                        <th class="num">Partnership</th>
+                        <th class="num">Lab Maturity</th>
                         <th class="num">Composite</th>
                         <th>Top Contact</th>
                         <th></th>
@@ -148,7 +148,7 @@
                             <div class="score-sub">/100</div>
                         </td>
                         <td class="score-cell">
-                            <div class="score-val {% if row.partnership_score >= 70 %}score-high{% elif row.partnership_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ row.partnership_score }}</div>
+                            <div class="score-val {% if row.lab_maturity_score >= 70 %}score-high{% elif row.lab_maturity_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ row.lab_maturity_score }}</div>
                             <div class="score-sub">/100</div>
                         </td>
                         <td class="score-cell">

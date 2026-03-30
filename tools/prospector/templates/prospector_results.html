@@ -153,7 +153,7 @@
                         <th>Top Product</th>
                         <th>Skillable Path</th>
                         <th class="num">Lab Score</th>
-                        <th class="num">Partnership</th>
+                        <th class="num">Lab Maturity</th>
                         <th class="num">Composite</th>
                         <th>Labability</th>
                         <th>ATP Program</th>
@@ -177,7 +177,7 @@
                         <td>{{ row.top_product or '—' }}</td>
                         <td>{{ row.skillable_path or '—' }}</td>
                         <td>{{ row.lab_score if row.lab_score else '—' }}</td>
-                        <td>{{ row.partnership_score if row.partnership_score else '—' }}</td>
+                        <td>{{ row.lab_maturity_score if row.lab_maturity_score else '—' }}</td>
                         <td>{{ row.composite_score if row.composite_score else '—' }}</td>
                         <td>
                             {%- set parts = [] -%}

@@ -198,6 +198,23 @@ def results(analysis_id: str):
     return render_template("results.html", data=data)
 
 
+# Product detail page
+
+@inspector.route("/results/<analysis_id>/product/<int:product_idx>")
+def product_detail(analysis_id: str, product_idx: int):
+    data = load_analysis(analysis_id)
+    if not data:
+        return "Analysis not found", 404
+
+    _attach_scores(data)
+    products = data.get("products") or []
+    if product_idx < 0 or product_idx >= len(products):
+        return "Product not found", 404
+
+    product = products[product_idx]
+    return render_template("product_detail.html", data=data, product=product, product_idx=product_idx, analysis_id=analysis_id)
+
+
 # CSV export
 
 @inspector.route("/export/<analysis_id>")
@@ -211,7 +228,7 @@ def export(analysis_id: str):
     pr_total = data["_pr_total"]
 
     output = io.StringIO()
-    fieldnames = ["company_name", "product_name", "labability_score", "partnership_score",
+    fieldnames = ["company_name", "product_name", "labability_score", "lab_maturity_score",
                   "composite_score", "skillable_path", "org_type"]
     writer = csv.DictWriter(output, fieldnames=fieldnames)
     _csv_defaults = {f: "" for f in fieldnames}
@@ -224,7 +241,7 @@ def export(analysis_id: str):
                          "company_name": data.get("company_name", ""),
                          "product_name": p.get("name", ""),
                          "labability_score": lab,
-                         "partnership_score": pr_total,
+                         "lab_maturity_score": pr_total,
                          "composite_score": composite,
                          "skillable_path": p.get("skillable_path", ""),
                          "org_type": org_type})

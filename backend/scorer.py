@@ -9,7 +9,7 @@ import anthropic
 log = logging.getLogger(__name__)
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from models import (
-    CompanyAnalysis, Product, ProductLababilityScore, PartnershipReadinessScore,
+    CompanyAnalysis, Product, ProductLababilityScore, LabMaturityScore,
     DimensionScore, Evidence, Contact, OrgUnit,
     ConsumptionMotion, ConsumptionPotential,
 )
@@ -42,9 +42,9 @@ __PRODUCT_SCORING_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "product_scoring.txt"
 with open(__PRODUCT_SCORING_PROMPT_PATH, "r", encoding="utf-8") as _f:
     PRODUCT_SCORING_PROMPT = _f.read()
 
-__PARTNERSHIP_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "partnership.txt")
-with open(__PARTNERSHIP_PROMPT_PATH, "r", encoding="utf-8") as _f:
-    PARTNERSHIP_PROMPT = _f.read()
+__LAB_MATURITY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "lab_maturity.txt")
+with open(__LAB_MATURITY_PROMPT_PATH, "r", encoding="utf-8") as _f:
+    LAB_MATURITY_PROMPT = _f.read()
 
 
 def _call_claude(system_prompt: str, user_content: str, max_tokens: int = 4000) -> dict:
@@ -254,12 +254,12 @@ def _score_single_product(company_name: str, product: dict, product_context: str
     return data
 
 
-def _score_partnership(company_name: str, company_context: str) -> dict:
-    """Score partnership readiness via Claude. Returns the raw partnership_readiness dict."""
-    user_content = f"# Partnership Readiness Assessment for: {company_name}\n\n{company_context}"
-    data = _call_claude(PARTNERSHIP_PROMPT, user_content, max_tokens=4500)
-    if "partnership_readiness" in data:
-        return data["partnership_readiness"]
+def _score_lab_maturity(company_name: str, company_context: str) -> dict:
+    """Score lab maturity via Claude. Returns the raw lab_maturity dict."""
+    user_content = f"# Lab Maturity Assessment for: {company_name}\n\n{company_context}"
+    data = _call_claude(LAB_MATURITY_PROMPT, user_content, max_tokens=4500)
+    if "lab_maturity" in data:
+        return data["lab_maturity"]
     pr_keys = {"training_org_maturity", "partner_program", "customer_success", "organizational_dna", "tech_readiness"}
     if any(k in data for k in pr_keys):
         return data
@@ -288,7 +288,7 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
             ): p["name"]
             for p in selected
         }
-        partnership_future = executor.submit(_score_partnership, company_name, company_context)
+        partnership_future = executor.submit(_score_lab_maturity, company_name, company_context)
 
         # Collect product results — 5-minute per-call timeout so a hung Claude call can't block forever
         product_results = {}
@@ -302,7 +302,7 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
         try:
             partnership_data = partnership_future.result()
         except Exception as pe:
-            log.exception("Partnership scoring failed: %s", pe)
+            log.exception("Lab maturity scoring failed: %s", pe)
             partnership_data = {}
 
     # Log any product scoring failures and skip them — don't let errors produce "Unknown" products
@@ -332,7 +332,7 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
         "company_url": first.get("company_url", ""),
         "organization_type": first.get("organization_type", "software_company"),
         "products": products_list,
-        "partnership_readiness": partnership_data,
+        "lab_maturity": partnership_data,
     }
     return _parse_response_to_models(company_name, data)
 
@@ -433,14 +433,14 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
         )
         products.append(product)
 
-    pr = data.get("partnership_readiness", {})
+    pr = data.get("lab_maturity", {})
     return CompanyAnalysis(
         company_name=company_name,
         company_url=data.get("company_url"),
         company_description=data.get("company_description", ""),
         organization_type=data.get("organization_type", "software_company"),
         products=products,
-        partnership_readiness=PartnershipReadinessScore(
+        lab_maturity=LabMaturityScore(
             training_org_maturity=_parse_dimension(pr.get("training_org_maturity", {})),
             partner_program=_parse_dimension(pr.get("partner_program", {})),
             customer_success=_parse_dimension(pr.get("customer_success", {})),

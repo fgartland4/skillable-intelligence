@@ -401,7 +401,7 @@
         .rollup-total-value { font-size: 1.3rem; font-weight: 900; color: #24ED9B; letter-spacing: -0.02em; }
         .rollup-acv-note { font-size: 0.72rem; color: #3d6655; margin-top: 6px; text-align: center; }
 
-        /* Partnership readiness */
+        /* Lab Maturity Signals */
         .partnership-card {
             background: #0d1a14; border: 1px solid #1e3329;
             border-radius: 16px; padding: 30px; margin-top: 36px;
@@ -463,7 +463,7 @@
         /* JS-injected toggle arrow (shared by dim-section + tech-details) */
         .det-arrow { font-size: 0.82rem; color: #6b9e88; flex-shrink: 0; margin-left: auto; padding-left: 6px; }
 
-        /* Partnership Readiness collapsibles */
+        /* Lab Maturity Signals collapsibles */
         .tech-details { margin-bottom: 2px; }
         .tech-details > summary {
             display: flex; align-items: center; gap: 10px;
@@ -619,9 +619,9 @@
 
         <!-- Top blocks: Opportunity Score + Consumption Summary side by side -->
         <div class="top-blocks">
-        {% set weights = data._composite_weights or "65% Product / 35% Partnership" %}
+        {% set weights = data._composite_weights or "65% Product / 35% Lab Maturity" %}
         {% set prod_weight = "65%" if "65% Product" in weights else "35%" %}
-        {% set part_weight = "35%" if "35% Partnership" in weights else "65%" %}
+        {% set part_weight = "35%" if "35% Lab Maturity" in weights else "65%" %}
         {% set pw_int = prod_weight | replace('%','') | int %}
         {% set prw_int = part_weight | replace('%','') | int %}
         {% set top = data.products[0]._total_score if data.products else 0 %}
@@ -667,14 +667,14 @@
                             <span class="input-weight">× {{ part_weight }}</span>
                         </div>
                         <div class="input-left">
-                            <div class="input-label">Partnership Readiness</div>
+                            <div class="input-label">Lab Maturity Signals</div>
                             <div class="input-sublabel">
                                 {% set pr = data._pr_total %}
                                 {% if pr >= 75 %}Mature, well-established partner ecosystem
                                 {% elif pr >= 60 %}Strong training org with real scale
                                 {% elif pr >= 45 %}Growing program, solid foundation
                                 {% elif pr >= 30 %}Early-stage, promising signals present
-                                {% else %}Limited partnership readiness signals
+                                {% else %}Limited lab maturity signals
                                 {% endif %}
                             </div>
                         </div>
@@ -685,8 +685,8 @@
 
             <!-- Equation explanation -->
             <div class="composite-equation">
-                <div>{% if is_channel %}As a <span class="eq-math">{{ org_label }}</span>, partnership readiness carries more weight.{% else %}As a <span class="eq-math">{{ org_label }}</span>, product labability carries more weight.{% endif %}</div>
-                <div><span class="eq-math">{{ top }}</span> (product) &times; {{ prod_weight }} + <span class="eq-math">{{ data._pr_total }}</span> (partnership) &times; {{ part_weight }} =
+                <div>{% if is_channel %}As a <span class="eq-math">{{ org_label }}</span>, lab maturity carries more weight.{% else %}As a <span class="eq-math">{{ org_label }}</span>, product labability carries more weight.{% endif %}</div>
+                <div><span class="eq-math">{{ top }}</span> (product) &times; {{ prod_weight }} + <span class="eq-math">{{ data._pr_total }}</span> (lab maturity) &times; {{ part_weight }} =
                 {% if data._composite_gated %}<span class="eq-math">{{ raw_composite }}</span> raw, <span class="eq-cap">capped at {{ cs }}</span> &mdash; labability needs to reach {{ gate_threshold }}{% else %}<span class="eq-math">{{ cs }}</span>{% endif %}</div>
             </div>
         </div>
@@ -1058,12 +1058,12 @@
         </div>
         {% endfor %}
 
-        <!-- Partnership Readiness -->
-        {% set pr = data.partnership_readiness %}
+        <!-- Lab Maturity Signals -->
+        {% set pr = data.lab_maturity or data.partnership_readiness %}
         <div class="product-card" style="margin-top:36px;">
             <div class="product-header">
                 <div>
-                    <div class="product-name">Partnership Readiness</div>
+                    <div class="product-name">Lab Maturity Signals</div>
                     <div class="product-category">{{ data._composite_weights }} weighting applied to Overall Opportunity Score</div>
                 </div>
                 <div class="total-score">

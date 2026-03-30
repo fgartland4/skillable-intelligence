@@ -137,7 +137,7 @@ class Product:
 
 
 @dataclass
-class PartnershipReadinessScore:
+class LabMaturityScore:
     # Raw max = 35 + 27 + 35 + 10 + 10 = 117 → normalized ÷ 1.17 → 0-100
     training_org_maturity: DimensionScore = field(default_factory=DimensionScore)   # 0-35
     partner_program: DimensionScore = field(default_factory=DimensionScore)          # 0-27
@@ -169,8 +169,8 @@ class CompanyAnalysis:
     # "software_company" | "academic_institution" | "training_organization" |
     # "systems_integrator" | "technology_distributor" | "professional_services" | "other"
     products: list[Product] = field(default_factory=list)
-    partnership_readiness: PartnershipReadinessScore = field(
-        default_factory=PartnershipReadinessScore
+    lab_maturity: LabMaturityScore = field(
+        default_factory=LabMaturityScore
     )
     analyzed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     analysis_id: str = ""
@@ -189,7 +189,7 @@ class ProspectorRow:
     company_url: str = ""
     top_product: str = ""
     lab_score: int = 0
-    partnership_score: int = 0
+    lab_maturity_score: int = 0
     composite_score: int = 0
     skillable_path: str = ""          # "Labable" | "Simulations" | "Do Not Pursue"
     top_contact_name: str = ""

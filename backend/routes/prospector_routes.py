@@ -224,7 +224,7 @@ def prospector_export_csv(job_id: str):
     writer = csv.writer(output)
     writer.writerow([
         "#", "Company", "Website", "Top Product", "Skillable Path",
-        "Lab Score", "Partnership Score", "Composite Score",
+        "Lab Score", "Lab Maturity Score", "Composite Score",
         "Highly Labable", "Likely Labable", "Not Labable",
         "ATP Program", "Channel Program", "On-Demand Library", "Cert Program", "Existing Lab Partner",
         "Top Contact", "Title", "LinkedIn",
@@ -240,7 +240,7 @@ def prospector_export_csv(job_id: str):
             row.get("top_product", ""),
             row.get("skillable_path", ""),
             row.get("lab_score", ""),
-            row.get("partnership_score", ""),
+            row.get("lab_maturity_score", ""),
             row.get("composite_score", ""),
             row.get("total_highly_labable", ""),
             row.get("total_likely_labable", ""),
@@ -303,7 +303,7 @@ def prospector_export(job_id: str):
     thin_border  = Border(bottom=thin_side)
 
     headers = ["#", "Company", "Website", "Top Product", "Skillable Path",
-               "Lab Score", "Partnership", "Composite",
+               "Lab Score", "Lab Maturity", "Composite",
                "Highly Labable Products", "Likely Labable Products", "Not Labable Products",
                "ATP Program", "Channel Program", "On-Demand Library", "Cert Program",
                "Existing Lab Partner",
@@ -327,7 +327,7 @@ def prospector_export(job_id: str):
 
     for i, row in enumerate(rows, 2):
         lab   = row.get("lab_score", 0)
-        prtn  = row.get("partnership_score", 0)
+        prtn  = row.get("lab_maturity_score", 0)
         comp  = row.get("composite_score", 0)
         path  = row.get("skillable_path", "")
         aid   = row.get("analysis_id", "")
@@ -484,7 +484,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                 "company_url": cached.get("company_url", ""),
                 "top_product": top_product.get("name", ""),
                 "lab_score": lab_score,
-                "partnership_score": pr_total,
+                "lab_maturity_score": pr_total,
                 "composite_score": composite,
                 "skillable_path": skillable_path,
                 "top_contact_name": dm.get("name", "") if dm else "",
@@ -526,7 +526,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                     "company_url": discovery.get("company_url", ""),
                     "top_product": "",
                     "lab_score": 0,
-                    "partnership_score": 0,
+                    "lab_maturity_score": 0,
                     "composite_score": 0,
                     "skillable_path": "Not a Fit",
                     "top_contact_name": "",
@@ -603,7 +603,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
             "company_url": data.get("company_url", ""),
             "top_product": top_product.get("name", ""),
             "lab_score": lab_score,
-            "partnership_score": pr_total,
+            "lab_maturity_score": pr_total,
             "composite_score": composite,
             "skillable_path": skillable_path,
             "top_contact_name": dm.get("name", "") if dm else "",

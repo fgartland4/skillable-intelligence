@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} — {{ data.company_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0;
+            min-height: 100vh;
+        }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; padding: 14px 28px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.9); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 10;
+            gap: 16px;
+        }
+        .nav img { height: 26px; }
+        .nav-divider { width: 1px; height: 18px; background: #1e3329; }
+        .nav-company { font-size: 0.875rem; color: #6b9e88; font-weight: 600; }
+        .nav-score-badge {
+            margin-left: auto;
+            font-size: 1rem; font-weight: 900; letter-spacing: -0.01em;
+            padding: 4px 14px; border-radius: 8px; border: 1px solid;
+        }
+        .nav-score-badge.score-high { color: #24ED9B; border-color: rgba(36,237,155,0.4); background: rgba(36,237,155,0.08); }
+        .nav-score-badge.score-mid  { color: #f59e0b; border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
+        .nav-score-badge.score-low  { color: #f87171; border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); }
+        .back-link {
+            font-size: 0.8rem; color: #6b9e88; text-decoration: none;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .back-link:hover { color: #24ED9B; }
+
+        /* Page */
+        .container { max-width: 780px; margin: 0 auto; padding: 36px 20px 80px; }
+
+        /* Product card */
+        .product-card {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .product-header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            padding: 24px 28px 20px; border-bottom: 1px solid #1a2e22;
+            gap: 16px;
+        }
+        .product-name {
+            font-size: 1.4rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.02em; margin-bottom: 4px;
+        }
+        .product-category {
+            font-size: 0.78rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.08em; font-weight: 600;
+        }
+        .score-block { text-align: right; flex-shrink: 0; }
+        .score-num {
+            font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -0.03em;
+        }
+        .score-num.score-high { color: #24ED9B; }
+        .score-num.score-mid  { color: #f59e0b; }
+        .score-num.score-low  { color: #f87171; }
+        .score-denom { font-size: 0.75rem; color: #3d6655; font-weight: 500; }
+        .labable-badge {
+            display: inline-block; margin-top: 6px;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em;
+            text-transform: uppercase; padding: 3px 10px; border-radius: 6px;
+        }
+        .badge-green { background: rgba(36,237,155,0.12); color: #24ED9B; border: 1px solid rgba(36,237,155,0.3); }
+        .badge-amber { background: rgba(245,158,11,0.10); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+        .badge-red   { background: rgba(248,113,113,0.10); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+
+        /* Dimensions table */
+        .dims-section { padding: 20px 28px; }
+        .dims-label {
+            font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 12px;
+        }
+        .dims-table { width: 100%; border-collapse: collapse; }
+        .dims-table th {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.07em; color: #3d6655; text-align: left;
+            padding: 5px 8px; border-bottom: 1px solid #1a2e22;
+        }
+        .dims-table th.num { text-align: right; }
+        .dims-table td {
+            padding: 9px 8px; border-bottom: 1px solid #0f1f18;
+            font-size: 0.85rem; color: #c0d8cc; vertical-align: top;
+        }
+        .dims-table tr:last-child td { border-bottom: none; }
+        .dims-table td.num { text-align: right; }
+        .dim-score {
+            font-size: 0.95rem; font-weight: 800;
+        }
+        .dim-score.score-high { color: #24ED9B; }
+        .dim-score.score-mid  { color: #f59e0b; }
+        .dim-score.score-low  { color: #f87171; }
+        .dim-max { font-size: 0.7rem; color: #3d6655; }
+        .dim-summary { font-size: 0.8rem; color: #6b9e88; margin-top: 2px; }
+
+        /* Next step */
+        .next-step-section {
+            padding: 18px 28px 22px; border-top: 1px solid #1a2e22;
+        }
+        .next-step-label {
+            font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 8px;
+        }
+        .next-step-text {
+            font-size: 0.88rem; color: #c0d8cc; line-height: 1.55;
+        }
+
+        /* Path / meta */
+        .meta-row {
+            display: flex; flex-wrap: wrap; gap: 12px;
+            padding: 14px 28px; border-top: 1px solid #1a2e22;
+            background: rgba(0,0,0,0.15);
+        }
+        .meta-chip {
+            font-size: 0.72rem; color: #4a7a62;
+            background: #061008; border: 1px solid #1e3329;
+            padding: 4px 10px; border-radius: 6px;
+        }
+        .meta-chip span { color: #6b9e88; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+        <div class="nav-divider"></div>
+        <span class="nav-company">{{ data.company_name }}</span>
+        {% set cs = data._composite_score %}
+        <span class="nav-score-badge {% if cs >= 70 %}score-high{% elif cs >= 40 %}score-mid{% else %}score-low{% endif %}">
+            {{ cs }}/100
+        </span>
+        <a class="back-link" href="/inspector/results/{{ analysis_id }}">&#8592; Full Analysis</a>
+    </nav>
+
+    <div class="container">
+
+        {% set scores = product.labability_score or {} %}
+        {% set tech = scores.get('technical_orchestrability', {}) if scores is mapping else {} %}
+        {% set workflow = scores.get('workflow_complexity', {}) if scores is mapping else {} %}
+        {% set training = scores.get('training_ecosystem', {}) if scores is mapping else {} %}
+        {% set market = scores.get('market_fit', {}) if scores is mapping else {} %}
+        {% set total = product._total_score or 0 %}
+
+        {% set likely = product.likely_labable or '' %}
+        {% if likely == 'highly_likely' %}
+            {% set tier_label = 'Highly Labable' %}
+            {% set tier_class = 'badge-green' %}
+        {% elif likely == 'likely' %}
+            {% set tier_label = 'Likely Labable' %}
+            {% set tier_class = 'badge-amber' %}
+        {% else %}
+            {% set tier_label = 'Not Labable' %}
+            {% set tier_class = 'badge-red' %}
+        {% endif %}
+
+        <div class="product-card">
+
+            <div class="product-header">
+                <div>
+                    <div class="product-name">{{ product.name }}</div>
+                    <div class="product-category">{{ product.category or 'Product' }}</div>
+                    <span class="labable-badge {{ tier_class }}" style="margin-top:8px;display:inline-block;">{{ tier_label }}</span>
+                </div>
+                <div class="score-block">
+                    <div class="score-num {% if total >= 70 %}score-high{% elif total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ total }}</div>
+                    <div class="score-denom">/100 labability</div>
+                </div>
+            </div>
+
+            <div class="dims-section">
+                <div class="dims-label">Scoring Dimensions</div>
+                <table class="dims-table">
+                    <thead>
+                        <tr>
+                            <th class="num">Score</th>
+                            <th class="num">Max</th>
+                            <th>Dimension</th>
+                            <th>Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set dims = [
+                            ('Technical Complexity', tech, 35),
+                            ('Market Fit', market, 35),
+                            ('Delivery Complexity', workflow, 20),
+                            ('Commercial Signal', training, 10),
+                        ] %}
+                        {% for dim_name, dim, mx in dims %}
+                        {% set s = dim.score if dim and dim is mapping else 0 %}
+                        {% set pct = ((s / mx) * 100) | round | int if mx > 0 else 0 %}
+                        <tr>
+                            <td class="num">
+                                <span class="dim-score {% if pct >= 72 %}score-high{% elif pct >= 40 %}score-mid{% else %}score-low{% endif %}">{{ s }}</span>
+                            </td>
+                            <td class="num"><span class="dim-max">{{ mx }}</span></td>
+                            <td>{{ dim_name }}</td>
+                            <td>
+                                {% if dim and dim is mapping and dim.summary %}
+                                <span class="dim-summary">{{ dim.summary[:120] }}{% if dim.summary | length > 120 %}…{% endif %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if product.skillable_path or product.deployment_model %}
+            <div class="meta-row">
+                {% if product.skillable_path %}
+                <span class="meta-chip"><span>Path:</span> {{ product.skillable_path }}</span>
+                {% endif %}
+                {% if product.deployment_model %}
+                <span class="meta-chip"><span>Deploy:</span> {{ product.deployment_model }}</span>
+                {% endif %}
+                {% if product.skillable_mechanism %}
+                <span class="meta-chip"><span>Mechanism:</span> {{ product.skillable_mechanism }}</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if product.next_step %}
+            <div class="next-step-section">
+                <div class="next-step-label">Recommended Next Step</div>
+                <div class="next-step-text">{{ product.next_step }}</div>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+</body>
+</html>

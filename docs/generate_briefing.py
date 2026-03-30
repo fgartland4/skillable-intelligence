@@ -525,6 +525,19 @@ def build_open_questions_2col(doc):
         r.font.color.rgb = DARK_TEXT
         set_paragraph_spacing(p, before=0, after=50)
 
+    def add_col_bullet_prefixed(cell, bold_prefix, text):
+        p = cell.add_paragraph(style="List Bullet")
+        r_bold = p.add_run(bold_prefix)
+        r_bold.font.name = FONT_NAME
+        r_bold.font.size = Pt(9)
+        r_bold.font.bold = True
+        r_bold.font.color.rgb = DARK_TEXT
+        r_rest = p.add_run(text)
+        r_rest.font.name = FONT_NAME
+        r_rest.font.size = Pt(9)
+        r_rest.font.color.rgb = DARK_TEXT
+        set_paragraph_spacing(p, before=0, after=50)
+
     add_col_heading(left_cell, "SecOps")
     add_col_bullet(left_cell, "Process for moving repo to corporate GitHub? Who approves access?")
     add_col_bullet(left_cell, "Which Azure subscription and resource group for App Service?")
@@ -533,9 +546,10 @@ def build_open_questions_2col(doc):
     add_col_bullet(left_cell, "DLP or egress controls affecting calls to Anthropic or Serper APIs?")
 
     add_col_heading(right_cell, "RevOps")
+    add_col_bullet_prefixed(right_cell, "Recommended:", " Add a \u201cProducts\u201d card to the HubSpot Company record listing each scored product as a link to its Inspector detail page, labeled Highly Labable / Likely Labable / Not Labable.")
+    add_col_bullet_prefixed(right_cell, "Recommended:", " Add a \u201cLab Maturity Signals\u201d link on the Company record pointing to the Inspector Lab Maturity Signals card for that company.")
     add_col_bullet(right_cell, "Standard ZoomInfo export format? Which filters before feeding Prospector?")
     add_col_bullet(right_cell, "Should Prospector results create new HubSpot Contacts, update existing, or feed a separate object?")
-    add_col_bullet(right_cell, "Minimum viable Prospector-to-HubSpot workflow for the first pilot?")
     add_col_bullet(right_cell, "Who owns the HubSpot integration build \u2014 RevOps, engineering, or third party?")
     add_col_bullet(right_cell, "How do we track whether an Inspector analysis influenced a pipeline opportunity?")
 
@@ -616,10 +630,10 @@ def main():
         space_after=60)
 
     add_bullet(doc,
-        " Scores a company\u2019s products for labability (0\u2013100) across four dimensions; produces a partnership readiness score, opportunity composite, recommended Skillable path (VM / Cloud Slice / Simulation), estimated annual ACV, and named contacts for training/enablement outreach. Used by SEs and AMs for pre-call research.",
+        " Scores a company\u2019s products for labability (0\u2013100) across four dimensions; produces a lab maturity score, opportunity composite, recommended Skillable path (VM / Cloud Slice / Simulation), estimated annual ACV, and named contacts for training/enablement outreach. Used by SEs and AMs for pre-call research.",
         bold_prefix="Inspector \u2014 Single-Company Deep Analysis.")
     add_bullet(doc,
-        " Runs a lightweight Inspector analysis on a full ZoomInfo export simultaneously \u2014 returns a ranked, scored table with labability/partnership/composite scores, a path label (Labable / Simulations / Do Not Pursue / Academic / Not a Fit), and top two contacts per company with LinkedIn and Excel export. Used by RevOps and field sales for account-based targeting.",
+        " Runs a lightweight Inspector analysis on a full ZoomInfo export simultaneously \u2014 returns a ranked, scored table with labability/lab maturity/composite scores, a path label (Labable / Simulations / Do Not Pursue / Academic / Not a Fit), and top two contacts per company with LinkedIn and Excel export. Used by RevOps and field sales for account-based targeting.",
         bold_prefix="Prospector \u2014 Batch Territory Scoring.")
     add_bullet(doc,
         " A four-phase wizard that designs a complete lab program for a specific company \u2014 from audience and objectives through program architecture, draft lab instructions, and Skillable Studio export. Used by SEs building a proof of concept or proposal after Inspector identifies a strong opportunity.",
@@ -657,7 +671,7 @@ def main():
         " Move repo to corporate GitHub. Add Azure Key Vault (replace .env). Add Entra ID/SSO. Define App Service environment (region, SKU, internal-only). Deploy and confirm HTTPS + access controls.",
         bold_prefix="Phase 1 \u2014 Secure the Foundation (SecOps + Engineering):")
     add_bullet(doc,
-        " Define ZoomInfo export \u2192 Prospector import spec. Define what Prospector and Inspector push to HubSpot (fields, object type, trigger). Build HubSpot integration (Excel import as MVP, API as next step). Run pilot: one territory through Prospector \u2192 HubSpot.",
+        " Define ZoomInfo export \u2192 Prospector import spec. Define what Prospector and Inspector push to HubSpot: Products card (product name, labability tier, link to product detail page), Lab Maturity score, composite score, and top contacts. Build HubSpot integration (Excel import as MVP, API as next step). Run pilot: one territory through Prospector \u2192 HubSpot.",
         bold_prefix="Phase 2 \u2014 Connect Revenue Workflows (RevOps + Engineering):")
     add_bullet(doc,
         " Instrument usage (companies analyzed, score distributions, pipeline conversion). Complete Designer Phase 2 and 3 prompts and Studio handoff format. Upgrade search API once usage exceeds ~50 Inspector analyses/month. Expand customer benchmarks as new logos close.",

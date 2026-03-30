@@ -60,11 +60,11 @@ def _compute_composite(top_lab: int, pr_score: int, org_type: str) -> tuple[int,
     if org_type in _CHANNEL_ORGS:
         raw = round(top_lab * 0.35 + pr_score * 0.65)
         gate_threshold, gate_cap = 20, 30
-        weights = "35% Product / 65% Partnership"
+        weights = "35% Product / 65% Lab Maturity"
     else:
         raw = round(top_lab * 0.65 + pr_score * 0.35)
         gate_threshold, gate_cap = 30, 25
-        weights = "65% Product / 35% Partnership"
+        weights = "65% Product / 35% Lab Maturity"
 
     if top_lab < gate_threshold:
         return min(raw, gate_cap), True, weights
@@ -87,7 +87,7 @@ def _attach_scores(data: dict) -> None:
     products.sort(key=lambda p: p.get("_total_score", 0), reverse=True)
     data["products"] = products
 
-    pr = data.get("partnership_readiness") or {}
+    pr = data.get("lab_maturity") or data.get("partnership_readiness") or {}
     pr_raw = sum(s.get("score", 0) for s in pr.values() if isinstance(s, dict))
     pr_total = min(100, round(pr_raw / _PR_NORMALIZATION))
     data["_pr_total"] = pr_total
@@ -97,7 +97,7 @@ def _attach_scores(data: dict) -> None:
     composite, gated, weights = _compute_composite(top_lab, pr_total, org_type)
     data["_composite_score"] = composite
     data["_composite_gated"] = gated
-    data["_composite_weights"] = weights or "65% Product / 35% Partnership"
+    data["_composite_weights"] = weights or "65% Product / 35% Lab Maturity"
 
 
 def _fmt_ondemand(val) -> str:
