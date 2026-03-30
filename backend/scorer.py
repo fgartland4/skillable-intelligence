@@ -287,6 +287,60 @@ CUSTOMER_BENCHMARKS = [
         ),
     },
     {
+        "company": "Cisco",
+        "relationship": "Active Skillable customer — CCIE exam lab delivery; ceiling benchmark for networking and certification complexity",
+        "org_type": "software_company",
+        "products_and_paths": [
+            "Cisco CCIE Lab Exam (Hyper-V/custom network fabric — multi-device network topologies: routers, switches, firewalls, isolated network segments)",
+            "Cisco Learning Network / Cisco U. — CCNA, CCNP, CCIE training catalog on Skillable infrastructure",
+        ],
+        "expansion_arc": [
+            "Phase 1 (Entry): CCIE lab exam delivery — the hardest certification exam in networking. 8-hour expert-level hands-on lab. Skillable selected specifically for ability to emulate complex multi-device network topologies with real device behavior.",
+            "Phase 2: CCNA/CCNP training labs alongside cert exam delivery. Massive global ATP network (authorized training partners) creates enormous downstream consumption.",
+            "Phase 3 (potential): Cisco Live — one of the largest annual tech conferences (~30,000+ attendees). Hands-on labs at DevNet Zone and breakout sessions. Events consumption at scale.",
+        ],
+        "key_signals": {
+            "technical": (
+                "CCIE is the hardest networking certification in existence — expert-level, 8-hour hands-on lab exam. "
+                "Labs require emulating multi-device network topologies: real Cisco IOS routers and switches, ASA firewalls, network segments with real routing protocols (BGP, OSPF, EIGRP), NAT, VPN tunnels, and dedicated IP addressing. "
+                "Skillable's private network fabric, isolated VLANs, and network device emulation are exactly the required capability. "
+                "This is the ceiling benchmark for networking complexity — if CCIE passes, any networking certification lab passes. "
+                "Cisco's written exams use Pearson VUE (confirmed Skillable EDP partner); CCIE lab historically in-person at Cisco facilities, now delivered via Skillable."
+            ),
+            "workflow": (
+                "CCIE tracks: Enterprise Infrastructure, Enterprise Wireless, Data Center, Security, Service Provider, Collaboration, DevNet. "
+                "Every track requires complex multi-step configuration and troubleshooting workflows. "
+                "Exam scenario: candidate receives a broken or partially-configured network, must diagnose, configure, and verify in a timed environment. "
+                "No click-through UI — pure CLI, real device configuration, real protocol behavior."
+            ),
+            "training_ecosystem": (
+                "Cisco has the largest networking training and certification ecosystem in the world. "
+                "CCNA/CCNP/CCIE hierarchy is the gold standard for networking careers globally. "
+                "Massive global ATP (Authorized Training Partner) network — training partners in every major market. "
+                "Cisco U. (formerly Cisco Learning Network) is Cisco's own learning platform. "
+                "Certification community is enormous — millions of active cert holders pursuing next tier."
+            ),
+            "market_fit": (
+                "Networking/infrastructure is a foundational Skillable category. "
+                "Cisco is the canonical networking vendor — CCIE is the canonical expert certification. "
+                "CCIE delivery proves Skillable's top-tier capability to Cisco's entire customer and partner ecosystem."
+            ),
+            "partnership_readiness": (
+                "Cisco has a formal training and certification org. "
+                "Enormous global partner network. "
+                "Cisco Live is a massive annual events consumption opportunity. "
+                "Pearson VUE EDP for written exams — proven Skillable integration."
+            ),
+        },
+        "score_guidance": (
+            "CEILING benchmark for networking vendors and certification bodies. "
+            "CCIE lab delivery = confirmed Skillable can handle the most complex network topology requirements. "
+            "Any networking product that requires multi-device emulation (routers, switches, firewalls, real routing protocols) should be scored HIGH — Cisco CCIE proves the fabric works at the absolute ceiling. "
+            "For similar networking vendors (Juniper, Palo Alto, F5, Fortinet, Arista): technical score 28-36, workflow 20-26, training ecosystem 12-18. "
+            "Cisco Live events motion: when scoring any company with a major annual conference, Cisco Live (~30k attendees) is the upper bound reference for events consumption scale."
+        ),
+    },
+    {
         "company": "Hyland",
         "relationship": "Active Skillable customer — VM-installable enterprise software benchmark",
         "org_type": "software_company",
