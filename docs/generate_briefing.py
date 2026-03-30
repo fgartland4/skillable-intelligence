@@ -609,8 +609,17 @@ def main():
 
     add_h1(doc, "1.  Why We Built This \u2014 Problems Being Solved")
 
+    # Labability definition
+    def_p = doc.add_paragraph()
+    def_p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    set_paragraph_spacing(def_p, before=0, after=80)
+    r1 = def_p.add_run("Labability")
+    r1.font.name = FONT_NAME; r1.font.size = Pt(10); r1.font.bold = True; r1.font.color.rgb = DARK_GREEN
+    r2 = def_p.add_run(u" \u2014 whether a company\u2019s products are technically and commercially suited for hands-on Skillable lab delivery \u2014 is the core question this platform is built to answer.")
+    r2.font.name = FONT_NAME; r2.font.size = Pt(10); r2.font.italic = True; r2.font.color.rgb = GRAY
+
     add_body(doc,
-        "The revenue and partnerships teams face three concrete friction points today:",
+        "The sales and revenue teams face three concrete friction points today:",
         space_after=60)
 
     add_bullet(doc,
