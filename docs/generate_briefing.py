@@ -614,11 +614,14 @@ def main():
         space_after=60)
 
     add_bullet(doc,
-        "No fast way to qualify a company for a lab conversation. SEs and AMs spend hours researching whether a prospect\u2019s products are technically buildable as Skillable labs \u2014 time that compounds across every territory.")
+        " No scalable way to build target lists. Identifying companies with the right training ecosystems, technical products, and partner programs for a Skillable conversation currently requires manual research at every stage.",
+        bold_prefix="Targeting & Lead Qualification:")
     add_bullet(doc,
-        "No scalable way to build target lists. Identifying companies with the right training ecosystems, partner programs, and technical products for a Skillable partnership currently requires manual research at every stage.")
+        " No fast way to qualify a company once identified. SEs and AMs spend hours researching whether a prospect\u2019s products are technically buildable as Skillable labs \u2014 time that compounds across every territory.",
+        bold_prefix="Accelerate Discovery:")
     add_bullet(doc,
-        "No starting point for lab program design. When an SE wants to propose a lab program to a prospect, they start from a blank page \u2014 no structure, no connection to the research already done on the company.")
+        " No starting point for lab program design. When an SE wants to propose a lab program, they start from a blank page \u2014 no structure, no connection to the research already done on the company.",
+        bold_prefix="Facilitate Lab Design & Decrease TTV:")
 
     closing = add_body(doc, "Skillable Intelligence addresses all three.", space_before=40, space_after=100)
     closing.runs[0].font.bold = True
@@ -632,11 +635,11 @@ def main():
         space_after=60)
 
     add_bullet(doc,
-        " Scores a company\u2019s products for labability (0\u2013100) across four dimensions; produces a lab maturity score, opportunity composite, recommended Skillable path (VM / Cloud Slice / Simulation), estimated annual ACV, and named contacts for training/enablement outreach. Used by SEs and AMs for pre-call research.",
-        bold_prefix="Inspector \u2014 Single-Company Deep Analysis.")
-    add_bullet(doc,
         " Runs a lightweight Inspector analysis on a full ZoomInfo export simultaneously \u2014 returns a ranked, scored table with labability/lab maturity/composite scores, a path label (Labable / Simulations / Do Not Pursue / Academic / Not a Fit), and top two contacts per company with LinkedIn and Excel export. Used by RevOps and field sales for account-based targeting.",
         bold_prefix="Prospector \u2014 Batch Territory Scoring.")
+    add_bullet(doc,
+        " Scores a company\u2019s products for labability (0\u2013100) across four dimensions; produces a lab maturity score, opportunity composite, recommended Skillable path (VM / Cloud Slice / Simulation), estimated annual ACV, and named contacts for training/enablement outreach. Used by SEs and AMs for pre-call research.",
+        bold_prefix="Inspector \u2014 Single-Company Deep Analysis.")
     add_bullet(doc,
         " A four-phase wizard that designs a complete lab program for a specific company \u2014 from audience and objectives through program architecture, draft lab instructions, and Skillable Studio export. Used by SEs building a proof of concept or proposal after Inspector identifies a strong opportunity.",
         bold_prefix="Designer \u2014 Lab Program Scaffolding.")
