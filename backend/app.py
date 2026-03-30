@@ -58,36 +58,40 @@ _SSE_TIMEOUT = 600  # 10 minutes
 # Template filters (registered on app, available in all blueprints)
 # ---------------------------------------------------------------------------
 
-@app.template_filter('bold_labels')
-def bold_labels(text):
-    """Convert **text** markdown to <strong>text</strong> HTML.
-    Labels matching warning patterns render in red."""
-    _WARNING_LABELS = {'Blockers', 'Blocker', 'Note', 'Warning', 'Risk', 'Limitation'}
+_WARNING_LABELS = {'Blockers', 'Blocker', 'Note', 'Warning', 'Risk', 'Limitation'}
+
+
+def _apply_bold(text: str) -> str:
+    """Convert **text** to <strong>text</strong> with red coloring for warning labels."""
     def _replace(m):
         label = m.group(1)
-        # Check if the bold text starts with a known warning label (before the colon)
         colon_pos = label.find(':')
         first_word = (label[:colon_pos] if colon_pos != -1 else label).strip()
         if first_word in _WARNING_LABELS:
             if colon_pos != -1:
-                # Only color the label word; leave the rest of the bold text normal
                 return f'<strong><span style="color:#e05252;">{label[:colon_pos]}</span>{label[colon_pos:]}</strong>'
             return f'<strong style="color:#e05252;">{label}</strong>'
         return f'<strong>{label}</strong>'
-    result = _re.sub(r'\*\*(.+?)\*\*', _replace, str(text))
-    return Markup(result)
+    return _re.sub(r'\*\*(.+?)\*\*', _replace, text)
+
+
+@app.template_filter('bold_labels')
+def bold_labels(text):
+    """Convert **text** markdown to <strong>text</strong> HTML.
+    Labels matching warning patterns render in red."""
+    return Markup(_apply_bold(str(text)))
 
 
 @app.template_filter('linkify')
 def linkify(text):
-    """Convert [label](url) markdown links to <a> HTML, then apply bold_labels."""
+    """Convert [label](url) markdown links to <a> HTML, then apply bold with warning colors."""
     result = str(text)
     result = _re.sub(
         r'\[([^\]]+)\]\((https?://[^\)]+)\)',
         r'<a href="\2" target="_blank" class="rec-link">\1</a>',
         result,
     )
-    result = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', result)
+    result = _apply_bold(result)
     return Markup(result)
 
 

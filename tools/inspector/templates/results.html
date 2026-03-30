@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ data.company_name }} — Labability Analysis</title>
+    <title>{{ data.company_name }} — Skillable Intelligence</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -182,11 +182,6 @@
             border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 20px;
             font-size: 0.875rem; color: #a8d5c2; line-height: 1.65;
         }
-        .rec-label {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
-            color: #24ED9B; font-weight: 700; margin-bottom: 5px;
-        }
         .rec-bullets {
             margin: 6px 0 0 0; padding-left: 18px;
             display: flex; flex-direction: column; gap: 6px;
@@ -205,29 +200,6 @@
             letter-spacing: 0.06em; text-transform: none; white-space: nowrap;
         }
 
-        /* Skillable path bar */
-        .mechanism-bar {
-            background: #06100c; border: 1px solid #1e3329; border-radius: 10px;
-            padding: 12px 16px; margin-bottom: 20px;
-            display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-        }
-        .mech-label { font-size: 0.68rem; color: #3d6655; text-transform: uppercase; letter-spacing: 0.08em; margin-right: 2px; }
-        .mech-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700;
-        }
-        .mech-datacenter { background: rgba(36,237,155,0.1);  color: #24ED9B; border: 1px solid rgba(36,237,155,0.2); }
-        .mech-cloudslice { background: rgba(112,0,255,0.12);  color: #a78bfa; border: 1px solid rgba(112,0,255,0.2); }
-        .mech-simulation { background: rgba(245,158,11,0.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
-        .mech-unclear    { background: #122019; color: #6b9e88; }
-        .tier-badge {
-            display: inline-block; padding: 3px 10px; border-radius: 6px;
-            font-size: 0.72rem; font-weight: 600; background: #0d1a14; color: #3d6655;
-            border: 1px solid #1e3329;
-        }
-        .tier-best   { border-color: rgba(36,237,155,0.3);  color: #24ED9B; }
-        .tier-next   { border-color: rgba(112,0,255,0.3);   color: #a78bfa; }
-        .tier-manual { border-color: rgba(245,158,11,0.3);  color: #f59e0b; }
         .api-badge {
             font-size: 0.72rem; color: #3d6655;
             max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -254,26 +226,6 @@
         .dim-summary { font-size: 0.78rem; color: #3d6655; margin-top: 4px; line-height: 1.5; }
         .delivery-path-line { font-size: 0.78rem; color: #24ED9B; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
         .delivery-path-tier { font-size: 0.72rem; color: #6b9e88; font-weight: 400; }
-
-        /* Evidence */
-        .evidence-toggle {
-            background: none; border: 1px solid #1e3329; color: #3d6655;
-            padding: 5px 12px; border-radius: 6px; font-size: 0.75rem;
-            cursor: pointer; margin-top: 8px; transition: all 0.15s;
-        }
-        .evidence-toggle:hover { border-color: #24ED9B; color: #24ED9B; }
-        .evidence-list { display: none; margin-top: 10px; }
-        .evidence-list.open { display: block; }
-        .evidence-item {
-            font-size: 0.78rem; color: #6b9e88; padding: 6px 0;
-            border-bottom: 1px solid #0d1a14; line-height: 1.4;
-            word-break: break-word; overflow-wrap: break-word;
-        }
-        .evidence-item:last-child { border-bottom: none; }
-        .evidence-disclaimer {
-            font-size: 0.68rem; color: #3d6655; margin-top: 8px;
-            font-style: italic;
-        }
 
         /* Org & Contacts */
         .org-banner {
@@ -479,22 +431,9 @@
         .tech-details > summary::-webkit-details-marker { display: none; }
         .rec-details > summary { color: #24ED9B; border-color: rgba(36,237,155,0.2); }
         .tech-details.rec-details > summary:hover { color: #7fffd4; }
-        .rec-details[open] > summary { color: #24ED9B; }
-        .rec-details .recommendation { border-left: 2px solid #24ED9B; border-radius: 0 0 10px 10px; margin-top: 0; padding: 6px 0 4px; }
-        /* Inner subsections inside Skillable Recommendations */
-        .inner-details { margin-top: 8px; }
-        .inner-details > summary {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 14px; background: #0a1810; border: 1px solid #1e3329;
-            border-radius: 6px; cursor: pointer; list-style: none;
-            font-size: 0.70rem; color: #3d6655; font-weight: 700;
-            letter-spacing: 0.07em; text-transform: uppercase;
-            transition: color 0.15s, border-color 0.15s; user-select: none;
-        }
-        .inner-details > summary::-webkit-details-marker { display: none; }
-        .inner-details > summary:hover { color: #6b9e88; border-color: rgba(36,237,155,0.2); }
-        .inner-details[open] > summary { color: #6b9e88; border-color: rgba(36,237,155,0.15); border-radius: 6px 6px 0 0; }
-        .inner-details-content { border: 1px solid rgba(36,237,155,0.10); border-top: none; border-radius: 0 0 6px 6px; padding: 16px 18px 10px; }
+        .rec-details[open] > summary { color: #24ED9B; border-radius: 8px 8px 0 0; }
+        .rec-details .recommendation { border-left: 2px solid #24ED9B; border-radius: 0 0 10px 10px; margin-top: 0; padding: 6px 18px 12px; }
+        .rec-details .recommendation .dimensions { margin-bottom: 0; }
         .tech-details > summary:hover { color: #6b9e88; border-color: rgba(36,237,155,0.2); }
         .tech-details > summary .det-arrow { font-size: 1rem; font-weight: 400; flex-shrink: 0; }
         .tech-details[open] > summary { color: #6b9e88; border-color: rgba(36,237,155,0.15); border-radius: 8px 8px 0 0; }
@@ -723,7 +662,7 @@
                     <div class="product-name">
                         {{ product.name }}
                         {% if product.lab_highlight %}
-                        <span class="lab-highlight-badge">&#10024; {{ product.lab_highlight }}</span>
+                        <span class="lab-highlight-badge">{{ product.lab_highlight }}</span>
                         {% endif %}
                     </div>
                     <div class="product-category">{{ product.category }}</div>
@@ -743,8 +682,8 @@
                 {% else %}{% set mult_val = "0.15×" %}{% endif %}
                 <div class="score-right">
                     <div class="mult-info">
-                        <div>Multiplier: {{ mult_val }}</div>
-                        <div>{{ tech }} + {{ adjusted }} = {{ product._total_score }}</div>
+                        <div>Multiplier</div>
+                        <div>{{ mult_val }} &nbsp;{{ tech }} + {{ adjusted }} = {{ product._total_score }}</div>
                     </div>
                     <div class="total-score">
                         <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
@@ -819,24 +758,11 @@
                 <div class="dim">
                     <div>
                         <div class="dim-label">Technical Orchestrability &amp; Performance Scoring</div>
-                        {% if path or mech %}
-                        <div class="delivery-path-line">
-                            {% if path == 'B' %}
-                                {% if fabric == 'ESX' %}VMware ESX fabric running in Skillable datacenters
-                                {% elif fabric == 'Docker' %}Docker fabric running in Skillable datacenters
-                                {% else %}Hyper-V fabric running in Skillable datacenters{% endif %}
-                            {% elif path in ['A1', 'A'] %}Azure Cloud Slice — isolated subscription per learner
-                            {% elif path == 'A2' %}Custom API provisioning — vendor cloud, per-learner instance
-                            {% elif path == 'C' %}Skillable Simulation
-                            {% elif mech %}{{ mech }}{% endif %}
-                            {% if pt and pt not in ['Unknown', 'N/A', ''] %} &nbsp;·&nbsp; <span class="delivery-path-tier">{{ pt }}</span>{% endif %}
-                        </div>
-                        {% endif %}
                         <ul class="pr-bullets">
                             {% if tech_dim.evidence %}{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif tech_dim.summary %}<li class="dim-summary">{{ tech_dim.summary }}</li>{% endif %}
                         </ul>
-                        {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                        {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:10px; padding-top:10px; border-top:1px solid #1e3329;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
                         <div class="dim-score-num score-{{ t1 }}">{{ sc1 }}<span class="dim-score-denom">/25</span></div>
@@ -879,7 +805,7 @@
                             {% if te_dim.evidence %}{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif te_dim.summary %}<li class="dim-summary">{{ te_dim.summary }}</li>{% endif %}
                         </ul>
-                        {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                        {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:10px; padding-top:10px; border-top:1px solid #1e3329;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
                         <div class="dim-score-num score-{{ t3 }}">{{ sc3 }}<span class="dim-score-denom">/25</span></div>
@@ -897,7 +823,7 @@
                             {% if mf_dim.evidence %}{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
                             {% elif mf_dim.summary %}<li class="dim-summary">{{ mf_dim.summary }}</li>{% endif %}
                         </ul>
-                        {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                        {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:10px; padding-top:10px; border-top:1px solid #1e3329;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="dim-score-col">
                         <div class="dim-score-num score-{{ t4 }}">{{ sc4 }}<span class="dim-score-denom">/25</span></div>
