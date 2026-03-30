@@ -132,6 +132,7 @@ _progress: dict[str, list[str]] = {}
 _progress_lock = threading.Lock()
 _PROGRESS_MAX_JOBS = 50
 _PROGRESS_EVICT_COUNT = 10
+_cancelled_jobs: set[str] = set()
 
 
 def _push(job_id: str, msg: str):
@@ -537,7 +538,11 @@ def prospector_run():
 
     def run_batch():
         def analyze_one(name):
+            if job_id in _cancelled_jobs:
+                return
             with semaphore:
+                if job_id in _cancelled_jobs:
+                    return
                 _push(job_id, f"status:Analyzing {name}...")
                 row = _quick_analyze_company(name)
                 if row:
@@ -552,18 +557,27 @@ def prospector_run():
         for t in threads:
             t.join()
 
+        cancelled = job_id in _cancelled_jobs
+        _cancelled_jobs.discard(job_id)
         save_prospector_run(job_id, {
             "job_id": job_id,
             "companies": company_names,
             "skipped_poor_fit": skipped,
             "results": results,
-            "status": "done",
+            "status": "cancelled" if cancelled else "done",
         })
         _push(job_id, f"done:{job_id}")
 
     threading.Thread(target=run_batch, daemon=True).start()
     return render_template("prospector_running.html", job_id=job_id,
                            company_count=len(company_names))
+
+
+@prospector.route("/cancel/<job_id>", methods=["POST"])
+def prospector_cancel(job_id: str):
+    _cancelled_jobs.add(job_id)
+    _push(job_id, f"done:{job_id}")
+    return jsonify({"cancelled": True})
 
 
 @prospector.route("/status/<job_id>")

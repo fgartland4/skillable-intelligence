@@ -38,6 +38,13 @@
         .progress-bar-wrap { height: 4px; background: #1e3329; border-radius: 2px; margin: 16px 0 8px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: #24ED9B; border-radius: 2px; transition: width 0.4s ease; width: 0%; }
         .progress-text { font-size: 0.78rem; color: #3d6655; }
+        .btn-cancel {
+            margin-top: 20px; background: none; border: 1px solid #1e3329;
+            color: #3d6655; padding: 8px 20px; border-radius: 8px;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+        }
+        .btn-cancel:hover { border-color: rgba(248,113,113,0.4); color: #f87171; }
+        .btn-cancel:disabled { opacity: 0.4; cursor: default; }
     </style>
 </head>
 <body>
@@ -52,6 +59,7 @@
             <div class="progress-bar-fill" id="progress-bar"></div>
         </div>
         <div class="progress-text" id="progress-text">0 / {{ company_count }} complete</div>
+        <button class="btn-cancel" id="btn-cancel" onclick="cancelRun()">Cancel run</button>
     </div>
 
     <script>
@@ -85,6 +93,13 @@
             }
         };
         es.onerror = function() { es.close(); };
+
+        function cancelRun() {
+            const btn = document.getElementById('btn-cancel');
+            btn.disabled = true;
+            btn.textContent = 'Cancelling...';
+            fetch(`/prospector/cancel/${jobId}`, { method: 'POST' });
+        }
     </script>
 </body>
 </html>
