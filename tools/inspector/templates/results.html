@@ -483,30 +483,46 @@
         .pr-bar-track { width: 100%; height: 5px; background: #1e3329; border-radius: 3px; overflow: hidden; margin-top: 4px; }
         .pr-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; animation: bar-enter 0.7s ease-out; }
 
-        /* Technical details disclosure */
-        .tech-details { margin-top: 20px; }
-        .tech-details > summary {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 16px; background: #06100c; border: 1px solid #1e3329;
-            border-radius: 8px; cursor: pointer; list-style: none;
-            font-size: 0.72rem; color: #3d6655; font-weight: 700;
-            letter-spacing: 0.08em; text-transform: uppercase;
-            transition: color 0.15s, border-color 0.15s;
+        /* Dimension section collapsibles */
+        .dim-section { margin-bottom: 6px; }
+        .dim-section > summary {
+            display: flex; flex-direction: column;
+            padding: 12px 16px; border-radius: 8px;
+            cursor: pointer; list-style: none;
+            border: 1px solid #1e3329; background: #06100c;
+            transition: border-color 0.15s;
             user-select: none;
         }
-        .tech-details > summary::-webkit-details-marker { display: none; }
-        .rec-details > summary { color: #24ED9B; border-color: rgba(36,237,155,0.2); }
-        .tech-details.rec-details > summary:hover { color: #7fffd4; }
-        .rec-details[open] > summary { color: #24ED9B; border-radius: 8px 8px 0 0; }
-        .rec-details .recommendation { border-left: 2px solid #24ED9B; border-radius: 0 0 10px 10px; margin-top: 0; padding: 6px 18px 12px; }
-        .rec-details .recommendation .dimensions { margin-bottom: 0; }
-        .tech-details > summary:hover { color: #6b9e88; border-color: rgba(36,237,155,0.2); }
-        .tech-details > summary .det-arrow { font-size: 1rem; font-weight: 400; flex-shrink: 0; }
-        .tech-details[open] > summary { color: #6b9e88; border-color: rgba(36,237,155,0.15); border-radius: 8px 8px 0 0; }
-        .tech-details-content {
-            border: 1px solid rgba(36,237,155,0.12); border-top: none;
-            border-radius: 0 0 8px 8px; padding: 20px 20px 12px;
+        .dim-section > summary::-webkit-details-marker { display: none; }
+        .dim-section[open] > summary { border-radius: 8px 8px 0 0; }
+        .dim-section-tech > summary:hover, .dim-section-tech[open] > summary { border-color: rgba(36,237,155,0.3); }
+        .dim-section-wf   > summary:hover, .dim-section-wf[open]   > summary { border-color: rgba(59,130,246,0.3); }
+        .dim-section-te   > summary:hover, .dim-section-te[open]   > summary { border-color: rgba(167,139,250,0.3); }
+        .dim-section-mf   > summary:hover, .dim-section-mf[open]   > summary { border-color: rgba(245,158,11,0.3); }
+        .dim-section-cons > summary:hover, .dim-section-cons[open] > summary { border-color: rgba(36,237,155,0.2); }
+        .dim-sec-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+        .dim-sec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .dim-sec-dot-tech { background: #24ED9B; }
+        .dim-sec-dot-wf   { background: #3b82f6; }
+        .dim-sec-dot-te   { background: #a78bfa; }
+        .dim-sec-dot-mf   { background: #f59e0b; }
+        .dim-sec-name { flex: 1; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b9e88; }
+        .dim-sec-score { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+        .dim-sec-denom { font-size: 0.62rem; color: #3d6655; font-weight: 400; }
+        .dim-sec-arrow { font-size: 0.82rem; color: #3d6655; flex-shrink: 0; }
+        .dim-sec-bar { height: 5px; border-radius: 3px; overflow: hidden; }
+        .dim-sec-bar-tech { background: rgba(36,237,155,0.12); }
+        .dim-sec-bar-wf   { background: rgba(59,130,246,0.12); }
+        .dim-sec-bar-te   { background: rgba(167,139,250,0.12); }
+        .dim-sec-bar-mf   { background: rgba(245,158,11,0.12); }
+        .dim-sec-bar-fill { height: 100%; border-radius: 3px; animation: bar-enter 0.7s ease-out; transition: width 0.6s ease; }
+        .dim-sec-content {
+            border: 1px solid #1e3329; border-top: none;
+            border-radius: 0 0 8px 8px; padding: 16px 18px;
         }
+        /* Next Steps + Who to Engage */
+        .next-who-section { border-top: 1px solid #1e3329; margin-top: 18px; padding-top: 16px; }
+        .next-who-label { font-size: 0.62rem; color: #3d6655; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 8px; }
 
         /* Product nav strip */
         .product-nav {
@@ -744,12 +760,11 @@
                         <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
                             {{ product._total_score }}
                         </div>
-                        <div class="out-of">/100</div>
                     </div>
                 </div>
             </div>
 
-            {# ── Layer 1: verdict + composite bar + ACV headline ── #}
+            {# ── Variables ── #}
             {% set _sc1h = product.labability_score.technical_orchestrability.score | default(0) %}
             {% set _sc2h = product.labability_score.workflow_complexity.score | default(0) %}
             {% set _sc3h = product.labability_score.training_ecosystem.score | default(0) %}
@@ -759,7 +774,21 @@
             {% elif product.skillable_path == 'C' %}{% set _rate_h = 5.0 %}
             {% elif _cph.get('vm_rate_estimate', 0) > 0 %}{% set _rate_h = _cph.get('vm_rate_estimate') %}
             {% else %}{% set _rate_h = 12.0 %}{% endif %}
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+            {% set tech_dim = product.labability_score.technical_orchestrability %}
+            {% set wf_dim = product.labability_score.workflow_complexity %}
+            {% set te_dim = product.labability_score.training_ecosystem %}
+            {% set mf_dim = product.labability_score.market_fit %}
+
+            {# ── Description first ── #}
+            {% if product.description %}
+            <div class="product-desc">{{ product.description | link_product_name(product.name, product.product_url) }}</div>
+            {% endif %}
+            {% if product.poor_match_flags %}
+            <div class="poor-flags">{% for flag in product.poor_match_flags %}<span class="flag-badge">&#9888; {{ flag|replace('_',' ')|title }}</span>{% endfor %}</div>
+            {% endif %}
+
+            {# ── Layer 1: verdict + bar + ACV ── #}
+            <div style="display:flex;align-items:center;gap:10px;margin:14px 0 8px;flex-wrap:wrap;">
                 {% if product._total_score >= 75 %}<span class="verdict-badge verdict-strong">Strong Pursue</span>
                 {% elif product._total_score >= 55 %}<span class="verdict-badge verdict-pursue">Pursue</span>
                 {% elif product._total_score >= 35 %}<span class="verdict-badge verdict-monitor">Monitor</span>
@@ -774,39 +803,13 @@
                 <div class="seg-block seg-block-mf"   style="width:10%;"><div class="seg-fill {% if _sc4h < 4  %}seg-low{% else %}seg-mf{% endif %}"   style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc4h }}</span></div></div>
             </div>
             {% if _cph and _cph.get('annual_hours_high', 0) > 0 %}
-            <div class="product-acv">
-                <div class="product-acv-dollars">${{ "{:,}".format((_cph.get('annual_hours_low', 0) * _rate_h) | int) }} – ${{ "{:,}".format((_cph.get('annual_hours_high', 0) * _rate_h) | int) }} ACV</div>
-                <div class="product-acv-hours">{{ "{:,}".format(_cph.get('annual_hours_low', 0)) }}–{{ "{:,}".format(_cph.get('annual_hours_high', 0)) }} estimated lab hrs/yr</div>
+            <div class="product-acv" style="margin-bottom:18px;">
+                <div class="product-acv-dollars">${{ "{:,}".format((_cph.get('annual_hours_low',0)*_rate_h)|int) }} – ${{ "{:,}".format((_cph.get('annual_hours_high',0)*_rate_h)|int) }} ACV</div>
+                <div class="product-acv-hours">{{ "{:,}".format(_cph.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cph.get('annual_hours_high',0)) }} estimated lab hrs/yr</div>
             </div>
             {% endif %}
 
-            {% if product.description %}
-            <div class="product-desc" style="margin-top:12px;">{{ product.description | link_product_name(product.name, product.product_url) }}</div>
-            {% endif %}
-
-            {% if product.poor_match_flags %}
-            <div class="poor-flags">
-                {% for flag in product.poor_match_flags %}
-                <span class="flag-badge">&#9888; {{ flag|replace('_',' ')|title }}</span>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% set path = product.skillable_path %}
-            {% set mech = product.skillable_mechanism or '' %}
-            {% set rec_text = product.recommendation | join(' ') if product.recommendation else '' %}
-            {% set fabric = product.fabric | default('') %}
-            {% set pt = product.path_tier or '' %}
-            {% set tech_dim = product.labability_score.technical_orchestrability %}
-            {% set wf_dim = product.labability_score.workflow_complexity %}
-            {% set te_dim = product.labability_score.training_ecosystem %}
-            {% set mf_dim = product.labability_score.market_fit %}
-
-            {# ── Bullet routing ──────────────────────────────────────────────────── #}
-            {# s1   = Row 1 (Can we build it?): delivery, scoring, similar, blockers  #}
-            {# s3   = Row 3 (Is the org ready?): program fit, certification           #}
-            {# s4   = Row 4 (Market fit): custom labels, catch-all                   #}
-            {# sNxt = Next Steps section: next step, essential technical, note        #}
+            {# ── Bullet routing ── #}
             {% set ns = namespace(s1=[], s3=[], s4=[], sNxt=[]) %}
             {% for bullet in (product.recommendation or []) %}
               {% set bl = bullet | lower %}
@@ -821,210 +824,161 @@
               {% endif %}
             {% endfor %}
 
-            {# ── Skillable Recommendations collapsible ───────────────────────────── #}
-            <details class="tech-details rec-details">
+            {# ── 1. Product Labability ── #}
+            {% set _t1 = 'score-high' if _sc1h >= 29 else ('score-mid' if _sc1h >= 16 else 'score-low') %}
+            <details class="dim-section dim-section-tech">
                 <summary>
-                    <span style="display:flex; align-items:center; gap:10px;">
-                        Skillable Recommendations
-                        {% if path == 'B' %}
-                            {% if fabric == 'Docker' %}<span class="rec-fabric">Docker Container Fabric</span>
-                            {% elif fabric == 'ESX' %}<span class="rec-fabric">VMware ESX Fabric</span>
-                            {% else %}<span class="rec-fabric">Hyper-V Fabric</span>{% endif %}
-                        {% elif path == 'A1' %}
-                            {% if 'AWS' in mech or 'AWS' in rec_text %}<span class="rec-fabric">AWS Cloud Slice</span>
-                            {% else %}<span class="rec-fabric">Azure Cloud Slice</span>{% endif %}
-                        {% elif path == 'A2' %}<span class="rec-fabric">Custom API Provisioning</span>
-                        {% elif path == 'C' %}<span class="rec-fabric">Skillable Simulation</span>
-                        {% endif %}
-                    </span>
+                    <div class="dim-sec-row">
+                        <span class="dim-sec-dot dim-sec-dot-tech"></span>
+                        <span class="dim-sec-name">Product Labability</span>
+                        <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}</span>
+                        <span class="dim-sec-arrow">▾</span>
+                    </div>
+                    <div class="dim-sec-bar dim-sec-bar-tech"><div class="dim-sec-bar-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"></div></div>
                 </summary>
-                <div class="recommendation">
+                <div class="dim-sec-content">
+                    {% if tech_dim.evidence %}<ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif tech_dim.summary %}<p class="dim-summary">{{ tech_dim.summary }}</p>{% endif %}
+                    {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:10px;padding-top:10px;border-top:1px solid #122019;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+            </details>
 
-                {# ── Layer 2: composite bar + consumption motions ── #}
-                {% set sc1 = tech_dim.score | default(0) %}
-                {% set sc2 = wf_dim.score | default(0) %}
-                {% set sc3 = te_dim.score | default(0) %}
-                {% set sc4 = mf_dim.score | default(0) %}
-                {% set cp = product.get('consumption_potential', {}) %}
-                {% if cp and cp.get('annual_hours_high', 0) > 0 %}
-                {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set rate_lo = 10.5 %}{% set rate_hi = 10.5 %}
-                {% elif product.skillable_path == 'C' %}{% set rate_lo = 5.0 %}{% set rate_hi = 5.0 %}
-                {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set rate_lo = cp.get('vm_rate_estimate') %}{% set rate_hi = cp.get('vm_rate_estimate') %}
-                {% else %}{% set rate_lo = 12.0 %}{% set rate_hi = 55.0 %}{% endif %}
-                <div class="l2-consumption">
-                    <div class="l2-cons-header">Estimated Consumption Potential</div>
-                    {% for m in cp.get('motions', []) %}
-                    {% set mh_low  = (m.get('population_low',  0) * m.get('hours_low',  0) * m.get('adoption_pct', 0)) | int %}
-                    {% set mh_high = (m.get('population_high', 0) * m.get('hours_high', 0) * m.get('adoption_pct', 0)) | int %}
-                    {% if mh_high > 0 %}
-                    <div class="l2-cons-row">
-                        <span class="l2-cons-label">{{ m.get('label', '') }}</span>
-                        <span class="l2-cons-value">{{ "{:,}".format(mh_low) }}–{{ "{:,}".format(mh_high) }} hrs</span>
+            {# ── 2. Likely Impact ── #}
+            {% set _t2 = 'score-high' if _sc2h >= 21 else ('score-mid' if _sc2h >= 12 else 'score-low') %}
+            <details class="dim-section dim-section-wf">
+                <summary>
+                    <div class="dim-sec-row">
+                        <span class="dim-sec-dot dim-sec-dot-wf"></span>
+                        <span class="dim-sec-name">Likely Impact</span>
+                        <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}</span>
+                        <span class="dim-sec-arrow">▾</span>
+                    </div>
+                    <div class="dim-sec-bar dim-sec-bar-wf"><div class="dim-sec-bar-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}" style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"></div></div>
+                </summary>
+                <div class="dim-sec-content">
+                    {% if wf_dim.evidence %}<ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif wf_dim.summary %}<p class="dim-summary">{{ wf_dim.summary }}</p>{% endif %}
+                    {% if product.lab_concepts %}
+                    <div style="margin-top:12px;padding-top:10px;border-top:1px solid #122019;">
+                        <div class="section-title">Suggested Lab Concepts</div>
+                        <div class="lab-concepts-grid">{% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}</div>
                     </div>
                     {% endif %}
-                    {% endfor %}
+                </div>
+            </details>
+
+            {# ── 3. Training & Enablement Maturity ── #}
+            {% set _t3 = 'score-high' if _sc3h >= 14 else ('score-mid' if _sc3h >= 8 else 'score-low') %}
+            <details class="dim-section dim-section-te">
+                <summary>
+                    <div class="dim-sec-row">
+                        <span class="dim-sec-dot dim-sec-dot-te"></span>
+                        <span class="dim-sec-name">Training &amp; Enablement Maturity</span>
+                        <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}</span>
+                        <span class="dim-sec-arrow">▾</span>
+                    </div>
+                    <div class="dim-sec-bar dim-sec-bar-te"><div class="dim-sec-bar-fill {% if _sc3h < 8 %}seg-low{% else %}seg-te{% endif %}" style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"></div></div>
+                </summary>
+                <div class="dim-sec-content">
+                    {% if te_dim.evidence %}<ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif te_dim.summary %}<p class="dim-summary">{{ te_dim.summary }}</p>{% endif %}
+                    {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:10px;padding-top:10px;border-top:1px solid #122019;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+            </details>
+
+            {# ── 4. Market & Strategic Fit ── #}
+            {% set _t4 = 'score-high' if _sc4h >= 7 else ('score-mid' if _sc4h >= 4 else 'score-low') %}
+            <details class="dim-section dim-section-mf">
+                <summary>
+                    <div class="dim-sec-row">
+                        <span class="dim-sec-dot dim-sec-dot-mf"></span>
+                        <span class="dim-sec-name">Market &amp; Strategic Fit</span>
+                        <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}</span>
+                        <span class="dim-sec-arrow">▾</span>
+                    </div>
+                    <div class="dim-sec-bar dim-sec-bar-mf"><div class="dim-sec-bar-fill {% if _sc4h < 4 %}seg-low{% else %}seg-mf{% endif %}" style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"></div></div>
+                </summary>
+                <div class="dim-sec-content">
+                    {% if mf_dim.evidence %}<ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif mf_dim.summary %}<p class="dim-summary">{{ mf_dim.summary }}</p>{% endif %}
+                    {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:10px;padding-top:10px;border-top:1px solid #122019;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+            </details>
+
+            {# ── 5. Estimated Consumption Potential ── #}
+            {% set _cp5 = product.get('consumption_potential', {}) %}
+            {% if _cp5 and _cp5.get('annual_hours_high', 0) > 0 %}
+            {% if product.skillable_path in ['A', 'A1', 'A2'] %}{% set _r5lo = 10.5 %}{% set _r5hi = 10.5 %}
+            {% elif product.skillable_path == 'C' %}{% set _r5lo = 5.0 %}{% set _r5hi = 5.0 %}
+            {% elif _cp5.get('vm_rate_estimate', 0) > 0 %}{% set _r5lo = _cp5.get('vm_rate_estimate') %}{% set _r5hi = _cp5.get('vm_rate_estimate') %}
+            {% else %}{% set _r5lo = 12.0 %}{% set _r5hi = 55.0 %}{% endif %}
+            <details class="dim-section dim-section-cons">
+                <summary>
+                    <div class="dim-sec-row" style="margin-bottom:0;">
+                        <span class="dim-sec-dot" style="background:rgba(36,237,155,0.5);"></span>
+                        <span class="dim-sec-name">Estimated Consumption Potential</span>
+                        <span class="dim-sec-score score-high" style="font-size:0.85rem;">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }}–${{ "{:,}".format((_cp5.get('annual_hours_high',0)*_r5hi)|int) }}</span>
+                        <span class="dim-sec-arrow">▾</span>
+                    </div>
+                </summary>
+                <div class="dim-sec-content">
+                    {% for m in _cp5.get('motions', []) %}
+                    {% set mh_low  = (m.get('population_low',0)*m.get('hours_low',0)*m.get('adoption_pct',0))|int %}
+                    {% set mh_high = (m.get('population_high',0)*m.get('hours_high',0)*m.get('adoption_pct',0))|int %}
+                    {% if mh_high > 0 %}
+                    <div class="l2-cons-row"><span class="l2-cons-label">{{ m.get('label','') }}</span><span class="l2-cons-value">{{ "{:,}".format(mh_low) }}–{{ "{:,}".format(mh_high) }} hrs</span></div>
+                    {% endif %}{% endfor %}
                     <div class="l2-cons-total">
                         <span class="l2-cons-total-label">Annual Potential</span>
                         <div style="text-align:right;">
-                            <div class="l2-cons-acv">${{ "{:,}".format((cp.get('annual_hours_low',0) * rate_lo)|int) }} – ${{ "{:,}".format((cp.get('annual_hours_high',0) * rate_hi)|int) }}</div>
-                            <div class="l2-cons-hrs">{{ "{:,}".format(cp.get('annual_hours_low',0)) }}–{{ "{:,}".format(cp.get('annual_hours_high',0)) }} lab hrs/yr</div>
+                            <div class="l2-cons-acv">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }} – ${{ "{:,}".format((_cp5.get('annual_hours_high',0)*_r5hi)|int) }}</div>
+                            <div class="l2-cons-hrs">{{ "{:,}".format(_cp5.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cp5.get('annual_hours_high',0)) }} lab hrs/yr</div>
                         </div>
                     </div>
-                    {% if cp.get('methodology_note') %}
-                    <div class="consumption-methodology" style="margin-top:10px;">{{ cp.get('methodology_note') }}</div>
-                    {% endif %}
+                    {% if _cp5.get('methodology_note') %}<div class="consumption-methodology" style="margin-top:10px;">{{ _cp5.get('methodology_note') }}</div>{% endif %}
                 </div>
-                {% endif %}
+            </details>
+            {% endif %}
 
-                {# ── Four scoring rows ───────────────────────────────────────────── #}
-                <div class="dimensions">
-
-                {# Row 1 — Can we build it? (40%) #}
-                {% set t1 = 'high' if sc1 >= 29 else ('mid' if sc1 >= 16 else 'low') %}
-                <div class="dim">
-                    <div>
-                        <div class="dim-label">Can we build it? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Technical Orchestrability</span></div>
-                        <ul class="pr-bullets">
-                            {% if tech_dim.evidence %}{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                            {% elif tech_dim.summary %}<li class="dim-summary">{{ tech_dim.summary }}</li>{% endif %}
-                        </ul>
-                        {% if ns.s1 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
-                    </div>
-                    <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t1 }}">{{ sc1 }}<span class="dim-score-denom">/40</span></div>
-                        <div class="bar-track"><div class="bar-fill {{ t1 }}" style="width:{{ [(sc1/40*100)|int,100]|min }}%;"></div></div>
-                    </div>
-                </div>
-
-                {# Row 2 — Is it worth doing labs? (30%) #}
-                {% set t2 = 'high' if sc2 >= 21 else ('mid' if sc2 >= 12 else 'low') %}
-                <div class="dim">
-                    <div>
-                        <div class="dim-label">Is it worth doing labs? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Workflow Complexity</span></div>
-                        <ul class="pr-bullets">
-                            {% if wf_dim.evidence %}{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                            {% elif wf_dim.summary %}<li class="dim-summary">{{ wf_dim.summary }}</li>{% endif %}
-                        </ul>
-                        {% if product.lab_concepts %}
-                        <div style="margin-top:12px;">
-                            <div class="section-title">Suggested Lab Concepts</div>
-                            <div class="lab-concepts-grid">
-                                {% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t2 }}">{{ sc2 }}<span class="dim-score-denom">/30</span></div>
-                        <div class="bar-track"><div class="bar-fill {{ t2 }}" style="width:{{ [(sc2/30*100)|int,100]|min }}%;"></div></div>
-                    </div>
-                </div>
-
-                {# Row 3 — Is the org ready? (20%) #}
-                {% set t3 = 'high' if sc3 >= 14 else ('mid' if sc3 >= 8 else 'low') %}
-                <div class="dim">
-                    <div>
-                        <div class="dim-label">Is the org ready? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Training &amp; Enablement Maturity</span></div>
-                        <ul class="pr-bullets">
-                            {% if te_dim.evidence %}{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                            {% elif te_dim.summary %}<li class="dim-summary">{{ te_dim.summary }}</li>{% endif %}
-                        </ul>
-                        {% if ns.s3 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
-                    </div>
-                    <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t3 }}">{{ sc3 }}<span class="dim-score-denom">/20</span></div>
-                        <div class="bar-track"><div class="bar-fill {{ t3 }}" style="width:{{ [(sc3/20*100)|int,100]|min }}%;"></div></div>
-                    </div>
-                </div>
-
-                {# Row 4 — Strategically aligned? (10%) #}
-                {% set t4 = 'high' if sc4 >= 7 else ('mid' if sc4 >= 4 else 'low') %}
-                <div class="dim" style="border-bottom:none; padding-bottom:0;">
-                    <div>
-                        <div class="dim-label">Strategically aligned? <span style="color:#3d6655;font-weight:400;font-size:0.7rem;">Market &amp; Strategic Fit</span></div>
-                        <ul class="pr-bullets">
-                            {% if mf_dim.evidence %}{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                            {% elif mf_dim.summary %}<li class="dim-summary">{{ mf_dim.summary }}</li>{% endif %}
-                        </ul>
-                        {% if ns.s4 %}<ul class="rec-bullets" style="margin-top:8px;">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>{% endif %}
-                    </div>
-                    <div class="dim-score-col">
-                        <div class="dim-score-num score-{{ t4 }}">{{ sc4 }}<span class="dim-score-denom">/10</span></div>
-                        <div class="bar-track"><div class="bar-fill {{ t4 }}" style="width:{{ [(sc4/10*100)|int,100]|min }}%;"></div></div>
-                    </div>
-                </div>
-
-                </div>{# end .dimensions #}
-
-                {# ── Next Steps ──────────────────────────────────────────────────── #}
+            {# ── Next Steps + Who to Engage ── #}
+            {% if ns.sNxt or product.owning_org or product.contacts %}
+            <div class="next-who-section">
                 {% if ns.sNxt %}
-                <div class="next-steps-section">
-                    <div class="next-steps-label">Next Steps</div>
-                    <ul class="rec-bullets">
-                        {% for b in ns.sNxt %}<li>{{ b | linkify }}</li>{% endfor %}
-                    </ul>
-                </div>
+                <div class="next-who-label">Next Steps</div>
+                <ul class="rec-bullets" style="margin-bottom:16px;">{% for b in ns.sNxt %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
                 {% endif %}
-
-                </div>{# end .recommendation #}
-            </details>{# end Skillable Recommendations #}
-
-            <details class="tech-details">
-                <summary>Responsible Organization &amp; Key Contacts</summary>
-                <div class="tech-details-content">
-
-                <div class="section-title">Owning Organization</div>
-                <div class="org-banner">
+                {% if product.owning_org or product.contacts %}
+                <div class="next-who-label" style="margin-top:{% if ns.sNxt %}14px{% else %}0{% endif %};">Who to Engage</div>
+                {% if product.owning_org %}
+                <div class="org-banner" style="margin-bottom:10px;">
                     <div class="org-banner-body">
-                        {% if product.owning_org %}
-                        <div class="org-name">
-                            {{ product.owning_org.name }}
-                            <span class="org-type-tag">{{ product.owning_org.type|replace('_',' ')|title }}</span>
-                        </div>
+                        <div class="org-name">{{ product.owning_org.name }}<span class="org-type-tag">{{ product.owning_org.type|replace('_',' ')|title }}</span></div>
                         {% if product.owning_org.description %}<div class="org-desc">{{ product.owning_org.description }}</div>{% endif %}
-                        {% else %}
-                        <div class="org-desc">Not identified</div>
-                        {% endif %}
                     </div>
                 </div>
-
-                <div class="section-title">Key Contacts</div>
+                {% endif %}
                 {% if product.contacts %}
                 {% set dms_named = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set dms_unknown = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
                 {% set infs_named = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set infs_unknown = product.contacts | selectattr('role_type', 'ne', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
                 <div class="contacts-groups">
                     {% if dms_named %}
                     <div class="contacts-group-label dm">Decision Makers</div>
                     {% for contact in dms_named %}
-                    <div class="contact-row">
-                        <div class="contact-row-main">
-                            <div class="contact-name">
-                                {% if contact.linkedin_url %}
-                                <a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;" title="LinkedIn"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                                {% else %}{{ contact.name }}{% endif %}
-                            </div>
-                            <div class="contact-title">{{ contact.title }}</div>
-                            {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
-                        </div>
-                    </div>
+                    <div class="contact-row"><div class="contact-row-main">
+                        <div class="contact-name">{% if contact.linkedin_url %}<a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>{% else %}{{ contact.name }}{% endif %}</div>
+                        <div class="contact-title">{{ contact.title }}</div>
+                        {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
+                    </div></div>
                     {% endfor %}
                     {% endif %}
                     {% if infs_named %}
                     <div class="contacts-group-label inf">Key Influencers</div>
                     {% for contact in infs_named %}
-                    <div class="contact-row">
-                        <div class="contact-row-main">
-                            <div class="contact-name">
-                                {% if contact.linkedin_url %}
-                                <a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;" title="LinkedIn"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                                {% else %}{{ contact.name }}{% endif %}
-                            </div>
-                            <div class="contact-title">{{ contact.title }}</div>
-                            {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
-                        </div>
-                    </div>
+                    <div class="contact-row"><div class="contact-row-main">
+                        <div class="contact-name">{% if contact.linkedin_url %}<a href="{{ contact.linkedin_url }}" target="_blank">{{ contact.name }}</a><svg class="contact-li-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:middle;margin-left:5px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>{% else %}{{ contact.name }}{% endif %}</div>
+                        <div class="contact-title">{{ contact.title }}</div>
+                        {% if contact.relevance %}<div class="contact-relevance">{{ contact.relevance }}</div>{% endif %}
+                    </div></div>
                     {% endfor %}
                     {% endif %}
                     {% set all_unknown = dms_unknown + infs_unknown %}
@@ -1043,9 +997,9 @@
                 {% else %}
                 <div class="org-desc">No contacts identified</div>
                 {% endif %}
-
-                </div>
-            </details>
+                {% endif %}
+            </div>
+            {% endif %}
 
         </div>
         {% endfor %}
@@ -1060,7 +1014,6 @@
                 </div>
                 <div class="total-score">
                     <div class="score-num {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}</div>
-                    <div class="out-of">/100</div>
                 </div>
             </div>
 
@@ -1151,7 +1104,7 @@
     </div>
 <script>
   // Inject explicit toggle arrows into all collapsible sections — more reliable than CSS ::after on <summary>
-  document.querySelectorAll('.tech-details > summary').forEach(s => {
+  document.querySelectorAll('.dim-section > summary, .tech-details > summary').forEach(s => {
     const arrow = document.createElement('span');
     arrow.className = 'det-arrow';
     arrow.textContent = '▾';
