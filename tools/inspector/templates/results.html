@@ -673,9 +673,11 @@
 
         {% if ns.has_cp %}
         <div class="consumption-summary-card">
-            <div class="card-label">Total Consumption Potential</div>
+            <div class="card-label">
+                Estimated Consumption Potential
+                <span style="color:#3d6655;font-weight:400;"> | </span><span style="color:#f59e0b;font-weight:600;">Based on {{ data.products | length }} of {% if data.total_products_discovered and data.total_products_discovered > data.products | length %}{{ data.total_products_discovered }}{% else %}{{ data.products | length }}{% endif %} Products</span>
+            </div>
             <div class="rollup-summary" style="border-top:none;margin-top:0;padding-top:0;flex:1;justify-content:center;">
-                <div style="color:#f59e0b;font-size:0.72rem;margin-bottom:8px;">&#9888; Based on {{ data.products | length }} of {% if data.total_products_discovered and data.total_products_discovered > data.products | length %}{{ data.total_products_discovered }}{% else %}{{ data.products | length }}{% endif %} products analyzed — full potential may be higher.</div>
                 <div class="rollup-summary-row">
                     <span class="rollup-summary-label">Estimated Annual Lab Hours</span>
                     <span class="rollup-summary-value">{{ "{:,}".format(ns.total_low) }}–{{ "{:,}".format(ns.total_high) }}</span>
@@ -684,8 +686,9 @@
                     <span class="rollup-summary-label">Estimated ACV Potential</span>
                     <span class="rollup-summary-value">${{ "{:,}".format(ns.acv_low | int) }}–${{ "{:,}".format(ns.acv_high | int) }}</span>
                 </div>
+                <div style="color:#f59e0b;font-size:0.70rem;margin-top:8px;text-align:right;">&#9888; Full customer potential<br>may be higher.</div>
             </div>
-            <div class="rollup-acv-note" style="margin-top:12px;">Cloud Slice @$10.50/hr · VM @$12–$55/hr · Simulation @$5/hr — <em>rates are estimates, verify before use</em></div>
+            <div class="rollup-acv-note" style="margin-top:12px;">Cloud Slice @$10.50/hr · VM @$12–$55/hr · Simulation @$5/hr<br><em>Rates are estimates — verify before use.</em></div>
         </div>
         {% endif %}
 
@@ -1129,7 +1132,7 @@
         <!-- Customer Consumption Rollup -->
         {% if ns.has_cp and data.products|length > 0 %}
         <div class="rollup-card">
-            <h2>Total Customer Consumption Potential</h2>
+            <h2>Estimated Consumption Potential</h2>
             <p class="rollup-subtitle">Sum across all scored products — directional, order-of-magnitude estimate</p>
             <table class="rollup-table">
                 <thead>
