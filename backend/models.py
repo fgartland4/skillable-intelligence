@@ -22,19 +22,24 @@ class DimensionScore:
 def compute_labability_total(tech: int, other: int, path: str = "") -> int:
     """Single source of truth for the labability total score with multiplier logic.
 
-    tech  — technical_orchestrability score (0-25)
-    other — sum of workflow_complexity + training_ecosystem + market_fit (0-75)
+    Scoring weights: Technical Orchestrability 40%, Workflow Complexity 30%,
+    Training & Enablement Maturity 20%, Market & Strategic Fit 10%.
+
+    tech  — technical_orchestrability score (0-40)
+    other — sum of workflow_complexity (0-30) + training_ecosystem (0-20) + market_fit (0-10) = 0-60
     path  — skillable_path string ("A1", "A2", "B", "C", "Unknown")
+
+    Multiplier thresholds scaled proportionally from legacy 0-25 → 0-40 range.
     """
-    if tech >= 20:
+    if tech >= 32:
         multiplier = 1.0
-    elif tech >= 15 and path == "B":
+    elif tech >= 24 and path == "B":
         # VM/Datacenter path: the VM image IS the lab — no cloud APIs needed.
-        # Any viable VM product with tech ≥ 15 gets full 1.0x multiplier.
+        # Any viable VM product with tech ≥ 24 gets full 1.0x multiplier.
         multiplier = 1.0
-    elif tech >= 12:
+    elif tech >= 19:
         multiplier = 0.75
-    elif tech >= 6:
+    elif tech >= 10:
         multiplier = 0.40
     else:
         multiplier = 0.15

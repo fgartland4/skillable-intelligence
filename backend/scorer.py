@@ -311,46 +311,46 @@ All except Consumer are highly labable. Consumer → Score 0-3, add "consumer_pr
 ⚠️ GPU or specialist hardware (e.g. NVIDIA A100/H100) is NOT available in Skillable datacenters — can use Azure or AWS cloud VMs (via Compute Gallery / EC2 AMI), but cloud VMs are significantly slower to launch and more expensive than datacenter VMs. Flag GPU as a Blocker for cost/performance unless the product genuinely requires it.
 ⚠️ Note: Azure and AWS fabrics CAN run VMs (Azure Compute Gallery, AWS EC2 AMIs). Recommend cloud VMs only when one of these conditions applies: (1) the product requires cloud-native infrastructure (Entra ID, Azure PaaS services, AWS services) that can't be replicated in Skillable's datacenter; (2) GPU or specialized hardware is required; (3) the customer runs large-scale burst events requiring temporary capacity beyond what Skillable datacenters maintain — e.g., a vendor running ~10,000+ concurrent labs over a 2-3 day conference window (Tableau Conference is the canonical example: AWS VMs for a three-day spike, then scale-down). For standard ongoing training, always recommend Hyper-V for performance and cost.
 ⚠️ Docker is appropriate only for genuinely container-native products. Note that nested virtualization is not supported, and large images must be pre-baked into the lab at build time. If a product can run on either Hyper-V or Docker, recommend Hyper-V.
-- VM + rich APIs for outcome validation: 22-25, tier: "VM - Best Case"
-- VM + admin console + scripting/CLI: 20-22, tier: "VM - Best Case"
-- VM + meaningful admin workflows: 18-20, tier: "VM - Standard"
-- VM + limited interaction: 15-18, tier: "VM - Standard"
-- Impractical (GPU farm, 100GB+, mainframe): 10-15, tier: "VM - Complex Install"
+- VM + rich APIs for outcome validation: 35-40, tier: "VM - Best Case"
+- VM + admin console + scripting/CLI: 32-36, tier: "VM - Best Case"
+- VM + meaningful admin workflows: 28-32, tier: "VM - Standard"
+- VM + limited interaction: 24-28, tier: "VM - Standard"
+- Impractical (GPU farm, 100GB+, mainframe): 16-24, tier: "VM - Complex Install"
 
 **Azure Cloud Slice:** Runs natively on Azure (IaaS/PaaS) and the service is supported by Skillable? → skillable_path: "A1"
 ALL Azure services are supported (after security review). Bicep and ARM JSON templates both work. This is Skillable's broadest cloud fabric.
 ⚠️ Entra ID / Azure SSO is a major advantage: every Azure Cloud Slice subscription includes an Entra ID tenant. If the product authenticates via Entra ID or Azure SSO, Skillable can pre-configure the app to use that tenant automatically — clean per-learner isolation with no separate credential pool, no manual login, no credential management overhead. This elevates the path significantly compared to products that require separate identity systems.
-- Rich APIs + full resource lifecycle: 20-24, tier: "Best - Rich APIs"
-- Entra ID / Azure SSO authentication (app pre-configured to use tenant): 18-22, tier: "Best - Rich APIs" (note the Entra ID advantage explicitly in evidence)
-- Credential pool recyclable: 15-19, tier: "Next Best - Credential Pool"
-- Azure SSO but requires manual learner login steps: 11-15, tier: "Manual - Azure SSO"
-- Trial accounts: 7-11, tier: "Manual - Trial Accounts" (credit card → 4-7, add flags)
+- Rich APIs + full resource lifecycle: 32-38, tier: "Best - Rich APIs"
+- Entra ID / Azure SSO authentication (app pre-configured to use tenant): 28-35, tier: "Best - Rich APIs" (note the Entra ID advantage explicitly in evidence)
+- Credential pool recyclable: 24-30, tier: "Next Best - Credential Pool"
+- Azure SSO but requires manual learner login steps: 18-24, tier: "Manual - Azure SSO"
+- Trial accounts: 11-18, tier: "Manual - Trial Accounts" (credit card → 6-11, add flags)
 
 **AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → skillable_path: "A1"
 Supported: EC2, RDS, S3, Lambda, DynamoDB, CloudFormation, ECS, EKS, API Gateway, Kinesis, SNS, SQS, Step Functions, Glue, CloudWatch, VPC, IAM, Route 53, Secrets Manager, and more.
 Not yet supported: SageMaker, Comprehend, Rekognition, Lex, Polly, Transcribe, ElastiCache, GuardDuty, CodeBuild/Pipeline — if a product relies primarily on these, note the gap.
-- Rich APIs + full resource lifecycle: 20-24, tier: "Best - Rich APIs"
-- Credential pool recyclable: 15-19, tier: "Next Best - Credential Pool"
-- Trial accounts: 7-11, tier: "Manual - Trial Accounts" (credit card → 4-7, add flags)
+- Rich APIs + full resource lifecycle: 32-38, tier: "Best - Rich APIs"
+- Credential pool recyclable: 24-30, tier: "Next Best - Credential Pool"
+- Trial accounts: 11-18, tier: "Manual - Trial Accounts" (credit card → 6-11, add flags)
 
 **Custom API Provisioning (BYOC):** Vendor's own cloud (not Azure/AWS)? → skillable_path: "A2"
 Skillable calls this Bring Your Own Cloud (BYOC). Life Cycle Actions (LCAs) handle provisioning, waiting, and teardown via the vendor's API. Salesforce sandboxes are the canonical example.
 ⚠️ If the vendor's platform requires MFA for API authentication → automated task scoring is NOT possible. Falls back to MCQ/fill-in-blank only. Score accordingly — this is a meaningful capability gap.
 ⚠️ Long provisioning times (e.g., Salesforce sandbox = up to 10 hours) require Pre-Instancing (Skillable support-only feature) to pre-build environments before the learner arrives.
-- Rich APIs for all lifecycle phases (provision, configure, score, teardown), isolated instance per learner: 14-18
-- Credential pool recyclable (no per-learner isolation but usable): 10-14
-- SSO only (no per-learner instance): 7-11
-- Trial accounts: 4-8 (credit card → 2-5, add flags)
-- No isolation mechanism: 1-4
+- Rich APIs for all lifecycle phases (provision, configure, score, teardown), isolated instance per learner: 22-28
+- Credential pool recyclable (no per-learner isolation but usable): 16-22
+- SSO only (no per-learner instance): 11-18
+- Trial accounts: 6-12 (credit card → 3-8, add flags)
+- No isolation mechanism: 1-6
 
-**Skillable Simulation:** When real labs not practical (too long, too costly, data sensitivity) → skillable_path: "C", score 5-10
+**Skillable Simulation:** When real labs not practical (too long, too costly, data sensitivity) → skillable_path: "C", score 8-16
 
 ## STEP 4 — Score All Dimensions
 
 ⚠️ **EVIDENCE FORMAT STANDARD — applies to all four dimensions:**
 Every evidence `claim` bullet MUST start with a **2–3 word bold label** followed by a colon: `**Label:** finding.` No exceptions — bare sentences without a bold intro are not acceptable. Labels should name the specific signal, not a generic category. Bad: `**Evidence:** The product installs on Windows.` Good: `**Windows Install:** Silent installer confirmed in deployment guide.`
 
-**Technical Orchestrability (0-25)** — from Steps 1-3.
+**Technical Orchestrability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we build it?"
 
 The `technical_orchestrability` evidence bullets are SA handoff notes — written for a Skillable Solution Architect who needs to understand how to actually build this lab. Do NOT write research citations here. Write 3–4 concise, actionable bullets using these bold labels:
 
@@ -387,7 +387,7 @@ SA build notes (reference when relevant — do not include all of these, only wh
 - Lab Webhooks (external integration): If the vendor product requires real-time notification when lab events occur — score passback to an LMS/LRS, unlocking downstream content in the vendor's platform, or triggering external automation when a learner completes — configure Skillable webhooks. Webhooks POST lab instance JSON (user ID, score, completion status, lab profile ID) to a specified external endpoint at any lifecycle event: Pre-Build, Post-Build, First Displayable, Scoring, Scored, Torn Down, Lab Assignment Created, and others. Support the same Blocking/Delay/Retry/Error Action options as LCAs. Note in Configure when the vendor's architecture requires integration with an external tracking or content delivery system — webhooks are a cleaner pattern than having scoring scripts make outbound API calls.
 - User-input variables in instructions: Lab instructions can embed `@lab.TextBox(name)`, `@lab.MaskedTextBox(name)` (passwords), or `@lab.EssayTextBox(name)` input fields — the learner types a value, which is stored as a lab variable and recalled anywhere later via `@lab.Variable(name)` or used in scoring scripts. Useful when a product's workflow requires a learner-entered value (external IP, tenant URL, license key) that downstream instructions or scoring scripts need to reference. Note this in Configure when the product involves user-provided inputs that feed into automated validation.
 
-**Workflow Complexity (0-25):** This dimension answers one question: does this product justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? High scores belong to products with deep DTDS depth — admins who design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures each represent a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it — there is no skill accumulation that demands structured lab sequences.
+**Workflow Complexity (0-30):** This is 30% of the total score. "Is it worth doing labs?" — does this product justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? High scores belong to products with deep DTDS depth — admins who design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures each represent a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it — there is no skill accumulation that demands structured lab sequences.
 
 Scoring signals (sum; cap 25):
 - AI-embedded features requiring iterative hands-on practice (Copilot integration, AI-powered workflows, generative AI capabilities): +6 — cannot be learned by watching; each feature needs its own practice loop
@@ -407,15 +407,15 @@ Evidence bullets for this dimension use **2–3 word bold intro:** format. Use t
 - **AI Practice Surface:** if AI-embedded features are present, name them and state why hands-on practice is essential vs. a demo being sufficient
 - **Role Breadth:** the distinct user personas and what separate programs each would require (do not repeat personas from the user_personas field — focus on how role breadth creates distinct program demand)
 
-**Training & Enablement Maturity (0-25):** Score the highest applicable combination — labs need a delivery vehicle to reach learners, and this dimension measures how mature that vehicle is.
-- ATP/Learning Partner program (channel credentials, technical seller enablement): +10
-- Certification program (customer training, skill validation): +6
-- Events/conferences (product launches, adoption drives, partner events): +5
-- Channel demos & tailored PoCs (reducing deal cycles, shortening time to revenue): +4
-- Gray market / community training: +4
-- Formal employee enablement / internal L&D programs: +3
-- Existing labs/sandboxes: +2
-Cap 25.
+**Training & Enablement Maturity (0-20):** This is 20% of the total score. "Is the org ready?" — labs need a delivery vehicle to reach learners. Score the highest applicable combination:
+- ATP/Learning Partner program (channel credentials, technical seller enablement): +8
+- Certification program (customer training, skill validation): +5
+- Events/conferences (product launches, adoption drives, partner events): +4
+- Channel demos & tailored PoCs (reducing deal cycles, shortening time to revenue): +3
+- Gray market / community training: +3
+- Formal employee enablement / internal L&D programs: +2
+- Existing labs/sandboxes: +1
+Cap 20.
 
 Evidence bullets use **2–3 word bold intro:** format. Use these labels where applicable:
 - **Training Org:** the named training organization and what it covers (e.g., "[Product] University — role-based certification tracks, annual partner summit with hands-on workshops")
@@ -424,10 +424,10 @@ Evidence bullets use **2–3 word bold intro:** format. Use these labels where a
 - **Events / Community:** flagship events with hands-on components, gray market training presence (Udemy, community courses)
 - **Existing Labs:** any CloudShare, Instruqt, Appsembler, or Skillable hands-on labs found — confirms training demand and potential migration opportunity
 
-**Market & Strategic Fit (0-25):** This dimension measures whether Skillable is the *right platform* for this product's market — category alignment, install base scale, and AI positioning.
-Category prior (highest applicable): Cybersecurity: +9 | Cloud Infrastructure: +9 | Networking/SDN: +9 | DevOps: +8 | Data Protection: +8 | Infrastructure/Virtualization: +8 | Data & Analytics: +8 | Data Science & Engineering: +7 | Application Development: +7 | Collaboration: +5 | ERP/CRM: +5 | Healthcare IT: +5 | Legal Tech: +5 | FinTech: +5 | Content Management: +5 | Industrial/OT: +4 | Simple SaaS: +1 | Consumer: +0
-AI additive: Builds/Trains/Deploys AI (CREATE AI): +5 | AI-embedded features with market demand (INCORPORATE AI): +2
-Other: Large/growing install base: +5 | ATP pipeline: +4 | Growing category: +3 | Limited competitor labs: +2 | Skillable adjacency: +1. Cap 25.
+**Market & Strategic Fit (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Strategically aligned?" — is Skillable the right platform for this product's market?
+Category prior (highest applicable): Cybersecurity: +4 | Cloud Infrastructure: +4 | Networking/SDN: +4 | DevOps: +3 | Data Protection: +3 | Infrastructure/Virtualization: +3 | Data & Analytics: +3 | Data Science & Engineering: +3 | Application Development: +3 | Collaboration: +2 | ERP/CRM: +2 | Healthcare IT: +2 | Legal Tech: +2 | FinTech: +2 | Content Management: +2 | Industrial/OT: +2 | Simple SaaS: +0 | Consumer: +0
+AI additive: Builds/Trains/Deploys AI (CREATE AI): +3 | AI-embedded features with market demand (INCORPORATE AI): +1
+Other: Large/growing install base: +2 | Growing category: +1 | Limited competitor labs: +1. Cap 10.
 
 Evidence bullets use **2–3 word bold intro:** format. Use these labels where applicable:
 - **Category Fit:** product category and Skillable's strength in that space (cite the category prior score and why this product fits it)
@@ -436,7 +436,7 @@ Evidence bullets use **2–3 word bold intro:** format. Use these labels where a
 - **Competitor Labs:** whether competing products already have Skillable labs (adjacency signal) or the market lacks good hands-on alternatives (demand signal)
 
 ## STEP 5 — Technical Fit Multiplier (for your awareness — system applies it)
-VM/Datacenter (Hyper-V/Docker) ≥15: 1.0x | Any path ≥20: 1.0x | Tech 12-19 non-VM: 0.75x | Tech 6-11: 0.40x | Tech 0-5: 0.15x
+VM/Datacenter (Hyper-V/Docker) ≥24: 1.0x | Any path ≥32: 1.0x | Tech 19-31 non-VM: 0.75x | Tech 10-18: 0.40x | Tech 0-9: 0.15x
 
 ## STEP 6 — Labability Intelligence Signals (use these to enrich technical evidence)
 
