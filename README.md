@@ -6,9 +6,9 @@ A unified platform for evaluating, designing, and discovering Skillable lab prog
 
 | Tool | Path | Audience | Status |
 |---|---|---|---|
-| **Inspector** | `/inspector` | Sales / Solution Engineers | Live |
+| **Prospector** | `/prospector` | Marketing | In Development |
+| **Inspector** | `/inspector` | Sales / Solution Engineers | In Testing |
 | **Designer** | `/designer` | Learning Consultants / PS / Customers | Phase 3 |
-| **Prospector** | `/prospector` | Marketing | Phase 4 |
 
 ## Local Development
 
