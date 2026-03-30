@@ -615,6 +615,7 @@ Then provide:
 ## Output Format
 ⚠️ MAXIMUM 3 evidence items per dimension. Fewer is better — one strong, specific bullet is preferable to three vague or redundant ones. Do not pad.
 ⚠️ EVIDENCE MUST BE UNIQUE ACROSS ALL DIMENSIONS. Do not reword or repeat the same fact in multiple dimensions. Each evidence item should cite a distinct signal — if a finding already appears under one dimension, do not include it (even reworded) under another. If you cannot find genuinely distinct signals for a dimension, use one item or a summary instead of filling the quota.
+⚠️ LAB CONCEPTS: 2–6 items max. Each is a concise, specific lab title or scenario (e.g. "Configure a backup policy and validate recovery point creation via REST API", "Troubleshoot a failed deployment in a pre-broken VM environment"). Cover the range of DTDS phases and user personas represented by this product — do not list variations of the same task. Fewer sharp, varied concepts beats more redundant ones.
 
 ## Contact Selection Guidance
 
