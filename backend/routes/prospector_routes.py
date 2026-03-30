@@ -302,7 +302,7 @@ def prospector_export(job_id: str):
     thin_side    = Side(style="thin", color="1E3329")
     thin_border  = Border(bottom=thin_side)
 
-    headers = ["#", "Company", "Top Product", "Skillable Path",
+    headers = ["#", "Company", "Website", "Top Product", "Skillable Path",
                "Lab Score", "Partnership", "Composite",
                "Highly Labable Products", "Likely Labable Products", "Not Labable Products",
                "ATP Program", "Channel Program", "On-Demand Library", "Cert Program",
@@ -310,13 +310,13 @@ def prospector_export(job_id: str):
                "Top Contact", "Title", "LinkedIn",
                "2nd Contact", "2nd Title", "2nd LinkedIn",
                "Full Analysis", "Notes"]
-    col_widths = [4, 26, 28, 16, 11, 11, 11, 10, 10, 10, 26, 26, 14, 12, 18, 22, 24, 12, 20, 22, 12, 14, 30]
+    col_widths = [4, 26, 28, 28, 16, 11, 11, 11, 10, 10, 10, 26, 26, 14, 12, 18, 22, 24, 12, 20, 22, 12, 14, 30]
 
     for col, (h, w) in enumerate(zip(headers, col_widths), 1):
         cell = ws.cell(row=1, column=col, value=h)
         cell.font = header_font
         cell.fill = PatternFill("solid", fgColor=bg_header)
-        cell.alignment = Alignment(horizontal="center" if col in (1,5,6,7,10,11) else "left",
+        cell.alignment = Alignment(horizontal="center" if col in (1,6,7,8,9,10,11) else "left",
                                    vertical="center")
         ws.column_dimensions[get_column_letter(col)].width = w
 
@@ -338,6 +338,7 @@ def prospector_export(job_id: str):
         values = [
             row.get("rank", i - 1),
             row.get("company_name", ""),
+            row.get("company_url", ""),
             row.get("top_product", ""),
             path,
             lab, prtn, comp,
@@ -358,21 +359,21 @@ def prospector_export(job_id: str):
             f"/inspector/results/{aid}" if aid else "",
             "",  # Notes — blank for user to fill
         ]
-        # Center columns: #(1), scores(5,6,7), product counts(8,9,10), ondemand(13), cert(14)
-        center_cols = {1, 5, 6, 7, 8, 9, 10, 13, 14}
+        # Center columns: #(1), scores(6,7,8), product counts(9,10,11), ondemand(14), cert(15)
+        center_cols = {1, 6, 7, 8, 9, 10, 11, 14, 15}
         for col, val in enumerate(values, 1):
             cell = ws.cell(row=i, column=col, value=val)
             cell.fill = PatternFill("solid", fgColor="FF0D1A14")
             cell.border = thin_border
             cell.alignment = Alignment(vertical="center",
                                        horizontal="center" if col in center_cols else "left")
-            if col in (5, 6, 7):
+            if col in (6, 7, 8):
                 cell.font = Font(bold=True, color=score_color(val if isinstance(val, int) else 0), size=9)
-            elif col == 4:
+            elif col == 5:
                 cell.font = Font(bold=True, color=path_colors.get(path, white), size=9)
             elif col == 1:
                 cell.font = Font(color=muted, size=9, bold=True)
-            elif col in (8, 9, 10):
+            elif col in (9, 10, 11):
                 cell.font = Font(color=green_mid, size=9)
             else:
                 cell.font = default_font
