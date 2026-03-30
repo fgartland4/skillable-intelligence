@@ -334,13 +334,20 @@
             font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
             letter-spacing: 0.1em; font-weight: 700; margin-bottom: 10px;
         }
-        .l2-cons-row {
-            display: flex; justify-content: space-between; align-items: baseline;
-            font-size: 0.78rem; padding: 5px 0; border-bottom: 1px solid #0d1a14;
+        .l2-cons-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+        .l2-cons-table th {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #3d6655;
+            padding: 4px 8px 6px; border-bottom: 1px solid #1e3329; text-align: left;
         }
-        .l2-cons-row:last-child { border-bottom: none; }
-        .l2-cons-label { color: #6b9e88; }
-        .l2-cons-value { color: #a8d5c2; font-weight: 500; white-space: nowrap; }
+        .l2-cons-table th.r { text-align: right; }
+        .l2-cons-table td {
+            font-size: 0.78rem; padding: 6px 8px;
+            border-bottom: 1px solid #0d1a14; color: #6b9e88; vertical-align: middle;
+        }
+        .l2-cons-table tr:last-child td { border-bottom: none; }
+        .l2-cons-table td.r { text-align: right; color: #a8d5c2; font-weight: 500; white-space: nowrap; }
+        .l2-cons-table td.dim { color: #a8d5c2; font-weight: 500; white-space: nowrap; }
         .l2-cons-total {
             display: flex; justify-content: space-between; align-items: flex-start;
             padding: 10px 0 0; margin-top: 6px; border-top: 1px solid #1e3329;
@@ -937,12 +944,46 @@
                     <span class="dim-sec-score score-high" style="font-size:0.85rem;">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }}–${{ "{:,}".format((_cp5.get('annual_hours_high',0)*_r5hi)|int) }}</span>
                 </summary>
                 <div class="dim-sec-content">
-                    {% for m in _cp5.get('motions', []) %}
-                    {% set mh_low  = (m.get('population_low',0)*m.get('hours_low',0)*m.get('adoption_pct',0))|int %}
-                    {% set mh_high = (m.get('population_high',0)*m.get('hours_high',0)*m.get('adoption_pct',0))|int %}
-                    {% if mh_high > 0 %}
-                    <div class="l2-cons-row"><span class="l2-cons-label">{{ m.get('label','') }}</span><span class="l2-cons-value">{{ "{:,}".format(mh_low) }}–{{ "{:,}".format(mh_high) }} hrs</span></div>
-                    {% endif %}{% endfor %}
+                    {% if _cp5.get('motions') %}
+                    <table class="l2-cons-table">
+                        <thead>
+                            <tr>
+                                <th>Motion</th>
+                                <th class="r">Est. Population</th>
+                                <th class="r">Adoption</th>
+                                <th class="r">Hrs / Person</th>
+                                <th class="r">Est. Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for m in _cp5.get('motions', []) %}
+                        {% set mh_low  = (m.get('population_low',0)*m.get('hours_low',0)*m.get('adoption_pct',0))|int %}
+                        {% set mh_high = (m.get('population_high',0)*m.get('hours_high',0)*m.get('adoption_pct',0))|int %}
+                        {% if mh_high > 0 %}
+                        <tr>
+                            <td>{{ m.get('label','') }}</td>
+                            <td class="r dim">
+                                {% if m.get('population_low',0) == m.get('population_high',0) %}
+                                    {{ "{:,}".format(m.get('population_low',0)) }}
+                                {% else %}
+                                    {{ "{:,}".format(m.get('population_low',0)) }}–{{ "{:,}".format(m.get('population_high',0)) }}
+                                {% endif %}
+                            </td>
+                            <td class="r dim">{{ (m.get('adoption_pct',0) * 100) | round | int }}%</td>
+                            <td class="r dim">
+                                {% if m.get('hours_low',0) == m.get('hours_high',0) %}
+                                    {{ m.get('hours_low',0) }} hrs
+                                {% else %}
+                                    {{ m.get('hours_low',0) }}–{{ m.get('hours_high',0) }} hrs
+                                {% endif %}
+                            </td>
+                            <td class="r">{{ "{:,}".format(mh_low) }}–{{ "{:,}".format(mh_high) }} hrs</td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
                     <div class="l2-cons-total">
                         <span class="l2-cons-total-label">Annual Potential</span>
                         <div style="text-align:right;">
