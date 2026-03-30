@@ -716,10 +716,10 @@
             {% set te_dim = product.labability_score.training_ecosystem %}
             {% set mf_dim = product.labability_score.market_fit %}
 
-            {# Sort recommendation bullets into sections using lowercase substring matching #}
-            {# s1 = Technical Orchestrability: anything delivery/scoring/technical/blockers  #}
-            {# s3 = Training & Enablement: program fit, similar products                     #}
-            {# s4 = Strategic Fit & Next Steps: next step, partnership, and catch-all        #}
+            {# Sort recommendation bullets into sections using lowercase substring matching        #}
+            {# s1 = Technical Orchestrability: delivery, scoring, essential tech, blockers, similar products #}
+            {# s3 = Training & Enablement Maturity: program fit, certification                 #}
+            {# s4 = Strategic Fit & Next Steps: next step, note, custom labels, catch-all      #}
             {% set ns = namespace(s1=[], s3=[], s4=[]) %}
             {% for bullet in (product.recommendation or []) %}
               {% set bl = bullet | lower %}
@@ -727,6 +727,8 @@
                 {% set ns.s1 = ns.s1 + [bullet] %}
               {% elif 'program fit' in bl or 'enablement maturity' in bl or 'certification' in bl %}
                 {% set ns.s3 = ns.s3 + [bullet] %}
+              {% elif 'next step' in bl or bl.startswith('**note') %}
+                {% set ns.s4 = ns.s4 + [bullet] %}
               {% else %}
                 {% set ns.s4 = ns.s4 + [bullet] %}
               {% endif %}
