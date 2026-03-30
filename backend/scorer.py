@@ -197,17 +197,94 @@ CUSTOMER_BENCHMARKS = [
     },
     {
         "company": "CompTIA",
-        "relationship": "Active Skillable customer — certification body benchmark",
+        "relationship": "Active Skillable customer — certification body benchmark; Pearson VUE EDP",
         "org_type": "training_organization",
         "products_and_paths": ["CompTIA certifications (Hyper-V fabric for underlying tools — Windows Server, Linux, network devices, cloud platforms)"],
         "key_signals": {
             "technical": "Labs run on industry-standard tools (Windows Server, Linux, Cisco, cloud) via Hyper-V and Cloud Slice. CompTIA CertMaster Labs confirms commitment to hands-on.",
             "workflow": "Performance-based exam scenarios. Multi-tool environments. Troubleshooting workflows across networking, security, sysadmin.",
-            "training_ecosystem": "CompTIA IS the certification ecosystem. Massive global catalog.",
+            "training_ecosystem": "CompTIA IS the certification ecosystem. Massive global catalog. Uses Pearson VUE as exam delivery provider — a proven Skillable EDP integration (Pearson VUE is a major Skillable partner).",
             "market_fit": "IT certification is Skillable's home market.",
             "partnership_readiness": "Very mature training and certification org. Deep global partner network. Existing LMS and delivery infrastructure.",
         },
         "score_guidance": "HIGH benchmark for certification bodies and training organizations.",
+    },
+    {
+        "company": "SANS Institute / GIAC",
+        "relationship": "Active Skillable customer — cybersecurity certification body; Pearson VUE EDP",
+        "org_type": "training_organization",
+        "products_and_paths": [
+            "GIAC certifications with PBT components (Hyper-V fabric — labs run on standard security tools: Kali Linux, Windows Server, network simulation environments)",
+            "GIAC includes: GSEC (Security Essentials), GPEN (Penetration Tester), GCIH (Certified Incident Handler), GWAPT (Web App Pen Tester), and many others",
+        ],
+        "key_signals": {
+            "technical": "SANS courses are among the most lab-intensive in cybersecurity — every SANS course is built around hands-on practice from day one. GIAC PBT components require real tool use in real environments. Hyper-V fabric: Kali Linux, Windows Server, network devices, pre-configured vulnerable target environments. Strong VM labability — the entire SANS curriculum is designed for hands-on delivery.",
+            "workflow": "Penetration testing workflows: reconnaissance, exploitation, post-exploitation, reporting. Incident response workflows: detection, containment, eradication, recovery. Forensic analysis, malware analysis, network defense. Multiple specialist role tracks — each GIAC certification maps to a distinct technical specialty.",
+            "training_ecosystem": "GIAC certifications are among the most respected hands-on credentials in cybersecurity. SANS courses sell out globally. Large gray market training ecosystem. Uses Pearson VUE as EDP — proven Skillable integration.",
+            "market_fit": "Cybersecurity is Skillable's highest-priority market. SANS/GIAC is the gold standard for practitioner-level cybersecurity certification. Maximum category fit.",
+            "partnership_readiness": "SANS is a pure training and certification organization — training IS the product. Very mature. Global delivery. Deep practitioner community.",
+        },
+        "score_guidance": "HIGH benchmark for cybersecurity training organizations and certification bodies. Pearson VUE EDP integration is a confirmed, proven path. SANS/GIAC is the ceiling benchmark for cybersecurity-focused training organizations.",
+    },
+    {
+        "company": "EC-Council",
+        "relationship": "Active Skillable customer — cybersecurity certification body; Pearson VUE EDP",
+        "org_type": "training_organization",
+        "products_and_paths": [
+            "CEH (Certified Ethical Hacker) — PBT practical exam on Hyper-V fabric",
+            "CPENT (Certified Penetration Testing Professional) — fully practical, lab-based certification",
+            "CHFI (Computer Hacking Forensic Investigator), LPT (Licensed Penetration Tester), and others",
+        ],
+        "key_signals": {
+            "technical": "EC-Council certifications are explicitly hands-on — CEH Practical and CPENT are 100% performance-based with no multiple choice. Labs run attack and defense scenarios in isolated VM environments. Hyper-V fabric with Kali Linux, Windows targets, network topology. CEH is one of the most widely held cybersecurity certifications globally.",
+            "workflow": "Ethical hacking workflows: network scanning, vulnerability assessment, exploitation, privilege escalation, evasion techniques. CPENT uses a live cyber range — learners attack real machines in isolated network segments. Forensics workflows: evidence collection, chain of custody, artifact analysis.",
+            "training_ecosystem": "CEH is one of the most recognized entry-level cybersecurity credentials. Massive global enrollment. ATC (Authorized Training Center) network worldwide. Uses Pearson VUE as EDP — proven Skillable integration.",
+            "market_fit": "Cybersecurity certification — maximum category fit. CEH is arguably the most widely recognized ethical hacking cert. Huge global demand.",
+            "partnership_readiness": "Training org at scale. ATC network. Mature certification infrastructure. Multiple cert tracks across different cybersecurity domains.",
+        },
+        "score_guidance": "HIGH benchmark for cybersecurity certification bodies. Pearson VUE EDP confirmed. CEH Practical and CPENT demonstrate that 100% performance-based exams are viable on Skillable.",
+    },
+    {
+        "company": "CREST",
+        "relationship": "Active Skillable customer — elite cybersecurity assessment certification; Pearson VUE EDP",
+        "org_type": "training_organization",
+        "products_and_paths": [
+            "CREST practitioner and registered tester certifications — PBT on Hyper-V fabric",
+            "Covers: penetration testing, incident response, threat intelligence, security architecture",
+        ],
+        "key_signals": {
+            "technical": "CREST certifications are rigorous, UK-rooted, and entirely practical — no theory-only path. Exam environments simulate real enterprise targets. Hyper-V fabric with Windows Active Directory environments, web applications, network infrastructure. Among the most technically demanding cybersecurity credentials globally.",
+            "workflow": "Advanced penetration testing: internal/external network pen test, web application assessment, mobile assessment. Incident response simulations. All assessed in live lab environments under exam conditions.",
+            "training_ecosystem": "CREST is highly respected in UK/European enterprise, government, and financial services sectors. Smaller total enrollment than CEH but extremely high practitioner prestige. Uses Pearson VUE as EDP — proven Skillable integration.",
+            "market_fit": "Cybersecurity — maximum category fit. CREST credentialing is often required for suppliers to UK government and financial services. Niche but high-value.",
+            "partnership_readiness": "Mature certification body. Strong UK/EMEA community. Government and regulated industry relevance.",
+        },
+        "score_guidance": "HIGH benchmark for advanced cybersecurity certification — niche but prestigious. Pearson VUE EDP confirmed.",
+    },
+    {
+        "company": "ISACA",
+        "relationship": "Active Skillable customer — IT governance and audit certification body; PSI EDP",
+        "org_type": "training_organization",
+        "products_and_paths": [
+            "CISA (Certified Information Systems Auditor) — PBT components on Skillable",
+            "CISM (Certified Information Security Manager)",
+            "CRISC (Certified in Risk and Information Systems Control)",
+            "CGEIT (Certified in the Governance of Enterprise IT)",
+            "CDPSE (Certified Data Privacy Solutions Engineer)",
+        ],
+        "key_signals": {
+            "technical": "ISACA certifications are adding practical/performance-based components to traditionally knowledge-based exams. Lab environments cover IT audit workflows, security controls assessment, risk management scenarios, data privacy tooling. Hyper-V fabric for tool-based scenarios. Uses PSI as EDP (not Pearson VUE) — a distinct but proven Skillable integration.",
+            "workflow": "IT audit: control testing, evidence gathering, risk assessment workflows. Security management: policy implementation, incident classification, governance framework application. Risk: risk register maintenance, control assessment, reporting. These are practical skills that hands-on labs reinforce beyond reading frameworks.",
+            "training_ecosystem": "ISACA certifications (especially CISA and CISM) are among the most held credentials in IT audit, governance, and risk. Global enterprise and government recognition. Large member community. Chapter network worldwide.",
+            "market_fit": "IT governance, audit, and risk — adjacent to Skillable's cybersecurity strength. Large professional credentialing market with strong employer recognition.",
+            "partnership_readiness": "Mature global certification org. Strong enterprise and government customer base. PSI EDP integration confirmed and working.",
+        },
+        "score_guidance": (
+            "HIGH benchmark for IT governance/audit certification bodies. "
+            "PSI EDP INTEGRATION: ISACA uses PSI (not Pearson VUE) as their exam delivery provider. "
+            "PSI is a confirmed Skillable EDP partner. When a prospect uses PSI, note this as a proven integration path — same as Pearson VUE. "
+            "Score guidance for similar orgs: labability 65-80, partnership readiness 72-85."
+        ),
     },
     {
         "company": "Hyland",
@@ -547,12 +624,13 @@ When you see any of these signals in the research, note them explicitly in evide
 - **Terraform files**: Skillable supports Terraform via a custom solution (Terraform runs in a Docker container via a Life Cycle Action, reads .tf files from a Container Volume). Valid path for customers with existing Terraform investment, but slower to deploy than native ARM. Note as a viable path, not a native one.
 - **Ansible, Helm, Kubernetes manifests**: Confirms container/cloud-native architecture — investigate whether Azure/AWS Cloud Slice or Docker fabric is the right match.
 - **NFR / Developer / Trial license**: Confirms Skillable can obtain a license for lab authoring without a commercial agreement.
-- **Existing LMS / LXP / delivery infrastructure**: If the vendor has an existing LMS, LXP, or learning delivery platform, note it — this determines how Skillable labs get embedded in their learner experience. Recommended integration paths in priority order: (1) **LTI 1.3** — best choice when the LMS is LTI 1.3 compliant; provides SSO, secure data exchange, real-time score passback, and scalable deployment with minimal ongoing maintenance; (2) **API integration** — best choice when the vendor has dev/IT resources; maximum flexibility, real-time learner tracking and data exchange, works regardless of LMS capabilities; (3) **Skillable TMS** — Skillable's native LMS, best when the vendor has no existing delivery platform and wants a unified solution; (4) **Custom Connector** — for vendors who need tight system coupling but lack LTI or API development capacity; (5) **SCORM** — Skillable supports SCORM well, but SCORM is a legacy standard not designed to handle the richer data that labs generate (detailed scores, activity-level completion, learner behavior, custom lab variables); recommend LTI 1.3 or API when the vendor wants to capture and act on that data. Reserve SCORM for customers where speed of deployment into an existing LMS is the only constraint and data richness is not a priority. Note the inferred best integration path in the Next Step or Program Fit bullet.
+- **Existing LMS / LXP / delivery infrastructure**: If the vendor has an existing LMS, LXP, or learning delivery platform, note it — it determines how Skillable labs get embedded in their learner experience. **Cornerstone and Docebo are tight Skillable LMS partners** — if research surfaces either, flag it explicitly as a strong integration positive (pre-built connector, proven path, faster time to delivery). Recommended integration paths in priority order: (1) **LTI 1.3** — best choice when the LMS is LTI 1.3 compliant; provides SSO, secure data exchange, real-time score passback, and scalable deployment with minimal ongoing maintenance; (2) **API integration** — best choice when the vendor has dev/IT resources; maximum flexibility, real-time learner tracking and data exchange, works regardless of LMS capabilities; (3) **Skillable TMS** — Skillable's native LMS, best when the vendor has no existing delivery platform and wants a unified solution; (4) **Custom Connector** — for vendors who need tight system coupling but lack LTI or API development capacity; (5) **SCORM** — Skillable supports SCORM well, but SCORM is a legacy standard not designed to handle the richer data that labs generate (detailed scores, activity-level completion, learner behavior, custom lab variables); recommend LTI 1.3 or API when the vendor wants to capture and act on that data. Reserve SCORM for customers where speed of deployment into an existing LMS is the only constraint and data richness is not a priority. Note the inferred best integration path in the Next Step or Program Fit bullet.
 - **Existing CloudShare / Appsembler / Instruqt labs**: Confirms hands-on training demand exists; potential Skillable migration opportunity — note explicitly.
 - **Existing Skillable labs found**: Note directly — this is an active or past Skillable engagement signal.
 - **Deployment guide, system requirements, installation docs**: Confirms VM install viability; mention specific doc URL if found.
 - **xAPI / Tin Can API requirement**: Skillable does not currently support xAPI (Experience API). If research surfaces the vendor mentioning xAPI, LRS (Learning Record Store), or Tin Can API as a requirement for their learning data infrastructure, flag it in Blockers — the SE needs to verify whether this is a hard requirement before committing. Note: this signal rarely appears in automated research; it more often surfaces in technical conversations. Flag it when found so it doesn't become a surprise late in the deal.
 - **AWS service dependency check**: If the product runs on AWS, verify its core services are on Skillable's supported list. Flag explicitly if key dependencies (SageMaker, AI/ML services, ElastiCache, GuardDuty, CodePipeline) are not yet supported.
+- **Exam Delivery Provider (EDP) integration**: If the company delivers certification exams through a third-party EDP, identify which one — it determines whether the Skillable lab integration path is proven or untested. Skillable has confirmed, active integrations with: **Pearson VUE** (Microsoft all exams, CompTIA, SANS/GIAC, EC-Council, CREST — Pearson VUE is a major Skillable partner); **Certiport** (a Pearson company — tight Skillable integration, focused on entry-level IT certifications: MOS, IC3, Adobe, Autodesk); **PSI** (ISACA); **Certiverse** (NVIDIA — fast-growing EDP, increasingly common). When any of these EDPs appears in research, note it explicitly in Training & Enablement evidence: "Uses [EDP] as exam delivery provider — proven Skillable integration." This removes what would otherwise look like an integration risk and elevates the certification motion confidence. If the company uses an EDP not on this list, flag it in Blockers as "EDP integration unconfirmed — verify before committing."
 - **Flagship event / annual conference**: Skillable delivers labs at customer and partner conferences as a major, proven consumption motion. Known examples: Tableau Conference (14,000+ labs / 3-4 days), Tanium Converge, Hyland CommunityLIVE, Microsoft Ignite, Microsoft Build, Microsoft TechConnect, Microsoft AI Tour. If research signals any annual conference, user summit, or product launch event with hands-on content — note the event name, approximate scale (attendees), and cadence. This feeds the Events & Conferences consumption motion in STEP 8. Look for: "{company} conference", "{company} summit", "{company} {product} live", "hands-on labs" mentioned in event marketing. Events like these can generate more lab completions in 3 days than months of ongoing training — they are high-priority signals, not afterthoughts.
 
 ## STEP 7 — Generate Product Recommendation (3–5 bullets)
