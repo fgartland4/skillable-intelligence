@@ -1,0 +1,280 @@
+"""Inspector blueprint — product discovery, scoring, and results."""
+
+import csv
+import io
+import threading
+import uuid
+
+from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
+
+from core import _push, _sse_stream, _attach_scores, _compute_composite
+from researcher import discover_products, research_products, resolve_company_from_product
+from scorer import discover_products_with_claude, score_selected_products
+from storage import (
+    save_analysis, load_analysis, list_analyses,
+    save_discovery, load_discovery,
+    find_analysis_by_discovery_id,
+)
+
+import logging
+log = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Inspector Blueprint
+# ---------------------------------------------------------------------------
+
+inspector = Blueprint("inspector", __name__, url_prefix="/inspector")
+
+
+@inspector.route("/")
+@inspector.route("")
+def home():
+    recent = list_analyses()
+    return render_template("home.html", recent=recent)
+
+
+# Phase 1: Discovery
+
+@inspector.route("/discover", methods=["POST"])
+def discover():
+    company_name = request.form.get("company_name", "").strip()
+    product_name = request.form.get("product_name", "").strip()
+
+    if not company_name and not product_name:
+        return redirect(url_for("inspector.home"))
+
+    if company_name and product_name:
+        known_products = [product_name]
+        search_label = f"{company_name} {product_name}"
+    elif product_name and not company_name:
+        company_name, known_products = resolve_company_from_product(product_name)
+        search_label = product_name
+    else:
+        known_products = None
+        search_label = company_name
+
+    discovery_id = str(uuid.uuid4())[:8]
+
+    def run_discovery():
+        try:
+            _push(discovery_id, "status:Searching for products...")
+            findings = discover_products(company_name, known_products)
+            _push(discovery_id, "status:Analyzing product portfolio...")
+            discovery = discover_products_with_claude(findings)
+            discovery["discovery_id"] = discovery_id
+            discovery["known_products"] = known_products or []
+            for key in ("training_programs", "atp_signals", "training_catalog",
+                        "partner_ecosystem", "partner_portal", "cs_signals",
+                        "lms_signals", "org_contacts", "page_contents"):
+                discovery[key] = findings.get(key, [])
+            save_discovery(discovery_id, discovery)
+            _push(discovery_id, f"done:{discovery_id}")
+        except Exception as e:
+            log.exception("Discovery failed for %s", company_name)
+            _push(discovery_id, f"error:{e}")
+
+    threading.Thread(target=run_discovery, daemon=True).start()
+    return render_template("discovering.html", discovery_id=discovery_id, search_label=search_label)
+
+
+@inspector.route("/discover/progress/<discovery_id>")
+def discover_progress(discovery_id: str):
+    return Response(stream_with_context(_sse_stream(discovery_id)),
+                    mimetype="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@inspector.route("/select/<discovery_id>")
+def select_products(discovery_id: str):
+    discovery = load_discovery(discovery_id)
+    if not discovery:
+        return redirect(url_for("inspector.home"))
+    for i, p in enumerate(discovery.get("products", []), start=1):
+        if not p.get("priority"):
+            p["priority"] = i
+    existing_analysis = find_analysis_by_discovery_id(discovery_id)
+    return render_template("select.html", discovery=discovery, existing_analysis=existing_analysis)
+
+
+# Phase 2: Scoring
+
+@inspector.route("/score", methods=["POST"])
+def score():
+    discovery_id = request.form.get("discovery_id", "")
+    discovery = load_discovery(discovery_id)
+    if not discovery:
+        return redirect(url_for("inspector.home"))
+
+    selected_names = request.form.getlist("products")
+    all_products = discovery.get("products", [])
+    selected_products = [p for p in all_products if p["name"] in selected_names]
+
+    if not selected_products:
+        return redirect(url_for("inspector.select_products", discovery_id=discovery_id))
+
+    job_id = str(uuid.uuid4())[:8]
+    company_name = discovery.get("company_name", "")
+
+    def run_scoring():
+        try:
+            # Check if research is fully cached for all selected products
+            cache = discovery.get("_research_cache", {})
+            cached_names = set(cache.get("researched_products", []))
+            selected_names = {p["name"] for p in selected_products}
+
+            if selected_names <= cached_names:
+                # All selected products already researched — skip web searches
+                _push(job_id, "status:Loading cached research data")
+                research = {
+                    "company_name": company_name,
+                    "selected_products": selected_products,
+                    "search_results": cache.get("search_results", {}),
+                    "page_contents": cache.get("page_contents", {}),
+                }
+            else:
+                research_messages = [
+                    "status:Scouring technical docs, APIs & deployment guides",
+                    "status:Finding training (ATP and gray) & certification programs",
+                    "status:Researching product focus areas, AI features & target personas",
+                    "status:Analyzing channel partners, enablement resources, roadshows & hands-on events",
+                    "status:Identifying training and enablement organizational structures & contacts",
+                ]
+                def push_research_messages():
+                    for i, msg in enumerate(research_messages):
+                        _push(job_id, msg)
+                        if i < len(research_messages) - 1:
+                            threading.Event().wait(5)
+
+                msg_thread = threading.Thread(target=push_research_messages, daemon=True)
+                msg_thread.start()
+
+                research = research_products(company_name, selected_products)
+                msg_thread.join()
+
+                # Save research to discovery cache for future re-runs
+                merged_search = {**cache.get("search_results", {}), **research["search_results"]}
+                merged_pages = {**cache.get("page_contents", {}), **research["page_contents"]}
+                updated_discovery = {**discovery, "_research_cache": {
+                    "researched_products": list(cached_names | selected_names),
+                    "search_results": merged_search,
+                    "page_contents": merged_pages,
+                }}
+                save_discovery(discovery_id, updated_discovery)
+
+            research["discovery_data"] = discovery
+
+            _push(job_id, "status:Scoring with Claude AI")
+            analysis = score_selected_products(research)
+            analysis.discovery_id = discovery_id
+            analysis.total_products_discovered = len(discovery.get("products", []))
+            analysis_id = save_analysis(analysis)
+            _push(job_id, "status:Generating report")
+            _push(job_id, f"done:{analysis_id}")
+        except Exception as e:
+            log.exception("Scoring failed for %s", company_name)
+            _push(job_id, f"error:{e}")
+
+    threading.Thread(target=run_scoring, daemon=True).start()
+    return render_template("scoring.html", job_id=job_id, company_name=company_name,
+                           product_count=len(selected_products))
+
+
+@inspector.route("/score/progress/<job_id>")
+def score_progress(job_id: str):
+    return Response(stream_with_context(_sse_stream(job_id)),
+                    mimetype="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+# Results
+
+@inspector.route("/results/<analysis_id>")
+def results(analysis_id: str):
+    data = load_analysis(analysis_id)
+    if not data:
+        return "Analysis not found", 404
+
+    _attach_scores(data)
+    return render_template("results.html", data=data)
+
+
+# CSV export
+
+@inspector.route("/export/<analysis_id>")
+def export(analysis_id: str):
+    data = load_analysis(analysis_id)
+    if not data:
+        return "Analysis not found", 404
+
+    _attach_scores(data)
+    products = data.get("products") or []
+    pr_total = data["_pr_total"]
+
+    output = io.StringIO()
+    fieldnames = ["company_name", "product_name", "labability_score", "partnership_score",
+                  "composite_score", "skillable_path", "org_type"]
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    _csv_defaults = {f: "" for f in fieldnames}
+    writer.writeheader()
+    org_type = data.get("organization_type", "software_company")
+    for p in products:
+        lab = p.get("_total_score", 0)
+        composite, _, _ = _compute_composite(lab, pr_total, org_type)
+        writer.writerow({**_csv_defaults,
+                         "company_name": data.get("company_name", ""),
+                         "product_name": p.get("name", ""),
+                         "labability_score": lab,
+                         "partnership_score": pr_total,
+                         "composite_score": composite,
+                         "skillable_path": p.get("skillable_path", ""),
+                         "org_type": org_type})
+
+    output.seek(0)
+    safe_name = data.get("company_name", "analysis").replace(" ", "-").lower()
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=inspector-{safe_name}-{analysis_id}.csv"},
+    )
+
+
+# API (batch mode)
+
+@inspector.route("/api/analyze", methods=["POST"])
+def api_analyze():
+    body = request.get_json()
+    company_name = body.get("company_name", "").strip()
+    known_products = body.get("known_products")
+    selected_product_names = body.get("products")
+
+    if not company_name:
+        return jsonify({"error": "company_name is required"}), 400
+
+    try:
+        findings = discover_products(company_name, known_products)
+        discovery = discover_products_with_claude(findings)
+        for key in ("training_programs", "atp_signals", "training_catalog",
+                    "partner_ecosystem", "partner_portal", "cs_signals",
+                    "lms_signals", "org_contacts", "page_contents"):
+            discovery[key] = findings.get(key, [])
+
+        if selected_product_names:
+            selected = [p for p in discovery["products"] if p["name"] in selected_product_names]
+        else:
+            selected = discovery["products"]
+
+        research = research_products(company_name, selected)
+        research["discovery_data"] = discovery
+        analysis = score_selected_products(research)
+        analysis_id = save_analysis(analysis)
+        return jsonify(load_analysis(analysis_id))
+    except Exception as exc:
+        log.exception("API analyze failed for %s", company_name)
+        return jsonify({"error": str(exc)}), 500
+
+
+# Legacy redirect — old marketing batch URL now lives at /prospector
+@inspector.route("/marketing")
+def marketing():
+    return redirect(url_for("prospector.prospector_home"), 301)
+

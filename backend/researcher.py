@@ -1,7 +1,10 @@
 """Web research orchestration for discovering company products and training programs."""
 
+import logging
 import os
 import requests
+
+log = logging.getLogger(__name__)
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
@@ -130,8 +133,8 @@ def _fetch_pages_parallel(targets: list[tuple[str, str]], max_chars: int = 3000)
             label = future_to_label[future]
             try:
                 contents[label] = future.result()
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning("Page fetch failed for %s: %s", label, e)
     return contents
 
 
