@@ -462,9 +462,9 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                 dm = next((c for c in contacts if c.get("role_type") == "decision_maker"), None) or (contacts[0] if contacts else None)
                 dm2 = next((c for c in contacts if c != dm and c.get("role_type") in ("influencer", "champion")), None) or next((c for c in contacts if c != dm), None)
 
-            total_highly = sum(1 for p in products if p.get("_total_score", 0) >= 50)
-            total_likely = sum(1 for p in products if 20 <= p.get("_total_score", 0) < 50)
-            total_not = sum(1 for p in products if p.get("_total_score", 0) < 20)
+            total_highly = sum(1 for p in products if p.get("likely_labable") == "highly_likely")
+            total_likely = sum(1 for p in products if p.get("likely_labable") == "likely")
+            total_not    = sum(1 for p in products if p.get("likely_labable") in ("less_likely", "not_likely"))
 
             # Partnership signals — load from associated discovery if available
             ps = {}
@@ -474,7 +474,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
                 if disc:
                     ps = disc.get("partnership_signals") or {}
 
-            skillable_path = ""
+            skillable_path = top_product.get("skillable_path", "")
             if org_type == "academic_institution":
                 has_tech = bool(products)  # if we have stored products, assume tech programs present
                 skillable_path = _derive_academic_path(lab_score, None, has_tech)
@@ -591,7 +591,7 @@ def _quick_analyze_company(company_name: str, force_refresh: bool = False) -> di
         ps = discovery.get("partnership_signals") or {}
 
         # Academic path label — use school name from discovery if available
-        skillable_path = ""
+        skillable_path = top_product.get("skillable_path", "")
         if org_type == "academic_institution":
             academic_sigs = discovery.get("academic_signals") or {}
             school_name = academic_sigs.get("engineering_school_name")
