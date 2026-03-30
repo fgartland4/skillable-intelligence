@@ -349,18 +349,19 @@ Use ONLY these labels for the standard bullets:
 - **Note:** [for other critical flags — credit card required, locked APIs, willing buyer/unwilling product team]
   Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
-- **[Custom Label]:** OPTIONAL BUT HIGHLY ENCOURAGED — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `— Risk` or `— Blocker` suffix if the insight signals a problem.
-  Good examples of what belongs here:
-  - `**Pre-Instancing Required:**` — long provisioning time requires pre-built environments before learner arrives
+- **[Custom Label]:** OPTIONAL — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `— Risk` or `— Blocker` suffix if the insight signals a problem.
+
+  ⚠️ **NO DUPLICATION RULE — STRICTLY ENFORCED:** A custom label bullet MUST NOT repeat or restate a topic already covered in the Technical Orchestrability, Workflow Complexity, Training Ecosystem, or Market Fit evidence bullets above. If a risk (e.g. MFA enforcement, license activation, provisioning latency) was already surfaced as an evidence bullet, do NOT create a separate custom bullet for it — instead, reference it in one clause within the relevant standard bullet (Scoring Approach, Delivery Path). Violations of this rule produce a cluttered, redundant report. When in doubt, omit the custom bullet.
+
+  Good examples of what belongs here (topics that rarely appear as evidence bullets):
+  - `**Pre-Instancing Required — Risk:**` — provisioning latency is so high that Pre-Instancing (Skillable support-only feature) is required for acceptable learner experience; must be scoped with Cloud Infra before committing
   - `**License Model — Risk:**` — no NFR/dev tier found; vendor engagement needed before authoring can begin
   - `**Tenant Isolation:**` — provisioning provides per-learner isolation vs. shared credential pool; clarify tradeoffs
-  - `**GPU Requirement — Blocker:**` — core workflows require GPU not available in Skillable datacenter
   - `**Docker Image:**` — official Docker Hub image available; lab authors can pull and configure without building from scratch
   - `**Bicep Templates:**` — vendor publishes Bicep templates; lab authors can reuse directly in Azure Cloud Slice
-  - `**MFA Dependency — Risk:**` — MFA enforcement on admin accounts will break automated scoring via REST API
 
 REQUIRED bullets: Delivery Path, Scoring Approach, Essential Technical Resource, Technical Contact, Next Step.
-OPTIONAL (include when applicable and genuinely useful — highly encouraged for product-specific context): [Custom Label] (1–2 max), Similar Products Already in Skillable, Program Fit, Blockers, Note.
+OPTIONAL (include when applicable and genuinely useful): [Custom Label] (1–2 max, no duplication), Similar Products Already in Skillable, Program Fit, Blockers, Note.
 Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
 Total: 3–6 bullets. Fewer sharp bullets beats more diluted ones. Never use "Path A", "Path B", or "Path C".
 Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
