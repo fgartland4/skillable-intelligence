@@ -89,7 +89,6 @@
         .composite-hero .value {
             font-size: 3.2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
         }
-        .composite-hero .denom { font-size: 1.2rem; color: #3d6655; font-weight: 400; }
         .composite-divider {
             width: 1px; background: #1e3329; align-self: stretch;
             flex-shrink: 0; margin: 0 24px;
@@ -110,7 +109,6 @@
         .input-score {
             font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
         }
-        .input-denom { font-size: 0.78rem; color: #3d6655; font-weight: 400; }
         .input-weight {
             font-size: 0.62rem; font-weight: 700; color: #3d6655;
             background: #122019; border-radius: 4px; padding: 2px 7px;
@@ -154,7 +152,6 @@
         .mult-info { text-align: right; font-size: 0.70rem; color: #6b9e88; line-height: 1.6; padding-top: 6px; white-space: nowrap; }
         .total-score { text-align: right; min-width: 70px; }
         .total-score .score-num { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
-        .total-score .out-of { font-size: 0.8rem; color: #3d6655; font-weight: 400; }
         .product-desc { color: #6b9e88; font-size: 0.875rem; margin-bottom: 18px; line-height: 1.6; }
 
         /* Lab highlight badge */
@@ -223,7 +220,6 @@
         .dim-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #3d6655; margin-bottom: 8px; }
         .dim-score-col { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 2px; }
         .dim-score-num { font-weight: 900; font-size: 1.8rem; letter-spacing: -0.03em; line-height: 1; text-align: center; }
-        .dim-score-denom { font-size: 0.72rem; color: #3d6655; font-weight: 400; }
         .bar-track { height: 4px; background: #1e3329; border-radius: 2px; overflow: hidden; width: 100%; }
         .bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
         .bar-fill.high { background: #24ED9B; }
@@ -488,7 +484,6 @@
             font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
             text-align: center;
         }
-        .pr-score-denom { font-size: 0.78rem; color: #3d6655; font-weight: 400; }
         .pr-score-label {
             font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
             letter-spacing: 0.08em; font-weight: 700; text-align: center;
@@ -521,7 +516,6 @@
         .dim-sec-dot-mf   { background: #f59e0b; }
         .dim-sec-name { flex: 1; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b9e88; }
         .dim-sec-score { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
-        .dim-sec-denom { font-size: 0.62rem; color: #3d6655; font-weight: 400; }
         .dim-sec-arrow { font-size: 0.82rem; color: #3d6655; flex-shrink: 0; }
         .dim-sec-bar { height: 5px; border-radius: 3px; overflow: hidden; }
         .dim-sec-bar-tech { background: rgba(36,237,155,0.12); }
@@ -653,7 +647,7 @@
                 <!-- Hero: composite score -->
                 <div class="composite-hero">
                     <div class="value {% if cs >= 70 %}score-high{% elif cs >= 40 %}score-mid{% else %}score-low{% endif %}">
-                        {{ cs }}<span class="denom">/100</span>
+                        {{ cs }}
                     </div>
                     {% if data._composite_gated %}
                     <div class="gated-note">&#9888; Gated</div>
@@ -666,7 +660,7 @@
                 <div class="composite-inputs">
                     <div class="composite-input">
                         <div class="input-right">
-                            <span class="input-score {% if top >= 70 %}score-high{% elif top >= 40 %}score-mid{% else %}score-low{% endif %}">{{ top }}<span class="input-denom">/100</span></span>
+                            <span class="input-score {% if top >= 70 %}score-high{% elif top >= 40 %}score-mid{% else %}score-low{% endif %}">{{ top }}</span>
                             <span class="input-weight">× {{ prod_weight }}</span>
                         </div>
                         <div class="input-left">
@@ -677,7 +671,7 @@
                     <div class="composite-input-sep"></div>
                     <div class="composite-input">
                         <div class="input-right">
-                            <span class="input-score {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}<span class="input-denom">/100</span></span>
+                            <span class="input-score {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}</span>
                             <span class="input-weight">× {{ part_weight }}</span>
                         </div>
                         <div class="input-left">
