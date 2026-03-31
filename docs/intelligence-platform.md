@@ -28,6 +28,8 @@ Layer 2: Evidence Extraction     — Claude reads sources, extracts labeled clai
 Layer 3: Scoring + Recommendations — structured rubrics mapped to Skillable capabilities
 ```
 
+Each layer exists because the previous one isn't enough on its own. Raw search results are noisy and unstructured — the Research Engine turns them into focused, source-attributed text. That text doesn't directly answer labability questions — Evidence Extraction turns it into specific, labeled claims organized by the lab lifecycle. And claims alone don't produce a recommendation — the Scoring layer applies Skillable's accumulated platform knowledge to convert evidence into calibrated scores, flags the constraints that matter, and generates recommendations grounded in what Skillable can actually build and deliver.
+
 These layers are shared across all three tools. Inspector runs the full pipeline — discovery plus deep per-product research. Prospector runs a lighter version (discovery only, one product, no deep research) for throughput. Designer consumes Inspector's scored output and applies additional intelligence to generate program structure, lab content, and environment specifications.
 
 ---
