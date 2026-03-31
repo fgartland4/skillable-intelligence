@@ -862,13 +862,6 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="comp-seg-bar" style="margin-bottom:8px;">
-                <div class="seg-block seg-block-tech" style="width:40%;"><div class="seg-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc1h }}</span></div></div>
-                <div class="seg-block seg-block-wf"   style="width:30%;"><div class="seg-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}"   style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc2h }}</span></div></div>
-                <div class="seg-block seg-block-te"   style="width:20%;"><div class="seg-fill {% if _sc3h < 8  %}seg-low{% else %}seg-te{% endif %}"   style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc3h }}</span></div></div>
-                <div class="seg-block seg-block-mf"   style="width:10%;"><div class="seg-fill {% if _sc4h < 4  %}seg-low{% else %}seg-mf{% endif %}"   style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"><span class="seg-score">{{ _sc4h }}</span></div></div>
-            </div>
-
             {# ── Bullet routing — extract bold label prefix, route on that only ── #}
             {# Every bullet is **Label:** or **Label — Risk:** or **Label — Blocker:** text     #}
             {# We extract everything before :** and strip ** + Risk/Blocker suffixes.            #}
@@ -900,7 +893,6 @@
                     <span class="dim-sec-name">Product Labability</span>
                     <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 40</span></span>                </summary>
                 <div class="dim-sec-content">
-                    <div class="dim-sec-bar dim-sec-bar-tech" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc1h < 16 %}seg-low{% else %}seg-tech{% endif %}" style="width:{{ [(_sc1h/40*100)|int,100]|min }}%;"></div></div>
                     {% if tech_dim.evidence %}
                     <div class="findings-label">Technical Findings</div>
                     <ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
@@ -921,7 +913,6 @@
                     <span class="dim-sec-name">Likely Impact of Hands-On</span>
                     <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 30</span></span>                </summary>
                 <div class="dim-sec-content">
-                    <div class="dim-sec-bar dim-sec-bar-wf" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc2h < 12 %}seg-low{% else %}seg-wf{% endif %}" style="width:{{ [(_sc2h/30*100)|int,100]|min }}%;"></div></div>
                     {% if wf_dim.evidence %}
                     <div class="findings-label">Workflow Signals</div>
                     <ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
@@ -943,7 +934,6 @@
                     <span class="dim-sec-name">Content Team Maturity</span>
                     <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 20</span></span>                </summary>
                 <div class="dim-sec-content">
-                    <div class="dim-sec-bar dim-sec-bar-te" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc3h < 8 %}seg-low{% else %}seg-te{% endif %}" style="width:{{ [(_sc3h/20*100)|int,100]|min }}%;"></div></div>
                     {% if te_dim.evidence %}
                     <div class="findings-label">Ecosystem Signals</div>
                     <ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
@@ -964,7 +954,6 @@
                     <span class="dim-sec-name">Market &amp; Strategic Fit</span>
                     <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 10</span></span>                </summary>
                 <div class="dim-sec-content">
-                    <div class="dim-sec-bar dim-sec-bar-mf" style="margin-bottom:14px;"><div class="dim-sec-bar-fill {% if _sc4h < 4 %}seg-low{% else %}seg-mf{% endif %}" style="width:{{ [(_sc4h/10*100)|int,100]|min }}%;"></div></div>
                     {% if mf_dim.evidence %}
                     <div class="findings-label">Market Signals</div>
                     <ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
