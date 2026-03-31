@@ -121,6 +121,8 @@ Skillable calls this Bring Your Own Cloud (BYOC). Life Cycle Actions (LCAs) hand
 ⚠️ **EVIDENCE FORMAT STANDARD — applies to all four dimensions:**
 Every evidence `claim` bullet MUST start with a **2–3 word bold label** followed by a colon: `**Label:** finding.` No exceptions — bare sentences without a bold intro are not acceptable. Labels should name the specific signal, not a generic category. Bad: `**Evidence:** The product installs on Windows.` Good: `**Windows Install:** Silent installer confirmed in deployment guide.`
 
+⚠️ **LABEL CLARITY RULE:** Labels must make sense to someone who has never read the product docs or the bullet beneath them. Never use vendor-specific acronyms, product framework names, or Skillable internal terms (like DTDS) as the label. Write descriptively. Bad: `**DTDS Coverage:**` (opaque to anyone outside Skillable or Workday). Good: `**Workflow Depth:**` (instantly clear). Bad: `**AI Practice Surface:**` (jargon). Good: `**Hands-On AI Features:**` (self-explanatory).
+
 **Technical Orchestrability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we build it?"
 
 The `technical_orchestrability` evidence bullets are solutioning guidance — written for whoever at Skillable will be doing the solutioning (SE, TSM, Solution Architect) who needs to understand why this product is or is not labable, and how to approach building it.
@@ -164,8 +166,8 @@ Evidence bullets tell the story of why this product does or doesn't justify a mu
 
 Signals worth naming (use these labels or choose better ones for the product):
 - `**Training Scope:**` how many distinct learning programs this product naturally warrants and why
-- `**DTDS Coverage:**` which of the 5 phases are primary activities — be specific about what each looks like in practice for this product
-- `**AI Practice Surface:**` name the specific AI features and why hands-on practice is essential (not just a demo)
+- `**Workflow Depth:**` which of the 5 workflow phases (design, configure, deploy, support, troubleshoot) are primary activities — be specific about what each looks like in practice for this product; do NOT use the acronym DTDS in the label or bullet
+- `**Hands-On AI Features:**` name the specific AI features and why iterative practice is essential (not just a demo or observation)
 - `**Role Breadth:**` how distinct personas create separate program demand (don't repeat personas already listed — focus on the demand implication)
 
 **Training & Enablement Maturity (0-20):** This is 20% of the total score. "Is the org ready?" — labs need a delivery vehicle to reach learners. Score the highest applicable combination:
