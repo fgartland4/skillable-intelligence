@@ -78,6 +78,32 @@ def _apply_bold(text: str) -> str:
     return _re.sub(r'\*\*(.+?)\*\*', _replace, text)
 
 
+@app.template_filter('flag_label')
+def flag_label_filter(flag):
+    """Map poor_match_flag keys to display-friendly labels with correct capitalisation."""
+    labels = {
+        'bare_metal_required':      'Bare Metal Orchestration',
+        'no_api_automation':        'Limited API Provisioning',
+        'no_scoring_api':           'No APIs for Scoring',
+        'credit_card_required':     'Credit Card and/or PII Required',
+        'pii_required':             'Credit Card and/or PII Required',
+        'broken_learner_experience':'Credit Card and/or PII Required',  # legacy cached results
+        'consumer_product':         'Consumer Product',
+    }
+    return labels.get(flag, flag.replace('_', ' ').title())
+
+
+@app.template_filter('flag_labels')
+def flag_labels_filter(flags):
+    """Convert a list of poor_match_flag keys to deduplicated display labels."""
+    seen = []
+    for flag in (flags or []):
+        label = flag_label_filter(flag)
+        if label not in seen:
+            seen.append(label)
+    return seen
+
+
 @app.template_filter('bold_labels')
 def bold_labels(text):
     """Convert **text** markdown to <strong>text</strong> HTML."""

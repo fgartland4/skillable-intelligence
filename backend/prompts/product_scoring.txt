@@ -61,7 +61,8 @@ If YES → Score technical_orchestrability 0-5, total score 5-15, add "bare_meta
 ## STEP 1 — API Automation Gate
 Can provisioning, user account creation, license application, and environment configuration be done programmatically without learner action?
 If NONE feasible → Score technical_orchestrability 0-5, add "no_api_automation" to poor_match_flags.
-If requires credit card/PII → add "credit_card_required" and "broken_learner_experience".
+If requires credit card to provision learner account → add "credit_card_required".
+If requires PII (personal details, government ID, address, etc.) to provision → add "pii_required".
 
 ## STEP 2 — User Persona Filter
 List 2-4 from: Architect · Administrator · Security Engineer / Analyst · Infrastructure Engineer · Networking Engineer · Data Scientist · Data Engineer · Data Analyst · Business Analyst · Business User · Developer · Software Engineer · Consumer
@@ -294,7 +295,7 @@ Use ONLY these labels for the standard bullets:
   ⚠️ LABEL SUFFIX RULE: Apply the standard Risk/Blocker convention to this label.
   - If scoring is viable (any automated or AI Vision path exists): use `**Scoring Approach:**`
   - If scoring is limited but a workaround exists (e.g. MCQ-only, AI Vision with low confidence): use `**Scoring Approach — Risk:**`
-  - If no meaningful automated scoring is possible (SaaS with no API/CLI, shared demo tenant, screen-guided walkthrough only): use `**Scoring Approach — Blocker:**`
+  - If no meaningful automated scoring is possible (SaaS with no API/CLI, shared demo tenant, screen-guided walkthrough only): use `**Scoring Approach — Blocker:**` and add "no_scoring_api" to poor_match_flags.
 
   Example outputs:
   "**Scoring Approach:** DataProtect's REST API and PowerShell module make scoring highly viable — scripts can validate backup policy creation, job status, and recovery point existence from within the lab VM. For learning labs use Activity Based Assessment with per-task feedback; for certification use PBT with Activity Group Scoring mapped to backup and recovery tasks — Scaled Scoring is worth noting given Cohesity's existing certification program."

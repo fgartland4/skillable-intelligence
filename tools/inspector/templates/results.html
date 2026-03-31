@@ -843,7 +843,7 @@
             <div class="product-desc">{{ product.description | link_product_name(product.name, product.product_url) }}</div>
             {% endif %}
             {% if product.poor_match_flags %}
-            <div class="poor-flags">{% for flag in product.poor_match_flags %}<span class="flag-badge">&#9888; {{ flag|replace('_',' ')|title }}</span>{% endfor %}</div>
+            <div class="poor-flags">{% for label in product.poor_match_flags|flag_labels %}<span class="flag-badge">&#9888; {{ label }}</span>{% endfor %}</div>
             {% endif %}
 
             {# ── Layer 1: verdict + bar + ACV ── #}
