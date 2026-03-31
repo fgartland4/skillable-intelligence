@@ -124,10 +124,10 @@ Every evidence `claim` bullet MUST start with a **2–3 word bold label** follow
 ⚠️ **LABEL CLARITY RULE:** Labels must make sense to someone who has never read the product docs or the bullet beneath them. Never use vendor-specific acronyms, product framework names, or Skillable internal terms (like DTDS) as the label. Write descriptively. Bad: `**DTDS Coverage:**` (opaque to anyone outside Skillable or Workday). Good: `**Workflow Depth:**` (instantly clear). Bad: `**AI Practice Surface:**` (jargon). Good: `**Hands-On AI Features:**` (self-explanatory).
 
 ⚠️ **DIRECTIONAL LABEL RULE:** Every evidence bullet must convey whether the signal is positive or negative for labability — not just state a fact. Use the suffix convention to signal direction:
-- `**Label — Strength:**` → positive signal (renders green) — use when the signal genuinely supports labability or market fit
-- `**Label — Opportunity:**` → positive signal with upside framing (renders green) — use when the signal indicates market potential or strategic alignment
-- `**Label — Risk:**` → concern with a viable path forward (renders orange)
-- `**Label — Blocker:**` → hard stop (renders red)
+- `**Label | Strength:**` → positive signal (renders green) — use when the signal genuinely supports labability or market fit
+- `**Label | Opportunity:**` → positive signal with upside framing (renders green) — use when the signal indicates market potential or strategic alignment
+- `**Label | Risk:**` → concern with a viable path forward (renders orange)
+- `**Label | Blocker:**` → hard stop (renders red)
 Bare labels with no suffix (e.g., `**Install Base:**`) are only acceptable for truly neutral contextual facts. A large install base is a Strength. A constrained API surface is a Risk. Name the valence.
 
 **Technical Orchestrability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we build it?"
@@ -142,18 +142,18 @@ The `technical_orchestrability` evidence bullets are solutioning guidance — wr
 
 **3. Score** — What does the product expose for validating learner work? REST API, PowerShell/CLI module, queryable config state, observable service status? Be specific about what's accessible. If the only interface is a GUI with no programmatic surface, that's a meaningful constraint — flag it. If there's a rich API, name what it covers.
 
-**4. Teardown** — Only include when teardown requires explicit action. For VM/Hyper-V labs, skip this entirely — snapshot revert is automatic, it's never a concern. For cloud subscriptions (Azure/AWS), one sentence is enough — auto-deleted at lab end. For BYOC/custom API products, this IS a real build task — the vendor API must have a DELETE or deprovision endpoint, and the absence of one is a `— Risk` or `— Blocker`.
+**4. Teardown** — Only include when teardown requires explicit action. For VM/Hyper-V labs, skip this entirely — snapshot revert is automatic, it's never a concern. For cloud subscriptions (Azure/AWS), one sentence is enough — auto-deleted at lab end. For BYOC/custom API products, this IS a real build task — the vendor API must have a DELETE or deprovision endpoint, and the absence of one is a `| Risk` or `| Blocker`.
 
 Each bullet MUST begin with a **2–4 word bold label:** `**Label:** finding.`
 The label names the specific signal — not a generic category. 1–2 sentences per bullet.
-Use `— Risk` or `— Blocker` suffix on any label that signals a problem: `**License Model — Risk:**`, `**Teardown API — Blocker:**`
+Use `| Risk` or `| Blocker` suffix on any label that signals a problem: `**License Model | Risk:**`, `**Teardown API | Blocker:**`
 Do NOT use Skillable platform terms in evidence claims (LCA, Life Cycle Action, Pre-Build, Post-Build, Cloud Slice, Scoring Bot, AI Vision, ABA, PBT — those belong in Scoring Approach and Delivery Path bullets).
 
 Example labels by phase:
-- Provision: `**Windows Install:**` · `**Linux Installer:**` · `**Docker Image:**` · `**Azure Service:**` · `**Vendor Sandbox API:**` · `**Provisioning Time — Risk:**` · `**No Isolation — Blocker:**`
-- Configure: `**PowerShell Config:**` · `**REST Seed Data:**` · `**License Activation:**` · `**MFA Dependency — Risk:**` · `**GUI Setup Only — Risk:**` · `**NFR Program:**`
-- Score: `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Config File State:**` · `**GUI Only — Risk:**` · `**No Scoring Surface — Blocker:**`
-- Teardown: `**Auto Teardown:**` (cloud/VM) · `**Deprovision API:**` · `**No DELETE Endpoint — Risk:**`
+- Provision: `**Windows Install:**` · `**Linux Installer:**` · `**Docker Image:**` · `**Azure Service:**` · `**Vendor Sandbox API:**` · `**Provisioning Time | Risk:**` · `**No Isolation | Blocker:**`
+- Configure: `**PowerShell Config:**` · `**REST Seed Data:**` · `**License Activation:**` · `**MFA Dependency | Risk:**` · `**GUI Setup Only | Risk:**` · `**NFR Program:**`
+- Score: `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Config File State:**` · `**GUI Only | Risk:**` · `**No Scoring Surface | Blocker:**`
+- Teardown: `**Auto Teardown:**` (cloud/VM) · `**Deprovision API:**` · `**No DELETE Endpoint | Risk:**`
 
 **Workflow Complexity (0-30):** This is 30% of the total score. "Is it worth doing labs?" — does this product justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? High scores belong to products with deep DTDS depth — admins who design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures each represent a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it — there is no skill accumulation that demands structured lab sequences.
 
@@ -202,7 +202,7 @@ Category prior (highest applicable): Cybersecurity: +4 | Cloud Infrastructure: +
 AI additive: Builds/Trains/Deploys AI (CREATE AI): +3 | AI-embedded features with market demand (INCORPORATE AI): +1
 Other: Large/growing install base: +2 | Growing category: +1 | Limited competitor labs: +1. Cap 10.
 
-Evidence bullets tell the story of strategic alignment and market opportunity. Write 2–3 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label** with a directional suffix — every signal here is either a Strength, Opportunity, or Risk; none are neutral facts. A large install base is a `— Strength`. A misaligned category is a `— Risk`. A growing market with no competitor labs is an `— Opportunity`.
+Evidence bullets tell the story of strategic alignment and market opportunity. Write 2–3 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label** with a directional suffix — every signal here is either a Strength, Opportunity, or Risk; none are neutral facts. A large install base is a `| Strength`. A misaligned category is a `| Risk`. A growing market with no competitor labs is an `| Opportunity`.
 
 Signals worth naming (use these labels or choose better ones):
 - `**Category Fit:**` product category and why it aligns (or doesn't) with Skillable's core market strength
@@ -248,7 +248,7 @@ When research surfaces any of these product types or technology combinations, ap
 
 - **Virtual appliance / OVA format products**: If research mentions OVA, OVF, virtual appliance downloads, or hardware-bundled software with appliance packaging, the delivery path is OVA Import to Skillable's ESX fabric. Key constraints to note: hardware version ≤19, single VM only (multi-VM OVA sets must be restructured), ESX export format required (Hyper-V .vhd/.vhdx cannot use the OVA import path). Appliances larger than ~50GB require FTP upload coordinated with Skillable's Cloud Infra team — add this as a build effort note, not a blocker.
 
-- **Hardware-fingerprinted / BIOS-locked licensing**: If research mentions BIOS UUID activation, hardware-locked licensing, or node-locked software, Skillable can pin a Custom UUID in the VM profile to satisfy the hardware fingerprint check. However, if the product ALSO requires a Public IP address for license validation, the combination of Custom UUID + Public IP means only one concurrent launch is viable — the license is tied to both hardware ID and network identity simultaneously. Flag this as a concurrency constraint in Technical Orchestrability evidence with `— Risk` suffix.
+- **Hardware-fingerprinted / BIOS-locked licensing**: If research mentions BIOS UUID activation, hardware-locked licensing, or node-locked software, Skillable can pin a Custom UUID in the VM profile to satisfy the hardware fingerprint check. However, if the product ALSO requires a Public IP address for license validation, the combination of Custom UUID + Public IP means only one concurrent launch is viable — the license is tied to both hardware ID and network identity simultaneously. Flag this as a concurrency constraint in Technical Orchestrability evidence with `| Risk` suffix.
 
 - **Conditional Access Policy / Zero Trust MFA training scenarios**: Training that demonstrates or configures Entra Conditional Access Policy (CAP) requires an Entra ID P1 license and is only compatible with Skillable VM labs that have a stable NAT or Public IP address. Cloud Slice VMs have dynamic IP addresses that cannot be added to Entra Trusted Locations, which CAP enforcement depends on. If the product's training involves demonstrating CAP or Zero Trust access controls, recommend Hyper-V VM + Entra P1 license, not Cloud Slice — and note this constraint explicitly.
 
@@ -262,10 +262,10 @@ Never use "Path A", "Path B", or "Path C" in the output — use the actual fabri
 Each bullet MUST start with a bold label in the format `**Label:** rest of sentence.`
 
 ⚠️ **RISK / BLOCKER SUFFIX CONVENTION** — For any bullet where the label signals a *problem* rather than a recommendation, append a suffix:
-- `**Label — Risk:**` → renders in orange — use for concerns that may complicate the build but have a viable path forward
-- `**Label — Blocker:**` → renders in red — use for hard stops that must be resolved before Skillable can deliver
+- `**Label | Risk:**` → renders in orange — use for concerns that may complicate the build but have a viable path forward
+- `**Label | Blocker:**` → renders in red — use for hard stops that must be resolved before Skillable can deliver
 This convention applies to ANY bullet label — Delivery Path, Scoring Approach, Blockers, or a custom label.
-Examples: `**API Access — Blocker:**`, `**License Model — Risk:**`, `**GPU Requirement — Blocker:**`, `**Provisioning Time — Risk:**`
+Examples: `**API Access | Blocker:**`, `**License Model | Risk:**`, `**GPU Requirement | Blocker:**`, `**Provisioning Time | Risk:**`
 
 Use ONLY these labels for the standard bullets:
 
@@ -274,7 +274,7 @@ Use ONLY these labels for the standard bullets:
             "**Delivery Path:** Azure Cloud Slice (CSR) — isolated resource group per learner, Entra ID tenant included for automatic app pre-configuration."
             "**Delivery Path:** Custom API provisioning — Skillable calls vendor sandbox API per learner at launch, environment ready in ~10 min via Pre-Instancing."
             "**Delivery Path:** VMware ESX fabric — required because the lab runs a nested ESXi hypervisor inside the VM, which Hyper-V does not support."
-            "**Delivery Path — Risk:** Hyper-V fabric — installs on Windows Server VM, but no public silent-install documentation found; license activation mechanism in isolated networks is unconfirmed."
+            "**Delivery Path | Risk:** Hyper-V fabric — installs on Windows Server VM, but no public silent-install documentation found; license activation mechanism in isolated networks is unconfirmed."
 
 - **Scoring Approach:** [REQUIRED — assess whether and how learner performance can be validated in this product's labs using Skillable's PBT and activity scoring capabilities. This is not about the labability score — it is about how a lab author would score a learner's actual work inside the lab. Reason through the following three questions and write one concise paragraph.]
 
@@ -303,8 +303,8 @@ Use ONLY these labels for the standard bullets:
 
   ⚠️ LABEL SUFFIX RULE: Apply the standard Risk/Blocker convention to this label.
   - If scoring is viable (any automated or AI Vision path exists): use `**Scoring Approach:**`
-  - If scoring is limited but a workaround exists (e.g. MCQ-only, AI Vision with low confidence): use `**Scoring Approach — Risk:**`
-  - If no meaningful automated scoring is possible (SaaS with no API/CLI, shared demo tenant, screen-guided walkthrough only): use `**Scoring Approach — Blocker:**` and add "no_scoring_api" to poor_match_flags.
+  - If scoring is limited but a workaround exists (e.g. MCQ-only, AI Vision with low confidence): use `**Scoring Approach | Risk:**`
+  - If no meaningful automated scoring is possible (SaaS with no API/CLI, shared demo tenant, screen-guided walkthrough only): use `**Scoring Approach | Blocker:**` and add "no_scoring_api" to poor_match_flags.
 
   Example outputs:
   "**Scoring Approach:** DataProtect's REST API and PowerShell module make scoring highly viable — scripts can validate backup policy creation, job status, and recovery point existence from within the lab VM. For learning labs use Activity Based Assessment with per-task feedback; for certification use PBT with Activity Group Scoring mapped to backup and recovery tasks — Scaled Scoring is worth noting given Cohesity's existing certification program."
@@ -313,7 +313,7 @@ Use ONLY these labels for the standard bullets:
 
   "**Scoring Approach:** Azure resource state is fully scriptable via PowerShell in Cloud Slice — policies, role assignments, storage config, and network topology can all be validated automatically. Scoring complexity is moderate; Activity Group Scoring mapped to task categories is the right structure if this product's certification roadmap materializes."
 
-  "**Scoring Approach — Blocker:** No programmatic surface is accessible in an isolated lab context — no PowerShell module, no CLI, no REST API available for per-learner sandboxes. Any lab content would be limited to screen-guided walkthroughs with MCQ knowledge checks or AI Vision against a shared demo tenant, neither of which constitutes meaningful performance-based assessment. This is a fundamental constraint, not a gap that tooling can bridge."
+  "**Scoring Approach | Blocker:** No programmatic surface is accessible in an isolated lab context — no PowerShell module, no CLI, no REST API available for per-learner sandboxes. Any lab content would be limited to screen-guided walkthroughs with MCQ knowledge checks or AI Vision against a shared demo tenant, neither of which constitutes meaningful performance-based assessment. This is a fundamental constraint, not a gap that tooling can bridge."
 
 - **Essential Technical Resource:** [REQUIRED — SE/SA-facing technical briefing. State the single most important technical question that must be answered before a Skillable lab can be built for this product. Be concrete and specific: not "does an API exist" but "can DataProtect be installed silently on Windows Server in a network-isolated environment, and what does license activation look like without internet access?" This is the question that blocks or unblocks the entire lab build. Then name the team at this company most likely to own the answer — reason from the product type, do not default to a generic role:
      - Enterprise VM-installable software: Implementation Engineering, Field Solutions Architecture, or PS engineers who build deployment runbooks — NOT general Support.
@@ -359,13 +359,13 @@ Use ONLY these labels for the standard bullets:
 - **Note:** [for other critical flags — credit card required, locked APIs, willing buyer/unwilling product team]
   Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
-- **[Custom Label]:** OPTIONAL — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `— Risk` or `— Blocker` suffix if the insight signals a problem.
+- **[Custom Label]:** OPTIONAL — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `| Risk` or `| Blocker` suffix if the insight signals a problem.
 
   ⚠️ **NO DUPLICATION RULE — STRICTLY ENFORCED:** A custom label bullet MUST NOT repeat or restate a topic already covered in the Technical Orchestrability, Workflow Complexity, Training Ecosystem, or Market Fit evidence bullets above. If a risk (e.g. MFA enforcement, license activation, provisioning latency) was already surfaced as an evidence bullet, do NOT create a separate custom bullet for it — instead, reference it in one clause within the relevant standard bullet (Scoring Approach, Delivery Path). Violations of this rule produce a cluttered, redundant report. When in doubt, omit the custom bullet.
 
   Good examples of what belongs here (topics that rarely appear as evidence bullets):
-  - `**Pre-Instancing Required — Risk:**` — provisioning latency is so high that Pre-Instancing (Skillable support-only feature) is required for acceptable learner experience; must be scoped with Cloud Infra before committing
-  - `**License Model — Risk:**` — no NFR/dev tier found; vendor engagement needed before authoring can begin
+  - `**Pre-Instancing Required | Risk:**` — provisioning latency is so high that Pre-Instancing (Skillable support-only feature) is required for acceptable learner experience; must be scoped with Cloud Infra before committing
+  - `**License Model | Risk:**` — no NFR/dev tier found; vendor engagement needed before authoring can begin
   - `**Tenant Isolation:**` — provisioning provides per-learner isolation vs. shared credential pool; clarify tradeoffs
   - `**Docker Image:**` — official Docker Hub image available; lab authors can pull and configure without building from scratch
   - `**Bicep Templates:**` — vendor publishes Bicep templates; lab authors can reuse directly in Azure Cloud Slice

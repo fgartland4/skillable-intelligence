@@ -67,11 +67,12 @@ def _apply_bold(text: str) -> str:
         label_text = label[:colon_pos].strip() if colon_pos != -1 else label.strip()
         rest = label[colon_pos:] if colon_pos != -1 else ''
 
-        if label_text.endswith('— Blocker') or label_text.endswith('\u2014 Blocker'):
+        if label_text.endswith('| Blocker') or label_text.endswith('— Blocker') or label_text.endswith('\u2014 Blocker'):
             return f'<strong><span style="color:#e05252;">{label_text}</span>{rest}</strong>'
-        if label_text.endswith('— Risk') or label_text.endswith('\u2014 Risk'):
+        if label_text.endswith('| Risk') or label_text.endswith('— Risk') or label_text.endswith('\u2014 Risk'):
             return f'<strong><span style="color:#f59e0b;">{label_text}</span>{rest}</strong>'
-        if (label_text.endswith('— Strength') or label_text.endswith('\u2014 Strength')
+        if (label_text.endswith('| Strength') or label_text.endswith('| Opportunity')
+                or label_text.endswith('— Strength') or label_text.endswith('\u2014 Strength')
                 or label_text.endswith('— Opportunity') or label_text.endswith('\u2014 Opportunity')):
             return f'<strong><span style="color:#24ED9B;">{label_text}</span>{rest}</strong>'
 
