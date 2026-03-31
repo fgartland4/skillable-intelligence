@@ -55,8 +55,10 @@ def _apply_bold(text: str) -> str:
     """Convert **text** to <strong>text</strong> with colored labels.
 
     Suffix convention (from scorer.py):
-      **Label — Blocker:** → label in red   (#e05252)
-      **Label — Risk:**    → label in orange (#f59e0b)
+      **Label — Blocker:**     → label in red    (#e05252)
+      **Label — Risk:**        → label in orange (#f59e0b)
+      **Label — Strength:**    → label in green  (#24ED9B)
+      **Label — Opportunity:** → label in green  (#24ED9B)
     Fallback: first-word matches against _WARNING_LABELS → red.
     """
     def _replace(m):
@@ -69,6 +71,9 @@ def _apply_bold(text: str) -> str:
             return f'<strong><span style="color:#e05252;">{label_text}</span>{rest}</strong>'
         if label_text.endswith('— Risk') or label_text.endswith('\u2014 Risk'):
             return f'<strong><span style="color:#f59e0b;">{label_text}</span>{rest}</strong>'
+        if (label_text.endswith('— Strength') or label_text.endswith('\u2014 Strength')
+                or label_text.endswith('— Opportunity') or label_text.endswith('\u2014 Opportunity')):
+            return f'<strong><span style="color:#24ED9B;">{label_text}</span>{rest}</strong>'
 
         first_word = label_text.split()[0] if label_text else label_text
         if first_word in _WARNING_LABELS:

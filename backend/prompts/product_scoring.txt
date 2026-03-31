@@ -123,6 +123,13 @@ Every evidence `claim` bullet MUST start with a **2–3 word bold label** follow
 
 ⚠️ **LABEL CLARITY RULE:** Labels must make sense to someone who has never read the product docs or the bullet beneath them. Never use vendor-specific acronyms, product framework names, or Skillable internal terms (like DTDS) as the label. Write descriptively. Bad: `**DTDS Coverage:**` (opaque to anyone outside Skillable or Workday). Good: `**Workflow Depth:**` (instantly clear). Bad: `**AI Practice Surface:**` (jargon). Good: `**Hands-On AI Features:**` (self-explanatory).
 
+⚠️ **DIRECTIONAL LABEL RULE:** Every evidence bullet must convey whether the signal is positive or negative for labability — not just state a fact. Use the suffix convention to signal direction:
+- `**Label — Strength:**` → positive signal (renders green) — use when the signal genuinely supports labability or market fit
+- `**Label — Opportunity:**` → positive signal with upside framing (renders green) — use when the signal indicates market potential or strategic alignment
+- `**Label — Risk:**` → concern with a viable path forward (renders orange)
+- `**Label — Blocker:**` → hard stop (renders red)
+Bare labels with no suffix (e.g., `**Install Base:**`) are only acceptable for truly neutral contextual facts. A large install base is a Strength. A constrained API surface is a Risk. Name the valence.
+
 **Technical Orchestrability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we build it?"
 
 The `technical_orchestrability` evidence bullets are solutioning guidance — written for whoever at Skillable will be doing the solutioning (SE, TSM, Solution Architect) who needs to understand why this product is or is not labable, and how to approach building it.
@@ -195,7 +202,7 @@ Category prior (highest applicable): Cybersecurity: +4 | Cloud Infrastructure: +
 AI additive: Builds/Trains/Deploys AI (CREATE AI): +3 | AI-embedded features with market demand (INCORPORATE AI): +1
 Other: Large/growing install base: +2 | Growing category: +1 | Limited competitor labs: +1. Cap 10.
 
-Evidence bullets tell the story of strategic alignment and market opportunity. Write 2–3 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal.
+Evidence bullets tell the story of strategic alignment and market opportunity. Write 2–3 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label** with a directional suffix — every signal here is either a Strength, Opportunity, or Risk; none are neutral facts. A large install base is a `— Strength`. A misaligned category is a `— Risk`. A growing market with no competitor labs is an `— Opportunity`.
 
 Signals worth naming (use these labels or choose better ones):
 - `**Category Fit:**` product category and why it aligns (or doesn't) with Skillable's core market strength
