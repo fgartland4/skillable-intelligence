@@ -315,36 +315,18 @@ Use ONLY these labels for the standard bullets:
 
   "**Scoring Approach | Blocker:** No programmatic surface is accessible in an isolated lab context — no PowerShell module, no CLI, no REST API available for per-learner sandboxes. Any lab content would be limited to screen-guided walkthroughs with MCQ knowledge checks or AI Vision against a shared demo tenant, neither of which constitutes meaningful performance-based assessment. This is a fundamental constraint, not a gap that tooling can bridge."
 
-- **Essential Technical Resource:** [REQUIRED — SE/SA-facing technical briefing. State the single most important technical question that must be answered before a Skillable lab can be built for this product. Be concrete and specific: not "does an API exist" but "can DataProtect be installed silently on Windows Server in a network-isolated environment, and what does license activation look like without internet access?" This is the question that blocks or unblocks the entire lab build. Then name the team at this company most likely to own the answer — reason from the product type, do not default to a generic role:
-     - Enterprise VM-installable software: Implementation Engineering, Field Solutions Architecture, or PS engineers who build deployment runbooks — NOT general Support.
-     - SaaS products with provisioning APIs: Solutions Engineering, Partner Engineering, or Platform Engineering — whoever owns the tenant provisioning or partner API surface.
-     - Cloud-native/IaC products: the team that owns ARM/Bicep/CloudFormation deployment templates — DevOps or Platform Engineering.
-     - CLI/developer tools: Developer Advocates or SDK/Platform Engineering — they know auth edge cases, offline use, and scope requirements.
-     - Products with existing lab infrastructure (CloudShare, Instruqt, Appsembler): whoever manages that existing infrastructure.
-  If a relevant API endpoint, developer portal, or deployment doc URL was found in the research, embed it as a markdown link.]
+- **Help your champion find:** [REQUIRED — 3 sentences max. Combine the technical question and the champion navigation into one bullet. (1) State the specific technical question that blocks or unblocks the lab build — be concrete, not generic. (2) Name the team at this vendor most likely to own the answer — reason from the product type, not a generic role: VM-installable → Implementation Engineering or Field Solutions; SaaS with APIs → Partner Engineering or Platform Engineering; cloud-native → DevOps or Platform Engineering; CLI/SDK tools → Developer Advocates or SDK Engineering; existing lab infra → whoever manages it. (3) Give the champion a verbatim question they can send in a text or Slack — plain language, no jargon. If a relevant API endpoint or developer portal URL was found in research, embed it as a markdown link in sentence 2.]
 
   Example outputs:
-  "**Essential Technical Resource:** The question that blocks or unblocks everything: can DataProtect be installed silently on Windows Server in a fully network-isolated lab environment, and what does license activation look like without internet access? The team with this answer is Cohesity's Implementation Engineering or Field Solutions — the engineers who build enterprise deployment runbooks, not general Support."
+  "**Help your champion find:** The question that blocks or unblocks everything: can DataProtect be installed silently on Windows Server in a fully network-isolated environment, and what does license activation look like without internet access? The team with this answer is Cohesity's Implementation Engineering or Field Solutions — the engineers who build enterprise deployment runbooks, not general Support. Ask your champion: 'Who handles hands-on product deployment for our largest enterprise customers?'"
 
-  "**Essential Technical Resource:** Core question: can a fully isolated tenant be provisioned programmatically via API with no human intervention, and what OAuth scopes does that require? The right team is Solutions Engineering or Partner Engineering — whoever owns the provisioning API surface for partners and integrators."
-
-- **Technical Contact:** [REQUIRED — seller-facing, 2 sentences max. Identify the internal role or team the seller's champion needs to find. Then give the seller a one-liner they can hand directly to their champion — something simple enough to forward in a text or Slack message. This is NOT about the technical problem — it is about helping the champion identify a person. No technical jargon. Focus entirely on role identification.]
-
-  Example outputs:
-  "**Technical Contact:** The person your champion needs to find is whoever owns enterprise deployment runbooks for DataProtect — typically in Implementation Engineering or Field Solutions. Ask your champion: 'Who handles hands-on product deployment for our enterprise customers?'"
-
-  "**Technical Contact:** The right contact is whoever owns the provisioning API or partner integration surface — usually Partner Engineering or Platform Engineering. Ask your champion: 'Who at [Company] manages API access for partners building on top of our platform?'"
-
-  "**Technical Contact:** Look for whoever manages the existing CloudShare or Instruqt lab environment — that team owns the lab infrastructure decision. Ask your champion: 'Who runs our current hands-on lab or sandbox environment?'"
+  "**Help your champion find:** The single question is whether a fully isolated tenant can be provisioned programmatically via API with no human intervention — and what OAuth scopes that requires. The right team is Partner Engineering or Platform Engineering — whoever owns the provisioning API surface for partners and integrators. Ask your champion: 'Who at [Company] manages API access for partners building on top of our platform?'"
 
 - **Program Fit:** [which of the standard program types these labs serve, and the business outcome. Include when 2+ program types apply — this is the reusability/ROI case. Format: "**Program Fit:** Customer Training & Enablement (ILT, on-demand catalog) + Channel Enablement (technical demos, SE credentials) — a single lab investment drives adoption, reduces churn, and shortens deal cycles." Standard program types: Customer Training & Enablement (ILT/vILT, on-demand catalog, certification — drives adoption & reduces churn), Channel & Technical Seller Enablement (bootcamps, demos, tailored PoCs, SE credentials — reduces deal cycles, shortens time to revenue), Employee Training & Enablement (internal bootcamps, on-demand courses, assessments — reduces time to resolution, increases efficiency), Customer & Partner Events (adoption campaigns, product launches, exam launches — drives loyalty, generates qualified leads). Omit this bullet if only one program type applies and it's already obvious from context.]
 
 - **Similar Products Already in Skillable:** [one short sentence naming ANOTHER PRODUCT FROM THIS SAME COMPANY that is already live in Skillable. ONLY include this bullet when the company appears by name in the "Scoring Calibration: Known Skillable Customers" section sent with this prompt — that section IS the source of truth for what is live in Skillable. Do NOT invent or infer from general knowledge. Do NOT name other companies or competitors. Omit entirely if the company is not listed as a known Skillable customer in the calibration benchmarks above.]
   Examples: "**Similar Products Already in Skillable:** Hyland OnBase is already live on Skillable's Hyper-V fabric — Nuxeo follows the same install pattern."
             "**Similar Products Already in Skillable:** Microsoft Windows Server already runs on Skillable Hyper-V — Azure Defender follows the same VM fabric path."
-
-- **Next Step:** [what the rep should do — pursue aggressively / pilot with X / monitor API roadmap / do not pursue until Y]
-  Example: "**Next Step:** Pursue — strong technical fit and active partner ecosystem. Start with their Professional Services team."
 
 - **Blockers:** [include whenever Skillable has a current platform gap that meaningfully limits what we can deliver for this product — 1-2 specific, honest items. This is about Skillable's limitations, not the product's. Examples of blockers:
   - An AWS product whose core workflow depends on a service Skillable doesn't yet support (e.g. SageMaker, GuardDuty, ElastiCache)
@@ -355,9 +337,6 @@ Use ONLY these labels for the standard bullets:
   Examples: "**Blockers:** AWS SageMaker (core to this product's ML pipeline) is not yet supported in Skillable's AWS Cloud Slice fabric — limits hands-on ML workflow coverage until Skillable adds support."
             "**Blockers:** No NFR or developer license program found — Skillable would need direct vendor engagement to obtain lab environments before authoring can begin."
             "**Blockers:** Product requires GPU instances (A100/H100) — not currently available in Skillable's VM fabric; limits AI model training scenarios."
-
-- **Note:** [for other critical flags — credit card required, locked APIs, willing buyer/unwilling product team]
-  Example: "**Note:** Trial accounts require credit card — breaks the learner experience. Do not pursue until vendor opens programmatic provisioning."
 
 - **[Custom Label]:** OPTIONAL — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `| Risk` or `| Blocker` suffix if the insight signals a problem.
 
@@ -370,10 +349,10 @@ Use ONLY these labels for the standard bullets:
   - `**Docker Image:**` — official Docker Hub image available; lab authors can pull and configure without building from scratch
   - `**Bicep Templates:**` — vendor publishes Bicep templates; lab authors can reuse directly in Azure Cloud Slice
 
-REQUIRED bullets: Delivery Path, Scoring Approach, Essential Technical Resource, Technical Contact, Next Step.
-OPTIONAL (include when applicable and genuinely useful): [Custom Label] (1–2 max, no duplication), Similar Products Already in Skillable, Program Fit, Blockers, Note.
+REQUIRED bullets: Delivery Path, Scoring Approach, Help your champion find.
+OPTIONAL (include when applicable and genuinely useful): [Custom Label] (1–2 max, no duplication), Similar Products Already in Skillable, Program Fit, Blockers.
 Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
-Total: 3–6 bullets. Fewer sharp bullets beats more diluted ones. Never use "Path A", "Path B", or "Path C".
+Total: 3–5 bullets. Fewer sharp bullets beats more diluted ones. Never use "Path A", "Path B", or "Path C".
 Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
 
 **Embed training URLs as markdown links wherever relevant.** The research contains URLs for training catalogs, on-demand course pages, certification programs, ILT/vILT calendars, and partner portals. When a URL is available and relevant, embed it as a markdown link directly in the bullet text — do not list URLs separately. Examples of where to embed:

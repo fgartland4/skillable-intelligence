@@ -548,9 +548,11 @@
             border: 1px solid #1e3329; border-top: none;
             border-radius: 0 0 8px 8px; padding: 16px 18px;
         }
-        /* Next Steps + Who to Engage */
-        /* Next Steps — numbered narrative */
-        .next-who-section { border-top: 1px solid #1e3329; margin-top: 18px; padding-top: 16px; }
+        /* Next Steps — consolidated company-level card */
+        .nxt-card {
+            background: #0d1a14; border: 1px solid #1e3329; border-left: 3px solid #24ED9B;
+            border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+        }
         .nxt-header { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #3d6655; margin-bottom: 12px; }
         .nxt-list { list-style: decimal; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 11px; }
         .nxt-list::marker, .nxt-li::marker { color: #3d6655; font-size: 0.72rem; }
@@ -771,6 +773,53 @@
 
         </div><!-- /top-blocks -->
 
+        {# ── Consolidated Next Steps (company-level) ── #}
+        {% set _top_p = data.products[0] if data.products else none %}
+        {% if _top_p %}
+        {% set _nxt_contacts = _top_p.contacts or [] %}
+        {% set _nxt_dms    = _nxt_contacts | selectattr('role_type','equalto','decision_maker') | rejectattr('name','match','(?i)^unknown') | list %}
+        {% set _nxt_infs   = _nxt_contacts | selectattr('role_type','ne','decision_maker')      | rejectattr('name','match','(?i)^unknown') | list %}
+        {% set _nxt_unk    = _nxt_contacts | selectattr('name','match','(?i)^unknown') | list %}
+        {% set _li_svg_nxt %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="display:inline-block;vertical-align:-3px;margin-left:4px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>{% endset %}
+        <div class="nxt-card">
+            <div class="nxt-header">Next Steps</div>
+            <ol class="nxt-list">
+
+            {# 1. Verdict + Owning Org #}
+            <li class="nxt-li">
+                {% if cs >= 70 %}<span class="verdict-badge verdict-strong">Strong Pursue</span>
+                {% elif cs >= 55 %}<span class="verdict-badge verdict-pursue">Pursue</span>
+                {% elif cs >= 40 %}<span class="verdict-badge verdict-monitor">Monitor</span>
+                {% else %}<span class="verdict-badge verdict-pass">Do Not Pursue</span>{% endif %}
+                {% if _top_p.owning_org %}
+                 — <strong>{{ _top_p.owning_org.name }}</strong>{% if _top_p.owning_org.type %} ({{ _top_p.owning_org.type|replace('_',' ')|title }}){% endif %}{% if _top_p.owning_org.description %}: {{ _top_p.owning_org.description }}{% endif %}
+                {% endif %}
+            </li>
+
+            {# 2. Contacts (up to 3 named contacts) #}
+            {% set _shown = namespace(n=0) %}
+            {% if _nxt_dms or _nxt_infs or _nxt_unk %}
+            <li class="nxt-li">
+                {% for c in (_nxt_dms + _nxt_infs) %}{% if _shown.n < 3 %}
+                {% if not loop.first %}<br>{% endif %}
+                {% if c.role_type == 'decision_maker' %}<strong>Decision maker:</strong>{% else %}<strong>Influencer:</strong>{% endif %}
+                {% if c.linkedin_url %}<a href="{{ c.linkedin_url }}" target="_blank"><strong>{{ c.name }}</strong>{{ _li_svg_nxt }}</a>{% else %}<strong>{{ c.name }}</strong>{% endif %}
+                {% if '[SKILLABLE ALUMNI]' in (c.relevance or '') %} &#9733;{% endif %},
+                {{ c.title }}.
+                {% set _cr = (c.relevance or '').replace('[SKILLABLE ALUMNI]','').strip() %}
+                {% if _cr %} {{ _cr }}{% endif %}
+                {% set _shown.n = _shown.n + 1 %}{% endif %}{% endfor %}
+                {% if _nxt_unk %}
+                {% if _shown.n > 0 %}<br>{% endif %}
+                <span class="nxt-sug">Also search LinkedIn for: {% for c in _nxt_unk %}{{ c.title }}{% if not loop.last %}, {% endif %}{% endfor %}.</span>
+                {% endif %}
+            </li>
+            {% endif %}
+
+            </ol>
+        </div>
+        {% endif %}
+
         <!-- Product Cards -->
         {% set ot = data.organization_type %}
         <div class="section-heading">
@@ -866,16 +915,18 @@
             {# Every bullet is **Label:** or **Label — Risk:** or **Label — Blocker:** text     #}
             {# We extract everything before :** and strip ** + Risk/Blocker suffixes.            #}
             {# Routing on full bullet text causes false matches when body text contains keywords #}
-            {% set ns = namespace(s1=[], s3=[], s4=[], sNxt=[]) %}
+            {% set ns = namespace(s1=[], s3=[], s4=[], sNxt=[], sEtr=[]) %}
             {% for bullet in (product.recommendation or []) %}
               {% set bl = bullet | lower %}
               {% if ':**' in bl %}
-                {% set _label = bl.split(':**')[0].replace('**','').replace(' \u2014 risk','').replace(' \u2014 blocker','').replace(' — risk','').replace(' — blocker','').strip() %}
+                {% set _label = bl.split(':**')[0].replace('**','').replace(' | risk','').replace(' | blocker','').replace(' \u2014 risk','').replace(' \u2014 blocker','').replace(' — risk','').replace(' — blocker','').strip() %}
               {% else %}
                 {% set _label = bl.lstrip('*').split(':')[0].strip() %}
               {% endif %}
-              {% if _label.startswith('next step') or _label.startswith('technical contact') or _label.startswith('note') %}
-                {% set ns.sNxt = ns.sNxt + [bullet] %}
+              {% if _label.startswith('next step') or _label.startswith('note') %}
+                {# Dropped — handled by consolidated Next Steps section above products #}
+              {% elif _label.startswith('technical contact') or _label.startswith('essential technical resource') or _label.startswith('help your champion find') %}
+                {% set ns.sEtr = ns.sEtr + [bullet] %}
               {% elif _label.startswith('program fit') or _label.startswith('certification program') or _label.startswith('training program') or _label == 'enablement maturity' %}
                 {% set ns.s3 = ns.s3 + [bullet] %}
               {% else %}
@@ -896,10 +947,13 @@
                     {% if tech_dim.evidence %}
                     <ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
                     {% elif tech_dim.summary %}<p class="dim-summary">{{ tech_dim.summary }}</p>{% endif %}
-                    {% if ns.s1 %}
+                    {% if ns.s1 or ns.sEtr %}
                     <div class="guidance-section">
                     <div class="guidance-label">Solutioning Guidance</div>
-                    <ul class="rec-bullets">{% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                    <ul class="rec-bullets">
+                    {% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}
+                    {% for b in ns.sEtr %}{% if ':**' in b %}{% set _etr_text = b.split(':**', 1)[1].strip() %}{% else %}{% set _etr_text = b %}{% endif %}<li><strong>Help your champion find:</strong> {{ _etr_text | linkify }}</li>{% endfor %}
+                    </ul>
                     </div>{% endif %}
                 </div>
             </details>
@@ -1029,108 +1083,6 @@
                 <button onclick="toggleCard(this,false)">collapse all</button>
             </div>
 
-            {# ── Next Steps ── #}
-            {% if ns.sNxt or product.owning_org or product.contacts %}
-            <div class="next-who-section">
-                <div class="nxt-header">Next Steps</div>
-
-                {# Sub-classify sNxt bullets #}
-                {% set ns2 = namespace(verdict=[], etr=[], notes=[]) %}
-                {% for b in (ns.sNxt or []) %}
-                  {% set _bl = b | lower %}
-                  {% if ':**' in _bl %}{% set _lbl = _bl.split(':**')[0].replace('**','').strip() %}
-                  {% else %}{% set _lbl = _bl.lstrip('*').split(':')[0].strip() %}{% endif %}
-                  {% if _lbl.startswith('next step') %}{% set ns2.verdict = ns2.verdict + [b] %}
-                  {% elif _lbl.startswith('technical contact') %}{% set ns2.etr = ns2.etr + [b] %}
-                  {% else %}{% set ns2.notes = ns2.notes + [b] %}{% endif %}
-                {% endfor %}
-
-                {# Contact lists #}
-                {% if product.contacts %}
-                {% set dms_named   = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | rejectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set infs_named  = product.contacts | selectattr('role_type', 'ne', 'decision_maker')      | rejectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set dms_unknown = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | selectattr('name', 'match', '(?i)^unknown') | list %}
-                {% set infs_unknown= product.contacts | selectattr('role_type', 'ne', 'decision_maker')      | selectattr('name', 'match', '(?i)^unknown') | list %}
-                {% else %}
-                {% set dms_named = [] %}{% set infs_named = [] %}{% set dms_unknown = [] %}{% set infs_unknown = [] %}
-                {% endif %}
-
-                {# LinkedIn icon SVG #}
-                {% set _li_svg %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="display:inline-block;vertical-align:-3px;margin-left:4px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>{% endset %}
-
-                {# Determine action word from verdict bullet #}
-                {% set ns3 = namespace(action='Engage with') %}
-                {% if ns2.verdict %}
-                  {% set _vbl = ns2.verdict[0] | lower %}
-                  {% if 'pursue' in _vbl and 'do not' not in _vbl %}{% set ns3.action = 'Pursue' %}
-                  {% elif 'do not pursue' in _vbl or 'not viable' in _vbl %}{% set ns3.action = 'Approach with caution' %}
-                  {% elif 'monitor' in _vbl %}{% set ns3.action = 'Monitor' %}{% endif %}
-                {% endif %}
-
-                <ol class="nxt-list">
-
-                {# 1. Action + owning org (or verdict fallback) #}
-                <li class="nxt-li">
-                  {% if product.owning_org %}
-                    <strong>{{ ns3.action }}</strong> a conversation with <strong>{{ product.owning_org.name }}</strong>{% if product.owning_org.type %} ({{ product.owning_org.type|replace('_',' ')|title }}){% endif %}{% if product.owning_org.description %}: {{ product.owning_org.description }}{% endif %}
-                  {% elif ns2.verdict %}
-                    {% if ':**' in ns2.verdict[0] %}{% set _vt = ns2.verdict[0].split(':**', 1)[1].strip() %}{% else %}{% set _vt = ns2.verdict[0] %}{% endif %}
-                    <strong>{{ ns3.action }}:</strong> {{ _vt | linkify }}
-                  {% endif %}
-                </li>
-
-                {# 2. Contacts in prose #}
-                {% set _all_unknown = dms_unknown + infs_unknown %}
-                {% if dms_named or infs_named or _all_unknown %}
-                <li class="nxt-li">
-                  {% set _dm0 = dms_named[0] if dms_named else none %}
-                  {% set _inf0 = infs_named[0] if infs_named else none %}
-                  {# Primary DM #}
-                  {% if _dm0 %}
-                    <strong>Likely decision maker:</strong>
-                    {% if _dm0.linkedin_url %}<a href="{{ _dm0.linkedin_url }}" target="_blank"><strong>{{ _dm0.name }}</strong>{{ _li_svg }}</a>{% else %}<strong>{{ _dm0.name }}</strong>{% endif %}
-                    {% if '[SKILLABLE ALUMNI]' in (_dm0.relevance or '') %} &#9733;{% endif %},
-                    {{ _dm0.title }}.
-                    {% set _dm0_rel = (_dm0.relevance or '').replace('[SKILLABLE ALUMNI]','').strip() %}
-                    {% if _dm0_rel %} {{ _dm0_rel }}{% endif %}
-                  {% endif %}
-                  {# Primary Influencer #}
-                  {% if _inf0 %}
-                    {% if _dm0 %}<br>{% endif %}
-                    <strong>Likely key influencer:</strong>
-                    {% if _inf0.linkedin_url %}<a href="{{ _inf0.linkedin_url }}" target="_blank"><strong>{{ _inf0.name }}</strong>{{ _li_svg }}</a>{% else %}<strong>{{ _inf0.name }}</strong>{% endif %}
-                    {% if '[SKILLABLE ALUMNI]' in (_inf0.relevance or '') %} &#9733;{% endif %},
-                    {{ _inf0.title }}.
-                    {% set _inf0_rel = (_inf0.relevance or '').replace('[SKILLABLE ALUMNI]','').strip() %}
-                    {% if _inf0_rel %} {{ _inf0_rel }}{% endif %}
-                  {% endif %}
-                  {# Additional contacts #}
-                  {% for c in dms_named[1:] + infs_named[1:] %}
-                  {% set _cr = (c.relevance or '').replace('[SKILLABLE ALUMNI]','').strip() %}
-                  <br>{% if c.linkedin_url %}<a href="{{ c.linkedin_url }}" target="_blank"><strong>{{ c.name }}</strong>{{ _li_svg }}</a>{% else %}<strong>{{ c.name }}</strong>{% endif %}{% if '[SKILLABLE ALUMNI]' in (c.relevance or '') %} &#9733;{% endif %}, {{ c.title }}{% if _cr %} — {{ _cr }}{% endif %}.
-                  {% endfor %}
-                  {# Suggested searches #}
-                  {% if _all_unknown %}
-                  <span class="nxt-sug">Also search LinkedIn for: {% for c in _all_unknown %}{{ c.title }}{% if not loop.last %}, {% endif %}{% endfor %}.</span>
-                  {% endif %}
-                </li>
-                {% endif %}
-
-                {# 3. Arm your champion (ETR) #}
-                {% for b in ns2.etr %}
-                {% if ':**' in b %}{% set _btext = b.split(':**', 1)[1].strip() %}{% else %}{% set _btext = b %}{% endif %}
-                <li class="nxt-li"><strong>Help your champion find:</strong> {{ _btext | linkify }}</li>
-                {% endfor %}
-
-                {# Notes (if any) #}
-                {% for b in ns2.notes %}
-                {% if ':**' in b %}{% set _btext = b.split(':**', 1)[1].strip() %}{% else %}{% set _btext = b %}{% endif %}
-                <li class="nxt-li" style="color:#6b9e88;"><strong>Note:</strong> {{ _btext | linkify }}</li>
-                {% endfor %}
-
-                </ol>
-            </div>
-            {% endif %}
 
         </div>
         {% endfor %}
