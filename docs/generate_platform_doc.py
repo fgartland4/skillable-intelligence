@@ -258,10 +258,10 @@ def _bullet_para(doc, after=40):
     set_paragraph_spacing(p, 0, after)
     pPr = p._p.get_or_add_pPr()
     ind = OxmlElement("w:ind")
-    ind.set(qn("w:left"), "432")    # ~0.3" left indent
-    ind.set(qn("w:hanging"), "216") # hanging matches bullet + space width
+    ind.set(qn("w:left"), "160")    # bullet text nearly flush with body paragraphs
+    ind.set(qn("w:hanging"), "160") # bullet character sits at left margin
     pPr.append(ind)
-    r = p.add_run("\u2022  ")       # bullet + 2 spaces
+    r = p.add_run("\u2022 ")        # bullet + 1 space
     r.font.name = FONT_NAME
     r.font.size = Pt(7)             # smaller than body — elegant, not chunky
     r.font.color.rgb = DARK_TEXT
