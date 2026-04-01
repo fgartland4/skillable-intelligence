@@ -63,9 +63,16 @@
         }
         .ci-box-title {
             font-size: 0.56rem; font-weight: 800; letter-spacing: 0.12em;
-            text-transform: uppercase; color: #3d6655; margin-bottom: 10px;
+            text-transform: uppercase; color: #3d6655; margin-bottom: 12px;
         }
-        .ci-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+        .ci-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+        .ci-col-label {
+            font-size: 0.56rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #3d6655; margin-bottom: 7px;
+        }
+        .ci-col-empty {
+            font-size: 0.68rem; color: #1e3329; font-style: italic;
+        }
         .co-sig-bdg {
             display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 3px 9px;
             border-radius: 6px; white-space: nowrap;
@@ -345,8 +352,21 @@
     {# Company Intelligence — full width between header and board #}
     <div class="ci-box">
         <div class="ci-box-title">Company Intelligence</div>
-        <div style="display:flex; align-items:flex-start; gap:24px; flex-wrap:wrap;">
-            <div style="flex:1; min-width:200px;">
+
+        {# Top half: key badges (left) | maturity slider (right) #}
+        <div style="display:flex; align-items:flex-start; gap:32px; margin-bottom:16px;">
+
+            {# LEFT — key signal badges #}
+            <div class="ci-badges" style="flex:1.2; min-width:220px;">
+                {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
+                {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
+                {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
+                {% if discovery.org_contacts %}<span class="co-sig-bdg co-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }}</span>{% endif %}
+                {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitor{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>{% endif %}
+            </div>
+
+            {# RIGHT — Lab Maturity slider #}
+            <div style="flex:1; min-width:180px; max-width:320px;">
                 <div class="mat-level-name">{{ mat_level }}</div>
                 <div class="mat-track">
                     <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
@@ -363,14 +383,28 @@
                     {% endfor %}
                 </div>
             </div>
-            <div class="ci-badges" style="align-self:center; flex:2; min-width:240px;">
-                {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
-                {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
-                {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
-                {% if discovery.org_contacts %}<span class="co-sig-bdg co-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }}</span>{% endif %}
-                {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitor{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>{% endif %}
+        </div>
+
+        {# Bottom half: four signal columns (populated once researcher data is wired up) #}
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; border-top:1px solid #1e3329; padding-top:14px;">
+            <div>
+                <div class="ci-col-label">Customer Base</div>
+                <div class="ci-col-empty">Pending research</div>
+            </div>
+            <div>
+                <div class="ci-col-label">Content Signals</div>
+                <div class="ci-col-empty">Pending research</div>
+            </div>
+            <div>
+                <div class="ci-col-label">Partner Ecosystem</div>
+                <div class="ci-col-empty">Pending research</div>
+            </div>
+            <div>
+                <div class="ci-col-label">Urgency / Triggers</div>
+                <div class="ci-col-empty">Pending research</div>
             </div>
         </div>
+
     </div>
 
     <form method="POST" action="/inspector/score" id="scoreForm">
