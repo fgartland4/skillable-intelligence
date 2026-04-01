@@ -64,6 +64,23 @@ If NONE feasible → Score technical_orchestrability 0-5, add "no_api_automation
 If requires credit card to provision learner account → add "credit_card_required".
 If requires PII (personal details, government ID, address, etc.) to provision → add "pii_required".
 
+**SaaS Isolation Pre-Screen — apply when the product has no installable or self-hosted option:**
+For any product that is SaaS-only (browser-based, no on-premises installer, no downloadable or VM-installable version), answer these two questions before proceeding to Step 3:
+
+1. Does the vendor provide a per-learner sandbox API or isolated tenant provisioning? (e.g., Salesforce Connected App sandbox, a vendor API that creates a fully isolated instance per learner with independent data state)
+2. Is there any self-hosted, downloadable, or VM-installable version of the product?
+
+If BOTH answers are NO — the product is pure SaaS with no per-learner isolation mechanism:
+→ Flag `saas_only` in poor_match_flags
+→ Cap technical_orchestrability at 15–20 maximum; the product may still be labable via credential pool or a shared demo environment, but per-learner isolation is a fundamental constraint that limits lab fidelity and scoring quality
+
+If learners cannot receive isolated instances at all — only a shared demo tenant, a credential pool with shared application state, or screen-guided walkthroughs in a vendor-controlled environment:
+→ Additionally flag `multi_tenant_only` in poor_match_flags
+→ Score technical_orchestrability in the 8–15 range; shared state limits scoring fidelity, lab repeatability, and the ability to run concurrent sessions without learner interference
+→ In Step 3, this product does NOT qualify for the Cloud Slice "Credential pool recyclable" tier (24–30) or higher; route to the Manual tiers (8–24) only
+
+⚠️ **Critical distinction — Entra ID SSO ≠ per-learner isolation:** If a SaaS product authenticates via Entra ID or Azure SSO, that does NOT mean learners receive isolated application environments. Entra ID handles authentication — it does not isolate the SaaS application's data state per learner. A Workday implementation tenant shared by 30 learners is still a shared tenant regardless of how they log in. Evaluate isolation at the application data layer, not the authentication layer. This applies to ALL enterprise SaaS platforms — Workday, ServiceNow, Veeva, Oracle Cloud, SAP SuccessFactors, and any other product where the vendor controls the infrastructure and learners access a shared environment.
+
 ## STEP 2 — User Persona Filter
 List 2-4 from: Architect · Administrator · Security Engineer / Analyst · Infrastructure Engineer · Networking Engineer · Data Scientist · Data Engineer · Data Analyst · Business Analyst · Business User · Developer · Software Engineer · Consumer
 All except Consumer are highly labable. Consumer → Score 0-3, add "consumer_product".
@@ -96,6 +113,8 @@ ALL Azure services are supported (after security review). Bicep and ARM JSON tem
 - Credential pool recyclable: 24-30, tier: "Next Best - Credential Pool"
 - Azure SSO but requires manual learner login steps: 18-24, tier: "Manual - Azure SSO"
 - Trial accounts: 11-18, tier: "Manual - Trial Accounts" (credit card → 6-11, add flags)
+
+⚠️ **Enterprise SaaS ≠ Azure IaaS/PaaS — evaluate isolation explicitly before assigning tier:** Azure native services (Entra ID, Azure SQL, Azure Monitor, Azure Storage) give every Cloud Slice subscription genuine per-learner resource isolation by design — each learner's subscription is a separate security boundary. Enterprise SaaS platforms *hosted on* Azure infrastructure (Workday, ServiceNow, Veeva, SAP SuccessFactors, etc.) do NOT inherit this isolation — the SaaS application's data layer is shared across all customers and learners unless the vendor explicitly provisions isolated instances per learner. Before placing a SaaS product in the Best or Next Best tier here, confirm: does the vendor provide isolated per-learner instances via their own provisioning API? If not, apply `saas_only` and/or `multi_tenant_only` flags from Step 1 and score in the Manual tiers (8–24), not the Best (32–38) or Credential Pool (24–30) tiers. High Entra ID SSO fit does NOT override a missing isolation mechanism.
 
 **AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → skillable_path: "A1"
 Supported: EC2, RDS, S3, Lambda, DynamoDB, CloudFormation, ECS, EKS, API Gateway, Kinesis, SNS, SQS, Step Functions, Glue, CloudWatch, VPC, IAM, Route 53, Secrets Manager, and more.

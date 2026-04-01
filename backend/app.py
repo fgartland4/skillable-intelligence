@@ -95,6 +95,9 @@ def flag_label_filter(flag):
         'pii_required':             'Credit Card and/or PII Required',
         'broken_learner_experience':'Credit Card and/or PII Required',  # legacy cached results
         'consumer_product':         'Consumer Product',
+        'saas_only':                'SaaS Only — No Learner Isolation',
+        'multi_tenant_only':        'Shared Tenant — No Per-Learner Isolation',
+        'no_provisioning_api':      'No Provisioning API',
     }
     return labels.get(flag, flag.replace('_', ' ').title())
 
