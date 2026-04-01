@@ -81,6 +81,22 @@ When all companies are done (or timed out), the results table renders sorted by 
 
 **How:** Each company is submitted as a background thread. A semaphore caps concurrency at 6 simultaneous analyses. Timeout enforcement uses `concurrent.futures.wait()` with a 180-second parameter per company. SSE messages carry per-company state transitions that the UI renders as individual progress indicators.
 
+### Capacity Awareness
+
+Prospector is responsible for knowing its own practical ceiling and communicating it clearly — before a run starts, during a run, and when limits are being approached or hit.
+
+**Before a run:** The input screen surfaces expected time and throughput based on current service tier configuration. "At current capacity, a batch of 50 companies with no cache hits will take approximately 15–20 minutes." Cache hit rate materially affects this — a list where half the companies are already cached runs much faster — and the UI makes this visible.
+
+**Recommended best practices (surfaced in the UI):**
+- Break very large lists into batches that fit within a single session — easier to review, easier to cancel and restart
+- Cache hits are effectively free; running Prospector on a list a second time is much faster than the first
+- Companies that timed out in a prior run can be re-submitted; a transient API slowdown is often the cause
+- If consistent timeouts suggest a service capacity problem, that is a signal to review the provisioned service tier
+
+**During a run:** Status messages distinguish cache hits, active analyses, timeouts, and errors explicitly. A company that times out is labeled as such — not silently dropped. If the Claude or Serper API begins throttling, Prospector surfaces that in the status stream rather than letting the run silently degrade.
+
+**Service tier visibility:** The capacity ceiling is configuration-driven, not hardcoded. When Marketing needs higher volume and the current tier is the constraint, Prospector makes that clear — the path forward is a service upgrade or API switch, and users should not need to deduce this from slow run times.
+
 ### Batch Job Manager
 
 **Why it exists:** To coordinate parallel analysis across a list of companies without overwhelming the API or blocking the UI.
