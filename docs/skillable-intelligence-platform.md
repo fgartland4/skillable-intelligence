@@ -95,7 +95,9 @@ Prospector finds the right companies.
 
 Prospector is the go-to-market tool for Marketing and RevOps. It takes a list of companies and returns a ranked assessment of ICP fit — with product-level evidence, composite scores, verdicts, delivery path signals, and key contacts for every company on the list.
 
-**Prospector qualifies every company on product-level fit** before a sequence is written, a dollar is spent, or an SDR makes a call. Companies that clear all three dimensions go into outreach. Workday patterns come off the list — with specific, documented technical reasons on the Company record. Prospector also surfaces customer expansion opportunities, mapping the department landscape of existing accounts to identify adoption opportunities for existing labs, greenfield departments, and buyers ready to expand.
+**Prospector qualifies every company on product-level fit** before a sequence is written, a dollar is spent, or an SDR makes a call. Companies that clear all three dimensions go into outreach. Workday patterns come off the list — with specific, documented technical reasons on the Company record.
+
+**Customer expansion uses Inspector, not Prospector.** When the question is where there is more to sell within an existing account, the right tool is the Inspector Case Board — a full product portfolio scan, labability tiers, competitive landscape, and key contacts. Expansion is a depth question. Prospector is a breadth tool.
 
 **What it unlocks:** The list that goes into outreach is the right list. Every company on it has been evaluated on the question that actually determines Skillable fit — not on firmographic proxies that have nothing to do with whether their products can be orchestrated into a lab.
 

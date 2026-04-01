@@ -19,13 +19,15 @@ What makes Prospector more than a fast Google search is what it's scoring agains
 
 The Workday example makes this concrete. Massive install base. A dedicated Workday Learning division with a serious partner program. Strong organizational signals across the board — Gates 2 and 3 both pass. But Workday is pure multi-tenant SaaS with no per-learner environment isolation, no meaningful API surface for provisioning, and no deployment model Skillable can orchestrate. Gate 1 fails, and the composite score reflects that regardless of how impressive everything else looks. A seller without this information might pursue that account for months. Prospector surfaces the reality in the first batch run.
 
-Prospector operates in two modes, serving two distinct motions:
+Prospector operates in two modes:
 
-**ICP Outbound** — Marketing or Sales inputs a list of prospect companies. Prospector scores and ranks them against all three qualification gates, surfaces a fit rationale and key contacts for each, and writes the results to HubSpot so Marketing can activate immediately. The output answers: which of these companies are worth pursuing, and why?
+**Batch Scoring** — Marketing, RevOps, or Sales inputs a list of companies. Prospector scores and ranks them against all three qualification gates, surfaces a fit rationale and key contacts for each, and writes the results to HubSpot so Marketing can activate immediately. The output answers: which of these companies are worth pursuing, and why?
 
-**Customer Expansion** — Prospector analyzes existing customer accounts, mapping the department landscape to identify where more of Skillable's value can be delivered. It surfaces three types of expansion signals: departments that could adopt labs already built by colleagues (Use), departments with labable products and no program yet (Build), and existing buyers ready to go further. The output answers: where is there more to sell within this account?
+**ICP Discovery** *(roadmap)* — Prospector finds companies you don't know about yet that match your ICP. Define the characteristics — industry, product type, deployment model, technical signals — and Prospector surfaces candidates ranked by fit. The output answers: who else looks like Fortinet?
 
-The intended flow for ICP Outbound: Prospector surfaces the top accounts from a batch, then Inspector goes deep on those. The Score Report link on every Prospector row makes that handoff a single click.
+The intended flow: Prospector surfaces the top accounts from a batch, then Inspector goes deep on those. The Score Report link on every Prospector row makes that handoff a single click.
+
+**Customer expansion uses Inspector, not Prospector.** When the question is where there is more to sell within an existing account, the right tool is the Inspector Case Board — a full product portfolio scan, labability tiers, competitive landscape, and key contacts for that company. Expansion is a depth question. Prospector is a breadth tool.
 
 ---
 
@@ -39,19 +41,19 @@ The intended flow for ICP Outbound: Prospector surfaces the top accounts from a 
 
 **Solution Engineers** reach for ICP Outbound in lighter-touch situations — territory planning, partner QBR prep, quick scans where depth on any one account isn't the goal. The Score Report link is what makes it useful for SEs: a high-scoring company almost certainly has an existing Inspector cache hit, turning the Prospector row into a direct link to the full analysis.
 
-### Customer Expansion Mode
+### Customer Expansion
 
-**Strategic Account Directors and AEs** use Customer Expansion to identify net-new deal opportunities within existing accounts — departments with labable products that have no lab program yet (Build), or departments that could adopt labs already built elsewhere in the account (Use). Every expansion opportunity surfaces as a Deal in HubSpot. Typical trigger: territory planning, renewal prep, or an active expansion motion.
+**Customer expansion uses Inspector Case Board, not Prospector.** AEs, Strategic Account Directors, and CSMs who want to understand where there is more to sell within an existing account run Inspector on that company — the full product portfolio scan, labability tiers, competitive landscape, and contacts. That is the right depth for an expansion conversation. Typical triggers: QBR preparation, renewal prep, active expansion motion.
 
-**Customer Success Managers** use Customer Expansion to identify and validate opportunities before bringing them to the AE. The department map and Buying Group enrichment give CSMs a structured view of the account before any conversation — which departments are already in a lab program, which ones aren't, and who the relevant contacts are for each. Typical trigger: QBR preparation or account review.
-
-**Marketing** uses Customer Expansion data in aggregate — segmenting the customer base by opportunity type and targeting department-level contacts with adoption or program-launch content as the expansion motion matures.
+Prospector is a breadth tool. It is not the right instrument when you already know the account and the question is depth.
 
 ---
 
 ## What Prospector Delivers
 
-You submit a list of up to 25 companies. Somewhere between 5 and 8 minutes later (depending on API response times and how many cache hits you get), you have a ranked table sorted by composite score.
+You submit a list of companies. Somewhere between 5 and 8 minutes later (depending on API response times and how many cache hits you get), you have a ranked table sorted by composite score.
+
+Practical batch size is constrained by the underlying services — Serper search API and Claude API both have rate limits and concurrency ceilings. The platform itself imposes no hard limit; throughput is a function of which service tiers are provisioned. If Marketing needs higher volume, the conversation is about service capacity, not platform capability.
 
 Every row contains: the company's rank and name, a breakdown of product counts by labability tier (Highly Labable / Likely / Not Labable), the name of the top product that drove the score, the Lab Score for that product (0–100, color-coded green/amber/red), the Skillable Path label, a Lab Maturity score for organizational readiness, the Composite score that combines both, a set of partnership signal checkmarks (ATP Program, Channel Program, Existing Lab Partner, ILT/vILT, On-Demand, Certifications, Gray Market), two contacts with name, title, and LinkedIn URL, and a Score Report link that connects directly to Inspector.
 
@@ -73,7 +75,7 @@ When all companies are done (or timed out), the results table renders sorted by 
 
 ## The Batch Orchestration Layer
 
-**Why:** Running 25 analyses in parallel without rate-limiting or timeout enforcement would make the platform fragile — a few slow API responses would hold up the entire batch, and the UI would have no way to show meaningful progress.
+**Why:** Running a large batch of analyses without concurrency controls and timeout enforcement would make the platform fragile — a few slow API responses could hold up the entire batch, and the UI would have no way to show meaningful progress. Throughput scales with the service tiers provisioned for Serper and Claude; the platform orchestration layer handles whatever capacity those services provide.
 
 **What:** Controlled parallel execution across the full company list, with per-company timeouts, a cancel endpoint, and live SSE progress streaming back to the UI.
 
