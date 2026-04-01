@@ -222,7 +222,7 @@ Two categories of configuration exist in Designer, and they belong in separate p
 AI provider connection, API key, model configuration. Configured once during customer onboarding — typically by Skillable or the customer's technical admin. Lives in a separate Admin section, not in Preferences. Most users never see it after initial setup.
 
 **Preferences (Program Standards — used regularly):**
-The defaults that shape every program Designer generates. Organized into six groups, each with a distinct owner and purpose. This is where the first-run onboarding guided setup focuses.
+The defaults that shape every program Designer generates. Organized into five groups, each with a distinct owner and purpose. This is where the first-run onboarding guided setup focuses.
 
 ### First-Run Onboarding
 
@@ -230,7 +230,7 @@ When a new customer account is provisioned, the AI connection is configured by S
 
 If the customer has an Inspector analysis, Preferences can be pre-populated with smart defaults — a cybersecurity product triggers break/fix and collaborative lab recommendations; a networking product triggers Hyper-V default and multi-VM environment suggestions. The PS team or LC confirms before handing off to the program owner.
 
-### The Six Preference Groups
+### The Five Preference Groups
 
 **1. Content Standards** *(Program owner)*
 The structural and naming defaults that make every lab feel like it belongs to the same program.
@@ -288,12 +288,6 @@ Always-on context the AI uses in every generation call across all phases. The mo
 
 ---
 
-### The Section Count
-
-Preferences has five groups, not six. The original design included an Environment & Delivery Defaults group — that has been removed. Environment decisions belong in Phase 4.
-
----
-
 ## Relationship to the Intelligence Platform
 
 Designer is downstream of Inspector in the primary handoff chain. It does not re-run research or re-score products — it consumes the Intelligence signals that Inspector already produced and translates them into program design decisions.
@@ -309,4 +303,3 @@ Designer program records link back to their source Inspector analysis via `inspe
 
 ---
 
-*Phase 4 BOM categories, Studio export format details, and full activity validation guidance will be expanded after the Designer requirements document is complete.*
