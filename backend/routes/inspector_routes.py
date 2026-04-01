@@ -76,7 +76,7 @@ def discover():
             aid = cached_analysis.get("analysis_id", "")
             if aid:
                 log.info("Inspector cache hit (analysis) for %s → %s", company_name, aid)
-                return redirect(url_for("inspector.dossier", analysis_id=aid) + "?cached=1")
+                return redirect(url_for("inspector.results", analysis_id=aid) + "?cached=1")
 
         # ── Level 2: discovery cache (skip searches, go straight to case board) ──
         cached_disc = find_discovery_by_company_name(company_name)
