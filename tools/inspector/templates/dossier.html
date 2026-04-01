@@ -439,7 +439,7 @@
     <span style="font-size:0.82rem;color:#6b9e88;font-weight:600;">Inspector</span>
     {% if data.discovery_id %}
     <span style="font-size:0.82rem;color:#3d6655;margin:0 4px;">/</span>
-    <a href="/inspector/caseboard/{{ data.discovery_id }}" style="font-size:0.82rem;color:#6b9e88;text-decoration:none;font-weight:600;" onmouseover="this.style.color='#24ED9B'" onmouseout="this.style.color='#6b9e88'">Case Board</a>
+    <a href="/inspector/caseboard/{{ data.discovery_id }}" style="font-size:0.82rem;color:#6b9e88;text-decoration:none;font-weight:600;" onmouseover="this.style.color='#24ED9B'" onmouseout="this.style.color='#6b9e88'">Action Plan</a>
     <span style="font-size:0.82rem;color:#3d6655;margin:0 4px;">/</span>
     <span style="font-size:0.82rem;color:#24ED9B;font-weight:600;">Action Plan</span>
     {% else %}
@@ -458,7 +458,7 @@
     {# Top nav row #}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
         {% if data.discovery_id %}
-        <a href="/inspector/caseboard/{{ data.discovery_id }}" class="back">&larr; Case Board</a>
+        <a href="/inspector/caseboard/{{ data.discovery_id }}" class="back">&larr; Action Plan</a>
         {% else %}
         <a href="/inspector/" class="back">&larr; New Search</a>
         {% endif %}
