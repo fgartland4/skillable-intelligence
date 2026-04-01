@@ -124,6 +124,15 @@
             letter-spacing: -0.03em; line-height: 1;
         }
         .seller-acv-note { font-size: 0.65rem; color: #3d6655; margin-top: 2px; }
+        .seller-hero-blockers {
+            display: flex; flex-direction: column; gap: 8px;
+            border-left: 2px solid rgba(248,113,113,0.4); padding-left: 20px;
+        }
+        .hero-blocker-badge {
+            font-size: 0.84rem; font-weight: 700; color: #f87171;
+            background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3);
+            border-radius: 8px; padding: 8px 14px; line-height: 1.3;
+        }
 
         /* Zone 1 detail grid — secondary info */
         .seller-grid {
@@ -528,7 +537,25 @@
         <p class="seller-desc">{{ data.company_description }}</p>
         {% endif %}
 
-        {# HERO ROW — Verdict + ACV dominate; everything else is detail #}
+        {# HERO ROW — Verdict + ACV + up to 2 gating blockers. One scan tells the whole story. #}
+        {# Gating blockers: not_likely products or critical poor_match_flags only — not SE detail #}
+        {% set ns_hero = namespace(gate_blocks=[]) %}
+        {% set _critical_flags = ['no_provisioning_api', 'no_isolation', 'hardware_id_dependency',
+                                   'saas_only', 'multi_tenant_only', 'no_deployment_model',
+                                   'mfa_enforced', 'hardware_dependency', 'no_lab_path'] %}
+        {% for p in data.products %}
+            {% if p.likely_labable == 'not_likely' and ns_hero.gate_blocks | length < 2 %}
+                {% set _ = ns_hero.gate_blocks.append('No lab path — ' ~ p.name) %}
+            {% endif %}
+            {% if p.poor_match_flags and ns_hero.gate_blocks | length < 2 %}
+                {% for flag in p.poor_match_flags %}
+                    {% if flag | lower in _critical_flags and ns_hero.gate_blocks | length < 2 %}
+                        {% set _ = ns_hero.gate_blocks.append(flag | replace('_',' ') | title) %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+
         <div class="seller-hero">
             <div class="seller-hero-verdict">
                 <span class="verdict-badge verdict-{{ top_verdict }}">{{ top_verdict_label }}</span>
@@ -538,6 +565,13 @@
                 <div class="seller-acv-label">Estimated Annual Value</div>
                 <div class="seller-acv-value">${{ "{:,}".format(ns.acv_low | int) }}&ndash;${{ "{:,}".format(ns.acv_high | int) }}</div>
                 <div class="seller-acv-note">estimated ACV across scored products</div>
+            </div>
+            {% endif %}
+            {% if ns_hero.gate_blocks %}
+            <div class="seller-hero-blockers">
+                {% for b in ns_hero.gate_blocks %}
+                <div class="hero-blocker-badge">⚠ {{ b }}</div>
+                {% endfor %}
             </div>
             {% endif %}
         </div>
