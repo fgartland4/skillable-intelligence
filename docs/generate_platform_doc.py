@@ -27,6 +27,23 @@ ROW_ALT        = "F0F5F2"
 FONT_NAME      = "Calibri"
 
 
+# ── Typographic quotes ────────────────────────────────────────────────────────
+
+def smartify(text):
+    """Convert straight quotes to typographic (curly) quotes."""
+    import re
+    # Double quotes: opening after space/start, closing before space/end/punctuation
+    text = re.sub(r'(?<=[(\s\u2014])"(?=\S)', '\u201c', text)   # opening after space/dash/paren
+    text = re.sub(r'^"(?=\S)', '\u201c', text)                   # opening at line start
+    text = re.sub(r'"(?=[\s.,;:!?)\u2014]|$)', '\u201d', text)  # closing before space/punct/end
+    text = re.sub(r'"', '\u201c', text)                          # remaining opens
+    # Single quotes / apostrophes
+    text = re.sub(r"(?<=\w)'(?=\w)", '\u2019', text)             # contractions (don't, it's)
+    text = re.sub(r"(?<=\s)'(?=\S)", '\u2018', text)             # opening after space
+    text = re.sub(r"'(?=[\s.,;:!?]|$)", '\u2019', text)         # closing
+    return text
+
+
 # ── XML helpers ───────────────────────────────────────────────────────────────
 
 def set_cell_background(cell, hex_color):
@@ -72,7 +89,7 @@ def add_bottom_border(paragraph, color_hex=DARK_GREEN_HEX, size=8):
 
 
 def make_run(paragraph, text, size_pt=10, bold=False, italic=False, color=None):
-    run = paragraph.add_run(text)
+    run = paragraph.add_run(smartify(text))
     run.font.name = FONT_NAME
     run.font.size = Pt(size_pt)
     run.font.bold = bold
@@ -294,7 +311,7 @@ def add_table(doc, headers, rows):
                 p._element.getparent().remove(p._element)
             p = cell.add_paragraph()
             set_paragraph_spacing(p, 0, 0)
-            make_run(p, cell_text, color=DARK_TEXT)
+            make_run(p, smartify(cell_text), color=DARK_TEXT)
 
     # Spacing after table
     p_after = doc.add_paragraph()
