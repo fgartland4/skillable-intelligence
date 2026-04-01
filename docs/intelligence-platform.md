@@ -14,7 +14,7 @@ Skillable has to ask three harder questions:
 
 1. **Technical Orchestrability** — Can Skillable's platform provision, configure, score, and tear down a lab for what this company sells? Does their product have the deployment model, API surface, and technical architecture that Skillable can orchestrate?
 
-2. **Product Complexity** — Is the product technically rich enough that hands-on practice creates genuine skill-building value? Lab programs only make sense for products where doing the thing in a realistic environment builds capability that reading about it doesn't.
+2. **Potential Lab Program Impact** — Would a lab program for this product create meaningful business impact for the customer AND meaningful skill and career impact for their learners? The customer's end users — customers, partners, technical sellers, employees — genuinely need hands-on experience because the product is too complex to learn by reading or watching alone. And people who get hands-on practice will be measurably more confident using the product on the job and more capable of advancing their careers. Products that are too simple, too shallow, or too narrow in audience score low here regardless of orchestrability.
 
 3. **Organizational Readiness** — Does this company have the content team skills, technical enablement maturity, and program leadership to build and sustain a lab program — not just complete a pilot?
 
@@ -223,9 +223,9 @@ Each scoring dimension maps directly to one of the three qualification gates —
 | Dimension | Gate | The Skillable Question It Answers |
 |---|---|---|
 | **Technical Orchestrability** | Gate 1 | Can Skillable's automation platform provision, configure, score, and tear down a lab for this product without manual intervention? |
-| **Workflow Complexity** | Gate 2 | Will learners have meaningful technical tasks to practice — things that require a real environment, not a video or walkthrough? |
-| **Training Ecosystem Maturity** | Gate 2 | Is there already demonstrated demand for hands-on training on this product? |
-| **Market & Strategic Fit** | Gate 2 | Does this align with the verticals and skill areas where Skillable has proven ROI? |
+| **Workflow Complexity** | Gate 2 | Are there enough meaningful, repeatable technical tasks to justify a multi-lab program — things that require a real environment to learn, not a video or walkthrough? |
+| **Training Ecosystem Maturity** | Gate 2 | Is there demonstrated demand for hands-on training on this product? Do the customer's end users — customers, partners, sellers, employees — need to learn it, and will hands-on practice make them meaningfully more capable and confident? |
+| **Market & Strategic Fit** | Gate 2 | Does this align with the verticals and skill areas where Skillable has proven lab program ROI? |
 | **Lab Maturity** | Gate 3 | Does this company have the organizational infrastructure — content team skills, program leadership, technical readiness — to build and scale a lab program? |
 
 ### 5.2 Skillable Path — The Core Qualification Decision

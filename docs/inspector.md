@@ -12,7 +12,7 @@ Inspector is the depth contextualization layer of Skillable Intelligence. It tak
 
 The three gates Inspector evaluates are:
 - **Gate 1 — Technical Orchestrability:** Can Skillable provision, configure, score, and tear down a lab for this company's products?
-- **Gate 2 — Product Complexity:** Is the product technically rich enough that hands-on practice creates genuine skill-building value?
+- **Gate 2 — Potential Lab Program Impact:** Would a lab program for this product create meaningful business impact for the customer AND meaningful skill and career impact for their learners? Two signals: (1) the customer's end users — customers, partners, technical sellers, employees — genuinely need hands-on experience because the product is too complex to learn by reading or watching; (2) people who practice hands-on will be measurably more confident using the product on the job and more capable of advancing their careers.
 - **Gate 3 — Organizational Readiness:** Does this company have the content team, program leadership, and technical maturity to build and sustain a lab program?
 
 Every score, every evidence bullet, every recommendation in Inspector maps back to one of those gates. The output is designed to serve two conversations simultaneously — the technical discovery conversation an SE needs to run, and the qualification conversation an AE or executive needs to have — from the same underlying analysis.
