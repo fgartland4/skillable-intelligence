@@ -2,6 +2,8 @@
 
 > Designer guides program owners, instructional designers, and subject matter experts through the full process of designing a lab program — from goals and audience through a complete, approved outline, draft instructions, and a Skillable Studio-ready export package.
 >
+> Designer's AI conversations, recommendations, program structure, and Bill of Materials are all fueled by the deep product and company understanding stored in Intelligence. Without Intelligence, Designer produces generic scaffolding. With it, Designer produces program architecture specific to this product, this audience, and this delivery path — before the program owner has made a single decision.
+>
 > For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md). Designer is typically seeded from an Inspector analysis — see [inspector.md](inspector.md) for the handoff flow.
 
 ---
@@ -380,7 +382,20 @@ Always-on context the AI uses in every generation call across all phases. The mo
 
 ## Relationship to the Intelligence Platform
 
-Designer is downstream of Inspector in the primary handoff chain. It does not re-run research or re-score products — it consumes the Intelligence signals that Inspector already produced and translates them into program design decisions.
+Intelligence is not a starting point that Designer builds from. It is the fuel that powers everything Designer produces.
+
+The AI conversations in Designer, the recommendations Designer makes, the program structure it generates, and especially the Bill of Materials — none of these are generic outputs shaped by instructional design principles alone. They are specific, grounded outputs that are only possible because Intelligence knows the product deeply: how it is deployed, who uses it, what the workflows look like, what the delivery path requires, what the organizational context signals, and what a realistic lab program for this product looks like in scope and complexity.
+
+Without Intelligence, Designer produces generic scaffolding. With Intelligence, Designer produces program architecture, draft instructions, and a BOM that reflect this specific product — before the program owner has made a single decision.
+
+**The BOM is the clearest example.** A Bill of Materials is not a template. It is a precise artifact that reflects this product's delivery path, VM topology, provisioning pattern, software requirements, and orchestration constraints. Intelligence holds all of that. Designer synthesizes it into something a lab developer can build from directly. The human's job is to confirm and refine — not to generate the technical specification from scratch.
+
+The same principle applies throughout the design process:
+- **Number of labs and series** — derived from Gate 2 complexity signals, not from a default program structure
+- **Intended audience** — derived from product user personas and organizational context, not from a generic audience prompt
+- **Lab titles and activities** — derived from what the product actually does and how administrators, engineers, and operators interact with it
+- **Scenario types** — derived from scenario type flags surfaced by Intelligence (break/fix, simulated attack, collaborative lab patterns)
+- **Seat time estimates** — derived from workflow depth and activity count, grounded in the product's actual complexity
 
 The three qualification gates inform Designer throughout:
 - **Gate 1** determines environment architecture, delivery path, and provisioning pattern — surfaced in Preferences defaults and BOM
@@ -389,7 +404,7 @@ The three qualification gates inform Designer throughout:
 
 Lab scenario type flags from Inspector (break/fix, simulated attack, collaborative lab — parallel/adversarial or sequential/assembly line) carry into Designer's Phase 2 outline recommendations. A cybersecurity product with Red/Blue Team signals gets a program architecture that includes both self-paced guided labs and an ILT cyber range track. A data pipeline product with multi-role handoff signals gets assembly line collaborative lab scenarios alongside role-specific tracks.
 
-Designer program records link back to their source Inspector analysis via `inspector_analysis_id`. If the Inspector analysis is updated after a Designer program is created, the program displays a "⚠ Source analysis updated" badge.
+Designer program records link back to their source Inspector analysis via `inspector_analysis_id`. If the Inspector analysis is updated after a Designer program is created, the program displays a "⚠ Source analysis updated" badge — because the foundation the program was built on has changed.
 
 ---
 
