@@ -1,4 +1,8 @@
-"""Inspector blueprint — product discovery, scoring, and results."""
+"""Inspector blueprint — product discovery, scoring, and results.
+
+Routes are thin surfaces: parse input → call Intelligence → render template.
+All research, scoring, caching, and discrepancy logic lives in intelligence.py.
+"""
 
 import csv
 import io
@@ -8,9 +12,14 @@ import uuid
 from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
 
 from core import _push, _sse_stream, _attach_scores, _compute_composite
-from researcher import discover_products, research_products, resolve_company_from_product
-from scorer import discover_products_with_claude, score_selected_products
-from datetime import datetime, timezone, timedelta
+from researcher import resolve_company_from_product
+from intelligence import (
+    discover as intel_discover,
+    score as intel_score,
+    CACHE_TTL_DAYS,
+    cache_is_fresh as _cache_is_fresh,
+)
+from datetime import datetime, timezone
 
 from storage import (
     save_analysis, load_analysis, list_analyses,
@@ -22,21 +31,6 @@ from storage import (
 
 import logging
 log = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Cache TTL
-# ---------------------------------------------------------------------------
-CACHE_TTL_DAYS = 45
-
-def _cache_is_fresh(timestamp_str: str) -> bool:
-    """Return True if an ISO timestamp is within CACHE_TTL_DAYS of now."""
-    if not timestamp_str:
-        return False
-    try:
-        dt = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-        return (datetime.now(timezone.utc) - dt).days < CACHE_TTL_DAYS
-    except Exception:
-        return False
 
 # ---------------------------------------------------------------------------
 # Inspector Blueprint
@@ -95,18 +89,16 @@ def discover():
     def run_discovery():
         try:
             _push(discovery_id, "status:Searching for products...")
-            findings = discover_products(company_name, known_products)
+            # Intelligence handles research, Claude call, and storage
+            discovery = intel_discover(company_name, known_products=known_products,
+                                       force_refresh=force_refresh)
+            # Restamp the ID we allocated so the SSE completion message matches
+            # the discovery_id the progress page is polling on.
+            # (intel_discover may have returned a cached record with a different ID —
+            #  in that case the cached path above already redirected; we only reach
+            #  here when a fresh discovery ran, so its ID matches what we allocated.)
             _push(discovery_id, "status:Analyzing product portfolio...")
-            discovery = discover_products_with_claude(findings)
-            discovery["discovery_id"] = discovery_id
-            discovery["created_at"] = datetime.now(timezone.utc).isoformat()
-            discovery["known_products"] = known_products or []
-            for key in ("training_programs", "atp_signals", "training_catalog",
-                        "partner_ecosystem", "partner_portal", "cs_signals",
-                        "lms_signals", "org_contacts", "page_contents"):
-                discovery[key] = findings.get(key, [])
-            save_discovery(discovery_id, discovery)
-            _push(discovery_id, f"done:{discovery_id}")
+            _push(discovery_id, f"done:{discovery['discovery_id']}")
         except Exception as e:
             log.exception("Discovery failed for %s", company_name)
             _push(discovery_id, f"error:{e}")
@@ -167,20 +159,16 @@ def score():
 
     def run_scoring():
         try:
-            # Check if research is fully cached for all selected products
+            from researcher import research_products
+
+            # Check research cache — skip web searches if all products already researched
             cache = discovery.get("_research_cache", {})
             cached_names = set(cache.get("researched_products", []))
-            selected_names = {p["name"] for p in selected_products}
+            selected_name_set = {p["name"] for p in selected_products}
 
-            if selected_names <= cached_names:
-                # All selected products already researched — skip web searches
+            if selected_name_set <= cached_names:
                 _push(job_id, "status:Loading cached research data")
-                research = {
-                    "company_name": company_name,
-                    "selected_products": selected_products,
-                    "search_results": cache.get("search_results", {}),
-                    "page_contents": cache.get("page_contents", {}),
-                }
+                research_cache = cache
             else:
                 research_messages = [
                     "status:Scouring technical docs, APIs & deployment guides",
@@ -189,6 +177,7 @@ def score():
                     "status:Analyzing channel partners, enablement resources, roadshows & hands-on events",
                     "status:Identifying training and enablement organizational structures & contacts",
                 ]
+
                 def push_research_messages():
                     for i, msg in enumerate(research_messages):
                         _push(job_id, msg)
@@ -197,27 +186,27 @@ def score():
 
                 msg_thread = threading.Thread(target=push_research_messages, daemon=True)
                 msg_thread.start()
-
-                research = research_products(company_name, selected_products)
+                raw_research = research_products(company_name, selected_products)
                 msg_thread.join()
 
-                # Save research to discovery cache for future re-runs
-                merged_search = {**cache.get("search_results", {}), **research["search_results"]}
-                merged_pages = {**cache.get("page_contents", {}), **research["page_contents"]}
-                updated_discovery = {**discovery, "_research_cache": {
-                    "researched_products": list(cached_names | selected_names),
+                # Merge into discovery research cache for future re-runs
+                merged_search = {**cache.get("search_results", {}), **raw_research["search_results"]}
+                merged_pages  = {**cache.get("page_contents", {}),  **raw_research["page_contents"]}
+                research_cache = {
+                    "researched_products": list(cached_names | selected_name_set),
                     "search_results": merged_search,
-                    "page_contents": merged_pages,
-                }}
+                    "page_contents":  merged_pages,
+                }
+                updated_discovery = {**discovery, "_research_cache": research_cache}
                 save_discovery(discovery_id, updated_discovery)
 
-            research["discovery_data"] = discovery
-
             _push(job_id, "status:Scoring with Claude AI")
-            analysis = score_selected_products(research)
-            analysis.discovery_id = discovery_id
-            analysis.total_products_discovered = len(discovery.get("products", []))
-            analysis_id = save_analysis(analysis)
+            # Intelligence handles scoring, discrepancy detection, and storage
+            analysis_id, _ = intel_score(
+                company_name, selected_products, discovery_id,
+                discovery_data=discovery,
+                research_cache=research_cache,
+            )
             _push(job_id, "status:Generating report")
             _push(job_id, f"done:{analysis_id}")
         except Exception as e:
@@ -341,22 +330,24 @@ def api_analyze():
         return jsonify({"error": "company_name is required"}), 400
 
     try:
-        findings = discover_products(company_name, known_products)
-        discovery = discover_products_with_claude(findings)
-        for key in ("training_programs", "atp_signals", "training_catalog",
-                    "partner_ecosystem", "partner_portal", "cs_signals",
-                    "lms_signals", "org_contacts", "page_contents"):
-            discovery[key] = findings.get(key, [])
+        from researcher import research_products
+
+        discovery = intel_discover(company_name, known_products=known_products, force_refresh=True)
 
         if selected_product_names:
             selected = [p for p in discovery["products"] if p["name"] in selected_product_names]
         else:
             selected = discovery["products"]
 
-        research = research_products(company_name, selected)
-        research["discovery_data"] = discovery
-        analysis = score_selected_products(research)
-        analysis_id = save_analysis(analysis)
+        raw_research = research_products(company_name, selected)
+        research_cache = {
+            "search_results": raw_research.get("search_results", {}),
+            "page_contents":  raw_research.get("page_contents", {}),
+        }
+        analysis_id, data = intel_score(
+            company_name, selected, discovery["discovery_id"],
+            discovery_data=discovery, research_cache=research_cache,
+        )
         return jsonify(load_analysis(analysis_id))
     except Exception as exc:
         log.exception("API analyze failed for %s", company_name)

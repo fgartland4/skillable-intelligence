@@ -1,4 +1,8 @@
-"""Prospector blueprint — batch company scoring and results."""
+"""Prospector blueprint — batch company scoring and results.
+
+Routes are thin surfaces: parse input → call Intelligence → render template.
+All research, scoring, caching, and academic logic lives in intelligence.py.
+"""
 
 import csv
 import io
@@ -8,8 +12,7 @@ import uuid
 from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
 
 from core import _push, _sse_stream, _attach_scores, _compute_composite, _fmt_ondemand, _fmt_cert, _cancelled_jobs
-from researcher import discover_products
-from scorer import discover_products_with_claude, score_selected_products
+from intelligence import qualify as intel_qualify
 from storage import (
     save_analysis, load_analysis,
     find_analysis_by_company_name,
@@ -130,7 +133,7 @@ def prospector_run():
 
                 result_holder = [None]
                 def _run():
-                    result_holder[0] = _quick_analyze_company(name, force_refresh=force_refresh)
+                    result_holder[0] = intel_qualify(name, force_refresh=force_refresh)
 
                 worker = threading.Thread(target=_run, daemon=True)
                 worker.start()
