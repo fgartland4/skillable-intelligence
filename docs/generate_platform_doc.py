@@ -221,7 +221,6 @@ def add_title(doc, title, subtitle):
     make_run(p, title, size_pt=20, bold=True, color=DARK_GREEN)
     p2 = doc.add_paragraph()
     set_paragraph_spacing(p2, 0, 100)
-    add_bottom_border(p2)
     make_run(p2, subtitle, size_pt=10, italic=False, color=GRAY)
 
 
