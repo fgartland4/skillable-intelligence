@@ -109,8 +109,8 @@ Designer also accepts manual entry when no Inspector analysis exists — the pro
 - **Right pane** — Lab Blueprint checklist: live progress tracker and thought provoker
 
 The middle pane accepts content in as many ways as possible — the goal is zero friction for whatever the program owner has available:
-- Drag and drop files (job task analysis, existing course outlines, product documentation, audience profiles, any prior training materials)
-- URL input (documentation sites, knowledge bases, existing course pages)
+- Drag and drop files — supported formats: PDF, DOCX, PPTX, XLSX, CSV (job task analysis, existing course outlines, product documentation, audience profiles, any prior training materials)
+- URL input — any web page, documentation site, or knowledge base; Google Docs and Google Sheets URLs are supported and parsed as documents
 - Direct text input
 - Image upload — including photos of whiteboards, napkin drawings, and network diagrams. If a program owner sketched a curriculum structure on a whiteboard, they should be able to photograph it and upload it directly
 
