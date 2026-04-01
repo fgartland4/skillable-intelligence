@@ -132,6 +132,10 @@ def caseboard(discovery_id: str):
     """
     discovery = load_discovery(discovery_id)
     if not discovery:
+        # Caller may have passed an analysis_id — look up the discovery_id from it
+        analysis = load_analysis(discovery_id)
+        if analysis and analysis.get("discovery_id"):
+            return redirect(url_for("inspector.caseboard", discovery_id=analysis["discovery_id"]))
         return redirect(url_for("inspector.home"))
     for i, p in enumerate(discovery.get("products", []), start=1):
         if not p.get("priority"):
