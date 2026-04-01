@@ -408,13 +408,17 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
             for c in p.get("contacts", [])
         ]
         cp_raw = p.get("consumption_potential", {})
+        _valid_paths = {"A1", "A1-AWS", "A2", "B", "C", "Unknown"}
+        _path = {"A": "A1"}.get(p.get("skillable_path", ""), p.get("skillable_path", "Unknown"))
+        if _path not in _valid_paths:
+            _path = "Unknown"
         product = Product(
             name=p.get("name", "Unknown"),
             product_url=p.get("product_url", ""),
             category=p.get("category", ""),
             description=p.get("description", ""),
             deployment_model=p.get("deployment_model", "unknown"),
-            skillable_path={"A": "A1"}.get(p.get("skillable_path", ""), p.get("skillable_path", "Unknown")),
+            skillable_path=_path,
             path_tier=p.get("path_tier", "Unknown"),
             skillable_mechanism=p.get("skillable_mechanism", ""),
             fabric=p.get("fabric", ""),
@@ -428,7 +432,7 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
                 workflow_complexity=_parse_dimension(scores.get("workflow_complexity", {})),
                 training_ecosystem=_parse_dimension(scores.get("training_ecosystem", {})),
                 market_fit=_parse_dimension(scores.get("market_fit", {})),
-                path={"A": "A1"}.get(p.get("skillable_path", ""), p.get("skillable_path", "Unknown")),
+                path=_path,
             ),
             owning_org=owning_org,
             contacts=contacts,

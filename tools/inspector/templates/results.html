@@ -317,6 +317,13 @@
         .verdict-monitor { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
         .verdict-pass { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
 
+        /* Labability tier pill */
+        .tier-pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; margin-left: 6px; }
+        .tier-highly_likely { background: rgba(36,237,155,0.15); color: #24ED9B; border: 1px solid rgba(36,237,155,0.4); }
+        .tier-likely { background: rgba(46,213,115,0.12); color: #2ed573; border: 1px solid rgba(46,213,115,0.35); }
+        .tier-less_likely { background: rgba(243,156,18,0.12); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+        .tier-not_likely { background: rgba(192,57,43,0.1); color: #e74c3c; border: 1px solid rgba(192,57,43,0.25); }
+
         /* ACV headline on card header */
         .product-acv { margin-top: 10px; }
         .product-acv-dollars { font-size: 0.95rem; font-weight: 800; color: #24ED9B; letter-spacing: -0.01em; }
@@ -901,6 +908,14 @@
                 {% elif product._total_score >= 55 %}<span class="verdict-badge verdict-pursue">Pursue</span>
                 {% elif product._total_score >= 35 %}<span class="verdict-badge verdict-monitor">Monitor</span>
                 {% else %}<span class="verdict-badge verdict-pass">Do Not Pursue</span>{% endif %}
+                {% if product.likely_labable %}
+                <span class="tier-pill tier-{{ product.likely_labable }}">
+                    {% if product.likely_labable == 'highly_likely' %}Highly Likely
+                    {% elif product.likely_labable == 'likely' %}Likely
+                    {% elif product.likely_labable == 'less_likely' %}Less Likely
+                    {% else %}Not Likely{% endif %}
+                </span>
+                {% endif %}
                 {% set _has_blocker = product.recommendation and (product.recommendation | join(' ') | lower).find('— blocker') != -1 %}
                 {% if _has_blocker %}<span class="verdict-badge verdict-pass">&#9632; Blocker</span>{% endif %}
                 {% if _cph and _cph.get('annual_hours_high', 0) > 0 %}

@@ -297,6 +297,19 @@
         .pd-bullets li a { color: #a8d5c2; border-bottom: 1px solid rgba(168,213,194,0.3); text-decoration: none; }
         .pd-bullets li a:hover { border-bottom-color: #a8d5c2; }
 
+        /* Recommendation bullets (per-product in dossier) */
+        .rec-bullet { padding: 6px 10px 6px 12px; margin-bottom: 5px; border-radius: 3px; font-size: 0.78rem; line-height: 1.5; border-left: 3px solid #1e3329; background: #0a1610; color: #b8d4c0; }
+        .rec-blocker { border-left-color: #c0392b; background: rgba(192,57,43,0.08); color: #e8a09a; }
+        .rec-delivery { border-left-color: #24ED9B; background: rgba(36,237,155,0.06); color: #b8d4c0; }
+        .rec-scoring { border-left-color: #3a7bd5; background: rgba(58,123,213,0.07); color: #b8d4c0; }
+        .rec-champion { border-left-color: #f39c12; background: rgba(243,156,18,0.07); color: #d4c4a0; }
+        .rec-program { border-left-color: #8e44ad; background: rgba(142,68,173,0.07); color: #c4b0d4; }
+        .rec-similar { border-left-color: #1e3329; background: #0a1610; color: #6a9a7a; }
+        .rec-default { border-left-color: #2a4a3a; }
+
+        /* Lab highlight badge (dossier product card header) */
+        .lab-highlight-badge { display: inline-block; padding: 2px 8px; background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.3); color: #24ED9B; border-radius: 3px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; margin-left: 8px; }
+
         /* Poor match flags */
         .poor-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
         .flag-badge {
@@ -707,7 +720,8 @@
                     {% elif _top_tier == 'not_likely' %}<span class="lab-bdg lab-bdg-nl">Not Likely</span>
                     {% endif %}
                     {% set sp = top_p.skillable_path or '' %}
-                    {% if 'Azure' in sp or sp in ['A','A1','A2'] %}<span class="lab-bdg lab-bdg-path">Azure Cloud Slice</span>
+                    {% if sp == 'A1-AWS' or ('AWS' in sp and sp != 'A1') %}<span class="lab-bdg lab-bdg-path">AWS Cloud Slice</span>
+                    {% elif 'Azure' in sp or (sp in ['A','A1','A2'] and 'AWS' not in sp) %}<span class="lab-bdg lab-bdg-path">Azure Cloud Slice</span>
                     {% elif 'AWS' in sp or sp == 'AW' %}<span class="lab-bdg lab-bdg-path">AWS Cloud Slice</span>
                     {% elif 'VM' in sp or sp == 'B' or sp == 'Standard VM' %}<span class="lab-bdg lab-bdg-path">Standard VM</span>
                     {% elif 'Custom' in sp or 'BYOC' in sp or 'API' in sp or sp == 'C' %}<span class="lab-bdg lab-bdg-path">Custom API</span>
@@ -830,7 +844,8 @@
 
     {# Readable delivery path #}
     {% set sp = product.skillable_path or '' %}
-    {% if 'Azure' in sp or sp in ['A','A1','A2'] %}{% set path_label = 'Azure Cloud Slice' %}
+    {% if sp == 'A1-AWS' or ('AWS' in sp and sp != 'A1') %}{% set path_label = 'AWS Cloud Slice' %}
+    {% elif 'Azure' in sp or (sp in ['A','A1','A2'] and 'AWS' not in sp) %}{% set path_label = 'Azure Cloud Slice' %}
     {% elif 'AWS' in sp or sp == 'AW' %}{% set path_label = 'AWS Cloud Slice' %}
     {% elif 'VM' in sp or sp == 'B' or sp == 'Standard VM' %}{% set path_label = 'Standard VM' %}
     {% elif 'Custom' in sp or 'BYOC' in sp or 'API' in sp or sp == 'C' %}{% set path_label = 'Custom API / BYOC' %}
@@ -848,7 +863,7 @@
     <details class="product-details" id="product-{{ loop.index }}">
         <summary>
             <div class="pd-name">
-                <div class="pd-product-name">{{ product.name }}</div>
+                <div class="pd-product-name">{{ product.name }}{% if product.lab_highlight %}<span class="lab-highlight-badge">{{ product.lab_highlight }}</span>{% endif %}</div>
                 {% if product.category %}<span class="pd-category">{{ product.category }}</span>{% endif %}
             </div>
             <span class="verdict-badge verdict-{{ p_verdict }}">{{ p_verdict_label }}</span>
@@ -858,6 +873,30 @@
         </summary>
 
         <div class="pd-body">
+
+            {# Recommendation bullets — compact seller view #}
+            {% if product.recommendation %}
+            <div class="rec-bullets" style="margin: 14px 0 10px;">
+                {% for bullet in product.recommendation %}
+                {% set bl = bullet | lower %}
+                {% if 'blocker' in bl or 'do not pursue' in bl %}
+                <div class="rec-bullet rec-blocker">{{ bullet | linkify }}</div>
+                {% elif 'delivery path' in bl %}
+                <div class="rec-bullet rec-delivery">{{ bullet | linkify }}</div>
+                {% elif 'scoring approach' in bl %}
+                <div class="rec-bullet rec-scoring">{{ bullet | linkify }}</div>
+                {% elif 'help your champion' in bl or 'essential technical' in bl %}
+                <div class="rec-bullet rec-champion">{{ bullet | linkify }}</div>
+                {% elif 'program fit' in bl %}
+                <div class="rec-bullet rec-program">{{ bullet | linkify }}</div>
+                {% elif 'similar products' in bl %}
+                <div class="rec-bullet rec-similar">{{ bullet | linkify }}</div>
+                {% else %}
+                <div class="rec-bullet rec-default">{{ bullet | linkify }}</div>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
 
             {# Section A: Gate 1 — Technical Orchestrability #}
             <div class="pd-section">
