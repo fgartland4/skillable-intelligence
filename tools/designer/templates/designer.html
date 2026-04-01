@@ -763,7 +763,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <div class="chat-area" id="p1-chat-area"></div>
                 <div id="p1-typing" style="display:none; padding:0 20px 8px;">
                     <div class="chat-bubble assistant">
-                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                        <span class="typing-label" style="font-size:0.82rem;color:#6b9e88;font-style:italic;"></span>
                     </div>
                 </div>
                 <div class="chat-input-bar">
@@ -837,7 +837,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <div class="chat-area" id="p2-chat-area"></div>
                 <div id="p2-typing" style="display:none; padding:0 20px 8px;">
                     <div class="chat-bubble assistant">
-                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                        <span class="typing-label" style="font-size:0.82rem;color:#6b9e88;font-style:italic;"></span>
                     </div>
                 </div>
                 <div class="chat-input-bar">
@@ -868,7 +868,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <div class="chat-area" id="p3-chat-area"></div>
                 <div id="p3-typing" style="display:none; padding:0 20px 8px;">
                     <div class="chat-bubble assistant">
-                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                        <span class="typing-label" style="font-size:0.82rem;color:#6b9e88;font-style:italic;"></span>
                     </div>
                 </div>
                 <div class="chat-input-bar">
@@ -1292,10 +1292,45 @@ function addChatBubble(areaId, role, htmlContent) {
     return div;
 }
 
+const LOADING_STATES = [
+    "Big Hitterifying...",
+    "Schwackity-schwackin'...",
+    "Nicklin', dimin' & quarterin'...",
+    "Perhaps over-answering this...",
+    "Thinkin' about dunkin' a basketballing...",
+    "Totally unencumbered by fact right now...",
+    "Who's your huckleberry?",
+    "Putting all my oars in the water...",
+    "Oh boy, this is makin' my stomach hurt...",
+    "Breakin' off the rearview mirrors...",
+    "Thinking up questions, comments, and queries...",
+    "Skillifying the situation...",
+    "Job-readyifyin' your program...",
+    "Hands-on-ificating...",
+    "Running the configuratorinator...",
+];
+let _typingTimers = {};
+
 function setTyping(phase, show) {
-    document.getElementById('p' + phase + '-typing').style.display = show ? '' : 'none';
+    const el = document.getElementById('p' + phase + '-typing');
+    el.style.display = show ? '' : 'none';
     const area = document.getElementById('p' + phase + '-chat-area');
     if (area) area.scrollTop = area.scrollHeight;
+
+    if (show) {
+        const label = el.querySelector('.typing-label');
+        if (label) {
+            let idx = Math.floor(Math.random() * LOADING_STATES.length);
+            label.textContent = LOADING_STATES[idx];
+            _typingTimers[phase] = setInterval(() => {
+                idx = (idx + 1) % LOADING_STATES.length;
+                label.textContent = LOADING_STATES[idx];
+            }, 2800);
+        }
+    } else {
+        clearInterval(_typingTimers[phase]);
+        delete _typingTimers[phase];
+    }
 }
 
 async function sendChat(phase, userText, extraContext) {
