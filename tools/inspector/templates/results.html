@@ -945,7 +945,7 @@
                     <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 40</span></span>                </summary>
                 <div class="dim-sec-content">
                     {% if tech_dim.evidence %}
-                    <ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    <ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | linkify }}</li>{% endfor %}</ul>
                     {% elif tech_dim.summary %}<p class="dim-summary">{{ tech_dim.summary }}</p>{% endif %}
                     {% if ns.s1 or ns.sEtr %}
                     <div class="guidance-section">
@@ -967,7 +967,7 @@
                     <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 30</span></span>                </summary>
                 <div class="dim-sec-content">
                     {% if wf_dim.evidence %}
-                    <ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    <ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | linkify }}</li>{% endfor %}</ul>
                     {% elif wf_dim.summary %}<p class="dim-summary">{{ wf_dim.summary }}</p>{% endif %}
                     {% if product.lab_concepts %}
                     <div class="guidance-section">
@@ -987,7 +987,7 @@
                     <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 20</span></span>                </summary>
                 <div class="dim-sec-content">
                     {% if te_dim.evidence %}
-                    <ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    <ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | linkify }}</li>{% endfor %}</ul>
                     {% elif te_dim.summary %}<p class="dim-summary">{{ te_dim.summary }}</p>{% endif %}
                     {% if ns.s3 %}
                     <div class="guidance-section">
@@ -1006,7 +1006,7 @@
                     <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 10</span></span>                </summary>
                 <div class="dim-sec-content">
                     {% if mf_dim.evidence %}
-                    <ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    <ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | linkify }}</li>{% endfor %}</ul>
                     {% elif mf_dim.summary %}<p class="dim-summary">{{ mf_dim.summary }}</p>{% endif %}
                     {% if ns.s4 %}
                     <div class="guidance-section">
@@ -1104,7 +1104,7 @@
             <ul class="pr-bullets">
                 {% if dim.evidence %}
                     {% for ev in dim.evidence %}
-                    <li>{{ ev.claim | bold_labels }}</li>
+                    <li>{{ ev.claim | linkify }}</li>
                     {% endfor %}
                 {% elif dim.summary %}
                     {% for sentence in dim.summary.split('. ') %}

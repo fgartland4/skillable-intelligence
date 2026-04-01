@@ -535,12 +535,12 @@ def blockers():
 
 
 def _labable_tier_from_score(product: dict) -> str:
-    """Derive a tier label from a scored product dict."""
+    """Tier from score + CEILING_FLAGS. Mirror of intelligence._labable_tier."""
     score = product.get("_total_score", 0)
-    if not score:
-        # Try computing from dimension scores
-        from models import compute_product_score
-        score = compute_product_score(product)
+    flags = set(product.get("poor_match_flags", []) or [])
+    _CEILING = {"bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only"}
+    if flags & _CEILING:
+        return "less_likely" if score >= 20 else "not_likely"
     if score >= 70:
         return "highly_likely"
     if score >= 45:

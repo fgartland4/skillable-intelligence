@@ -118,6 +118,20 @@ def _attach_scores(data: dict) -> None:
     products = data.get("products") or []
     for p in products:
         p["_total_score"] = compute_product_score(p)
+        # Mirror of intelligence._labable_tier — update both if thresholds change.
+        _score = p.get("_total_score", 0)
+        _flags = set(p.get("poor_match_flags", []) or [])
+        _CEILING = {"bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only"}
+        if _flags & _CEILING:
+            p["likely_labable"] = "less_likely" if _score >= 20 else "not_likely"
+        elif _score >= 70:
+            p["likely_labable"] = "highly_likely"
+        elif _score >= 45:
+            p["likely_labable"] = "likely"
+        elif _score >= 20:
+            p["likely_labable"] = "less_likely"
+        else:
+            p["likely_labable"] = "not_likely"
     products.sort(key=lambda p: p.get("_total_score", 0), reverse=True)
     data["products"] = products
 

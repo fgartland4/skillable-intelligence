@@ -584,9 +584,7 @@
         {# HERO ROW — Verdict + ACV + up to 2 gating blockers. One scan tells the whole story. #}
         {# Gating blockers: not_likely products or critical poor_match_flags only — not SE detail #}
         {% set ns_hero = namespace(gate_blocks=[]) %}
-        {% set _critical_flags = ['no_provisioning_api', 'no_isolation', 'hardware_id_dependency',
-                                   'saas_only', 'multi_tenant_only', 'no_deployment_model',
-                                   'mfa_enforced', 'hardware_dependency', 'no_lab_path'] %}
+        {% set _critical_flags = ['bare_metal_required', 'no_api_automation', 'saas_only', 'multi_tenant_only', 'no_scoring_api', 'credit_card_required', 'pii_required', 'consumer_product'] %}
         {% for p in data.products %}
             {% if p.likely_labable == 'not_likely' and ns_hero.gate_blocks | length < 2 %}
                 {% set _ = ns_hero.gate_blocks.append('No lab path — ' ~ p.name) %}
@@ -641,7 +639,7 @@
         {% set ns_r = namespace(first_flag=none) %}
         {% for p in data.products %}
             {% if ns_r.first_flag is none and p.poor_match_flags %}
-                {% set ns_r.first_flag = p.poor_match_flags[0] %}
+                {% set ns_r.first_flag = p.poor_match_flags[0] | flag_label %}
             {% endif %}
         {% endfor %}
 
@@ -685,10 +683,28 @@
             <div class="seller-cell">
                 <div class="seller-cell-label">Product Labability</div>
                 <div class="seller-cell-value" style="display:flex;flex-wrap:wrap;gap:0;align-items:flex-start;">
-                    {% if top_p.likely_labable == 'highly_likely' %}<span class="lab-bdg lab-bdg-hl">Highly Likely</span>
-                    {% elif top_p.likely_labable == 'likely' %}<span class="lab-bdg lab-bdg-l">Likely</span>
-                    {% elif top_p.likely_labable == 'less_likely' %}<span class="lab-bdg lab-bdg-ll">Less Likely</span>
-                    {% elif top_p.likely_labable == 'not_likely' %}<span class="lab-bdg lab-bdg-nl">Not Likely</span>
+                    {# Derive tier — prefer stored value, fall back to score for pre-fix cached results #}
+                    {% set _tp_flags = top_p.poor_match_flags or [] %}
+                    {% set _ceiling_flags = ['bare_metal_required', 'no_api_automation', 'saas_only', 'multi_tenant_only'] %}
+                    {% set _ns_tp = namespace(has_ceiling=false) %}
+                    {% for f in _tp_flags %}{% if f in _ceiling_flags %}{% set _ns_tp.has_ceiling = true %}{% endif %}{% endfor %}
+                    {% if top_p.likely_labable %}
+                        {% set _top_tier = top_p.likely_labable %}
+                    {% elif _ns_tp.has_ceiling %}
+                        {% set _top_tier = 'less_likely' if (top_p._total_score or 0) >= 20 else 'not_likely' %}
+                    {% elif (top_p._total_score or 0) >= 70 %}
+                        {% set _top_tier = 'highly_likely' %}
+                    {% elif (top_p._total_score or 0) >= 45 %}
+                        {% set _top_tier = 'likely' %}
+                    {% elif (top_p._total_score or 0) >= 20 %}
+                        {% set _top_tier = 'less_likely' %}
+                    {% else %}
+                        {% set _top_tier = 'not_likely' %}
+                    {% endif %}
+                    {% if _top_tier == 'highly_likely' %}<span class="lab-bdg lab-bdg-hl">Highly Likely</span>
+                    {% elif _top_tier == 'likely' %}<span class="lab-bdg lab-bdg-l">Likely</span>
+                    {% elif _top_tier == 'less_likely' %}<span class="lab-bdg lab-bdg-ll">Less Likely</span>
+                    {% elif _top_tier == 'not_likely' %}<span class="lab-bdg lab-bdg-nl">Not Likely</span>
                     {% endif %}
                     {% set sp = top_p.skillable_path or '' %}
                     {% if 'Azure' in sp or sp in ['A','A1','A2'] %}<span class="lab-bdg lab-bdg-path">Azure Cloud Slice</span>
@@ -700,7 +716,7 @@
                     {% elif sp %}<span class="lab-bdg lab-bdg-path">{{ sp }}</span>
                     {% endif %}
                     {% if top_p.deployment_model and top_p.deployment_model not in ['unknown',''] %}
-                    <span class="lab-bdg lab-bdg-dep">{{ top_p.deployment_model | title }}</span>
+                    <span class="lab-bdg lab-bdg-dep">{{ top_p.deployment_model | replace('saas-only', 'SaaS-Only') | replace('self-hosted', 'Self-Hosted') | title }}</span>
                     {% endif %}
                     {% if data.products | length > 1 %}
                     <span class="lab-bdg lab-bdg-dep">{{ data.products | length }} products</span>
@@ -775,7 +791,7 @@
 
                 {# Step 4 — key risk to address #}
                 {% if ns_r.first_flag %}
-                <li class="step-risk">Address <strong>{{ ns_r.first_flag | replace('_', ' ') | title }}</strong> in discovery — confirm whether this is a blocker or a workaround exists.</li>
+                <li class="step-risk">Address <strong>{{ ns_r.first_flag }}</strong> in discovery — confirm whether this is a blocker or a workaround exists.</li>
                 {% endif %}
 
                 {# Step 5 — ACV context for commercial conversation #}
@@ -908,7 +924,7 @@
                 {% endif %}
                 {% if product.poor_match_flags %}
                 <div class="poor-flags">
-                    {% for flag in product.poor_match_flags %}<span class="flag-badge">&#9888; {{ flag }}</span>{% endfor %}
+                    {% for label in product.poor_match_flags | flag_labels %}<span class="flag-badge">&#9888; {{ label }}</span>{% endfor %}
                 </div>
                 {% endif %}
             </div>
