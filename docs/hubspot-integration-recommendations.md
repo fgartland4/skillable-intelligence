@@ -214,7 +214,9 @@ As Marketing develops its expansion motion, Intelligence's department-level data
 
 ---
 
-## Section 5 — How Each Tool Connects to HubSpot
+## Section 5 — Recommended Integration Model by Tool
+
+The following describes our recommended integration model for how each Intelligence tool connects to HubSpot. This is a starting point for alignment with RevOps and Marketing — not a finalized architecture. The right touchpoints, trigger mechanisms, and data flows should be validated against the existing HubSpot setup before any build begins.
 
 The three Intelligence tools have distinct integration models. Understanding the difference matters for RevOps configuration and for setting expectations with each user audience.
 
