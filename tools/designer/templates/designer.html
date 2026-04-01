@@ -2370,8 +2370,16 @@ function restoreState() {
 // ============================================================
 function maybeGreet() {
     if ((state.phase1_messages || []).length === 0) {
-        const welcomeHtml = `<p>Tell me about the program you're building.</p>
-<p style="margin-top:8px;">If you have any documents — like learning objectives, job task analyses, job descriptions, or even a task list — click the paperclip below to upload them and we'll get started.</p>`;
+        const company = (state.company_name || '').trim();
+        const product = (state.primary_product || '').trim();
+        let welcomeHtml;
+        if (product) {
+            welcomeHtml = `<p>Got the ${product} context from Inspector. Who's the audience?</p>`;
+        } else if (company) {
+            welcomeHtml = `<p>Working on a program for ${company} — what product or technology is this lab program built around?</p>`;
+        } else {
+            welcomeHtml = `<p>What are we building — and who's it for?</p>`;
+        }
         addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
     }
 }
