@@ -117,7 +117,7 @@ When all companies are done (or timed out), the results table renders sorted by 
 
 **Why it exists:** Prospector needs a calibrated labability score without running Inspector's full Phase 2 deep research on every company in the batch.
 
-**What it does:** Produces a `ProductLababilityScore` and `LabMaturityScore` from discovery-level evidence alone — the same data models as Inspector, built from shallower inputs.
+**What it does:** Produces a `ProductLababilityScore` (displayed as Labability Score in the results table) and `LabMaturityScore` from discovery-level evidence alone — the same data models as Inspector, built from shallower inputs.
 
 **How it works:** The scoring prompt is identical to Inspector's. The difference is the evidence fed into it: discovery search summaries and fetched content from the company homepage, top product pages, and training and partner program pages. No Phase 2 product-specific searches. No fetched technical documentation, API reference pages, or Docker Hub listings. This means Technical Orchestrability scores will tend to be conservative — that dimension benefits most from the Phase 2 deep-dive, because containerization signals, REST API coverage, and SDK availability are often buried in technical docs that discovery doesn't reliably surface. The other dimensions — Content Richness, Training Ecosystem, Market Reach — are less affected by the lighter pass. The composite score is directionally accurate enough for prioritization; it just shouldn't be treated as a final verdict.
 
@@ -127,7 +127,7 @@ When all companies are done (or timed out), the results table renders sorted by 
 
 **What it does:** Produces a composite score (0–100) that gates and weights both dimensions according to the same rules Inspector uses.
 
-**How it works:** Same formula, same weight definitions, same gating rules as Inspector. See [intelligence-platform.md](intelligence-platform.md) §5.4 for the full specification. Prospector applies these with no modifications — the only difference from Inspector composite scores is that the Lab Score input is derived from lighter evidence, which propagates into the composite result.
+**How it works:** Same formula, same weight definitions, same gating rules as Inspector. See [intelligence-platform.md](intelligence-platform.md) §5.4 for the full specification. Prospector applies these with no modifications — the only difference from Inspector composite scores is that the Labability Score input is derived from lighter evidence, which propagates into the composite result.
 
 ### Contact Extractor
 
@@ -163,10 +163,10 @@ The full column set:
 | **Company** | Company name, linked to company URL |
 | **Product Counts** | Counts by labability tier: Highly Labable / Likely / Not Labable |
 | **Top Product** | Name of the highest-scoring product analyzed |
-| **Lab Score** | Labability score of the top product (0–100), color-coded |
+| **Labability Score** | Product labability score of the top product (0–100), color-coded |
 | **Skillable Path** | Software: "Labable", "Simulations", or "Do Not Pursue". Academic: school name or tier label |
 | **Lab Maturity** | Organizational readiness score (0–100) |
-| **Composite** | Weighted combination of Lab Score and Lab Maturity (0–100) |
+| **Composite** | Weighted combination of Labability Score and Lab Maturity (0–100) |
 | **Partnership Signals** | Checkmarks or counts for: ATP Program, Channel Program, Existing Lab Partner, ILT/vILT, On-Demand, Certifications, Gray Market |
 | **Contact 1** | Name, title, LinkedIn URL |
 | **Contact 2** | Name, title, LinkedIn URL |
@@ -174,9 +174,9 @@ The full column set:
 
 **Path labels — software companies:**
 
-- Lab Score ≥ 50 → **"Labable"** (with delivery sublabel: Cloud Slice / Custom API / VM Lab)
-- Lab Score ≥ 20 → **"Simulations"**
-- Lab Score < 20 → **"Do Not Pursue"**
+- Labability Score ≥ 50 → **"Labable"** (with delivery sublabel: Cloud Slice / Custom API / VM Lab)
+- Labability Score ≥ 20 → **"Simulations"**
+- Labability Score < 20 → **"Do Not Pursue"**
 
 **Path labels — academic institutions:**
 

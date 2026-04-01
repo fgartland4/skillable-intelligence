@@ -302,6 +302,8 @@ A CSV export of all scored products is available from the results page. Columns 
 
 **What it does:** Carries the full context of an Inspector analysis into Designer Phase 1 — company name, scored products with labability scores and recommended Skillable paths, and the top contacts identified for each product. The SE arrives in Designer already oriented, refining and approving a pre-populated program structure rather than starting from a blank form.
 
+From that starting point, Designer produces: a structured program outline, draft lab instructions for every lab in the program, a learner activity structure for progress tracking and scoring, scoring methodology recommendations, and a complete Bill of Materials — environment templates, PowerShell and Bash scripts, Bicep and CloudFormation templates, lifecycle action scripts, credential pool configuration, and scoring validation stubs. Inspector answers *whether* a lab program is worth building. Designer answers *how* to build it.
+
 **How it works:** When scoring completes, the results page displays a "Design Lab Program →" button. Clicking it navigates to `/designer?analysis_id={id}`. Designer reads the Inspector analysis and pre-fills Phase 1 with everything it found. The `inspector_analysis_id` is stored on the Designer program record for provenance tracking — if Inspector is subsequently re-run on the same company (after a 45-day cache expiry or a force-refresh), Designer displays a "⚠ Source analysis updated" badge on the program, prompting the SE to review whether any scores or contacts have changed materially.
 
 ---
