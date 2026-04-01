@@ -329,6 +329,19 @@
         </div>
     </div>
 
+    {# ── Pre-compute maturity before rendering ci-box ── #}
+    {% set _tc_check = discovery.products | selectattr('category','equalto','Training & Certification') | list %}
+    {% set ns_mat = namespace(score=0) %}
+    {% if discovery.organization_type == 'training_organization' %}{% set ns_mat.score = ns_mat.score + 4 %}{% endif %}
+    {% if discovery.atp_signals %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
+    {% if discovery.training_programs %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
+    {% if _tc_check %}{% set ns_mat.score = ns_mat.score + 1 %}{% endif %}
+    {% if ns_mat.score >= 6 %}{% set mat_level = 'Mature' %}{% set mat_idx = 3 %}
+    {% elif ns_mat.score >= 4 %}{% set mat_level = 'Established' %}{% set mat_idx = 2 %}
+    {% elif ns_mat.score >= 1 %}{% set mat_level = 'Emerging' %}{% set mat_idx = 1 %}
+    {% else %}{% set mat_level = 'Nascent' %}{% set mat_idx = 0 %}{% endif %}
+    {% set mat_pcts = [0, 33, 67, 100] %}
+
     {# Company Intelligence — full width between header and board #}
     <div class="ci-box">
         <div class="ci-box-title">Company Intelligence</div>
@@ -359,19 +372,6 @@
             </div>
         </div>
     </div>
-
-    {# ── Pre-compute maturity (needs tc, defined just below) ── #}
-    {% set _tc_check = discovery.products | selectattr('category','equalto','Training & Certification') | list %}
-    {% set ns_mat = namespace(score=0) %}
-    {% if discovery.organization_type == 'training_organization' %}{% set ns_mat.score = ns_mat.score + 4 %}{% endif %}
-    {% if discovery.atp_signals %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
-    {% if discovery.training_programs %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
-    {% if _tc_check %}{% set ns_mat.score = ns_mat.score + 1 %}{% endif %}
-    {% if ns_mat.score >= 6 %}{% set mat_level = 'Mature' %}{% set mat_idx = 3 %}
-    {% elif ns_mat.score >= 4 %}{% set mat_level = 'Established' %}{% set mat_idx = 2 %}
-    {% elif ns_mat.score >= 1 %}{% set mat_level = 'Emerging' %}{% set mat_idx = 1 %}
-    {% else %}{% set mat_level = 'Nascent' %}{% set mat_idx = 0 %}{% endif %}
-    {% set mat_pcts = [0, 33, 67, 100] %}
 
     <form method="POST" action="/inspector/score" id="scoreForm">
     <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
