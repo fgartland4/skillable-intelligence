@@ -184,6 +184,8 @@ If a skill framework was selected in Phase 1, the AI enters Skill Mapping Mode a
 
 **Skill mapping is always optional and always AI-led.** The AI does most of the work. The ID validates and governs. Organizations that don't want mapping skip it entirely with no friction. Organizations that need rigorous framework alignment — government contractors, EC-Council, organizations with custom consulting-built frameworks — get a structured, complete mapping process that would otherwise require weeks of manual work.
 
+**Governance split — executives own the decision, instructional designers own the approach.** Whether to use a skill framework, which framework(s) to align to, and whether mapping is required for program completion — those are executive or program owner decisions. They reflect organizational strategy: compliance obligations, certification goals, workforce development commitments. How the mapping is actually done — which activity maps to which skill, how to handle gaps, how to handle overlapping frameworks — that is the instructional designer's domain. Designer is built around this split: the program owner makes the framework selection in Preferences and Phase 1; the ID does the review, adjustment, and approval work in Skill Mapping Mode. The AI bridges both by proposing mappings that the ID can accept or change without requiring the program owner to understand the mechanics.
+
 **The mapping travels with the program.** Framework selections and activity-level mappings are stored on the program record, included in Phase 3 draft instruction context, and exported in the Phase 4 Studio package.
 
 ### Phase 3 — Draft Instructions & Scoring Recommendations
@@ -341,7 +343,9 @@ The pedagogical defaults that align labs to recognized frameworks and ensure con
 
 The Default Skill Framework(s) picker presents a curated catalog grouped by domain — Cybersecurity, Cloud & DevOps, Networking, Software Engineering, IT Operations, Data & AI, Cross-Domain. Organizations select one or more frameworks as their organization-wide default. Every new program inherits these defaults; program owners can override for a specific program without changing the global standard.
 
-The catalog includes public frameworks (NICE NCWF, DoD DCWF, CompTIA certification domains, AWS/Azure certification frameworks, SFIA, Cisco CCNA/CCNP/CCIE, ITIL 4, and others) and supports custom framework uploads in JSON, CSV, or plain text format. Custom frameworks — consulting-built company frameworks, vendor-proprietary frameworks like Microsoft's internal skill model — appear at the top of the picker under "Your Frameworks."
+The catalog includes public frameworks (NICE NCWF, DoD DCWF, LinkedIn Skill Framework, CompTIA certification domains, AWS/Azure certification frameworks, SFIA, Cisco CCNA/CCNP/CCIE, ITIL 4, and others) and supports custom framework uploads in JSON, CSV, or plain text format. Custom frameworks — consulting-built company frameworks, vendor-proprietary frameworks like Microsoft's internal skill model — appear at the top of the picker under "Your Frameworks."
+
+**LinkedIn Skill Framework.** LinkedIn's skill taxonomy is a large, flat framework covering thousands of skills grouped into domains. It is widely used by HR and L&D teams because LinkedIn Learning content is already tagged to it — making it easy to connect lab programs to broader L&D catalogs. For customers whose learning strategy is LinkedIn Learning-anchored, Designer can map activities to LinkedIn skill tags, enabling direct linkage between lab completion and LinkedIn Learning skill credits.
 
 **Soft skills and power skills frameworks are explicitly excluded.** The catalog contains only frameworks relevant to hands-on technical skills — the kind that map to keyboard-level tasks in a lab environment. Frameworks built around communication, leadership, or behavioral competencies have no meaningful relationship to lab activities and are not included.
 
