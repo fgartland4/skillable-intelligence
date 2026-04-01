@@ -100,19 +100,44 @@
             font-size: 0.83rem; color: #6b9e88; margin-bottom: 22px;
             line-height: 1.6; max-width: 820px;
         }
+        /* Zone 1 hero row — Verdict + ACV dominate */
+        .seller-hero {
+            display: flex; align-items: center; gap: 24px;
+            margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .seller-hero-verdict {
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .seller-hero-verdict .verdict-badge {
+            font-size: 0.75rem; padding: 5px 14px;
+        }
+        .seller-acv-hero {
+            display: flex; flex-direction: column;
+            border-left: 1px solid #1e3329; padding-left: 24px;
+        }
+        .seller-acv-label {
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 3px;
+        }
+        .seller-acv-value {
+            font-size: 1.9rem; font-weight: 900; color: #24ED9B;
+            letter-spacing: -0.03em; line-height: 1;
+        }
+        .seller-acv-note { font-size: 0.65rem; color: #3d6655; margin-top: 2px; }
+
+        /* Zone 1 detail grid — secondary info */
         .seller-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-            gap: 14px;
-            margin-bottom: 20px;
+            gap: 12px; margin-bottom: 20px;
         }
         .seller-cell {
             background: rgba(6,16,12,0.6); border: 1px solid #1e3329;
-            border-radius: 10px; padding: 14px 16px;
+            border-radius: 10px; padding: 13px 15px;
         }
         .seller-cell-label {
             font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 7px;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 6px;
         }
         .seller-cell-value {
             font-size: 0.84rem; color: #a8d5c2; line-height: 1.5; font-weight: 500;
@@ -122,21 +147,33 @@
         .seller-cell-value a:hover { color: #24ED9B; border-bottom-color: #24ED9B; text-decoration: none; }
         .seller-risk { border-color: rgba(248,113,113,0.25); }
         .seller-risk .seller-cell-label { color: #f87171; }
-        .seller-risk .seller-cell-value { color: #f87171; }
-        .seller-acv-row {
-            display: flex; justify-content: flex-end; align-items: baseline;
-            gap: 10px; padding-top: 14px; border-top: 1px solid #1e3329;
-            flex-wrap: wrap;
+        .seller-risk .seller-cell-value { color: #f87171; font-weight: 600; }
+
+        /* Next Steps — prominent, inside Zone 1 */
+        .next-steps-block {
+            background: rgba(36,237,155,0.04); border: 1px solid rgba(36,237,155,0.15);
+            border-radius: 12px; padding: 18px 22px; margin-top: 4px;
         }
-        .seller-acv-label {
-            font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #3d6655;
+        .next-steps-block-label {
+            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.13em; color: #24ED9B; margin-bottom: 12px;
         }
-        .seller-acv-value {
-            font-size: 1.55rem; font-weight: 900; color: #24ED9B;
-            letter-spacing: -0.02em; line-height: 1;
+        .next-steps-list {
+            list-style: none; margin: 0; padding: 0;
+            display: flex; flex-direction: column; gap: 9px;
         }
-        .seller-acv-note { font-size: 0.65rem; color: #3d6655; }
+        .next-steps-list li {
+            font-size: 0.84rem; color: #a8d5c2; line-height: 1.5;
+            padding-left: 16px; position: relative;
+        }
+        .next-steps-list li::before {
+            content: '→'; position: absolute; left: 0;
+            color: #24ED9B; font-weight: 700;
+        }
+        .next-steps-list li strong { color: #e8f5f0; font-weight: 600; }
+        .next-steps-list li a { color: #24ED9B; }
+        .next-steps-list .step-risk { color: #f87171; }
+        .next-steps-list .step-risk::before { color: #f87171; content: '⚠'; }
 
         /* ======================================
            ZONE 2 - SE/SC Technical Detail
@@ -448,9 +485,8 @@
        =========================================== #}
     <div class="seller-zone">
 
-        {# Header: verdict badge + company name + org type badge #}
+        {# Company name + org badge #}
         <div class="seller-header">
-            <span class="verdict-badge verdict-{{ top_verdict }}">{{ top_verdict_label }}</span>
             <span class="seller-company-name">{{ data.company_name }}</span>
             {% set ot = data.organization_type %}
             {% if ot == 'software_company' %}<span class="org-badge org-software">Software Company</span>
@@ -466,6 +502,20 @@
         {% if data.company_description %}
         <p class="seller-desc">{{ data.company_description }}</p>
         {% endif %}
+
+        {# HERO ROW — Verdict + ACV dominate; everything else is detail #}
+        <div class="seller-hero">
+            <div class="seller-hero-verdict">
+                <span class="verdict-badge verdict-{{ top_verdict }}">{{ top_verdict_label }}</span>
+            </div>
+            {% if ns.has_cp and ns.acv_high > 0 %}
+            <div class="seller-acv-hero">
+                <div class="seller-acv-label">Estimated Annual Value</div>
+                <div class="seller-acv-value">${{ "{:,}".format(ns.acv_low | int) }}&ndash;${{ "{:,}".format(ns.acv_high | int) }}</div>
+                <div class="seller-acv-note">estimated ACV across scored products</div>
+            </div>
+            {% endif %}
+        </div>
 
         {# Info grid — Lead Product / Delivery / Scope / Top Contact / Key Risk #}
         <div class="seller-grid">
@@ -566,14 +616,52 @@
 
         </div>{# /seller-grid #}
 
-        {# ACV estimate at bottom of Zone 1 #}
-        {% if ns.has_cp and ns.acv_high > 0 %}
-        <div class="seller-acv-row">
-            <span class="seller-acv-label">Estimated Annual Value</span>
-            <span class="seller-acv-value">${{ "{:,}".format(ns.acv_low | int) }} &ndash; ${{ "{:,}".format(ns.acv_high | int) }}</span>
-            <span class="seller-acv-note">estimated ACV &rarr;</span>
+        {# NEXT STEPS — prominent, data-driven, inside Zone 1 #}
+        <div class="next-steps-block">
+            <div class="next-steps-block-label">Next Steps</div>
+            <ul class="next-steps-list">
+                {# Step 1 — lead action based on verdict #}
+                {% if top_verdict == 'strong' %}
+                <li>Schedule a <strong>technical deep dive</strong> with your SE — this account is ready to move.</li>
+                {% elif top_verdict == 'pursue' %}
+                <li>Run a <strong>targeted discovery call</strong> to validate delivery path and confirm program scope.</li>
+                {% elif top_verdict == 'monitor' %}
+                <li><strong>Flag in CRM</strong> and set a follow-up trigger — revisit when product or org capability matures.</li>
+                {% else %}
+                <li><strong>Do not invest SE time</strong> — log disqualifier and route to ICP refinement.</li>
+                {% endif %}
+
+                {# Step 2 — lead product conversation hook #}
+                {% if top_p and top_verdict in ('strong', 'pursue') %}
+                <li>Lead with <strong>{{ top_p.name }}</strong>
+                    {% set sp = top_p.skillable_path or '' %}
+                    {% if 'Azure' in sp %}— position as an Azure cloud lab environment
+                    {% elif 'AWS' in sp %}— position as an AWS cloud lab environment
+                    {% elif 'VM' in sp or sp == 'B' %}— position as a virtual machine-based lab program
+                    {% elif 'Sim' in sp %}— position as a simulation-based experience
+                    {% endif %}.
+                </li>
+                {% endif %}
+
+                {# Step 3 — top contact engagement #}
+                {% if ns_c.top_contact and top_verdict in ('strong', 'pursue') %}
+                <li>Engage <strong>{{ ns_c.top_contact.name }}</strong>
+                    {% if ns_c.top_contact.title %}({{ ns_c.top_contact.title }}){% endif %}
+                    {% if ns_c.top_contact.linkedin_url %} — <a href="{{ ns_c.top_contact.linkedin_url }}" target="_blank">connect on LinkedIn ↗</a>{% endif %}.
+                </li>
+                {% endif %}
+
+                {# Step 4 — key risk to address #}
+                {% if ns_r.first_flag %}
+                <li class="step-risk">Address <strong>{{ ns_r.first_flag | replace('_', ' ') | title }}</strong> in discovery — confirm whether this is a blocker or a workaround exists.</li>
+                {% endif %}
+
+                {# Step 5 — ACV context for commercial conversation #}
+                {% if ns.has_cp and ns.acv_high > 0 and top_verdict in ('strong', 'pursue') %}
+                <li>Use <strong>${{ "{:,}".format(ns.acv_low | int) }}&ndash;${{ "{:,}".format(ns.acv_high | int) }} estimated ACV</strong> as the commercial anchor in your qualification conversation.</li>
+                {% endif %}
+            </ul>
         </div>
-        {% endif %}
 
     </div>{# /seller-zone #}
 
@@ -824,12 +912,6 @@
     </details>
     {% endfor %}
 
-    {# Designer CTA #}
-    <div class="designer-cta">
-        <div class="designer-cta-label">Next Step</div>
-        <a href="/designer/?analysis_id={{ data.analysis_id }}" target="_blank">Design Lab Program &rarr;</a>
-        <div class="designer-cta-note">Build a full lab program from this analysis in the Designer</div>
-    </div>
 
 </div>{# /container #}
 
