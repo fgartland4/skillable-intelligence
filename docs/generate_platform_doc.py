@@ -236,7 +236,7 @@ def h1(doc, text):
 
 def h2(doc, text):
     p = doc.add_paragraph()
-    set_paragraph_spacing(p, 140, 40)
+    set_paragraph_spacing(p, 140, 0)
     pPr = p._p.get_or_add_pPr()
     kwn = OxmlElement("w:keepNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
     make_run(p, text, size_pt=11, bold=True, color=DARK_GREEN)
@@ -313,6 +313,8 @@ def proclamation(doc, text):
     """Bold declarative line — the pivot between problem and solution in each subsection."""
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 90, 90)
+    pPr = p._p.get_or_add_pPr()
+    kwn = OxmlElement("w:keepNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
     make_run(p, text, size_pt=11, bold=True, color=DARK_GREEN)
     return p
 
@@ -465,14 +467,21 @@ def write_why(doc):
 def write_what(doc):
     h1(doc, "Three challenges. Three tools. One platform.")
 
-    body(doc, "Each tool addresses one of the three challenges directly. All three share the same research and scoring engine \u2014 which means every analysis makes the entire platform smarter. A company Prospector evaluates is available to Inspector without re-running research. An Inspector analysis seeds Designer with the product context it needs from day one. The intelligence compounds with every use.")
+    ai_para(doc, [
+        ("Each tool addresses one of the three challenges directly. All three share the same research and scoring engine \u2014 which means every analysis makes the entire platform smarter. A company Prospector evaluates is available to Inspector without re-running research. An Inspector analysis seeds Designer with the product context it needs from day one. ", False),
+        ("The intelligence compounds with every use.", True),
+    ])
 
     h2(doc, "Designer: Closing the adoption gap")
     body(doc, "A signed contract is not an adopted customer. The gap between \u201cwe want labs\u201d and \u201cwe\u2019re building and delivering labs embedded in a variety of learning journeys\u201d is wide. And it\u2019s crystal clear that most customers are not, and cannot, make the leap without significant and structured support.")
     body(doc, "Program design is a specialized skill. Embedding a new modality like hands-on experiences into your overall content strategy and content development operation is not a decision. It\u2019s a new discipline. They\u2019ve built documentation, recorded videos, written certification exams. They have not mapped a product\u2019s administrative workflows to a sequence of learner activities, defined scoring logic for hands-on tasks, or produced a structured brief that a lab developer can build against without extensive back-and-forth.")
     body(doc, "Without a process that takes them from goals and audience to a complete, buildable program architecture, customers stall at the design phase. In a consumption model, a stalled customer is not just a missed upsell opportunity; it is a churn risk. A customer who has not built a program has not realized value. A customer who has not realized value does not renew.")
     proclamation(doc, "Designer closes that gap.")
-    body(doc, "Designer guides program owners, instructional designers, and subject matter experts through the full process \u2014 from learning objectives and intended audience through every decision a program requires. It doesn\u2019t require the customer to know how to design a lab program. Designer asks the right questions and sequences the decisions correctly. Every program produces:")
+    ai_para(doc, [
+        ("Designer guides program owners, instructional designers, and subject matter experts through the full process \u2014 from learning objectives and intended audience through every decision a program requires. It doesn\u2019t require the customer to know how to design a lab program. ", False),
+        ("Designer asks the right questions and sequences the decisions correctly.", True),
+    ])
+    body(doc, "Every program produces:", after=40)
     bullet(doc, "A structured program outline")
     bullet(doc, "Draft lab instructions for every lab in the program")
     bullet(doc, "Learner activities for progress tracking")
@@ -481,7 +490,11 @@ def write_what(doc):
         ("Designer generates a complete Bill of Materials", True),
         (" from everything it knows about the program and the product: environment templates, PowerShell and Bash scripts, Bicep and CloudFormation templates, lifecycle action scripts, credential pool configuration, scoring validation stubs. What previously required hours of Solutions Engineering and lab developer work is produced in the same session where the program was designed.", False),
     ])
-    body_bold(doc, [("What it unlocks: ", True), ("Every new customer engagement starts with Designer in the first week \u2014 while the technical folks are working to get the technical details sorted. Program design and environment build run in parallel. Day one is productive for the program owner. The adoption gap closes before it has a chance to form.", False)])
+    ai_para(doc, [
+        ("What it unlocks: ", False),
+        ("Every new customer engagement starts with Designer in the first week \u2014 while the technical folks are working to get the technical details sorted. Program design and environment build run in parallel. Day one is productive for the program owner. ", False),
+        ("The adoption gap closes before it has a chance to form.", True),
+    ])
 
     h2(doc, "Inspector: Proving labability and impact")
     body(doc, "Proving that a Skillable lab program will work for a specific customer\u2019s products requires deep technical analysis. Which is the best delivery path for each software environment? A set of virtual machines or containers, leveraging Azure or AWS subscriptions, a custom API orchestration, or a hybrid setup? What are the architectural constraints? What would a realistic program look like in terms of scope, seat time, and scoring approach? What is the estimated consumption potential?")
@@ -495,8 +508,15 @@ def write_what(doc):
         ("Inspector turns every sales conversation into a solution conversation.", True),
         (" A seller walking into a meeting with a Dossier knows what the customer\u2019s products can and cannot do on the Skillable platform, which delivery path makes sense and why, and what the estimated consumption potential is. That is not discovery. That is a standing start.", False),
     ])
-    body(doc, "Inspector also surfaces the competitive map for every analyzed company, which feeds directly into Prospector\u2019s lookalike targeting.")
-    body_bold(doc, [("What it unlocks: ", True), ("Pre-call preparation that was previously impossible at scale is now standard. Every seller and SE enters every conversation with the technical depth that used to require hours of individual research, applied automatically to every product before the first meeting.", False)])
+    ai_para(doc, [
+        ("Inspector also surfaces the competitive map for every analyzed company \u2014 ", False),
+        ("which feeds directly into Prospector\u2019s lookalike targeting.", True),
+    ])
+    ai_para(doc, [
+        ("What it unlocks: ", False),
+        ("Pre-call preparation that was previously impossible at scale is now standard.", True),
+        (" Every seller and SE enters every conversation with the technical depth that used to require hours of individual research, applied automatically to every product before the first meeting.", False),
+    ])
 
     h2(doc, "Prospector: Finding the right companies")
     body(doc, "Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses (ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator) are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company\u2019s products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.")
@@ -510,7 +530,7 @@ def write_what(doc):
     bullet_bold(doc, "No deployment model: ", "Nothing to install, containerize, or slice.", after=60)
     body(doc, "These are specific technical facts findable in public documentation before a single sales conversation begins. Workday wasn\u2019t a bad lead. It was motivated, capable people who invested significant time before hitting a wall that was always there \u2014 because product-level technical fit was never evaluated before the pursuit began.")
     body(doc, "The same logic runs in the other direction. When Fortinet is a strong fit, it\u2019s not because Fortinet resembles other good customers as a company. It\u2019s because Fortinet\u2019s products have specific technical characteristics \u2014 multi-VM topology, deep administrative workflows, strong API surface, real consequence of misconfiguration \u2014 that make them ideal for hands-on labs. Every company selling products with those same characteristics is a strong fit for the same reasons. The competitive map of a strong-fit customer is a pre-qualified prospect list.")
-    proclamation(doc, "Prospector finds the right companies.")
+    ai_para(doc, [("Prospector finds the right companies.", True)])
     body(doc, "Prospector is the go-to-market tool for Marketing and RevOps. It takes a list of companies and returns a ranked assessment of ICP fit \u2014 with product-level evidence, composite scores, verdicts, delivery path signals, and key contacts for every company on the list.")
     ai_para(doc, [
         ("Prospector qualifies every company on product-level fit", True),
