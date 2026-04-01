@@ -197,9 +197,14 @@
         }
         .chat-bubble.assistant {
             align-self: flex-start;
-            background: #0a1f17; border: 1px solid #1e3329;
-            border-radius: 2px 12px 12px 12px; padding: 10px 14px;
-            font-size: 0.84rem; color: #c8e8d8; line-height: 1.6;
+            background: #0f2a1e;
+            border: 1px solid #1e3329;
+            border-radius: 2px 14px 14px 14px;
+            padding: 14px 18px;
+            font-size: 0.86rem;
+            color: #c8e8d8;
+            line-height: 1.7;
+            max-width: 85%;
         }
         .chat-bubble.assistant p { margin-bottom: 8px; }
         .chat-bubble.assistant p:last-child { margin-bottom: 0; }
@@ -237,35 +242,71 @@
 
         /* Chat input bar */
         .chat-input-bar {
-            padding: 12px 16px; border-top: 1px solid #1e3329;
-            background: #060f0b; flex-shrink: 0;
+            padding: 16px 20px 20px;
+            border-top: 1px solid #1e3329;
+            background: #06100c;
+            flex-shrink: 0;
         }
         .chat-input-row {
-            display: flex; align-items: flex-end; gap: 8px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            background: #0d2219;
+            border: 1px solid #1e3329;
+            border-radius: 12px;
+            padding: 8px 8px 8px 12px;
+            transition: border-color 0.15s;
+        }
+        .chat-input-row:focus-within {
+            border-color: rgba(36,237,155,0.4);
         }
         .chat-textarea {
-            flex: 1; background: #0a1f17; border: 1px solid #1e3329;
-            border-radius: 8px; color: #e8f5f0; font-size: 0.84rem;
-            padding: 10px 12px; resize: none; min-height: 40px; max-height: 120px;
-            line-height: 1.5; transition: border-color 0.15s;
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #e8f5f0;
+            font-size: 0.86rem;
+            padding: 6px 4px;
+            resize: none;
+            min-height: 36px;
+            max-height: 120px;
+            line-height: 1.5;
         }
-        .chat-textarea:focus { outline: none; border-color: #24ED9B; }
+        .chat-textarea:focus { outline: none; }
         .chat-textarea::placeholder { color: #3d6655; }
+        .btn-upload {
+            background: none;
+            border: none;
+            border-radius: 6px;
+            color: #3d6655;
+            padding: 6px 8px;
+            cursor: pointer;
+            transition: color 0.12s;
+            flex-shrink: 0;
+            align-self: flex-end;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .btn-upload:hover { color: #24ED9B; }
         .btn-send {
-            background: #24ED9B; color: #06100c; border: none;
-            border-radius: 8px; padding: 10px 16px; font-size: 0.82rem;
-            font-weight: 700; cursor: pointer; transition: background 0.12s;
-            flex-shrink: 0; align-self: flex-end;
+            background: #24ED9B;
+            color: #06100c;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.12s;
+            flex-shrink: 0;
+            align-self: flex-end;
         }
         .btn-send:hover { background: #1dd88a; }
-        .btn-send:disabled { background: #1e3329; color: #3d6655; cursor: not-allowed; }
-        .btn-upload {
-            background: none; border: 1px solid #1e3329; border-radius: 8px;
-            color: #3d6655; padding: 9px 10px; cursor: pointer;
-            transition: all 0.12s; flex-shrink: 0; align-self: flex-end;
-            font-size: 0.9rem; line-height: 1;
+        .btn-send:disabled {
+            background: #1e3329;
+            color: #3d6655;
+            cursor: not-allowed;
         }
-        .btn-upload:hover { border-color: #24ED9B; color: #24ED9B; }
         #file-input { display: none; }
 
         /* URL input row */
@@ -293,15 +334,28 @@
 
         /* Upload feedback */
         .upload-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: #0d2219; border: 1px solid #1e3329; border-radius: 20px;
-            font-size: 0.72rem; color: #6b9e88; padding: 4px 10px;
-            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(36,237,155,0.08);
+            border: 1px solid rgba(36,237,155,0.25);
+            border-radius: 20px;
+            font-size: 0.72rem;
+            color: #24ED9B;
+            padding: 4px 12px;
+            margin: 0 0 8px 0;
         }
         .upload-badge button {
-            background: none; border: none; color: #3d6655;
-            cursor: pointer; font-size: 0.8rem; line-height: 1;
+            background: none;
+            border: none;
+            color: #3d6655;
+            cursor: pointer;
+            font-size: 0.8rem;
+            line-height: 1;
+            padding: 0;
+            margin-left: 2px;
         }
+        .upload-badge button:hover { color: #e05252; }
 
         /* ================================================================
            PHASE 1 RIGHT PANE — Blueprint Checklist
@@ -702,6 +756,75 @@
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #1e3329; border-radius: 2px; }
+
+        /* ================================================================
+           PHASE 1 CHAT PANE OVERRIDES
+        ================================================================ */
+        .pane-mid-chat {
+            background: #07150e;
+            position: relative;
+            overflow: hidden;
+        }
+        .pane-mid-chat .chat-area {
+            background: transparent;
+            padding: 24px 32px;
+            gap: 16px;
+        }
+
+        /* Welcome card variant */
+        .chat-bubble.assistant.welcome {
+            background: #122b1e;
+            border: 1px solid #24573a;
+            border-left: 4px solid #24ED9B;
+            border-radius: 8px;
+            padding: 20px 22px;
+            max-width: 92%;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+        .chat-bubble.assistant.welcome p {
+            font-size: 0.92rem;
+            color: #e8f5f0;
+            line-height: 1.75;
+        }
+        .chat-bubble.assistant.welcome p + p {
+            margin-top: 10px;
+            color: #6b9e88;
+            font-size: 0.84rem;
+        }
+
+        /* Drop overlay */
+        .drop-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(6,16,12,0.92);
+            border: 2px dashed #24ED9B;
+            border-radius: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .drop-overlay.active {
+            display: flex;
+        }
+        .drop-overlay-icon {
+            font-size: 2.5rem;
+            color: #24ED9B;
+            opacity: 0.7;
+        }
+        .drop-overlay-text {
+            font-size: 0.92rem;
+            color: #24ED9B;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .drop-overlay-sub {
+            font-size: 0.76rem;
+            color: #3d6655;
+        }
     </style>
 </head>
 <body>
@@ -795,9 +918,17 @@ const INITIAL_DATA = {{ program_json | safe }};
         ============================================================ -->
         <section class="phase-section active" id="phase-1">
             <!-- Middle pane: chat -->
-            <div class="pane-mid">
+            <div class="pane-mid pane-mid-chat">
                 <div class="pane-header">
-                    <h2>Requirements &amp; Intent</h2>
+                    <div>
+                        <h2>Requirements &amp; Intent</h2>
+                        <div style="font-size:0.7rem; color:#3d6655; margin-top:2px;">Phase 1 of 4 — Program Blueprint</div>
+                    </div>
+                </div>
+                <div class="drop-overlay" id="p1-drop-overlay">
+                    <div class="drop-overlay-icon">&#128196;</div>
+                    <div class="drop-overlay-text">Drop files here</div>
+                    <div class="drop-overlay-sub">.pdf, .docx, .txt, .md and more</div>
                 </div>
                 <div class="chat-area" id="p1-chat-area"></div>
                 <div id="p1-typing" style="display:none; padding:0 20px 8px;">
@@ -2097,9 +2228,30 @@ function maybeGreet() {
     if ((state.phase1_messages || []).length === 0) {
         const welcomeHtml = `<p>Tell me about the program you're building.</p>
 <p style="margin-top:8px;">If you have any documents — like learning objectives, job task analyses, job descriptions, or even a task list — click the paperclip below to upload them and we'll get started.</p>`;
-        addChatBubble('p1-chat-area', 'assistant', welcomeHtml);
+        addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
     }
 }
+
+// ============================================================
+// DRAG-AND-DROP FOR PHASE 1 CHAT AREA
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const p1pane = document.querySelector('#phase-1 .pane-mid');
+    const dropOverlay = document.getElementById('p1-drop-overlay');
+    if (p1pane && dropOverlay) {
+        p1pane.addEventListener('dragenter', e => { e.preventDefault(); dropOverlay.classList.add('active'); });
+        p1pane.addEventListener('dragover', e => { e.preventDefault(); dropOverlay.classList.add('active'); });
+        p1pane.addEventListener('dragleave', e => {
+            if (!p1pane.contains(e.relatedTarget)) dropOverlay.classList.remove('active');
+        });
+        p1pane.addEventListener('drop', e => {
+            e.preventDefault();
+            dropOverlay.classList.remove('active');
+            const files = Array.from(e.dataTransfer.files);
+            if (files.length) handleFileUpload(files[0]); // reuse existing file handler
+        });
+    }
+});
 
 // ============================================================
 // INIT
