@@ -17,6 +17,8 @@ These are not questions about the company. They are questions about the product.
 
 This is the gap Intelligence fills. Every other tool in our stack — ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator — evaluates companies. **Intelligence evaluates products.** It is the only platform in our stack capable of answering the question that actually determines whether a prospect can become a Skillable customer.
 
+> **AI moment:** Assessing whether a company's products have the deployment model, API surface, marketplace presence, and technical architecture that Skillable can orchestrate takes an experienced SE hours per company. Intelligence does it in minutes, across a list of hundreds — researching marketplace listings, API documentation, GitHub repositories, Docker images, and partner ecosystem signals automatically. Every company on a ZoomInfo list gets a real technical evaluation, not just a firmographic score.
+
 ### The Three Gates
 
 Intelligence evaluates every company and product against three qualification gates. All three must clear for a prospect to be genuinely purseable.
@@ -31,6 +33,8 @@ Is the product technically rich enough that hands-on labs create genuine skill-b
 Does the company have the content team skills, technical enablement maturity, and program leadership to build and sustain a lab program? Gate 3 uses a two-question model: does the organization have this capability today, and do they have the organizational DNA to build it if absent? A company can clear Gate 3 on potential alone — if the signals suggest they're building toward it.
 
 A company must clear all three gates for a successful lab program to be achievable. Exceptional organizational readiness does not overcome a product that cannot be orchestrated. Strong Gate 1 compatibility paired with an immature training organization is a slow, high-risk program. Intelligence flags both — and surfaces what it would take to get there.
+
+> **AI moment:** Skillable has deep, specific knowledge about how its platform works — delivery paths, technical blockers, feature availability, Gate 1 disqualifiers, scoring feasibility signals. A human SE applies that knowledge to one company at a time, in a live conversation. Intelligence applies it to every product it researches, automatically — reasoning through the specific technical characteristics of a product against the specific capabilities and constraints of the Skillable platform, and producing a judgment that reflects reality rather than optimism. Intelligence knows Skillable as well as your best SE, and applies that knowledge to every company it touches.
 
 ### The Workday Pattern — Knowing When to Stop Before We Start
 
@@ -54,6 +58,8 @@ The most important version of this story: Workday wasn't a bad lead. It was moti
 
 **Products that work like Workday are not a fit — and Intelligence surfaces that before any marketing motion begins.** The Workday pattern generalizes: any product with pure multi-tenant architecture, no provisioning API, and no deployment model fails Gate 1. Intelligence identifies this pattern from research signals automatically. The HubSpot verdict is "Do Not Pursue" — with the specific technical reasons documented on the Company record so any seller or marketer who asks gets a clear, defensible answer.
 
+> **AI moment:** Identifying that a product has no provisioning API, no deployment model, and pure multi-tenant architecture — from public documentation, before any human conversation — is not a filter. It is a research and reasoning task. The technical reasons a company cannot be a Skillable customer are documented before the first marketing dollar is spent.
+
 ### Lookalike Is Causation, Not Correlation
 
 Standard lookalike analysis finds companies that resemble existing customers — same size, same industry, same growth profile. That is firmographic correlation. It is useful, and it has limits.
@@ -74,17 +80,7 @@ This means Skillable's most powerful prospecting signal is product category — 
 
 **We are not looking for companies that look like our customers. We are looking for companies whose products behave like our customers' products.** That is a fundamentally more defensible, more precise, and more scalable approach to ICP targeting.
 
-### AI Moments — Capability Unlocks, Not Efficiency Gains
-
-Intelligence uses AI to do things that were not previously possible — not faster versions of existing work, but work that simply did not happen before because the human cost made it impractical.
-
-**Evaluating product-level technical compatibility at scale.** Assessing whether a company's products have the deployment model, API surface, marketplace presence, and technical architecture that Skillable can orchestrate is work that takes an experienced SE hours per company. Intelligence does it in minutes, across a list of hundreds — researching marketplace listings, API documentation, GitHub repositories, Docker images, and partner ecosystem signals automatically. The AI moment: every company on a ZoomInfo list gets a real technical evaluation, not just a firmographic score.
-
-**Applying Skillable's platform knowledge to every product it touches.** Skillable has deep, specific knowledge about how its platform works — delivery paths, technical blockers, feature availability, Gate 1 disqualifiers, scoring feasibility signals. That knowledge lives in documentation, in SE expertise built over years of customer engagements. A human SE applies it to one company at a time, in a live conversation. Intelligence applies that entire body of Skillable-specific knowledge to every product it researches, automatically — matching the specific technical characteristics of a product against the specific capabilities and constraints of the Skillable platform, and producing a judgment that reflects reality rather than optimism. The AI moment: Intelligence knows Skillable as well as your best SE, and applies that knowledge to every company it touches — not just the ones that make it into a conversation.
-
-**Surfacing the Workday pattern before the pursuit begins.** Identifying that a product has no provisioning API, no deployment model, and pure multi-tenant architecture — from public documentation, before any human conversation — is not a filter. It is a research and reasoning task. The AI moment: the technical reasons a company cannot be a Skillable customer are documented before the first marketing dollar is spent.
-
-**Lookalike by product behavior, not firmographic resemblance.** Finding companies whose products behave like known strong-fit customers requires understanding what makes a product technically orchestrable and applying that understanding across the internet. The AI moment: the competitive map of every analyzed customer becomes an automatically updated list of pre-qualified lookalike candidates.
+> **AI moment:** Finding companies whose products behave like known strong-fit customers requires understanding what makes a product technically orchestrable and applying that reasoning across the internet. The competitive map of every analyzed customer becomes an automatically updated list of pre-qualified lookalike candidates — identified without additional research, compounding with every new customer.
 
 ---
 

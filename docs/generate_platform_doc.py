@@ -12,13 +12,17 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
-DOCS_DIR = os.path.dirname(os.path.abspath(__file__))
+DOCS_DIR    = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_PATH = os.path.join(DOCS_DIR, "Skillable-Intelligence-Platform.docx")
-LOGO_PATH = r"C:\Users\Frank.Gartland\OneDrive - Skillable\Sales Enablement\Keep\z-Skillable Logos\Skillable Logo\Default@4x.png"
+LOGO_PATH   = r"C:\Users\Frank.Gartland\OneDrive - Skillable\Sales Enablement\Keep\z-Skillable Logos\Skillable Logo\Default@4x.png"
+ICON_PATH   = os.path.join(DOCS_DIR, "ai-moment-icon.png")
 
-# ── Colors ────────────────────────────────────────────────────────────────────
-DARK_GREEN     = RGBColor(0x1A, 0x4D, 0x35)
-DARK_GREEN_HEX = "1A4D35"
+# ── Colors — Skillable brand palette (confirmed 2026-03-31) ──────────────────
+DARK_GREEN     = RGBColor(0x13, 0x69, 0x45)   # #136945
+DARK_GREEN_HEX = "136945"
+PURPLE         = RGBColor(0x70, 0x00, 0xFF)   # #7000FF
+PURPLE_HEX     = "7000FF"
+PURPLE_LIGHT   = "F0E8FF"                     # very light purple tint for callout bg
 DARK_TEXT      = RGBColor(0x1A, 0x1A, 0x1A)
 WHITE          = RGBColor(0xFF, 0xFF, 0xFF)
 GRAY           = RGBColor(0x60, 0x60, 0x60)
@@ -318,6 +322,82 @@ def add_table(doc, headers, rows):
     set_paragraph_spacing(p_after, 0, 60)
 
 
+def remove_table_borders(table):
+    tbl = table._tbl
+    tblPr = tbl.find(qn("w:tblPr"))
+    if tblPr is None:
+        tblPr = OxmlElement("w:tblPr")
+        tbl.insert(0, tblPr)
+    tblBorders = OxmlElement("w:tblBorders")
+    for side in ["top", "left", "bottom", "right", "insideH", "insideV"]:
+        b = OxmlElement(f"w:{side}")
+        b.set(qn("w:val"), "none")
+        tblBorders.append(b)
+    tblPr.append(tblBorders)
+
+
+def set_cell_width(cell, dxa):
+    tcPr = cell._tc.get_or_add_tcPr()
+    tcW = OxmlElement("w:tcW")
+    tcW.set(qn("w:w"), str(dxa))
+    tcW.set(qn("w:type"), "dxa")
+    tcPr.append(tcW)
+
+
+def set_cell_left_border(cell, color_hex, size=18):
+    tcPr = cell._tc.get_or_add_tcPr()
+    tcBorders = OxmlElement("w:tcBorders")
+    left = OxmlElement("w:left")
+    left.set(qn("w:val"), "single")
+    left.set(qn("w:sz"), str(size))
+    left.set(qn("w:space"), "0")
+    left.set(qn("w:color"), color_hex)
+    tcBorders.append(left)
+    tcPr.append(tcBorders)
+
+
+def ai_moment(doc, text):
+    """AI Moment callout: purple icon left, label + italic text right, light purple tint."""
+    p_pre = doc.add_paragraph()
+    set_paragraph_spacing(p_pre, 50, 0)
+
+    table = doc.add_table(rows=1, cols=2)
+    remove_table_borders(table)
+
+    # ── Icon cell ──
+    icon_cell = table.rows[0].cells[0]
+    set_cell_background(icon_cell, PURPLE_LIGHT)
+    set_cell_width(icon_cell, 504)          # ~0.35"
+    set_cell_left_border(icon_cell, PURPLE_HEX, size=18)
+    set_cell_margins(icon_cell, 60)
+    for p in icon_cell.paragraphs:
+        p._element.getparent().remove(p._element)
+    p_icon = icon_cell.add_paragraph()
+    p_icon.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    set_paragraph_spacing(p_icon, 20, 0)
+    run = p_icon.add_run()
+    run.add_picture(ICON_PATH, width=Inches(0.26))  # noticeable but subtle
+
+    # ── Content cell ──
+    content_cell = table.rows[0].cells[1]
+    set_cell_background(content_cell, PURPLE_LIGHT)
+    set_cell_width(content_cell, 9288)      # remainder of 9792
+    set_cell_margins(content_cell, 80)
+    for p in content_cell.paragraphs:
+        p._element.getparent().remove(p._element)
+
+    p_label = content_cell.add_paragraph()
+    set_paragraph_spacing(p_label, 10, 8)
+    make_run(p_label, "AI Moment", size_pt=8, bold=True, color=PURPLE)
+
+    p_text = content_cell.add_paragraph()
+    set_paragraph_spacing(p_text, 0, 10)
+    make_run(p_text, smartify(text), size_pt=9.5, italic=True, color=PURPLE)
+
+    p_post = doc.add_paragraph()
+    set_paragraph_spacing(p_post, 0, 60)
+
+
 # ── Content sections ──────────────────────────────────────────────────────────
 
 def write_why(doc):
@@ -333,6 +413,7 @@ def write_why(doc):
         ("Intelligence evaluates products.", True),
         (" It is the only platform in our stack capable of answering the question that actually determines whether a prospect can become a Skillable customer.", False),
     ])
+    ai_moment(doc, "Assessing whether a company's products have the deployment model, API surface, marketplace presence, and technical architecture that Skillable can orchestrate takes an experienced SE hours per company. Intelligence does it in minutes, across a list of hundreds — researching marketplace listings, API documentation, GitHub repositories, Docker images, and partner ecosystem signals automatically. Every company on a ZoomInfo list gets a real technical evaluation, not just a firmographic score.")
 
     h2(doc, "The Three Gates")
     body(doc, "Intelligence evaluates every company and product against three qualification gates. All three must clear for a prospect to be genuinely purseable.")
@@ -340,12 +421,13 @@ def write_why(doc):
     bullet_bold(doc, "Gate 2 — Product Complexity: ", "Is the product technically rich enough that hands-on labs create genuine skill-building value? Simple products with shallow workflows don't benefit enough from labs to justify the investment. High Gate 2 scores mean learners get dramatically better at something that matters — and they can prove it.")
     bullet_bold(doc, "Gate 3 — Organizational Readiness: ", "Does the company have the content team skills, technical enablement maturity, and program leadership to build and sustain a lab program? Gate 3 uses a two-question model: does the organization have this capability today, and do they have the organizational DNA to build it if absent?")
     body(doc, "A company must clear all three gates for a successful lab program to be achievable. Intelligence flags what's missing — and surfaces what it would take to get there.")
+    ai_moment(doc, "Skillable has deep, specific knowledge about how its platform works — delivery paths, technical blockers, feature availability, Gate 1 disqualifiers, scoring feasibility signals. A human SE applies that knowledge to one company at a time, in a live conversation. Intelligence applies it to every product it researches, automatically — reasoning through the specific technical characteristics of a product against the specific capabilities and constraints of the Skillable platform, and producing a judgment that reflects reality rather than optimism. Intelligence knows Skillable as well as your best SE, and applies that knowledge to every company it touches.")
 
     h2(doc, "The Workday Pattern — Knowing When to Stop Before We Start")
     body_bold(doc, [("The goal of Intelligence is to surface the specific technical reasons a company cannot be a Skillable customer — before we spend a single dollar marketing to them.", True)])
     body(doc, "Workday is the clearest illustration. On every traditional marketing signal, Workday looks like an ideal prospect: world-class training organization, deep content ecosystem, strong technical enablement culture, massive install base. Gate 3 passes with distinction. Gate 2 passes too — configuring Workday HCM or Financials is genuinely complex. Workday's own content teams wanted to build labs.")
     body(doc, "Gate 1 is where the analysis ends. The specific technical reasons are articulable and discoverable from public documentation:")
-    bullet_bold(doc, 'Pure multi-tenant architecture — ', 'every Workday customer shares the same cloud environment. There is no Workday instance to give a learner. The product is architecturally incapable of per-learner isolation.')
+    bullet_bold(doc, "Pure multi-tenant architecture — ", "every Workday customer shares the same cloud environment. There is no Workday instance to give a learner. The product is architecturally incapable of per-learner isolation.")
     bullet_bold(doc, "No provisioning API — ", "no mechanism to spin up an individual environment programmatically. Skillable's entire delivery model depends on this capability.")
     bullet_bold(doc, "No deployment model — ", "nothing to install, nothing to containerize, nothing to slice. The product lives entirely in Workday's cloud and cannot be replicated outside it.")
     body(doc, "These are not hunches. They are specific, technical facts — findable in public documentation before a single sales conversation begins.")
@@ -354,6 +436,7 @@ def write_why(doc):
         ("Products that work like Workday are not a fit — and Intelligence surfaces that before any marketing motion begins. ", True),
         ("The HubSpot verdict is Do Not Pursue — with the specific technical reasons documented on the Company record so any seller or marketer who asks gets a clear, defensible answer.", False),
     ])
+    ai_moment(doc, "Identifying that a product has no provisioning API, no deployment model, and pure multi-tenant architecture — from public documentation, before any human conversation — is not a filter. It is a research and reasoning task. The technical reasons a company cannot be a Skillable customer are documented before the first marketing dollar is spent.")
 
     h2(doc, "Lookalike Is Causation, Not Correlation")
     body(doc, "Standard lookalike analysis finds companies that resemble existing customers — same size, same industry, same growth profile. That is firmographic correlation. It is useful, and it has limits.")
@@ -369,13 +452,7 @@ def write_why(doc):
         ("We are looking for companies whose products behave like our customers' products.", True),
         (" That is a fundamentally more defensible, more precise, and more scalable approach to ICP targeting.", False),
     ])
-
-    h2(doc, "AI Moments — Capability Unlocks, Not Efficiency Gains")
-    body(doc, "Intelligence uses AI to do things that were not previously possible — not faster versions of existing work, but work that simply did not happen before because the human cost made it impractical.")
-    body_bold(doc, [("AI Moment: Product-level research at scale. ", True), ("Assessing whether a company's products have the deployment model, API surface, marketplace presence, and technical architecture that Skillable can orchestrate takes an experienced SE hours per company. Intelligence does it in minutes, across a list of hundreds — researching marketplace listings, API documentation, GitHub repositories, Docker images, and partner ecosystem signals automatically. Every company on a ZoomInfo list gets a real technical evaluation, not just a firmographic score.", False)])
-    body_bold(doc, [("AI Moment: Applying Skillable's platform knowledge to every product it touches. ", True), ("Skillable has deep, specific knowledge about how its platform works — delivery paths, technical blockers, feature availability, Gate 1 disqualifiers, scoring feasibility signals. A human SE applies it to one company at a time, in a live conversation. Intelligence applies that entire body of knowledge to every product it researches, automatically — reasoning through the specific technical characteristics of a product against the specific capabilities and constraints of the Skillable platform, and producing a judgment that reflects reality rather than optimism. Intelligence knows Skillable as well as your best SE, and applies that knowledge to every company it touches.", False)])
-    body_bold(doc, [("AI Moment: Surfacing the Workday pattern before the pursuit begins. ", True), ("Identifying that a product has no provisioning API, no deployment model, and pure multi-tenant architecture — from public documentation, before any human conversation — is not a filter. It is a research and reasoning task. The technical reasons a company cannot be a Skillable customer are documented before the first marketing dollar is spent.", False)])
-    body_bold(doc, [("AI Moment: Lookalike by product behavior, not firmographic resemblance. ", True), ("Finding companies whose products behave like known strong-fit customers requires understanding what makes a product technically orchestrable and applying that reasoning across the internet. The competitive map of every analyzed customer becomes an automatically updated list of pre-qualified lookalike candidates.", False)])
+    ai_moment(doc, "Finding companies whose products behave like known strong-fit customers requires understanding what makes a product technically orchestrable and applying that reasoning across the internet. The competitive map of every analyzed customer becomes an automatically updated list of pre-qualified lookalike candidates — identified without additional research, compounding with every new customer.")
 
 
 def write_what(doc):
@@ -394,12 +471,12 @@ def write_what(doc):
     body(doc, "Inspector performs a deep product-level analysis of a specific company. It runs in two stages.")
     bullet_bold(doc, "Stage 1 — Company Report: ", "A broad scan that surfaces all of the company's products, ranked by labability, with competitive pairings, company-level signals, and an overall fit score. The foundation document for any seller or SE entering a conversation with this account. Also the output of Prospector's Customer Expansion pass — the same research, stored once per company, shared across both tools.")
     bullet_bold(doc, "Stage 2 — Deep Dive: ", "The seller or SE selects three to four products from Stage 1 for exhaustive analysis — full Gate 1/2/3 evidence, delivery path recommendation with rationale, scoring approach, consumption potential estimate, and program scope. This is the document that goes into a deal conversation.")
-    body_bold(doc, [("AI Moment: ", True), ("A seller walking into a conversation with a Stage 2 Inspector report knows what the customer's products can and cannot do on the Skillable platform, which delivery path makes sense and why, and what the estimated consumption potential is. That is not a discovery conversation — it is a solution conversation. A level of pre-call preparation that was previously impossible at scale is now standard.", False)])
+    ai_moment(doc, "A seller walking into a conversation with a Stage 2 Inspector report knows what the customer's products can and cannot do on the Skillable platform, which delivery path makes sense and why, and what the estimated consumption potential is. That is not a discovery conversation — it is a solution conversation. A level of pre-call preparation that was previously impossible at scale is now standard.")
 
     h2(doc, "Designer — From Analysis to Program")
     body(doc, "Designer takes Inspector's output and guides program owners, instructional designers, and subject matter experts through the full process of designing a lab program — from goals and audience through a complete approved outline, draft instructions, and a Skillable Studio-ready export package.")
     body_bold(doc, [("What it unlocks: ", True), ("Customers who don't know how to design a lab program won't build one. And if they don't build one, they don't adopt Skillable. Designer is the adoption engine — the tool that gives a new customer something concrete to do on day one, before the technical environment is ready, and produces a complete program architecture that a contracted lab developer can build against immediately.", False)])
-    body_bold(doc, [("AI Moment: ", True), ("Designer generates a complete Bill of Materials — PowerShell scripts, Bicep templates, CloudFormation templates, lifecycle action scripts, credential pool configuration, scoring validation stubs — from everything it knows about the program. Hours of SE and lab developer work, generated in the same session where the program was designed.", False)])
+    ai_moment(doc, "Designer generates a complete Bill of Materials — PowerShell scripts, Bicep templates, CloudFormation templates, lifecycle action scripts, credential pool configuration, scoring validation stubs — from everything it knows about the program. Hours of SE and lab developer work, generated in the same session where the program was designed.")
 
 
 def write_how(doc):
