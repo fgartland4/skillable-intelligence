@@ -595,9 +595,20 @@
              onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'">
         <div class="nav-divider"></div>
         <span style="font-size:0.82rem;color:#6b9e88;font-weight:600;">Inspector</span>
+        {% if data.discovery_id %}
+        <span style="font-size:0.82rem;color:#3d6655;margin:0 4px;">/</span>
+        <a href="/inspector/caseboard/{{ data.discovery_id }}" style="font-size:0.82rem;color:#6b9e88;text-decoration:none;font-weight:600;" onmouseover="this.style.color='#24ED9B'" onmouseout="this.style.color='#6b9e88'">Case Board</a>
+        <span style="font-size:0.82rem;color:#3d6655;margin:0 4px;">/</span>
+        <span style="font-size:0.82rem;color:#24ED9B;font-weight:600;">The Dossier</span>
+        {% else %}
         <span style="font-size:0.82rem;color:#3d6655;margin-left:6px;">/ The Dossier</span>
+        {% endif %}
         <span style="flex:1;"></span>
+        {% if data.discovery_id %}
+        <a href="/inspector/caseboard/{{ data.discovery_id }}" style="font-size:0.8rem;color:#6b9e88;text-decoration:none;font-weight:600;background:rgba(36,237,155,0.07);border:1px solid rgba(36,237,155,0.2);padding:6px 14px;border-radius:7px;" onmouseover="this.style.color='#24ED9B';this.style.borderColor='rgba(36,237,155,0.4)'" onmouseout="this.style.color='#6b9e88';this.style.borderColor='rgba(36,237,155,0.2)'">&larr; Choose Different Products</a>
+        {% else %}
         <a href="/inspector/" style="font-size:0.8rem;color:#3d6655;text-decoration:none;" onmouseover="this.style.color='#24ED9B'" onmouseout="this.style.color='#3d6655'">&larr; New Search</a>
+        {% endif %}
     </nav>
 
     <div class="container">
