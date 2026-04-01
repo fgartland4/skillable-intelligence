@@ -120,7 +120,7 @@ A "Generate Outline" button lives at the bottom of the right pane checklist — 
 **Phase fluidity — no hard walls:**
 The program owner can move between phases freely. There is no lock-out. Additionally, the Phase 2 AI conversation (right pane) can handle Phase 1 refinements directly — "we need to refine success criteria" doesn't require returning to Phase 1. The AI should proactively surface gaps it notices: *"Your success criteria are still general — want to refine those before we finalize the outline?"*
 
-**The Lab Blueprint checklist tracks eight requirements:**
+**The Lab Blueprint checklist tracks nine requirements:**
 1. Business / Learning Objectives — what the program needs to achieve
 2. Target Audience(s) — roles, experience levels, prerequisites
 3. Primary Product / Platform — the product being trained on
@@ -128,7 +128,10 @@ The program owner can move between phases freely. There is no lock-out. Addition
 5. Target Lab Duration — seat time per lab (default 45–75 min; adjustable in Preferences)
 6. Success Criteria — how program success will be measured
 7. Scenario Seeds — initial ideas for lab scenarios and use cases
-8. Competency Framework — alignment to a skills or certification framework, if applicable
+8. Skill Framework — optional alignment to a skills or certification framework; AI recommends based on product category
+9. Competency Mapping — whether activity-level framework mapping will be applied; set here, executed in Phase 2
+
+Items 1–7 are standard for every program. Items 8 and 9 are optional — they appear lower in the checklist and the AI surfaces them conversationally at the right moment, not at the start. The AI does not wait for the program owner to know that skill frameworks exist: *"This looks like a cybersecurity program — I'd recommend mapping to the NICE Workforce Framework. Want me to do that?"* If the answer is no, the items stay gray and the program proceeds without mapping. If yes, the AI carries the framework selection forward into Phase 2 where the actual mapping work happens.
 
 Each item shows a filled green indicator when confirmed, a gray indicator when empty, and a summary of what's been captured when expanded. The AI prompts for missing items conversationally — it doesn't wait for the user to realize something is missing.
 
@@ -166,6 +169,20 @@ Every level of the outline is expandable and collapsible. The program owner refi
 **Activities are not optional.** They are how Skillable tracks learner progress and the only level at which scoring is possible. Designer treats activity design as a first-class part of program architecture — not an afterthought for the lab developer.
 
 Once the outline is approved, it's saved. Collaborators (SMEs, IDs, additional program owners) can review and engage with the AI to evolve the framework before moving to Phase 3.
+
+**Skill Mapping Mode — a distinct focus within Phase 2:**
+
+Outlining and skill mapping are separate modes of focus. When designing the program, skill mapping stays in the background. When the outline is ready, the program owner or ID shifts into Skill Mapping Mode — the outline is still visible for reference, but the focus moves to framework alignment.
+
+If a skill framework was selected in Phase 1, the AI enters Skill Mapping Mode automatically after outline approval. It proposes activity-level mappings for every activity in the approved outline — *"Configure Network Policies → NICE Work Role: Cyber Defense Analyst (KS0001, KS0002)"* — and presents them for review. The program owner or ID reviews, confirms, or adjusts. This is not a quick confirm dialog. The review is structured and designed for an instructional designer: full framework visible alongside the outline, mappings editable individually, and the ability to approve the complete map as a whole before it's locked.
+
+**Multiple frameworks simultaneously.** A program can be mapped to more than one framework at the same time. A cybersecurity program will commonly run NICE and DCWF in parallel — the work roles overlap, so the same activity maps to both. The AI handles dual-framework mapping automatically; the ID reviews both mappings in the same review step.
+
+**Gap detection.** Once mapping is complete, the AI checks coverage in both directions: activities that map to no framework skill (potential scope gaps), and framework skills with no activity coverage (curriculum gaps). It surfaces both as reviewable findings — *"No activities cover Incident Response (NICE PR-IR) — want to add a lab or activity?"* — without forcing any changes.
+
+**Skill mapping is always optional and always AI-led.** The AI does most of the work. The ID validates and governs. Organizations that don't want mapping skip it entirely with no friction. Organizations that need rigorous framework alignment — government contractors, EC-Council, organizations with custom consulting-built frameworks — get a structured, complete mapping process that would otherwise require weeks of manual work.
+
+**The mapping travels with the program.** Framework selections and activity-level mappings are stored on the program record, included in Phase 3 draft instruction context, and exported in the Phase 4 Studio package.
 
 ### Phase 3 — Draft Instructions & Scoring Recommendations
 
@@ -252,10 +269,22 @@ The pedagogical defaults that align labs to recognized frameworks and ensure con
 |---|---|---|
 | Writing Style Guide | Microsoft / Google / Apple / Red Hat / Custom URL | Applies a consistent writing voice to all draft instructions |
 | Certification Alignment | Free text / None | Aligns objectives and activity structure to a specific certification or exam |
-| Standards Framework | Bloom's Taxonomy / NICE NCWF / CompTIA / SFIA / None | Informs objective framing and competency mapping in Phase 1 |
+| Default Skill Framework(s) | Picklist + custom upload | Organization-wide default framework(s); every new program inherits these unless overridden |
 | Hint Usage Policy | Always / On request / Never | Whether draft instructions include hint structures for learners |
 | Knowledge Block Usage | Yes / No | Whether draft instructions use knowledge blocks for background context |
 | SME Handoff Format | Inline AI comments / Clean draft only | Whether draft instructions include AI guidance notes for the SME |
+
+**Skill framework selection — how it works in Preferences:**
+
+The Default Skill Framework(s) picker presents a curated catalog grouped by domain — Cybersecurity, Cloud & DevOps, Networking, Software Engineering, IT Operations, Data & AI, Cross-Domain. Organizations select one or more frameworks as their organization-wide default. Every new program inherits these defaults; program owners can override for a specific program without changing the global standard.
+
+The catalog includes public frameworks (NICE NCWF, DoD DCWF, CompTIA certification domains, AWS/Azure certification frameworks, SFIA, Cisco CCNA/CCNP/CCIE, ITIL 4, and others) and supports custom framework uploads in JSON, CSV, or plain text format. Custom frameworks — consulting-built company frameworks, vendor-proprietary frameworks like Microsoft's internal skill model — appear at the top of the picker under "Your Frameworks."
+
+**Soft skills and power skills frameworks are explicitly excluded.** The catalog contains only frameworks relevant to hands-on technical skills — the kind that map to keyboard-level tasks in a lab environment. Frameworks built around communication, leadership, or behavioral competencies have no meaningful relationship to lab activities and are not included.
+
+**Certification frameworks are included and treated as skill frameworks.** Certifications are built from job task analysis — the resulting skill domains are a structured competency framework. CompTIA Security+, AWS Solutions Architect, Cisco CCNA, and similar certifications belong in the catalog. A customer building labs to prepare learners for a certification exam is doing skill framework mapping whether they call it that or not.
+
+**Per-program override.** Program owners can select a different framework — or add a second framework — for any specific program without changing the organization default. Multiple frameworks can be active simultaneously on the same program. The instructional design team creates the mapping rules and governs approval; the program owner selects the framework; the AI does the mapping work.
 
 **3. Scenario & Lab Type Defaults** *(PS / Program owner)*
 Controls which advanced scenario types Designer recommends during outline generation. Can be pre-populated from Inspector signals.
