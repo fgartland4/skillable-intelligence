@@ -225,6 +225,8 @@ def add_title(doc, title, subtitle):
 def h1(doc, text):
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 120, 40)
+    pPr = p._p.get_or_add_pPr()
+    kwn = OxmlElement("w:keepWithNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
     make_run(p, text, size_pt=13, bold=True, color=DARK_GREEN)
     return p
 
@@ -232,6 +234,8 @@ def h1(doc, text):
 def h2(doc, text):
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 100, 30)
+    pPr = p._p.get_or_add_pPr()
+    kwn = OxmlElement("w:keepWithNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
     make_run(p, text, size_pt=11, bold=True, color=DARK_GREEN)
     return p
 
@@ -258,8 +262,8 @@ def _bullet_para(doc, after=40):
     set_paragraph_spacing(p, 0, after)
     pPr = p._p.get_or_add_pPr()
     ind = OxmlElement("w:ind")
-    ind.set(qn("w:left"), "400")    # clearly indented from body paragraphs
-    ind.set(qn("w:hanging"), "160") # bullet character sits ~0.17" before text
+    ind.set(qn("w:left"), "480")    # clearly indented from body paragraphs
+    ind.set(qn("w:hanging"), "240") # wider gap between bullet character and text
     pPr.append(ind)
     r = p.add_run("\u2022 ")        # bullet + 1 space
     r.font.name = FONT_NAME
@@ -599,7 +603,6 @@ def main():
 
     write_why(doc)
     write_what(doc)
-    page_break(doc)
     write_how(doc)
     write_recommendations(doc)
 
