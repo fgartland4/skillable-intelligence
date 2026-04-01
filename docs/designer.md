@@ -76,11 +76,28 @@ Two deliverables:
 
 ## How Designer Works
 
+### Designer Is Self-Service by Design
+
+Designer does not depend on Skillable. Any customer — regardless of whether they have an active PS engagement or LC support — can open Designer and produce a meaningful program architecture independently. The tool guides the process. No Skillable involvement is required.
+
+Skillable Learning Consultants and Professional Services are avid Designer users, and they use it to do better work faster. But their involvement is always additive — never a prerequisite. A program owner at a new customer account should be able to complete all four phases, export a Studio package, and hand it to a contracted SME without ever speaking to a Skillable employee.
+
+### Intelligence Flowing Into Phase 1
+
+When a program is seeded from an Inspector analysis, Intelligence doesn't just pre-fill fields — it actively shapes the AI's recommendations throughout Phase 1 and into Phase 2. What Inspector knows about the customer's products is present from the first interaction:
+
+- Gate 2 complexity signals inform program scope recommendations — a deeply complex product with high module count and strong interoperability generates multi-series curriculum suggestions before the program owner has said anything
+- Gate 1 delivery path feeds Preferences defaults and BOM recommendations
+- Scenario type flags (break/fix, simulated attack, collaborative lab) surface in scenario seed suggestions and Phase 2 outline generation
+- Gate 3 organizational readiness signals calibrate how prescriptive the scaffolding is — an early-stage team gets more detailed guidance; a mature team gets a framework
+
+The program owner doesn't need to re-explain the product. Designer already knows it.
+
 ### Seeding from Inspector
 
 The primary entry point is `GET /designer?analysis_id={inspector_analysis_id}`. Designer loads company name, scored products, delivery path recommendation, Gate scores, consumption estimates, scenario type flags, and key contacts from the Inspector analysis. Phase 1 fields pre-fill automatically. The user reviews and confirms before the AI asks follow-up questions.
 
-Designer also accepts manual entry when no Inspector analysis exists — for PS engagements where Inspector hasn't run, or where the customer's product is already known.
+Designer also accepts manual entry when no Inspector analysis exists — the program owner describes the product, audience, and goals, and Designer works from that context alone.
 
 ### Phase 1 — Requirements & Intent
 
