@@ -247,7 +247,7 @@
                 {% endif %}
             </div>
             {% if existing_analysis %}
-            <a href="/inspector/dossier/{{ existing_analysis.analysis_id }}" class="btn-prev">
+            <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">
                 View Previous Dossier &rarr;
             </a>
             {% endif %}
@@ -486,7 +486,7 @@
     </div>
     <div class="f-right">
         {% if existing_analysis %}
-        <a href="/inspector/dossier/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous Dossier</a>
+        <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous Dossier</a>
         {% endif %}
         <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn" disabled>Run Dossier &rarr;</button>
     </div>
