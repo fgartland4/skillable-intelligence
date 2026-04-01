@@ -4,447 +4,1988 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
-    <title>Lab Program Designer by Skillable</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title id="page-title">Lab Program Designer — Skillable</title>
+    <style>
+        /* ================================================================
+           RESET & BASE
+        ================================================================ */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, input, textarea, select { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #06100c;
+            color: #e8f5f0;
+            height: 100vh; overflow: hidden;
+        }
+        a { color: #24ED9B; text-decoration: none; }
+        a:hover { color: #1dd88a; }
+
+        /* ================================================================
+           LAYOUT — three columns
+        ================================================================ */
+        #app {
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        /* Left sidebar */
+        #sidebar {
+            width: 220px; flex-shrink: 0;
+            background: #060f0b;
+            border-right: 1px solid #1e3329;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-logo-wrap {
+            padding: 16px 16px 14px;
+            border-bottom: 1px solid #1e3329;
+        }
+        .sidebar-logo { height: 22px; }
+        .sidebar-back {
+            display: block; font-size: 0.72rem; color: #3d6655;
+            padding: 10px 16px 0;
+        }
+        .sidebar-back:hover { color: #24ED9B; }
+        .sidebar-program-name {
+            padding: 10px 16px 12px;
+            border-bottom: 1px solid #1e3329;
+        }
+        .program-name-display {
+            font-size: 0.84rem; font-weight: 600; color: #e8f5f0;
+            cursor: pointer; word-break: break-word; line-height: 1.4;
+        }
+        .program-name-display:hover { color: #24ED9B; }
+        .program-name-input {
+            width: 100%; background: #0d2219; border: 1px solid #24ED9B;
+            border-radius: 4px; color: #e8f5f0; font-size: 0.84rem;
+            padding: 4px 8px; display: none;
+        }
+        .program-name-input:focus { outline: none; }
+
+        /* Phase nav */
+        #phase-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+        #phase-nav ul { list-style: none; }
+        .nav-link {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 16px; cursor: pointer;
+            border-left: 2px solid transparent;
+            transition: background 0.12s, border-color 0.12s;
+            text-decoration: none; color: #6b9e88; font-size: 0.8rem;
+        }
+        .nav-link:hover { background: #0d1f17; color: #e8f5f0; }
+        .nav-link.active { border-left-color: #24ED9B; background: #0d2219; color: #24ED9B; }
+        .nav-num {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 1.5px solid currentColor;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
+        }
+        .nav-link.phase-done .nav-num {
+            background: #24ED9B; border-color: #24ED9B; color: #06100c;
+        }
+        .nav-text { flex: 1; line-height: 1.3; }
+        .nav-title { font-size: 0.78rem; font-weight: 600; display: block; }
+        .nav-progress-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #1e3329; flex-shrink: 0;
+        }
+        .nav-progress-dot.partial { background: #f59e0b; }
+        .nav-progress-dot.complete { background: #24ED9B; }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #1e3329;
+        }
+        .btn-prefs {
+            display: flex; align-items: center; gap: 8px;
+            width: 100%; background: none; border: 1px solid #1e3329;
+            border-radius: 6px; color: #6b9e88; font-size: 0.78rem;
+            padding: 8px 12px; cursor: pointer; transition: all 0.12s;
+        }
+        .btn-prefs:hover { border-color: #24ED9B; color: #24ED9B; }
+
+        /* ================================================================
+           MAIN CONTENT
+        ================================================================ */
+        #main-content {
+            flex: 1; display: flex; overflow: hidden;
+            position: relative;
+        }
+
+        /* Phase sections */
+        .phase-section { display: none; width: 100%; height: 100%; }
+        .phase-section.active { display: flex; }
+
+        /* Two-pane split */
+        .pane-mid {
+            flex: 60; display: flex; flex-direction: column;
+            border-right: 1px solid #1e3329; overflow: hidden;
+            min-width: 0;
+        }
+        .pane-right {
+            flex: 40; display: flex; flex-direction: column;
+            overflow: hidden; min-width: 0;
+        }
+        /* Phase 3 flips: mid=55, right=45 */
+        .phase-section.phase3-layout .pane-mid { flex: 55; }
+        .phase-section.phase3-layout .pane-right { flex: 45; }
+
+        /* Pane headers */
+        .pane-header {
+            padding: 14px 20px 12px;
+            border-bottom: 1px solid #1e3329;
+            display: flex; align-items: center; gap: 10px;
+            flex-shrink: 0;
+        }
+        .pane-header h2 {
+            font-size: 0.88rem; font-weight: 700; color: #e8f5f0;
+            letter-spacing: -0.01em; flex: 1;
+        }
+        .pane-header-sub {
+            font-size: 0.72rem; color: #6b9e88; margin-left: auto;
+        }
+
+        /* ================================================================
+           CHAT AREA (shared across phases)
+        ================================================================ */
+        .chat-area {
+            flex: 1; overflow-y: auto; padding: 16px 20px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .chat-bubble {
+            max-width: 88%; word-break: break-word;
+        }
+        .chat-bubble.user {
+            align-self: flex-end;
+            background: #1e3329; border: 1px solid #2a4438;
+            border-radius: 12px 12px 2px 12px; padding: 10px 14px;
+            font-size: 0.84rem; color: #e8f5f0;
+        }
+        .chat-bubble.assistant {
+            align-self: flex-start;
+            background: #0a1f17; border: 1px solid #1e3329;
+            border-radius: 2px 12px 12px 12px; padding: 10px 14px;
+            font-size: 0.84rem; color: #c8e8d8; line-height: 1.6;
+        }
+        .chat-bubble.assistant p { margin-bottom: 8px; }
+        .chat-bubble.assistant p:last-child { margin-bottom: 0; }
+        .chat-bubble.assistant ul, .chat-bubble.assistant ol {
+            padding-left: 18px; margin-bottom: 8px;
+        }
+        .chat-bubble.assistant li { margin-bottom: 3px; }
+        .chat-bubble.assistant strong { color: #24ED9B; }
+        .chat-bubble.assistant code {
+            background: #1e3329; padding: 1px 5px; border-radius: 3px;
+            font-size: 0.8em;
+        }
+        .chat-bubble.assistant pre {
+            background: #0d2219; border: 1px solid #1e3329; border-radius: 6px;
+            padding: 10px 12px; overflow-x: auto; margin: 8px 0;
+            font-size: 0.78rem; line-height: 1.5;
+        }
+        .chat-bubble.assistant blockquote {
+            border-left: 3px solid #24ED9B; padding-left: 10px;
+            color: #6b9e88; margin: 6px 0;
+        }
+        .typing-indicator {
+            display: flex; align-items: center; gap: 4px; padding: 6px 0;
+        }
+        .typing-indicator span {
+            width: 7px; height: 7px; background: #3d6655; border-radius: 50%;
+            animation: typingBounce 1.2s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        /* Chat input bar */
+        .chat-input-bar {
+            padding: 12px 16px; border-top: 1px solid #1e3329;
+            background: #060f0b; flex-shrink: 0;
+        }
+        .chat-input-row {
+            display: flex; align-items: flex-end; gap: 8px;
+        }
+        .chat-textarea {
+            flex: 1; background: #0a1f17; border: 1px solid #1e3329;
+            border-radius: 8px; color: #e8f5f0; font-size: 0.84rem;
+            padding: 10px 12px; resize: none; min-height: 40px; max-height: 120px;
+            line-height: 1.5; transition: border-color 0.15s;
+        }
+        .chat-textarea:focus { outline: none; border-color: #24ED9B; }
+        .chat-textarea::placeholder { color: #3d6655; }
+        .btn-send {
+            background: #24ED9B; color: #06100c; border: none;
+            border-radius: 8px; padding: 10px 16px; font-size: 0.82rem;
+            font-weight: 700; cursor: pointer; transition: background 0.12s;
+            flex-shrink: 0; align-self: flex-end;
+        }
+        .btn-send:hover { background: #1dd88a; }
+        .btn-send:disabled { background: #1e3329; color: #3d6655; cursor: not-allowed; }
+        .btn-upload {
+            background: none; border: 1px solid #1e3329; border-radius: 8px;
+            color: #3d6655; padding: 9px 10px; cursor: pointer;
+            transition: all 0.12s; flex-shrink: 0; align-self: flex-end;
+            font-size: 0.9rem; line-height: 1;
+        }
+        .btn-upload:hover { border-color: #24ED9B; color: #24ED9B; }
+        #file-input { display: none; }
+
+        /* URL input row */
+        .url-input-row {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 8px; display: none;
+        }
+        .url-input-row.show { display: flex; }
+        .chat-url-input {
+            flex: 1; background: #0a1f17; border: 1px solid #1e3329;
+            border-radius: 6px; color: #e8f5f0; font-size: 0.82rem;
+            padding: 7px 10px;
+        }
+        .chat-url-input:focus { outline: none; border-color: #24ED9B; }
+        .btn-url-send {
+            background: #1e3329; border: none; border-radius: 6px;
+            color: #24ED9B; font-size: 0.78rem; font-weight: 700;
+            padding: 7px 12px; cursor: pointer;
+        }
+        .btn-url-send:hover { background: #24ED9B; color: #06100c; }
+        .btn-url-cancel {
+            background: none; border: none; color: #3d6655;
+            cursor: pointer; font-size: 0.78rem; padding: 4px;
+        }
+
+        /* Upload feedback */
+        .upload-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #0d2219; border: 1px solid #1e3329; border-radius: 20px;
+            font-size: 0.72rem; color: #6b9e88; padding: 4px 10px;
+            margin-bottom: 8px;
+        }
+        .upload-badge button {
+            background: none; border: none; color: #3d6655;
+            cursor: pointer; font-size: 0.8rem; line-height: 1;
+        }
+
+        /* ================================================================
+           PHASE 1 RIGHT PANE — Blueprint Checklist
+        ================================================================ */
+        .checklist-area {
+            flex: 1; overflow-y: auto; padding: 14px 16px;
+        }
+        .checklist-item {
+            display: flex; flex-direction: column;
+            border: 1px solid #1e3329; border-radius: 8px;
+            margin-bottom: 8px; overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .checklist-item.state-yellow { border-color: rgba(245,158,11,0.4); }
+        .checklist-item.state-green { border-color: rgba(36,237,155,0.4); }
+        .checklist-item-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; cursor: pointer;
+            background: #0a1f17; transition: background 0.12s;
+        }
+        .checklist-item-header:hover { background: #0d2219; }
+        .checklist-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #3d6655; flex-shrink: 0; transition: background 0.2s;
+        }
+        .checklist-dot.yellow { background: #f59e0b; }
+        .checklist-dot.green { background: #24ED9B; }
+        .checklist-item-name {
+            font-size: 0.8rem; font-weight: 600; color: #c8e8d8; flex: 1;
+        }
+        .checklist-item-value {
+            font-size: 0.7rem; color: #3d6655; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; max-width: 120px;
+        }
+        .checklist-item-value.has-value { color: #6b9e88; }
+        .checklist-chevron {
+            font-size: 0.7rem; color: #3d6655; transition: transform 0.15s;
+        }
+        .checklist-item.expanded .checklist-chevron { transform: rotate(90deg); }
+        .checklist-item-body {
+            display: none; padding: 10px 12px;
+            border-top: 1px solid #1e3329; background: #060f0b;
+        }
+        .checklist-item.expanded .checklist-item-body { display: block; }
+        .checklist-item-desc {
+            font-size: 0.76rem; color: #6b9e88; line-height: 1.5; margin-bottom: 8px;
+        }
+        .checklist-item-captured {
+            font-size: 0.76rem; color: #c8e8d8; line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .checklist-item-captured.empty { color: #3d6655; font-style: italic; }
+
+        /* Generate Outline button */
+        .generate-outline-wrap {
+            padding: 14px 16px; border-top: 1px solid #1e3329; flex-shrink: 0;
+        }
+        .btn-generate {
+            width: 100%; background: #24ED9B; color: #06100c;
+            border: none; border-radius: 8px; padding: 11px;
+            font-size: 0.84rem; font-weight: 700; cursor: pointer;
+            transition: background 0.12s, opacity 0.12s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-generate:hover { background: #1dd88a; }
+        .btn-generate:disabled { background: #1e3329; color: #3d6655; cursor: not-allowed; }
+        .btn-generate.hidden { display: none; }
+
+        /* ================================================================
+           PHASE 2 — OUTLINE (middle pane)
+        ================================================================ */
+        .outline-area {
+            flex: 1; overflow-y: auto; padding: 14px 16px;
+        }
+        .outline-empty {
+            text-align: center; padding: 48px 24px; color: #3d6655;
+        }
+        .outline-empty p { font-size: 0.84rem; line-height: 1.6; margin-top: 8px; }
+        .outline-empty .empty-icon { font-size: 2rem; margin-bottom: 8px; }
+
+        /* Series */
+        .outline-series {
+            margin-bottom: 12px; border: 1px solid #1e3329; border-radius: 10px;
+            overflow: hidden;
+        }
+        .series-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 12px; background: #0a1f17; cursor: pointer;
+        }
+        .series-header:hover { background: #0d2219; }
+        .series-drag { color: #3d6655; font-size: 0.9rem; cursor: grab; }
+        .series-title-input {
+            flex: 1; background: transparent; border: none; color: #e8f5f0;
+            font-size: 0.86rem; font-weight: 700; cursor: text;
+        }
+        .series-title-input:focus { outline: 1px solid #24ED9B; outline-offset: 2px; border-radius: 2px; }
+        .series-collapse-btn {
+            background: none; border: none; color: #3d6655;
+            font-size: 0.8rem; cursor: pointer; transition: transform 0.15s;
+        }
+        .series-header.collapsed .series-collapse-btn { transform: rotate(-90deg); }
+        .series-body { padding: 8px 10px 10px; }
+        .series-body.hidden { display: none; }
+
+        /* Labs */
+        .outline-lab {
+            background: #060f0b; border: 1px solid #1e3329; border-radius: 8px;
+            margin-bottom: 6px; overflow: hidden;
+        }
+        .lab-header {
+            display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+        }
+        .lab-drag { color: #3d6655; font-size: 0.82rem; cursor: grab; }
+        .lab-title-input {
+            flex: 1; background: transparent; border: none; color: #c8e8d8;
+            font-size: 0.82rem; font-weight: 600;
+        }
+        .lab-title-input:focus { outline: 1px solid #24ED9B; outline-offset: 2px; border-radius: 2px; }
+        .lab-seat-badge {
+            font-size: 0.66rem; color: #6b9e88; background: #1e3329;
+            padding: 2px 8px; border-radius: 10px; white-space: nowrap;
+        }
+        .lab-activity-count {
+            font-size: 0.66rem; color: #3d6655;
+        }
+        .lab-del-btn {
+            background: none; border: none; color: #3d6655; cursor: pointer;
+            font-size: 0.78rem; padding: 2px 4px;
+        }
+        .lab-del-btn:hover { color: #e05252; }
+
+        /* Activities */
+        .lab-activities { padding: 0 10px 8px; }
+        .outline-activity {
+            display: flex; align-items: center; gap: 6px;
+            padding: 5px 6px; border-radius: 5px;
+            transition: background 0.1s;
+        }
+        .outline-activity:hover { background: #0d2219; }
+        .activity-drag { color: #2a4438; font-size: 0.75rem; cursor: grab; }
+        .activity-title-input {
+            flex: 1; background: transparent; border: none; color: #8db8a0;
+            font-size: 0.78rem;
+        }
+        .activity-title-input:focus { outline: 1px solid #24ED9B; outline-offset: 1px; border-radius: 2px; }
+        .activity-skill-badge {
+            font-size: 0.6rem; background: rgba(36,237,155,0.1);
+            color: #24ED9B; border: 1px solid rgba(36,237,155,0.25);
+            padding: 1px 6px; border-radius: 8px; white-space: nowrap;
+        }
+        .activity-del-btn {
+            background: none; border: none; color: #2a4438; cursor: pointer;
+            font-size: 0.72rem; opacity: 0; transition: opacity 0.1s;
+        }
+        .outline-activity:hover .activity-del-btn { opacity: 1; }
+        .activity-del-btn:hover { color: #e05252; }
+
+        /* Add buttons */
+        .btn-add-activity {
+            display: flex; align-items: center; gap: 6px;
+            background: none; border: 1px dashed #1e3329; border-radius: 5px;
+            color: #3d6655; font-size: 0.74rem; padding: 5px 8px;
+            cursor: pointer; width: 100%; margin-top: 4px; transition: all 0.12s;
+        }
+        .btn-add-activity:hover { border-color: #24ED9B; color: #24ED9B; }
+        .btn-add-lab {
+            display: flex; align-items: center; gap: 6px;
+            background: none; border: 1px dashed #1e3329; border-radius: 6px;
+            color: #3d6655; font-size: 0.76rem; padding: 6px 10px;
+            cursor: pointer; width: 100%; margin-top: 6px; transition: all 0.12s;
+        }
+        .btn-add-lab:hover { border-color: #24ED9B; color: #24ED9B; }
+        .btn-add-series {
+            display: flex; align-items: center; gap: 8px;
+            background: none; border: 1px dashed #1e3329; border-radius: 8px;
+            color: #3d6655; font-size: 0.8rem; padding: 9px 14px;
+            cursor: pointer; width: 100%; margin-top: 10px; transition: all 0.12s;
+        }
+        .btn-add-series:hover { border-color: #24ED9B; color: #24ED9B; }
+
+        /* Approve outline */
+        .approve-outline-wrap {
+            padding: 12px 16px; border-top: 1px solid #1e3329; flex-shrink: 0;
+        }
+        .btn-approve {
+            width: 100%; background: none; border: 1px solid #24ED9B;
+            border-radius: 8px; padding: 10px; color: #24ED9B;
+            font-size: 0.84rem; font-weight: 700; cursor: pointer;
+            transition: all 0.12s;
+        }
+        .btn-approve:hover { background: #24ED9B; color: #06100c; }
+
+        /* Skill mapping toggle */
+        .btn-skill-map {
+            background: #0d2219; border: 1px solid #1e3329; border-radius: 6px;
+            color: #6b9e88; font-size: 0.72rem; font-weight: 600;
+            padding: 5px 10px; cursor: pointer; transition: all 0.12s;
+        }
+        .btn-skill-map:hover, .btn-skill-map.active {
+            border-color: #24ED9B; color: #24ED9B;
+        }
+
+        /* Phase 2 right pane — refactor button */
+        .btn-refactor {
+            margin: 10px 16px 0; background: none; border: 1px solid #1e3329;
+            border-radius: 7px; color: #6b9e88; font-size: 0.78rem; font-weight: 600;
+            padding: 8px 14px; cursor: pointer; width: calc(100% - 32px);
+            transition: all 0.12s;
+        }
+        .btn-refactor:hover { border-color: #24ED9B; color: #24ED9B; }
+
+        /* ================================================================
+           PHASE 3 — DRAFT INSTRUCTIONS
+        ================================================================ */
+        .lab-selector-bar {
+            padding: 10px 16px; border-bottom: 1px solid #1e3329; flex-shrink: 0;
+        }
+        .lab-selector {
+            width: 100%; background: #0a1f17; border: 1px solid #1e3329;
+            border-radius: 6px; color: #e8f5f0; font-size: 0.82rem;
+            padding: 7px 10px; cursor: pointer;
+        }
+        .lab-selector:focus { outline: none; border-color: #24ED9B; }
+
+        /* Preview pane */
+        .preview-area {
+            flex: 1; overflow-y: auto; padding: 16px;
+            background: #060f0b;
+        }
+        .preview-inner {
+            max-width: 640px; margin: 0 auto;
+            background: #0a1f17; border: 1px solid #1e3329; border-radius: 8px;
+            padding: 24px 28px;
+        }
+        .preview-inner h1, .preview-inner h2, .preview-inner h3 {
+            color: #e8f5f0; margin: 16px 0 8px; line-height: 1.3;
+        }
+        .preview-inner h1 { font-size: 1.1rem; font-weight: 700; }
+        .preview-inner h2 { font-size: 0.96rem; font-weight: 700; color: #24ED9B; }
+        .preview-inner h3 { font-size: 0.88rem; font-weight: 600; }
+        .preview-inner p { font-size: 0.84rem; color: #c8e8d8; line-height: 1.7; margin-bottom: 10px; }
+        .preview-inner ol, .preview-inner ul {
+            padding-left: 20px; margin-bottom: 10px;
+        }
+        .preview-inner li { font-size: 0.84rem; color: #c8e8d8; line-height: 1.6; margin-bottom: 4px; }
+        .preview-inner blockquote {
+            border-left: 3px solid #f59e0b; padding: 10px 14px;
+            background: rgba(245,158,11,0.06); border-radius: 0 6px 6px 0;
+            margin: 12px 0;
+        }
+        .preview-inner blockquote p { color: #fbbf24; margin: 0; }
+        .preview-inner code {
+            background: #1e3329; padding: 1px 5px; border-radius: 3px; font-size: 0.8em;
+        }
+        .preview-inner pre {
+            background: #1e3329; border-radius: 6px; padding: 12px;
+            overflow-x: auto; margin-bottom: 10px;
+        }
+        .preview-empty {
+            color: #3d6655; text-align: center; padding: 48px 16px;
+            font-size: 0.84rem; line-height: 1.6;
+        }
+        .preview-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px; border-top: 1px solid #1e3329; flex-shrink: 0;
+        }
+        .btn-prev-lab, .btn-next-lab {
+            background: #0a1f17; border: 1px solid #1e3329; border-radius: 6px;
+            color: #6b9e88; font-size: 0.78rem; padding: 6px 12px; cursor: pointer;
+            transition: all 0.12s;
+        }
+        .btn-prev-lab:hover, .btn-next-lab:hover { border-color: #24ED9B; color: #24ED9B; }
+        .btn-prev-lab:disabled, .btn-next-lab:disabled {
+            color: #1e3329; border-color: #1e3329; cursor: not-allowed;
+        }
+        .preview-lab-name { font-size: 0.78rem; color: #3d6655; }
+
+        /* ================================================================
+           PHASE 4 — PLACEHOLDER
+        ================================================================ */
+        .phase4-placeholder {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            flex-direction: column; text-align: center; padding: 48px;
+        }
+        .phase4-icon { font-size: 3rem; margin-bottom: 20px; color: #24ED9B; opacity: 0.5; }
+        .phase4-title {
+            font-size: 1.2rem; font-weight: 700; color: #e8f5f0; margin-bottom: 12px;
+        }
+        .phase4-desc {
+            font-size: 0.88rem; color: #6b9e88; line-height: 1.7; max-width: 480px;
+        }
+
+        /* ================================================================
+           PREFERENCES DRAWER
+        ================================================================ */
+        #prefs-overlay {
+            position: fixed; inset: 0; background: rgba(6,16,12,0.7);
+            z-index: 100; display: none; align-items: flex-start; justify-content: flex-start;
+        }
+        #prefs-overlay.open { display: flex; }
+        #prefs-drawer {
+            width: 420px; max-width: 95vw; background: #060f0b;
+            border-right: 1px solid #1e3329; height: 100vh;
+            overflow-y: auto; padding: 24px 24px 48px;
+            transform: translateX(-100%); transition: transform 0.25s ease;
+        }
+        #prefs-overlay.open #prefs-drawer { transform: translateX(0); }
+        .prefs-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .prefs-title { font-size: 1rem; font-weight: 700; color: #e8f5f0; }
+        .btn-prefs-close {
+            background: none; border: none; color: #3d6655; cursor: pointer;
+            font-size: 1.2rem; transition: color 0.12s;
+        }
+        .btn-prefs-close:hover { color: #24ED9B; }
+        .prefs-group { margin-bottom: 28px; }
+        .prefs-group-label {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #24ED9B; margin-bottom: 14px;
+        }
+        .prefs-field { margin-bottom: 12px; }
+        .prefs-label {
+            font-size: 0.76rem; color: #6b9e88; margin-bottom: 5px; display: block;
+        }
+        .prefs-input, .prefs-select {
+            width: 100%; background: #0a1f17; border: 1px solid #1e3329;
+            border-radius: 6px; color: #e8f5f0; font-size: 0.82rem;
+            padding: 8px 10px; transition: border-color 0.15s;
+        }
+        .prefs-input:focus, .prefs-select:focus {
+            outline: none; border-color: #24ED9B;
+        }
+        .prefs-input-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .prefs-toggle-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0;
+        }
+        .prefs-toggle-label { font-size: 0.8rem; color: #c8e8d8; }
+        .toggle {
+            width: 36px; height: 20px; background: #1e3329; border-radius: 10px;
+            position: relative; cursor: pointer; border: none; transition: background 0.2s;
+        }
+        .toggle.on { background: #24ED9B; }
+        .toggle::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 16px; height: 16px; background: #e8f5f0; border-radius: 50%;
+            transition: left 0.2s;
+        }
+        .toggle.on::after { left: 18px; }
+
+        /* Framework picker */
+        .framework-picker {
+            background: #0a1f17; border: 1px solid #1e3329; border-radius: 6px;
+            padding: 10px; max-height: 260px; overflow-y: auto;
+        }
+        .framework-group-label {
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #3d6655; padding: 6px 0 4px;
+        }
+        .framework-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 0; cursor: pointer;
+        }
+        .framework-checkbox {
+            width: 14px; height: 14px; border: 1.5px solid #1e3329;
+            border-radius: 3px; display: flex; align-items: center;
+            justify-content: center; flex-shrink: 0; transition: all 0.12s;
+            background: transparent;
+        }
+        .framework-item.selected .framework-checkbox {
+            background: #24ED9B; border-color: #24ED9B;
+        }
+        .framework-item.selected .framework-checkbox::after {
+            content: '✓'; font-size: 0.65rem; color: #06100c; font-weight: 800;
+        }
+        .framework-name { font-size: 0.78rem; color: #c8e8d8; }
+        .btn-save-prefs {
+            width: 100%; background: #24ED9B; color: #06100c; border: none;
+            border-radius: 8px; padding: 11px; font-size: 0.84rem; font-weight: 700;
+            cursor: pointer; margin-top: 8px; transition: background 0.12s;
+        }
+        .btn-save-prefs:hover { background: #1dd88a; }
+
+        /* ================================================================
+           MISC UTILITIES
+        ================================================================ */
+        .autosave-indicator {
+            position: fixed; bottom: 14px; right: 20px;
+            font-size: 0.7rem; color: #3d6655; z-index: 50;
+            transition: opacity 0.3s;
+        }
+        .autosave-indicator.saving { color: #f59e0b; }
+        .autosave-indicator.saved { color: #24ED9B; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e3329; border-radius: 2px; }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <!-- Left Sidebar -->
-        <aside id="sidebar">
-            <div class="sidebar-header">
-                <a href="https://www.skillable.com" target="_blank" rel="noopener noreferrer" class="sidebar-logo-link">
-                    <img src="{{ url_for('static', filename='img/skillable-logo.png') }}" alt="Skillable logo" class="sidebar-logo">
-                </a>
-            </div>
 
-            <div class="sidebar-title-block">
-                <h1>Lab Program Designer</h1>
-                <hr class="sidebar-hairline">
-            </div>
+<!-- ========================================================================
+     PROGRAM DATA (injected by Flask)
+======================================================================== -->
+<script>
+const PROGRAM_ID = {{ program.program_id | tojson }};
+const INITIAL_DATA = {{ program_json | safe }};
+</script>
 
-            <!-- Phase navigation -->
-            <nav id="phase-nav">
-                <ul id="nav-list">
-                    <li>
-                        <a href="#" data-section="phase1" class="nav-link active">
-                            <span class="nav-icon">1</span>
-                            <div class="nav-text">
-                                <span class="nav-title">Audiences &amp; Objectives</span>
-                            </div>
-                            <span class="nav-progress" id="nav-progress-phase1">&#9675;</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" data-section="phase2" class="nav-link">
-                            <span class="nav-icon">2</span>
-                            <div class="nav-text">
-                                <span class="nav-title">Design &amp; Organize</span>
-                            </div>
-                            <span class="nav-progress" id="nav-progress-phase2">&#9675;</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" data-section="phase3" class="nav-link">
-                            <span class="nav-icon">3</span>
-                            <div class="nav-text">
-                                <span class="nav-title">Draft &amp; Finalize</span>
-                            </div>
-                            <span class="nav-progress" id="nav-progress-phase3">&#9675;</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" data-section="phase4" class="nav-link">
-                            <span class="nav-icon">4</span>
-                            <div class="nav-text">
-                                <span class="nav-title">Package &amp; Export</span>
-                            </div>
-                            <span class="nav-progress" id="nav-progress-phase4">&#9675;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+<!-- ========================================================================
+     APP SHELL
+======================================================================== -->
+<div id="app">
 
-            <div class="sidebar-footer">
-                <a href="#" data-section="settings" class="nav-link settings-link sidebar-settings-btn" title="Preferences">
-                    <span class="sidebar-settings-icon">&#9881;</span>
-                    <span class="sidebar-settings-label">Preferences</span>
-                </a>
-                <div class="sidebar-copyright">
-                    Skillable&reg; | All rights reserved.
-                </div>
-                <script>console.log('Lab Program Designer v3.0.0');</script>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <main id="main-content">
-
-            <!-- ==================== PHASE 1: Audiences & Objectives ==================== -->
-            <section id="section-phase1" class="phase phase-section active">
-                <div class="phase-layout">
-                    <!-- Chat Panel (left, 60%) -->
-                    <div class="chat-panel">
-                        <div class="chat-header">
-                            <div class="chat-header-row">
-                                <h2>Audiences &amp; Objectives</h2>
-                                <button class="bp-reset-btn" id="phase1-reset-btn" title="Start over">Reset</button>
-                            </div>
-                            <p class="chat-subtitle">Let's align on some strategic foundations so we can build a great program together. Just follow the prompts to engage in the conversation and upload what you have.</p>
-                        </div>
-                        <div class="chat-messages" id="phase1-chat-messages"></div>
-                        <div class="chat-typing" id="phase1-chat-typing" style="display:none;">
-                            <div class="chat-bubble assistant">
-                                <div class="typing-indicator"><span></span><span></span><span></span></div>
-                            </div>
-                        </div>
-                        <div class="chat-input-bar">
-                            <div class="chat-attachments" id="phase1-attachments"></div>
-                            <div class="chat-input-row">
-                                <button class="btn btn-ghost chat-upload-btn" id="phase1-upload-btn" title="Upload documents">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                                </button>
-                                <textarea id="phase1-chat-input" rows="2" placeholder="Describe your training program, target audience, or paste objectives..." class="chat-input"></textarea>
-                                <button class="btn btn-primary chat-send" id="phase1-chat-send">Send</button>
-                            </div>
-                            <input type="file" id="phase1-file-input" multiple accept=".txt,.md,.pdf,.docx,.json,.csv,.xlsx" style="display:none">
-                        </div>
-                    </div>
-
-                    <div class="pane-resizer" title="Drag to resize"></div>
-                    <!-- Context Panel (right, 40%) -->
-                    <div class="context-panel" id="phase1-context">
-                        <div class="empty-state">
-                            <p>Upload materials or chat to get started.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ==================== PHASE 2: Design & Configure ==================== -->
-            <section id="section-phase2" class="phase phase-section">
-                <div class="phase-layout">
-                    <!-- Center Pane: Outline & Skill Mapping -->
-                    <div class="center-pane" id="phase2-context">
-                        <div class="center-pane-header">
-                            <h2>Design &amp; Organize</h2>
-                            <p class="chat-subtitle">Structure your program into Lab Series, Labs, and Activities. Use the chat to generate or refine the outline.</p>
-                        </div>
-                        <div class="center-pane-body">
-                            <div class="empty-state">
-                                <p>No program structure yet.</p>
-                                <p class="hint">Complete Phase 1, then ask me to generate a Lab Series and Labs structure from your objectives.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pane-resizer" title="Drag to resize"></div>
-
-                    <!-- Right Pane: Chat -->
-                    <div class="chat-panel chat-panel-right">
-                        <div class="chat-messages" id="phase2-chat-messages"></div>
-                        <div class="chat-typing" id="phase2-chat-typing" style="display:none;">
-                            <div class="chat-bubble assistant">
-                                <div class="typing-indicator"><span></span><span></span><span></span></div>
-                            </div>
-                        </div>
-                        <div class="chat-input-bar">
-                            <div class="chat-attachments" id="phase2-attachments"></div>
-                            <div class="chat-input-row">
-                                <button class="btn btn-ghost chat-upload-btn" id="phase2-upload-btn" title="Upload documents">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                                </button>
-                                <textarea id="phase2-chat-input" rows="2" placeholder="Ask about curriculum structure, framework mapping, or refine the outline..." class="chat-input"></textarea>
-                                <button class="btn btn-primary chat-send" id="phase2-chat-send">Send</button>
-                            </div>
-                            <input type="file" id="phase2-file-input" multiple accept=".txt,.md,.pdf,.docx,.json,.csv,.xlsx" style="display:none">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ==================== PHASE 3: Draft & Finalize ==================== -->
-            <section id="section-phase3" class="phase phase-section">
-                <div class="phase-layout phase3-layout">
-                    <!-- Center Pane: Interactive Outline -->
-                    <div class="phase3-outline-pane" id="phase3-outline-pane">
-                        <div class="phase3-outline-header">
-                            <h2>Draft &amp; Finalize</h2>
-                            <p class="chat-subtitle">Click an activity to view and iterate on its instructions.</p>
-                        </div>
-                        <div class="phase3-outline-body" id="phase3-outline-body">
-                            <div class="empty-state">
-                                <p>No program structure yet.</p>
-                                <p class="hint">Complete Phase 2 to define your Lab Series, Labs, and Activities.</p>
-                            </div>
-                        </div>
-                        <div class="phase3-outline-footer" id="phase3-outline-footer"></div>
-                    </div>
-
-                    <div class="pane-resizer" title="Drag to resize"></div>
-
-                    <!-- Right Pane: Instructions + Chat stacked vertically -->
-                    <div class="phase3-right-pane" id="phase3-right-pane">
-                        <!-- Instructions viewer (top) -->
-                        <div class="phase3-instructions-viewer" id="phase3-instructions-viewer">
-                            <div class="empty-state">
-                                <p>Select an activity from the outline.</p>
-                                <p class="hint">Click any activity to view or generate its draft instructions.</p>
-                            </div>
-                        </div>
-
-                        <!-- Chat (bottom) -->
-                        <div class="phase3-chat-section">
-                            <div class="chat-messages phase3-chat-messages" id="phase3-chat-messages"></div>
-                            <div class="chat-typing" id="phase3-chat-typing" style="display:none;">
-                                <div class="chat-bubble assistant">
-                                    <div class="typing-indicator"><span></span><span></span><span></span></div>
-                                </div>
-                            </div>
-                            <div class="chat-input-bar">
-                                <div class="chat-attachments" id="phase3-attachments"></div>
-                                <div class="chat-input-row">
-                                    <button class="btn btn-ghost chat-upload-btn" id="phase3-upload-btn" title="Upload documents">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                                    </button>
-                                    <textarea id="phase3-chat-input" rows="2" placeholder="Iterate on instructions for the selected activity..." class="chat-input"></textarea>
-                                    <button class="btn btn-primary chat-send" id="phase3-chat-send">Send</button>
-                                </div>
-                                <input type="file" id="phase3-file-input" multiple accept=".txt,.md,.pdf,.docx,.json,.csv,.xlsx" style="display:none">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ==================== PHASE 4: Package & Export ==================== -->
-            <section id="section-phase4" class="phase phase-section">
-                <div class="phase-layout">
-                    <!-- Center Pane: Environment Checklist & Export -->
-                    <div class="center-pane" id="phase4-context">
-                        <div class="center-pane-header">
-                            <h2>Package &amp; Export</h2>
-                            <p class="chat-subtitle">Environment checklist and export packaging for Skillable Studio.</p>
-                        </div>
-                        <div class="center-pane-body">
-                            <div class="empty-state">
-                                <p>Ready to package.</p>
-                                <p class="hint">Define environment templates, scoring methods, and export your program to Skillable Studio.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pane-resizer" title="Drag to resize"></div>
-
-                    <!-- Right Pane: Chat -->
-                    <div class="chat-panel chat-panel-right">
-                        <div class="chat-messages" id="phase4-chat-messages"></div>
-                        <div class="chat-typing" id="phase4-chat-typing" style="display:none;">
-                            <div class="chat-bubble assistant">
-                                <div class="typing-indicator"><span></span><span></span><span></span></div>
-                            </div>
-                        </div>
-                        <div class="chat-input-bar">
-                            <div class="chat-attachments" id="phase4-attachments"></div>
-                            <div class="chat-input-row">
-                                <button class="btn btn-ghost chat-upload-btn" id="phase4-upload-btn" title="Upload documents">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                                </button>
-                                <textarea id="phase4-chat-input" rows="2" placeholder="Confirm, adjust, or add to the environment checklist..." class="chat-input"></textarea>
-                                <button class="btn btn-primary chat-send" id="phase4-chat-send">Send</button>
-                            </div>
-                            <input type="file" id="phase4-file-input" multiple accept=".txt,.md,.pdf,.docx,.json,.csv,.xlsx" style="display:none">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ==================== SETTINGS ==================== -->
-            <section id="section-settings" class="phase phase-section">
-                <div class="settings-container">
-                    <div class="view-header">
-                        <h2>Preferences</h2>
-                    </div>
-                    <div class="settings-grid">
-
-                        <!-- AI Provider — server-configured -->
-                        <div class="settings-section settings-full-width">
-                            <h3 class="settings-section-title">AI Provider</h3>
-                            <div class="settings-grid">
-                                <div>
-                                    <p style="color:#6b9e88;font-size:0.85rem;margin:0 0 10px;">
-                                        Powered by <strong style="color:#a8d5c2;">Claude Sonnet 4.6</strong> via the Skillable Intelligence backend.
-                                        The API key is configured server-side — no credentials needed here.
-                                    </p>
-                                    <div class="form-group">
-                                        <label>&nbsp;</label>
-                                        <div class="api-key-row">
-                                            <button type="button" class="btn btn-secondary btn-sm btn-match-input" id="settings-test-connection">Test Connection</button>
-                                            <span id="settings-test-result" class="settings-test-result"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lab Defaults -->
-                        <div class="settings-section settings-full-width">
-                            <h3 class="settings-section-title">Lab Defaults</h3>
-                            <div class="settings-grid-4cell">
-                                <!-- Row 1, Col 1 -->
-                                <div class="settings-row-inline">
-                                    <div class="form-group">
-                                        <label for="settings-default-seat-time">Target Lab Duration</label>
-                                        <select id="settings-default-seat-time" class="select-narrow">
-                                            <option value="15-30">15-30 min</option>
-                                            <option value="30-45">30-45 min</option>
-                                            <option value="45-75" selected>45-75 min</option>
-                                            <option value="75-90">75-90 min</option>
-                                            <option value="90-120">90-120 min</option>
-                                            <option value="120+">120+ min</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="settings-activities-per-lab">Activities per Lab</label>
-                                        <select id="settings-activities-per-lab" class="select-narrow">
-                                            <option value="1-2">1-2</option>
-                                            <option value="3-5" selected>3-5</option>
-                                            <option value="6-10">6-10</option>
-                                            <option value="unlimited">Unlimited</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <!-- Row 1, Col 2 -->
-                                <div>
-                                    <div class="form-group">
-                                        <label for="settings-default-difficulty">Difficulty</label>
-                                        <select id="settings-default-difficulty" class="select-narrow">
-                                            <option value="beginner">Beginner</option>
-                                            <option value="intermediate" selected>Intermediate</option>
-                                            <option value="advanced">Advanced</option>
-                                            <option value="expert">Expert</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <!-- Row 2, Col 1 -->
-                                <div>
-                                    <div class="form-group">
-                                        <label>Logo</label>
-                                        <div class="logo-dropzone" id="settings-logo-dropzone">
-                                            <div id="settings-logo-preview" class="logo-preview"></div>
-                                            <div class="logo-dropzone-prompt" id="settings-logo-prompt">
-                                                <span class="logo-dropzone-icon">+</span>
-                                                <span>Click or drag to upload</span>
-                                            </div>
-                                            <input type="file" id="settings-logo-upload" accept="image/*">
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="settings-branding-source-url">Brand URL</label>
-                                        <input type="text" id="settings-branding-source-url" placeholder="https://your-company.com">
-                                    </div>
-                                    <span class="form-hint">Detailed theming, colors, and styling configured in Skillable Studio.</span>
-                                </div>
-                                <!-- Row 2, Col 2 -->
-                                <div>
-                                    <div class="form-group">
-                                        <label for="settings-naming-formula">Lab Naming Formula</label>
-                                        <input type="text" id="settings-naming-formula" placeholder="{Verb} {Specific Action} {Product Name}" value="{Verb} {Specific Action} {Product Name}">
-                                    </div>
-                                    <div class="settings-examples">
-                                        <span class="settings-examples-label">Examples:</span>
-                                        <span class="settings-example">Configure Virtual Network Peering in Azure</span>
-                                        <span class="settings-example">Deploy a Container App to Kubernetes</span>
-                                        <span class="settings-example">Build a Data Pipeline with Azure Data Factory</span>
-                                        <span class="settings-example">Investigate Security Alerts in Microsoft Sentinel</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Writing & References + Always-On References -->
-                        <div class="settings-section settings-full-width">
-                            <div class="settings-grid">
-                                <div>
-                                    <h3 class="settings-section-title">Writing & References</h3>
-                                    <div class="form-group">
-                                        <label for="settings-style-guide">Default Style Guide</label>
-                                        <select id="settings-style-guide">
-                                            <option value="microsoft">Microsoft Writing Style Guide</option>
-                                            <option value="apple">Apple Style Guide</option>
-                                            <option value="redhat">Red Hat Documentation Guide</option>
-                                            <option value="digitalocean">DigitalOcean Technical Writing Guidelines</option>
-                                            <option value="ibm">IBM Style Guide</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="settings-custom-style-url">Add a Custom Style Guide</label>
-                                        <input type="text" id="settings-custom-style-url" placeholder="https://your-company.com/style-guide">
-                                        <span class="form-hint">Adds to the list above and becomes the default.</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 class="settings-section-title">Always-On References</h3>
-                                    <div class="form-group">
-                                        <label for="settings-ref-url-1">Documentation Site</label>
-                                        <input type="text" id="settings-ref-url-1" placeholder="https://docs.your-company.com">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="settings-ref-url-2">Knowledge Base / Wiki</label>
-                                        <input type="text" id="settings-ref-url-2" placeholder="https://wiki.your-company.com">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Reference File</label>
-                                        <div class="logo-dropzone ref-dropzone" id="settings-ref-dropzone">
-                                            <div id="settings-ref-file-preview" class="ref-file-preview"></div>
-                                            <div class="logo-dropzone-prompt" id="settings-ref-prompt">
-                                                <span class="logo-dropzone-icon">+</span>
-                                                <span>Click or drag to upload (.pdf, .md, .docx, .txt)</span>
-                                            </div>
-                                            <input type="file" id="settings-ref-file-input" accept=".txt,.md,.pdf,.docx,.json,.csv">
-                                        </div>
-                                    </div>
-                                    <span class="form-hint">Included as context for every AI conversation.</span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="form-actions-inline" style="margin-top:16px;">
-                        <button type="button" class="btn btn-primary" id="settings-save">Save Settings</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Modal Template -->
-    <div id="modal-overlay" class="modal-overlay hidden">
-        <div class="modal" id="modal">
-            <div class="modal-header">
-                <h3 id="modal-title">Modal</h3>
-                <button class="btn btn-ghost modal-close">&times;</button>
-            </div>
-            <div class="modal-body" id="modal-body"></div>
-            <div class="modal-footer" id="modal-footer"></div>
+    <!-- LEFT SIDEBAR -->
+    <aside id="sidebar">
+        <div class="sidebar-logo-wrap">
+            <a href="/">
+                <img src="/static/img/skillable-logo.png" alt="Skillable" class="sidebar-logo">
+            </a>
         </div>
-    </div>
+        <a href="/designer" class="sidebar-back">← All Programs</a>
+        <div class="sidebar-program-name">
+            <div class="program-name-display" id="program-name-display" title="Click to rename">
+                {{ program.program_name or 'New Program' }}
+            </div>
+            <input type="text" class="program-name-input" id="program-name-input"
+                   value="{{ program.program_name or 'New Program' }}"
+                   maxlength="80" placeholder="Program name…">
+        </div>
+        <nav id="phase-nav">
+            <ul>
+                <li>
+                    <a href="#" class="nav-link active" data-phase="1">
+                        <span class="nav-num">1</span>
+                        <div class="nav-text">
+                            <span class="nav-title">Requirements &amp; Intent</span>
+                        </div>
+                        <div class="nav-progress-dot" id="nav-dot-1"></div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-phase="2">
+                        <span class="nav-num">2</span>
+                        <div class="nav-text">
+                            <span class="nav-title">Design &amp; Outline</span>
+                        </div>
+                        <div class="nav-progress-dot" id="nav-dot-2"></div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-phase="3">
+                        <span class="nav-num">3</span>
+                        <div class="nav-text">
+                            <span class="nav-title">Draft Instructions</span>
+                        </div>
+                        <div class="nav-progress-dot" id="nav-dot-3"></div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link" data-phase="4">
+                        <span class="nav-num">4</span>
+                        <div class="nav-text">
+                            <span class="nav-title">Package &amp; Export</span>
+                        </div>
+                        <div class="nav-progress-dot" id="nav-dot-4"></div>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-prefs" id="prefs-btn">
+                <span>&#9881;</span> Preferences
+            </button>
+        </div>
+    </aside>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="{{ url_for('static', filename='js/markdown.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/frameworks.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/catalog.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/store.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/exporter.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/phase1.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/phase2.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/studio-features.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/phase3.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/phase4.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <!-- MAIN CONTENT -->
+    <main id="main-content">
+
+        <!-- ============================================================
+             PHASE 1 — Requirements & Intent
+        ============================================================ -->
+        <section class="phase-section active" id="phase-1">
+            <!-- Middle pane: chat -->
+            <div class="pane-mid">
+                <div class="pane-header">
+                    <h2>Requirements &amp; Intent</h2>
+                </div>
+                <div class="chat-area" id="p1-chat-area"></div>
+                <div id="p1-typing" style="display:none; padding:0 20px 8px;">
+                    <div class="chat-bubble assistant">
+                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+                <div class="chat-input-bar">
+                    <div class="url-input-row" id="p1-url-row">
+                        <input type="text" class="chat-url-input" id="p1-url-input" placeholder="https://…">
+                        <button class="btn-url-send" id="p1-url-send">Fetch</button>
+                        <button class="btn-url-cancel" id="p1-url-cancel">✕</button>
+                    </div>
+                    <div id="p1-upload-badges"></div>
+                    <div class="chat-input-row">
+                        <button class="btn-upload" id="p1-upload-btn" title="Upload file">📎</button>
+                        <button class="btn-upload" id="p1-url-btn" title="Fetch URL">🔗</button>
+                        <textarea class="chat-textarea" id="p1-textarea"
+                                  placeholder="Describe your program, upload a document, or ask a question…"
+                                  rows="1"></textarea>
+                        <button class="btn-send" id="p1-send">Send</button>
+                    </div>
+                    <input type="file" id="p1-file-input"
+                           accept=".txt,.md,.pdf,.docx,.json,.csv,.png,.jpg,.jpeg,.webp">
+                </div>
+            </div>
+
+            <!-- Right pane: Blueprint Checklist -->
+            <div class="pane-right">
+                <div class="pane-header">
+                    <h2>Lab Blueprint</h2>
+                    <span class="pane-header-sub" id="checklist-progress-label">0 / 9</span>
+                </div>
+                <div class="checklist-area" id="checklist-area">
+                    <!-- rendered by JS -->
+                </div>
+                <div class="generate-outline-wrap">
+                    <button class="btn-generate hidden" id="btn-generate-outline">
+                        Generate Outline →
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             PHASE 2 — Design & Outline
+        ============================================================ -->
+        <section class="phase-section" id="phase-2">
+            <!-- Middle pane: outline -->
+            <div class="pane-mid">
+                <div class="pane-header">
+                    <h2>Program Outline</h2>
+                    <button class="btn-skill-map" id="btn-skill-map">Skill Mapping</button>
+                </div>
+                <div class="outline-area" id="outline-area">
+                    <div class="outline-empty" id="outline-empty">
+                        <div class="empty-icon">&#9998;</div>
+                        <p>No outline yet. Use the chat to generate one, or click Generate Outline in Phase 1.</p>
+                    </div>
+                    <div id="outline-tree"></div>
+                    <button class="btn-add-series" id="btn-add-series" style="display:none;">
+                        + Add Series
+                    </button>
+                </div>
+                <div class="approve-outline-wrap">
+                    <button class="btn-approve" id="btn-approve-outline">Approve Outline →</button>
+                </div>
+            </div>
+
+            <!-- Right pane: AI chat -->
+            <div class="pane-right">
+                <div class="pane-header">
+                    <h2>Outline Assistant</h2>
+                </div>
+                <button class="btn-refactor" id="btn-refactor">⟳ Refactor Outline</button>
+                <div class="chat-area" id="p2-chat-area"></div>
+                <div id="p2-typing" style="display:none; padding:0 20px 8px;">
+                    <div class="chat-bubble assistant">
+                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+                <div class="chat-input-bar">
+                    <div class="chat-input-row">
+                        <textarea class="chat-textarea" id="p2-textarea"
+                                  placeholder="Describe outline changes, ask for suggestions…"
+                                  rows="1"></textarea>
+                        <button class="btn-send" id="p2-send">Send</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             PHASE 3 — Draft Instructions
+        ============================================================ -->
+        <section class="phase-section phase3-layout" id="phase-3">
+            <!-- Middle pane: AI chat + lab selector -->
+            <div class="pane-mid">
+                <div class="pane-header">
+                    <h2>Draft Instructions</h2>
+                </div>
+                <div class="lab-selector-bar">
+                    <select class="lab-selector" id="p3-lab-selector">
+                        <option value="">— Select a lab to draft —</option>
+                    </select>
+                </div>
+                <div class="chat-area" id="p3-chat-area"></div>
+                <div id="p3-typing" style="display:none; padding:0 20px 8px;">
+                    <div class="chat-bubble assistant">
+                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+                <div class="chat-input-bar">
+                    <div class="chat-input-row">
+                        <textarea class="chat-textarea" id="p3-textarea"
+                                  placeholder="Ask to revise instructions, adjust an activity…"
+                                  rows="1"></textarea>
+                        <button class="btn-send" id="p3-send">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right pane: preview -->
+            <div class="pane-right">
+                <div class="pane-header">
+                    <h2>Learner Preview</h2>
+                    <span class="pane-header-sub">Studio width (~640px)</span>
+                </div>
+                <div class="preview-area" id="preview-area">
+                    <div class="preview-empty" id="preview-empty">
+                        Select a lab and generate draft instructions to see the learner view.
+                    </div>
+                    <div class="preview-inner" id="preview-inner" style="display:none;"></div>
+                </div>
+                <div class="preview-nav">
+                    <button class="btn-prev-lab" id="btn-prev-lab">← Prev Lab</button>
+                    <span class="preview-lab-name" id="preview-lab-name"></span>
+                    <button class="btn-next-lab" id="btn-next-lab">Next Lab →</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             PHASE 4 — Package & Export (placeholder)
+        ============================================================ -->
+        <section class="phase-section" id="phase-4">
+            <div class="phase4-placeholder">
+                <div class="phase4-icon">&#128230;</div>
+                <div class="phase4-title">Package &amp; Export</div>
+                <div class="phase4-desc">
+                    Phase 4 generates your complete Studio export package — environment template, BOM, and lifecycle scripts. Available soon.
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ========================================================================
+     PREFERENCES DRAWER
+======================================================================== -->
+<div id="prefs-overlay">
+    <div id="prefs-drawer">
+        <div class="prefs-header">
+            <span class="prefs-title">Preferences</span>
+            <button class="btn-prefs-close" id="prefs-close">✕</button>
+        </div>
+
+        <!-- Group 1: Program Defaults -->
+        <div class="prefs-group">
+            <div class="prefs-group-label">Program Defaults</div>
+            <div class="prefs-input-row">
+                <div class="prefs-field">
+                    <label class="prefs-label">Default Series Count</label>
+                    <input type="number" class="prefs-input" id="pref-series-count" min="1" max="10">
+                </div>
+                <div class="prefs-field">
+                    <label class="prefs-label">Labs per Series</label>
+                    <input type="number" class="prefs-input" id="pref-labs-per-series" min="1" max="20">
+                </div>
+            </div>
+            <div class="prefs-field">
+                <label class="prefs-label">Default Seat Time (minutes)</label>
+                <input type="number" class="prefs-input" id="pref-seat-time" min="15" max="180" step="5">
+            </div>
+        </div>
+
+        <!-- Group 2: Learning Design Standards -->
+        <div class="prefs-group">
+            <div class="prefs-group-label">Learning Design Standards</div>
+            <div class="prefs-field">
+                <label class="prefs-label">Default Difficulty</label>
+                <select class="prefs-select" id="pref-difficulty">
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate" selected>Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                    <option value="Expert">Expert</option>
+                </select>
+            </div>
+            <div class="prefs-field">
+                <label class="prefs-label">Default Skill Framework(s)</label>
+                <div class="framework-picker" id="framework-picker">
+                    <!-- rendered by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Group 3: Scenario & Lab Type Defaults -->
+        <div class="prefs-group">
+            <div class="prefs-group-label">Scenario &amp; Lab Type Defaults</div>
+            <div class="prefs-toggle-row">
+                <span class="prefs-toggle-label">Break/Fix scenarios</span>
+                <button class="toggle" id="pref-breakfix" data-key="breakfix_default"></button>
+            </div>
+            <div class="prefs-toggle-row">
+                <span class="prefs-toggle-label">Collaborative Lab</span>
+                <button class="toggle" id="pref-collab" data-key="collaborative_lab_default"></button>
+            </div>
+            <div class="prefs-toggle-row">
+                <span class="prefs-toggle-label">Simulated Attack</span>
+                <button class="toggle" id="pref-attack" data-key="simulated_attack_default"></button>
+            </div>
+        </div>
+
+        <!-- Group 4: Brand & Identity -->
+        <div class="prefs-group">
+            <div class="prefs-group-label">Brand &amp; Identity</div>
+            <div class="prefs-field">
+                <label class="prefs-label">Brand URL</label>
+                <input type="url" class="prefs-input" id="pref-brand-url" placeholder="https://example.com">
+            </div>
+        </div>
+
+        <!-- Group 5: Export & Handoff -->
+        <div class="prefs-group">
+            <div class="prefs-group-label">Export &amp; Handoff</div>
+            <div class="prefs-field">
+                <label class="prefs-label">Export Format</label>
+                <select class="prefs-select" id="pref-export-format">
+                    <option value="ZIP">ZIP</option>
+                </select>
+            </div>
+            <div class="prefs-field">
+                <label class="prefs-label">SME Handoff Format</label>
+                <select class="prefs-select" id="pref-sme-format">
+                    <option value="docx">Word (.docx)</option>
+                    <option value="md">Markdown (.md)</option>
+                    <option value="pdf">PDF</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-save-prefs" id="btn-save-prefs">Save Preferences</button>
+    </div>
+</div>
+
+<!-- Autosave indicator -->
+<div class="autosave-indicator" id="autosave-indicator"></div>
+
+<!-- ========================================================================
+     JAVASCRIPT
+======================================================================== -->
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = JSON.parse(JSON.stringify(INITIAL_DATA));
+let currentPhase = state.current_phase || 1;
+let saveTimer = null;
+let currentStreamingBubble = null;
+let pendingFiles = []; // { name, content, type }
+let skillMapMode = false;
+let currentPreviewLabIndex = 0;
+
+// Framework catalog
+const FRAMEWORKS = {
+    'Cybersecurity': ['NICE NCWF', 'DoD DCWF', 'MITRE ATT&CK', 'CompTIA Security+', 'CompTIA CySA+', 'EC-Council CEH'],
+    'Cloud & DevOps': ['AWS Cloud Practitioner', 'AWS Solutions Architect', 'Azure AZ-900', 'Azure AZ-104', 'Google Cloud ACE', 'CKA (Kubernetes)', 'Docker DCA', 'HashiCorp Terraform'],
+    'Networking': ['Cisco CCNA', 'Cisco CCNP', 'CompTIA Network+', 'Juniper JNCIA'],
+    'Software Engineering': ['SFIA', 'SWEBOK'],
+    'IT Operations': ['ITIL 4', 'CompTIA A+', 'CompTIA Server+'],
+    'Data & AI': ['Google Data Analytics', 'Microsoft DP-900', 'Databricks Lakehouse'],
+    'Cross-Domain': ['LinkedIn Skill Framework'],
+};
+
+// Checklist definitions
+const CHECKLIST_DEFS = [
+    { key: 'business_objectives',  label: 'Business Objectives',  desc: 'Why does this program exist? What business outcome does it support?' },
+    { key: 'learning_objectives',  label: 'Learning Objectives',  desc: 'What will learners be able to do after completing the program?' },
+    { key: 'target_audience',      label: 'Target Audience',      desc: 'Who are the learners? Role, experience level, technical background.' },
+    { key: 'primary_product',      label: 'Primary Product / Topic', desc: 'What software, platform, or subject is this program about?' },
+    { key: 'difficulty_seat_time', label: 'Difficulty &amp; Seat Time', desc: 'Beginner/Intermediate/Advanced; target minutes per lab.' },
+    { key: 'success_criteria',     label: 'Success Criteria',     desc: 'How will you know this program worked? Completion rate, cert pass rate, job performance?' },
+    { key: 'scenario_seeds',       label: 'Scenario Seeds',       desc: 'Real-world situations these labs should simulate. What does the learner actually do on the job?' },
+    { key: 'skill_framework',      label: 'Skill Framework',      desc: 'Optional. Which framework(s) to map to. AI recommends based on product category.' },
+    { key: 'competency_mapping',   label: 'Competency Mapping',   desc: 'Whether activity-level framework mapping will be applied. Set here, executed in Phase 2.' },
+];
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function uid() {
+    return Math.random().toString(36).slice(2, 9);
+}
+
+function escHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// Very lightweight markdown → HTML (for chat bubbles and preview)
+function renderMarkdown(text) {
+    let t = escHtml(text);
+    // code blocks
+    t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) =>
+        `<pre><code>${code.trim()}</code></pre>`);
+    // inline code
+    t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // bold
+    t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // italic
+    t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // blockquote
+    t = t.replace(/^&gt; (.+)$/gm, '<blockquote><p>$1</p></blockquote>');
+    // h3
+    t = t.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    // h2
+    t = t.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    // h1
+    t = t.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    // unordered lists
+    t = t.replace(/^[*\-] (.+)$/gm, '<li>$1</li>');
+    t = t.replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`);
+    // ordered lists
+    t = t.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+    // paragraphs (double newlines)
+    t = t.replace(/\n\n+/g, '</p><p>');
+    t = `<p>${t}</p>`;
+    // clean up empty paragraphs
+    t = t.replace(/<p>\s*<\/p>/g, '');
+    t = t.replace(/<p>(<h[1-3]>|<ul>|<blockquote>|<pre>)/g, '$1');
+    t = t.replace(/(<\/h[1-3]>|<\/ul>|<\/blockquote>|<\/pre>)<\/p>/g, '$1');
+    return t;
+}
+
+function setAutosave(state_str) {
+    const el = document.getElementById('autosave-indicator');
+    el.className = 'autosave-indicator ' + state_str;
+    el.textContent = state_str === 'saving' ? 'Saving…' : state_str === 'saved' ? 'Saved' : '';
+    if (state_str === 'saved') setTimeout(() => { el.textContent = ''; }, 2000);
+}
+
+// ============================================================
+// SAVE
+// ============================================================
+function scheduleSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 2000);
+}
+
+async function doSave() {
+    setAutosave('saving');
+    try {
+        const payload = {
+            program_name: state.program_name,
+            company_name: state.company_name,
+            current_phase: currentPhase,
+            checklist: state.checklist,
+            outline: state.outline,
+            phase1_messages: state.phase1_messages,
+            phase2_messages: state.phase2_messages,
+            phase3_messages: state.phase3_messages,
+            draft_instructions: state.draft_instructions,
+            preferences: state.preferences,
+        };
+        await fetch(`/designer/${PROGRAM_ID}/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        setAutosave('saved');
+    } catch (e) {
+        setAutosave('');
+    }
+}
+
+// ============================================================
+// PHASE NAVIGATION
+// ============================================================
+function switchPhase(n) {
+    currentPhase = n;
+    state.current_phase = n;
+    document.querySelectorAll('.phase-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('phase-' + n).classList.add('active');
+    document.querySelectorAll('#phase-nav .nav-link').forEach(a => {
+        a.classList.toggle('active', parseInt(a.dataset.phase) === n);
+    });
+    scheduleSave();
+}
+
+document.querySelectorAll('#phase-nav .nav-link').forEach(a => {
+    a.addEventListener('click', e => {
+        e.preventDefault();
+        switchPhase(parseInt(a.dataset.phase));
+    });
+});
+
+// ============================================================
+// PROGRAM NAME INLINE EDIT
+// ============================================================
+const nameDisplay = document.getElementById('program-name-display');
+const nameInput = document.getElementById('program-name-input');
+
+nameDisplay.addEventListener('click', () => {
+    nameDisplay.style.display = 'none';
+    nameInput.style.display = 'block';
+    nameInput.focus(); nameInput.select();
+});
+
+function commitNameEdit() {
+    const val = nameInput.value.trim() || 'New Program';
+    state.program_name = val;
+    nameDisplay.textContent = val;
+    document.getElementById('page-title').textContent = val + ' — Skillable';
+    nameDisplay.style.display = '';
+    nameInput.style.display = 'none';
+    scheduleSave();
+}
+
+nameInput.addEventListener('blur', commitNameEdit);
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); commitNameEdit(); } });
+
+// ============================================================
+// CHECKLIST
+// ============================================================
+function renderChecklist() {
+    const area = document.getElementById('checklist-area');
+    const cl = state.checklist || {};
+    let greenCount = 0;
+    area.innerHTML = '';
+
+    CHECKLIST_DEFS.forEach(def => {
+        const item = cl[def.key] || { state: 'gray', value: '' };
+        if (item.state === 'green') greenCount++;
+
+        const div = document.createElement('div');
+        div.className = 'checklist-item' + (item.state !== 'gray' ? ' state-' + item.state : '');
+        div.dataset.key = def.key;
+
+        const hasValue = item.value && item.value.trim();
+        div.innerHTML = `
+            <div class="checklist-item-header">
+                <div class="checklist-dot ${item.state === 'gray' ? '' : item.state}"></div>
+                <span class="checklist-item-name">${def.label}</span>
+                <span class="checklist-item-value ${hasValue ? 'has-value' : ''}">${hasValue ? escHtml(item.value.slice(0, 30)) : 'Not defined'}</span>
+                <span class="checklist-chevron">&#9654;</span>
+            </div>
+            <div class="checklist-item-body">
+                <div class="checklist-item-desc">${def.desc}</div>
+                <div class="checklist-item-captured ${hasValue ? '' : 'empty'}">${hasValue ? escHtml(item.value) : 'Nothing captured yet.'}</div>
+            </div>`;
+
+        div.querySelector('.checklist-item-header').addEventListener('click', () => {
+            div.classList.toggle('expanded');
+        });
+        area.appendChild(div);
+    });
+
+    // Update label
+    document.getElementById('checklist-progress-label').textContent = greenCount + ' / 9';
+
+    // Show/hide generate outline button
+    const btn = document.getElementById('btn-generate-outline');
+    const yellowCount = Object.values(cl).filter(v => v.state === 'yellow').length;
+    if (greenCount >= 5 || (greenCount + yellowCount) >= 6) {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+
+    // Update nav dots
+    updateNavDots();
+}
+
+function updateNavDots() {
+    const cl = state.checklist || {};
+    const greenCount = Object.values(cl).filter(v => v.state === 'green').length;
+    const yellowCount = Object.values(cl).filter(v => v.state === 'yellow').length;
+    const dot1 = document.getElementById('nav-dot-1');
+    if (greenCount >= 7) dot1.className = 'nav-progress-dot complete';
+    else if (greenCount + yellowCount > 0) dot1.className = 'nav-progress-dot partial';
+    else dot1.className = 'nav-progress-dot';
+
+    const hasSeries = (state.outline?.series?.length || 0) > 0;
+    const dot2 = document.getElementById('nav-dot-2');
+    dot2.className = 'nav-progress-dot' + (hasSeries ? ' partial' : '');
+
+    const hasDrafts = Object.keys(state.draft_instructions || {}).length > 0;
+    const dot3 = document.getElementById('nav-dot-3');
+    dot3.className = 'nav-progress-dot' + (hasDrafts ? ' partial' : '');
+}
+
+function applyChecklistUpdates(updates) {
+    if (!updates || typeof updates !== 'object') return;
+    let changed = false;
+    Object.entries(updates).forEach(([key, val]) => {
+        if (state.checklist && state.checklist[key] !== undefined) {
+            state.checklist[key] = val;
+            changed = true;
+        }
+    });
+    if (changed) {
+        renderChecklist();
+        scheduleSave();
+    }
+}
+
+// ============================================================
+// CHAT ENGINE (shared, phase-aware streaming SSE)
+// ============================================================
+function addChatBubble(areaId, role, htmlContent) {
+    const area = document.getElementById(areaId);
+    const div = document.createElement('div');
+    div.className = 'chat-bubble ' + role;
+    div.innerHTML = htmlContent;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+    return div;
+}
+
+function setTyping(phase, show) {
+    document.getElementById('p' + phase + '-typing').style.display = show ? '' : 'none';
+    const area = document.getElementById('p' + phase + '-chat-area');
+    if (area) area.scrollTop = area.scrollHeight;
+}
+
+async function sendChat(phase, userText, extraContext) {
+    const messagesKey = 'phase' + phase + '_messages';
+    const areaId = 'p' + phase + '-chat-area';
+
+    // Add user message to UI and state
+    const userHtml = renderMarkdown(userText);
+    addChatBubble(areaId, 'user', userHtml);
+    state[messagesKey] = state[messagesKey] || [];
+    state[messagesKey].push({ role: 'user', content: userText });
+
+    setTyping(phase, true);
+
+    // Build context string
+    let context = '';
+    if (phase === 1) {
+        context = `Program: ${state.program_name || 'Untitled'}\nCompany: ${state.company_name || ''}\n`;
+        context += 'Current checklist:\n' + CHECKLIST_DEFS.map(d => {
+            const item = (state.checklist || {})[d.key] || { state: 'gray', value: '' };
+            return `  ${d.label}: ${item.state} — ${item.value || 'empty'}`;
+        }).join('\n');
+    } else if (phase === 2) {
+        context = `Program: ${state.program_name || 'Untitled'}\n`;
+        if (state.outline?.series?.length) {
+            context += 'Current outline: ' + JSON.stringify(state.outline, null, 2);
+        }
+    } else if (phase === 3) {
+        context = `Program: ${state.program_name || 'Untitled'}\n`;
+        const sel = document.getElementById('p3-lab-selector');
+        if (sel && sel.value) {
+            const lab = findLabById(sel.value);
+            if (lab) context += 'Current lab: ' + JSON.stringify(lab, null, 2);
+        }
+    }
+    if (extraContext) context += '\n' + extraContext;
+
+    // Streaming fetch
+    const payload = {
+        phase,
+        messages: state[messagesKey],
+        context,
+    };
+
+    try {
+        const resp = await fetch(`/designer/${PROGRAM_ID}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+            setTyping(phase, false);
+            const err = await resp.json().catch(() => ({ error: 'Server error' }));
+            addChatBubble(areaId, 'assistant', `<p style="color:#e05252;">${escHtml(err.error || 'Error')}</p>`);
+            return;
+        }
+
+        setTyping(phase, false);
+
+        const bubble = addChatBubble(areaId, 'assistant', '');
+        let fullText = '';
+        let rawBuffer = '';
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            rawBuffer += decoder.decode(value, { stream: true });
+            const lines = rawBuffer.split('\n');
+            rawBuffer = lines.pop(); // keep incomplete line
+
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const raw = line.slice(6).trim();
+                if (raw === '[DONE]') break;
+                try {
+                    const obj = JSON.parse(raw);
+                    if (obj.error) {
+                        bubble.innerHTML = `<p style="color:#e05252;">${escHtml(obj.error)}</p>`;
+                        return;
+                    }
+                    if (obj.text) {
+                        fullText += obj.text;
+                        // Strip JSON blocks from display
+                        const displayText = fullText.replace(/```json[\s\S]*?```/g, '').trim();
+                        bubble.innerHTML = renderMarkdown(displayText);
+                        document.getElementById(areaId).scrollTop = document.getElementById(areaId).scrollHeight;
+                    }
+                } catch (e) { /* ignore parse errors mid-stream */ }
+            }
+        }
+
+        // Extract and apply JSON blocks from fullText
+        const jsonMatch = fullText.match(/```json\s*([\s\S]*?)```/);
+        if (jsonMatch) {
+            try {
+                const parsed = JSON.parse(jsonMatch[1].trim());
+                if (phase === 1 && parsed.checklist_updates) {
+                    applyChecklistUpdates(parsed.checklist_updates);
+                }
+                if (phase === 2 && parsed.outline) {
+                    state.outline = parsed.outline;
+                    renderOutline();
+                    scheduleSave();
+                }
+            } catch (e) { /* ignore invalid JSON */ }
+        }
+
+        // Save assistant message (stripped of json blocks)
+        const cleanText = fullText.replace(/```json[\s\S]*?```/g, '').trim();
+        state[messagesKey].push({ role: 'assistant', content: cleanText });
+
+        // Phase 3: store draft if lab is selected
+        if (phase === 3) {
+            const sel = document.getElementById('p3-lab-selector');
+            if (sel && sel.value) {
+                state.draft_instructions = state.draft_instructions || {};
+                state.draft_instructions[sel.value] = fullText;
+                renderPreview(sel.value);
+                updateNavDots();
+            }
+        }
+
+        scheduleSave();
+
+    } catch (e) {
+        setTyping(phase, false);
+        addChatBubble(areaId, 'assistant', `<p style="color:#e05252;">Connection error — please try again.</p>`);
+    }
+}
+
+// ============================================================
+// PHASE 1 INTERACTIONS
+// ============================================================
+function setupPhase1() {
+    const textarea = document.getElementById('p1-textarea');
+    const sendBtn = document.getElementById('p1-send');
+    const uploadBtn = document.getElementById('p1-upload-btn');
+    const urlBtn = document.getElementById('p1-url-btn');
+    const fileInput = document.getElementById('p1-file-input');
+
+    textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    });
+    textarea.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleP1Send(); }
+    });
+    sendBtn.addEventListener('click', handleP1Send);
+
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        fileInput.value = '';
+        addUploadBadge(file.name);
+        const text = await readFileAsText(file);
+        pendingFiles.push({ name: file.name, content: text });
+    });
+
+    urlBtn.addEventListener('click', () => {
+        document.getElementById('p1-url-row').classList.toggle('show');
+    });
+    document.getElementById('p1-url-cancel').addEventListener('click', () => {
+        document.getElementById('p1-url-row').classList.remove('show');
+    });
+    document.getElementById('p1-url-send').addEventListener('click', () => {
+        const url = document.getElementById('p1-url-input').value.trim();
+        if (!url) return;
+        document.getElementById('p1-url-row').classList.remove('show');
+        document.getElementById('p1-url-input').value = '';
+        handleP1Send(`Please analyze this URL and extract relevant program design context: ${url}`);
+    });
+}
+
+function addUploadBadge(name) {
+    const wrap = document.getElementById('p1-upload-badges');
+    const badge = document.createElement('span');
+    badge.className = 'upload-badge';
+    badge.innerHTML = `📄 ${escHtml(name)} <button onclick="this.parentElement.remove()">✕</button>`;
+    wrap.appendChild(badge);
+}
+
+async function readFileAsText(file) {
+    return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result || '');
+        reader.onerror = () => resolve('');
+        reader.readAsText(file);
+    });
+}
+
+function handleP1Send(overrideText) {
+    const textarea = document.getElementById('p1-textarea');
+    let text = overrideText || textarea.value.trim();
+
+    if (pendingFiles.length > 0) {
+        const fileContext = pendingFiles.map(f => `--- ${f.name} ---\n${f.content}`).join('\n\n');
+        text = (text ? text + '\n\n' : 'Please analyze these uploaded documents:\n\n') + fileContext;
+        pendingFiles = [];
+        document.getElementById('p1-upload-badges').innerHTML = '';
+    }
+
+    if (!text) return;
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    sendChat(1, text);
+}
+
+document.getElementById('btn-generate-outline').addEventListener('click', () => {
+    switchPhase(2);
+    sendChat(2, 'Based on the program requirements we\'ve discussed, please generate a complete program outline with series, labs, and activities. Use the JSON block format for the outline.');
+});
+
+// ============================================================
+// PHASE 2 OUTLINE
+// ============================================================
+function findLabById(labId) {
+    for (const series of (state.outline?.series || [])) {
+        for (const lab of (series.labs || [])) {
+            if (lab.id === labId) return lab;
+        }
+    }
+    return null;
+}
+
+function getAllLabs() {
+    const labs = [];
+    for (const series of (state.outline?.series || [])) {
+        for (const lab of (series.labs || [])) {
+            labs.push({ ...lab, seriesTitle: series.title });
+        }
+    }
+    return labs;
+}
+
+function renderOutline() {
+    const tree = document.getElementById('outline-tree');
+    const empty = document.getElementById('outline-empty');
+    const addSeriesBtn = document.getElementById('btn-add-series');
+    const series = state.outline?.series || [];
+
+    if (series.length === 0) {
+        tree.innerHTML = '';
+        empty.style.display = '';
+        addSeriesBtn.style.display = 'none';
+        return;
+    }
+
+    empty.style.display = 'none';
+    addSeriesBtn.style.display = '';
+    tree.innerHTML = '';
+
+    series.forEach((s, si) => {
+        const sDiv = document.createElement('div');
+        sDiv.className = 'outline-series';
+        sDiv.dataset.sid = s.id;
+
+        const labs = s.labs || [];
+        const labsHTML = labs.map((lab, li) => {
+            const acts = lab.activities || [];
+            const actsHTML = acts.map((act, ai) => `
+                <div class="outline-activity" data-aid="${act.id}">
+                    <span class="activity-drag">⠿</span>
+                    <input class="activity-title-input" type="text" value="${escHtml(act.title || '')}"
+                           data-sid="${s.id}" data-lid="${lab.id}" data-aid="${act.id}"
+                           placeholder="Activity title…">
+                    ${act.skill_tags?.length ? `<span class="activity-skill-badge">${escHtml(act.skill_tags[0])}</span>` : ''}
+                    <button class="activity-del-btn" data-sid="${s.id}" data-lid="${lab.id}" data-aid="${act.id}">✕</button>
+                </div>`).join('');
+
+            return `
+                <div class="outline-lab" data-lid="${lab.id}">
+                    <div class="lab-header">
+                        <span class="lab-drag">⠿</span>
+                        <input class="lab-title-input" type="text" value="${escHtml(lab.title || '')}"
+                               data-sid="${s.id}" data-lid="${lab.id}" placeholder="Lab title…">
+                        <span class="lab-seat-badge">${lab.seat_time || 60} min</span>
+                        <span class="lab-activity-count">${acts.length} act${acts.length !== 1 ? 's' : ''}</span>
+                        <button class="lab-del-btn" data-sid="${s.id}" data-lid="${lab.id}">✕</button>
+                    </div>
+                    <div class="lab-activities">
+                        ${actsHTML}
+                        <button class="btn-add-activity" data-sid="${s.id}" data-lid="${lab.id}">+ Add Activity</button>
+                    </div>
+                </div>`;
+        }).join('');
+
+        sDiv.innerHTML = `
+            <div class="series-header" data-sid="${s.id}">
+                <span class="series-drag">⠿</span>
+                <input class="series-title-input" type="text" value="${escHtml(s.title || '')}"
+                       data-sid="${s.id}" placeholder="Series title…">
+                <button class="series-collapse-btn">▾</button>
+            </div>
+            <div class="series-body" data-sid="${s.id}">
+                ${labsHTML}
+                <button class="btn-add-lab" data-sid="${s.id}">+ Add Lab</button>
+            </div>`;
+        tree.appendChild(sDiv);
+    });
+
+    // Attach outline event listeners
+    attachOutlineListeners();
+    populateLab3Selector();
+    updateNavDots();
+}
+
+function attachOutlineListeners() {
+    // Collapse series
+    document.querySelectorAll('.series-header').forEach(hdr => {
+        hdr.querySelector('.series-collapse-btn').addEventListener('click', e => {
+            e.stopPropagation();
+            const body = document.querySelector(`.series-body[data-sid="${hdr.dataset.sid}"]`);
+            body.classList.toggle('hidden');
+            hdr.classList.toggle('collapsed');
+        });
+    });
+
+    // Edit series title
+    document.querySelectorAll('.series-title-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+            const s = state.outline.series.find(x => x.id === inp.dataset.sid);
+            if (s) { s.title = inp.value; scheduleSave(); }
+        });
+    });
+
+    // Edit lab title
+    document.querySelectorAll('.lab-title-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+            const s = state.outline.series.find(x => x.id === inp.dataset.sid);
+            const lab = s?.labs?.find(l => l.id === inp.dataset.lid);
+            if (lab) { lab.title = inp.value; scheduleSave(); populateLab3Selector(); }
+        });
+    });
+
+    // Edit activity title
+    document.querySelectorAll('.activity-title-input').forEach(inp => {
+        inp.addEventListener('change', () => {
+            const s = state.outline.series.find(x => x.id === inp.dataset.sid);
+            const lab = s?.labs?.find(l => l.id === inp.dataset.lid);
+            const act = lab?.activities?.find(a => a.id === inp.dataset.aid);
+            if (act) { act.title = inp.value; scheduleSave(); }
+        });
+    });
+
+    // Delete activity
+    document.querySelectorAll('.activity-del-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const s = state.outline.series.find(x => x.id === btn.dataset.sid);
+            const lab = s?.labs?.find(l => l.id === btn.dataset.lid);
+            if (lab) {
+                lab.activities = lab.activities.filter(a => a.id !== btn.dataset.aid);
+                renderOutline(); scheduleSave();
+            }
+        });
+    });
+
+    // Delete lab
+    document.querySelectorAll('.lab-del-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const s = state.outline.series.find(x => x.id === btn.dataset.sid);
+            if (s) {
+                s.labs = s.labs.filter(l => l.id !== btn.dataset.lid);
+                renderOutline(); scheduleSave();
+            }
+        });
+    });
+
+    // Add activity
+    document.querySelectorAll('.btn-add-activity').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const s = state.outline.series.find(x => x.id === btn.dataset.sid);
+            const lab = s?.labs?.find(l => l.id === btn.dataset.lid);
+            if (lab) {
+                lab.activities = lab.activities || [];
+                lab.activities.push({ id: uid(), title: 'New Activity', skill_tags: [] });
+                renderOutline(); scheduleSave();
+            }
+        });
+    });
+
+    // Add lab
+    document.querySelectorAll('.btn-add-lab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const s = state.outline.series.find(x => x.id === btn.dataset.sid);
+            if (s) {
+                s.labs = s.labs || [];
+                s.labs.push({ id: uid(), title: 'New Lab', seat_time: 60, activities: [] });
+                renderOutline(); scheduleSave();
+            }
+        });
+    });
+
+    // Add series
+    document.getElementById('btn-add-series').addEventListener('click', () => {
+        state.outline.series = state.outline.series || [];
+        state.outline.series.push({ id: uid(), title: 'New Series', labs: [] });
+        renderOutline(); scheduleSave();
+    });
+}
+
+function setupPhase2() {
+    const textarea = document.getElementById('p2-textarea');
+    const sendBtn = document.getElementById('p2-send');
+
+    textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    });
+    textarea.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleP2Send(); }
+    });
+    sendBtn.addEventListener('click', handleP2Send);
+
+    document.getElementById('btn-refactor').addEventListener('click', () => {
+        sendChat(2, 'Please refactor the entire outline — re-examine the overall structure, series count, lab distribution, and activity design. Propose an improved version and explain your reasoning. Return the updated outline in the JSON block format.');
+    });
+
+    document.getElementById('btn-approve-outline').addEventListener('click', () => {
+        // Check if skill framework selected and mapping proposed
+        const frameworks = state.preferences?.skill_frameworks || [];
+        if (frameworks.length > 0) {
+            const confirmed = confirm('The AI has been proposing skill tags for activities. Move to Phase 3 — Draft Instructions?');
+            if (!confirmed) return;
+        }
+        switchPhase(3);
+    });
+
+    document.getElementById('btn-skill-map').addEventListener('click', () => {
+        skillMapMode = !skillMapMode;
+        document.getElementById('btn-skill-map').classList.toggle('active', skillMapMode);
+    });
+}
+
+function handleP2Send() {
+    const textarea = document.getElementById('p2-textarea');
+    const text = textarea.value.trim();
+    if (!text) return;
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    sendChat(2, text);
+}
+
+// ============================================================
+// PHASE 3
+// ============================================================
+function populateLab3Selector() {
+    const sel = document.getElementById('p3-lab-selector');
+    const prevVal = sel.value;
+    sel.innerHTML = '<option value="">— Select a lab to draft —</option>';
+    getAllLabs().forEach(lab => {
+        const opt = document.createElement('option');
+        opt.value = lab.id;
+        opt.textContent = `${lab.seriesTitle ? lab.seriesTitle + ' / ' : ''}${lab.title}`;
+        sel.appendChild(opt);
+    });
+    if (prevVal) sel.value = prevVal;
+}
+
+function setupPhase3() {
+    const textarea = document.getElementById('p3-textarea');
+    const sendBtn = document.getElementById('p3-send');
+    const sel = document.getElementById('p3-lab-selector');
+
+    textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    });
+    textarea.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleP3Send(); }
+    });
+    sendBtn.addEventListener('click', handleP3Send);
+
+    sel.addEventListener('change', () => {
+        const labId = sel.value;
+        if (!labId) return;
+        renderPreview(labId);
+        // If no draft yet, offer to generate
+        if (!state.draft_instructions?.[labId]) {
+            const lab = findLabById(labId);
+            if (lab) {
+                const labJson = JSON.stringify(lab, null, 2);
+                sendChat(3, `Please generate draft lab instructions for this lab: ${lab.title}\n\nLab structure:\n${labJson}`);
+            }
+        }
+        updatePreviewNav();
+    });
+
+    document.getElementById('btn-prev-lab').addEventListener('click', () => {
+        const labs = getAllLabs();
+        currentPreviewLabIndex = Math.max(0, currentPreviewLabIndex - 1);
+        const lab = labs[currentPreviewLabIndex];
+        if (lab) { sel.value = lab.id; sel.dispatchEvent(new Event('change')); }
+    });
+
+    document.getElementById('btn-next-lab').addEventListener('click', () => {
+        const labs = getAllLabs();
+        currentPreviewLabIndex = Math.min(labs.length - 1, currentPreviewLabIndex + 1);
+        const lab = labs[currentPreviewLabIndex];
+        if (lab) { sel.value = lab.id; sel.dispatchEvent(new Event('change')); }
+    });
+}
+
+function handleP3Send() {
+    const textarea = document.getElementById('p3-textarea');
+    const text = textarea.value.trim();
+    if (!text) return;
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    sendChat(3, text);
+}
+
+function renderPreview(labId) {
+    const inner = document.getElementById('preview-inner');
+    const empty = document.getElementById('preview-empty');
+    const draft = state.draft_instructions?.[labId];
+    if (!draft) {
+        inner.style.display = 'none';
+        empty.style.display = '';
+        return;
+    }
+    inner.style.display = '';
+    empty.style.display = 'none';
+    inner.innerHTML = renderMarkdown(draft);
+    updatePreviewNav();
+}
+
+function updatePreviewNav() {
+    const labs = getAllLabs();
+    const sel = document.getElementById('p3-lab-selector');
+    const idx = labs.findIndex(l => l.id === sel.value);
+    currentPreviewLabIndex = idx >= 0 ? idx : 0;
+    document.getElementById('preview-lab-name').textContent =
+        labs[currentPreviewLabIndex]?.title || '';
+    document.getElementById('btn-prev-lab').disabled = currentPreviewLabIndex === 0;
+    document.getElementById('btn-next-lab').disabled = currentPreviewLabIndex >= labs.length - 1;
+}
+
+// ============================================================
+// PREFERENCES
+// ============================================================
+function renderFrameworkPicker() {
+    const picker = document.getElementById('framework-picker');
+    const selected = new Set(state.preferences?.skill_frameworks || []);
+    picker.innerHTML = '';
+    Object.entries(FRAMEWORKS).forEach(([group, items]) => {
+        const glabel = document.createElement('div');
+        glabel.className = 'framework-group-label';
+        glabel.textContent = group;
+        picker.appendChild(glabel);
+        items.forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'framework-item' + (selected.has(name) ? ' selected' : '');
+            item.dataset.name = name;
+            item.innerHTML = `<div class="framework-checkbox"></div><span class="framework-name">${escHtml(name)}</span>`;
+            item.addEventListener('click', () => {
+                item.classList.toggle('selected');
+            });
+            picker.appendChild(item);
+        });
+    });
+}
+
+function loadPrefsToUI() {
+    const p = state.preferences || {};
+    document.getElementById('pref-series-count').value = p.default_series_count || 3;
+    document.getElementById('pref-labs-per-series').value = p.default_labs_per_series || 4;
+    document.getElementById('pref-seat-time').value = p.default_seat_time || 60;
+    document.getElementById('pref-difficulty').value = p.default_difficulty || 'Intermediate';
+    document.getElementById('pref-brand-url').value = p.brand_url || '';
+    document.getElementById('pref-export-format').value = p.export_format || 'ZIP';
+    document.getElementById('pref-sme-format').value = p.sme_handoff_format || 'docx';
+
+    // Toggles
+    const toggles = [
+        { id: 'pref-breakfix', key: 'breakfix_default' },
+        { id: 'pref-collab', key: 'collaborative_lab_default' },
+        { id: 'pref-attack', key: 'simulated_attack_default' },
+    ];
+    toggles.forEach(({ id, key }) => {
+        const btn = document.getElementById(id);
+        btn.classList.toggle('on', !!p[key]);
+        btn.onclick = () => btn.classList.toggle('on');
+    });
+
+    renderFrameworkPicker();
+}
+
+function savePrefsFromUI() {
+    const p = state.preferences || {};
+    p.default_series_count = parseInt(document.getElementById('pref-series-count').value) || 3;
+    p.default_labs_per_series = parseInt(document.getElementById('pref-labs-per-series').value) || 4;
+    p.default_seat_time = parseInt(document.getElementById('pref-seat-time').value) || 60;
+    p.default_difficulty = document.getElementById('pref-difficulty').value;
+    p.brand_url = document.getElementById('pref-brand-url').value;
+    p.export_format = document.getElementById('pref-export-format').value;
+    p.sme_handoff_format = document.getElementById('pref-sme-format').value;
+    p.breakfix_default = document.getElementById('pref-breakfix').classList.contains('on');
+    p.collaborative_lab_default = document.getElementById('pref-collab').classList.contains('on');
+    p.simulated_attack_default = document.getElementById('pref-attack').classList.contains('on');
+    p.skill_frameworks = Array.from(document.querySelectorAll('#framework-picker .framework-item.selected'))
+        .map(el => el.dataset.name);
+    state.preferences = p;
+    scheduleSave();
+}
+
+document.getElementById('prefs-btn').addEventListener('click', () => {
+    loadPrefsToUI();
+    document.getElementById('prefs-overlay').classList.add('open');
+});
+
+document.getElementById('prefs-close').addEventListener('click', () => {
+    document.getElementById('prefs-overlay').classList.remove('open');
+});
+
+document.getElementById('prefs-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('prefs-overlay')) {
+        document.getElementById('prefs-overlay').classList.remove('open');
+    }
+});
+
+document.getElementById('btn-save-prefs').addEventListener('click', () => {
+    savePrefsFromUI();
+    document.getElementById('prefs-overlay').classList.remove('open');
+    setAutosave('saving');
+    doSave();
+});
+
+// ============================================================
+// RESTORE STATE FROM INITIAL_DATA
+// ============================================================
+function restoreState() {
+    // Restore messages
+    ['phase1_messages', 'phase2_messages', 'phase3_messages'].forEach((key, idx) => {
+        const phase = idx + 1;
+        const areaId = 'p' + phase + '-chat-area';
+        const msgs = state[key] || [];
+        msgs.forEach(m => {
+            addChatBubble(areaId, m.role, renderMarkdown(m.content));
+        });
+    });
+
+    // Restore outline
+    if ((state.outline?.series?.length || 0) > 0) {
+        renderOutline();
+    }
+
+    // Restore checklist
+    renderChecklist();
+
+    // Restore phase
+    switchPhase(currentPhase);
+
+    // Populate phase 3 lab selector
+    populateLab3Selector();
+}
+
+// ============================================================
+// INITIAL GREETING (Phase 1, only if no messages)
+// ============================================================
+function maybeGreet() {
+    if ((state.phase1_messages || []).length === 0) {
+        const greeting = `Hi! I'm your Lab Program Designer assistant. I'll help you build a complete lab program for **${state.program_name || 'your program'}**.
+
+Let's start with the basics:
+- **What product or topic** will this program train learners on?
+- **Who are the learners?** (role, experience level, technical background)
+- **What's the business goal?** (skill development, onboarding, certification, etc.)
+
+You can also upload a job task analysis, existing course outline, product documentation, or any other materials — I'll read them and ask follow-up questions.`;
+
+        addChatBubble('p1-chat-area', 'assistant', renderMarkdown(greeting));
+    }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    setupPhase1();
+    setupPhase2();
+    setupPhase3();
+    restoreState();
+    maybeGreet();
+});
+</script>
+
 </body>
 </html>

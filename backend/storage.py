@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import uuid
+from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
 from dataclasses import asdict
@@ -13,10 +14,12 @@ from config import DATA_DIR
 DISCOVERY_DIR = os.path.join(os.path.dirname(__file__), "data", "discoveries")
 BATCH_DIR = os.path.join(os.path.dirname(__file__), "data", "batch")
 FEEDBACK_DIR = os.path.join(os.path.dirname(__file__), "data", "feedback")
+DESIGNER_DIR = os.path.join(os.path.dirname(__file__), "data", "designer")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(DISCOVERY_DIR, exist_ok=True)
 os.makedirs(BATCH_DIR, exist_ok=True)
 os.makedirs(FEEDBACK_DIR, exist_ok=True)
+os.makedirs(DESIGNER_DIR, exist_ok=True)
 
 
 def save_discovery(discovery_id: str, data: dict) -> str:
@@ -264,3 +267,55 @@ def clear_competitor_candidates() -> None:
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump([], f, indent=2)
     log.info("clear_competitor_candidates: cleared")
+
+
+# ---------------------------------------------------------------------------
+# Designer storage
+# ---------------------------------------------------------------------------
+
+def save_designer_program(program_id: str, data: dict) -> str:
+    """Save designer program state. Returns program_id."""
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    filepath = os.path.join(DESIGNER_DIR, f"{program_id}.json")
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    return program_id
+
+
+def load_designer_program(program_id: str) -> dict | None:
+    """Load designer program by ID. Returns None if not found."""
+    filepath = os.path.join(DESIGNER_DIR, f"{program_id}.json")
+    if not os.path.exists(filepath):
+        return None
+    with open(filepath, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def list_designer_programs() -> list[dict]:
+    """Return summary list of all programs, newest first.
+
+    Each entry: { program_id, program_name, company_name, current_phase, created_at, updated_at }
+    """
+    results = []
+    if not os.path.exists(DESIGNER_DIR):
+        return results
+    files = [f for f in os.listdir(DESIGNER_DIR) if f.endswith(".json")]
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(DESIGNER_DIR, f)), reverse=True)
+    for filename in files:
+        filepath = os.path.join(DESIGNER_DIR, filename)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            program_id = filename.replace(".json", "")
+            results.append({
+                "program_id": program_id,
+                "program_name": data.get("program_name", "Untitled Program"),
+                "company_name": data.get("company_name", ""),
+                "current_phase": data.get("current_phase", 1),
+                "created_at": data.get("created_at", ""),
+                "updated_at": data.get("updated_at", ""),
+            })
+        except Exception as e:
+            log.warning("Skipping corrupted designer file %s: %s", filename, e)
+            continue
+    return results

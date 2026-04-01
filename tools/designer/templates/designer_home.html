@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Lab Program Designer — Skillable Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0;
+            min-height: 100vh;
+        }
+        a { color: #24ED9B; text-decoration: none; }
+        a:hover { color: #1dd88a; }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; padding: 14px 28px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.95); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 30;
+        }
+        .nav img { height: 26px; }
+        .nav-div { width: 1px; height: 18px; background: #1e3329; margin: 0 14px; }
+        .nav-tool { font-size: 0.82rem; color: #6b9e88; font-weight: 600; }
+        .nav-sp { flex: 1; }
+        .nav-back { font-size: 0.8rem; color: #3d6655; }
+        .nav-back:hover { color: #24ED9B; }
+
+        /* Page */
+        .page { max-width: 1100px; margin: 0 auto; padding: 48px 24px 120px; }
+
+        /* Header */
+        .page-eyebrow {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.15em;
+            text-transform: uppercase; color: #24ED9B; margin-bottom: 8px;
+        }
+        .page-title {
+            font-size: 2rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.02em; margin-bottom: 8px;
+        }
+        .page-desc {
+            font-size: 0.88rem; color: #6b9e88; line-height: 1.6;
+            max-width: 620px; margin-bottom: 36px;
+        }
+
+        /* New program button */
+        .btn-new {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #24ED9B; color: #06100c;
+            font-size: 0.84rem; font-weight: 700;
+            padding: 11px 22px; border-radius: 8px;
+            border: none; cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            text-decoration: none;
+        }
+        .btn-new:hover { background: #1dd88a; color: #06100c; transform: translateY(-1px); }
+        .btn-new:active { transform: translateY(0); }
+
+        /* Programs grid */
+        .programs-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px; margin-top: 52px;
+        }
+        .programs-label {
+            font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #3d6655;
+        }
+        .programs-count {
+            font-size: 0.75rem; color: #3d6655;
+        }
+
+        /* Empty state */
+        .empty-state {
+            background: #0a1f17; border: 1px solid #1e3329; border-radius: 12px;
+            padding: 64px 32px; text-align: center;
+        }
+        .empty-icon { font-size: 2.5rem; margin-bottom: 16px; color: #3d6655; }
+        .empty-title { font-size: 1.1rem; font-weight: 600; color: #6b9e88; margin-bottom: 8px; }
+        .empty-desc { font-size: 0.84rem; color: #3d6655; line-height: 1.6; }
+
+        /* Program table */
+        .programs-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .programs-table th {
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #3d6655;
+            padding: 0 16px 10px; text-align: left;
+            border-bottom: 1px solid #1e3329;
+        }
+        .programs-table td {
+            padding: 0; border-bottom: 1px solid #1e3329;
+        }
+        .program-row-link {
+            display: flex; align-items: center;
+            padding: 16px 16px; width: 100%;
+            transition: background 0.12s;
+            text-decoration: none; color: inherit;
+        }
+        .program-row-link:hover { background: #0d2219; }
+
+        .col-name { flex: 1 1 auto; min-width: 0; }
+        .col-company { width: 200px; flex-shrink: 0; }
+        .col-phase { width: 200px; flex-shrink: 0; }
+        .col-updated { width: 160px; flex-shrink: 0; text-align: right; }
+
+        .program-name {
+            font-size: 0.92rem; font-weight: 600; color: #e8f5f0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .program-company { font-size: 0.8rem; color: #6b9e88; }
+        .program-updated { font-size: 0.76rem; color: #3d6655; }
+
+        /* Phase progress pills */
+        .phase-progress { display: flex; align-items: center; gap: 4px; }
+        .phase-pip {
+            width: 22px; height: 22px; border-radius: 50%;
+            font-size: 0.6rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            border: 1.5px solid #1e3329; color: #3d6655;
+        }
+        .phase-pip.done { background: #24ED9B; border-color: #24ED9B; color: #06100c; }
+        .phase-pip.active { border-color: #24ED9B; color: #24ED9B; }
+        .phase-pip.pending { background: transparent; }
+        .phase-label { font-size: 0.72rem; color: #6b9e88; margin-left: 6px; }
+
+        @media (max-width: 700px) {
+            .col-company, .col-updated { display: none; }
+            .col-phase { width: 160px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <a href="/" title="Skillable Intelligence">
+        <img src="/static/img/skillable-logo.png" alt="Skillable">
+    </a>
+    <div class="nav-div"></div>
+    <span class="nav-tool">Designer</span>
+    <div class="nav-sp"></div>
+    <a href="/" class="nav-back">← Platform Home</a>
+</nav>
+
+<div class="page">
+    <div class="page-eyebrow">Skillable Intelligence</div>
+    <h1 class="page-title">Lab Program Designer</h1>
+    <p class="page-desc">
+        Design complete lab programs — from goals and audience through an approved outline, draft instructions, and a Studio-ready export package.
+    </p>
+
+    <a href="/designer/new" class="btn-new">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        New Program
+    </a>
+
+    <div class="programs-header">
+        <span class="programs-label">Your Programs</span>
+        <span class="programs-count">{{ programs|length }} program{{ 's' if programs|length != 1 else '' }}</span>
+    </div>
+
+    {% if programs %}
+    <table class="programs-table">
+        <thead>
+            <tr>
+                <th class="col-name">Program</th>
+                <th class="col-company">Company</th>
+                <th class="col-phase">Phase Progress</th>
+                <th class="col-updated">Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in programs %}
+            <tr>
+                <td colspan="4" style="padding:0;">
+                    <a href="/designer/{{ p.program_id }}" class="program-row-link">
+                        <div class="col-name">
+                            <div class="program-name">{{ p.program_name or 'Untitled Program' }}</div>
+                        </div>
+                        <div class="col-company">
+                            <span class="program-company">{{ p.company_name or '—' }}</span>
+                        </div>
+                        <div class="col-phase">
+                            {% set cp = p.current_phase | int %}
+                            <div class="phase-progress">
+                                {% for i in range(1, 5) %}
+                                <div class="phase-pip {% if i < cp %}done{% elif i == cp %}active{% else %}pending{% endif %}">{{ i }}</div>
+                                {% endfor %}
+                                <span class="phase-label">Phase {{ cp }}</span>
+                            </div>
+                        </div>
+                        <div class="col-updated">
+                            <span class="program-updated">
+                                {% if p.updated_at %}
+                                    {{ p.updated_at[:10] }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </span>
+                        </div>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">&#9998;</div>
+        <div class="empty-title">No programs yet</div>
+        <div class="empty-desc">Create your first program to get started.</div>
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
