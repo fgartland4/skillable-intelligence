@@ -597,14 +597,29 @@ Output a JSON object with these exact keys:
   "domain_terms": [
     // 5-8 actual company/product terms (not invented) that should appear in the program
     // These are the real vocabulary anchors that make it feel like their program
+  ],
+  "loading_states": [
+    // 8-12 invented gerunds to replace "Thinking..." in the Designer UI
+    // Each one is what the AI is "doing" while it works — shown as a spinner label
+    // Must be -ing form (real or invented) with a root that relates to the company/product domain
+    // The root should be recognizable; the -ing form should be absurd
+    // Examples for a network security company:
+    //   "Threatologizing...", "Firewallificating...", "Packet-inspectifying...",
+    //   "Zero-trust-inating...", "Skill-segmenting...", "Lab-architecturifying..."
+    // Examples for a data platform company:
+    //   "Data-fabricating...", "Cohesify-ing...", "Snapshot-ologizing...",
+    //   "Immutabilifying...", "Replication-atorinating..."
+    // Always end with "..."
   ]
 }
 
 Rules:
-- The manufactured_words list is the most important output — make them memorable
+- The loading_states list is critical — these replace "Thinking..." in the UI; make each one land
+- The manufactured_words list is the next most important
 - ~60% Skillable seeds, ~40% company seeds in the blend
 - Lean into the silliness — this is intentional, not accidental
 - The domain_terms should be real, not invented — they're the straight man to the comedy
+- loading_states MUST end with "..." — they are shown as spinner text
 - Return only the JSON object, no explanation"""
 
 
@@ -692,10 +707,14 @@ Generate the vocabulary pack for {company_name_actual}'s training program."""
         })
         result.setdefault("action_verb_palette", [])
         result.setdefault("domain_terms", unique_company[:5])
+        result.setdefault("loading_states", [
+            "Skillificating...", "Achievify-ing...", "Lab-ologizing...",
+            "Program-architecturifying...", "Job-readyifyin'...",
+        ])
         result["_company_name"] = company_name_actual
         result["_generated_at"] = _now_iso()
-        log.info("Intelligence.generate_vocabulary: generated for %s (%d manufactured words)",
-                 company_name_actual, len(result["manufactured_words"]))
+        log.info("Intelligence.generate_vocabulary: generated for %s (%d loading states)",
+                 company_name_actual, len(result["loading_states"]))
         return result
     except Exception as e:
         log.warning("Intelligence.generate_vocabulary failed for %s: %s", company_name, e)
@@ -712,6 +731,11 @@ Generate the vocabulary pack for {company_name_actual}'s training program."""
             },
             "action_verb_palette": ["Skillify", "Configure", "Deploy", "Validate", "Achieve", "Build"],
             "domain_terms": unique_company[:5],
+            "loading_states": [
+                "Skillificating...", "Achievify-ing...", "Lab-ologizing...",
+                "Program-architecturifying...", "Job-readyifyin'...",
+                "Configuratorinating...", "Enablifying...", "Masterificating...",
+            ],
             "_company_name": company_name_actual,
             "_generated_at": _now_iso(),
             "_fallback": True,
