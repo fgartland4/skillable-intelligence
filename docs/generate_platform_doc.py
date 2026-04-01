@@ -79,11 +79,14 @@ def set_cell_width(cell, dxa):
     tcPr.append(tcW)
 
 
-def set_paragraph_spacing(paragraph, before=0, after=0):
+def set_paragraph_spacing(paragraph, before=0, after=0, line=None):
     pPr = paragraph._p.get_or_add_pPr()
     spacing = OxmlElement("w:spacing")
     spacing.set(qn("w:before"), str(before))
     spacing.set(qn("w:after"), str(after))
+    if line is not None:
+        spacing.set(qn("w:line"), str(line))
+        spacing.set(qn("w:lineRule"), "auto")
     pPr.append(spacing)
 
 
@@ -215,48 +218,49 @@ def add_footer(section):
 def add_title(doc, title, subtitle):
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 0, 40)
-    make_run(p, title, size_pt=18, bold=True, color=DARK_GREEN)
+    make_run(p, title, size_pt=20, bold=True, color=DARK_GREEN)
     p2 = doc.add_paragraph()
-    set_paragraph_spacing(p2, 0, 80)
+    set_paragraph_spacing(p2, 0, 100)
     add_bottom_border(p2)
     make_run(p2, subtitle, size_pt=10, italic=False, color=GRAY)
 
 
 def h1(doc, text):
     p = doc.add_paragraph()
-    set_paragraph_spacing(p, 120, 40)
+    set_paragraph_spacing(p, 180, 50)
     pPr = p._p.get_or_add_pPr()
     kwn = OxmlElement("w:keepWithNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
+    add_bottom_border(p, size=4)
     make_run(p, text, size_pt=13, bold=True, color=DARK_GREEN)
     return p
 
 
 def h2(doc, text):
     p = doc.add_paragraph()
-    set_paragraph_spacing(p, 100, 30)
+    set_paragraph_spacing(p, 140, 40)
     pPr = p._p.get_or_add_pPr()
     kwn = OxmlElement("w:keepWithNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
     make_run(p, text, size_pt=11, bold=True, color=DARK_GREEN)
     return p
 
 
-def body(doc, text, after=60):
+def body(doc, text, after=72):
     p = doc.add_paragraph()
-    set_paragraph_spacing(p, 0, after)
+    set_paragraph_spacing(p, 0, after, line=264)
     make_run(p, text, color=DARK_TEXT)
     return p
 
 
-def body_bold(doc, text_parts, after=60):
+def body_bold(doc, text_parts, after=72):
     """text_parts: list of (text, bold) tuples — all dark text."""
     p = doc.add_paragraph()
-    set_paragraph_spacing(p, 0, after)
+    set_paragraph_spacing(p, 0, after, line=264)
     for text, bold in text_parts:
         make_run(p, text, bold=bold, color=DARK_TEXT)
     return p
 
 
-def _bullet_para(doc, after=40):
+def _bullet_para(doc, after=48):
     """Base bullet paragraph — small elegant bullet, manual indent."""
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 0, after)
@@ -295,8 +299,8 @@ def section_note(doc, text, after=60):
 def proclamation(doc, text):
     """Bold declarative line — the pivot between problem and solution in each subsection."""
     p = doc.add_paragraph()
-    set_paragraph_spacing(p, 80, 80)
-    make_run(p, text, bold=True, color=DARK_TEXT)
+    set_paragraph_spacing(p, 90, 90)
+    make_run(p, text, size_pt=11, bold=True, color=DARK_GREEN)
     return p
 
 
@@ -410,11 +414,11 @@ def add_margin_icon(doc, para):
     drawing.append(anchor)
 
 
-def ai_para(doc, text_parts, after=60):
+def ai_para(doc, text_parts, after=72):
     """Body paragraph with AI moment phrase in bold purple + floating margin icon.
     text_parts: list of (text, is_purple) tuples — purple parts are also bold."""
     p = doc.add_paragraph()
-    set_paragraph_spacing(p, 0, after)
+    set_paragraph_spacing(p, 0, after, line=264)
     for text, is_purple in text_parts:
         run = p.add_run(smartify(text))
         run.font.name = FONT_NAME
