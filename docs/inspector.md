@@ -8,13 +8,20 @@
 
 ## Why Inspector Exists
 
-Before a discovery call, a Solution Engineer typically spends one to three hours doing pre-call research. They're reading product documentation, scanning training portals, checking Azure Marketplace listings, poking around Docker Hub, and generally trying to answer one question: *is this company actually a good candidate for a lab program?* That research lives in a browser history and a few bullet points in a notes app. When the next SE picks up the same account six months later, or when the AE wants to qualify the logo before asking for SE time at all, the process starts from zero.
+Inspector is the depth contextualization layer of Skillable Intelligence. It takes the same centralized company intelligence — the three qualification gates, the research signals, the scoring — and renders it at full resolution for the people who need to walk into a conversation fully prepared.
 
-The problem isn't just the wasted hours. It's the inconsistency. Manual research is only as good as the person doing it and the time they had. One SE knows to check for a Docker image as a fast proxy for deployment automability. Another doesn't. One knows that MFA on the API is a soft constraint that caps the Skillable path at A2. Another calls it a blocker. These judgment calls compound across the team and produce analysis that doesn't travel well — from SE to AE, from this quarter to next quarter, from one territory to another.
+The three gates Inspector evaluates are:
+- **Gate 1 — Technical Orchestrability:** Can Skillable provision, configure, score, and tear down a lab for this company's products?
+- **Gate 2 — Product Complexity:** Is the product technically rich enough that hands-on practice creates genuine skill-building value?
+- **Gate 3 — Organizational Readiness:** Does this company have the content team, program leadership, and technical maturity to build and sustain a lab program?
 
-Inspector automates the same research a strong SE would do, but with consistency, depth, and speed that manual research can't match. It runs 12 parallel web searches during discovery, fetches and reads company pages, and passes all of that evidence through calibrated scoring prompts anchored against real Skillable customer deployments. The output is a structured `CompanyAnalysis`: a composite score, per-product labability scores broken down by dimension, a recommended Skillable delivery path, a consumption potential model, evidence claims with source URLs, and a prioritized list of contacts. Because results are cached for 45 days, the next person who opens the same company sees the full analysis instantly rather than triggering another research pass.
+Every score, every evidence bullet, every recommendation in Inspector maps back to one of those gates. The output is designed to serve two conversations simultaneously — the technical discovery conversation an SE needs to run, and the qualification conversation an AE or executive needs to have — from the same underlying analysis.
 
-Inspector is also the starting point for the Designer tool. When scoring completes, a "Design Lab Program →" button appears in the results dashboard. Clicking it carries the `analysis_id`, company name, product scores, and recommended contacts directly into Designer Phase 1. The two tools are designed to flow sequentially: Inspector answers *whether* a lab program is worth building. Designer answers *how* to build it.
+Before Inspector, a Solution Engineer typically spent one to three hours doing pre-call research manually: reading product documentation, scanning training portals, checking Azure Marketplace listings, checking Docker Hub. That research lived in a browser history. The next SE, the next quarter, the next territory started from zero. Worse — the judgment calls varied. One SE knew to check for a Docker image as a proxy for deployment automability. Another didn't. One knew MFA on the API caps the Skillable path at A2. Another called it a blocker.
+
+Inspector runs that same research — 12 parallel web searches, fetched documentation, calibrated scoring against real Skillable customer deployments — with consistency and depth that manual research can't match. The output is cached for 45 days so the next person who opens the same company gets the full analysis instantly.
+
+Inspector is also the starting point for Designer. When scoring completes, a "Design Lab Program →" button carries the full analysis into Designer Phase 1. Inspector answers *whether* a lab program is worth building. Designer answers *how* to build it.
 
 ---
 

@@ -6,15 +6,47 @@
 
 ## 1. What Problem Does This Platform Solve?
 
-Skillable Intelligence started with a question about lab program design: *what would it take to give a Solution Engineer or lab author everything they need to build a great lab program — the right content, the right environment, the right scoring approach — without starting from a blank page every time?*
+Skillable is a platform-as-a-service company. We are not looking for buyers of a product — we are looking for builders of lab programs on a platform. That distinction changes everything about how qualification works.
 
-The answer turned out to require deep knowledge: knowledge of the product being trained on, of the learner's role and workflow, of Skillable's delivery capabilities, and of what "good" looks like across the programs Skillable has already built. **Designer** was built first to answer that question — and the intelligence it needed to do that well became the foundation for everything that followed.
+A SaaS company asks: does this organization have the budget, the pain point, and the authority to buy our product? Standard CRM scoring, firmographic data, and intent signals can answer that question reasonably well.
 
-Once that foundation existed, a second question surfaced: could the same research and scoring intelligence help sellers and SEs understand whether a company's product is worth pursuing as a lab program *before* investing in design? That became **Inspector** — a deep per-company analysis that runs the same research pipeline and applies a structured scoring model grounded in Skillable's real platform capabilities.
+Skillable has to ask three harder questions:
 
-Then the marketing team asked an obvious follow-on: *could we do this for a list of companies?* That became **Prospector** — a lighter, parallel version of Inspector tuned for throughput over depth, built to rank a batch of companies by labability fit so sales and marketing can prioritize outreach intelligently.
+1. **Technical Orchestrability** — Can Skillable's platform provision, configure, score, and tear down a lab for what this company sells? Does their product have the deployment model, API surface, and technical architecture that Skillable can orchestrate?
 
-The three tools share a common intelligence stack. Every analysis — whether it's a full Designer program build, an Inspector deep-dive on a single company, or a Prospector batch scan — runs through the same research engine, the same evidence extraction model, and the same scoring rubrics. The difference is in how much of that pipeline each tool invokes and what it does with the result.
+2. **Product Complexity** — Is the product technically rich enough that hands-on practice creates genuine skill-building value? Lab programs only make sense for products where doing the thing in a realistic environment builds capability that reading about it doesn't.
+
+3. **Organizational Readiness** — Does this company have the content team skills, technical enablement maturity, and program leadership to build and sustain a lab program — not just complete a pilot?
+
+All three gates must clear. A technically compatible product at a company with no content capability produces a slow, high-risk program. An organizationally mature company whose product can't be orchestrated hits a wall before the first lab is built. No standard lead generation or CRM scoring tool can evaluate any of these three things — they require deep product research and Skillable-specific platform knowledge.
+
+That is what this platform is built to do.
+
+---
+
+## The Core Architecture: Intelligence Layer + Contextualization Layers
+
+**Intelligence** is the centralized data layer. It accumulates, stores, and maintains company intelligence — the three qualification gates, research signals, scoring, and accumulated company knowledge. It doesn't know or care which tool is asking.
+
+**Each tool is a purpose-built contextualization layer** that parses the same underlying Intelligence and renders it in the form most useful to a specific person doing a specific job:
+
+- **Prospector** — comparison and ranking. Parses Intelligence across a list of companies to tell Marketing and Sales which accounts are worth pursuing and why.
+- **Inspector** — depth and evidence. Parses Intelligence at full resolution for sellers and SEs who need to walk into a conversation fully prepared.
+- **Designer** — execution. Translates Intelligence signals into a realistic lab program architecture that a content team can actually build.
+
+Every new tool added to the platform is a new contextualization layer — not a new intelligence system. When research or scoring logic improves in Intelligence, every tool improves simultaneously.
+
+---
+
+### How the Platform Came Together
+
+**Designer** was built first — to answer the question of what it would take to give a lab author everything they need to build a great program without starting from a blank page. The intelligence that question required became the foundation for everything else.
+
+**Inspector** emerged when that same intelligence was applied to qualification: could it help sellers and SEs understand whether a company's product is worth pursuing *before* investing in design?
+
+**Prospector** emerged when Marketing asked whether Inspector could run across a list of companies — producing ranked signal for prioritization rather than deep analysis for a single account.
+
+The three tools share a common intelligence stack. The difference is in what each tool does with that intelligence and who it serves.
 
 ---
 
@@ -186,13 +218,15 @@ Every evidence claim carries a source URL and title. This serves two functions:
 
 Scores are not abstract quality ratings. Every scoring dimension maps directly to a specific question about Skillable's ability to deliver labs for this product.
 
-| Dimension | The Skillable Question It Answers |
-|---|---|
-| **Technical Orchestrability** | Can Skillable's automation platform provision, configure, score, and tear down a lab for this product without manual intervention? |
-| **Workflow Complexity** | Will learners have meaningful admin/technical tasks to practice — things that require a real environment, not a video? |
-| **Training Ecosystem Maturity** | Is there already commercial demand for training on this product, and are buyers in buying mode? |
-| **Market & Strategic Fit** | Does this align with the verticals and skill areas where Skillable has proven ROI? |
-| **Lab Maturity (Prospector/Inspector)** | Does this company have the organizational infrastructure to build, deliver, and scale a lab program? |
+Each scoring dimension maps directly to one of the three qualification gates — and to a specific question about Skillable's ability to deliver and sustain a lab program.
+
+| Dimension | Gate | The Skillable Question It Answers |
+|---|---|---|
+| **Technical Orchestrability** | Gate 1 | Can Skillable's automation platform provision, configure, score, and tear down a lab for this product without manual intervention? |
+| **Workflow Complexity** | Gate 2 | Will learners have meaningful technical tasks to practice — things that require a real environment, not a video or walkthrough? |
+| **Training Ecosystem Maturity** | Gate 2 | Is there already demonstrated demand for hands-on training on this product? |
+| **Market & Strategic Fit** | Gate 2 | Does this align with the verticals and skill areas where Skillable has proven ROI? |
+| **Lab Maturity** | Gate 3 | Does this company have the organizational infrastructure — content team skills, program leadership, technical readiness — to build and scale a lab program? |
 
 ### 5.2 Skillable Path — The Core Qualification Decision
 

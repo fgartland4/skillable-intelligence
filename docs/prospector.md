@@ -1,6 +1,6 @@
 # Skillable Intelligence — Prospector
 
-> Prospector runs the same intelligence pipeline as Inspector across a batch of companies at once — producing a ranked table of labability fit, partnership signals, and outreach contacts so you know exactly where to focus before you invest a single sales cycle.
+> Prospector parses Skillable Intelligence across a list of companies — producing a ranked table of qualification signals, partnership indicators, and outreach contacts so you know exactly where to focus before you invest a single sales cycle.
 >
 > For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md). For guidance on how to interpret findings, confidence levels, and where hallucination risk is highest, see [Before You Read the Scores](intelligence-platform.md#before-you-read-the-scores).
 
@@ -8,29 +8,44 @@
 
 ## Why Prospector Exists
 
-Inspector exists to go deep on a single account. It runs a two-phase research pipeline, surfaces every relevant product, lets you select the one you care about, and produces a fully evidence-backed recommendation with delivery paths, consumption estimates, and the exact technical question your SE should ask in discovery. It's designed for when you already know an account matters and you need everything.
+Prospector is the comparison and prioritization contextualization layer of Skillable Intelligence. It takes the same centralized company intelligence — the three qualification gates, the research signals, the scoring — and renders it in the form most useful for ranking and comparing a list of companies. The goal is not depth on any one account. The goal is signal across many accounts: which ones clear all three gates well enough to be worth pursuing, and which ones don't.
 
-The problem is that most of the time you don't know that yet. You have a list.
+The three gates Prospector evaluates for every company in a batch:
+- **Gate 1 — Technical Orchestrability:** Can Skillable provision and orchestrate labs for this company's products?
+- **Gate 2 — Product Complexity:** Is the product technically rich enough to justify a lab program?
+- **Gate 3 — Organizational Readiness:** Does this company have the content team maturity and program infrastructure to build and sustain one?
 
-The request that kicked off Prospector was simple: marketing had seen Inspector work and asked whether it could run the same analysis across a list of companies — not one at a time through the UI, but as a batch job they could kick off and come back to. The answer was yes, but with a deliberate trade-off. Running Inspector's full two-phase pipeline across 25 companies in parallel would be slow, expensive, and produce a lot of detail nobody needed at the prioritization stage. What marketing actually needed was signal — enough to separate the Highly Labable from the Do Not Pursues, get a contact name and LinkedIn URL, and export the result into their ABM tool.
+What makes Prospector more than a fast Google search is what it's scoring against. The research runs those signals through Skillable's accumulated knowledge of what actually makes a lab program viable — which deployment models Skillable can orchestrate, which technical patterns are hard blockers vs. manageable risks, and which organizational signals genuinely predict a successful program.
 
-So Prospector became Inspector's lighter sibling. It runs the same discovery phase — the same 12 parallel searches that surface deployment model, training ecosystem, partner program, certification structure, and existing labs — but it skips the deep Phase 2 product research and the interactive selection workflow. It auto-selects the single highest-labability product, scores it from discovery context, computes the same composite score Inspector would produce, and moves on to the next company. A 25-company batch that would take hours to run manually through Inspector completes in 5–8 minutes.
+The Workday example makes this concrete. Massive install base. A dedicated Workday Learning division with a serious partner program. Strong organizational signals across the board — Gates 2 and 3 both pass. But Workday is pure multi-tenant SaaS with no per-learner environment isolation, no meaningful API surface for provisioning, and no deployment model Skillable can orchestrate. Gate 1 fails, and the composite score reflects that regardless of how impressive everything else looks. A seller without this information might pursue that account for months. Prospector surfaces the reality in the first batch run.
 
-What makes Prospector more than a fast Google search is what it's scoring against. The research doesn't just surface public signals — it runs those signals through Skillable's accumulated knowledge of what actually makes a lab program viable: which deployment models Skillable can orchestrate, which technical patterns are hard blockers vs. manageable risks, and which organizational signals genuinely predict a successful program. A company can look like a dream prospect on paper — strong brand, dedicated training division, active partner ecosystem — and still score near the floor once those signals are filtered through Skillable's delivery reality.
+Prospector operates in two modes, serving two distinct motions:
 
-Workday is the cleanest example. Massive install base. A dedicated Workday Learning division. An active partner program. Strong organizational readiness signals across the board. But Workday is pure SaaS with no meaningful technical workflow for a lab, no API surface that supports per-learner isolation, and no deployment model Skillable can orchestrate. Technical Orchestrability scores at the floor, and the composite score reflects that regardless of how impressive everything else looks. A seller who doesn't know this might spend months pursuing that account. Prospector surfaces the reality in the first batch run.
+**ICP Outbound** — Marketing or Sales inputs a list of prospect companies. Prospector scores and ranks them against all three qualification gates, surfaces a fit rationale and key contacts for each, and writes the results to HubSpot so Marketing can activate immediately. The output answers: which of these companies are worth pursuing, and why?
 
-The intended flow was baked in from the start: Prospector surfaces the top 3–5 accounts from a batch, then Inspector goes deep on those. The Score Report link on every Prospector row makes that handoff a single click.
+**Customer Expansion** — Prospector analyzes existing customer accounts, mapping the department landscape to identify where more of Skillable's value can be delivered. It surfaces three types of expansion signals: departments that could adopt labs already built by colleagues (Use), departments with labable products and no program yet (Build), and existing buyers ready to go further. The output answers: where is there more to sell within this account?
+
+The intended flow for ICP Outbound: Prospector surfaces the top accounts from a batch, then Inspector goes deep on those. The Score Report link on every Prospector row makes that handoff a single click.
 
 ---
 
 ## Who Uses Prospector
 
-**Marketing and demand generation teams** are the primary users. They typically start with a large unqualified list — pulled from ZoomInfo, assembled from event registrations, or sourced from a vertical database — and need to cut it down to high-confidence ABM targets before committing campaign spend. Prospector takes that raw list and gives them a ranked composite score, a Skillable Path signal (Labable / Simulations / Do Not Pursue), top contact name and LinkedIn URL, and a clean CSV or styled Excel export ready for upload into Salesforce or HubSpot. Typical triggers: a new vertical initiative, event list qualification, or quarterly pipeline build.
+### ICP Outbound Mode
 
-**AEs and SDRs** use Prospector to avoid working a bad list. Instead of discovering poor-fit companies through failed conversations, they run the list through Prospector first and direct their energy at accounts where the composite score is strong and the Skillable Path signal says there's something to pursue. The contact title is particularly useful here — it's one quick confirmation that the outreach is going to the right person. Typical triggers: a post-conference attendee list, a prospect list from LinkedIn Sales Navigator.
+**Marketing and demand generation teams** are the primary ICP Outbound users. They typically start with a large unqualified list — pulled from ZoomInfo, assembled from event registrations, or sourced from a vertical database — and need to cut it to high-confidence ABM targets before committing campaign spend. Prospector scores and ranks that list against all three qualification gates, surfaces a fit rationale and contacts for each company, and writes results to HubSpot so Marketing can activate immediately. Typical triggers: a new vertical initiative, event list qualification, or quarterly pipeline build.
 
-**Solution engineers** reach for Prospector in lighter-touch situations — territory planning, partner QBR prep, pre-sales team reviews where the goal is a quick scan of a set of accounts, not a full deep-dive on any one of them. The Score Report link is what makes it useful for SEs specifically: any account with a high score almost certainly has an existing Inspector cache hit, so the Prospector row becomes a direct link to the full analysis.
+**AEs and SDRs** use ICP Outbound to avoid working a bad list. Instead of discovering poor-fit companies through failed conversations, they run the list through Prospector first and direct their energy at accounts where all three gates clear. Typical triggers: a post-conference attendee list, a prospect list from LinkedIn Sales Navigator.
+
+**Solution Engineers** reach for ICP Outbound in lighter-touch situations — territory planning, partner QBR prep, quick scans where depth on any one account isn't the goal. The Score Report link is what makes it useful for SEs: a high-scoring company almost certainly has an existing Inspector cache hit, turning the Prospector row into a direct link to the full analysis.
+
+### Customer Expansion Mode
+
+**Strategic Account Directors and AEs** use Customer Expansion to identify net-new deal opportunities within existing accounts — departments with labable products that have no lab program yet (Build), or departments that could adopt labs already built elsewhere in the account (Use). Every expansion opportunity surfaces as a Deal in HubSpot. Typical trigger: territory planning, renewal prep, or an active expansion motion.
+
+**Customer Success Managers** use Customer Expansion to identify and validate opportunities before bringing them to the AE. The department map and Buying Group enrichment give CSMs a structured view of the account before any conversation — which departments are already in a lab program, which ones aren't, and who the relevant contacts are for each. Typical trigger: QBR preparation or account review.
+
+**Marketing** uses Customer Expansion data in aggregate — segmenting the customer base by opportunity type and targeting department-level contacts with adoption or program-launch content as the expansion motion matures.
 
 ---
 
