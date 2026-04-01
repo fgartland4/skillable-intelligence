@@ -124,11 +124,11 @@ def select_products(discovery_id: str):
 
 @inspector.route("/caseboard/<discovery_id>")
 def caseboard(discovery_id: str):
-    """Stage 1 — Seller Action Plan (Company Report).
+    """Caseboard — Seller Action Plan (Company Report).
 
     Shows the company's product portfolio in scored tiers. The seller or SE
-    selects up to 3 products to carry forward into Stage 2 deep-dive scoring.
-    URL is /caseboard/ for legacy continuity; UI label is "Seller Action Plan."
+    selects up to 3 products to carry forward into Dossier deep-dive scoring.
+    UI label is "Seller Action Plan."
     """
     discovery = load_discovery(discovery_id)
     if not discovery:
@@ -235,23 +235,18 @@ def score_progress(job_id: str):
 
 @inspector.route("/results/<analysis_id>")
 def results(analysis_id: str):
-    data = load_analysis(analysis_id)
-    if not data:
-        return "Analysis not found", 404
-
-    _attach_scores(data)
-    from_cache = request.args.get("cached") == "1"
-    return render_template("results.html", data=data, from_cache=from_cache)
+    """Legacy redirect — /results was replaced by /dossier."""
+    return redirect(url_for("inspector.dossier", analysis_id=analysis_id), 301)
 
 
 @inspector.route("/dossier/<analysis_id>")
 def dossier(analysis_id: str):
-    """Stage 2 — Seller & SE Action Plan (Solution Recommendations).
+    """Dossier — Seller & SE Action Plan (Solution Recommendations).
 
     Full per-product scoring breakdown for the SE, plus an at-a-glance Zone 1
     seller summary with verdict, ACV estimate, and data-driven next steps.
     Sellers and SEs use this output; program owners open Designer separately.
-    URL is /dossier/ for legacy continuity; UI label is "Seller & SE Action Plan."
+    UI label is "Seller & SE Action Plan."
     """
     data = load_analysis(analysis_id)
     if not data:

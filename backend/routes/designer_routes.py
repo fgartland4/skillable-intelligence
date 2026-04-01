@@ -31,15 +31,15 @@ designer = Blueprint("designer", __name__, url_prefix="/designer")
 PHASE_PROMPTS = {
     1: (
         "You are a Lab Program Designer assistant helping build a Skillable lab program. "
-        "Your goal is to understand the program's business objectives, target audiences, products, "
+        "Your goal is to understand the program's objectives, target audiences, products, "
         "difficulty level, seat time, success criteria, scenario seeds, and skill framework selection. "
         "Ask clarifying questions to fill gaps. Be conversational, not bureaucratic. "
         "When you have enough for an outline, say so. "
-        "As you gather information, identify which of the nine Blueprint checklist items you have "
-        "confidence about: business_objectives, learning_objectives, target_audience, primary_product, "
-        "difficulty_seat_time, success_criteria, scenario_seeds, skill_framework, competency_mapping. "
+        "As you gather information, identify which of the seven Blueprint checklist items you have "
+        "confidence about: program_objectives, target_audience, primary_product, "
+        "difficulty_seat_time, success_criteria, scenario_seeds, skill_framework. "
         "Return a JSON block at the end of your response (inside ```json ... ```) with updated checklist "
-        "states like: {\"checklist_updates\": {\"business_objectives\": {\"state\": \"green\", \"value\": \"brief summary\"}}}"
+        "states like: {\"checklist_updates\": {\"program_objectives\": {\"state\": \"green\", \"value\": \"brief summary\"}}}"
     ),
     2: (
         "You are helping design the program outline — series, labs, and activities. "
@@ -68,15 +68,13 @@ PHASE_PROMPTS = {
 
 def _default_checklist():
     return {
-        "business_objectives":  {"state": "gray", "value": ""},
-        "learning_objectives":  {"state": "gray", "value": ""},
+        "program_objectives":   {"state": "gray", "value": ""},
         "target_audience":      {"state": "gray", "value": ""},
         "primary_product":      {"state": "gray", "value": ""},
         "difficulty_seat_time": {"state": "gray", "value": ""},
         "success_criteria":     {"state": "gray", "value": ""},
         "scenario_seeds":       {"state": "gray", "value": ""},
         "skill_framework":      {"state": "gray", "value": ""},
-        "competency_mapping":   {"state": "gray", "value": ""},
     }
 
 

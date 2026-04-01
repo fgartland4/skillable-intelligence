@@ -262,16 +262,16 @@ This integration requires the most RevOps configuration: trigger mechanism, fiel
 
 ### HubSpot → Inspector (One-way trigger — Seller and SE-driven)
 
-Company and Deal records in HubSpot surface a link: "Run Inspector." Clicking it opens Inspector in a new browser window at the Stage 1 Company Report — a broad scan that surfaces all company products, ranked by fit, with competitive pairings and company-level signals.
+Company and Deal records in HubSpot surface a link: "Run Inspector." Clicking it opens Inspector in a new browser window at the Caseboard — a broad scan that surfaces all company products, ranked by fit, with competitive pairings and company-level signals.
 
-From there, the seller or SE selects 3–4 products for a deep dive (Stage 2), getting the full technical analysis, delivery path recommendation, scoring approach, and consumption potential estimate. The full Inspector experience runs in Intelligence — HubSpot is only the trigger.
+From there, the seller or SE selects 3–4 products for a deep dive in the Dossier, getting the full technical analysis, delivery path recommendation, scoring approach, and consumption potential estimate. The full Inspector experience runs in Intelligence — HubSpot is only the trigger.
 
 Executives and SEs who are already regular Inspector users may go directly to Intelligence without using the HubSpot link. Both paths are valid.
 
 **Recommended data write-back from Inspector to HubSpot (current best thinking — to be confirmed with RevOps):**
 
-*Stage 1 data → Company Record (persistent account intelligence)*
-Stage 1 data is always relevant to the account regardless of which deal is active. Every seller and CSM looking at the Company record benefits from seeing it.
+*Caseboard data → Company Record (persistent account intelligence)*
+Caseboard data is always relevant to the account regardless of which deal is active. Every seller and CSM looking at the Company record benefits from seeing it.
 
 | Data | Purpose |
 |---|---|
@@ -281,8 +281,8 @@ Stage 1 data is always relevant to the account regardless of which deal is activ
 | Key risk flag | The most important constraint a seller needs to know |
 | Date of last analysis + link to full report | Freshness tracking and one-click access to full Inspector output |
 
-*Stage 2 data → Deal Record (opportunity-specific)*
-Stage 2 is specific to a conversation about a specific product, for a specific audience, at a specific scope. It belongs on the Deal — not the Company record — because different deals may cover different products or different delivery contexts.
+*Dossier data → Deal Record (opportunity-specific)*
+Dossier data is specific to a conversation about a specific product, for a specific audience, at a specific scope. It belongs on the Deal — not the Company record — because different deals may cover different products or different delivery contexts.
 
 | Data | Purpose |
 |---|---|
@@ -291,9 +291,9 @@ Stage 2 is specific to a conversation about a specific product, for a specific a
 | Consumption potential / ACV estimate | Deal-level revenue context |
 | Gate scores summary | Compressed evidence for the SE to reference |
 | Program scope estimate | Number of labs, estimated seat time, curriculum depth |
-| Link to full Inspector Stage 2 report | Full context one click away |
+| Link to full Inspector Dossier | Full context one click away |
 
-**Open question for RevOps:** If a single Inspector run covers three products and all three have deal potential, do they generate three separate Deals or does the Stage 2 data append to one Deal? The deduplication and deal-creation logic — what constitutes a match to an existing Deal — must be defined with RevOps before the write-back is built.
+**Open question for RevOps:** If a single Inspector run covers three products and all three have deal potential, do they generate three separate Deals or does the Dossier data append to one Deal? The deduplication and deal-creation logic — what constitutes a match to an existing Deal — must be defined with RevOps before the write-back is built.
 
 ### Designer → HubSpot (Read-only visibility — no trigger from HubSpot)
 
@@ -336,7 +336,7 @@ To build this write-back architecture correctly, we need RevOps's expertise on t
 
 The following require input from RevOps and/or Marketing leadership before the write-back architecture can be finalized:
 
-- When an Inspector Stage 2 analysis covers multiple products (up to 3–4), should each product generate a separate Deal, or does all Stage 2 data append to a single Deal for the company? What is the matching criteria for "an existing Deal already exists for this product"?
+- When an Inspector Dossier covers multiple products (up to 3–4), should each product generate a separate Deal, or does all Dossier data append to a single Deal for the company? What is the matching criteria for "an existing Deal already exists for this product"?
 - Does a Use opportunity (adopt existing labs, typically CSM-facilitated) warrant immediate Deal creation, or should it start as a task or activity that converts to a Deal when it progresses?
 - Should Intelligence read existing Deals before running Expansion analysis — so it does not surface opportunities already in active pipeline?
 - What is the threshold for creating a Contact record vs. simply writing contact data to a Deal or Company note? (Avoiding duplicate Contact proliferation)

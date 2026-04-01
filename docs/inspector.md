@@ -47,11 +47,11 @@ Inspector executes in four sequential phases, and understanding the flow explain
 
 **Discovery** is the phase where Inspector figures out what the company makes. The user enters a company name — optionally with specific products they already know about — and the Research Engine immediately fires 12 parallel web searches across six query categories: product portfolio, training and certification catalog, authorized training partner signals, customer success and onboarding motion, organizational and contact signals, and targeted queries for any named products. While searches run, the company homepage and up to five additional high-value pages are fetched and read in parallel. Inspector-specific discovery queries include searches for Marketplace listings (Azure, AWS, Google Cloud), Docker Hub and container availability, NFR and developer license programs, AI and Copilot feature announcements, and hands-on labs offered by competitive platforms (CloudShare, Instruqt, Appsembler). From all of this, Claude produces a structured discovery output: organization type (one of six values), a product list with labability tiers assigned to each product, deployment models, candidate Skillable paths, a company description, and partnership signals. If a 45-day discovery cache entry exists for the company, all of this Phase 1 research is skipped entirely.
 
-**Product Selection** is where the user decides where to invest the full scoring pass. Discovery tiers products as `highly_likely`, `likely`, `less_likely`, or `not_likely` based on lightweight signals — deployment model, product category, Marketplace presence. These are directionally accurate estimates, not final judgments. The selection interface surfaces them transparently so the user can make an informed choice about which three products to score. Deep research and scoring per product involves meaningful API call volume and token cost; running the full pipeline on every product a company makes would be slow and expensive for candidates that discovery has already flagged as poor fits.
+**Caseboard** is where the user decides where to invest the full scoring pass. Discovery tiers products as `highly_likely`, `likely`, `less_likely`, or `not_likely` based on lightweight signals — deployment model, product category, Marketplace presence. These are directionally accurate estimates, not final judgments. The Caseboard surfaces them transparently so the user can make an informed choice about which three products to score. Deep research and scoring per product involves meaningful API call volume and token cost; running the full pipeline on every product a company makes would be slow and expensive for candidates that discovery has already flagged as poor fits.
 
 **Deep Research and Scoring** is where the real work happens. For each selected product, the Research Engine runs 9 additional web searches and fetches up to 3 high-value pages, targeting specific evidence categories: deployment architecture, training catalog, REST API / CLI / PowerShell surface, AI features, Marketplace listings, Docker images, NFR license programs, system requirements, and competitive lab offerings. Once research completes for all selected products, every scoring call runs fully in parallel — one call per product for the four labability dimensions, one for Lab Maturity, one for Consumption Potential, one for Contacts, and one for Recommendations. Each individual call has a 5-minute timeout; the full scoring pass has a 10-minute total timeout enforced via the SSE stream. Progress is streamed in real time through six descriptive steps so the user has a clear signal of what's happening rather than watching a spinner.
 
-**Results** is when the full analysis renders. The dashboard surfaces everything — scores, evidence, paths, consumption table, contacts, recommendations — in a format designed to support both a technical discovery conversation and an executive qualification conversation. A "Design Lab Program →" button appears at the top when scoring is complete, ready to carry the analysis into Designer.
+**Dossier** is when the full analysis renders. The dashboard surfaces everything — scores, evidence, paths, consumption table, contacts, recommendations — in a format designed to support both a technical discovery conversation and an executive qualification conversation. A "Design Lab Program →" button appears at the top when scoring is complete, ready to carry the analysis into Designer.
 
 ---
 
@@ -259,7 +259,7 @@ The Cloud Slice rate ($10.50) is a Skillable platform overhead rate — it appli
 
 **Inspector does not trust Claude's arithmetic.** After the scoring call returns, the server recomputes every annual hours total from the parsed motion fields — population midpoint × hours per user per year × adoption % — and replaces whatever figures Claude produced. Claude reasons well about the inputs; it is not a reliable calculator at the motion-summation level.
 
-Every result includes a `methodology_note` field generated by the scoring call, shown directly on the results page. This note is required to acknowledge the estimate basis and name the 1–2 primary signals used (install base, ATP count, company headcount, conference attendance). If you see a methodology note that sounds vague or doesn't cite a specific signal, treat the numbers with extra skepticism.
+Every result includes a `methodology_note` field generated by the scoring call, shown directly on the Dossier. This note is required to acknowledge the estimate basis and name the 1–2 primary signals used (install base, ATP count, company headcount, conference attendance). If you see a methodology note that sounds vague or doesn't cite a specific signal, treat the numbers with extra skepticism.
 
 ---
 
@@ -279,7 +279,7 @@ Every result includes a `methodology_note` field generated by the scoring call, 
 
 **What it does:** Renders the full analysis in a format that supports both technical depth and executive-level qualification. Every score is traceable to specific evidence, and every recommendation is grounded in what the research actually found.
 
-**How it works:** The results page surfaces the following:
+**How it works:** The Dossier surfaces the following:
 
 - **Company overview:** Organization name, description, org type, composite score, pursuit recommendation, and analysis date.
 - **Per-product labability scores:** Dimension breakdown (Technical Orchestrability, Workflow Complexity, Training Ecosystem Maturity, Market and Strategic Fit), total score, Skillable Path determination (A1 / A2 / B / C / Unknown), and any risk or qualification flags.
@@ -289,7 +289,7 @@ Every result includes a `methodology_note` field generated by the scoring call, 
 - **Contacts:** Decision makers and influencers for each product and the company overall, with title, inferred role in a lab program conversation, and source. **Important:** Contact names and titles are extracted from LinkedIn snippets returned in search results — not from direct LinkedIn profile scrapes. These snippets may be months out of date. People change roles frequently. Treat every contact as a starting point for verification, not a confirmed outreach target. If a contact is flagged as a Skillable alumni (previously at a known customer in a training or enablement role), that's a warm outreach signal worth prioritizing — but still verify their current role before reaching out.
 - **Recommendations:** Per product — Delivery Path, Scoring Approach, Essential Technical Resource (the single highest-priority open question blocking a pilot), and Next Step. These are grounded in the evidence, not generated from a template.
 
-A CSV export of all scored products is available from the results page. Columns include company name, product name, composite score, product labability score, Lab Maturity score, Skillable Path, and org type.
+A CSV export of all scored products is available from the Dossier. Columns include company name, product name, composite score, product labability score, Lab Maturity score, Skillable Path, and org type.
 
 ---
 
