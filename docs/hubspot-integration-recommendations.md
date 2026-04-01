@@ -321,6 +321,15 @@ To build this write-back architecture correctly, we need RevOps's expertise on t
 
 6. **Ownership and notification rules** — Confirm how Deals created by Intelligence should trigger notifications or tasks for AEs and CSMs via existing HubSpot workflows.
 
+7. **ZoomInfo CSV column mapping** — Prospector can accept a ZoomInfo export as input for ICP Outbound batch analysis. To build the import correctly, we need to confirm which ZoomInfo columns are available in Marketing's standard export and how they map to what Prospector needs:
+
+   - **Required:** Company Name, Website / Domain (Prospector cannot run without these)
+   - **High value:** Industry / Sub-Industry, LinkedIn Company URL, Employee Count, HQ Location — these feed category prior screening and reduce research cycles
+   - **Nice to have:** Technologies Used (ZoomInfo tech stack data is a useful Gate 1/2 pre-signal); Contact Name + Title + LinkedIn (Prospector surfaces its own contacts, but existing ZoomInfo contacts reduce research cycles)
+   - **Not needed:** Phone numbers, direct email, funding details
+
+   The minimum viable import is Company Name + Domain. Everything else improves quality and speed. RevOps and Marketing should confirm the standard export format and identify which columns are consistently populated — sparse columns create inconsistent results.
+
 ---
 
 ## Section 8 — Open Questions
