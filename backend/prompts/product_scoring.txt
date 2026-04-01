@@ -71,12 +71,10 @@ For any product that is SaaS-only (browser-based, no on-premises installer, no d
 2. Is there any self-hosted, downloadable, or VM-installable version of the product?
 
 If BOTH answers are NO — the product is pure SaaS with no per-learner isolation mechanism:
-→ Flag `saas_only` in poor_match_flags
-→ Cap technical_orchestrability at 15–20 maximum; the product may still be labable via credential pool or a shared demo environment, but per-learner isolation is a fundamental constraint that limits lab fidelity and scoring quality
+→ Flag `saas_only` in poor_match_flags; cap technical_orchestrability at 18 maximum (equivalent to the Manual - Trial Accounts ceiling) — the product may still be labable via credential pool or trial account, but per-learner isolation is a fundamental constraint
 
 If learners cannot receive isolated instances at all — only a shared demo tenant, a credential pool with shared application state, or screen-guided walkthroughs in a vendor-controlled environment:
-→ Additionally flag `multi_tenant_only` in poor_match_flags
-→ Score technical_orchestrability in the 8–15 range; shared state limits scoring fidelity, lab repeatability, and the ability to run concurrent sessions without learner interference
+→ Additionally flag `multi_tenant_only` in poor_match_flags; cap technical_orchestrability at 15 maximum — shared tenant only, no learner separation; route to Manual - Azure SSO (8–15 range) only
 → In Step 3, this product does NOT qualify for the Cloud Slice "Credential pool recyclable" tier (24–30) or higher; route to the Manual tiers (8–24) only
 
 ⚠️ **Critical distinction — Entra ID SSO ≠ per-learner isolation:** If a SaaS product authenticates via Entra ID or Azure SSO, that does NOT mean learners receive isolated application environments. Entra ID handles authentication — it does not isolate the SaaS application's data state per learner. A Workday implementation tenant shared by 30 learners is still a shared tenant regardless of how they log in. Evaluate isolation at the application data layer, not the authentication layer. This applies to ALL enterprise SaaS platforms — Workday, ServiceNow, Veeva, Oracle Cloud, SAP SuccessFactors, and any other product where the vendor controls the infrastructure and learners access a shared environment.
@@ -116,7 +114,7 @@ ALL Azure services are supported (after security review). Bicep and ARM JSON tem
 
 ⚠️ **Enterprise SaaS ≠ Azure IaaS/PaaS — evaluate isolation explicitly before assigning tier:** Azure native services (Entra ID, Azure SQL, Azure Monitor, Azure Storage) give every Cloud Slice subscription genuine per-learner resource isolation by design — each learner's subscription is a separate security boundary. Enterprise SaaS platforms *hosted on* Azure infrastructure (Workday, ServiceNow, Veeva, SAP SuccessFactors, etc.) do NOT inherit this isolation — the SaaS application's data layer is shared across all customers and learners unless the vendor explicitly provisions isolated instances per learner. Before placing a SaaS product in the Best or Next Best tier here, confirm: does the vendor provide isolated per-learner instances via their own provisioning API? If not, apply `saas_only` and/or `multi_tenant_only` flags from Step 1 and score in the Manual tiers (8–24), not the Best (32–38) or Credential Pool (24–30) tiers. High Entra ID SSO fit does NOT override a missing isolation mechanism.
 
-**AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → skillable_path: "A1"
+**AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → skillable_path: "A1-AWS"
 Supported: EC2, RDS, S3, Lambda, DynamoDB, CloudFormation, ECS, EKS, API Gateway, Kinesis, SNS, SQS, Step Functions, Glue, CloudWatch, VPC, IAM, Route 53, Secrets Manager, and more.
 Not yet supported: SageMaker, Comprehend, Rekognition, Lex, Polly, Transcribe, ElastiCache, GuardDuty, CodeBuild/Pipeline — if a product relies primarily on these, note the gap.
 - Rich APIs + full resource lifecycle: 32-38, tier: "Best - Rich APIs"
@@ -148,6 +146,8 @@ Every evidence `claim` bullet MUST start with a **2–3 word bold label** follow
 - `**Label | Risk:**` → concern with a viable path forward (renders orange)
 - `**Label | Blocker:**` → hard stop (renders red)
 Bare labels with no suffix (e.g., `**Install Base:**`) are only acceptable for truly neutral contextual facts. A large install base is a Strength. A constrained API surface is a Risk. Name the valence.
+
+⚠️ **URL PLACEMENT RULE:** Never embed URLs directly in `claim` text — not as raw URLs and not as markdown links `[label](url)`. All source citations belong in the structured `source_url` and `source_title` fields of the evidence object. A claim like `**Windows Install:** Silent installer confirmed at [deployment guide](https://...)` is wrong — move the URL to `source_url`. Claims with embedded URLs will not render correctly.
 
 **Technical Orchestrability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we build it?"
 
@@ -392,7 +392,7 @@ Include Blockers whenever a real Skillable platform gap exists — this is impor
 - Next Step: link the partner portal or ATP program page if relevant
 Only embed URLs that appeared in the research — do not fabricate or guess URLs.
 
-Output `recommendation` as a JSON array of strings, one string per bullet (including the **bold label**). 4-6 items.
+Output `recommendation` as a JSON array of strings, one string per bullet (including the **bold label**). 3–5 items.
 
 ## STEP 8 — Consumption Potential
 
@@ -425,8 +425,8 @@ For each motion estimate:
 - `rationale`: 1-sentence explanation citing the specific signal that anchors your estimate (e.g. "Based on ~200 active ATPs per public partner directory and 10% completion rate for structured lab programs"; for events: "Based on reported ~3,000 annual conference attendees at [Event Name] and 50% lab adoption for hands-on conference tracks")
 
 Then provide:
-- `annual_hours_low`: sum of (population_low × hours_low × adoption_pct) across all motions, rounded to integer. This is the "realistic today" figure — what a reasonable first-year engagement might look like.
-- `annual_hours_high`: sum of (population_high × hours_high × adoption_pct) across all motions, rounded to integer. This is the "mature engagement" ceiling — what a well-established program at good adoption looks like. It should not feel like a stretch goal.
+- `annual_hours_low`: Set to `0` — these totals are computed automatically from the motion data and do not need to be provided.
+- `annual_hours_high`: Set to `0` — these totals are computed automatically from the motion data and do not need to be provided.
 - `vm_rate_estimate`: the estimated Skillable lab cost in $/hr for this product's delivery path. Use these values:
   - Cloud Slice (Path A1/A2): **$6.00** — all cloud labs, regardless of which Azure/AWS services are used. Note: this is Skillable's platform rate only — Azure and AWS service consumption costs are billed separately through the customer's cloud subscription and are not included in this estimate.
   - Standard VM lab (Path B — 1 to 3 VMs, typical complexity): **$12–15** — use $12 for a clean single-VM install, $15 for 2–3 VMs or minor service dependencies
@@ -502,7 +502,7 @@ Return ONLY valid JSON — a single product object:
     "lab_highlight": "3–5 word badge phrase answering: WHY is this product a great Skillable lab candidate? NOT a product description — the SE already knows what the product does. The badge must capture what makes it inherently hands-on or uniquely suited to lab delivery. Ask: 'What would be lost if a learner just watched a demo instead of doing it?' Good: 'Misconfigure it, something breaks', 'Every action is API-scoreable', 'Multi-VM topology required', 'Real API orchestration required', 'Config decisions have real consequences', 'Hands-on or nothing sticks', 'Build the pipeline yourself'. Bad (product descriptions — do NOT use): 'Endpoint security platform', 'Real-time asset inventory', 'Data protection solution', 'Cloud-native monitoring'. Only include if genuinely compelling. Leave empty string if nothing stands out.",
     "poor_match_flags": [],
     "api_scoring_potential": "Full|Partial|Minimal|None",
-    "recommendation": ["Bullet 1", "Bullet 2", "Bullet 3"],
+    "recommendation": ["Bullet 1", "Bullet 2", "Bullet 3", "Bullet 4"], // 3–5 items
     "scores": {
       "technical_orchestrability": {"score": 0, "summary": "...", "evidence": [{"claim": "...", "source_url": "...", "source_title": "..."}]},
       "workflow_complexity": {"score": 0, "summary": "...", "evidence": []},
