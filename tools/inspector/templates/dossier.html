@@ -143,6 +143,7 @@
         .seller-cell {
             background: rgba(6,16,12,0.6); border: 1px solid #1e3329;
             border-radius: 10px; padding: 13px 15px;
+            min-width: 0; overflow: hidden;
         }
         .seller-cell-full { grid-column: 1 / -1; }
         .seller-cell-label {
@@ -173,37 +174,30 @@
         .lab-bdg-dep  { background: rgba(148,163,184,0.07); color: #64748b; border: 1px solid rgba(148,163,184,0.15); }
 
         /* Contact rows — truncate to prevent LinkedIn icon wrap */
-        .contact-name-row { display: flex; align-items: center; gap: 3px; min-width: 0; color: #e8f5f0; text-decoration: none; }
+        .contact-name-row { display: flex; align-items: center; gap: 3px; min-width: 0; color: #e8f5f0; text-decoration: none; font-size: 0.82rem; }
         .contact-name-row:hover { color: #24ED9B; text-decoration: none; }
-        .contact-name-row strong { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-        .contact-title-row { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 100%; color: #6b9e88; font-size: 0.78rem; margin-top: 2px; }
-        .contact-2nd { margin-top: 10px; padding-top: 10px; border-top: 1px solid #1e3329; }
+        .contact-name-row strong { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; font-weight: 600; }
+        .contact-title-row { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 100%; color: #6b9e88; font-size: 0.72rem; margin-top: 2px; }
+        .contact-2nd { margin-top: 8px; padding-top: 8px; border-top: 1px solid #1e3329; }
 
-        /* Next Steps — prominent, inside Zone 1 */
+        /* Next Steps — inside Zone 1, standard body text */
         .next-steps-block {
-            background: rgba(36,237,155,0.04); border: 1px solid rgba(36,237,155,0.15);
-            border-radius: 12px; padding: 18px 22px; margin-top: 4px;
+            border-top: 1px solid #1e3329; padding-top: 16px; margin-top: 4px;
         }
         .next-steps-block-label {
-            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.13em; color: #24ED9B; margin-bottom: 12px;
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 10px;
         }
         .next-steps-list {
             list-style: none; margin: 0; padding: 0;
-            display: flex; flex-direction: column; gap: 9px;
+            display: flex; flex-direction: column; gap: 6px;
         }
         .next-steps-list li {
             font-size: 0.84rem; color: #a8d5c2; line-height: 1.5;
-            padding-left: 16px; position: relative;
-        }
-        .next-steps-list li::before {
-            content: '→'; position: absolute; left: 0;
-            color: #24ED9B; font-weight: 700;
         }
         .next-steps-list li strong { color: #e8f5f0; font-weight: 600; }
         .next-steps-list li a { color: #24ED9B; }
         .next-steps-list .step-risk { color: #f87171; }
-        .next-steps-list .step-risk::before { color: #f87171; content: '⚠'; }
 
         /* ======================================
            ZONE 2 - SE/SC Technical Detail
@@ -731,9 +725,6 @@
                     {% endif %}
                     {% if top_p.deployment_model and top_p.deployment_model not in ['unknown',''] %}
                     <span class="lab-bdg lab-bdg-dep">{{ top_p.deployment_model | replace('saas-only', 'SaaS-Only') | replace('self-hosted', 'Self-Hosted') | title }}</span>
-                    {% endif %}
-                    {% if data.products | length > 1 %}
-                    <span class="lab-bdg lab-bdg-dep">{{ data.products | length }} products</span>
                     {% endif %}
                 </div>
             </div>
