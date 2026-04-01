@@ -44,7 +44,7 @@
             font-size: 0.62rem; font-weight: 800; letter-spacing: 0.15em;
             text-transform: uppercase; color: #24ED9B; margin-bottom: 6px;
         }
-        .header-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
         .company-title { font-size: 2rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; }
         .header-desc { color: #6b9e88; margin-top: 8px; font-size: 0.84rem; line-height: 1.6; max-width: 680px; }
 
@@ -55,18 +55,19 @@
             text-align: right; min-height: 1.2em;
         }
 
-        /* Company signals banner */
-        .co-signals {
-            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-            background: rgba(36,237,155,0.03); border: 1px solid #1e3329;
-            border-radius: 10px; padding: 11px 16px; margin-bottom: 16px;
+        /* Company Intelligence box (between header and board) */
+        .ci-box {
+            background: rgba(13,26,20,0.8); border: 1px solid #1e3329;
+            border-radius: 12px; padding: 16px 24px;
+            margin-bottom: 20px;
         }
-        .co-sig-lbl {
-            font-size: 0.58rem; font-weight: 800; color: #3d6655;
-            text-transform: uppercase; letter-spacing: 0.1em; margin-right: 2px; white-space: nowrap;
+        .ci-box-title {
+            font-size: 0.56rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #3d6655; margin-bottom: 10px;
         }
+        .ci-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
         .co-sig-bdg {
-            display: inline-block; font-size: 0.67rem; font-weight: 600; padding: 3px 9px;
+            display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 3px 9px;
             border-radius: 6px; white-space: nowrap;
         }
         .co-sig-green { background: rgba(36,237,155,0.1); color: #24ED9B; border: 1px solid rgba(36,237,155,0.22); }
@@ -268,7 +269,7 @@
 
         .btn-dossier {
             background: #24ED9B; color: #06100c; border: none;
-            padding: 10px 30px; border-radius: 10px; width: 200px;
+            padding: 10px 22px; border-radius: 10px; width: 170px;
             font-size: 0.92rem; font-weight: 800; cursor: pointer;
             transition: background 0.2s, box-shadow 0.2s; white-space: nowrap;
         }
@@ -277,7 +278,7 @@
 
         .btn-prev {
             display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-            width: 200px;
+            width: 170px;
             background: rgba(36,237,155,0.07); border: 1px solid rgba(36,237,155,0.22);
             color: #24ED9B; padding: 9px 16px; border-radius: 8px;
             font-size: 0.8rem; font-weight: 600; transition: all 0.15s;
@@ -321,12 +322,56 @@
             <div class="top-actions">
                 <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn-top" disabled>Run Dossier &rarr;</button>
                 {% if existing_analysis %}
-                <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev" style="text-align:right;">View Previous &rarr;</a>
+                <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous &rarr;</a>
                 {% endif %}
                 <div class="top-sel-status" id="top-sel-status">&nbsp;</div>
             </div>
         </div>
     </div>
+
+    {# Company Intelligence — full width between header and board #}
+    <div class="ci-box">
+        <div class="ci-box-title">Company Intelligence</div>
+        <div style="display:flex; align-items:flex-start; gap:24px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px;">
+                <div class="mat-level-name">{{ mat_level }}</div>
+                <div class="mat-track">
+                    <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
+                    <div class="mat-nodes">
+                        {% for i in range(4) %}
+                        <div class="mat-node {% if i < mat_idx %}mat-passed{% elif i == mat_idx %}mat-active{% endif %}"></div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mat-labels">
+                    {% set mat_lbls = ['Nascent','Emerging','Established','Mature'] %}
+                    {% for i in range(4) %}
+                    <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="ci-badges" style="align-self:center; flex:2; min-width:240px;">
+                {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
+                {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
+                {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
+                {% if discovery.org_contacts %}<span class="co-sig-bdg co-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }}</span>{% endif %}
+                {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitor{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# ── Pre-compute maturity (needs tc, defined just below) ── #}
+    {% set _tc_check = discovery.products | selectattr('category','equalto','Training & Certification') | list %}
+    {% set ns_mat = namespace(score=0) %}
+    {% if discovery.organization_type == 'training_organization' %}{% set ns_mat.score = ns_mat.score + 4 %}{% endif %}
+    {% if discovery.atp_signals %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
+    {% if discovery.training_programs %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
+    {% if _tc_check %}{% set ns_mat.score = ns_mat.score + 1 %}{% endif %}
+    {% if ns_mat.score >= 6 %}{% set mat_level = 'Mature' %}{% set mat_idx = 3 %}
+    {% elif ns_mat.score >= 4 %}{% set mat_level = 'Established' %}{% set mat_idx = 2 %}
+    {% elif ns_mat.score >= 1 %}{% set mat_level = 'Emerging' %}{% set mat_idx = 1 %}
+    {% else %}{% set mat_level = 'Nascent' %}{% set mat_idx = 0 %}{% endif %}
+    {% set mat_pcts = [0, 33, 67, 100] %}
 
     <form method="POST" action="/inspector/score" id="scoreForm">
     <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
@@ -340,24 +385,6 @@
             {% set ll = discovery.products | selectattr('likely_labable','equalto','less_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
             {% set nl = discovery.products | selectattr('likely_labable','equalto','not_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
             {% set tc = discovery.products | selectattr('category','equalto','Training & Certification') | list | sort(attribute='name') %}
-
-            {# Company signals banner #}
-            <div class="co-signals">
-                <span class="co-sig-lbl">Company:</span>
-                {% set ot = discovery.organization_type or 'software_company' %}
-                {% if ot == 'software_company' %}<span class="co-sig-bdg co-sig-gray">Software Company</span>
-                {% elif ot == 'training_organization' %}<span class="co-sig-bdg co-sig-teal">Training Organization</span>
-                {% elif ot == 'academic_institution' %}<span class="co-sig-bdg co-sig-teal">Academic Institution</span>
-                {% elif ot == 'systems_integrator' %}<span class="co-sig-bdg co-sig-gray">Systems Integrator</span>
-                {% elif ot == 'technology_distributor' %}<span class="co-sig-bdg co-sig-gray">Technology Distributor</span>
-                {% elif ot == 'professional_services' %}<span class="co-sig-bdg co-sig-gray">Professional Services</span>
-                {% else %}<span class="co-sig-bdg co-sig-gray">{{ ot | replace('_',' ') | title }}</span>
-                {% endif %}
-                {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
-                {% if tc %}<span class="co-sig-bdg co-sig-teal">Training &amp; Certification Org</span>{% endif %}
-                {% if discovery.org_contacts %}<span class="co-sig-bdg co-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }} Found</span>{% endif %}
-                {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitor{{ 's' if discovery.competitive_products | length != 1 else '' }} Mapped</span>{% endif %}
-            </div>
 
             {% if hl %}
             <div class="tier-section">
@@ -501,45 +528,7 @@
         <!-- Intel panel -->
         <div class="intel">
 
-            {# ── Company Intelligence — Lab Maturity slider + key signals ── #}
-            {% set ns_mat = namespace(score=0) %}
-            {% if discovery.organization_type == 'training_organization' %}{% set ns_mat.score = ns_mat.score + 4 %}{% endif %}
-            {% if discovery.atp_signals %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
-            {% if discovery.training_programs %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
-            {% if tc %}{% set ns_mat.score = ns_mat.score + 1 %}{% endif %}
-            {% if ns_mat.score >= 6 %}{% set mat_level = 'Mature' %}{% set mat_idx = 3 %}
-            {% elif ns_mat.score >= 4 %}{% set mat_level = 'Established' %}{% set mat_idx = 2 %}
-            {% elif ns_mat.score >= 1 %}{% set mat_level = 'Emerging' %}{% set mat_idx = 1 %}
-            {% else %}{% set mat_level = 'Nascent' %}{% set mat_idx = 0 %}{% endif %}
-            {% set mat_pcts = [0, 33, 67, 100] %}
-
-            <div class="intel-card">
-                <div class="ic-title">Company Intelligence</div>
-                <div class="mat-level-name">{{ mat_level }}</div>
-                <div class="mat-track">
-                    <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
-                    <div class="mat-nodes">
-                        {% for i in range(4) %}
-                        <div class="mat-node {% if i < mat_idx %}mat-passed{% elif i == mat_idx %}mat-active{% endif %}"></div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="mat-labels">
-                    {% set mat_lbls = ['Nascent','Emerging','Established','Mature'] %}
-                    {% for i in range(4) %}
-                    <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
-                    {% endfor %}
-                </div>
-                <div class="mat-signals">
-                    {% if discovery.atp_signals %}<span class="mat-sig-badge mat-sig-green">ATP Program</span>{% endif %}
-                    {% if discovery.training_programs %}<span class="mat-sig-badge mat-sig-green">Training Programs</span>{% endif %}
-                    {% if tc %}<span class="mat-sig-badge mat-sig-amber">T&amp;C Products</span>{% endif %}
-                    {% if discovery.org_contacts %}<span class="mat-sig-badge mat-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }}</span>{% endif %}
-                    {% if discovery.competitive_products %}<span class="mat-sig-badge mat-sig-gray">{{ discovery.competitive_products | length }} Competitors</span>{% endif %}
-                </div>
-            </div>
-
-            {# ── Product Labability Categories ── #}
+            {# ── Product Labability ── #}
             <div class="intel-card">
                 <div class="ic-title">Product Labability</div>
                 <div style="margin-top:6px">
