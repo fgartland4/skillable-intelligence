@@ -229,16 +229,7 @@ Controls which advanced scenario types Designer recommends during outline genera
 | Collaborative Lab Scenarios | Yes / No / AI-recommended | Whether to suggest ILT collaborative scenarios (cyber range, assembly line) |
 | Simulated Attack Scenarios | Yes / No / AI-recommended | Whether to suggest simulated attack scenarios for cybersecurity products |
 
-**4. Environment & Delivery Defaults** *(PS / Technical lead)*
-The technical defaults that shape BOM generation and environment template recommendations. Typically set during PS onboarding and rarely changed.
-
-| Setting | Options | Purpose |
-|---|---|---|
-| Default Delivery Path | Hyper-V / Azure Cloud Slice / AWS / Docker / Custom API | Environment baseline for BOM and template recommendations |
-| Default VM OS | Windows Server 2022 / Windows 11 / Ubuntu 22.04 / RHEL 9 / Other | Pre-fills VM config in BOM; reduces manual entry for the lab developer |
-| Scoring Approach | REST API / PowerShell·Bash / AI Vision / MCQ / Mixed | Informs Phase 3 scoring recommendations — generates guidance aligned to this approach |
-
-**5. Brand & Identity** *(Program owner / Marketing)*
+**4. Brand & Identity** *(Program owner / Marketing)*
 Applied to all exports and program artifacts.
 
 | Setting | Purpose |
@@ -247,7 +238,7 @@ Applied to all exports and program artifacts.
 | Brand URL | Source for brand color and font extraction |
 | Brand colors + fonts | Applied to generated content for visual consistency |
 
-**6. Reference Materials** *(Anyone)*
+**5. Reference Materials** *(Anyone)*
 Always-on context the AI uses in every generation call across all phases. The more complete these are, the more product-specific and accurate the AI's output.
 
 | Setting | Purpose |
@@ -255,6 +246,14 @@ Always-on context the AI uses in every generation call across all phases. The mo
 | Documentation Site URL | Primary product documentation — highest AI context value |
 | Knowledge Base URL | Support knowledge base, FAQs, troubleshooting guides |
 | Reference file uploads | Job task analysis, existing course outlines, internal standards docs |
+
+> **Environment and software do not belong in Preferences.** Delivery path, VM configuration, software requirements, and scoring approach are program-specific decisions that emerge from the design process. They cannot be meaningfully defaulted because they depend entirely on what the program is teaching. These decisions are captured in the Phase 4 BOM — after the program is fully designed, which is the only point at which they can be complete and accurate.
+
+---
+
+### The Section Count
+
+Preferences has five groups, not six. The original design included an Environment & Delivery Defaults group — that has been removed. Environment decisions belong in Phase 4.
 
 ---
 
