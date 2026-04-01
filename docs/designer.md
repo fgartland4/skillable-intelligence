@@ -122,18 +122,16 @@ A "Generate Outline" button lives at the bottom of the right pane checklist — 
 **Phase fluidity — no hard walls:**
 The program owner can move between phases freely. There is no lock-out. Additionally, the Phase 2 AI conversation (right pane) can handle Phase 1 refinements directly — "we need to refine success criteria" doesn't require returning to Phase 1. The AI should proactively surface gaps it notices: *"Your success criteria are still general — want to refine those before we finalize the outline?"*
 
-**The Lab Blueprint checklist tracks nine requirements:**
-1. Business / Learning Objectives — what the program needs to achieve
-2. Target Audience(s) — roles, experience levels, prerequisites
-3. Primary Product / Platform — the product being trained on
-4. Recommended Difficulty — Beginner / Intermediate / Advanced / Expert
-5. Target Lab Duration — seat time per lab (default 45–75 min; adjustable in Preferences)
-6. Success Criteria — how program success will be measured
-7. Scenario Seeds — initial ideas for lab scenarios and use cases
-8. Skill Framework — optional alignment to a skills or certification framework; AI recommends based on product category
-9. Competency Mapping — whether activity-level framework mapping will be applied; set here, executed in Phase 2
+**The Lab Blueprint checklist tracks seven requirements:**
+1. **Program Objectives** — what business outcome does this program support, and what will learners be able to do when they complete it? Covers both the strategic rationale and the hands-on skill outcomes in a single item.
+2. **Target Audience** — who are the learners? Role, experience level, technical background.
+3. **Primary Product(s) & Topic(s)** — what software, platform, or subject is this program about? Products and key topic areas.
+4. **Difficulty & Duration** — difficulty level (Beginner / Intermediate / Advanced / Expert) and target seat time per lab. Defaults pulled from Preferences — overridden per program if needed.
+5. **Success Criteria** — how will you know this program worked? Completion rate, cert pass rate, demonstrated job performance?
+6. **Scenario Seeds** — real-world situations these labs should simulate. What does the learner actually do on the job?
+7. **Skill Framework & Competency Mapping** — which framework(s) to map to (e.g., NICE NCWF, ITIL 4, Azure AZ-104). Activity-level mapping is applied in Phase 2.
 
-Items 1–7 are standard for every program. Items 8 and 9 are optional — they appear lower in the checklist and the AI surfaces them conversationally at the right moment, not at the start. The AI does not wait for the program owner to know that skill frameworks exist: *"This looks like a cybersecurity program — I'd recommend mapping to the NICE Workforce Framework. Want me to do that?"* If the answer is no, the items stay gray and the program proceeds without mapping. If yes, the AI carries the framework selection forward into Phase 2 where the actual mapping work happens.
+Items 1–6 are standard for every program. Item 7 (Skill Framework & Competency Mapping) is optional — it appears lower in the checklist and the AI surfaces it conversationally at the right moment, not at the start. The AI does not wait for the program owner to know that skill frameworks exist: *"This looks like a cybersecurity program — I'd recommend mapping to the NICE Workforce Framework. Want me to do that?"* If the answer is no, the item stays gray and the program proceeds without mapping. If yes, the AI carries the framework selection forward into Phase 2 where the actual mapping work happens.
 
 Each checklist item has three states: **gray** (nothing captured yet), **yellow** (partially filled — the AI has found or inferred something but confidence is still building), and **green** (confirmed — enough information is locked in to proceed). The progression is continuous, not a single pass. Every uploaded document, every answered question, every URL processed adds context. An item might go yellow the moment the AI finds a relevant signal in an uploaded job description, stay yellow while follow-up questions are still open, then flip green when the program owner confirms or the AI reaches sufficient confidence from accumulated context. The AI is always working the checklist — reading more, extracting more, building confidence incrementally. The program owner can watch items shift in real time as documents are processed and the conversation progresses. Skill Mapping is one checklist item among the nine — it follows the same gray → yellow → green progression as every other requirement.
 
