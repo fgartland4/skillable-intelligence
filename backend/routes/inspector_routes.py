@@ -260,16 +260,18 @@ def dossier(analysis_id: str):
     _attach_scores(data)
     from_cache = request.args.get("cached") == "1"
 
-    # Count competitor candidates logged from this company's scoring
+    # Load competitor candidates discovered while scoring this company
     company_name = data.get("company_name", "")
     all_candidates = load_competitor_candidates()
-    competitors_logged = sum(
-        1 for c in all_candidates
+    competitor_list = [
+        c for c in all_candidates
         if c.get("discovered_from_company", "").lower() == company_name.lower()
-    )
+    ]
+    competitors_logged = len(competitor_list)
 
     return render_template("dossier.html", data=data, from_cache=from_cache,
-                           competitors_logged=competitors_logged)
+                           competitors_logged=competitors_logged,
+                           competitor_list=competitor_list)
 
 
 # Product detail page

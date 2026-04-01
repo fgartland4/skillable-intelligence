@@ -222,7 +222,7 @@
 
         .btn-dossier {
             background: #24ED9B; color: #06100c; border: none;
-            padding: 12px 30px; border-radius: 10px;
+            padding: 10px 30px; border-radius: 10px; width: 200px;
             font-size: 0.92rem; font-weight: 800; cursor: pointer;
             transition: background 0.2s, box-shadow 0.2s; white-space: nowrap;
         }
@@ -230,7 +230,8 @@
         .btn-dossier:disabled { background: #122019; color: #3d6655; cursor: not-allowed; box-shadow: none; }
 
         .btn-prev {
-            display: inline-flex; align-items: center; gap: 6px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            width: 200px;
             background: rgba(36,237,155,0.07); border: 1px solid rgba(36,237,155,0.22);
             color: #24ED9B; padding: 9px 16px; border-radius: 8px;
             font-size: 0.8rem; font-weight: 600; transition: all 0.15s;
@@ -274,7 +275,7 @@
             <div class="top-actions">
                 <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn-top" disabled>Run Dossier &rarr;</button>
                 {% if existing_analysis %}
-                <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev" style="text-align:right;">View Previous Dossier &rarr;</a>
+                <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev" style="text-align:right;">View Previous &rarr;</a>
                 {% endif %}
                 <div class="top-sel-status" id="top-sel-status">&nbsp;</div>
             </div>
@@ -525,7 +526,7 @@
     </div>
     <div class="f-right">
         {% if existing_analysis %}
-        <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous Dossier</a>
+        <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous</a>
         {% endif %}
         <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn" disabled>Run Dossier &rarr;</button>
     </div>
@@ -554,11 +555,12 @@ function syncFooter() {
     document.getElementById('fct').textContent = cnt;
     document.getElementById('runBtn').disabled = cnt === 0;
     document.getElementById('runBtn-top').disabled = cnt === 0;
+    const total = document.querySelectorAll('input[name="products"]').length;
     const topStatus = document.getElementById('top-sel-status');
     if (cnt === 0) {
-        topStatus.textContent = 'No products selected';
+        topStatus.textContent = '0 of ' + total + ' products selected';
     } else {
-        topStatus.textContent = cnt + ' product' + (cnt === 1 ? '' : 's') + ' selected';
+        topStatus.textContent = cnt + ' of ' + total + ' product' + (total === 1 ? '' : 's') + ' selected';
     }
     const hint = document.getElementById('fhint');
     if (cnt >= MAX) {

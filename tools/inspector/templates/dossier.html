@@ -134,16 +134,17 @@
             border-radius: 8px; padding: 8px 14px; line-height: 1.3;
         }
 
-        /* Zone 1 detail grid — secondary info */
+        /* Zone 1 detail grid — 2×2 */
         .seller-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 12px; margin-bottom: 20px;
         }
         .seller-cell {
             background: rgba(6,16,12,0.6); border: 1px solid #1e3329;
             border-radius: 10px; padding: 13px 15px;
         }
+        .seller-cell-full { grid-column: 1 / -1; }
         .seller-cell-label {
             font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.1em; color: #3d6655; margin-bottom: 6px;
@@ -157,6 +158,26 @@
         .seller-risk { border-color: rgba(248,113,113,0.25); }
         .seller-risk .seller-cell-label { color: #f87171; }
         .seller-risk .seller-cell-value { color: #f87171; font-weight: 600; }
+
+        /* Labability badges (Product Labability cell) */
+        .lab-bdg {
+            display: inline-flex; align-items: center;
+            font-size: 0.65rem; padding: 3px 9px; border-radius: 6px;
+            font-weight: 700; letter-spacing: 0.05em; margin: 2px 2px 0 0; white-space: nowrap;
+        }
+        .lab-bdg-hl { background: rgba(36,237,155,0.12); color: #24ED9B;  border: 1px solid rgba(36,237,155,0.3); }
+        .lab-bdg-l  { background: rgba(36,237,155,0.06); color: #6b9e88;  border: 1px solid rgba(36,237,155,0.18); }
+        .lab-bdg-ll { background: rgba(245,158,11,0.1);  color: #f59e0b;  border: 1px solid rgba(245,158,11,0.25); }
+        .lab-bdg-nl { background: rgba(248,113,113,0.1); color: #f87171;  border: 1px solid rgba(248,113,113,0.25); }
+        .lab-bdg-path { background: rgba(99,102,241,0.1);  color: #a78bfa; border: 1px solid rgba(99,102,241,0.2); }
+        .lab-bdg-dep  { background: rgba(148,163,184,0.07); color: #64748b; border: 1px solid rgba(148,163,184,0.15); }
+
+        /* Contact rows — truncate to prevent LinkedIn icon wrap */
+        .contact-name-row { display: flex; align-items: center; gap: 3px; min-width: 0; color: #e8f5f0; text-decoration: none; }
+        .contact-name-row:hover { color: #24ED9B; text-decoration: none; }
+        .contact-name-row strong { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+        .contact-title-row { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 100%; color: #6b9e88; font-size: 0.78rem; margin-top: 2px; }
+        .contact-2nd { margin-top: 10px; padding-top: 10px; border-top: 1px solid #1e3329; }
 
         /* Next Steps — prominent, inside Zone 1 */
         .next-steps-block {
@@ -387,6 +408,54 @@
         .designer-cta a:hover { background: rgba(36,237,155,0.18); text-decoration: none; }
         .designer-cta-note { color: #3d6655; font-size: 0.72rem; margin-top: 8px; }
 
+        /* Competitor modal */
+        .comp-modal-backdrop {
+            display: none; position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+            align-items: flex-start; justify-content: center; padding-top: 80px;
+        }
+        .comp-modal-backdrop.open { display: flex; }
+        .comp-modal {
+            background: #0d1a14; border: 1px solid rgba(36,237,155,0.25);
+            border-radius: 14px; padding: 28px 28px 24px; width: 520px; max-width: 95vw;
+            max-height: 70vh; display: flex; flex-direction: column;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        }
+        .comp-modal-title {
+            font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.12em; color: #24ED9B; margin-bottom: 16px;
+        }
+        .comp-modal-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .comp-modal-row {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(6,16,12,0.8); border: 1px solid #1e3329;
+            border-radius: 8px; padding: 9px 12px;
+        }
+        .comp-modal-name { flex: 1; font-size: 0.84rem; color: #e8f5f0; font-weight: 600; }
+        .comp-modal-product { font-size: 0.72rem; color: #3d6655; }
+        .comp-modal-btn {
+            background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.25);
+            color: #24ED9B; padding: 5px 12px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+            font-family: inherit; transition: background 0.15s;
+        }
+        .comp-modal-btn:hover { background: rgba(36,237,155,0.16); }
+        .comp-modal-close {
+            margin-top: 16px; text-align: right;
+        }
+        .comp-modal-close button {
+            background: none; border: 1px solid #1e3329; color: #3d6655;
+            padding: 5px 14px; border-radius: 6px; font-size: 0.72rem;
+            cursor: pointer; font-family: inherit; transition: all 0.15s;
+        }
+        .comp-modal-close button:hover { border-color: rgba(36,237,155,0.3); color: #6b9e88; }
+        .comp-link {
+            background: none; border: none; cursor: pointer; padding: 0;
+            color: #24ED9B; font-size: inherit; font-family: inherit;
+            text-decoration: underline dotted rgba(36,237,155,0.4);
+        }
+        .comp-link:hover { color: #a8f0d0; }
+
         @media (max-width: 768px) {
             .seller-grid { grid-template-columns: 1fr 1fr; }
             .product-details > summary { padding: 16px 18px; gap: 10px; }
@@ -468,7 +537,7 @@
             {% set ot = data.organization_type %}
             {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}program{% else %}product{% endif %}{{ 's' if data.products|length != 1 else '' }} scored
             {% if competitors_logged and competitors_logged > 0 %}
-            &middot; <span style="color:#24ED9B;">{{ competitors_logged }} competitor{{ 's' if competitors_logged != 1 else '' }} logged</span>
+            &middot; <button class="comp-link" onclick="document.getElementById('compModal').classList.add('open')">{{ competitors_logged }} competitor{{ 's' if competitors_logged != 1 else '' }} logged</button>
             {% endif %}
         </span>
     </div>
@@ -487,8 +556,7 @@
     {% endif %}
 
     {# Page title #}
-    <div style="font-size:0.58rem;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#24ED9B;margin-bottom:10px;">Seller &amp; SE Action Plan</div>
-    <h1 style="font-size:1.55rem;font-weight:800;color:#e8f5f0;letter-spacing:-0.02em;margin-bottom:28px;">Solution Recommendations &mdash; {{ data.company_name }}</h1>
+    <div style="font-size:0.58rem;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#24ED9B;margin-bottom:28px;">Seller &amp; SE Action Plan</div>
 
     {# ===========================================
        ZONE 1: SELLER SUMMARY
@@ -552,15 +620,41 @@
             {% endif %}
         </div>
 
-        {# Info grid — Lead Product / Delivery / Scope / Top Contact / Key Risk #}
+        {# ── Pre-compute contacts (dedup, DMs first) and key risk ── #}
+        {% set ns_c = namespace(dms=[], others=[], seen=[]) %}
+        {% for p in data.products %}
+            {% for c in p.contacts %}
+                {% if c.name not in ns_c.seen %}
+                    {% set ns_c.seen = ns_c.seen + [c.name] %}
+                    {% if c.contact_type == 'decision_maker' or c.role_type == 'decision_maker' %}
+                        {% set ns_c.dms = ns_c.dms + [c] %}
+                    {% else %}
+                        {% set ns_c.others = ns_c.others + [c] %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+        {% set all_contacts = ns_c.dms + ns_c.others %}
+        {# Keep ns_c.top_contact for Next Steps block compatibility #}
+        {% set ns_c = namespace(top_contact=(all_contacts[0] if all_contacts else none)) %}
+
+        {% set ns_r = namespace(first_flag=none) %}
+        {% for p in data.products %}
+            {% if ns_r.first_flag is none and p.poor_match_flags %}
+                {% set ns_r.first_flag = p.poor_match_flags[0] %}
+            {% endif %}
+        {% endfor %}
+
+        {# Info grid — 2×2: TL Lead Product | TR Program Scope / BL Product Labability | BR Key Contacts #}
         <div class="seller-grid">
 
             {% if top_p %}
-            {# Lead product #}
+            {# TL: Lead Product — highest-scoring product from selection #}
             <div class="seller-cell">
-                <div class="seller-cell-label">Lead Product</div>
+                <div class="seller-cell-label">Lead Product <span style="font-weight:500;font-size:0.55rem;letter-spacing:0;">— highest score</span></div>
                 <div class="seller-cell-value">
                     <strong>{{ top_p.name }}</strong>
+                    <span style="margin-left:8px;font-size:0.72rem;font-weight:800;color:{% if top_p._total_score >= 70 %}#24ED9B{% elif top_p._total_score >= 50 %}#6b9e88{% else %}#f59e0b{% endif %};">{{ top_p._total_score }}</span>
                     {% if top_p.recommendation %}
                     {% set rec_raw = top_p.recommendation if top_p.recommendation is string else (top_p.recommendation | join(' ')) %}
                     {% set rec_first = rec_raw.split('.')[0].strip() if rec_raw else '' %}
@@ -571,79 +665,72 @@
                 </div>
             </div>
 
-            {# Delivery path #}
-            <div class="seller-cell">
-                <div class="seller-cell-label">Delivery Path</div>
-                <div class="seller-cell-value">
-                    {% set sp = top_p.skillable_path or '' %}
-                    {% if 'Azure' in sp or sp in ['A','A1','A2'] %}Delivered as an Azure cloud environment
-                    {% elif 'AWS' in sp or sp == 'AW' %}Delivered as an AWS cloud environment
-                    {% elif 'VM' in sp or sp == 'B' or sp == 'Standard VM' %}Delivered as a virtual machine lab
-                    {% elif 'Custom' in sp or 'BYOC' in sp or 'API' in sp or sp == 'C' %}Delivered via custom API integration
-                    {% elif 'Credential' in sp or sp == 'CP' %}Delivered via shared credential access
-                    {% elif 'Sim' in sp or sp == 'SIM' %}Simulation-based delivery
-                    {% elif sp %}{{ sp }}
-                    {% else %}Lab delivery path confirmed
-                    {% endif %}
-                </div>
-            </div>
-
-            {# Program scope #}
+            {# TR: Program Scope — link hours to ACV detail below #}
             {% set top_cp = top_p.get('consumption_potential', {}) or {} %}
-            {% if top_cp and top_cp.get('annual_hours_high', 0) > 0 %}
             <div class="seller-cell">
                 <div class="seller-cell-label">Program Scope</div>
                 <div class="seller-cell-value">
-                    Estimated <strong>{{ "{:,}".format(top_cp.get('annual_hours_low', 0)) }}&ndash;{{ "{:,}".format(top_cp.get('annual_hours_high', 0)) }}</strong> lab hours annually
+                    {% if top_cp and top_cp.get('annual_hours_high', 0) > 0 %}
+                    <a href="#acv-detail" style="color:inherit;border-bottom:1px dashed #2a4a3a;text-decoration:none;">Estimated <strong>{{ "{:,}".format(top_cp.get('annual_hours_low', 0)) }}&ndash;{{ "{:,}".format(top_cp.get('annual_hours_high', 0)) }}</strong> lab hours annually</a>
                     {% if ns.has_cp and data.products|length > 1 %}
-                    <br><span style="color:#3d6655;font-size:0.72rem;">{{ "{:,}".format(ns.total_low) }}&ndash;{{ "{:,}".format(ns.total_high) }} hrs across all products</span>
+                    <br><span style="color:#3d6655;font-size:0.72rem;">Potentially {{ "{:,}".format(ns.total_low) }}&ndash;{{ "{:,}".format(ns.total_high) }} hrs across all products</span>
                     {% endif %}
-                </div>
-            </div>
-            {% endif %}
-            {% endif %}
-
-            {# Top contact — prefer decision_maker, fall back to first of any type #}
-            {% set ns_c = namespace(top_contact=none) %}
-            {% for p in data.products %}
-                {% if ns_c.top_contact is none and p.contacts %}
-                    {% for c in p.contacts %}
-                        {% if ns_c.top_contact is none %}
-                            {% if (c.contact_type == 'decision_maker') or (c.role_type == 'decision_maker') %}
-                                {% set ns_c.top_contact = c %}
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                    {% if ns_c.top_contact is none %}
-                        {% set ns_c.top_contact = p.contacts[0] %}
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-            {% if ns_c.top_contact %}
-            <div class="seller-cell">
-                <div class="seller-cell-label">Top Contact</div>
-                <div class="seller-cell-value">
-                    {% if ns_c.top_contact.linkedin_url %}
-                    <a href="{{ ns_c.top_contact.linkedin_url }}" target="_blank"><strong>{{ ns_c.top_contact.name }}</strong>{{ li_svg }}</a>
                     {% else %}
-                    <strong>{{ ns_c.top_contact.name }}</strong>
-                    {% endif %}
-                    {% if ns_c.top_contact.title %}
-                    <br><span style="color:#6b9e88;font-size:0.78rem;">{{ ns_c.top_contact.title }}</span>
+                    <span style="color:#3d6655;">Consumption estimate pending full analysis</span>
                     {% endif %}
                 </div>
             </div>
+
+            {# BL: Product Labability — tier + delivery path + deployment badges #}
+            <div class="seller-cell">
+                <div class="seller-cell-label">Product Labability</div>
+                <div class="seller-cell-value" style="display:flex;flex-wrap:wrap;gap:0;align-items:flex-start;">
+                    {% if top_p.likely_labable == 'highly_likely' %}<span class="lab-bdg lab-bdg-hl">Highly Likely</span>
+                    {% elif top_p.likely_labable == 'likely' %}<span class="lab-bdg lab-bdg-l">Likely</span>
+                    {% elif top_p.likely_labable == 'less_likely' %}<span class="lab-bdg lab-bdg-ll">Less Likely</span>
+                    {% elif top_p.likely_labable == 'not_likely' %}<span class="lab-bdg lab-bdg-nl">Not Likely</span>
+                    {% endif %}
+                    {% set sp = top_p.skillable_path or '' %}
+                    {% if 'Azure' in sp or sp in ['A','A1','A2'] %}<span class="lab-bdg lab-bdg-path">Azure Cloud Slice</span>
+                    {% elif 'AWS' in sp or sp == 'AW' %}<span class="lab-bdg lab-bdg-path">AWS Cloud Slice</span>
+                    {% elif 'VM' in sp or sp == 'B' or sp == 'Standard VM' %}<span class="lab-bdg lab-bdg-path">Standard VM</span>
+                    {% elif 'Custom' in sp or 'BYOC' in sp or 'API' in sp or sp == 'C' %}<span class="lab-bdg lab-bdg-path">Custom API</span>
+                    {% elif 'Credential' in sp or sp == 'CP' %}<span class="lab-bdg lab-bdg-path">Credential Pool</span>
+                    {% elif 'Sim' in sp or sp == 'SIM' %}<span class="lab-bdg lab-bdg-path">Simulation</span>
+                    {% elif sp %}<span class="lab-bdg lab-bdg-path">{{ sp }}</span>
+                    {% endif %}
+                    {% if top_p.deployment_model and top_p.deployment_model not in ['unknown',''] %}
+                    <span class="lab-bdg lab-bdg-dep">{{ top_p.deployment_model | title }}</span>
+                    {% endif %}
+                    {% if data.products | length > 1 %}
+                    <span class="lab-bdg lab-bdg-dep">{{ data.products | length }} products</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# BR: Key Contacts — up to 2, deduped, DMs first #}
+            {% if all_contacts %}
+            <div class="seller-cell">
+                <div class="seller-cell-label">Key Contacts</div>
+                <div class="seller-cell-value">
+                    {% for c in all_contacts[:2] %}
+                    <div{% if not loop.first %} class="contact-2nd"{% endif %}>
+                        {% if c.linkedin_url %}
+                        <a href="{{ c.linkedin_url }}" target="_blank" class="contact-name-row"><strong>{{ c.name }}</strong>{{ li_svg }}</a>
+                        {% else %}
+                        <strong style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;">{{ c.name }}</strong>
+                        {% endif %}
+                        {% if c.title %}<span class="contact-title-row">{{ c.title }}</span>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             {% endif %}
 
-            {# Key risk — first poor_match_flag across all products #}
-            {% set ns_r = namespace(first_flag=none) %}
-            {% for p in data.products %}
-                {% if ns_r.first_flag is none and p.poor_match_flags %}
-                    {% set ns_r.first_flag = p.poor_match_flags[0] %}
-                {% endif %}
-            {% endfor %}
+            {# Full-width: Key Risk (when present) #}
             {% if ns_r.first_flag %}
-            <div class="seller-cell seller-risk">
+            <div class="seller-cell seller-risk seller-cell-full">
                 <div class="seller-cell-label">&#9888; Key Risk</div>
                 <div class="seller-cell-value">{{ ns_r.first_flag }}</div>
             </div>
@@ -704,7 +791,7 @@
     {# ===========================================
        ZONE 2: SE/SC TECHNICAL DETAIL
        =========================================== #}
-    <div class="zone2-heading">Technical Analysis &mdash; Full Evidence</div>
+    <div class="zone2-heading" id="acv-detail">Technical Analysis &mdash; Full Evidence</div>
 
     {% for product in data.products %}
     {# ── Per-product score shortcuts ── #}
@@ -967,6 +1054,40 @@ function toggleSections(btn, open) {
     if (!body) return;
     body.querySelectorAll('details').forEach(function(d) { d.open = open; });
 }
+
+// Competitor modal
+document.getElementById('compModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+});
 </script>
+
+{# Competitor modal — lists all competitors discovered during scoring #}
+{% if competitor_list %}
+<div class="comp-modal-backdrop" id="compModal">
+    <div class="comp-modal">
+        <div class="comp-modal-title">{{ competitor_list | length }} Competitor{{ 's' if competitor_list | length != 1 else '' }} Logged — {{ data.company_name }}</div>
+        <div class="comp-modal-list">
+            {% for c in competitor_list %}
+            <div class="comp-modal-row">
+                <div>
+                    <div class="comp-modal-name">{{ c.company_name }}</div>
+                    {% if c.discovered_from_product %}
+                    <div class="comp-modal-product">via {{ c.discovered_from_product }}</div>
+                    {% endif %}
+                </div>
+                <form method="POST" action="/inspector/discover" style="margin:0;">
+                    <input type="hidden" name="company_name" value="{{ c.company_name }}">
+                    <button type="submit" class="comp-modal-btn">Run Caseboard →</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="comp-modal-close">
+            <button onclick="document.getElementById('compModal').classList.remove('open')">Close</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 </body>
 </html>
