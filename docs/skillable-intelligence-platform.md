@@ -35,6 +35,8 @@ Program design is a specialized skill. Embedding a new modality like hands-on ex
 
 Without a process that takes them from goals and audience to a complete, buildable program architecture, customers stall at the design phase. In a consumption model, a stalled customer is not just a missed upsell opportunity; it is a churn risk. A customer who has not built a program has not realized value. A customer who has not realized value does not renew.
 
+Designer closes that gap.
+
 Designer guides program owners, instructional designers, and subject matter experts through the full process — from learning objectives and intended audience through every decision a program requires. It doesn't require the customer to know how to design a lab program. Designer asks the right questions and sequences the decisions correctly. Every program produces:
 
 - A structured program outline
@@ -53,6 +55,8 @@ Proving that a Skillable lab program will work for a specific customer's product
 This is the type of work that's required for virtually every new lab program with every new and existing customer and demands substantial commitment from our Solution Engineers and TSMs. It takes hours of conversation, researching API documents, and plain old trial and error.
 
 The result is that qualification depth is rationed. It flows to deals already far enough along to justify the time. Early-stage prospects get a general conversation. The technical questions that would surface a Workday pattern early (before marketing dollars are spent, before SE time is committed) often go unasked until it is too late.
+
+Inspector proves labability and impact.
 
 Inspector performs a deep product-level analysis of a specific company. It runs in two stages.
 
@@ -84,6 +88,8 @@ The Workday pattern illustrates what happens when this analysis doesn't happen e
 These are specific technical facts findable in public documentation before a single sales conversation begins. Workday wasn't a bad lead. It was motivated, capable people who invested significant time before hitting a wall that was always there — because product-level technical fit was never evaluated before the pursuit began.
 
 The same logic runs in the other direction. When Fortinet is a strong fit, it's not because Fortinet resembles other good customers as a company. It's because Fortinet's products have specific technical characteristics — multi-VM topology, deep administrative workflows, strong API surface, real consequence of misconfiguration — that make them ideal for hands-on labs. Every company selling products with those same characteristics is a strong fit for the same reasons. The competitive map of a strong-fit customer is a pre-qualified prospect list.
+
+Prospector finds the right companies.
 
 Prospector is the go-to-market tool for Marketing and RevOps. It takes a list of companies and returns a ranked assessment of ICP fit — with product-level evidence, composite scores, verdicts, delivery path signals, and key contacts for every company on the list.
 
