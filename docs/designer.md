@@ -1,6 +1,6 @@
 # Skillable Intelligence — Designer
 
-> Designer takes a confirmed lab program opportunity and produces a complete draft program architecture — lab titles, learning objectives, activity-level content, environment requirements, and a delivery package ready for SMEs and instructional designers to build from.
+> Designer guides program owners, instructional designers, and subject matter experts through the full process of designing a lab program — from goals and audience through a complete, approved outline, draft instructions, and a Skillable Studio-ready export package.
 >
 > For shared research, evidence, and scoring infrastructure, see [intelligence-platform.md](intelligence-platform.md). Designer is typically seeded from an Inspector analysis — see [inspector.md](inspector.md) for the handoff flow.
 
@@ -8,68 +8,180 @@
 
 ## Why Designer Exists
 
-Designer is the execution contextualization layer of Skillable Intelligence. Where Inspector answers *whether* a lab program is worth building and *what it would cost*, Designer answers *how* to build it — translating Intelligence's qualification signals into a concrete program architecture that a content team can act on.
+### The Adoption Problem
 
-The three qualification gates don't disappear in Designer — they inform it. Gate 1 determines the delivery path and environment architecture. Gate 2 shapes the program scope, lab complexity, and scenario types. Gate 3 signals whether the customer's team needs prescriptive scaffolding or just a framework to run with. Every design decision Designer makes is traceable back to the Intelligence signals that justified it.
+Customers who don't know how to design a lab program won't build one. And if they don't build one, they don't adopt Skillable.
 
-Before Designer, a Learning Consultant or PS team member arriving at a scoping conversation had to reconstruct the technical context from scratch — re-reading Inspector output, translating delivery path recommendations into environment specs, manually drafting lab titles and objectives based on product documentation they may or may not have read. That work was inconsistently done, time-consuming, and often duplicated across similar engagements.
+This is not a hypothetical. Most new customers — and many program owners who are new to labs even at experienced companies — arrive without a mental model for what a lab program is, how it's structured, or how to make decisions about scope, sequencing, and activity design. Skillable Studio is built for lab developers: the contracted SMEs and borrowed SEs who do the technical building work. It is not built for the program owner, instructional designer, or champion who needs to figure out *what to build* before anyone starts building.
 
-Designer closes that gap. When Inspector analysis completes, a "Design Lab Program →" button carries the full analysis into Designer Phase 1 — company context, scored products, delivery path, consumption estimates, and scenario type flags all pre-filled. What would take hours of scoping prep arrives in seconds, already grounded in the technical reality of what can be built and how.
+Without a tool to guide that design process, the default pattern is predictable: everyone waits for the technical team to get the software working in the platform. By the time the environment is ready, the program timeline is compressed, the energy has dissipated, and a few labs get built to justify the contract. Those labs rarely have a clear structure, almost never have activities, and produce too little learner engagement to demonstrate value. The customer isn't churning — but they're not growing either. They can't grow, because they never built the foundation that growth requires.
 
-Designer's output is draft scaffolding — not finished lab content. The program architecture, lab titles, learning objectives, and activity outlines it produces are starting points for SMEs and instructional designers working in Skillable Studio, not a replacement for their expertise. The goal is to give content teams a defensible, intelligence-grounded foundation rather than a blank page.
+Designer exists to break that pattern.
+
+### The Parallel Workstream
+
+The critical insight behind Designer's design is that program design and environment build are independent workstreams that can — and should — happen simultaneously.
+
+While the technical team is getting the software working in Skillable, the program owner and instructional designer can be in Designer: defining objectives, designing the curriculum, building the outline, and approving the program structure. When the technical team has the environment ready, the program design is already done. The contracted SME or SE can start building immediately against a clear, approved blueprint — instead of making structural decisions that were never the technical team's job to make.
+
+Designer is what gives the program owner something concrete to do on day one. That changes the entire trajectory of a new customer engagement.
+
+### Building the Discipline
+
+Even well-resourced, experienced customers don't consistently produce great labs. Common problems: no activities (which means no progress tracking and no scoring), seat times that are too long or too short, lab titles that don't reflect what the learner actually does, programs that don't align to a competency framework, and environments that require ongoing rework because nobody thought through all the software requirements before the first lab was built.
+
+These aren't failures of effort — they're failures of process. And they affect even the most capable content teams, because the contracted SMEs and SEs who do the technical building work often have no idea that features like activities, scoring, collaborative scenarios, or credential pools exist — let alone when and why to use them.
+
+Designer builds the discipline by making good decisions the default. The checklist surfaces what's missing. The outline enforces the series → lab → activity hierarchy that makes scoring possible. The draft instructions include guidance on how to validate each activity. The BOM surfaces features like credential pools, variables, and replacement tokens at exactly the moment when they're relevant to the program being designed.
+
+A content team that goes through Designer once comes out with a better mental model for labs. The second time, they bring that model with them. Over time, Designer doesn't just produce better programs — it produces better teams.
 
 ---
 
 ## Who Uses Designer
 
-**Learning Consultants and Professional Services** are Designer's primary users. They use it to accelerate the scoping and program design phase of a new customer engagement — arriving at the first content conversation with a draft program architecture already grounded in the customer's product set, delivery constraints, and organizational readiness signals. Typical trigger: Inspector analysis complete, opportunity qualified, PS engagement beginning.
+**Program Owners** are Designer's primary audience for Phases 1 and 2. They define the goals, the audience, the learning objectives, and the program scope. Designer guides them through that definition process — asking the right questions, reading uploaded materials, and helping them think through decisions they may never have made before. Typical trigger: new customer engagement beginning, or an existing customer starting a new program area.
 
-**Instructional Designers** use Designer to get a structured starting point for lab content development. The activity-level outlines Designer produces give them the right level of scaffolding — enough to understand the program intent and lab scope without over-prescribing the authoring decisions that are rightfully theirs. Typical trigger: program architecture approved, moving into content build.
+**Instructional Designers** use Designer throughout Phases 1–3. In Phase 1, they contribute job task analysis, audience definitions, and competency frameworks. In Phase 2, they refine the outline — adjusting series structure, lab count, and activity design in collaboration with the AI. In Phase 3, they review and refine draft instructions and scoring recommendations before handing off to SMEs.
 
-**Subject Matter Experts (SMEs)** engage with Designer output during content review — validating that the lab scenarios, activities, and objectives reflect accurate and realistic product workflows. Designer's scenario type flags (break/fix, simulated attack, collaborative lab patterns) give SMEs an early signal of which lab types are in scope and what technical complexity to prepare for.
+**Subject Matter Experts (SMEs)** engage primarily in Phases 2 and 3. In Phase 2, they validate that the lab scenarios and activities reflect accurate, realistic product workflows. In Phase 3, they review and tech-edit draft instructions. Designer gives SMEs a structured starting point — a concrete outline to react to — rather than asking them to generate program structure from scratch.
 
-**Program Owners and Customer Stakeholders** use Designer to review and approve the program architecture before build begins. The Phase 2 program structure output — lab titles, sequencing, learning objectives, role-based paths — is the artifact that gets reviewed and signed off before any content development starts.
+**Skillable Learning Consultants and Professional Services** use Designer to accelerate scoping engagements. Instead of arriving at a customer conversation with a blank page, they arrive with a draft program architecture seeded from Inspector — already grounded in the customer's products, delivery constraints, and organizational readiness signals.
+
+**Contracted Lab Developers** are the downstream consumers of Designer's output. They don't use Designer directly — they work in Skillable Studio. But the Studio import package Designer produces creates all the lab series, lab profiles, draft instructions, and activities the developer needs to build against. Their job becomes: make this work technically. Not: figure out what to build.
 
 ---
 
 ## What Designer Delivers
 
-Designer produces output across four phases. Each phase builds on the last and produces a discrete, reviewable artifact.
+Designer produces output across four phases, each building on the last and producing a discrete, reviewable artifact.
 
 **Phase 1 — Requirements & Intent**
-Company context, training goals, target audience, success criteria, and delivery constraints. Pre-filled from Inspector when an `analysis_id` is provided. The human reviews and confirms before proceeding.
+A fully populated Lab Blueprint: objectives (business and learning), target audiences, primary product, difficulty level, seat time, success criteria, scenario seeds, and competency framework. The AI reads uploaded materials and asks questions to fill gaps. The checklist panel shows exactly what's confirmed, what's partial, and what's still missing — in real time, as uploads are processed and questions are answered.
 
 **Phase 2 — Program Architecture**
-AI-generated program structure: recommended lab titles, sequencing, learning objectives, and role-based paths. Reflects Gate 2 complexity signals — a high-complexity product with multiple modules and strong interoperability generates a multi-series curriculum, not a single lab. Includes scenario type recommendations (break/fix, simulated attack, collaborative lab) where research signals support them. The human reviews, edits, and approves before proceeding to content.
+A complete, approved program outline: lab series with names and descriptions, labs within each series with titles and descriptions, and activities within each lab. The outline reflects the product's complexity, the defined roles, the approved seat time, and any scenario type signals (break/fix, simulated attack, collaborative lab) surfaced from Inspector. Conversational refinement allows the program owner to merge labs, split series, cut scope, or reorganize structure before approving.
 
-**Phase 3 — Lab Content**
-Activity-level content for each approved lab: activities, task descriptions, and outcome statements at the right granularity for a content team to build from. Not individual step-by-step instructions — those are authored in Skillable Studio by SMEs and tech writers. The right level is: what the learner does, in what sequence, and what they should be able to demonstrate at the end.
+**Phase 3 — Draft Instructions & Scoring Recommendations**
+Draft lab instructions for every lab in the approved outline, formatted in a preview pane that matches actual Skillable Studio instruction width. Each set of draft instructions includes AI-generated recommendations for how to validate each activity — not the scoring scripts themselves, but the logic and approach that guides the lab developer building the validation in Studio. SMEs review, refine, and approve before Phase 4.
 
 **Phase 4 — Package & Export**
-Environment Template (Bill of Materials, launch scripts, dummy data file manifest), delivery path specification, and a Skillable Studio-ready export package. All references to lab authoring tools use "Skillable Studio" — never "LOD."
+Two deliverables:
+
+1. **Bill of Materials** — a complete, structured list of everything needed to build the lab environments: VMs and OS configurations, software and tools, accounts and credentials, data files (including dummy data for CRM, ERP, or other data-dependent products), networking and permission requirements, lifecycle scripts, scoring and assessment requirements, and notes on Skillable Studio features to configure (credential pools, subscription pools, variables, replacement tokens, collaborative lab setup). The BOM is generated after all labs are designed — which makes it dramatically more complete and accurate than any BOM built before the program was defined.
+
+2. **Skillable Studio Export Package** — a downloadable ZIP containing a `data.json` file that imports directly into Skillable Studio, creating all lab series, lab profiles, draft instructions, and activities. The contracted lab developer imports the package and builds from there — the structural decisions are already made.
 
 ---
 
 ## How Designer Works
 
-*[Full workflow detail pending requirements document. The section below reflects confirmed architecture decisions.]*
+### Seeding from Inspector
 
-**Seeding from Inspector**
-The primary entry point is `GET /designer?analysis_id={inspector_analysis_id}`. Designer loads company name, scored products, delivery path recommendation, Gate scores, consumption estimates, scenario type flags, and key contacts from the Inspector analysis. Phase 1 fields pre-fill automatically. The user confirms and proceeds.
+The primary entry point is `GET /designer?analysis_id={inspector_analysis_id}`. Designer loads company name, scored products, delivery path recommendation, Gate scores, consumption estimates, scenario type flags, and key contacts from the Inspector analysis. Phase 1 fields pre-fill automatically. The user reviews and confirms before the AI asks follow-up questions.
 
-Designer also accepts manual entry when no Inspector analysis exists — useful for PS engagements where Inspector hasn't been run or where the customer's product is already known.
+Designer also accepts manual entry when no Inspector analysis exists — for PS engagements where Inspector hasn't run, or where the customer's product is already known.
 
-**Delivery Path Respect**
+### Phase 1 — Requirements & Intent
+
+The Phase 1 interface has two panels. The left panel is the main conversation area: the user uploads documents (job task analysis, existing course outlines, product documentation, audience profiles, any prior training materials), provides URLs to documentation sites, and responds to AI questions. The right panel is the Lab Blueprint checklist — a live progress tracker that updates as the AI processes uploads and confirms information.
+
+**The Lab Blueprint checklist tracks eight requirements:**
+1. Business / Learning Objectives — what the program needs to achieve
+2. Target Audience(s) — roles, experience levels, prerequisites
+3. Primary Product / Platform — the product being trained on
+4. Recommended Difficulty — Beginner / Intermediate / Advanced / Expert
+5. Target Lab Duration — seat time per lab (default 45–75 min; adjustable in Preferences)
+6. Success Criteria — how program success will be measured
+7. Scenario Seeds — initial ideas for lab scenarios and use cases
+8. Competency Framework — alignment to a skills or certification framework, if applicable
+
+Each item shows a filled green indicator when confirmed, a gray indicator when empty, and a summary of what's been captured when expanded. The AI prompts for missing items conversationally — it doesn't wait for the user to realize something is missing.
+
+Phase 1 is complete when the program owner and AI have enough shared understanding of goals, audience, and scope to generate a meaningful program outline.
+
+### Phase 2 — Program Architecture
+
+Once Phase 1 is approved, the AI generates a complete program outline structured as:
+
+**Series → Labs → Activities**
+
+- **Series** are the top-level groupings (e.g., Administration Fundamentals, Advanced Configuration, Troubleshooting)
+- **Labs** are the individual practice units within each series — 45–75 minutes, three to eight activities each
+- **Activities** are the discrete tasks within each lab — the unit of progress tracking and scoring in Skillable Studio
+
+The outline includes well-formed names and short descriptions at every level. Scenario type recommendations (break/fix, simulated attack, collaborative lab) appear where Inspector signals or program context supports them.
+
+Every level of the outline is expandable and collapsible. The program owner refines through conversation: "merge labs 4 and 5," "make this two series instead of three," "I only have budget for 12 labs — which ones should I keep?" The AI responds with a revised outline. This continues until the outline is approved.
+
+**Activities are not optional.** They are how Skillable tracks learner progress and the only level at which scoring is possible. Designer treats activity design as a first-class part of program architecture — not an afterthought for the lab developer.
+
+Once the outline is approved, it's saved. Collaborators (SMEs, IDs, additional program owners) can review and engage with the AI to evolve the framework before moving to Phase 3.
+
+### Phase 3 — Draft Instructions & Scoring Recommendations
+
+When the outline is approved, the UI shifts: the main pane becomes a lab-by-lab instructions workspace, and the right panel narrows to approximately the width of actual Skillable Studio lab instructions. This previews what learners will see.
+
+For each lab, the AI generates:
+- Draft lab instructions organized by activity
+- Recommendations for how each activity should be validated — the logic and approach for scoring, surfaced as guidance for the lab developer who will configure validation in Studio
+
+The program owner or ID reviews each lab's draft with the AI — refining language, adjusting task descriptions, clarifying validation approaches. SMEs can be brought in at this stage to tech-edit for accuracy.
+
+Phase 3 output is draft scaffolding — not finished content. The draft instructions are a head start for the SME or tech writer who will do final authoring in Skillable Studio.
+
+### Phase 4 — Package & Export
+
+Phase 4 packages everything into two deliverables for export.
+
+The **Bill of Materials** is organized into categories: Cloud & Subscriptions, Virtual Machines, Containers & IDEs, Software & Tools, Accounts & Credentials, Data & Files, Networking & Permissions, Lifecycle Scripts, Scoring & Assessment. Each item specifies what's needed, relevant details, and whether it's required or optional. The BOM also surfaces relevant Skillable Studio features the builder needs to configure — credential pools, subscription pools, variables, replacement tokens, collaborative lab network setup — at the point where they're relevant to this specific program.
+
+The **Skillable Studio Export Package** is a ZIP containing `data.json` — importable directly into Skillable Studio. The import creates:
+- All lab series
+- All lab profiles with draft instructions
+- All activities, pre-created and attached to the correct labs
+
+The contracted SME or lab developer imports the package and begins the technical build. The structural scaffolding is done.
+
+### Delivery Path Respect
+
 Designer builds entirely for the confirmed delivery path. If Hyper-V is recommended but the customer prefers VMware, Designer proceeds with VMware — and surfaces a clear, non-intrusive note: *"Hyper-V delivers equivalent capability at lower cost due to Broadcom's pricing changes. You can switch at any time."* Designer is an advisor, not a gatekeeper.
 
-**Scenario Type Integration**
-Scenario type flags from Inspector (break/fix, simulated attack, collaborative lab — parallel/adversarial or sequential/assembly line) carry into Designer's program architecture recommendations. A cybersecurity product with Red/Blue Team signals gets a program architecture that includes both self-paced guided labs and an ILT cyber range track. A data pipeline product with multi-role handoff signals gets an assembly line collaborative lab scenario alongside role-specific tracks.
+---
 
-**Gate 2 → Program Scope**
-Designer uses Inspector's Gate 2 complexity map directly. High module count, deep feature depth, and strong interoperability generate multi-series curriculum recommendations. Low complexity generates a focused single-series recommendation. Complexity and program scope are positively correlated — Designer reflects this explicitly rather than defaulting to conservative single-lab recommendations.
+## Preferences
 
-**Save / Load / Export**
-Program state saves at each phase. A DesignerProgram record stores phase outputs against the Company and InspectorAnalysis records. Export produces a Skillable Studio-ready package. If the source Inspector analysis is updated after a Designer program is created, the program surface a "⚠ Source analysis updated" badge.
+Designer's Preferences panel sets program-level defaults that apply across all phases. These defaults are used by the AI when generating outlines, draft instructions, and BOM recommendations.
+
+**Current preferences:**
+
+| Preference | Options | Purpose |
+|---|---|---|
+| Target Lab Duration | 15–30 / 30–45 / 45–75 / 75–90 / 90–120 / 120+ min | Sets expected seat time per lab; informs outline generation and activity count |
+| Activities per Lab | 1–2 / 3–5 / 6–10 / Unlimited | Default activity count per lab; 3–5 is recommended for most 45–75 min labs |
+| Default Difficulty | Beginner / Intermediate / Advanced / Expert | Sets baseline difficulty for generated outlines |
+| Lab Naming Formula | Text field with variables: `{Verb} {Specific Action} {Product Name}` | Ensures consistent, well-formed lab titles across the program |
+| Writing Style Guide | Microsoft / Google / Apple / Red Hat / Custom URL | Applies a consistent writing voice to draft instructions |
+| Logo & Branding | Logo upload + Brand URL | Applies customer branding to exports |
+| Always-On References | Documentation Site URL / Knowledge Base URL / Reference File | Permanent context the AI uses in every generation call |
+
+**Suggested additions (pending implementation):**
+
+| Preference | Options | Purpose |
+|---|---|---|
+| Activity Naming Convention | Text field with variables | Consistent activity titles across all labs; mirrors Lab Naming Formula |
+| Lab Series Naming Convention | Text field | Consistent series titles at the program level |
+| Default Delivery Path | Hyper-V / Azure Cloud Slice / AWS / Docker / Custom API | Sets the environment baseline for BOM and environment template recommendations |
+| Default VM OS | Windows Server 2022 / Windows 11 / Ubuntu 22.04 / RHEL 9 / Other | Pre-fills VM configuration in BOM; reduces manual entry for the lab developer |
+| Scoring Approach Preference | REST API / PowerShell·Bash / AI Vision / MCQ / Mixed | Informs scoring recommendations in Phase 3 — generates guidance aligned to the customer's preferred validation method |
+| Include Break/Fix Scenarios | Yes / No / AI-recommended | Whether to suggest fault injection scenarios during outline generation |
+| Include Collaborative Lab Scenarios | Yes / No / AI-recommended | Whether to suggest ILT collaborative scenarios (cyber range, assembly line) during outline generation |
+| Certification Alignment | Free text / None | Aligns learning objectives and activity structure to a specific certification or exam |
+| Standards Framework | Bloom's Taxonomy / NICE NCWF / CompTIA / SFIA / None | Informs objective framing and competency mapping in Phase 1 |
+| Hint Usage Policy | Always include / On request / Never | Whether draft instructions should include hint structures for learners |
+| Knowledge Block Usage | Yes / No | Whether draft instructions should use knowledge blocks for background context |
+| Lab Pass Threshold | % of activities required for completion | Sets the default completion standard for scoring configuration guidance |
+| SME Handoff Format | Inline AI comments / Clean draft only | Whether draft instructions include AI guidance notes for the SME or present clean prose only |
 
 ---
 
@@ -77,13 +189,15 @@ Program state saves at each phase. A DesignerProgram record stores phase outputs
 
 Designer is downstream of Inspector in the primary handoff chain. It does not re-run research or re-score products — it consumes the Intelligence signals that Inspector already produced and translates them into program design decisions.
 
-The three qualification gates are present throughout Designer's output, though they manifest differently than in Inspector:
-- **Gate 1** determines environment architecture, delivery path, and provisioning pattern
-- **Gate 2** determines program scope, lab complexity, scenario types, and seat time
-- **Gate 3** determines how prescriptive Designer's scaffolding needs to be — a customer with a mature content team needs a framework; a customer with an early-stage team needs more detailed scaffolding and may benefit from Skillable PS involvement
+The three qualification gates inform Designer throughout:
+- **Gate 1** determines environment architecture, delivery path, and provisioning pattern — surfaced in Preferences defaults and BOM
+- **Gate 2** determines program scope, lab complexity, scenario types, and seat time — high complexity generates multi-series curricula; low complexity generates focused single-series programs
+- **Gate 3** determines how prescriptive Designer's scaffolding needs to be — a mature content team needs a framework; an early-stage team benefits from more detailed scaffolding and may need Skillable PS support
 
-Designer program records link back to their source Inspector analysis. If no Inspector analysis exists, that provenance is absent — but the Gate signals should still inform every design decision manually entered in Phase 1.
+Lab scenario type flags from Inspector (break/fix, simulated attack, collaborative lab — parallel/adversarial or sequential/assembly line) carry into Designer's Phase 2 outline recommendations. A cybersecurity product with Red/Blue Team signals gets a program architecture that includes both self-paced guided labs and an ILT cyber range track. A data pipeline product with multi-role handoff signals gets assembly line collaborative lab scenarios alongside role-specific tracks.
+
+Designer program records link back to their source Inspector analysis via `inspector_analysis_id`. If the Inspector analysis is updated after a Designer program is created, the program displays a "⚠ Source analysis updated" badge.
 
 ---
 
-*This document is a stub. Full HOW detail — phase UI, save/load behavior, export format, BOM structure, and activity content granularity — will be added after the Designer requirements document is complete.*
+*Phase 4 BOM categories, Studio export format details, and full activity validation guidance will be expanded after the Designer requirements document is complete.*
