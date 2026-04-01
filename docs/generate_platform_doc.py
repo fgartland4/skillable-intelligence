@@ -229,7 +229,7 @@ def h1(doc, text):
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 180, 50)
     pPr = p._p.get_or_add_pPr()
-    kwn = OxmlElement("w:keepWithNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
+    kwn = OxmlElement("w:keepNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
     add_bottom_border(p, size=4)
     make_run(p, text, size_pt=13, bold=True, color=DARK_GREEN)
     return p
@@ -239,7 +239,7 @@ def h2(doc, text):
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 140, 40)
     pPr = p._p.get_or_add_pPr()
-    kwn = OxmlElement("w:keepWithNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
+    kwn = OxmlElement("w:keepNext"); kwn.set(qn("w:val"), "1"); pPr.append(kwn)
     make_run(p, text, size_pt=11, bold=True, color=DARK_GREEN)
     return p
 
@@ -261,17 +261,31 @@ def body_bold(doc, text_parts, after=72):
 
 
 def _bullet_para(doc, after=48):
-    """Base bullet paragraph — small elegant bullet, manual indent."""
+    """Base bullet paragraph — small elegant bullet, tab-aligned text, correct hang."""
     p = doc.add_paragraph()
     set_paragraph_spacing(p, 0, after)
     pPr = p._p.get_or_add_pPr()
+
+    # Remove any inherited indent so ours wins
+    existing = pPr.find(qn("w:ind"))
+    if existing is not None:
+        pPr.remove(existing)
     ind = OxmlElement("w:ind")
-    ind.set(qn("w:left"), "480")    # clearly indented from body paragraphs
-    ind.set(qn("w:hanging"), "240") # wider gap between bullet character and text
+    ind.set(qn("w:left"), "480")    # wrapped lines align here
+    ind.set(qn("w:hanging"), "240") # bullet hangs 240 twips left of text
     pPr.append(ind)
-    r = p.add_run("\u2022 ")        # bullet + 1 space
+
+    # Tab stop at the left indent so bullet + tab always aligns text to 480
+    tabs = OxmlElement("w:tabs")
+    tab = OxmlElement("w:tab")
+    tab.set(qn("w:val"), "left")
+    tab.set(qn("w:pos"), "480")
+    tabs.append(tab)
+    pPr.append(tabs)
+
+    r = p.add_run("\u2022\t")       # bullet + tab (tab jumps to 480)
     r.font.name = FONT_NAME
-    r.font.size = Pt(7)             # smaller than body — elegant, not chunky
+    r.font.size = Pt(7)
     r.font.color.rgb = DARK_TEXT
     return p
 
@@ -592,7 +606,7 @@ def write_recommendations(doc):
             ["ZoomInfo CSV column mapping",          "Minimum: Company Name + Domain. High value: Industry, LinkedIn URL, Employee Count, Technologies Used."],
             ["Score threshold for auto-create/update", "At what fit score does a Company record get automatically enriched vs. queued for review?"],
         ],
-        col1_dxa=2600
+        col1_dxa=3800
     )
 
 
