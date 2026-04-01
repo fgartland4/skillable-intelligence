@@ -349,63 +349,6 @@
     {% else %}{% set mat_level = 'Nascent' %}{% set mat_idx = 0 %}{% endif %}
     {% set mat_pcts = [0, 33, 67, 100] %}
 
-    {# Company Intelligence — full width between header and board #}
-    <div class="ci-box">
-        <div class="ci-box-title">Company Intelligence</div>
-
-        {# Top half: key badges (left) | maturity slider (right) #}
-        <div style="display:flex; align-items:flex-start; gap:32px; margin-bottom:16px;">
-
-            {# LEFT — key signal badges #}
-            <div class="ci-badges" style="flex:1.2; min-width:220px;">
-                {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
-                {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
-                {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
-                {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitor{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>{% endif %}
-            </div>
-
-            {# RIGHT — Lab Maturity slider #}
-            <div style="flex:1; min-width:180px; max-width:320px;">
-                <div class="mat-level-name">{{ mat_level }}</div>
-                <div class="mat-track">
-                    <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
-                    <div class="mat-nodes">
-                        {% for i in range(4) %}
-                        <div class="mat-node {% if i < mat_idx %}mat-passed{% elif i == mat_idx %}mat-active{% endif %}"></div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="mat-labels">
-                    {% set mat_lbls = ['Nascent','Emerging','Established','Mature'] %}
-                    {% for i in range(4) %}
-                    <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        {# Bottom half: four signal columns (populated once researcher data is wired up) #}
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; border-top:1px solid #1e3329; padding-top:14px;">
-            <div>
-                <div class="ci-col-label">Customer Base</div>
-                <div class="ci-col-empty">Pending research</div>
-            </div>
-            <div>
-                <div class="ci-col-label">Content Signals</div>
-                <div class="ci-col-empty">Pending research</div>
-            </div>
-            <div>
-                <div class="ci-col-label">Partner Ecosystem</div>
-                <div class="ci-col-empty">Pending research</div>
-            </div>
-            <div>
-                <div class="ci-col-label">Urgency / Triggers</div>
-                <div class="ci-col-empty">Pending research</div>
-            </div>
-        </div>
-
-    </div>
-
     <form method="POST" action="/inspector/score" id="scoreForm">
     <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
 
@@ -413,6 +356,51 @@
 
         <!-- Products column -->
         <div>
+
+            {# Company Intelligence box — sits inside products column, matches card width #}
+            <div class="ci-box">
+                <div class="ci-box-title">Company Intelligence</div>
+
+                {# Top: key badges (left) | maturity slider (right) #}
+                <div style="display:flex; align-items:flex-start; gap:28px; margin-bottom:14px;">
+                    <div class="ci-badges" style="flex:1.2; min-width:200px;">
+                        {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
+                        {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
+                        {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
+                        {% if discovery.competitive_products %}
+                        <div style="margin-top:8px;">
+                            <span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitive Product{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div style="flex:1; min-width:160px; max-width:300px;">
+                        <div class="mat-level-name">{{ mat_level }}</div>
+                        <div class="mat-track">
+                            <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
+                            <div class="mat-nodes">
+                                {% for i in range(4) %}
+                                <div class="mat-node {% if i < mat_idx %}mat-passed{% elif i == mat_idx %}mat-active{% endif %}"></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mat-labels">
+                            {% set mat_lbls = ['Nascent','Emerging','Established','Mature'] %}
+                            {% for i in range(4) %}
+                            <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Bottom: four signal columns — populated when researcher data is wired up #}
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; border-top:1px solid #1e3329; padding-top:12px;">
+                    <div><div class="ci-col-label">Customer Base</div><div class="ci-col-empty">Pending research</div></div>
+                    <div><div class="ci-col-label">Content Signals</div><div class="ci-col-empty">Pending research</div></div>
+                    <div><div class="ci-col-label">Partner Ecosystem</div><div class="ci-col-empty">Pending research</div></div>
+                    <div><div class="ci-col-label">Urgency / Triggers</div><div class="ci-col-empty">Pending research</div></div>
+                </div>
+            </div>
+
             {% set hl = discovery.products | selectattr('likely_labable','equalto','highly_likely') | list | sort(attribute='priority') %}
             {% set l  = discovery.products | selectattr('likely_labable','equalto','likely') | list | sort(attribute='priority') %}
             {% set ll = discovery.products | selectattr('likely_labable','equalto','less_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
