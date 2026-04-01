@@ -535,10 +535,15 @@ def lookup(company_name: str) -> dict:
 # ---------------------------------------------------------------------------
 
 _SKILLABLE_SEEDS = [
-    "skill", "skillify", "skillifying", "job-ready", "job-readify", "lab",
-    "hands-on", "build", "configure", "deploy", "enable", "certify", "practice",
-    "validate", "master", "operate", "prove", "live", "ready", "achieve",
-    "craft", "forge", "quest", "arena", "mission", "challenge", "scenario",
+    # Real words — the raw material
+    "skill", "lab", "hands-on", "build", "configure", "deploy",
+    "enable", "certify", "validate", "master", "achieve", "prove",
+    # Gerunds — real and invented; the engine of the whole thing
+    "skillifying", "skillification", "job-readyifyin'", "job-readification",
+    "labbing", "configuring", "deploying", "achievifying", "certifying",
+    "masterification", "enablifying", "hands-on-ification",
+    # Bonus absurdity
+    "skillificator", "achievificator", "the configuratorinator",
 ]
 
 _VOCABULARY_PROMPT = """You are a playful word-manufacturing machine for Skillable, a hands-on lab platform.
