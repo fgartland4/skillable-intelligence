@@ -115,6 +115,14 @@
         <h1>Ideal Customer Prospector</h1>
         <p class="subtitle">Upload a list of companies to score each one for product labability and lab maturity. Results are ranked and exportable to Excel.</p>
 
+        {% if competitor_candidate_count and competitor_candidate_count > 0 %}
+        <div id="competitor-callout" style="display:flex;align-items:center;gap:12px;background:rgba(36,237,155,0.06);border:1px solid rgba(36,237,155,0.22);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:0.84rem;color:#a8d5c2;">
+            <span style="font-size:1rem;">💡</span>
+            <span><strong style="color:#24ED9B;">{{ competitor_candidate_count }} competitor lead{{ 's' if competitor_candidate_count != 1 else '' }}</strong> from Inspector</span>
+            <button type="button" onclick="prefillCompetitors()" style="margin-left:auto;background:rgba(36,237,155,0.12);border:1px solid rgba(36,237,155,0.35);color:#24ED9B;padding:6px 14px;border-radius:7px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='rgba(36,237,155,0.22)'" onmouseout="this.style.background='rgba(36,237,155,0.12)'">Add to run &rarr;</button>
+        </div>
+        {% endif %}
+
         <div class="info-box">
             <strong>How it works:</strong> For each company, the engine discovers their top product and scores it — labability signals, lab maturity, and recommended Skillable path. Results are ranked by Overall Opportunity Score with a direct link to run a full Inspector analysis on any company.
         </div>
@@ -189,6 +197,26 @@
             dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
             dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
             dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); });
+        }
+
+        function prefillCompetitors() {
+            fetch('/prospector/competitor-candidates')
+                .then(r => r.json())
+                .then(names => {
+                    if (!names || !names.length) return;
+                    // Switch to paste mode
+                    const pasteTab = document.querySelector('.mode-tab:nth-child(2)');
+                    switchMode('paste', pasteTab);
+                    // Fill textarea
+                    const ta = document.getElementById('companies');
+                    if (ta) ta.value = names.join('\n');
+                    // Hide the callout — user has acknowledged it
+                    const callout = document.getElementById('competitor-callout');
+                    if (callout) callout.style.display = 'none';
+                    // Clear the server-side list so it doesn't re-appear
+                    fetch('/prospector/competitor-candidates/clear', { method: 'POST' });
+                })
+                .catch(() => {});
         }
     </script>
 </body>

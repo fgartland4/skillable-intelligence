@@ -19,6 +19,7 @@ from storage import (
     save_prospector_run, load_prospector_run,
     append_poor_fit_feedback, load_poor_fit_companies,
     save_discovery, load_discovery,
+    load_competitor_candidates, clear_competitor_candidates,
 )
 
 import datetime
@@ -49,7 +50,10 @@ def _derive_skillable_path(lab_score: int) -> str:
 @prospector.route("")
 def prospector_home():
     poor_fit = load_poor_fit_companies()
-    return render_template("prospector.html", poor_fit_count=len(poor_fit))
+    competitor_candidates = load_competitor_candidates()
+    return render_template("prospector.html",
+                           poor_fit_count=len(poor_fit),
+                           competitor_candidate_count=len(competitor_candidates))
 
 
 @prospector.route("/run", methods=["POST"])
@@ -405,3 +409,22 @@ def prospector_export(job_id: str):
 
 
 # _derive_skillable_path defined at top of file — no duplicate needed here
+
+
+@prospector.route("/competitor-candidates")
+def competitor_candidates_json():
+    """Return JSON list of competitor candidate names for pre-filling the Prospector form."""
+    candidates = load_competitor_candidates()
+    names = [c.get("company_name", "") for c in candidates if c.get("company_name")]
+    return jsonify(names)
+
+
+@prospector.route("/competitor-candidates/clear", methods=["POST"])
+def competitor_candidates_clear():
+    """Clear the competitor candidates list after they've been added to a run."""
+    try:
+        clear_competitor_candidates()
+        return jsonify({"ok": True})
+    except Exception as e:
+        log.warning("competitor_candidates_clear failed: %s", e)
+        return jsonify({"ok": False, "error": str(e)}), 500

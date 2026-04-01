@@ -55,6 +55,7 @@ from storage import (
     save_discovery, load_discovery,
     find_analysis_by_company_name, find_discovery_by_company_name,
     find_analysis_by_discovery_id,
+    save_competitor_candidates,
 )
 from core import _attach_scores
 from config import ANTHROPIC_MODEL
@@ -188,6 +189,11 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     _attach_scores(data)
 
     _detect_and_patch_discrepancies(data, discovery_id, discovery_data)
+
+    # Log competitor candidates to Prospector feed
+    top_product_name = (selected_products[0].get("name", "") if selected_products else "")
+    if cache and cache.get("search_results"):
+        log_competitors_from_research(company_name, top_product_name, cache)
 
     log.info("Intelligence.score: saved analysis %s for %s", analysis_id, company_name)
     return analysis_id, data
@@ -528,6 +534,121 @@ def lookup(company_name: str) -> dict:
 
     found = bool(analysis or discovery)
     return {"analysis": analysis, "discovery": discovery, "found": found}
+
+
+# ---------------------------------------------------------------------------
+# Competitor logging  (Prospector feed)
+# ---------------------------------------------------------------------------
+
+# Words that look like companies but are actually generic platform/category terms — filter these out
+_GENERIC_WORDS = frozenset({
+    "lab", "labs", "platform", "training", "learning", "cloud", "solution", "solutions",
+    "service", "services", "system", "systems", "software", "technology", "technologies",
+    "tech", "group", "global", "corp", "corporation", "inc", "llc", "ltd", "company",
+    "enterprise", "enterprises", "digital", "data", "network", "networks", "security",
+    "management", "analytics", "intelligence", "university", "institute", "academy",
+    "school", "education", "online", "virtual", "skill", "skills", "course", "courses",
+    "certification", "certifications", "test", "exam", "boot", "bootcamp", "camp",
+    "skillable", "microsoft", "google", "amazon", "azure", "office", "windows",
+    "linux", "github", "gitlab",
+})
+
+# Known competitor names to always preserve even if they look generic
+_KNOWN_COMPETITORS = frozenset({
+    "cloudshare", "instruqt", "appsembler", "skytap", "qwiklabs", "a cloud guru",
+    "acg", "pluralsight", "udemy", "coursera", "edx", "cybrary", "whizlabs",
+    "cloud academy", "pentaho", "bonsai", "lumify", "infosecinstitute",
+})
+
+
+def log_competitors_from_research(company_name: str, product_name: str,
+                                   research_cache: dict) -> int:
+    """Scan research_cache for competitor company names and log them as Prospector candidates.
+
+    Looks at keys starting with 'compete_' in research_cache['search_results'].
+    Extracts company names from result titles using simple heuristics.
+    Deduplication is handled by save_competitor_candidates().
+
+    Returns count of new candidates logged.
+    """
+    search_results = research_cache.get("search_results", {})
+    compete_keys = [k for k in search_results if k.startswith("compete_")]
+    if not compete_keys:
+        return 0
+
+    source_name_lower = company_name.lower().strip()
+    candidates_found: dict[str, str] = {}  # lower_name → display_name
+
+    for key in compete_keys:
+        results = search_results[key]
+        if not isinstance(results, list):
+            continue
+        for item in results:
+            # Items may be dicts with title/snippet or plain strings
+            if isinstance(item, dict):
+                text = f"{item.get('title', '')} {item.get('snippet', '')}"
+            elif isinstance(item, str):
+                text = item
+            else:
+                continue
+
+            # Split on common separators to extract candidate name fragments
+            for separator in (" | ", " - ", " vs ", " vs. ", " compared to ", " versus "):
+                parts = text.split(separator)
+                for part in parts:
+                    part = part.strip()
+                    # Take first 1-3 words; the company name is usually at the front
+                    words = part.split()[:3]
+                    candidate = " ".join(words).strip(".,;:()")
+                    cand_lower = candidate.lower()
+
+                    # Filter: must be > 4 chars, not generic, not the source company
+                    if len(candidate) <= 4:
+                        continue
+                    if cand_lower == source_name_lower:
+                        continue
+                    if cand_lower in _GENERIC_WORDS:
+                        continue
+
+                    # Check if any word in the candidate is a known competitor
+                    is_known = any(kc in cand_lower for kc in _KNOWN_COMPETITORS)
+
+                    # Check if all words are generic (unless known competitor)
+                    candidate_words_lower = {w.lower().strip(".,;:()") for w in candidate.split()}
+                    all_generic = candidate_words_lower <= _GENERIC_WORDS
+                    if all_generic and not is_known:
+                        continue
+
+                    # Must look like a proper name: first word capitalized, reasonable length
+                    first_word = words[0] if words else ""
+                    if not is_known and not (first_word and first_word[0].isupper() and len(first_word) > 2):
+                        continue
+
+                    if cand_lower not in candidates_found:
+                        candidates_found[cand_lower] = candidate
+
+    if not candidates_found:
+        return 0
+
+    now = _now_iso()
+    new_candidates = [
+        {
+            "company_name": display_name,
+            "discovered_from_company": company_name,
+            "discovered_from_product": product_name,
+            "discovered_at": now,
+        }
+        for display_name in candidates_found.values()
+    ]
+
+    try:
+        save_competitor_candidates(new_candidates)
+        log.info("log_competitors_from_research: found %d candidates from %s scoring",
+                 len(new_candidates), company_name)
+        return len(new_candidates)
+    except Exception as e:
+        log.warning("log_competitors_from_research: failed to save candidates: %s", e)
+        return 0
 
 
 # ---------------------------------------------------------------------------

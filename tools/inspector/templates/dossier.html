@@ -669,6 +669,9 @@
                 {% else %}
                 {{ data.products|length }} products scored
                 {% endif %}
+                {% if competitors_logged and competitors_logged > 0 %}
+                &middot; <span style="color:#24ED9B;">{{ competitors_logged }} competitor{{ 's' if competitors_logged != 1 else '' }} logged to Prospector</span>
+                {% endif %}
             </div>
         </div>
 

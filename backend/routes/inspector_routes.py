@@ -27,6 +27,7 @@ from storage import (
     find_analysis_by_discovery_id,
     find_analysis_by_company_name,
     find_discovery_by_company_name,
+    load_all_discoveries,
 )
 
 import logging
@@ -240,7 +241,18 @@ def dossier(analysis_id: str):
 
     _attach_scores(data)
     from_cache = request.args.get("cached") == "1"
-    return render_template("dossier.html", data=data, from_cache=from_cache)
+
+    # Count competitor candidates logged from this company's scoring
+    from storage import load_competitor_candidates
+    company_name = data.get("company_name", "")
+    all_candidates = load_competitor_candidates()
+    competitors_logged = sum(
+        1 for c in all_candidates
+        if c.get("discovered_from_company", "").lower() == company_name.lower()
+    )
+
+    return render_template("dossier.html", data=data, from_cache=from_cache,
+                           competitors_logged=competitors_logged)
 
 
 # Product detail page
@@ -352,4 +364,169 @@ def api_analyze():
 @inspector.route("/marketing")
 def marketing():
     return redirect(url_for("prospector.prospector_home"), 301)
+
+
+# Top Blockers
+
+@inspector.route("/blockers")
+def blockers():
+    """Scan all stored Inspector data and surface products that can't be labified, grouped by reason."""
+    from collections import defaultdict
+    from models import compute_product_score
+
+    blocker_rows: list[dict] = []
+    seen_keys: set[str] = set()  # deduplicate by (source_id, product_name)
+
+    # --- Pass 1: scan discoveries ---
+    all_discoveries = load_all_discoveries()
+    for disc in all_discoveries:
+        company_name = disc.get("company_name", "")
+        source_id = disc.get("discovery_id", "")
+        analyzed_at = disc.get("created_at", "")
+        products = disc.get("products") or []
+
+        for product in products:
+            p_name = product.get("name", "")
+            labable = product.get("likely_labable", "")
+            flags = product.get("poor_match_flags") or []
+            dedup_key = f"disc:{source_id}:{p_name}"
+
+            if flags:
+                for flag in flags:
+                    if flag:
+                        seen_keys.add(dedup_key)
+                        blocker_rows.append({
+                            "company_name": company_name,
+                            "product_name": p_name,
+                            "blocker_type": flag,
+                            "likely_labable": labable,
+                            "tech_score": None,
+                            "source_id": source_id,
+                            "source_type": "discovery",
+                            "analyzed_at": analyzed_at,
+                        })
+            elif labable in ("not_likely", "less_likely"):
+                if dedup_key not in seen_keys:
+                    seen_keys.add(dedup_key)
+                    blocker_rows.append({
+                        "company_name": company_name,
+                        "product_name": p_name,
+                        "blocker_type": "Unclassified low fit",
+                        "likely_labable": labable,
+                        "tech_score": None,
+                        "source_id": source_id,
+                        "source_type": "discovery",
+                        "analyzed_at": analyzed_at,
+                    })
+
+    # --- Pass 2: scan analyses for low tech_orchestrability ---
+    analyses = list_analyses()
+    for summary in analyses:
+        aid = summary.get("analysis_id", "")
+        data = load_analysis(aid)
+        if not data:
+            continue
+        company_name = data.get("company_name", "")
+        analyzed_at = data.get("analyzed_at", "")
+        products = data.get("products") or []
+
+        for product in products:
+            p_name = product.get("name", "")
+            flags = product.get("poor_match_flags") or []
+            tech_score = None
+
+            # Extract technical_orchestrability from dimension scores
+            dims = product.get("dimension_scores") or {}
+            if isinstance(dims, dict):
+                tech_score = dims.get("technical_orchestrability")
+            if tech_score is None:
+                # Try nested structure
+                for key in ("technical_orchestrability", "tech_orchestrability"):
+                    if key in product:
+                        tech_score = product[key]
+                        break
+
+            dedup_key = f"analysis:{aid}:{p_name}"
+            disc_dedup_key = f"disc:{data.get('discovery_id', '')}:{p_name}"
+
+            if flags:
+                for flag in flags:
+                    if flag and dedup_key not in seen_keys:
+                        seen_keys.add(dedup_key)
+                        blocker_rows.append({
+                            "company_name": company_name,
+                            "product_name": p_name,
+                            "blocker_type": flag,
+                            "likely_labable": _labable_tier_from_score(product),
+                            "tech_score": tech_score,
+                            "source_id": aid,
+                            "source_type": "analysis",
+                            "analyzed_at": analyzed_at,
+                        })
+            elif tech_score is not None and tech_score < 20:
+                if dedup_key not in seen_keys and disc_dedup_key not in seen_keys:
+                    seen_keys.add(dedup_key)
+                    blocker_rows.append({
+                        "company_name": company_name,
+                        "product_name": p_name,
+                        "blocker_type": "Low technical orchestrability",
+                        "likely_labable": _labable_tier_from_score(product),
+                        "tech_score": tech_score,
+                        "source_id": aid,
+                        "source_type": "analysis",
+                        "analyzed_at": analyzed_at,
+                    })
+
+    # --- Group by blocker_type, sorted by frequency ---
+    frequency: dict[str, int] = defaultdict(int)
+    for row in blocker_rows:
+        frequency[row["blocker_type"]] += 1
+
+    # Sort: "Unclassified low fit" always last; others by frequency desc
+    def sort_key(bt):
+        if bt == "Unclassified low fit":
+            return (1, 0)
+        return (0, -frequency[bt])
+
+    grouped: dict[str, list[dict]] = defaultdict(list)
+    for row in blocker_rows:
+        grouped[row["blocker_type"]].append(row)
+
+    ordered_types = sorted(grouped.keys(), key=sort_key)
+    blocker_groups = [
+        {
+            "blocker_type": bt,
+            "count": len(grouped[bt]),
+            "rows": grouped[bt],
+        }
+        for bt in ordered_types
+    ]
+
+    total_companies = len({r["company_name"] for r in blocker_rows})
+    total_products = len(blocker_rows)
+    distinct_types = len([bt for bt in ordered_types if bt != "Unclassified low fit"])
+
+    return render_template(
+        "blockers.html",
+        blocker_groups=blocker_groups,
+        total_companies=total_companies,
+        total_products=total_products,
+        distinct_types=distinct_types,
+    )
+
+
+def _labable_tier_from_score(product: dict) -> str:
+    """Derive a tier label from a scored product dict."""
+    score = product.get("_total_score", 0)
+    if not score:
+        # Try computing from dimension scores
+        from models import compute_product_score
+        score = compute_product_score(product)
+    if score >= 70:
+        return "highly_likely"
+    if score >= 45:
+        return "likely"
+    if score >= 20:
+        return "less_likely"
+    return "not_likely"
 

@@ -192,3 +192,75 @@ def list_analyses() -> list[dict]:
             log.warning("Skipping corrupted analysis file %s: %s", filename, e)
             continue
     return results
+
+
+def load_all_discoveries() -> list[dict]:
+    """Return all discovery dicts, newest-modified first."""
+    results = []
+    if not os.path.exists(DISCOVERY_DIR):
+        return results
+    files = [f for f in os.listdir(DISCOVERY_DIR) if f.endswith(".json")]
+    files.sort(key=lambda f: os.path.getmtime(os.path.join(DISCOVERY_DIR, f)), reverse=True)
+    for filename in files:
+        filepath = os.path.join(DISCOVERY_DIR, filename)
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            results.append(data)
+        except Exception as e:
+            log.warning("Skipping corrupted discovery file %s: %s", filename, e)
+            continue
+    return results
+
+
+def save_competitor_candidates(candidates: list[dict]) -> None:
+    """Append new competitor candidates to the competitor_candidates log.
+
+    Each candidate: { company_name, discovered_from_company, discovered_from_product, discovered_at }
+    Deduplicates by company_name (case-insensitive) — no duplicates added.
+    """
+    filepath = os.path.join(FEEDBACK_DIR, "competitor_candidates.json")
+    existing = []
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            try:
+                existing = json.load(f)
+            except Exception as e:
+                log.warning("competitor_candidates.json corrupted, starting fresh: %s", e)
+                existing = []
+
+    existing_names = {c.get("company_name", "").lower() for c in existing}
+    added = 0
+    for candidate in candidates:
+        name_lower = candidate.get("company_name", "").lower()
+        if name_lower and name_lower not in existing_names:
+            existing.append(candidate)
+            existing_names.add(name_lower)
+            added += 1
+
+    if added:
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(existing, f, indent=2)
+        log.info("save_competitor_candidates: added %d new candidates", added)
+
+
+def load_competitor_candidates() -> list[dict]:
+    """Return all logged competitor candidates, newest first."""
+    filepath = os.path.join(FEEDBACK_DIR, "competitor_candidates.json")
+    if not os.path.exists(filepath):
+        return []
+    with open(filepath, "r", encoding="utf-8") as f:
+        try:
+            data = json.load(f)
+            return list(reversed(data))
+        except Exception as e:
+            log.warning("Failed to load competitor_candidates.json: %s", e)
+            return []
+
+
+def clear_competitor_candidates() -> None:
+    """Clear the competitor candidates log."""
+    filepath = os.path.join(FEEDBACK_DIR, "competitor_candidates.json")
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump([], f, indent=2)
+    log.info("clear_competitor_candidates: cleared")
