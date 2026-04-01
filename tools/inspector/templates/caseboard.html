@@ -573,19 +573,6 @@
             </div>
             {% endif %}
 
-            {% if discovery.org_contacts %}
-            <div class="intel-card">
-                <div class="ic-title">Key Contacts</div>
-                {% for c in discovery.org_contacts[:5] %}
-                <div class="ct-item">
-                    <div class="ct-name">{{ c.name }}</div>
-                    <div class="ct-title">{{ c.title }}</div>
-                    {% if c.role_type %}<div class="ct-role">{{ c.role_type | replace('_',' ') }}</div>{% endif %}
-                    {% if c.linkedin_url %}<a href="{{ c.linkedin_url }}" target="_blank" class="ct-li">LinkedIn &rarr;</a>{% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
 
         </div>
     </div>
