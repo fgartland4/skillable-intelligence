@@ -158,31 +158,6 @@
         .seller-risk .seller-cell-label { color: #f87171; }
         .seller-risk .seller-cell-value { color: #f87171; font-weight: 600; }
 
-        /* Blockers alert — high visibility, Zone 1 */
-        .blockers-block {
-            background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.35);
-            border-radius: 12px; padding: 18px 22px; margin-top: 4px;
-        }
-        .blockers-block-label {
-            font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.13em; color: #f87171; margin-bottom: 12px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .blockers-block-label::before { content: '⚠'; font-size: 0.85rem; }
-        .blockers-list {
-            list-style: none; margin: 0; padding: 0;
-            display: flex; flex-direction: column; gap: 9px;
-        }
-        .blockers-list li {
-            font-size: 0.84rem; color: #fca5a5; line-height: 1.5;
-            padding-left: 16px; position: relative;
-        }
-        .blockers-list li::before {
-            content: '✗'; position: absolute; left: 0;
-            color: #f87171; font-weight: 700;
-        }
-        .blockers-list li strong { color: #fecaca; font-weight: 700; }
-
         /* Next Steps — prominent, inside Zone 1 */
         .next-steps-block {
             background: rgba(36,237,155,0.04); border: 1px solid rgba(36,237,155,0.15);
@@ -428,7 +403,7 @@
    Pre-compute rollup values
    ========================================= #}
 {% set ns = namespace(
-    acv_low=0.0, acv_high=0.0, total_low=0, total_high=0, has_cp=false
+    acv_low=0.0, acv_high=0.0, total_low=0, total_high=0, has_cp=false, cp_count=0
 ) %}
 {% for product in data.products %}
     {% set cp = product.get('consumption_potential', {}) or {} %}
@@ -442,6 +417,7 @@
         {% set ns.acv_low    = ns.acv_low  + cp.get('annual_hours_low', 0) * r_lo %}
         {% set ns.acv_high   = ns.acv_high + cp.get('annual_hours_high', 0) * r_hi %}
         {% set ns.has_cp = true %}
+        {% set ns.cp_count   = ns.cp_count + 1 %}
     {% endif %}
 {% endfor %}
 
@@ -564,7 +540,7 @@
             <div class="seller-acv-hero">
                 <div class="seller-acv-label">Estimated Annual Value</div>
                 <div class="seller-acv-value">${{ "{:,}".format(ns.acv_low | int) }}&ndash;${{ "{:,}".format(ns.acv_high | int) }}</div>
-                <div class="seller-acv-note">estimated ACV across scored products</div>
+                <div class="seller-acv-note">estimated ACV across {{ ns.cp_count }} product{{ 's' if ns.cp_count != 1 else '' }}</div>
             </div>
             {% endif %}
             {% if ns_hero.gate_blocks %}
@@ -674,35 +650,6 @@
             {% endif %}
 
         </div>{# /seller-grid #}
-
-        {# BLOCKERS ALERT — high visibility, Zone 1 #}
-        {# Fires when: Gate 1 fail (<15), not_likely lead product, or 2+ poor_match_flags on any product #}
-        {% set ns_blk = namespace(blockers=[]) %}
-        {% for p in data.products %}
-            {% set p_tech = p.get('labability_score', {}).get('technical_orchestrability', {}).get('score', 0) if p.get('labability_score') else 0 %}
-            {% if p.likely_labable == 'not_likely' and p.name not in ns_blk.blockers | map(attribute='msg') | list %}
-                {% set _ = ns_blk.blockers.append({'msg': p.name ~ ' cannot be delivered as a Skillable lab — no viable path identified.', 'product': p.name}) %}
-            {% endif %}
-            {% if p_tech < 15 and p.likely_labable != 'not_likely' %}
-                {% set _ = ns_blk.blockers.append({'msg': p.name ~ ' has critically low technical orchestrability (' ~ p_tech ~ '/40) — delivery path unconfirmed.', 'product': p.name}) %}
-            {% endif %}
-            {% if p.poor_match_flags %}
-                {% for flag in p.poor_match_flags %}
-                    {% set flag_clean = flag | replace('_', ' ') | title %}
-                    {% set _ = ns_blk.blockers.append({'msg': flag_clean ~ ' — ' ~ p.name, 'product': p.name}) %}
-                {% endfor %}
-            {% endif %}
-        {% endfor %}
-        {% if ns_blk.blockers %}
-        <div class="blockers-block">
-            <div class="blockers-block-label">Blockers — Address Before Moving Forward</div>
-            <ul class="blockers-list">
-                {% for b in ns_blk.blockers %}
-                <li>{{ b.msg }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
 
         {# NEXT STEPS — prominent, data-driven, inside Zone 1 #}
         <div class="next-steps-block">
