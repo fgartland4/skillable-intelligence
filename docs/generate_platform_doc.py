@@ -219,7 +219,7 @@ def add_title(doc, title, subtitle):
     p2 = doc.add_paragraph()
     set_paragraph_spacing(p2, 0, 80)
     add_bottom_border(p2)
-    make_run(p2, subtitle, size_pt=11, italic=True, color=GRAY)
+    make_run(p2, subtitle, size_pt=10, italic=False, color=GRAY)
 
 
 def h1(doc, text):
@@ -407,29 +407,29 @@ def ai_para(doc, text_parts, after=60):
 def write_why(doc):
     h1(doc, "Three problems worth solving")
 
-    body(doc, "We recently agreed that Skillable is PaaS and not SaaS. Does this distinction simply change some positioning — or does it signal our opportunity to shatter a few glass ceilings? It's the latter.")
+    body(doc, "We recently agreed that Skillable is PaaS and not SaaS. Does this distinction simply change some positioning or does it signal our opportunity to shatter a few glass ceilings? As the category creator for hands-on experience platforms, we find ourselves staring at three unique challenges.")
 
     bullet(doc, "Identifying companies in our ICP")
     bullet(doc, "Proving labability and lab impact")
     bullet(doc, "Enabling bought-in customers to adopt labs", after=60)
 
     h2(doc, "The PaaS difference")
-    body(doc, "Most B2B software companies sell a product that runs in their cloud. Their buyers interact with it through a browser. The product is the same for every customer. Qualifying a prospect means finding buyers who fit the profile: the right size, the right industry, the right pain point, the right budget.")
+    body(doc, "Most B2B software companies sell products that run in a cloud, in a datacenter, on a computer, or on a phone. With a few customizations here and there, many of these products are roughly the same for every user. Qualifying a prospect means finding buyers who fit the profile: the right size, the right industry, the right pain point, the right budget.")
     body(doc, "Skillable is different. We do not deliver our own software. We orchestrate other companies' software into hands-on lab environments — real products, real interfaces, real consequence of error, accessible to a learner anywhere. What we sell is the infrastructure that makes that possible.")
-    body(doc, "This creates a fundamentally different go-to-market challenge. The buyer profile question — does this company value training? — is necessary but not sufficient. The deeper question is whether their products can be orchestrated into a Skillable environment at all. Whether those products are technically complex enough that hands-on practice creates real value. Whether the company can build and sustain a lab program once they are a customer.")
+    body(doc, "This creates a fundamentally different go-to-market challenge. The buyer profile question — does this company value training? — is necessary but not sufficient. The deeper question is whether their products can be orchestrated into a Skillable environment at all. Whether those products are complex enough that hands-on practice creates real value. Whether the company can build and sustain a lab program once they are a customer.")
     body(doc, "These questions cannot be answered with firmographic data. They require a different kind of analysis entirely. That is what Intelligence provides.")
 
     h2(doc, "Knowing exactly who\u2019s in our ICP \u2014 before we spend a dollar")
     body(doc, "Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses — ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator — are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company's products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.")
     body(doc, "We evaluate every prospect across three dimensions:")
     bullet_bold(doc, "Can we deliver a lab for this company's products? ", "This is the primary filter. If the answer is no, nothing else matters — not the size of their training organization, not the depth of their content team, not their enthusiasm for hands-on learning. A company whose products cannot be orchestrated into a Skillable environment is not a prospect.")
-    bullet_bold(doc, "Is the product technically complex enough for labs to create real value? ", "Simple products with shallow workflows do not benefit enough from hands-on practice to justify the investment. Products with deep administrative workflows, meaningful configuration decisions, and real consequence of error — those are where labs change what learners can actually do.")
+    bullet_bold(doc, "Is the product complex enough for labs to create real value? ", "Simple products with shallow workflows don\u2019t benefit enough from hands-on practice to justify the investment. Products with deep administrative workflows, meaningful configuration decisions, and real consequence of error — those are where labs change what learners can actually do.")
     bullet_bold(doc, "Does the organization have what it takes to build and sustain a program? ", "Content team skills, technical enablement maturity, program leadership. Some companies have it today. Others have the organizational DNA to build it. Either can become a strong customer. Companies with neither are high-risk programs regardless of product fit.", after=60)
     body(doc, "The Workday pattern illustrates what happens when this analysis does not happen early. On every traditional marketing signal, Workday is an ideal prospect: world-class training organization, dedicated learning division, deep technical enablement culture, massive install base. Two of the three dimensions are strong. The third ends the conversation.")
     bullet_bold(doc, "Pure multi-tenant architecture — ", "every customer shares the same cloud environment. There is no Workday instance to give a learner. The product is architecturally incapable of per-learner isolation.")
     bullet_bold(doc, "No provisioning API — ", "no mechanism to spin up an individual environment programmatically. Skillable's entire delivery model depends on this capability.")
     bullet_bold(doc, "No deployment model — ", "nothing to install, containerize, or slice.", after=60)
-    body(doc, "That fact is findable in public documentation before a single sales conversation begins. Workday was not a bad lead. It was motivated, capable people who invested significant time before hitting a wall that was always there. The Workday pattern repeats whenever product-level technical fit is evaluated late — or not at all.")
+    body(doc, "These are specific technical facts findable in public documentation before a single sales conversation begins. Workday wasn\u2019t a bad lead. It was motivated, capable people who invested significant time before hitting a wall that was always there — because product-level technical fit was never evaluated before the pursuit began.")
     body(doc, "The same logic runs in the other direction. When Fortinet is a strong fit, it is not because Fortinet resembles other good customers as a company. It is because Fortinet's products have specific technical characteristics — multi-VM topology, deep administrative workflows, strong API surface, real consequence of misconfiguration — that make them ideal for hands-on labs. Every company selling products with those same characteristics is a strong fit for the same reasons. The competitive map of a strong-fit customer is a pre-qualified prospect list.")
 
     h2(doc, "Proving labability and impact \u2014 with SE-level depth at scale")
@@ -450,7 +450,7 @@ def write_what(doc):
 
     body(doc, "Each tool in Skillable Intelligence addresses one of the three challenges directly. All three share the same research and scoring engine — which means every analysis makes the entire platform smarter. A company Prospector evaluates is available to Inspector without re-running research. An Inspector analysis seeds Designer with the product context it needs from day one. The intelligence compounds with every use.")
 
-    h2(doc, "Designer — Closing the Adoption Gap")
+    h2(doc, "Designer — closing the adoption gap")
     body(doc, "Designer takes an Inspector analysis and guides program owners, instructional designers, and subject matter experts through the full process of designing a lab program. From goals and audience definition through a complete approved outline, activity-level content, and a Skillable Studio-ready export package.")
     body(doc, "The process is structured. It does not require the customer to know how to design a lab program — that is the point. Designer asks the right questions, sequences the decisions correctly, and generates a complete program architecture that a contracted lab developer can build against immediately.")
     ai_para(doc, [
@@ -460,7 +460,7 @@ def write_what(doc):
     ])
     body_bold(doc, [("What it unlocks: ", True), ("Every new customer engagement starts with Designer in the first week — before the technical environment is ready. Program design and environment build run as parallel workstreams. Day one is productive for the program owner. The adoption gap closes before it has a chance to form.", False)])
 
-    h2(doc, "Inspector — Proving Labability and Impact")
+    h2(doc, "Inspector — proving labability and impact")
     body(doc, "Inspector performs a deep product-level analysis of a specific company. It runs in two stages.")
     bullet_bold(doc, "Stage 1 — Company Report: ", "A broad scan that surfaces all of a company's products, ranked by labability, with competitive pairings, company-level signals, and an overall fit score. The foundation document for any seller or SE entering a conversation with this account.")
     bullet_bold(doc, "Stage 2 — Deep Dive: ", "The seller or SE selects three to four products from Stage 1 for exhaustive analysis — full technical orchestrability evidence, delivery path recommendation with rationale, scoring approach, consumption potential estimate, and program scope.", after=60)
@@ -471,7 +471,7 @@ def write_what(doc):
     body(doc, "Inspector also surfaces the competitive map for every analyzed company — which feeds directly into Prospector's lookalike targeting.")
     body_bold(doc, [("What it unlocks: ", True), ("Pre-call preparation that was previously impossible at scale is now standard. Every seller and SE enters every conversation with the technical depth that used to require hours of individual research — applied automatically, to every product, before the first meeting.", False)])
 
-    h2(doc, "Prospector — Finding the Right Companies")
+    h2(doc, "Prospector — finding the right companies")
     body(doc, "Prospector is the go-to-market tool for Marketing and RevOps. It takes a list of companies and returns a ranked assessment of ICP fit — with product-level evidence, composite scores, verdicts, delivery path signals, and key contacts for every company on the list.")
     ai_para(doc, [
         ("Marketing has never had access to ", False),
@@ -578,7 +578,7 @@ def main():
     add_header(section)
     add_footer(section)
 
-    add_title(doc, "Skillable Intelligence Platform", "Briefing for Skillable executive leadership")
+    add_title(doc, "Skillable Intelligence Platform", "Executive Leadership Team Brief")
 
     write_why(doc)
     page_break(doc)
