@@ -48,6 +48,31 @@
         .company-title { font-size: 2rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; }
         .header-desc { color: #6b9e88; margin-top: 8px; font-size: 0.84rem; line-height: 1.6; max-width: 680px; }
 
+        /* Top action block */
+        .top-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+        .top-sel-status {
+            font-size: 0.78rem; font-weight: 700; color: #fb923c;
+            text-align: right; min-height: 1.2em;
+        }
+
+        /* Company signals banner */
+        .co-signals {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            background: rgba(36,237,155,0.03); border: 1px solid #1e3329;
+            border-radius: 10px; padding: 11px 16px; margin-bottom: 16px;
+        }
+        .co-sig-lbl {
+            font-size: 0.58rem; font-weight: 800; color: #3d6655;
+            text-transform: uppercase; letter-spacing: 0.1em; margin-right: 2px; white-space: nowrap;
+        }
+        .co-sig-bdg {
+            display: inline-block; font-size: 0.67rem; font-weight: 600; padding: 3px 9px;
+            border-radius: 6px; white-space: nowrap;
+        }
+        .co-sig-green { background: rgba(36,237,155,0.1); color: #24ED9B; border: 1px solid rgba(36,237,155,0.22); }
+        .co-sig-teal  { background: rgba(20,184,166,0.1); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.22); }
+        .co-sig-gray  { background: rgba(100,116,139,0.1); color: #94a3b8; border: 1px solid rgba(100,116,139,0.2); }
+
         /* Org badges */
         .org-badge {
             display: inline-block; font-size: 0.58rem; padding: 3px 9px;
@@ -155,15 +180,15 @@
         .ic-org { font-size: 0.84rem; color: #e8f5f0; font-weight: 600; }
 
         /* Tier summary rows */
-        .ts-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(30,51,41,0.4); }
+        .ts-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(30,51,41,0.4); }
         .ts-row:last-child { border-bottom: none; }
-        .ts-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .ts-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
         .ts-dot-hl { background: #24ED9B; }
         .ts-dot-l  { background: #6dd9a8; }
         .ts-dot-ll { background: #fb923c; }
         .ts-dot-nl { background: #4b5563; }
-        .ts-lbl { font-size: 0.77rem; color: #6b9e88; flex: 1; }
-        .ts-ct  { font-size: 0.77rem; color: #3d6655; font-weight: 700; }
+        .ts-lbl { font-size: 0.9rem; color: #6b9e88; flex: 1; }
+        .ts-ct  { font-size: 1.15rem; color: #e8f5f0; font-weight: 800; }
 
         /* Signal rows */
         .sig-row { display: flex; align-items: center; gap: 8px; padding: 5px 0;
@@ -246,11 +271,13 @@
                 <div class="header-desc">{{ discovery.company_description }}</div>
                 {% endif %}
             </div>
-            {% if existing_analysis %}
-            <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">
-                View Previous Dossier &rarr;
-            </a>
-            {% endif %}
+            <div class="top-actions">
+                <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn-top" disabled>Run Dossier &rarr;</button>
+                {% if existing_analysis %}
+                <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev" style="text-align:right;">View Previous Dossier &rarr;</a>
+                {% endif %}
+                <div class="top-sel-status" id="top-sel-status">&nbsp;</div>
+            </div>
         </div>
     </div>
 
@@ -267,12 +294,29 @@
             {% set nl = discovery.products | selectattr('likely_labable','equalto','not_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
             {% set tc = discovery.products | selectattr('category','equalto','Training & Certification') | list | sort(attribute='name') %}
 
+            {# Company signals banner #}
+            <div class="co-signals">
+                <span class="co-sig-lbl">Company:</span>
+                {% set ot = discovery.organization_type or 'software_company' %}
+                {% if ot == 'software_company' %}<span class="co-sig-bdg co-sig-gray">Software Company</span>
+                {% elif ot == 'training_organization' %}<span class="co-sig-bdg co-sig-teal">Training Organization</span>
+                {% elif ot == 'academic_institution' %}<span class="co-sig-bdg co-sig-teal">Academic Institution</span>
+                {% elif ot == 'systems_integrator' %}<span class="co-sig-bdg co-sig-gray">Systems Integrator</span>
+                {% elif ot == 'technology_distributor' %}<span class="co-sig-bdg co-sig-gray">Technology Distributor</span>
+                {% elif ot == 'professional_services' %}<span class="co-sig-bdg co-sig-gray">Professional Services</span>
+                {% else %}<span class="co-sig-bdg co-sig-gray">{{ ot | replace('_',' ') | title }}</span>
+                {% endif %}
+                {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
+                {% if tc %}<span class="co-sig-bdg co-sig-teal">Training &amp; Certification Org</span>{% endif %}
+                {% if discovery.org_contacts %}<span class="co-sig-bdg co-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }} Found</span>{% endif %}
+                {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitor{{ 's' if discovery.competitive_products | length != 1 else '' }} Mapped</span>{% endif %}
+            </div>
+
             {% if hl %}
             <div class="tier-section">
                 <div class="tier-hdr">
                     <span class="tier-lbl t-hl">Highly Likely</span>
                     <div class="tier-rule"></div>
-                    <span class="tier-ct">{{ hl | length }}</span>
                 </div>
                 {% for p in hl %}
                 <label class="product-card hl selected" onclick="toggleCard(this)">
@@ -298,7 +342,6 @@
                 <div class="tier-hdr">
                     <span class="tier-lbl t-l">Likely</span>
                     <div class="tier-rule"></div>
-                    <span class="tier-ct">{{ l | length }}</span>
                 </div>
                 {% for p in l %}
                 <label class="product-card ll-tier selected" onclick="toggleCard(this)">
@@ -324,7 +367,6 @@
                 <div class="tier-hdr">
                     <span class="tier-lbl t-ll">Less Likely</span>
                     <div class="tier-rule"></div>
-                    <span class="tier-ct">{{ ll | length }}</span>
                 </div>
                 {% for p in ll %}
                 <label class="product-card less" onclick="toggleCard(this)">
@@ -349,7 +391,6 @@
                 <div class="tier-hdr">
                     <span class="tier-lbl t-nl">Not Likely</span>
                     <div class="tier-rule"></div>
-                    <span class="tier-ct">{{ nl | length }}</span>
                 </div>
                 {% for p in nl %}
                 <label class="product-card nope" onclick="toggleCard(this)">
@@ -374,7 +415,6 @@
                 <div class="tier-hdr">
                     <span class="tier-lbl t-tc">Training &amp; Certification</span>
                     <div class="tier-rule"></div>
-                    <span class="tier-ct">{{ tc | length }}</span>
                 </div>
                 {% for p in tc %}
                 <div class="product-card tc-card">
@@ -396,7 +436,6 @@
                 <div class="tier-hdr">
                     <span class="tier-lbl t-cp">Competitive Landscape</span>
                     <div class="tier-rule"></div>
-                    <span class="tier-ct">{{ discovery.competitive_products | length }}</span>
                 </div>
                 {% for comp in discovery.competitive_products %}
                 <div class="comp-card">
@@ -430,8 +469,8 @@
                 <div style="margin-top:14px">
                     {% set hl2 = discovery.products | selectattr('likely_labable','equalto','highly_likely') | list %}
                     {% set l2  = discovery.products | selectattr('likely_labable','equalto','likely') | list %}
-                    {% set ll2 = discovery.products | selectattr('likely_labable','equalto','less_likely') | list %}
-                    {% set nl2 = discovery.products | selectattr('likely_labable','equalto','not_likely') | list %}
+                    {% set ll2 = discovery.products | selectattr('likely_labable','equalto','less_likely') | rejectattr('category','equalto','Training & Certification') | list %}
+                    {% set nl2 = discovery.products | selectattr('likely_labable','equalto','not_likely') | rejectattr('category','equalto','Training & Certification') | list %}
                     <div class="ts-row"><div class="ts-dot ts-dot-hl"></div><span class="ts-lbl">Highly Likely</span><span class="ts-ct">{{ hl2 | length }}</span></div>
                     <div class="ts-row"><div class="ts-dot ts-dot-l"></div><span class="ts-lbl">Likely</span><span class="ts-ct">{{ l2 | length }}</span></div>
                     <div class="ts-row"><div class="ts-dot ts-dot-ll"></div><span class="ts-lbl">Less Likely</span><span class="ts-ct">{{ ll2 | length }}</span></div>
@@ -445,13 +484,13 @@
                 {% if discovery.training_programs %}{% for prog in discovery.training_programs[:5] %}
                 <div class="sig-row">
                     <div class="sig-dot"></div>
-                    <span class="sig-lbl">{% if prog is string %}{{ prog }}{% elif prog.name is defined %}{{ prog.name }}{% else %}{{ prog }}{% endif %}</span>
+                    <span class="sig-lbl">{% if prog is string %}{{ prog }}{% elif prog.title is defined %}{{ prog.title }}{% elif prog.name is defined %}{{ prog.name }}{% else %}{{ prog }}{% endif %}</span>
                 </div>
                 {% endfor %}{% endif %}
                 {% if discovery.atp_signals %}{% for sig in discovery.atp_signals[:3] %}
                 <div class="sig-row">
                     <div class="sig-dot"></div>
-                    <span class="sig-lbl">{% if sig is string %}{{ sig }}{% elif sig.name is defined %}{{ sig.name }}{% else %}{{ sig }}{% endif %}</span>
+                    <span class="sig-lbl">{% if sig is string %}{{ sig }}{% elif sig.title is defined %}{{ sig.title }}{% elif sig.name is defined %}{{ sig.name }}{% else %}{{ sig }}{% endif %}</span>
                     <span class="sig-tag">ATP</span>
                 </div>
                 {% endfor %}{% endif %}
@@ -514,13 +553,22 @@ function syncFooter() {
     const cnt = document.querySelectorAll('input[name="products"]:checked').length;
     document.getElementById('fct').textContent = cnt;
     document.getElementById('runBtn').disabled = cnt === 0;
+    document.getElementById('runBtn-top').disabled = cnt === 0;
+    const topStatus = document.getElementById('top-sel-status');
+    if (cnt === 0) {
+        topStatus.textContent = 'No products selected';
+    } else {
+        topStatus.textContent = cnt + ' product' + (cnt === 1 ? '' : 's') + ' selected';
+    }
     const hint = document.getElementById('fhint');
     if (cnt >= MAX) {
         hint.textContent = 'Maximum selected — deselect to change';
         hint.style.color = '#fb923c';
+        topStatus.style.color = '#fb923c';
     } else {
         hint.textContent = 'Select 1–4 products to run a Dossier';
         hint.style.color = '#3d6655';
+        topStatus.style.color = cnt === 0 ? '#94a3b8' : '#fb923c';
     }
     // Dim unselected when at max
     document.querySelectorAll('.product-card').forEach(card => {
