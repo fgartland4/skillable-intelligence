@@ -539,6 +539,26 @@ _SKILLABLE_SEEDS = [
     "skillificator", "achievificator", "the configuratorinator",
 ]
 
+# ---------------------------------------------------------------------------
+# Base loading states — Skillable's permanent personality layer.
+# These always appear in every VocabularyPack, every program, for every customer.
+# Claude's generated company-specific states get appended on top of these.
+# ---------------------------------------------------------------------------
+
+_BASE_LOADING_STATES = [
+    "Big Hitterifying...",
+    "Schwackity-schwackin'...",
+    "Nicklin', dimin' & quarterin'...",
+    "Perhaps over-answering this...",
+    "Thinkin' about dunkin' a basketballing...",
+    "Totally unencumbered by fact right now...",
+    "Who's your huckleberry?",
+    "Putting all my oars in the water...",
+    "Oh boy, this is makin' my stomach hurt...",
+    "Breakin' off the rearview mirrors...",
+    "Thinking up questions, comments, and queries...",
+]
+
 _VOCABULARY_PROMPT = """You are a playful word-manufacturing machine for Skillable, a hands-on lab platform.
 
 Your job is to INVENT fake-but-fun words and phrases for a training program — blending
@@ -700,10 +720,9 @@ Generate the vocabulary pack for {company_name_actual}'s training program."""
         })
         result.setdefault("action_verb_palette", [])
         result.setdefault("domain_terms", unique_company[:5])
-        result.setdefault("loading_states", [
-            "Skillificating...", "Achievify-ing...", "Lab-ologizing...",
-            "Program-architecturifying...", "Job-readyifyin'...",
-        ])
+        # Merge: base personality layer always present + company-specific states on top
+        generated_states = result.get("loading_states", [])
+        result["loading_states"] = _BASE_LOADING_STATES + generated_states
         result["_company_name"] = company_name_actual
         result["_generated_at"] = _now_iso()
         log.info("Intelligence.generate_vocabulary: generated for %s (%d loading states)",
@@ -724,7 +743,7 @@ Generate the vocabulary pack for {company_name_actual}'s training program."""
             },
             "action_verb_palette": ["Skillify", "Configure", "Deploy", "Validate", "Achieve", "Build"],
             "domain_terms": unique_company[:5],
-            "loading_states": [
+            "loading_states": _BASE_LOADING_STATES + [
                 "Skillificating...", "Achievify-ing...", "Lab-ologizing...",
                 "Program-architecturifying...", "Job-readyifyin'...",
                 "Configuratorinating...", "Enablifying...", "Masterificating...",
