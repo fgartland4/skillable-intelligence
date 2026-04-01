@@ -27,7 +27,7 @@ These questions cannot be answered with the exhaustive-but-typical data provided
 
 Each tool addresses one of the three challenges directly. All three share the same research and scoring engine — which means every analysis makes the entire platform smarter. A company Prospector evaluates is available to Inspector without re-running research. An Inspector analysis seeds Designer with the product context it needs from day one. The intelligence compounds with every use.
 
-### Designer: Closing the adoption gap
+### Designer: Closes the Adoption Gap
 
 A signed contract is not an adopted customer. The gap between "we want labs" and "we're building and delivering labs embedded in a variety of learning journeys" is wide. And it's crystal clear that most customers are not, and cannot, make the leap without significant and structured support.
 
@@ -37,7 +37,9 @@ Without a process that takes them from goals and audience to a complete, buildab
 
 Designer closes that gap.
 
-Designer guides program owners, instructional designers, and subject matter experts through the full process — from learning objectives and intended audience through every decision a program requires. It doesn't require the customer to know how to design a lab program. Designer asks the right questions and sequences the decisions correctly. Every program produces:
+Designer guides program owners, instructional designers, and subject matter experts through the full process — from learning objectives and intended audience through every decision a program requires. It doesn't require the customer to know how to design a lab program. Designer asks the right questions and sequences the decisions correctly.
+
+Powered by AI, Designer collaborates with program owners and Instructional Designers to create:
 
 - A structured program outline
 - Draft lab instructions for every lab in the program
@@ -48,7 +50,7 @@ Designer guides program owners, instructional designers, and subject matter expe
 
 **What it unlocks:** Every new customer engagement starts with Designer in the first week — while the technical folks are working to get the technical details sorted. Program design and environment build run in parallel. Day one is productive for the program owner. The adoption gap closes before it has a chance to form.
 
-### Inspector: Proving labability and impact
+### Inspector: Proves Labability and Lab Impact
 
 Proving that a Skillable lab program will work for a specific customer's products requires deep technical analysis. Which is the best delivery path for each software environment? A set of virtual machines or containers, leveraging Azure or AWS subscriptions, a custom API orchestration, or a hybrid setup? What are the architectural constraints? What would a realistic program look like in terms of scope, seat time, and scoring approach? What is the estimated consumption potential?
 
@@ -69,7 +71,7 @@ Inspector also surfaces the competitive map for every analyzed company, which fe
 
 **What it unlocks:** Pre-call preparation that was previously impossible at scale is now standard. Every seller and SE enters every conversation with the technical depth that used to require hours of individual research, applied automatically to every product before the first meeting.
 
-### Prospector: Finding the right companies
+### Prospector: Finds Companies Squarely in Our ICP
 
 Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses (ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator) are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company's products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.
 
