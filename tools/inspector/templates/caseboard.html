@@ -190,6 +190,52 @@
         .ts-lbl { font-size: 0.9rem; color: #6b9e88; flex: 1; }
         .ts-ct  { font-size: 1.15rem; color: #e8f5f0; font-weight: 800; }
 
+        /* Lab Maturity slider */
+        .mat-level-name {
+            font-size: 0.78rem; font-weight: 800; color: #24ED9B;
+            letter-spacing: 0.02em; margin-bottom: 14px;
+        }
+        .mat-track {
+            height: 2px; background: #122019; border-radius: 1px;
+            position: relative; margin: 14px 0 10px;
+        }
+        .mat-fill {
+            position: absolute; left: 0; top: 0; bottom: 0; border-radius: 1px;
+            background: linear-gradient(90deg, rgba(36,237,155,0.35), rgba(36,237,155,0.8));
+        }
+        .mat-nodes {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            left: 0; right: 0; display: flex; justify-content: space-between;
+            z-index: 2; pointer-events: none;
+        }
+        .mat-node {
+            width: 11px; height: 11px; border-radius: 50%;
+            background: #0d1a14; border: 2px solid #1e3329; flex-shrink: 0;
+        }
+        .mat-passed { border-color: rgba(36,237,155,0.45); background: rgba(36,237,155,0.1); }
+        .mat-active {
+            border-color: #24ED9B !important; background: #24ED9B !important;
+            box-shadow: 0 0 8px rgba(36,237,155,0.5);
+            width: 13px; height: 13px; margin-top: -1px;
+        }
+        .mat-labels { display: flex; justify-content: space-between; margin-top: 10px; }
+        .mat-lbl {
+            font-size: 0.56rem; color: #2a4a3a; font-weight: 600;
+            letter-spacing: 0.04em; text-transform: uppercase;
+        }
+        .mat-lbl:nth-child(2), .mat-lbl:nth-child(3) { text-align: center; }
+        .mat-lbl:last-child { text-align: right; }
+        .mat-lbl-active { color: #24ED9B; }
+        /* Signal badges (compact — snapshot only) */
+        .mat-signals { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+        .mat-sig-badge {
+            font-size: 0.6rem; font-weight: 700; padding: 2px 8px;
+            border-radius: 5px; letter-spacing: 0.03em; white-space: nowrap;
+        }
+        .mat-sig-green { background: rgba(36,237,155,0.1); color: #6b9e88; border: 1px solid rgba(36,237,155,0.2); }
+        .mat-sig-amber { background: rgba(251,191,36,0.08); color: #a68a3a; border: 1px solid rgba(251,191,36,0.2); }
+        .mat-sig-gray  { background: rgba(148,163,184,0.07); color: #4b5563; border: 1px solid rgba(148,163,184,0.12); }
+
         /* Signal rows */
         .sig-row { display: flex; align-items: center; gap: 8px; padding: 5px 0;
             border-bottom: 1px solid rgba(30,51,41,0.4); font-size: 0.79rem; }
@@ -455,19 +501,48 @@
         <!-- Intel panel -->
         <div class="intel">
 
+            {# ── Company Intelligence — Lab Maturity slider + key signals ── #}
+            {% set ns_mat = namespace(score=0) %}
+            {% if discovery.organization_type == 'training_organization' %}{% set ns_mat.score = ns_mat.score + 4 %}{% endif %}
+            {% if discovery.atp_signals %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
+            {% if discovery.training_programs %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
+            {% if tc %}{% set ns_mat.score = ns_mat.score + 1 %}{% endif %}
+            {% if ns_mat.score >= 6 %}{% set mat_level = 'Mature' %}{% set mat_idx = 3 %}
+            {% elif ns_mat.score >= 4 %}{% set mat_level = 'Established' %}{% set mat_idx = 2 %}
+            {% elif ns_mat.score >= 1 %}{% set mat_level = 'Emerging' %}{% set mat_idx = 1 %}
+            {% else %}{% set mat_level = 'Nascent' %}{% set mat_idx = 0 %}{% endif %}
+            {% set mat_pcts = [0, 33, 67, 100] %}
+
             <div class="intel-card">
                 <div class="ic-title">Company Intelligence</div>
-                {% set ot = discovery.organization_type or 'software_company' %}
-                <div class="ic-org">
-                    {% if ot == 'software_company' %}Software Company
-                    {% elif ot == 'academic_institution' %}Academic Institution
-                    {% elif ot == 'training_organization' %}Training Organization
-                    {% elif ot == 'systems_integrator' %}Systems Integrator
-                    {% elif ot == 'technology_distributor' %}Technology Distributor
-                    {% elif ot == 'professional_services' %}Professional Services
-                    {% else %}{{ ot | replace('_',' ') | title }}{% endif %}
+                <div class="mat-level-name">{{ mat_level }}</div>
+                <div class="mat-track">
+                    <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
+                    <div class="mat-nodes">
+                        {% for i in range(4) %}
+                        <div class="mat-node {% if i < mat_idx %}mat-passed{% elif i == mat_idx %}mat-active{% endif %}"></div>
+                        {% endfor %}
+                    </div>
                 </div>
-                <div style="margin-top:14px">
+                <div class="mat-labels">
+                    {% set mat_lbls = ['Nascent','Emerging','Established','Mature'] %}
+                    {% for i in range(4) %}
+                    <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
+                    {% endfor %}
+                </div>
+                <div class="mat-signals">
+                    {% if discovery.atp_signals %}<span class="mat-sig-badge mat-sig-green">ATP Program</span>{% endif %}
+                    {% if discovery.training_programs %}<span class="mat-sig-badge mat-sig-green">Training Programs</span>{% endif %}
+                    {% if tc %}<span class="mat-sig-badge mat-sig-amber">T&amp;C Products</span>{% endif %}
+                    {% if discovery.org_contacts %}<span class="mat-sig-badge mat-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }}</span>{% endif %}
+                    {% if discovery.competitive_products %}<span class="mat-sig-badge mat-sig-gray">{{ discovery.competitive_products | length }} Competitors</span>{% endif %}
+                </div>
+            </div>
+
+            {# ── Product Labability Categories ── #}
+            <div class="intel-card">
+                <div class="ic-title">Product Labability</div>
+                <div style="margin-top:6px">
                     {% set hl2 = discovery.products | selectattr('likely_labable','equalto','highly_likely') | list %}
                     {% set l2  = discovery.products | selectattr('likely_labable','equalto','likely') | list %}
                     {% set ll2 = discovery.products | selectattr('likely_labable','equalto','less_likely') | rejectattr('category','equalto','Training & Certification') | list %}
