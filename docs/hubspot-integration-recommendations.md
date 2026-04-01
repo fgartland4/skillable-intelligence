@@ -99,6 +99,28 @@ A company must clear a minimum threshold on Technical Orchestrability for the co
 
 **The result is a score that reflects not just whether a company looks like a good prospect, but whether a successful lab program is actually achievable — and what it would take to get there.**
 
+### Why Lookalike Analysis Works Differently for Skillable
+
+Most companies use lookalike modeling to find prospects that *resemble* their best customers — same company size, same industry vertical, same technology stack. It's a correlation model: companies that look like our best customers tend to buy like them too.
+
+**For Skillable, lookalike is not correlation — it's causation.**
+
+When Fortinet is a strong fit, it's not because Fortinet resembles other good customers as a company. It's because Fortinet's products have specific technical characteristics — multi-VM topology, deep admin workflows, real consequence of error, strong API surface — that make them labable. Those characteristics are determined by what Fortinet *sells*, not by how large they are or what industry they're in.
+
+**Every company selling products with those same technical characteristics is labable for the same reasons.** The fit is not approximate. It transfers directly.
+
+This means Skillable's most powerful prospecting signal is product category — not firmographics:
+
+- A company selling network security products (firewalls, threat detection, zero trust) will almost always clear Gates 1 and 2 — for the same reasons Fortinet, Palo Alto, and Cisco do.
+- A company selling SIEM, EDR, or identity management products will almost always clear Gates 1 and 2 — for the same reasons CrowdStrike, Splunk, and SentinelOne do.
+- A company selling data pipeline or ML infrastructure products will almost always clear Gates 1 and 2 — for the same reasons Databricks, dbt Labs, and Snowflake do.
+
+**The competitive map is the lookalike list.** Every time Intelligence analyzes a strong-fit customer, it surfaces that company's direct competitors. Those competitors sell products in the same category, with the same technical profile, for the same buyer personas. They are pre-qualified lookalike candidates — identified automatically, without additional research.
+
+**And it compounds.** Every new Skillable customer proves another product category. Every Inspector analysis adds to the competitive map. The platform's ability to identify strong lookalike candidates grows automatically as the customer base grows.
+
+This is the most important thing Marketing and RevOps should understand about Intelligence-driven prospecting: **we are not looking for companies that look like our customers. We are looking for companies whose products behave like our customers' products.** That is a fundamentally more defensible, more precise, and more scalable approach to ICP targeting than firmographic lookalike modeling alone.
+
 ---
 
 ## Section 3 — ICP Outbound: How It Works & What Goes to HubSpot
