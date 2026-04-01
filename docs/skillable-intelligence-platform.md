@@ -5,17 +5,15 @@
 
 ## Three Problems Worth Solving
 
-Skillable is a platform company. Not a software product — an orchestration platform that enables software companies to deliver hands-on learning experiences at scale. That distinction is more than positioning. It is the root cause of three hard problems that no standard sales or marketing tool was ever designed to solve.
+We recently agreed that Skillable is PaaS and not SaaS. Does this distinction simply change some positioning — or does it signal our opportunity to shatter a few glass ceilings? It's the latter.
 
 - **Marketing:** Identifying companies in our ICP
 - **Revenue:** Proving labability and lab impact
 - **ProServ & Product:** Enabling bought-in customers to adopt labs
 
-Each problem is structural — a natural consequence of the sophistication of what we do, not a gap in any team's execution. And each one requires a different kind of intelligence than any existing tool provides.
+### The PaaS Difference
 
-### The Platform Difference
-
-Most B2B software companies sell a product that runs in their cloud. Their buyers interact with it through a browser. The product is the same for every customer. Qualifying a prospect means finding buyers who fit the profile: the right size, the right industry, the right pain point, the right budget.
+Most B2B software companies sell products that run in a cloud, in a datacenter, on a computer, or on a phone. With a few customizations here and there, many of these products are roughly the same for every user. Qualifying a prospect means finding buyers who fit the profile: the right size, the right industry, the right pain point, the right budget.
 
 Skillable is different. We do not deliver our own software. We orchestrate *other companies' software* into hands-on lab environments — real products, real interfaces, real consequence of error, accessible to a learner anywhere. What we sell is the infrastructure that makes that possible.
 
