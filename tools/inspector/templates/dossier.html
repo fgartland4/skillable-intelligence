@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>{{ data.company_name }} — Inspector Dossier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0; min-height: 100vh;
+        }
+        a { color: #24ED9B; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; padding: 16px 32px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.92); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .nav img { height: 28px; }
+        .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
+        .nav-title { font-size: 0.875rem; color: #6b9e88; font-weight: 500; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+        .back { display: inline-block; margin-bottom: 28px; color: #6b9e88; font-size: 0.85rem; }
+        .back:hover { color: #24ED9B; text-decoration: none; }
+        .cache-banner {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(36,237,155,0.04); border: 1px solid rgba(36,237,155,0.12);
+            border-radius: 8px; padding: 9px 16px; margin-bottom: 24px;
+            font-size: 0.78rem; color: #3d6655;
+        }
+        .cache-banner .cache-date { color: #6b9e88; }
+        .cache-banner form { margin: 0; }
+        .cache-banner button {
+            background: none; border: 1px solid #1e3329; color: #6b9e88;
+            padding: 4px 12px; border-radius: 6px; font-size: 0.75rem;
+            font-family: inherit; cursor: pointer; transition: all 0.15s;
+        }
+        .cache-banner button:hover { border-color: rgba(36,237,155,0.4); color: #24ED9B; }
+
+        /* Org type badges */
+        .org-badge {
+            display: inline-block; font-size: 0.62rem; padding: 4px 10px;
+            border-radius: 20px; vertical-align: middle; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase; margin-left: 12px;
+        }
+        .org-software    { background: rgba(112,0,255,0.12); color: #a78bfa; border: 1px solid rgba(112,0,255,0.25); }
+        .org-training    { background: rgba(245,158,11,0.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .org-academic    { background: rgba(139,92,246,0.1);  color: #c4b5fd; border: 1px solid rgba(139,92,246,0.25); }
+        .org-integrator  { background: rgba(20,184,166,0.1);  color: #2dd4bf; border: 1px solid rgba(20,184,166,0.25); }
+        .org-distributor { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+        .org-services    { background: rgba(148,163,184,0.08);color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
+
+        /* Company header */
+        .company-header { margin-bottom: 36px; }
+        .company-header h1 { font-size: 2.2rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; line-height: 1.2; }
+        .company-header .desc { color: #6b9e88; margin-top: 10px; line-height: 1.6; font-size: 0.83rem; }
+        .company-header .meta { color: #3d6655; font-size: 0.82rem; margin-top: 8px; }
+
+        /* Top blocks — side by side */
+        .top-blocks { display: flex; gap: 16px; margin-bottom: 28px; align-items: stretch; }
+        .top-blocks .composite-card { flex: 1; margin-bottom: 0; }
+        .consumption-summary-card {
+            flex: 1; display: flex; flex-direction: column; justify-content: space-between;
+            background: linear-gradient(135deg, #0d1a14 0%, #0f2019 100%);
+            border: 1px solid rgba(36,237,155,0.25); border-radius: 16px; padding: 24px 28px;
+            box-shadow: 0 0 40px rgba(36,237,155,0.07);
+        }
+        .consumption-summary-card .card-label {
+            font-size: 0.65rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 16px;
+        }
+        @media (max-width: 700px) { .top-blocks { flex-direction: column; } }
+
+        /* Composite score card */
+        .composite-card {
+            background: linear-gradient(135deg, #0d1a14 0%, #0f2019 100%);
+            border: 1px solid rgba(36,237,155,0.25);
+            border-radius: 16px; padding: 24px 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 0 40px rgba(36,237,155,0.07);
+        }
+        .composite-card .card-label {
+            font-size: 0.65rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 16px;
+        }
+        .composite-body {
+            display: flex; align-items: center; gap: 0;
+        }
+        .composite-hero {
+            display: flex; flex-direction: column; justify-content: center;
+            padding-right: 28px; flex-shrink: 0;
+        }
+        .composite-hero .value {
+            font-size: 3.2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
+        }
+        .composite-divider {
+            width: 1px; background: #1e3329; align-self: stretch;
+            flex-shrink: 0; margin: 0 24px;
+        }
+        .composite-inputs {
+            flex: 1; display: flex; flex-direction: column; gap: 10px;
+        }
+        .composite-input {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+        }
+        .input-left { flex: 1; min-width: 0; }
+        .input-label {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.08em; font-weight: 700;
+        }
+        .input-sublabel { font-size: 0.78rem; color: #a8d5c2; margin-top: 3px; font-weight: 500; }
+        .input-right { text-align: left; flex-shrink: 0; }
+        .input-score {
+            font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1;
+        }
+        .input-weight {
+            font-size: 0.62rem; font-weight: 700; color: #3d6655;
+            background: #122019; border-radius: 4px; padding: 2px 7px;
+            letter-spacing: 0.04em; display: block; margin-top: 4px;
+        }
+        .composite-input-sep { height: 1px; background: #1e3329; margin: 2px 0; }
+        .score-high { color: #24ED9B; }
+        .score-mid  { color: #f59e0b; }
+        .score-low  { color: #f87171; }
+        .gated-note { font-size: 0.67rem; color: #f87171; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+        .composite-equation {
+            font-size: 0.72rem; color: #3d6655; line-height: 1.5;
+            border-top: 1px solid #1e3329; margin-top: 16px; padding-top: 12px;
+        }
+        .composite-equation .eq-math { color: #4a7a62; font-variant-numeric: tabular-nums; }
+        .composite-equation .eq-cap  { color: #f87171; }
+
+        /* Section heading */
+        .section-heading {
+            font-size: 0.7rem; font-weight: 700; color: #3d6655;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 16px; margin-top: 8px;
+        }
+
+        /* Product cards */
+        .product-card {
+            scroll-margin-top: 80px;
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 16px; padding: 30px; margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+        .product-card:hover { border-color: #2a4a3a; }
+
+        .product-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+        .product-name { font-size: 1.35rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.01em; }
+        .product-category { color: #6b9e88; font-size: 0.82rem; margin-top: 3px; }
+        .product-deploy {
+            display: inline-block; background: #122019; color: #6b9e88;
+            padding: 3px 10px; border-radius: 6px; font-size: 0.72rem; margin-top: 5px;
+        }
+        .score-right { display: flex; align-items: flex-start; gap: 12px; flex-shrink: 0; }
+        .mult-info { text-align: right; font-size: 0.70rem; color: #6b9e88; line-height: 1.6; padding-top: 6px; white-space: nowrap; }
+        .total-score { text-align: right; min-width: 70px; }
+        .total-score .score-num { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+        .product-desc { color: #6b9e88; font-size: 0.875rem; margin-bottom: 18px; line-height: 1.6; }
+
+        /* Lab highlight badge */
+        .lab-highlight-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.68rem; padding: 3px 10px; border-radius: 20px;
+            font-weight: 600; margin-left: 10px; vertical-align: middle;
+            background: rgba(245,158,11,0.08); color: #f59e0b;
+            border: 1px solid rgba(245,158,11,0.2);
+            letter-spacing: 0.01em;
+        }
+
+        /* Poor match flags */
+        .poor-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+        .flag-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 600;
+            background: rgba(248,113,113,0.08); color: #f87171;
+            border: 1px solid rgba(248,113,113,0.2);
+        }
+
+        /* Recommendation */
+        .recommendation {
+            background: rgba(36,237,155,0.04); border-left: 2px solid #24ED9B;
+            border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 20px;
+            font-size: 0.875rem; color: #a8d5c2; line-height: 1.65;
+        }
+        .rec-bullets {
+            margin: 6px 0 0 0; padding-left: 18px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .rec-bullets li { font-size: 0.82rem; line-height: 1.55; color: #a8d5c2; }
+        .rec-bullets li strong { font-size: inherit; color: #24ED9B; font-weight: 600; }
+        .rec-link { color: #24ED9B; text-decoration: none; border-bottom: 1px solid rgba(36,237,155,0.3); }
+        .rec-link:hover { border-bottom-color: #24ED9B; }
+        .product-name-link { color: inherit; border-bottom: 1px solid rgba(168,213,194,0.4); text-decoration: none; }
+        .product-name-link:hover { border-bottom-color: #a8d5c2; }
+        .rec-fabric {
+            background: rgba(112,0,255,0.12); color: #a78bfa;
+            border: 1px solid rgba(112,0,255,0.25);
+            padding: 2px 9px; border-radius: 4px;
+            font-size: 0.68rem; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: none; white-space: nowrap;
+        }
+
+        .api-badge {
+            font-size: 0.72rem; color: #3d6655;
+            max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .persona-badge {
+            display: inline-block; background: #0d1a14; color: #6b9e88;
+            border: 1px solid #1e3329; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.72rem; margin-top: 5px; margin-left: 6px;
+        }
+        .fabric-badge {
+            display: inline-block; padding: 3px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 600; margin-top: 5px; margin-left: 6px;
+            background: rgba(36,237,155,0.07); color: #24ED9B;
+            border: 1px solid rgba(36,237,155,0.18);
+        }
+
+        /* Score dimensions */
+        .dimensions { display: flex; flex-direction: column; margin-bottom: 22px; }
+        .dim { display: grid; grid-template-columns: 1fr 180px; gap: 24px; align-items: start; padding: 18px 0; border-bottom: 1px solid #122019; }
+        .dim:last-child { border-bottom: none; padding-bottom: 0; }
+        .dim-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #3d6655; margin-bottom: 8px; }
+        .dim-score-col { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 2px; }
+        .dim-score-num { font-weight: 900; font-size: 1.8rem; letter-spacing: -0.03em; line-height: 1; text-align: center; }
+        .bar-track { height: 4px; background: #1e3329; border-radius: 2px; overflow: hidden; width: 100%; }
+        .bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+        .bar-fill.high { background: #24ED9B; }
+        .bar-fill.mid  { background: #f59e0b; }
+        .bar-fill.low  { background: #f87171; }
+        .dim-summary { font-size: 0.78rem; color: #3d6655; margin-top: 4px; line-height: 1.5; }
+        .delivery-path-line { font-size: 0.78rem; color: #24ED9B; font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+        .delivery-path-tier { font-size: 0.72rem; color: #6b9e88; font-weight: 400; }
+
+        /* Org & Contacts */
+        .org-banner {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: #06100c; border: 1px solid #1e3329; border-radius: 10px;
+            padding: 14px 16px; margin-bottom: 12px;
+        }
+        .org-banner-body { flex: 1; min-width: 0; }
+        .section-title {
+            font-size: 0.68rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; margin-bottom: 6px; font-weight: 700;
+        }
+        .org-name { font-weight: 700; color: #e8f5f0; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .org-type-tag {
+            display: inline-block; background: #122019; color: #6b9e88;
+            padding: 2px 7px; border-radius: 4px; font-size: 0.65rem;
+        }
+        .org-desc { font-size: 0.82rem; color: #6b9e88; margin-top: 5px; line-height: 1.4; }
+        .contacts-groups { margin-top: 4px; }
+        .contacts-group-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; padding: 6px 0 4px; margin-top: 8px;
+        }
+        .contacts-group-label.dm  { color: #a78bfa; }
+        .contacts-group-label.inf { color: #24ED9B; }
+        .contact-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 9px 12px; background: #06100c; border: 1px solid #1e3329;
+            border-radius: 8px; margin-bottom: 5px;
+        }
+        .contact-row-main { flex: 1; min-width: 0; }
+        .contact-name { font-weight: 600; color: #e8f5f0; font-size: 0.875rem; line-height: 1.2; }
+        .contact-name a { color: #e8f5f0; }
+        .contact-name a:hover { color: #24ED9B; }
+        .contact-li-icon { font-size: 0.65rem; color: #24ED9B; margin-left: 4px; vertical-align: middle; }
+        .contact-title { font-size: 0.78rem; color: #6b9e88; margin-top: 2px; line-height: 1.3; }
+        .contact-relevance { font-size: 0.72rem; color: #3d6655; margin-top: 5px; line-height: 1.35; }
+        .contact-alumni-badge {
+            display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.07em;
+            text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-bottom: 4px;
+            background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);
+        }
+        .contact-row.alumni { border-color: rgba(251,191,36,0.25); background: #0d100a; }
+        .contact-relevance.alumni { color: #a68a3a; }
+
+        /* Lab concepts */
+        .lab-concepts { margin-top: 14px; }
+        .lab-concepts-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px;
+        }
+        .lab-concept {
+            background: rgba(112,0,255,0.08); color: #a78bfa;
+            border: 1px solid rgba(112,0,255,0.15);
+            padding: 5px 12px; border-radius: 6px; font-size: 0.78rem;
+            line-height: 1.4;
+        }
+
+        /* Score bar entrance animation */
+        @keyframes bar-enter { from { width: 0; } }
+        .bar-fill { animation: bar-enter 0.7s ease-out; }
+
+        /* Verdict badge */
+        .verdict-badge {
+            display: inline-block; font-size: 0.6rem; padding: 3px 10px;
+            border-radius: 20px; font-weight: 800; letter-spacing: 0.08em;
+            text-transform: uppercase; vertical-align: middle;
+        }
+        .verdict-strong { background: rgba(36,237,155,0.15); color: #24ED9B; border: 1px solid rgba(36,237,155,0.3); }
+        .verdict-pursue { background: rgba(36,237,155,0.07); color: #6b9e88; border: 1px solid rgba(36,237,155,0.15); }
+        .verdict-monitor { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .verdict-pass { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+        /* ACV headline on card header */
+        .product-acv { margin-top: 10px; }
+        .product-acv-dollars { font-size: 0.95rem; font-weight: 800; color: #24ED9B; letter-spacing: -0.01em; }
+        .product-acv-hours { font-size: 0.68rem; color: #3d6655; margin-top: 1px; }
+
+        /* Composite segmented bar (Layer 1 + Layer 2) */
+        .comp-seg-bar { display:flex; height:26px; gap:3px; width:100%; }
+        /* Track: faint identity color — always shows which dimension */
+        .seg-block { border-radius:4px; position:relative; overflow:hidden; }
+        .seg-block-tech { background:rgba(36,237,155,0.12); }
+        .seg-block-wf   { background:rgba(59,130,246,0.12); }
+        .seg-block-te   { background:rgba(167,139,250,0.12); }
+        .seg-block-mf   { background:rgba(245,158,11,0.12); }
+        /* Fill: identity color when healthy, red when low */
+        .seg-fill { height:100%; position:absolute; top:0; left:0; border-radius:4px; animation: bar-enter 0.7s ease-out; transition: width 0.7s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; }
+        .seg-tech { background:#24ED9B; }
+        .seg-wf   { background:#3b82f6; }
+        .seg-te   { background:#a78bfa; }
+        .seg-mf   { background:#f59e0b; }
+        .seg-lm   { background:#24ED9B; }
+        .seg-low  { background:#f87171; }
+        .seg-score { font-size:0.9rem; font-weight:900; line-height:1; pointer-events:none; letter-spacing:-0.01em; text-shadow:0 1px 3px rgba(0,0,0,0.45); color:rgba(255,255,255,0.95); }
+
+        /* Layer 2 — consumption summary inside collapsible */
+        .l2-consumption {
+            background: #06100c; border: 1px solid #1e3329;
+            border-radius: 10px; padding: 16px 18px; margin-bottom: 18px;
+        }
+        .l2-cons-header {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 10px;
+        }
+        /* Consumption motion grid — CSS Grid avoids <table> parser quirks inside <details> */
+        .l2-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 130px 68px 104px 130px;
+            width: 100%; margin-bottom: 8px;
+        }
+        .l2-cons-gh {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #3d6655;
+            padding: 4px 6px 7px; border-bottom: 1px solid #1e3329;
+            text-align: right; white-space: nowrap;
+        }
+        .l2-cons-gh:first-child { text-align: left; }
+        .l2-cons-gc {
+            font-size: 0.78rem; padding: 6px 6px;
+            border-bottom: 1px solid #0d1a14;
+            color: #a8d5c2; font-weight: 500;
+            text-align: right; white-space: nowrap;
+            display: flex; align-items: center; justify-content: flex-end;
+        }
+        .l2-cons-gc.lbl {
+            color: #6b9e88; font-weight: 400;
+            text-align: left; white-space: normal;
+            justify-content: flex-start;
+        }
+        .l2-cons-gc.dim { color: #6b9e88; font-weight: 400; }
+        .l2-cons-total {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 10px 0 0; margin-top: 6px; border-top: 1px solid #1e3329;
+        }
+        .l2-cons-total-label { font-size: 0.72rem; color: #6b9e88; font-weight: 600; }
+        .l2-cons-acv { font-size: 1.1rem; font-weight: 800; color: #24ED9B; letter-spacing: -0.01em; }
+        .l2-cons-hrs { font-size: 0.65rem; color: #3d6655; margin-top: 2px; text-align: right; }
+
+        /* Next Steps section */
+        .next-steps-section {
+            border-top: 1px solid #1e3329; margin-top: 14px; padding-top: 14px;
+        }
+        .next-steps-label {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.1em; font-weight: 700; margin-bottom: 8px;
+        }
+
+        /* Consumption Potential */
+        .consumption-methodology {
+            font-size: 0.68rem; color: #2a4a3a; font-style: italic;
+            line-height: 1.5; border-top: 1px solid #122019; padding-top: 10px; margin-top: 4px;
+        }
+        .consumption-methodology::before { content: "ⓘ "; color: #3d6655; }
+
+        /* Customer rollup */
+        .rollup-card {
+            background: linear-gradient(135deg, #0a1812 0%, #0d1e18 100%);
+            border: 1px solid rgba(36,237,155,0.15);
+            border-radius: 16px; padding: 26px 28px; margin-top: 28px;
+        }
+        .rollup-card h2 {
+            font-size: 1.1rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.01em; margin-bottom: 4px;
+        }
+        .rollup-subtitle { font-size: 0.78rem; color: #3d6655; margin-bottom: 18px; }
+        .rollup-table {
+            width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 14px;
+        }
+        .rollup-table th {
+            text-align: left; font-size: 0.62rem; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #3d6655; font-weight: 700;
+            padding: 0 12px 8px 0; border-bottom: 1px solid #1e3329;
+        }
+        .rollup-table th:not(:first-child) { text-align: right; }
+        .rollup-table td {
+            padding: 9px 12px 9px 0; border-bottom: 1px solid #0d1a14;
+            color: #a8d5c2; vertical-align: middle;
+        }
+        .rollup-table td:not(:first-child) { text-align: right; color: #6b9e88; }
+        .rollup-table tr:last-child td { border-bottom: none; }
+        .rollup-summary { border-top: 2px solid rgba(36,237,155,0.2); margin-top: 16px; padding-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+        .rollup-summary-row { display: flex; justify-content: space-between; align-items: baseline; }
+        .rollup-summary-label { font-size: 0.82rem; color: #6b9e88; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .rollup-summary-value { font-size: 1.3rem; font-weight: 900; color: #24ED9B; letter-spacing: -0.02em; }
+        .rollup-total {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 0 0; border-top: 1px solid #1e3329;
+        }
+        .rollup-total-label { font-size: 0.82rem; color: #6b9e88; font-weight: 600; }
+        .rollup-total-value { font-size: 1.3rem; font-weight: 900; color: #24ED9B; letter-spacing: -0.02em; }
+        .rollup-acv-note { font-size: 0.72rem; color: #3d6655; margin-top: 6px; text-align: center; }
+
+        /* Lab Maturity Signals */
+        .lab-maturity-card {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 16px; padding: 30px; margin-top: 36px;
+        }
+        .lab-maturity-card h2 {
+            font-size: 1.3rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.01em; margin-bottom: 4px;
+        }
+        .pr-subtitle { font-size: 0.8rem; color: #3d6655; margin-bottom: 24px; }
+
+        /* Two-column layout for all PR sections */
+        .pr-row {
+            display: grid; grid-template-columns: 1fr 200px; gap: 24px;
+            align-items: start; padding: 20px 0;
+            border-bottom: 1px solid #122019;
+        }
+        .pr-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .pr-row-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 10px;
+        }
+        /* Evidence bullets — technical findings, SA reference notes */
+        .findings-label {
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #3d6655; margin-bottom: 8px;
+        }
+        .pr-bullets {
+            margin: 0; padding-left: 16px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .pr-bullets li { font-size: 0.81rem; color: #6b9e88; line-height: 1.55; }
+        .pr-bullets li strong { color: #a8d5c2; font-weight: 600; }
+        .pr-bullets li a { color: #a8d5c2; text-decoration: none; border-bottom: 1px solid rgba(168,213,194,0.3); }
+        .pr-bullets li a:hover { border-bottom-color: #a8d5c2; }
+
+        /* Solutioning Guidance bullets — actionable recommendations */
+        .guidance-label {
+            font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #3d6655; margin-bottom: 8px; margin-top: 14px;
+        }
+        .guidance-section {
+            margin-top: 12px; padding-top: 12px; border-top: 1px solid #122019;
+        }
+        .pr-score-col {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: flex-start; padding-top: 4px; gap: 8px;
+        }
+        .pr-score-num {
+            font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
+            text-align: center;
+        }
+        .pr-score-label {
+            font-size: 0.62rem; color: #3d6655; text-transform: uppercase;
+            letter-spacing: 0.08em; font-weight: 700; text-align: center;
+        }
+        .pr-bar-track { width: 100%; height: 5px; background: #1e3329; border-radius: 3px; overflow: hidden; margin-top: 4px; }
+        .pr-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; animation: bar-enter 0.7s ease-out; }
+
+        /* JS-injected toggle arrow (shared by dim-section + tech-details) */
+        .det-arrow { font-size: 0.82rem; color: #6b9e88; flex-shrink: 0; margin-left: auto; padding-left: 6px; }
+
+
+        /* Dimension section collapsibles */
+        .dim-section { margin-bottom: 6px; }
+        .dim-section > summary {
+            display: flex; align-items: center; gap: 8px;
+            padding: 11px 16px; border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #1e3329; background: #06100c;
+            transition: border-color 0.15s;
+            user-select: none;
+        }
+        .dim-section > summary::marker { color: #6b9e88; }
+        .dim-section[open] > summary { border-radius: 8px 8px 0 0; }
+        .dim-section-tech > summary:hover, .dim-section-tech[open] > summary { border-color: rgba(36,237,155,0.3); }
+        .dim-section-wf   > summary:hover, .dim-section-wf[open]   > summary { border-color: rgba(59,130,246,0.3); }
+        .dim-section-te   > summary:hover, .dim-section-te[open]   > summary { border-color: rgba(167,139,250,0.3); }
+        .dim-section-mf   > summary:hover, .dim-section-mf[open]   > summary { border-color: rgba(245,158,11,0.3); }
+        .dim-section-cons > summary:hover, .dim-section-cons[open] > summary { border-color: rgba(36,237,155,0.2); }
+        .dim-section-lm   > summary:hover, .dim-section-lm[open]   > summary { border-color: rgba(36,237,155,0.3); }
+        .expand-toggle {
+            text-align: right; margin-top: 6px; margin-bottom: 2px;
+        }
+        .expand-toggle button {
+            background: none; border: none; cursor: pointer; padding: 2px 4px;
+            font-size: 0.7rem; color: #2a4a3a; letter-spacing: 0.03em;
+            font-family: inherit; transition: color 0.15s;
+        }
+        .expand-toggle button:hover { color: #6b9e88; }
+        .expand-toggle .tog-sep { color: #1e3329; font-size: 0.7rem; }
+        .dim-sec-row { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+        .dim-sec-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .dim-sec-dot-tech { background: #24ED9B; }
+        .dim-sec-dot-wf   { background: #3b82f6; }
+        .dim-sec-dot-te   { background: #a78bfa; }
+        .dim-sec-dot-mf   { background: #f59e0b; }
+        .dim-sec-dot-lm   { background: #24ED9B; }
+        .dim-sec-name { flex: 1; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b9e88; }
+        .dim-sec-score { font-size: 1.1rem; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+        .dim-sec-bar { height: 5px; border-radius: 3px; overflow: hidden; }
+        .dim-sec-bar-tech { background: rgba(36,237,155,0.12); }
+        .dim-sec-bar-wf   { background: rgba(59,130,246,0.12); }
+        .dim-sec-bar-te   { background: rgba(167,139,250,0.12); }
+        .dim-sec-bar-mf   { background: rgba(245,158,11,0.12); }
+        .dim-sec-bar-lm   { background: rgba(36,237,155,0.12); }
+        .dim-sec-bar-fill { height: 100%; border-radius: 3px; animation: bar-enter 0.7s ease-out; transition: width 0.6s ease; }
+        .dim-sec-content {
+            border: 1px solid #1e3329; border-top: none;
+            border-radius: 0 0 8px 8px; padding: 16px 18px;
+        }
+        /* Next Steps — consolidated company-level card */
+        .nxt-card {
+            background: #0d1a14; border: 1px solid #1e3329; border-left: 3px solid #24ED9B;
+            border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+        }
+        .nxt-header { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #3d6655; margin-bottom: 12px; }
+        .nxt-list { list-style: decimal; padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 11px; }
+        .nxt-list::marker, .nxt-li::marker { color: #3d6655; font-size: 0.72rem; }
+        .nxt-li { font-size: 0.82rem; line-height: 1.65; color: #a8d5c2; padding-left: 6px; }
+        .nxt-li strong { color: #c8e6d8; font-weight: 700; }
+        .nxt-li a { color: inherit; text-decoration: none; }
+        .nxt-li a:hover { text-decoration: underline; }
+        .nxt-sug { display: block; margin-top: 4px; font-size: 0.77rem; color: #3d6655; font-style: italic; }
+
+        /* Product nav strip */
+        .product-nav {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-top: 12px; margin-bottom: 24px;
+        }
+        .product-nav-item {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 8px; padding: 7px 14px;
+            font-size: 0.82rem; color: #a8d5c2; text-decoration: none;
+            transition: border-color 0.15s, background 0.15s;
+            white-space: nowrap;
+        }
+        .product-nav-item:hover { border-color: rgba(36,237,155,0.3); background: #0f1e17; text-decoration: none; color: #e8f5f0; }
+        .pnav-score { font-weight: 800; font-size: 0.88rem; }
+
+        @media (max-width: 768px) {
+            .composite-body { flex-direction: column; }
+            .composite-divider { width: 100%; height: 1px; margin: 16px 0; }
+            .composite-hero { padding-right: 0; padding-bottom: 0; }
+            .dimensions { grid-template-columns: 1fr; }
+            .pr-row { grid-template-columns: 1fr; }
+            .product-header { flex-direction: column; }
+            .total-score { text-align: left; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <img src="{{ url_for('static', filename='img/skillable-logo.png') }}" alt="Skillable"
+             onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'">
+        <div class="nav-divider"></div>
+        <span style="font-size:0.82rem;color:#6b9e88;font-weight:600;">Inspector</span>
+        <span style="font-size:0.82rem;color:#3d6655;margin-left:6px;">/ The Dossier</span>
+        <span style="flex:1;"></span>
+        <a href="/inspector/" style="font-size:0.8rem;color:#3d6655;text-decoration:none;" onmouseover="this.style.color='#24ED9B'" onmouseout="this.style.color='#3d6655'">&larr; New Search</a>
+    </nav>
+
+    <div class="container">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+            {% if data.discovery_id %}
+            <a href="/inspector/caseboard/{{ data.discovery_id }}" class="back" style="margin-bottom:0;">&larr; Case Board</a>
+            <a href="/inspector/caseboard/{{ data.discovery_id }}" class="back" style="margin-bottom:0;color:#3d6655;">&#8635; Choose Different Products</a>
+            {% else %}
+            <a href="/inspector/" class="back" style="margin-bottom:0;">&larr; New Search</a>
+            {% endif %}
+        </div>
+
+        {% if from_cache %}
+        {% set cached_date = data.analyzed_at[:10] if data.analyzed_at else '' %}
+        <div class="cache-banner">
+            <span>&#128274; Cached result</span>
+            {% if cached_date %}<span class="cache-date">{{ cached_date }}</span>{% endif %}
+            <form method="POST" action="/inspector/discover">
+                <input type="hidden" name="company_name" value="{{ data.company_name }}">
+                <input type="hidden" name="force_refresh" value="1">
+                <button type="submit">&#8635; Re-run fresh</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div style="font-size:0.62rem;font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:#24ED9B;margin-bottom:8px;">The Dossier</div>
+
+        <!-- Company Header -->
+        <div class="company-header">
+            <h1>
+                {{ data.company_name }}
+                {% set ot = data.organization_type %}
+                {% if ot == 'software_company' %}
+                <span class="org-badge org-software">Software Company</span>
+                {% elif ot == 'training_organization' %}
+                <span class="org-badge org-training">Training Organization</span>
+                {% elif ot == 'academic_institution' %}
+                <span class="org-badge org-academic">Academic Institution</span>
+                {% elif ot == 'systems_integrator' %}
+                <span class="org-badge org-integrator">Systems Integrator</span>
+                {% elif ot == 'technology_distributor' %}
+                <span class="org-badge org-distributor">Technology Distributor</span>
+                {% elif ot == 'professional_services' %}
+                <span class="org-badge org-services">Professional Services</span>
+                {% else %}
+                <span class="org-badge org-services">{{ ot|replace('_',' ')|title }}</span>
+                {% endif %}
+            </h1>
+            {% if data.company_description %}
+            <p class="desc">{{ data.company_description }}</p>
+            {% endif %}
+            <div class="meta">
+                {% if data.company_url %}<a href="{{ data.company_url }}" target="_blank">{{ data.company_url }}</a> &middot; {% endif %}
+                Analyzed {{ data.analyzed_at[:10] if data.analyzed_at else '' }} &middot;
+                {% set ot = data.organization_type %}
+                {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}
+                {{ data.products|length }} programs scored
+                {% else %}
+                {{ data.products|length }} products scored
+                {% endif %}
+            </div>
+        </div>
+
+        {% set ns = namespace(total_low=0, total_high=0, acv_low=0.0, acv_high=0.0, has_cp=false) %}
+        {% for product in data.products %}
+            {% set cp = product.get('consumption_potential', {}) %}
+            {% if cp and cp.get('annual_hours_high', 0) > 0 %}
+                {% set ns.total_low = ns.total_low + cp.get('annual_hours_low', 0) %}
+                {% set ns.total_high = ns.total_high + cp.get('annual_hours_high', 0) %}
+                {% if product.skillable_path == 'C' %}{% set r_lo = 5 %}{% set r_hi = 5 %}
+                {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set r_lo = cp.get('vm_rate_estimate') %}{% set r_hi = cp.get('vm_rate_estimate') %}
+                {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
+                {% else %}{% set r_lo = 12 %}{% set r_hi = 15 %}{% endif %}
+                {% set ns.acv_low = ns.acv_low + cp.get('annual_hours_low', 0) * r_lo %}
+                {% set ns.acv_high = ns.acv_high + cp.get('annual_hours_high', 0) * r_hi %}
+                {% set ns.has_cp = true %}
+            {% endif %}
+        {% endfor %}
+
+        <!-- Top blocks: Opportunity Score + Consumption Summary side by side -->
+        <div class="top-blocks">
+        {% set weights = data._composite_weights or "65% Product / 35% Lab Maturity" %}
+        {% set prod_weight = "65%" if "65% Product" in weights else "35%" %}
+        {% set part_weight = "35%" if "35% Lab Maturity" in weights else "65%" %}
+        {% set pw_int = prod_weight | replace('%','') | int %}
+        {% set prw_int = part_weight | replace('%','') | int %}
+        {% set top = data.products[0]._total_score if data.products else 0 %}
+        {% set raw_composite = ((top * pw_int / 100) + (data._pr_total * prw_int / 100)) | round | int %}
+        {% set gate_threshold = 20 if data.organization_type in ['training_organization','systems_integrator','technology_distributor','professional_services'] else 30 %}
+        {% set channel_orgs = ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}
+        {% set is_channel = data.organization_type in channel_orgs %}
+        {% set org_label = data.organization_type | replace('_', ' ') | title %}
+        {% set cs = data._composite_score %}
+
+        <div class="composite-card">
+            <div class="card-label">Overall Opportunity Score</div>
+            <div class="composite-body">
+
+                <!-- Hero: composite score -->
+                <div class="composite-hero">
+                    <div class="value {% if cs >= 70 %}score-high{% elif cs >= 40 %}score-mid{% else %}score-low{% endif %}">
+                        {{ cs }}
+                    </div>
+                    {% if data._composite_gated %}
+                    <div class="gated-note">&#9888; Gated</div>
+                    {% endif %}
+                </div>
+
+                <div class="composite-divider"></div>
+
+                <!-- Inputs: top product + partnership stacked -->
+                <div class="composite-inputs">
+                    <div class="composite-input">
+                        <div class="input-right">
+                            <span class="input-score {% if top >= 70 %}score-high{% elif top >= 40 %}score-mid{% else %}score-low{% endif %}">{{ top }}</span>
+                            <span class="input-weight">× {{ prod_weight }}</span>
+                        </div>
+                        <div class="input-left">
+                            <div class="input-label">Top Product Labability</div>
+                            <div class="input-sublabel">{{ data.products[0].name if data.products else '—' }}</div>
+                        </div>
+                    </div>
+                    <div class="composite-input-sep"></div>
+                    <div class="composite-input">
+                        <div class="input-right">
+                            <span class="input-score {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}</span>
+                            <span class="input-weight">× {{ part_weight }}</span>
+                        </div>
+                        <div class="input-left">
+                            <div class="input-label">Lab Maturity Signals</div>
+                            <div class="input-sublabel">
+                                {% set pr = data._pr_total %}
+                                {% if pr >= 75 %}Mature, well-established partner ecosystem
+                                {% elif pr >= 60 %}Strong training org with real scale
+                                {% elif pr >= 45 %}Growing program, solid foundation
+                                {% elif pr >= 30 %}Early-stage, promising signals present
+                                {% else %}Limited lab maturity signals
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Equation explanation -->
+            <div class="composite-equation">
+                <div>{% if is_channel %}As a <span class="eq-math">{{ org_label }}</span>, lab maturity carries more weight.{% else %}As a <span class="eq-math">{{ org_label }}</span>, product labability carries more weight.{% endif %}</div>
+                <div><span class="eq-math">{{ top }}</span> (product) &times; {{ prod_weight }} + <span class="eq-math">{{ data._pr_total }}</span> (lab maturity) &times; {{ part_weight }} =
+                {% if data._composite_gated %}<span class="eq-math">{{ raw_composite }}</span> raw, <span class="eq-cap">capped at {{ cs }}</span> &mdash; labability needs to reach {{ gate_threshold }}{% else %}<span class="eq-math">{{ cs }}</span>{% endif %}</div>
+            </div>
+        </div>
+
+        <div class="consumption-summary-card">
+            <div class="card-label">
+                Estimated Consumption Potential
+                <span style="color:#3d6655;font-weight:400;"> | </span><span style="color:#f59e0b;font-weight:600;">Based on {{ data.products | length }} of {% if data.total_products_discovered and data.total_products_discovered > data.products | length %}{{ data.total_products_discovered }}{% else %}{{ data.products | length }}{% endif %} Products</span>
+            </div>
+            {% if ns.has_cp %}
+            <div class="rollup-summary" style="border-top:none;margin-top:0;padding-top:0;flex:1;justify-content:center;">
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated ACV Potential</span>
+                    <span class="rollup-summary-value">${{ "{:,}".format(ns.acv_low | int) }}–${{ "{:,}".format(ns.acv_high | int) }}</span>
+                </div>
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated Annual Lab Hours</span>
+                    <span class="rollup-summary-value" style="font-size:1rem;color:#6b9e88;">{{ "{:,}".format(ns.total_low) }}–{{ "{:,}".format(ns.total_high) }}</span>
+                </div>
+                <div style="color:#f59e0b;font-size:0.70rem;margin-top:8px;text-align:right;">&#9888; Full customer potential<br>may be higher.</div>
+            </div>
+            <div class="rollup-acv-note" style="margin-top:12px;">Cloud Slice @$10.50/hr · VM @$12–$55/hr · Simulation @$5/hr<br><em>Rates are estimates — verify before use.</em></div>
+            {% else %}
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+                <div style="text-align:center;">
+                    <div style="font-size:1.5rem;color:#1e3329;margin-bottom:10px;">—</div>
+                    <div style="font-size:0.78rem;color:#3d6655;line-height:1.5;">Product labability scores are too low<br>to generate a reliable consumption estimate.</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        </div><!-- /top-blocks -->
+
+        {# ── Consolidated Next Steps (company-level) ── #}
+        {% set _top_p = data.products[0] if data.products else none %}
+        {% if _top_p %}
+        {% set _nxt_contacts = _top_p.contacts or [] %}
+        {% set _nxt_dms    = _nxt_contacts | selectattr('role_type','equalto','decision_maker') | rejectattr('name','match','(?i)^unknown') | list %}
+        {% set _nxt_infs   = _nxt_contacts | selectattr('role_type','ne','decision_maker')      | rejectattr('name','match','(?i)^unknown') | list %}
+        {% set _nxt_unk    = _nxt_contacts | selectattr('name','match','(?i)^unknown') | list %}
+        {% set _li_svg_nxt %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="display:inline-block;vertical-align:-3px;margin-left:4px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>{% endset %}
+        <div class="nxt-card">
+            <div class="nxt-header">Next Steps</div>
+            <ol class="nxt-list">
+
+            {# 1. Verdict + Owning Org #}
+            <li class="nxt-li">
+                {% if cs >= 70 %}<span class="verdict-badge verdict-strong">Strong Pursue</span>
+                {% elif cs >= 55 %}<span class="verdict-badge verdict-pursue">Pursue</span>
+                {% elif cs >= 40 %}<span class="verdict-badge verdict-monitor">Monitor</span>
+                {% else %}<span class="verdict-badge verdict-pass">Do Not Pursue</span>{% endif %}
+                {% if _top_p.owning_org %}
+                 — <strong>{{ _top_p.owning_org.name }}</strong>{% if _top_p.owning_org.type %} ({{ _top_p.owning_org.type|replace('_',' ')|title }}){% endif %}{% if _top_p.owning_org.description %}: {{ _top_p.owning_org.description }}{% endif %}
+                {% endif %}
+            </li>
+
+            {# 2. Contacts (up to 3 named contacts) #}
+            {% set _shown = namespace(n=0) %}
+            {% if _nxt_dms or _nxt_infs or _nxt_unk %}
+            <li class="nxt-li">
+                {% for c in (_nxt_dms + _nxt_infs) %}{% if _shown.n < 3 %}
+                {% if not loop.first %}<br>{% endif %}
+                {% if c.role_type == 'decision_maker' %}<strong>Decision maker:</strong>{% else %}<strong>Influencer:</strong>{% endif %}
+                {% if c.linkedin_url %}<a href="{{ c.linkedin_url }}" target="_blank"><strong>{{ c.name }}</strong>{{ _li_svg_nxt }}</a>{% else %}<strong>{{ c.name }}</strong>{% endif %}
+                {% if '[SKILLABLE ALUMNI]' in (c.relevance or '') %} &#9733;{% endif %},
+                {{ c.title }}.
+                {% set _cr = (c.relevance or '').replace('[SKILLABLE ALUMNI]','').strip() %}
+                {% if _cr %} {{ _cr }}{% endif %}
+                {% set _shown.n = _shown.n + 1 %}{% endif %}{% endfor %}
+                {% if _nxt_unk %}
+                {% if _shown.n > 0 %}<br>{% endif %}
+                <span class="nxt-sug">Also search LinkedIn for: {% for c in _nxt_unk %}{{ c.title }}{% if not loop.last %}, {% endif %}{% endfor %}.</span>
+                {% endif %}
+            </li>
+            {% endif %}
+
+            </ol>
+        </div>
+        {% endif %}
+
+        <!-- Product Cards -->
+        {% set ot = data.organization_type %}
+        <div class="section-heading">
+            {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}
+            Programs &amp; Practice Areas — ranked by labability
+            {% else %}
+            Products Scored — ranked by labability
+            {% endif %}
+        </div>
+
+        <!-- Product Nav Strip -->
+        {% if data.products|length > 1 %}
+        <div class="product-nav">
+            {% for product in data.products %}
+            <a href="#product-{{ loop.index }}" class="product-nav-item">
+                <span class="pnav-score {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">{{ product._total_score }}</span>
+                <span>{{ product.name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for product in data.products %}
+        <div class="product-card" id="product-{{ loop.index }}">
+            <div class="product-header">
+                <div>
+                    <div class="product-name">
+                        {{ product.name }}
+                        {% if product.lab_highlight %}
+                        <span class="lab-highlight-badge">{{ product.lab_highlight }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-category">{{ product.category }}</div>
+                    {% if product.deployment_model and product.deployment_model != 'unknown' %}
+                    <span class="product-deploy">{{ product.deployment_model }}</span>
+                    {% endif %}
+                    {% if product.fabric and product.fabric not in ('', 'Unclear') %}
+                    <span class="fabric-badge">{{ product.fabric }}</span>
+                    {% endif %}
+                    {% for persona in product.user_personas %}
+                    <span class="persona-badge">{{ persona }}</span>
+                    {% endfor %}
+                </div>
+                <div class="score-right">
+                    <div class="total-score">
+                        <div class="score-num {% if product._total_score >= 70 %}score-high{% elif product._total_score >= 40 %}score-mid{% else %}score-low{% endif %}">
+                            {{ product._total_score }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Variables ── #}
+            {% set _sc1h = product.labability_score.technical_orchestrability.score | default(0) %}
+            {% set _sc2h = product.labability_score.workflow_complexity.score | default(0) %}
+            {% set _sc3h = product.labability_score.training_ecosystem.score | default(0) %}
+            {% set _sc4h = product.labability_score.market_fit.score | default(0) %}
+            {% set _cph = product.get('consumption_potential', {}) %}
+            {% if product.skillable_path == 'C' %}{% set _rate_h = 5.0 %}
+            {% elif _cph.get('vm_rate_estimate', 0) > 0 %}{% set _rate_h = _cph.get('vm_rate_estimate') %}
+            {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set _rate_h = 10.5 %}
+            {% else %}{% set _rate_h = 12.0 %}{% endif %}
+            {% set tech_dim = product.labability_score.technical_orchestrability %}
+            {% set wf_dim = product.labability_score.workflow_complexity %}
+            {% set te_dim = product.labability_score.training_ecosystem %}
+            {% set mf_dim = product.labability_score.market_fit %}
+
+            {# ── Description first ── #}
+            {% if product.description %}
+            <div class="product-desc">{{ product.description | link_product_name(product.name, product.product_url) }}</div>
+            {% endif %}
+            {% if product.poor_match_flags %}
+            <div class="poor-flags">{% for label in product.poor_match_flags|flag_labels %}<span class="flag-badge">&#9888; {{ label }}</span>{% endfor %}</div>
+            {% endif %}
+
+            {# ── Layer 1: verdict + bar + ACV ── #}
+            <div style="display:flex;align-items:center;gap:10px;margin:14px 0 6px;flex-wrap:wrap;">
+                {% if product._total_score >= 75 %}<span class="verdict-badge verdict-strong">Strong Pursue</span>
+                {% elif product._total_score >= 55 %}<span class="verdict-badge verdict-pursue">Pursue</span>
+                {% elif product._total_score >= 35 %}<span class="verdict-badge verdict-monitor">Monitor</span>
+                {% else %}<span class="verdict-badge verdict-pass">Do Not Pursue</span>{% endif %}
+                {% set _has_blocker = product.recommendation and (product.recommendation | join(' ') | lower).find('— blocker') != -1 %}
+                {% if _has_blocker %}<span class="verdict-badge verdict-pass">&#9632; Blocker</span>{% endif %}
+                {% if _cph and _cph.get('annual_hours_high', 0) > 0 %}
+                <span style="flex:1;"></span>
+                <div style="text-align:right;line-height:1.3;">
+                    <div class="product-acv-dollars">${{ "{:,}".format((_cph.get('annual_hours_low',0)*_rate_h)|int) }} – ${{ "{:,}".format((_cph.get('annual_hours_high',0)*_rate_h)|int) }} ACV</div>
+                    <div class="product-acv-hours">{{ "{:,}".format(_cph.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cph.get('annual_hours_high',0)) }} estimated lab hrs/yr</div>
+                </div>
+                {% endif %}
+            </div>
+            {# ── Bullet routing — extract bold label prefix, route on that only ── #}
+            {# Every bullet is **Label:** or **Label — Risk:** or **Label — Blocker:** text     #}
+            {# We extract everything before :** and strip ** + Risk/Blocker suffixes.            #}
+            {# Routing on full bullet text causes false matches when body text contains keywords #}
+            {% set ns = namespace(s1=[], s3=[], s4=[], sNxt=[], sEtr=[]) %}
+            {% for bullet in (product.recommendation or []) %}
+              {% set bl = bullet | lower %}
+              {% if ':**' in bl %}
+                {% set _label = bl.split(':**')[0].replace('**','').replace(' | risk','').replace(' | blocker','').replace(' \u2014 risk','').replace(' \u2014 blocker','').replace(' — risk','').replace(' — blocker','').strip() %}
+              {% else %}
+                {% set _label = bl.lstrip('*').split(':')[0].strip() %}
+              {% endif %}
+              {% if _label.startswith('next step') or _label.startswith('note') %}
+                {# Dropped — handled by consolidated Next Steps section above products #}
+              {% elif _label.startswith('technical contact') or _label.startswith('essential technical resource') or _label.startswith('help your champion find') %}
+                {% set ns.sEtr = ns.sEtr + [bullet] %}
+              {% elif _label.startswith('program fit') or _label.startswith('certification program') or _label.startswith('training program') or _label == 'enablement maturity' %}
+                {% set ns.s3 = ns.s3 + [bullet] %}
+              {% else %}
+                {# Default: Product Labability — delivery path, scoring approach, blockers,    #}
+                {# similar product, custom technical labels (pre-instancing, gpu, docker, etc.) #}
+                {% set ns.s1 = ns.s1 + [bullet] %}
+              {% endif %}
+            {% endfor %}
+
+            {# ── 1. Product Labability ── #}
+            {% set _t1 = 'score-high' if _sc1h >= 29 else ('score-mid' if _sc1h >= 16 else 'score-low') %}
+            <details class="dim-section dim-section-tech">
+                <summary>
+                    <span class="dim-sec-dot dim-sec-dot-tech"></span>
+                    <span class="dim-sec-name">Product Labability</span>
+                    <span class="dim-sec-score {{ _t1 }}">{{ _sc1h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 40</span></span>                </summary>
+                <div class="dim-sec-content">
+                    {% if tech_dim.evidence %}
+                    <ul class="pr-bullets">{% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif tech_dim.summary %}<p class="dim-summary">{{ tech_dim.summary }}</p>{% endif %}
+                    {% if ns.s1 or ns.sEtr %}
+                    <div class="guidance-section">
+                    <div class="guidance-label">Solutioning Guidance</div>
+                    <ul class="rec-bullets">
+                    {% for b in ns.s1 %}<li>{{ b | linkify }}</li>{% endfor %}
+                    {% for b in ns.sEtr %}{% if ':**' in b %}{% set _etr_text = b.split(':**', 1)[1].strip() %}{% else %}{% set _etr_text = b %}{% endif %}<li><strong>Help your champion find:</strong> {{ _etr_text | linkify }}</li>{% endfor %}
+                    </ul>
+                    </div>{% endif %}
+                </div>
+            </details>
+
+            {# ── 2. Likely Impact ── #}
+            {% set _t2 = 'score-high' if _sc2h >= 21 else ('score-mid' if _sc2h >= 12 else 'score-low') %}
+            <details class="dim-section dim-section-wf">
+                <summary>
+                    <span class="dim-sec-dot dim-sec-dot-wf"></span>
+                    <span class="dim-sec-name">Likely Impact of Hands-On</span>
+                    <span class="dim-sec-score {{ _t2 }}">{{ _sc2h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 30</span></span>                </summary>
+                <div class="dim-sec-content">
+                    {% if wf_dim.evidence %}
+                    <ul class="pr-bullets">{% for ev in wf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif wf_dim.summary %}<p class="dim-summary">{{ wf_dim.summary }}</p>{% endif %}
+                    {% if product.lab_concepts %}
+                    <div class="guidance-section">
+                        <div class="guidance-label">Suggested Lab Concepts</div>
+                        <div class="lab-concepts-grid">{% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </details>
+
+            {# ── 3. Training & Enablement Maturity ── #}
+            {% set _t3 = 'score-high' if _sc3h >= 14 else ('score-mid' if _sc3h >= 8 else 'score-low') %}
+            <details class="dim-section dim-section-te">
+                <summary>
+                    <span class="dim-sec-dot dim-sec-dot-te"></span>
+                    <span class="dim-sec-name">Content Team Maturity</span>
+                    <span class="dim-sec-score {{ _t3 }}">{{ _sc3h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 20</span></span>                </summary>
+                <div class="dim-sec-content">
+                    {% if te_dim.evidence %}
+                    <ul class="pr-bullets">{% for ev in te_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif te_dim.summary %}<p class="dim-summary">{{ te_dim.summary }}</p>{% endif %}
+                    {% if ns.s3 %}
+                    <div class="guidance-section">
+                    <div class="guidance-label">Solutioning Guidance</div>
+                    <ul class="rec-bullets">{% for b in ns.s3 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                    </div>{% endif %}
+                </div>
+            </details>
+
+            {# ── 4. Market & Strategic Fit ── #}
+            {% set _t4 = 'score-high' if _sc4h >= 7 else ('score-mid' if _sc4h >= 4 else 'score-low') %}
+            <details class="dim-section dim-section-mf">
+                <summary>
+                    <span class="dim-sec-dot dim-sec-dot-mf"></span>
+                    <span class="dim-sec-name">Market &amp; Strategic Fit</span>
+                    <span class="dim-sec-score {{ _t4 }}">{{ _sc4h }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ 10</span></span>                </summary>
+                <div class="dim-sec-content">
+                    {% if mf_dim.evidence %}
+                    <ul class="pr-bullets">{% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}</ul>
+                    {% elif mf_dim.summary %}<p class="dim-summary">{{ mf_dim.summary }}</p>{% endif %}
+                    {% if ns.s4 %}
+                    <div class="guidance-section">
+                    <div class="guidance-label">Solutioning Guidance</div>
+                    <ul class="rec-bullets">{% for b in ns.s4 %}<li>{{ b | linkify }}</li>{% endfor %}</ul>
+                    </div>{% endif %}
+                </div>
+            </details>
+
+            {# ── 5. Estimated Consumption Potential ── always shown #}
+            {% set _cp5 = product.get('consumption_potential', {}) or {} %}
+            {% set _cp5_hours = _cp5.get('annual_hours_high', 0) %}
+            {% if product.skillable_path == 'C' %}{% set _r5lo = 5.0 %}{% set _r5hi = 5.0 %}
+            {% elif _cp5.get('vm_rate_estimate', 0) > 0 %}{% set _r5lo = _cp5.get('vm_rate_estimate') %}{% set _r5hi = _cp5.get('vm_rate_estimate') %}
+            {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set _r5lo = 10.5 %}{% set _r5hi = 10.5 %}
+            {% else %}{% set _r5lo = 12.0 %}{% set _r5hi = 15.0 %}{% endif %}
+            <details class="dim-section dim-section-cons">
+                <summary>
+                    <span class="dim-sec-dot" style="background:rgba(36,237,155,0.5);"></span>
+                    <span class="dim-sec-name">Estimated Consumption Potential</span>
+                    {% if _cp5_hours > 0 %}
+                    <span class="dim-sec-score score-high" style="font-size:0.85rem;">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }}–${{ "{:,}".format((_cp5_hours*_r5hi)|int) }}</span>
+                    {% else %}
+                    <span class="dim-sec-score" style="font-size:0.78rem;color:#3d6655;">Insufficient data</span>
+                    {% endif %}
+                </summary>
+                <div class="dim-sec-content">
+                    {% if _cp5_hours > 0 %}
+                    {% if _cp5.get('motions') %}
+                    <div class="l2-cons-grid">
+                        <div class="l2-cons-gh">Motion</div>
+                        <div class="l2-cons-gh">Est. Population</div>
+                        <div class="l2-cons-gh">Adoption</div>
+                        <div class="l2-cons-gh">Hrs / Person</div>
+                        <div class="l2-cons-gh">Est. Hours</div>
+                        {% for m in _cp5.get('motions', []) %}
+                        {% set mh_low  = (m.get('population_low',0)*m.get('hours_low',0)*m.get('adoption_pct',0))|int %}
+                        {% set mh_high = (m.get('population_high',0)*m.get('hours_high',0)*m.get('adoption_pct',0))|int %}
+                        {% set pop_lo = m.get('population_low',0) %}
+                        {% set pop_hi = m.get('population_high',0) %}
+                        {% set hrs_lo = m.get('hours_low',0) %}
+                        {% set hrs_hi = m.get('hours_high',0) %}
+                        {% set adp = (m.get('adoption_pct',0) * 100) | round | int %}
+                        {% if mh_high > 0 %}
+                        <div class="l2-cons-gc lbl">{{ m.get('label','') }}</div>
+                        <div class="l2-cons-gc dim">{{ "{:,}".format(pop_lo) }}{% if pop_lo != pop_hi %}–{{ "{:,}".format(pop_hi) }}{% endif %}</div>
+                        <div class="l2-cons-gc dim">{{ adp }}%</div>
+                        <div class="l2-cons-gc dim">{{ hrs_lo }}{% if hrs_lo != hrs_hi %}–{{ hrs_hi }}{% endif %} hrs</div>
+                        <div class="l2-cons-gc">{{ "{:,}".format(mh_low) }}–{{ "{:,}".format(mh_high) }} hrs</div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="l2-cons-total">
+                        <span class="l2-cons-total-label">Annual Potential</span>
+                        <div style="text-align:right;">
+                            <div class="l2-cons-acv">${{ "{:,}".format((_cp5.get('annual_hours_low',0)*_r5lo)|int) }} – ${{ "{:,}".format((_cp5_hours*_r5hi)|int) }}</div>
+                            <div class="l2-cons-hrs">{{ "{:,}".format(_cp5.get('annual_hours_low',0)) }}–{{ "{:,}".format(_cp5_hours) }} lab hrs/yr</div>
+                        </div>
+                    </div>
+                    {% if _cp5.get('methodology_note') %}<div class="consumption-methodology" style="margin-top:10px;">{{ _cp5.get('methodology_note') }}</div>{% endif %}
+                    {% else %}
+                    <p style="font-size:0.78rem;color:#3d6655;padding:8px 0;line-height:1.5;">
+                        Product labability score is too low to generate a meaningful consumption estimate.
+                        Consumption potential is modeled for products with clear lab delivery pathways.
+                    </p>
+                    {% endif %}
+                </div>
+            </details>
+
+            <div class="expand-toggle">
+                <button onclick="toggleCard(this,true)">expand all</button>
+                <span class="tog-sep">·</span>
+                <button onclick="toggleCard(this,false)">collapse all</button>
+            </div>
+
+
+        </div>
+        {% endfor %}
+
+        <!-- Lab Maturity Signals -->
+        {% set pr = data.lab_maturity or data.partnership_readiness %}
+        <div class="product-card" style="margin-top:36px;">
+            <div class="product-header">
+                <div>
+                    <div class="product-name">Lab Maturity Signals</div>
+                    <div class="product-category">{{ data._composite_weights }} weighting applied to Overall Opportunity Score</div>
+                </div>
+                <div class="total-score">
+                    <div class="score-num {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}</div>
+                </div>
+            </div>
+
+            {% macro pr_bullets(dim) %}
+            <ul class="pr-bullets">
+                {% if dim.evidence %}
+                    {% for ev in dim.evidence %}
+                    <li>{{ ev.claim | bold_labels }}</li>
+                    {% endfor %}
+                {% elif dim.summary %}
+                    {% for sentence in dim.summary.split('. ') %}
+                    {% if sentence.strip() %}<li>{{ sentence.strip().rstrip('.') }}</li>{% endif %}
+                    {% endfor %}
+                {% endif %}
+            </ul>
+            {% endmacro %}
+
+            {% macro pr_dim_details(label, dim, mx) %}
+            {% set pct = ((dim.score / mx) * 100) | round | int %}
+            {% set tier = 'score-high' if pct >= 72 else ('score-mid' if pct >= 40 else 'score-low') %}
+            <details class="dim-section dim-section-lm">
+                <summary>
+                    <span class="dim-sec-dot dim-sec-dot-lm"></span>
+                    <span class="dim-sec-name">{{ label }}</span>
+                    <span class="dim-sec-score {{ tier }}">{{ dim.score }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ {{ mx }}</span></span>
+                </summary>
+                <div class="dim-sec-content">
+                    {{ pr_bullets(dim) }}
+                </div>
+            </details>
+            {% endmacro %}
+
+            {% if pr.organizational_dna and (pr.organizational_dna.summary or pr.organizational_dna.evidence) %}
+            {{ pr_dim_details("Organizational DNA", pr.organizational_dna, 10) }}
+            {% endif %}
+            {{ pr_dim_details("Training Org Maturity", pr.training_org_maturity, 35) }}
+            {{ pr_dim_details("Partner Program", pr.partner_program, 27) }}
+            {{ pr_dim_details("Customer Success", pr.customer_success, 35) }}
+            {{ pr_dim_details("Tech & Integration Readiness", pr.tech_readiness, 10) }}
+        </div>
+
+        <!-- Customer Consumption Rollup -->
+        {% if ns.has_cp and data.products|length > 0 %}
+        <div class="rollup-card">
+            <h2>Estimated Consumption Potential</h2>
+            <p class="rollup-subtitle">Sum across all scored products — directional, order-of-magnitude estimate</p>
+            <table class="rollup-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th><strong>Est. ACV Potential</strong></th>
+                        <th><strong>Est. Lab Hours</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in data.products %}
+                    {% set cp = product.get('consumption_potential', {}) %}
+                    {% if cp and cp.get('annual_hours_high', 0) > 0 %}
+                    {% if product.skillable_path == 'C' %}{% set p_rlo = 5 %}{% set p_rhi = 5 %}
+                    {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set p_rlo = cp.get('vm_rate_estimate') %}{% set p_rhi = cp.get('vm_rate_estimate') %}
+                    {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
+                    {% else %}{% set p_rlo = 12 %}{% set p_rhi = 15 %}{% endif %}
+                    <tr>
+                        <td>{{ product.name }}</td>
+                        <td><strong>${{ "{:,}".format((cp.get('annual_hours_low', 0) * p_rlo) | int) }}–${{ "{:,}".format((cp.get('annual_hours_high', 0) * p_rhi) | int) }}</strong></td>
+                        <td style="color:#6b9e88;">{{ "{:,}".format(cp.get('annual_hours_low', 0)) }}–{{ "{:,}".format(cp.get('annual_hours_high', 0)) }} hrs</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="rollup-summary">
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated ACV Potential</span>
+                    <span class="rollup-summary-value">${{ "{:,}".format(ns.acv_low | int) }}–${{ "{:,}".format(ns.acv_high | int) }}</span>
+                </div>
+                <div class="rollup-summary-row">
+                    <span class="rollup-summary-label">Estimated Annual Lab Hours</span>
+                    <span class="rollup-summary-value" style="font-size:1rem;color:#6b9e88;">{{ "{:,}".format(ns.total_low) }}–{{ "{:,}".format(ns.total_high) }}</span>
+                </div>
+                <div class="rollup-acv-note">These are estimates. Rates used: Cloud labs @ $6/hr + Azure/AWS subscription fees · Standard VM labs (1–3 VMs) @ $12–$15/hr · Complex VM labs (multi-VM, networking, GPU) @ $45–$55/hr · Simulations @ $5/hr.</div>
+                <div class="rollup-acv-note" style="margin-top:6px;color:#f59e0b;">&#9888; Based on {{ data.products | length }} of {% if data.total_products_discovered and data.total_products_discovered > data.products | length %}{{ data.total_products_discovered }}{% else %}{{ data.products | length }}{% endif %} products analyzed — full potential may be higher.</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Design Lab Program CTA -->
+        <div style="margin-top:28px;text-align:center;padding:24px 20px;background:rgba(36,237,155,0.04);border:1px solid rgba(36,237,155,0.12);border-radius:12px;">
+            <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:#3d6655;font-weight:700;margin-bottom:10px;">Next Step</div>
+            <a href="/designer/?analysis_id={{ data.analysis_id }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(36,237,155,0.1);border:1px solid rgba(36,237,155,0.3);color:#24ED9B;padding:10px 24px;border-radius:8px;font-size:0.875rem;font-weight:700;text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(36,237,155,0.18)'" onmouseout="this.style.background='rgba(36,237,155,0.1)'">
+                Design Lab Program &rarr;
+            </a>
+            <div style="color:#3d6655;font-size:0.72rem;margin-top:8px;">Build a full lab program from this analysis in the Designer</div>
+        </div>
+
+    </div>
+<script>
+  // Inject explicit toggle arrows into all collapsible sections — more reliable than CSS ::after on <summary>
+  document.querySelectorAll('.dim-section > summary').forEach(s => {
+    const arrow = document.createElement('span');
+    arrow.className = 'det-arrow';
+    arrow.textContent = '▾';
+    s.appendChild(arrow);
+    const details = s.closest('details');
+    details.addEventListener('toggle', () => {
+      arrow.textContent = details.open ? '▴' : '▾';
+    });
+  });
+
+  // Expand / collapse all within a single product card
+  function toggleCard(btn, open) {
+    const card = btn.closest('.product-card');
+    card.querySelectorAll('details.dim-section').forEach(d => { d.open = open; });
+  }
+</script>
+</body>
+</html>

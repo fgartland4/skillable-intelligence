@@ -80,15 +80,15 @@ def discover():
             aid = cached_analysis.get("analysis_id", "")
             if aid:
                 log.info("Inspector cache hit (analysis) for %s → %s", company_name, aid)
-                return redirect(url_for("inspector.results", analysis_id=aid) + "?cached=1")
+                return redirect(url_for("inspector.dossier", analysis_id=aid) + "?cached=1")
 
-        # ── Level 2: discovery cache (skip searches, go straight to product select) ──
+        # ── Level 2: discovery cache (skip searches, go straight to case board) ──
         cached_disc = find_discovery_by_company_name(company_name)
         if cached_disc and _cache_is_fresh(cached_disc.get("created_at", "")):
             disc_id = cached_disc.get("discovery_id", "")
             if disc_id:
                 log.info("Inspector cache hit (discovery) for %s → %s", company_name, disc_id)
-                return redirect(url_for("inspector.select_products", discovery_id=disc_id) + "?cached=1")
+                return redirect(url_for("inspector.caseboard", discovery_id=disc_id) + "?cached=1")
 
     discovery_id = str(uuid.uuid4())[:8]
 
@@ -132,6 +132,18 @@ def select_products(discovery_id: str):
             p["priority"] = i
     existing_analysis = find_analysis_by_discovery_id(discovery_id)
     return render_template("select.html", discovery=discovery, existing_analysis=existing_analysis)
+
+
+@inspector.route("/caseboard/<discovery_id>")
+def caseboard(discovery_id: str):
+    discovery = load_discovery(discovery_id)
+    if not discovery:
+        return redirect(url_for("inspector.home"))
+    for i, p in enumerate(discovery.get("products", []), start=1):
+        if not p.get("priority"):
+            p["priority"] = i
+    existing_analysis = find_analysis_by_discovery_id(discovery_id)
+    return render_template("caseboard.html", discovery=discovery, existing_analysis=existing_analysis)
 
 
 # Phase 2: Scoring
@@ -235,6 +247,17 @@ def results(analysis_id: str):
     _attach_scores(data)
     from_cache = request.args.get("cached") == "1"
     return render_template("results.html", data=data, from_cache=from_cache)
+
+
+@inspector.route("/dossier/<analysis_id>")
+def dossier(analysis_id: str):
+    data = load_analysis(analysis_id)
+    if not data:
+        return "Analysis not found", 404
+
+    _attach_scores(data)
+    from_cache = request.args.get("cached") == "1"
+    return render_template("dossier.html", data=data, from_cache=from_cache)
 
 
 # Product detail page

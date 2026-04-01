@@ -79,7 +79,7 @@
                 document.getElementById("status").textContent = msg.slice(7);
             } else if (msg.startsWith("done:")) {
                 source.close();
-                window.location.href = "/inspector/select/" + msg.slice(5);
+                window.location.href = "/inspector/caseboard/" + msg.slice(5);
             } else if (msg.startsWith("error:")) {
                 source.close();
                 document.getElementById("status").textContent = "Error: " + msg.slice(6);

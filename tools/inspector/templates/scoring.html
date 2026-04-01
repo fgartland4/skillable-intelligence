@@ -294,7 +294,7 @@
                     setProgress(6);
                     litMark('mark-check', '#24ED9B');
                     document.getElementById("status").textContent = "Complete — loading results...";
-                    window.location.href = "/inspector/results/" + msg.slice(5);
+                    window.location.href = "/inspector/dossier/" + msg.slice(5);
                 }, 600);
             } else if (msg.startsWith("error:")) {
                 source.close();

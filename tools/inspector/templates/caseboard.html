@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Case Board — {{ discovery.company_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #e8f5f0; min-height: 100vh;
+        }
+        a { color: #24ED9B; text-decoration: none; }
+        a:hover { color: #1dd88a; }
+
+        /* Nav */
+        .nav {
+            display: flex; align-items: center; padding: 14px 28px;
+            border-bottom: 1px solid #1e3329;
+            background: rgba(6,16,12,0.95); backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 30;
+        }
+        .nav img { height: 26px; }
+        .nav-div { width: 1px; height: 18px; background: #1e3329; margin: 0 14px; }
+        .nav-tool { font-size: 0.82rem; color: #6b9e88; font-weight: 600; }
+        .nav-co { font-size: 0.82rem; color: #3d6655; margin-left: 6px; }
+        .nav-sp { flex: 1; }
+        .nav-back { font-size: 0.8rem; color: #3d6655; }
+        .nav-back:hover { color: #24ED9B; }
+
+        /* Layout */
+        .page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 110px; }
+
+        /* Header */
+        .header { margin-bottom: 28px; }
+        .eyebrow {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.15em;
+            text-transform: uppercase; color: #24ED9B; margin-bottom: 6px;
+        }
+        .header-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .company-title { font-size: 2rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; }
+        .header-desc { color: #6b9e88; margin-top: 8px; font-size: 0.84rem; line-height: 1.6; max-width: 680px; }
+
+        /* Org badges */
+        .org-badge {
+            display: inline-block; font-size: 0.58rem; padding: 3px 9px;
+            border-radius: 20px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; margin-left: 10px; vertical-align: middle;
+        }
+        .org-software    { background: rgba(112,0,255,0.12); color: #a78bfa; border: 1px solid rgba(112,0,255,0.22); }
+        .org-training    { background: rgba(245,158,11,0.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.22); }
+        .org-academic    { background: rgba(139,92,246,0.1);  color: #c4b5fd; border: 1px solid rgba(139,92,246,0.22); }
+        .org-integrator  { background: rgba(20,184,166,0.1);  color: #2dd4bf; border: 1px solid rgba(20,184,166,0.22); }
+        .org-distributor { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.22); }
+        .org-services    { background: rgba(148,163,184,0.08);color: #94a3b8; border: 1px solid rgba(148,163,184,0.18); }
+
+        /* Two-column board */
+        .board {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 18px;
+            align-items: start;
+        }
+        @media (max-width: 920px) { .board { grid-template-columns: 1fr; } }
+
+        /* Tier sections */
+        .tier-section { margin-bottom: 18px; }
+        .tier-hdr {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 9px;
+        }
+        .tier-lbl {
+            font-size: 0.63rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; white-space: nowrap;
+        }
+        .t-hl { color: #24ED9B; }
+        .t-l  { color: #6dd9a8; }
+        .t-ll { color: #fb923c; }
+        .t-nl { color: #f87171; }
+        .t-tc { color: #a78bfa; }
+        .t-cp { color: #4b5563; }
+        .tier-rule { flex: 1; height: 1px; background: #122019; }
+        .tier-ct { font-size: 0.7rem; color: #3d6655; }
+
+        /* Product cards */
+        .product-card {
+            display: flex; align-items: flex-start; gap: 14px;
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-left: 3px solid #1e3329;
+            border-radius: 10px; padding: 14px 18px; margin-bottom: 7px;
+            cursor: pointer; transition: all 0.15s; user-select: none;
+        }
+        .product-card:hover { background: #0f1e17; border-color: #2a4a3a; }
+        .product-card.selected { border-color: rgba(36,237,155,0.35); background: #0f2019; }
+        .product-card.hl { border-left-color: #24ED9B; }
+        .product-card.ll-tier { border-left-color: #6dd9a8; }
+        .product-card.less { border-left-color: #fb923c; opacity: 0.72; }
+        .product-card.nope { border-left-color: #f87171; opacity: 0.55; }
+        .product-card.less:hover, .product-card.nope:hover { opacity: 0.9; }
+        .product-card.dimmed { opacity: 0.3 !important; pointer-events: none; }
+        .tc-card { border-left-color: rgba(167,139,250,0.27); opacity: 0.65; cursor: default; pointer-events: none; }
+
+        /* Checkbox */
+        .cbx {
+            width: 20px; height: 20px; border-radius: 5px;
+            border: 1.5px solid #2a4a3a; flex-shrink: 0; margin-top: 2px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s; background: transparent;
+        }
+        .product-card.selected .cbx { background: #24ED9B; border-color: #24ED9B; }
+        .cbx-mark { font-size: 0.68rem; font-weight: 900; color: #06100c; display: none; }
+        .product-card.selected .cbx-mark { display: block; }
+
+        .p-body { flex: 1; min-width: 0; }
+        .p-name { font-weight: 600; color: #e8f5f0; font-size: 0.94rem; }
+        .p-meta { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; align-items: center; }
+        .p-desc { color: #6b9e88; font-size: 0.79rem; margin-top: 5px; line-height: 1.4; }
+
+        .bdg { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.67rem; font-weight: 600; }
+        .bdg-cat  { background: rgba(112,0,255,0.1); color: #a78bfa; border: 1px solid rgba(112,0,255,0.18); }
+        .bdg-dep  { background: #122019; color: #6b9e88; }
+        .bdg-hl   { background: rgba(36,237,155,0.1); color: #24ED9B; border: 1px solid rgba(36,237,155,0.22); }
+        .bdg-l    { background: rgba(110,215,173,0.1); color: #6dd9a8; border: 1px solid rgba(110,215,173,0.18); }
+        .bdg-ll   { background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.18); }
+        .bdg-nl   { background: rgba(248,113,113,0.08); color: #f87171; border: 1px solid rgba(248,113,113,0.15); }
+        .bdg-path { background: rgba(36,237,155,0.06); color: #6b9e88; border: 1px solid #1e3329; }
+
+        /* Competitor card */
+        .comp-card {
+            background: #0a1510; border: 1px solid #1e3329; border-left: 3px solid #2a3a32;
+            border-radius: 10px; padding: 12px 18px; margin-bottom: 7px; opacity: 0.6;
+        }
+        .comp-name-lbl { font-size: 0.67rem; font-weight: 800; color: #4b5563;
+            text-transform: uppercase; letter-spacing: 0.06em; }
+        .comp-prod { font-weight: 600; color: #6b9e88; font-size: 0.88rem; margin-top: 2px; }
+        .comp-ctx { color: #4b5563; font-size: 0.77rem; margin-top: 4px; line-height: 1.4; }
+
+        /* Intel panel */
+        .intel { position: sticky; top: 68px; }
+        .intel-card {
+            background: linear-gradient(135deg, #0d1a14 0%, #0f2019 100%);
+            border: 1px solid rgba(36,237,155,0.14);
+            border-radius: 14px; padding: 18px 20px; margin-bottom: 12px;
+        }
+        .ic-title {
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: #3d6655; margin-bottom: 12px;
+        }
+        .ic-org { font-size: 0.84rem; color: #e8f5f0; font-weight: 600; }
+
+        /* Tier summary rows */
+        .ts-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(30,51,41,0.4); }
+        .ts-row:last-child { border-bottom: none; }
+        .ts-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .ts-dot-hl { background: #24ED9B; }
+        .ts-dot-l  { background: #6dd9a8; }
+        .ts-dot-ll { background: #fb923c; }
+        .ts-dot-nl { background: #4b5563; }
+        .ts-lbl { font-size: 0.77rem; color: #6b9e88; flex: 1; }
+        .ts-ct  { font-size: 0.77rem; color: #3d6655; font-weight: 700; }
+
+        /* Signal rows */
+        .sig-row { display: flex; align-items: center; gap: 8px; padding: 5px 0;
+            border-bottom: 1px solid rgba(30,51,41,0.4); font-size: 0.79rem; }
+        .sig-row:last-child { border-bottom: none; }
+        .sig-dot { width: 6px; height: 6px; border-radius: 50%; background: #24ED9B; flex-shrink: 0; }
+        .sig-lbl { color: #6b9e88; flex: 1; }
+        .sig-tag { font-size: 0.66rem; color: #3d6655; }
+
+        /* Contacts */
+        .ct-item { padding: 8px 0; border-bottom: 1px solid rgba(30,51,41,0.4); }
+        .ct-item:last-child { border-bottom: none; }
+        .ct-name { font-size: 0.84rem; font-weight: 600; color: #e8f5f0; }
+        .ct-title { font-size: 0.75rem; color: #6b9e88; margin-top: 1px; }
+        .ct-role { font-size: 0.66rem; color: #3d6655; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .ct-li { display: inline-block; margin-top: 3px; font-size: 0.71rem; color: #24ED9B; }
+
+        /* Sticky footer */
+        .footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(6,16,12,0.97); backdrop-filter: blur(12px);
+            border-top: 1px solid #1e3329; padding: 13px 28px; z-index: 30;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+        .f-left { display: flex; align-items: center; gap: 14px; }
+        .f-lbl { font-size: 0.79rem; color: #6b9e88; }
+        .f-ct { font-size: 1.1rem; font-weight: 800; color: #e8f5f0; }
+        .f-max { font-size: 0.84rem; color: #3d6655; }
+        .f-hint { font-size: 0.74rem; color: #3d6655; }
+        .f-right { display: flex; align-items: center; gap: 10px; }
+
+        .btn-dossier {
+            background: #24ED9B; color: #06100c; border: none;
+            padding: 12px 30px; border-radius: 10px;
+            font-size: 0.92rem; font-weight: 800; cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s; white-space: nowrap;
+        }
+        .btn-dossier:hover { background: #1dd88a; box-shadow: 0 0 24px rgba(36,237,155,0.3); }
+        .btn-dossier:disabled { background: #122019; color: #3d6655; cursor: not-allowed; box-shadow: none; }
+
+        .btn-prev {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(36,237,155,0.07); border: 1px solid rgba(36,237,155,0.22);
+            color: #24ED9B; padding: 9px 16px; border-radius: 8px;
+            font-size: 0.8rem; font-weight: 600; transition: all 0.15s;
+        }
+        .btn-prev:hover { background: rgba(36,237,155,0.13); }
+    </style>
+</head>
+<body>
+
+<nav class="nav">
+    <img src="{{ url_for('static', filename='img/skillable-logo.png') }}" alt="Skillable"
+         onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'">
+    <div class="nav-div"></div>
+    <span class="nav-tool">Inspector</span>
+    <span class="nav-co">/ {{ discovery.company_name }}</span>
+    <div class="nav-sp"></div>
+    <a href="/inspector/" class="nav-back">&larr; New Search</a>
+</nav>
+
+<div class="page">
+
+    <div class="header">
+        <div class="eyebrow">Case Board</div>
+        <div class="header-row">
+            <div>
+                <div class="company-title">
+                    {{ discovery.company_name }}
+                    {% set ot = discovery.organization_type or 'software_company' %}
+                    {% if ot == 'software_company' %}<span class="org-badge org-software">Software</span>
+                    {% elif ot == 'academic_institution' %}<span class="org-badge org-academic">Academic</span>
+                    {% elif ot == 'training_organization' %}<span class="org-badge org-training">Training Org</span>
+                    {% elif ot == 'systems_integrator' %}<span class="org-badge org-integrator">Systems Integrator</span>
+                    {% elif ot == 'technology_distributor' %}<span class="org-badge org-distributor">Distributor</span>
+                    {% elif ot == 'professional_services' %}<span class="org-badge org-services">Prof. Services</span>
+                    {% else %}<span class="org-badge org-services">{{ ot | replace('_',' ') | title }}</span>{% endif %}
+                </div>
+                {% if discovery.company_description %}
+                <div class="header-desc">{{ discovery.company_description }}</div>
+                {% endif %}
+            </div>
+            {% if existing_analysis %}
+            <a href="/inspector/dossier/{{ existing_analysis.analysis_id }}" class="btn-prev">
+                View Previous Dossier &rarr;
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="POST" action="/inspector/score" id="scoreForm">
+    <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
+
+    <div class="board">
+
+        <!-- Products column -->
+        <div>
+            {% set hl = discovery.products | selectattr('likely_labable','equalto','highly_likely') | list | sort(attribute='priority') %}
+            {% set l  = discovery.products | selectattr('likely_labable','equalto','likely') | list | sort(attribute='priority') %}
+            {% set ll = discovery.products | selectattr('likely_labable','equalto','less_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
+            {% set nl = discovery.products | selectattr('likely_labable','equalto','not_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
+            {% set tc = discovery.products | selectattr('category','equalto','Training & Certification') | list | sort(attribute='name') %}
+
+            {% if hl %}
+            <div class="tier-section">
+                <div class="tier-hdr">
+                    <span class="tier-lbl t-hl">Highly Likely</span>
+                    <div class="tier-rule"></div>
+                    <span class="tier-ct">{{ hl | length }}</span>
+                </div>
+                {% for p in hl %}
+                <label class="product-card hl selected" onclick="toggleCard(this)">
+                    <input type="checkbox" name="products" value="{{ p.name }}" checked onchange="syncFooter()" style="display:none">
+                    <div class="cbx"><span class="cbx-mark">✓</span></div>
+                    <div class="p-body">
+                        <div class="p-name">{{ p.name }}</div>
+                        <div class="p-meta">
+                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            <span class="bdg bdg-hl">highly likely</span>
+                            {% if p.candidate_paths %}{% for path in p.candidate_paths[:2] %}<span class="bdg bdg-path">{{ path }}</span>{% endfor %}{% endif %}
+                        </div>
+                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if l %}
+            <div class="tier-section">
+                <div class="tier-hdr">
+                    <span class="tier-lbl t-l">Likely</span>
+                    <div class="tier-rule"></div>
+                    <span class="tier-ct">{{ l | length }}</span>
+                </div>
+                {% for p in l %}
+                <label class="product-card ll-tier selected" onclick="toggleCard(this)">
+                    <input type="checkbox" name="products" value="{{ p.name }}" checked onchange="syncFooter()" style="display:none">
+                    <div class="cbx"><span class="cbx-mark">✓</span></div>
+                    <div class="p-body">
+                        <div class="p-name">{{ p.name }}</div>
+                        <div class="p-meta">
+                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            <span class="bdg bdg-l">likely</span>
+                            {% if p.candidate_paths %}{% for path in p.candidate_paths[:2] %}<span class="bdg bdg-path">{{ path }}</span>{% endfor %}{% endif %}
+                        </div>
+                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if ll %}
+            <div class="tier-section">
+                <div class="tier-hdr">
+                    <span class="tier-lbl t-ll">Less Likely</span>
+                    <div class="tier-rule"></div>
+                    <span class="tier-ct">{{ ll | length }}</span>
+                </div>
+                {% for p in ll %}
+                <label class="product-card less" onclick="toggleCard(this)">
+                    <input type="checkbox" name="products" value="{{ p.name }}" onchange="syncFooter()" style="display:none">
+                    <div class="cbx"><span class="cbx-mark">✓</span></div>
+                    <div class="p-body">
+                        <div class="p-name">{{ p.name }}</div>
+                        <div class="p-meta">
+                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            <span class="bdg bdg-ll">less likely</span>
+                        </div>
+                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if nl %}
+            <div class="tier-section">
+                <div class="tier-hdr">
+                    <span class="tier-lbl t-nl">Not Likely</span>
+                    <div class="tier-rule"></div>
+                    <span class="tier-ct">{{ nl | length }}</span>
+                </div>
+                {% for p in nl %}
+                <label class="product-card nope" onclick="toggleCard(this)">
+                    <input type="checkbox" name="products" value="{{ p.name }}" onchange="syncFooter()" style="display:none">
+                    <div class="cbx"><span class="cbx-mark">✓</span></div>
+                    <div class="p-body">
+                        <div class="p-name">{{ p.name }}</div>
+                        <div class="p-meta">
+                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            <span class="bdg bdg-nl">not likely</span>
+                        </div>
+                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if tc %}
+            <div class="tier-section">
+                <div class="tier-hdr">
+                    <span class="tier-lbl t-tc">Training &amp; Certification</span>
+                    <div class="tier-rule"></div>
+                    <span class="tier-ct">{{ tc | length }}</span>
+                </div>
+                {% for p in tc %}
+                <div class="product-card tc-card">
+                    <div class="p-body">
+                        <div class="p-name">{{ p.name }}</div>
+                        <div class="p-meta">
+                            <span class="bdg bdg-cat">{{ p.category }}</span>
+                            <span class="bdg" style="background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.18)">channel signal</span>
+                        </div>
+                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if discovery.competitive_products %}
+            <div class="tier-section">
+                <div class="tier-hdr">
+                    <span class="tier-lbl t-cp">Competitive Landscape</span>
+                    <div class="tier-rule"></div>
+                    <span class="tier-ct">{{ discovery.competitive_products | length }}</span>
+                </div>
+                {% for comp in discovery.competitive_products %}
+                <div class="comp-card">
+                    <div class="comp-name-lbl">{{ comp.competitor_name }}</div>
+                    <div class="comp-prod">{{ comp.product_name }}
+                        {% if comp.category %}<span class="bdg bdg-cat" style="margin-left:6px">{{ comp.category }}</span>{% endif %}
+                        <span class="bdg bdg-nl" style="margin-left:4px">competitor</span>
+                    </div>
+                    {% if comp.competitive_context %}<div class="comp-ctx">{{ comp.competitive_context }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Intel panel -->
+        <div class="intel">
+
+            <div class="intel-card">
+                <div class="ic-title">Company Intelligence</div>
+                {% set ot = discovery.organization_type or 'software_company' %}
+                <div class="ic-org">
+                    {% if ot == 'software_company' %}Software Company
+                    {% elif ot == 'academic_institution' %}Academic Institution
+                    {% elif ot == 'training_organization' %}Training Organization
+                    {% elif ot == 'systems_integrator' %}Systems Integrator
+                    {% elif ot == 'technology_distributor' %}Technology Distributor
+                    {% elif ot == 'professional_services' %}Professional Services
+                    {% else %}{{ ot | replace('_',' ') | title }}{% endif %}
+                </div>
+                <div style="margin-top:14px">
+                    {% set hl2 = discovery.products | selectattr('likely_labable','equalto','highly_likely') | list %}
+                    {% set l2  = discovery.products | selectattr('likely_labable','equalto','likely') | list %}
+                    {% set ll2 = discovery.products | selectattr('likely_labable','equalto','less_likely') | list %}
+                    {% set nl2 = discovery.products | selectattr('likely_labable','equalto','not_likely') | list %}
+                    <div class="ts-row"><div class="ts-dot ts-dot-hl"></div><span class="ts-lbl">Highly Likely</span><span class="ts-ct">{{ hl2 | length }}</span></div>
+                    <div class="ts-row"><div class="ts-dot ts-dot-l"></div><span class="ts-lbl">Likely</span><span class="ts-ct">{{ l2 | length }}</span></div>
+                    <div class="ts-row"><div class="ts-dot ts-dot-ll"></div><span class="ts-lbl">Less Likely</span><span class="ts-ct">{{ ll2 | length }}</span></div>
+                    <div class="ts-row"><div class="ts-dot ts-dot-nl"></div><span class="ts-lbl">Not Likely</span><span class="ts-ct">{{ nl2 | length }}</span></div>
+                </div>
+            </div>
+
+            {% if discovery.atp_signals or discovery.training_programs %}
+            <div class="intel-card">
+                <div class="ic-title">Training Signals</div>
+                {% if discovery.training_programs %}{% for prog in discovery.training_programs[:5] %}
+                <div class="sig-row">
+                    <div class="sig-dot"></div>
+                    <span class="sig-lbl">{% if prog is string %}{{ prog }}{% elif prog.name is defined %}{{ prog.name }}{% else %}{{ prog }}{% endif %}</span>
+                </div>
+                {% endfor %}{% endif %}
+                {% if discovery.atp_signals %}{% for sig in discovery.atp_signals[:3] %}
+                <div class="sig-row">
+                    <div class="sig-dot"></div>
+                    <span class="sig-lbl">{% if sig is string %}{{ sig }}{% elif sig.name is defined %}{{ sig.name }}{% else %}{{ sig }}{% endif %}</span>
+                    <span class="sig-tag">ATP</span>
+                </div>
+                {% endfor %}{% endif %}
+            </div>
+            {% endif %}
+
+            {% if discovery.org_contacts %}
+            <div class="intel-card">
+                <div class="ic-title">Key Contacts</div>
+                {% for c in discovery.org_contacts[:5] %}
+                <div class="ct-item">
+                    <div class="ct-name">{{ c.name }}</div>
+                    <div class="ct-title">{{ c.title }}</div>
+                    {% if c.role_type %}<div class="ct-role">{{ c.role_type | replace('_',' ') }}</div>{% endif %}
+                    {% if c.linkedin_url %}<a href="{{ c.linkedin_url }}" target="_blank" class="ct-li">LinkedIn &rarr;</a>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+    </form>
+</div>
+
+<!-- Sticky footer -->
+<div class="footer">
+    <div class="f-left">
+        <span class="f-lbl">Selected:</span>
+        <div><span class="f-ct" id="fct">0</span><span class="f-max"> / 4</span></div>
+        <span class="f-hint" id="fhint">Select 1–4 products to run a Dossier</span>
+    </div>
+    <div class="f-right">
+        {% if existing_analysis %}
+        <a href="/inspector/dossier/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous Dossier</a>
+        {% endif %}
+        <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn" disabled>Run Dossier &rarr;</button>
+    </div>
+</div>
+
+<script>
+const MAX = 4;
+
+function toggleCard(label) {
+    event.preventDefault();
+    const cb = label.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    const cnt = document.querySelectorAll('input[name="products"]:checked').length;
+    if (!cb.checked && cnt >= MAX) return;
+    cb.checked = !cb.checked;
+    if (cb.checked) {
+        label.classList.add('selected');
+    } else {
+        label.classList.remove('selected');
+    }
+    syncFooter();
+}
+
+function syncFooter() {
+    const cnt = document.querySelectorAll('input[name="products"]:checked').length;
+    document.getElementById('fct').textContent = cnt;
+    document.getElementById('runBtn').disabled = cnt === 0;
+    const hint = document.getElementById('fhint');
+    if (cnt >= MAX) {
+        hint.textContent = 'Maximum selected — deselect to change';
+        hint.style.color = '#fb923c';
+    } else {
+        hint.textContent = 'Select 1–4 products to run a Dossier';
+        hint.style.color = '#3d6655';
+    }
+    // Dim unselected when at max
+    document.querySelectorAll('.product-card').forEach(card => {
+        const cb = card.querySelector('input[type="checkbox"]');
+        if (!cb) return;
+        if (!cb.checked && cnt >= MAX) {
+            card.classList.add('dimmed');
+        } else {
+            card.classList.remove('dimmed');
+        }
+    });
+}
+
+// Pre-select: enforce max from initial checked state
+window.addEventListener('DOMContentLoaded', () => {
+    let cnt = 0;
+    document.querySelectorAll('input[name="products"]').forEach(cb => {
+        if (cb.checked) {
+            cnt++;
+            if (cnt > MAX) { cb.checked = false; cb.closest('.product-card').classList.remove('selected'); }
+        }
+    });
+    syncFooter();
+});
+</script>
+</body>
+</html>
