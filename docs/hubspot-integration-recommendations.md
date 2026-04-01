@@ -214,7 +214,39 @@ As Marketing develops its expansion motion, Intelligence's department-level data
 
 ---
 
-## Section 5 — What We Need From RevOps
+## Section 5 — How Each Tool Connects to HubSpot
+
+The three Intelligence tools have distinct integration models. Understanding the difference matters for RevOps configuration and for setting expectations with each user audience.
+
+### Prospector ↔ HubSpot (Bidirectional — Marketing-driven)
+
+Marketing triggers Prospector from inside HubSpot — selecting a list of ZoomInfo companies or defining ICP criteria and sending them to Prospector for analysis. Prospector runs the batch and writes enriched data sets back to HubSpot Company records, Contact records, and Deals as described in Sections 3 and 4.
+
+**HubSpot is Prospector's primary output destination.** The Intelligence UI serves as the run interface and pre-commit review screen — Marketing confirms what will be written before the data lands in HubSpot. After that, all work happens in HubSpot using existing workflows, sequences, and pipeline views.
+
+This integration requires the most RevOps configuration: trigger mechanism, field mapping, write-back rules, deduplication logic.
+
+### HubSpot → Inspector (One-way trigger — Seller and SE-driven)
+
+Company and Deal records in HubSpot surface a link: "Run Inspector." Clicking it opens Inspector in a new browser window at the Stage 1 Company Report — a broad scan that surfaces all company products, ranked by fit, with competitive pairings and company-level signals.
+
+From there, the seller or SE selects 3–4 products for a deep dive (Stage 2), getting the full technical analysis, delivery path recommendation, scoring approach, and consumption potential estimate. The full Inspector experience runs in Intelligence — HubSpot is only the trigger.
+
+Executives and SEs who are already regular Inspector users may go directly to Intelligence without using the HubSpot link. Both paths are valid.
+
+This integration is lower-complexity on the RevOps side: a HubSpot Company/Deal property with the Inspector URL populated at the right time, or a workflow action that opens the link.
+
+### Designer → HubSpot (Read-only visibility — no trigger from HubSpot)
+
+Program owners, instructional designers, and SMEs go directly to Designer. HubSpot plays no role in triggering or driving Designer's workflow.
+
+The integration runs the other direction: Designer-created Lab Programs should be visible in HubSpot as read-only links and summary data on the Company record. This gives sellers and CSMs visibility into what programs have been designed, what's in progress, and what has been delivered for their accounts — without needing to access Designer directly.
+
+This surfaces high-value context for renewal and expansion conversations: "You have three completed lab programs for this product family and two more in design" is exactly what an AE needs before a QBR.
+
+---
+
+## Section 7 — What We Need From RevOps
 
 To build this write-back architecture correctly, we need RevOps's expertise on the existing HubSpot setup. Specifically:
 
@@ -232,7 +264,7 @@ To build this write-back architecture correctly, we need RevOps's expertise on t
 
 ---
 
-## Section 6 — Open Questions
+## Section 8 — Open Questions
 
 The following require input from RevOps and/or Marketing leadership before the write-back architecture can be finalized:
 
