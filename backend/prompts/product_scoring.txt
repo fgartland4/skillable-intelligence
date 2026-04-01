@@ -155,7 +155,11 @@ Example labels by phase:
 - Score: `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Config File State:**` · `**GUI Only | Risk:**` · `**No Scoring Surface | Blocker:**`
 - Teardown: `**Auto Teardown:**` (cloud/VM) · `**Deprovision API:**` · `**No DELETE Endpoint | Risk:**`
 
-**Workflow Complexity (0-30):** This is 30% of the total score. "Is it worth doing labs?" — does this product justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? High scores belong to products with deep DTDS depth — admins who design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures each represent a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it — there is no skill accumulation that demands structured lab sequences.
+**Workflow Complexity (0-30):** This is 30% of the total score. "Do the customer's end users genuinely need hands-on practice with this product?" — does this product justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? High scores belong to products with deep DTDS depth — admins who design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures each represent a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it — there is no skill accumulation that demands structured lab sequences.
+
+Before scoring, answer these two questions explicitly in the dimension summary:
+1. **Do end users NEED hands-on?** State whether using this product requires repeated, practiced skill — or whether it's the kind of product someone learns adequately from documentation, videos, or observation alone. Be direct: "Yes — this product requires hands-on practice because..." or "No — the product is simple enough that..."
+2. **What is the real depth of skill required?** Name the specific job tasks that a trained user must be able to perform independently — not the feature list, but the actual work: configure a policy, recover from a failure, deploy across environments, troubleshoot a topology. Products where these tasks are varied and complex score high. Products where there is effectively one task (e.g., "click through a wizard") score near zero.
 
 Scoring signals (sum; cap 25):
 - AI-embedded features requiring iterative hands-on practice (Copilot integration, AI-powered workflows, generative AI capabilities): +6 — cannot be learned by watching; each feature needs its own practice loop
@@ -177,7 +181,13 @@ Signals worth naming (use these labels or choose better ones for the product):
 - `**Hands-On AI Features:**` name the specific AI features and why iterative practice is essential (not just a demo or observation)
 - `**Role Breadth:**` how distinct personas create separate program demand (don't repeat personas already listed — focus on the demand implication)
 
-**Training & Enablement Maturity (0-20):** This is 20% of the total score. "Is the org ready?" — labs need a delivery vehicle to reach learners. Score the highest applicable combination:
+**Training & Enablement Maturity (0-20):** This is 20% of the total score. "Will learners be meaningfully more capable and career-ready after completing labs with this product?" — score the organization's delivery infrastructure AND the impact potential for the learner.
+
+Before scoring, answer these two questions explicitly in the dimension summary:
+1. **Does structured hands-on practice produce measurable job impact?** State whether a learner who completes a lab with this product will be demonstrably better at their job — able to perform tasks faster, more accurately, or independently that they couldn't before. Products where hands-on practice directly builds job-critical skills (e.g., configuring a security policy, recovering from a data loss event, managing a cloud topology) score high. Products where the "skill" is navigating a menu or clicking through a UI score low.
+2. **Does the organization have the infrastructure to deliver labs at scale?** State what delivery vehicles exist: ATP network, certification program, events, channel, internal L&D. An organization with no delivery infrastructure scores low regardless of how complex the product is — labs with nowhere to go don't create impact.
+
+Score the highest applicable combination:
 - ATP/Learning Partner program (channel credentials, technical seller enablement): +8
 - Certification program (customer training, skill validation): +5
 - Events/conferences (product launches, adoption drives, partner events): +4
@@ -258,6 +268,8 @@ When research surfaces any of these product types or technology combinations, ap
 Never use "Path A", "Path B", or "Path C" in the output — use the actual fabric/mechanism names instead.
 
 ⚠️ **LEAD WITH WHY, NOT HOW**: The recommendation bullets will be read by SADs, AEs, and CSMs (who need the business problem framing) as well as SEs and TSMs (who need the technical details). The first or second bullet should answer: what business problem does this company have that labs solve? Lead with the use case — pre-sales POC acceleration, partner channel enablement, customer time-to-value, certification and skill validation, competitive differentiation at events — before describing HOW Skillable would orchestrate it. The Delivery Path bullet covers the HOW; make sure at least one other bullet frames the WHY.
+
+⚠️ **EVERY BULLET MUST STATE WHY — NO EXCEPTIONS**: A recommendation that states only WHAT is not useful. Every bullet must include the specific evidence or reasoning that makes it the right call *for this product*. Bad: "**Delivery Path:** Hyper-V fabric." Good: "**Delivery Path:** Hyper-V fabric — silent installer confirmed in deployment guide; VM image is the lab, no runtime provisioning APIs needed." Bad: "**Scoring Approach:** PowerShell scoring is viable." Good: "**Scoring Approach:** PowerShell scripts can validate policy creation, job status, and recovery point existence from within the VM — ABA for learning labs, PBT + Activity Group Scoring for certification given their existing exam program." The WHY is what makes the bullet actionable intelligence rather than a category label.
 
 Each bullet MUST start with a bold label in the format `**Label:** rest of sentence.`
 
@@ -407,7 +419,7 @@ Then provide:
 ⚠️ A seller seeing these numbers will use them in conversations with customers and executives. If the numbers can't be defended with publicly available evidence, they should be lower. Directional and defensible beats impressive and wrong every time.
 
 ## Output Format
-⚠️ MAXIMUM 3 evidence items per dimension. Fewer is better — one strong, specific bullet is preferable to three vague or redundant ones. Do not pad.
+⚠️ MAXIMUM 5 evidence items per dimension. Fewer is better — one strong, specific bullet beats five vague or redundant ones. Do not pad. 2–3 sharp items is the norm; only use 4–5 when the product genuinely has that many distinct, non-overlapping signals worth surfacing.
 ⚠️ EVIDENCE MUST BE UNIQUE ACROSS ALL DIMENSIONS. Do not reword or repeat the same fact in multiple dimensions. Each evidence item should cite a distinct signal — if a finding already appears under one dimension, do not include it (even reworded) under another. If you cannot find genuinely distinct signals for a dimension, use one item or a summary instead of filling the quota.
 ⚠️ LAB CONCEPTS: 2–6 items max. Each is a concise, specific lab title or scenario (e.g. "Configure a backup policy and validate recovery point creation via REST API", "Troubleshoot a failed deployment in a pre-broken VM environment"). Cover the range of DTDS phases and user personas represented by this product — do not list variations of the same task. Fewer sharp, varied concepts beats more redundant ones.
 

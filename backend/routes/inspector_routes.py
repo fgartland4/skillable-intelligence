@@ -124,6 +124,12 @@ def select_products(discovery_id: str):
 
 @inspector.route("/caseboard/<discovery_id>")
 def caseboard(discovery_id: str):
+    """Stage 1 — Seller Action Plan (Company Report).
+
+    Shows the company's product portfolio in scored tiers. The seller or SE
+    selects up to 3 products to carry forward into Stage 2 deep-dive scoring.
+    URL is /caseboard/ for legacy continuity; UI label is "Seller Action Plan."
+    """
     discovery = load_discovery(discovery_id)
     if not discovery:
         return redirect(url_for("inspector.home"))
@@ -236,6 +242,13 @@ def results(analysis_id: str):
 
 @inspector.route("/dossier/<analysis_id>")
 def dossier(analysis_id: str):
+    """Stage 2 — Seller & SE Action Plan (Solution Recommendations).
+
+    Full per-product scoring breakdown for the SE, plus an at-a-glance Zone 1
+    seller summary with verdict, ACV estimate, and data-driven next steps.
+    Sellers and SEs use this output; program owners open Designer separately.
+    URL is /dossier/ for legacy continuity; UI label is "Seller & SE Action Plan."
+    """
     data = load_analysis(analysis_id)
     if not data:
         return "Analysis not found", 404

@@ -367,6 +367,10 @@ def _parse_consumption(d: dict) -> ConsumptionPotential:
 
 
 def _parse_dimension(d: dict) -> DimensionScore:
+    raw_evidence = d.get("evidence", [])
+    if len(raw_evidence) > 5:
+        log.warning("Dimension returned %d evidence items — truncating to 5", len(raw_evidence))
+        raw_evidence = raw_evidence[:5]
     return DimensionScore(
         score=d.get("score", 0),
         summary=d.get("summary", ""),
@@ -376,7 +380,7 @@ def _parse_dimension(d: dict) -> DimensionScore:
                 source_url=e.get("source_url"),
                 source_title=e.get("source_title"),
             )
-            for e in d.get("evidence", [])
+            for e in raw_evidence
         ],
     )
 
