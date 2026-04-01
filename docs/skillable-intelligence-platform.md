@@ -3,140 +3,115 @@
 
 ---
 
-## WHY — The Problem No Other Tool Solves
+## Three Problems Worth Solving
 
-### We Are a Platform, Not a Product
+Skillable is a platform company. Not a software product — an orchestration platform that enables software companies to deliver hands-on learning experiences at scale. That distinction is more than positioning. It is the root cause of three hard problems that no standard sales or marketing tool was ever designed to solve.
 
-Most B2B companies sell a product. Their go-to-market challenge is identifying organizations that have the budget, the pain point, and the authority to buy. Firmographic signals — company size, industry, growth stage, technology stack — are meaningful proxies. A company that fits the profile is a prospect.
+- **Marketing:** Identifying companies in our ICP
+- **Revenue:** Proving labability and lab impact
+- **ProServ & Product:** Enabling bought-in customers to adopt labs
 
-Skillable sells a platform. That changes the qualification question entirely.
+Each problem is structural — a natural consequence of the sophistication of what we do, not a gap in any team's execution. And each one requires a different kind of intelligence than any existing tool provides.
 
-We are not asking whether a company values training. We are asking whether a company's products can be orchestrated into hands-on labs — whether Skillable can technically deliver for them, whether their products are complex enough that labs create genuine skill-building value, and whether their organization has the maturity to build and sustain a lab program.
+### The Platform Difference
 
-These are not questions about the company. They are questions about the product. And they cannot be answered with firmographic data.
+Most B2B software companies sell a product that runs in their cloud. Their buyers interact with it through a browser. The product is the same for every customer. Qualifying a prospect means finding buyers who fit the profile: the right size, the right industry, the right pain point, the right budget.
 
-This is the gap Intelligence fills. Every other tool in our stack — ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator — evaluates companies. **Intelligence evaluates products.** It is the only platform in our stack capable of answering the question that actually determines whether a prospect can become a Skillable customer.
+Skillable is different. We do not deliver our own software. We orchestrate *other companies' software* into hands-on lab environments — real products, real interfaces, real consequence of error, accessible to a learner anywhere. What we sell is the infrastructure that makes that possible.
 
-> **AI moment:** Assessing whether a company's products have the deployment model, API surface, marketplace presence, and technical architecture that Skillable can orchestrate takes an experienced SE hours per company. Intelligence does it in minutes, across a list of hundreds — researching marketplace listings, API documentation, GitHub repositories, Docker images, and partner ecosystem signals automatically. Every company on a ZoomInfo list gets a real technical evaluation, not just a firmographic score.
+This creates a fundamentally different go-to-market challenge. The buyer profile question — does this company value training? — is necessary but not sufficient. The deeper question is whether their products can be orchestrated into a Skillable environment at all. Whether those products are technically complex enough that hands-on practice creates real value. Whether the company can build and sustain a lab program once they are a customer.
 
-### The Three Gates
+These questions cannot be answered with firmographic data. They require a different kind of analysis entirely. That is what Intelligence provides.
 
-Intelligence evaluates every company and product against three qualification gates. All three must clear for a prospect to be genuinely purseable.
+### Marketing Challenge: Identifying Companies in Our ICP
 
-**Gate 1 — Technical Orchestrability**
-Can Skillable deliver a lab for this company's products? This is the primary gate. If the answer is no, the composite score is limited regardless of everything else. Gate 1 failure means the company is not a Skillable prospect — period — regardless of how strong their training organization is or how much they value hands-on learning.
+Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses — ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator — are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company's products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.
 
-**Gate 2 — Product Complexity**
-Is the product technically rich enough that hands-on labs create genuine skill-building value? Simple products with shallow workflows don't benefit enough from labs to justify the investment. Complexity drives the value of practice. High Gate 2 scores mean learners get dramatically better at something that matters — and they can prove it.
+We evaluate every prospect across three dimensions:
 
-**Gate 3 — Organizational Readiness**
-Does the company have the content team skills, technical enablement maturity, and program leadership to build and sustain a lab program? Gate 3 uses a two-question model: does the organization have this capability today, and do they have the organizational DNA to build it if absent? A company can clear Gate 3 on potential alone — if the signals suggest they're building toward it.
+**Can we deliver a lab for this company's products?** This is the primary filter. If the answer is no, nothing else matters — not the size of their training organization, not the depth of their content team, not their enthusiasm for hands-on learning. A company whose products cannot be orchestrated into a Skillable environment is not a prospect.
 
-A company must clear all three gates for a successful lab program to be achievable. Exceptional organizational readiness does not overcome a product that cannot be orchestrated. Strong Gate 1 compatibility paired with an immature training organization is a slow, high-risk program. Intelligence flags both — and surfaces what it would take to get there.
+**Is the product technically complex enough for labs to create real value?** Simple products with shallow workflows do not benefit enough from hands-on practice to justify the investment. Products with deep administrative workflows, meaningful configuration decisions, and real consequence of error — those are where labs change what learners can actually do.
 
-> **AI moment:** Skillable has deep, specific knowledge about how its platform works — delivery paths, technical blockers, feature availability, Gate 1 disqualifiers, scoring feasibility signals. A human SE applies that knowledge to one company at a time, in a live conversation. Intelligence applies it to every product it researches, automatically — reasoning through the specific technical characteristics of a product against the specific capabilities and constraints of the Skillable platform, and producing a judgment that reflects reality rather than optimism. Intelligence knows Skillable as well as your best SE, and applies that knowledge to every company it touches.
+**Does the organization have what it takes to build and sustain a program?** Content team skills, technical enablement maturity, program leadership. Some companies have it today. Others have the organizational DNA to build it. Either can become a strong customer. Companies with neither are high-risk programs regardless of product fit.
 
-### The Workday Pattern — Knowing When to Stop Before We Start
+The Workday pattern illustrates what happens when this analysis does not happen early. On every traditional marketing signal, Workday is an ideal prospect: world-class training organization, dedicated learning division, deep technical enablement culture, massive install base. Two of the three dimensions are strong. The third ends the conversation.
 
-**The goal of Intelligence is to surface the specific technical reasons a company cannot be a Skillable customer — before we spend a single dollar marketing to them.**
+Workday's architecture is pure multi-tenant — every customer shares the same cloud environment. There is no Workday instance to give a learner. There is no provisioning API to spin one up. There is nothing to install, containerize, or slice. Skillable cannot deliver a lab for Workday's products. That fact is findable in public documentation before a single sales conversation begins.
 
-Workday is the clearest illustration of why this matters.
+Workday was not a bad lead. It was motivated, capable people who invested significant time before hitting a wall that was always there. The Workday pattern repeats whenever product-level technical fit is evaluated late — or not at all.
 
-On every traditional marketing signal, Workday looks like an ideal prospect. World-class training organization. Dedicated learning division. Deep content ecosystem. Strong technical enablement culture. Massive install base. Gate 3 passes with distinction — their organizational capability to build a lab program is unquestioned.
+The same logic runs in the other direction. When Fortinet is a strong fit, it is not because Fortinet resembles other good customers as a company. It is because Fortinet's products have specific technical characteristics — multi-VM topology, deep administrative workflows, strong API surface, real consequence of misconfiguration — that make them ideal for hands-on labs. Every company selling products with those same characteristics is a strong fit for the same reasons. The competitive map of a strong-fit customer is a pre-qualified prospect list.
 
-Gate 2 passes too. Configuring Workday HCM or Financials is genuinely complex. The skills involved are real. Workday's own content teams recognized this — they wanted to build labs.
+### Revenue Challenge: Proving Labability and Lab Impact
 
-Gate 1 is where the analysis ends. The specific technical reasons are articulable and discoverable from public documentation:
+Proving that a Skillable lab program will work for a specific customer's products requires deep technical analysis. Which delivery path is right for this product — standard virtual machine, cloud environment slice, containerized workload, custom integration? What are the architectural constraints? What would a realistic program look like in terms of scope, seat time, and scoring approach? What is the estimated consumption potential?
 
-- **Pure multi-tenant architecture** — every Workday customer shares the same cloud environment. There is no "Workday instance" to give a learner. The product is architecturally incapable of per-learner isolation.
-- **No provisioning API** — no mechanism to spin up an individual environment programmatically. Skillable's entire delivery model depends on this capability.
-- **No deployment model** — nothing to install, nothing to containerize, nothing to slice. The product lives entirely in Workday's cloud and cannot be replicated outside it.
+This is exactly the kind of work a skilled Solutions Engineer does well. It requires knowing Skillable's platform deeply — delivery paths, technical constraints, feature availability, scoring feasibility — and applying that knowledge to a specific product's architecture and deployment model. That synthesis takes hours per company, in a live conversation, with access to documentation and a customer contact who can fill in the gaps.
 
-These are not hunches or soft signals. They are specific, technical facts — findable in Workday's architecture documentation before a single sales conversation begins.
+The result is that qualification depth is rationed. It flows to deals already far enough along to justify the time. Early-stage prospects get a general conversation. The technical questions that would surface a Workday pattern early — before marketing dollars are spent, before SE time is committed — often go unasked until it is too late.
 
-The most important version of this story: Workday wasn't a bad lead. It was motivated, capable people inside a well-run organization who invested significant time before hitting a wall that was always there — because Gate 1 was never evaluated before the pursuit began.
+### ProServ & Product Challenge: Enabling Bought-In Customers to Adopt Labs
 
-**Products that work like Workday are not a fit — and Intelligence surfaces that before any marketing motion begins.** The Workday pattern generalizes: any product with pure multi-tenant architecture, no provisioning API, and no deployment model fails Gate 1. Intelligence identifies this pattern from research signals automatically. The HubSpot verdict is "Do Not Pursue" — with the specific technical reasons documented on the Company record so any seller or marketer who asks gets a clear, defensible answer.
+A signed contract is not an adopted customer. The gap between "we want to build labs" and "we have a running program" is wide, and most customers cannot cross it without structured guidance.
 
-> **AI moment:** Identifying that a product has no provisioning API, no deployment model, and pure multi-tenant architecture — from public documentation, before any human conversation — is not a filter. It is a research and reasoning task. The technical reasons a company cannot be a Skillable customer are documented before the first marketing dollar is spent.
+Program design is a specialized skill. Most buyers — even technically sophisticated ones with strong content teams — have never designed a hands-on lab curriculum. They have built documentation, recorded videos, written certification exams. They have not mapped a product's administrative workflows to a sequence of learner activities, defined scoring logic for hands-on tasks, or produced a structured brief that a lab developer can build against without extensive back-and-forth.
 
-### Lookalike Is Causation, Not Correlation
-
-Standard lookalike analysis finds companies that resemble existing customers — same size, same industry, same growth profile. That is firmographic correlation. It is useful, and it has limits.
-
-For Skillable, lookalike analysis works differently — and more powerfully.
-
-When Fortinet is a strong fit, it is not because Fortinet resembles other good customers as a company. It is because Fortinet's products have specific technical characteristics — multi-VM topology, deep admin workflows, real consequence of error, strong API surface — that make them labable. Those characteristics are determined by what Fortinet *sells*, not by how large they are or what industry they're in.
-
-**Every company selling products with those same technical characteristics is labable for the same reasons.** The fit is not approximate. It transfers directly.
-
-This means Skillable's most powerful prospecting signal is product category — not firmographics:
-
-- A company selling network security products will almost always clear Gates 1 and 2 — for the same reasons Fortinet, Palo Alto, and Cisco do.
-- A company selling SIEM, EDR, or identity management will almost always clear Gates 1 and 2 — for the same reasons CrowdStrike, Splunk, and SentinelOne do.
-- A company selling data pipeline or ML infrastructure will almost always clear Gates 1 and 2 — for the same reasons Databricks, dbt Labs, and Snowflake do.
-
-**The competitive map is the lookalike list.** Every time Intelligence analyzes a strong-fit customer, it surfaces that company's direct competitors. Those competitors sell products in the same category, with the same technical profile. They are pre-qualified lookalike candidates — identified automatically, without additional research.
-
-**We are not looking for companies that look like our customers. We are looking for companies whose products behave like our customers' products.** That is a fundamentally more defensible, more precise, and more scalable approach to ICP targeting.
-
-> **AI moment:** Finding companies whose products behave like known strong-fit customers requires understanding what makes a product technically orchestrable and applying that reasoning across the internet. The competitive map of every analyzed customer becomes an automatically updated list of pre-qualified lookalike candidates — identified without additional research, compounding with every new customer.
+Without a process that takes them from goals and audience to a complete, buildable program architecture, customers stall at the design phase. In a consumption model, a stalled customer is not just a missed upsell opportunity — it is a churn risk. A customer who has not built a program has not realized value. A customer who has not realized value does not renew.
 
 ---
 
-## WHAT — The Intelligence Platform
+## Three Tools. One Platform.
 
-### Three Tools, One Intelligence Layer
+Each tool in Skillable Intelligence addresses one of the three challenges directly. All three share the same research and scoring engine — which means every analysis makes the entire platform smarter. A company Prospector evaluates is available to Inspector without re-running research. An Inspector analysis seeds Designer with the product context it needs from day one. The intelligence compounds with every use.
 
-Skillable Intelligence is a platform of three connected tools — Prospector, Inspector, and Designer — all powered by a shared research and scoring engine. The intelligence layer accumulates, stores, and maintains company and product knowledge. Each tool contextualizes that intelligence for a specific person doing a specific job.
+### Designer — Closing the Adoption Gap
 
-**Improving the intelligence layer improves all three tools simultaneously.** Every research improvement makes Prospector rankings more accurate, Inspector analyses more complete, and Designer recommendations more specific — at the same time. Every new Gate signal improves qualification across the entire platform. Every company analyzed by Prospector is available to Inspector without re-running research. This is the compounding effect: the platform gets smarter with every analysis, and every tool benefits.
+Designer takes an Inspector analysis and guides program owners, instructional designers, and subject matter experts through the full process of designing a lab program. From goals and audience definition through a complete approved outline, activity-level content, and a Skillable Studio-ready export package.
 
-### Prospector — ICP Outbound at Scale
+The process is structured. It does not require the customer to know how to design a lab program — that is the point. Designer asks the right questions, sequences the decisions correctly, and generates a complete program architecture that a contracted lab developer can build against immediately.
 
-Prospector is the go-to-market tool for Marketing and RevOps. It takes a list of companies and returns a ranked assessment of how well each one fits Skillable's ICP — with product-level evidence, composite scores, verdicts, delivery path signals, and key contacts for every company on the list.
+The output is not just a plan. Designer generates a complete Bill of Materials from everything it knows about the program and the product: environment templates, PowerShell and Bash scripts, Bicep and CloudFormation templates, lifecycle action scripts, credential pool configuration, scoring validation stubs. What previously required hours of Solutions Engineering and lab developer work is produced in the same session where the program was designed.
 
-**What it unlocks:** Marketing has never had access to product-level qualification data at the point of list building. Prospector makes it possible to screen a ZoomInfo export of 500 companies for Gate 1/2/3 compatibility before a sequence is written, a dollar is spent, or an SDR makes a call. The companies that clear all three gates go into outreach. The Workday patterns come off the list — with documented reasons.
+**What it unlocks:** Every new customer engagement starts with Designer in the first week — before the technical environment is ready. Program design and environment build run as parallel workstreams. Day one is productive for the program owner. The adoption gap closes before it has a chance to form.
 
-Prospector also surfaces **customer expansion opportunities** — mapping the department landscape of existing accounts to identify which departments have active lab programs, which could adopt labs already built elsewhere in the organization, and which represent untapped greenfield opportunity.
-
-### Inspector — Deep Analysis for Sellers and SEs
+### Inspector — Proving Labability and Impact
 
 Inspector performs a deep product-level analysis of a specific company. It runs in two stages.
 
-**Stage 1 — Company Report:** A broad scan that surfaces all of the company's products, ranked by labability, with competitive pairings, company-level signals, and an overall fit score. This is the foundation document for any seller or SE entering a conversation with this account. It is also the output of Prospector's Customer Expansion pass — the same research, stored once per company, shared across both tools.
+**Stage 1 — Company Report:** A broad scan that surfaces all of a company's products, ranked by labability, with competitive pairings, company-level signals, and an overall fit score. The foundation document for any seller or SE entering a conversation with this account.
 
-**Stage 2 — Deep Dive:** The seller or SE selects three to four products from Stage 1 for exhaustive analysis — full Gate 1/2/3 evidence, delivery path recommendation with rationale, scoring approach recommendation, consumption potential estimate, and program scope. This is the document that goes into a deal conversation.
+**Stage 2 — Deep Dive:** The seller or SE selects three to four products from Stage 1 for exhaustive analysis — full technical orchestrability evidence, delivery path recommendation with rationale, scoring approach, consumption potential estimate, and program scope.
 
-**What it unlocks:** A seller walking into a conversation with a Stage 2 Inspector report knows what the customer's products can and cannot do on the Skillable platform, which delivery path makes sense and why, what a lab program would realistically look like, and what the estimated consumption potential is. That is not a discovery conversation — it is a solution conversation. The AI moment: a level of pre-call preparation that was previously impossible at scale is now standard.
+A seller walking into a conversation with a Stage 2 Inspector report knows what the customer's products can and cannot do on the Skillable platform, which delivery path makes sense and why, and what the estimated consumption potential is. That is not a discovery conversation. It is a solution conversation.
 
-### Designer — From Analysis to Program
+Inspector also surfaces the competitive map for every analyzed company — which feeds directly into Prospector's lookalike targeting.
 
-Designer takes Inspector's output and guides program owners, instructional designers, and subject matter experts through the full process of designing a lab program — from goals and audience through a complete approved outline, draft instructions, and a Skillable Studio-ready export package.
+**What it unlocks:** Pre-call preparation that was previously impossible at scale is now standard. Every seller and SE enters every conversation with the technical depth that used to require hours of individual research — applied automatically, to every product, before the first meeting.
 
-**What it unlocks:** Customers who don't know how to design a lab program won't build one. And if they don't build one, they don't adopt Skillable. Designer breaks that pattern. It is the adoption engine — the tool that gives a new customer something concrete to do on day one, before the technical environment is ready, and produces a complete program architecture that a contracted lab developer can build against immediately.
+### Prospector — Finding the Right Companies
 
-The AI moment: Designer generates a complete Bill of Materials — PowerShell scripts, Bicep templates, CloudFormation templates, lifecycle action scripts, credential pool configuration, scoring validation stubs — from everything it knows about the program. Hours of SE and lab developer work, generated in the same session where the program was designed.
+Prospector is the go-to-market tool for Marketing and RevOps. It takes a list of companies and returns a ranked assessment of ICP fit — with product-level evidence, composite scores, verdicts, delivery path signals, and key contacts for every company on the list.
+
+Marketing has never had access to product-level qualification data at the point of list building. Prospector makes it possible to screen a ZoomInfo export of 500 companies for technical orchestrability, product complexity, and organizational readiness before a sequence is written, a dollar is spent, or an SDR makes a call. Companies that clear all three dimensions go into outreach. Workday patterns come off the list — with specific, documented technical reasons on the Company record.
+
+Prospector also surfaces customer expansion opportunities — mapping the department landscape of existing accounts to identify adoption opportunities for existing labs, greenfield departments, and buyers ready to expand.
+
+**What it unlocks:** The list that goes into outreach is the right list. Every company on it has been evaluated on the question that actually determines Skillable fit — not on firmographic proxies that have nothing to do with whether their products can be orchestrated into a lab.
 
 ---
 
-## HOW — Integration with HubSpot and Revenue Operations
+## HubSpot and Revenue Operations
 
 *This section is written for RevOps and Marketing leadership. Executive readers who do not own HubSpot infrastructure may stop here.*
-
----
 
 ### The Integration Principle
 
 HubSpot is the seller and marketer's workspace. Intelligence is the specialist workspace. The integration surfaces the right intelligence in the right place — without requiring sellers to live in another tool or RevOps to build a parallel system.
 
-The three Intelligence tools have distinct integration models. Understanding the difference matters for RevOps configuration and for setting expectations with each user audience.
-
 ### Prospector ↔ HubSpot — Bidirectional, Marketing-Driven
 
-Marketing triggers Prospector from inside HubSpot — selecting a ZoomInfo list or defining ICP criteria and sending them to Prospector for analysis. Prospector runs the batch and writes enriched data back to HubSpot Company records, Contact records, and Deals.
-
-**HubSpot is Prospector's primary output destination.** The Intelligence UI serves as the run interface and pre-commit review screen. After that, all work happens in HubSpot.
+Marketing triggers Prospector from inside HubSpot — selecting a ZoomInfo list or defining criteria and sending them to Prospector for analysis. Prospector writes enriched data back to HubSpot Company records, Contact records, and Deals. HubSpot is Prospector's primary output destination.
 
 **Data written to the Company record:**
 
@@ -144,48 +119,45 @@ Marketing triggers Prospector from inside HubSpot — selecting a ZoomInfo list 
 |---|---|
 | Intelligence Fit Score | Numeric score (0–100); enables list segmentation and prioritization |
 | Intelligence Verdict | Labable / Simulation Candidate / Do Not Pursue; enables filtered views and enrollment triggers |
-| Fit Rationale Summary | 2–3 sentences for a seller: why this company scored well or poorly, which product drove the score, what the path looks like |
+| Fit Rationale Summary | 2–3 sentences: why this company scored well or poorly, which product drove the score, what the path looks like |
 | Top Product Signal | The product or product category that most drove the score |
 | Recommended Delivery Path | Cloud Slice / Standard VM / Simulation / Custom API |
 | Key Risk Flag | The single most important constraint a seller needs to know |
 | Date of Last Analysis | Enables freshness filtering |
 | Link to Full Intelligence Report | One-click access to complete scoring and evidence |
 
-**Data written to Contact records:**
-Intelligence surfaces up to two contacts per company — a decision maker (VP/Director of Training, Partner Enablement, or equivalent) and a day-to-day champion (program manager, technical lead, or enablement manager). Contacts are extracted from public sources and should be verified before outreach.
+Intelligence surfaces up to two contacts per company — a decision maker and a day-to-day champion — extracted from public sources for ABM targeting.
 
-### HubSpot → Inspector — One-Way Trigger, Seller and SE-Driven
+### Inspector → HubSpot — Seller and SE-Driven
 
-Company and Deal records in HubSpot surface a "Run Inspector" link. Clicking it opens Inspector in a new browser window at the Stage 1 Company Report. The full Inspector experience runs in Intelligence — HubSpot is only the trigger.
+Company and Deal records in HubSpot surface a "Run Inspector" link. Clicking it opens Inspector at the Stage 1 Company Report. The full Inspector experience runs in Intelligence — HubSpot is only the trigger.
 
-**Data written back to HubSpot from Inspector:**
-
-*Stage 1 → Company Record (persistent account intelligence — relevant to every seller and CSM on the account):*
+**Stage 1 data → Company Record:**
 
 | Data | Purpose |
 |---|---|
-| Product list with labability scores | Account-level intelligence on what this company sells and how labable each product is |
-| Top delivery path signal per product | Quick read on how each product would be delivered |
+| Product list with labability scores | What this company sells and how labable each product is |
+| Top delivery path signal per product | Quick read on delivery approach per product |
 | Overall company fit score | Single number for segmentation and prioritization |
 | Key risk flag | The most important constraint a seller needs to know |
 | Date of last analysis + link to full report | Freshness tracking and one-click access |
 
-*Stage 2 → Deal Record (opportunity-specific — tied to a specific product, audience, and scope):*
+**Stage 2 data → Deal Record:**
 
 | Data | Purpose |
 |---|---|
-| Delivery path recommendation + rationale | What path, and why — the SE's talking point |
+| Delivery path recommendation + rationale | What path, and why |
 | Scoring approach recommendation | How learner actions will be validated |
 | Consumption potential / ACV estimate | Deal-level revenue context |
-| Gate scores summary | Compressed evidence for the SE |
+| Technical orchestrability evidence | Compressed analysis for the SE |
 | Program scope estimate | Labs, seat time, curriculum depth |
 | Link to full Inspector Stage 2 report | Full context one click away |
 
 ### Designer → HubSpot — Read-Only Visibility
 
-Program owners, instructional designers, and SMEs go directly to Designer. HubSpot plays no role in triggering or driving Designer's workflow.
+Program owners and IDs go directly to Designer. HubSpot plays no role in triggering Designer's workflow.
 
-Designer-created Lab Programs surface in HubSpot as read-only links and summary data on the Company record — giving sellers and CSMs visibility into what programs have been designed, what's in progress, and what has been delivered. This surfaces high-value context for renewal and expansion conversations before a QBR or renewal call.
+Designer-created Lab Programs surface in HubSpot as read-only links and summary data on the Company record — giving sellers and CSMs visibility into what programs have been designed, what is in progress, and what has been delivered. Critical context for renewal and expansion conversations before a QBR.
 
 ---
 
@@ -193,21 +165,21 @@ Designer-created Lab Programs surface in HubSpot as read-only links and summary 
 
 ### What We Are Recommending
 
-1. **Prospector as the primary Marketing data source for ICP outbound.** Replace or supplement the current ZoomInfo-only scoring motion with Intelligence-qualified lists. Companies that fail Gate 1 come off the list before sequences are built. Companies that clear all three gates get prioritized outreach with seller-ready context already in HubSpot.
+1. **Prospector as the primary Marketing data source for ICP outbound.** Replace or supplement the current ZoomInfo-only scoring motion with Intelligence-qualified lists. Companies that fail the technical orchestrability assessment come off the list before sequences are built. Companies that clear all three dimensions get prioritized outreach with seller-ready context already in HubSpot.
 
-2. **Inspector Stage 1 as the standard pre-call research tool for all sellers and SEs.** The "Run Inspector" link on every Company and Deal record makes it a one-click motion. Stage 1 output on the Company record gives every seller account intelligence they currently don't have.
+2. **Inspector Stage 1 as the standard pre-call research tool for all sellers and SEs.** The "Run Inspector" link on every Company and Deal record makes it a one-click motion. Stage 1 output gives every seller account intelligence they currently do not have before the first conversation.
 
-3. **Designer as a standard deliverable in every new customer engagement.** Skillable LC and PS should run every new customer through Designer in the first week — before the technical environment is ready. Program design and environment build are parallel workstreams. Designer makes day one productive for the program owner.
+3. **Designer as a standard deliverable in every new customer engagement.** Skillable LC and PS should run every new customer through Designer in the first week — before the technical environment is ready. Program design and environment build run as parallel workstreams.
 
 ### Decisions Required from RevOps and Marketing
 
-The following require RevOps and Marketing input before the HubSpot integration can be built:
-
-1. **Existing custom Company properties** — which recommended fields already exist as custom properties vs. net-new?
-2. **Deal template review** — where does each recommended data element fit in the existing deal UX?
-3. **Deduplication rules** — what constitutes a match to an existing Deal for expansion opportunities?
-4. **Stage 2 multi-product question** — if a single Inspector run covers three products, do they generate three separate Deals or does all Stage 2 data append to one Deal?
-5. **Buying Group Summary structure** — current state of Buying Group Summaries across the customer base?
-6. **Ownership and notification rules** — how should Intelligence-generated Deals trigger notifications for AEs and CSMs?
-7. **ZoomInfo CSV column mapping** — which columns are in Marketing's standard export and how do they map to Prospector's input requirements? Minimum viable: Company Name + Domain. High value: Industry, LinkedIn URL, Employee Count, Technologies Used.
-8. **Score threshold for auto-create/update** — at what Intelligence Fit Score does a Company record automatically get enriched vs. queued for review?
+| Decision | Context |
+|---|---|
+| Existing custom Company properties | Which recommended fields already exist vs. net-new? |
+| Deal template review | Where does each data element fit in the existing deal UX? |
+| Deduplication rules | What constitutes a match to an existing Deal for expansion opportunities? |
+| Stage 2 multi-product question | Three products in one Inspector run — three Deals or one? |
+| Buying Group Summary structure | Current state across the customer base? |
+| Ownership and notification rules | How should Intelligence-generated Deals trigger notifications for AEs and CSMs? |
+| ZoomInfo CSV column mapping | Minimum: Company Name + Domain. High value: Industry, LinkedIn URL, Employee Count, Technologies Used. |
+| Score threshold for auto-create/update | At what fit score does a Company record get automatically enriched vs. queued for review? |
