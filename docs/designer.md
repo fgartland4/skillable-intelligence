@@ -151,37 +151,93 @@ Designer builds entirely for the confirmed delivery path. If Hyper-V is recommen
 
 ## Preferences
 
-Designer's Preferences panel sets program-level defaults that apply across all phases. These defaults are used by the AI when generating outlines, draft instructions, and BOM recommendations.
+### Settings Hierarchy
 
-**Current preferences:**
+Preferences operates on a two-level hierarchy:
 
-| Preference | Options | Purpose |
+- **Global defaults** — set once at the organization level, apply to every new program automatically
+- **Per-program overrides** — program owners can override any global default for a specific program without changing the global standard
+
+This means a content team sets their standards once and every program inherits them. A program that needs different defaults (different audience level, different delivery path, different seat time) overrides only what's different — everything else flows down from the global standard.
+
+### Setup vs. Preferences
+
+Two categories of configuration exist in Designer, and they belong in separate places:
+
+**System Setup (Admin — configured once):**
+AI provider connection, API key, model configuration. Configured once during customer onboarding — typically by Skillable or the customer's technical admin. Lives in a separate Admin section, not in Preferences. Most users never see it after initial setup.
+
+**Preferences (Program Standards — used regularly):**
+The defaults that shape every program Designer generates. Organized into six groups, each with a distinct owner and purpose. This is where the first-run onboarding guided setup focuses.
+
+### First-Run Onboarding
+
+When a new customer account is provisioned, the AI connection is configured by Skillable before the customer logs in. The first thing a new user sees is the Preferences guided setup — a walk-through of the six groups that explains why each section matters and establishes the organization's content DNA before any program is started.
+
+If the customer has an Inspector analysis, Preferences can be pre-populated with smart defaults — a cybersecurity product triggers break/fix and collaborative lab recommendations; a networking product triggers Hyper-V default and multi-VM environment suggestions. The PS team or LC confirms before handing off to the program owner.
+
+### The Six Preference Groups
+
+**1. Content Standards** *(Program owner)*
+The structural and naming defaults that make every lab feel like it belongs to the same program.
+
+| Setting | Options | Purpose |
 |---|---|---|
-| Target Lab Duration | 15–30 / 30–45 / 45–75 / 75–90 / 90–120 / 120+ min | Sets expected seat time per lab; informs outline generation and activity count |
-| Activities per Lab | 1–2 / 3–5 / 6–10 / Unlimited | Default activity count per lab; 3–5 is recommended for most 45–75 min labs |
-| Default Difficulty | Beginner / Intermediate / Advanced / Expert | Sets baseline difficulty for generated outlines |
-| Lab Naming Formula | Text field with variables: `{Verb} {Specific Action} {Product Name}` | Ensures consistent, well-formed lab titles across the program |
-| Writing Style Guide | Microsoft / Google / Apple / Red Hat / Custom URL | Applies a consistent writing voice to draft instructions |
-| Logo & Branding | Logo upload + Brand URL | Applies customer branding to exports |
-| Always-On References | Documentation Site URL / Knowledge Base URL / Reference File | Permanent context the AI uses in every generation call |
-
-**Suggested additions (pending implementation):**
-
-| Preference | Options | Purpose |
-|---|---|---|
-| Activity Naming Convention | Text field with variables | Consistent activity titles across all labs; mirrors Lab Naming Formula |
+| Target Lab Duration | 15–30 / 30–45 / **45–75** / 75–90 / 90–120 / 120+ min | Default seat time per lab; 45–75 min recommended for most complex products |
+| Activities per Lab | 1–2 / **3–5** / 6–10 / Unlimited | Default activity count; 3–5 recommended for 45–75 min labs |
+| Default Difficulty | Beginner / **Intermediate** / Advanced / Expert | Baseline difficulty for generated outlines |
+| Lab Naming Formula | Text field: `{Verb} {Specific Action} {Product Name}` | Consistent, well-formed lab titles across every program |
+| Activity Naming Convention | Text field with variables | Consistent activity titles; mirrors lab naming logic |
 | Lab Series Naming Convention | Text field | Consistent series titles at the program level |
-| Default Delivery Path | Hyper-V / Azure Cloud Slice / AWS / Docker / Custom API | Sets the environment baseline for BOM and environment template recommendations |
-| Default VM OS | Windows Server 2022 / Windows 11 / Ubuntu 22.04 / RHEL 9 / Other | Pre-fills VM configuration in BOM; reduces manual entry for the lab developer |
-| Scoring Approach Preference | REST API / PowerShell·Bash / AI Vision / MCQ / Mixed | Informs scoring recommendations in Phase 3 — generates guidance aligned to the customer's preferred validation method |
-| Include Break/Fix Scenarios | Yes / No / AI-recommended | Whether to suggest fault injection scenarios during outline generation |
-| Include Collaborative Lab Scenarios | Yes / No / AI-recommended | Whether to suggest ILT collaborative scenarios (cyber range, assembly line) during outline generation |
-| Certification Alignment | Free text / None | Aligns learning objectives and activity structure to a specific certification or exam |
+| Lab Pass Threshold | % of activities required | Default completion standard for scoring configuration |
+
+**2. Learning Design Standards** *(Instructional Designer / Program owner)*
+The pedagogical defaults that align labs to recognized frameworks and ensure consistent instructional quality.
+
+| Setting | Options | Purpose |
+|---|---|---|
+| Writing Style Guide | Microsoft / Google / Apple / Red Hat / Custom URL | Applies a consistent writing voice to all draft instructions |
+| Certification Alignment | Free text / None | Aligns objectives and activity structure to a specific certification or exam |
 | Standards Framework | Bloom's Taxonomy / NICE NCWF / CompTIA / SFIA / None | Informs objective framing and competency mapping in Phase 1 |
-| Hint Usage Policy | Always include / On request / Never | Whether draft instructions should include hint structures for learners |
-| Knowledge Block Usage | Yes / No | Whether draft instructions should use knowledge blocks for background context |
-| Lab Pass Threshold | % of activities required for completion | Sets the default completion standard for scoring configuration guidance |
-| SME Handoff Format | Inline AI comments / Clean draft only | Whether draft instructions include AI guidance notes for the SME or present clean prose only |
+| Hint Usage Policy | Always / On request / Never | Whether draft instructions include hint structures for learners |
+| Knowledge Block Usage | Yes / No | Whether draft instructions use knowledge blocks for background context |
+| SME Handoff Format | Inline AI comments / Clean draft only | Whether draft instructions include AI guidance notes for the SME |
+
+**3. Scenario & Lab Type Defaults** *(PS / Program owner)*
+Controls which advanced scenario types Designer recommends during outline generation. Can be pre-populated from Inspector signals.
+
+| Setting | Options | Purpose |
+|---|---|---|
+| Break/Fix Scenarios | Yes / No / AI-recommended | Whether to suggest fault injection scenarios during outline generation |
+| Collaborative Lab Scenarios | Yes / No / AI-recommended | Whether to suggest ILT collaborative scenarios (cyber range, assembly line) |
+| Simulated Attack Scenarios | Yes / No / AI-recommended | Whether to suggest simulated attack scenarios for cybersecurity products |
+
+**4. Environment & Delivery Defaults** *(PS / Technical lead)*
+The technical defaults that shape BOM generation and environment template recommendations. Typically set during PS onboarding and rarely changed.
+
+| Setting | Options | Purpose |
+|---|---|---|
+| Default Delivery Path | Hyper-V / Azure Cloud Slice / AWS / Docker / Custom API | Environment baseline for BOM and template recommendations |
+| Default VM OS | Windows Server 2022 / Windows 11 / Ubuntu 22.04 / RHEL 9 / Other | Pre-fills VM config in BOM; reduces manual entry for the lab developer |
+| Scoring Approach | REST API / PowerShell·Bash / AI Vision / MCQ / Mixed | Informs Phase 3 scoring recommendations — generates guidance aligned to this approach |
+
+**5. Brand & Identity** *(Program owner / Marketing)*
+Applied to all exports and program artifacts.
+
+| Setting | Purpose |
+|---|---|
+| Logo upload | Applied to export packages and program artifacts |
+| Brand URL | Source for brand color and font extraction |
+| Brand colors + fonts | Applied to generated content for visual consistency |
+
+**6. Reference Materials** *(Anyone)*
+Always-on context the AI uses in every generation call across all phases. The more complete these are, the more product-specific and accurate the AI's output.
+
+| Setting | Purpose |
+|---|---|
+| Documentation Site URL | Primary product documentation — highest AI context value |
+| Knowledge Base URL | Support knowledge base, FAQs, troubleshooting guides |
+| Reference file uploads | Job task analysis, existing course outlines, internal standards docs |
 
 ---
 
