@@ -91,11 +91,11 @@
             border-bottom: 1px solid #0d1a14;
         }
         .recent-item:last-child { border-bottom: none; }
-        .recent-item a { color: #4a7a62; text-decoration: none; font-size: 0.85rem; font-weight: 500; }
+        .recent-item a { color: #4a7a62; text-decoration: none; font-size: 0.85rem; font-weight: 500; padding-left: 40px; }
         .recent-item a:hover { color: #24ED9B; }
         .recent-item .meta { color: #2a4a3a; font-size: 0.75rem; }
         .score-pill {
-            color: #3d6655; font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+            color: #3d6655; font-size: 0.75rem; font-weight: 600; white-space: nowrap; padding-right: 20px;
         }
     </style>
 </head>
@@ -149,7 +149,7 @@
             {% for item in recent[:6] %}
             <li class="recent-item">
                 <a href="/inspector/results/{{ item.analysis_id }}">{{ item.company_name }}</a>
-                <span class="meta score-pill">{{ item.analyzed_at[:10] }} &middot; {{ item.top_score }}/100{% if item.total_hours_high %} &middot; {{ "{:,}".format(item.total_hours_low) }}–{{ "{:,}".format(item.total_hours_high) }} hrs{% endif %}</span>
+                <span class="meta score-pill">{{ item.analyzed_at[:10] }} | {{ item.top_score }}/100</span>
             </li>
             {% endfor %}
         </ul>
