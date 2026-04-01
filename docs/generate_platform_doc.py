@@ -258,8 +258,8 @@ def _bullet_para(doc, after=40):
     set_paragraph_spacing(p, 0, after)
     pPr = p._p.get_or_add_pPr()
     ind = OxmlElement("w:ind")
-    ind.set(qn("w:left"), "160")    # bullet text nearly flush with body paragraphs
-    ind.set(qn("w:hanging"), "160") # bullet character sits at left margin
+    ind.set(qn("w:left"), "400")    # clearly indented from body paragraphs
+    ind.set(qn("w:hanging"), "160") # bullet character sits ~0.17" before text
     pPr.append(ind)
     r = p.add_run("\u2022 ")        # bullet + 1 space
     r.font.name = FONT_NAME
