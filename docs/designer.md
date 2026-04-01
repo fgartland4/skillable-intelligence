@@ -203,16 +203,77 @@ Phase 3 output is draft scaffolding — not finished content. The draft instruct
 
 ### Phase 4 — Package & Export
 
-Phase 4 packages everything into two deliverables for export.
+Phase 4 is a review-and-export experience — not a design or conversation experience. The hard work is done. Phase 4 assembles everything into a complete, exportable package and gives the program owner a final review before it goes to the lab developer.
 
-The **Bill of Materials** is organized into categories: Cloud & Subscriptions, Virtual Machines, Containers & IDEs, Software & Tools, Accounts & Credentials, Data & Files, Networking & Permissions, Lifecycle Scripts, Scoring & Assessment. Each item specifies what's needed, relevant details, and whether it's required or optional. The BOM also surfaces relevant Skillable Studio features the builder needs to configure — credential pools, subscription pools, variables, replacement tokens, collaborative lab network setup — at the point where they're relevant to this specific program.
+**Three-pane layout:**
+- **Left pane** — navigation
+- **Middle pane** — program summary and environment template BOMs (one per template, collapsible if multiple)
+- **Right pane** — export actions and status
 
-The **Skillable Studio Export Package** is a ZIP containing `data.json` — importable directly into Skillable Studio. The import creates:
-- All lab series
-- All lab profiles with draft instructions
-- All activities, pre-created and attached to the correct labs
+**What the AI generates in Phase 4:**
 
-The contracted SME or lab developer imports the package and begins the technical build. The structural scaffolding is done.
+The BOM is not a blank checklist the program owner fills in — it is AI-generated from the full context of the program: every lab, every activity, every scoring recommendation, every delivery path decision made in Phases 1–3, combined with Skillable platform documentation covering provisioning patterns, lifecycle action structures, credential pool setup, cloud slice configuration, OVA import process, and scripting conventions.
+
+The goal of the generated BOM is not perfection — it is an enormous head start. Lab developers adjust a few variables rather than starting from scratch.
+
+Generated artifacts included in the BOM and export package:
+- **PowerShell and Bash scripts** — environment setup, teardown, and reset automation based on the delivery path and software requirements
+- **Bicep templates** (Azure Cloud Slice programs) — resource group definitions, role assignments, service configurations
+- **CloudFormation templates** (AWS Cloud Slice programs) — stack definitions for the specific services the program uses
+- **Lifecycle Action (LCA) scripts** — startup, teardown, and scoring automation; break/fix fault injection scripts where applicable
+- **Credential pool configuration** — connection string format, reset procedure, pool size guidance
+- **Scoring validation stubs** — starting points for the validation scripts the lab developer will configure in Studio, based on Phase 3 scoring recommendations
+
+None of these are expected to be production-ready out of the box. They are authoritative starting points — structured, specific, and informed by everything Designer knows about the program.
+
+**Cloud Slice ownership question:**
+If the program uses Cloud Slice, Phase 4 prompts before generating the BOM: *"Will you use Skillable-managed cloud subscriptions or customer-provided subscriptions?"* The answer affects the BOM, the lifecycle scripts, and the Studio configuration. This is the one design decision that cannot be resolved before Phase 4.
+
+**Environment templates — one per VM/cloud configuration type:**
+
+A single lab program can span multiple environment templates — a 50-lab program across three series might use three or four distinct environment templates (different VM configurations, different cloud resource sets, different software stacks). Each environment template gets its own BOM section.
+
+- **Single template** — displayed as a flat, comprehensive list
+- **Multiple templates** — each template is collapsible; the program owner can expand or collapse independently
+
+Each BOM section is comprehensive. Everything the lab developer needs to build and configure the environment:
+
+| Category | Contents |
+|---|---|
+| Cloud & Subscriptions | Subscription type, resource groups, IAM roles, supported services, ownership (Skillable vs. customer) |
+| Virtual Machines | OS, version, CPU/RAM, disk size, snapshot strategy |
+| Containers & IDEs | Container images, IDE configuration, port mappings |
+| Software & Tools | Applications, versions, licenses, installation order, configuration notes |
+| Accounts & Credentials | User accounts, service accounts, credential pool setup, permission assignments |
+| Data & Files | Dummy data files (CRM records, log files, datasets), placement paths, seeding scripts |
+| Networking & Permissions | VNet/subnet config, firewall rules, DNS, inter-VM connectivity, collaborative lab network setup |
+| Lifecycle Scripts | Startup, teardown, reset, fault injection (break/fix), generated script files attached |
+| Scoring & Assessment | Validation approach per activity, scoring script stubs, pass threshold, Studio configuration notes |
+| Studio Configuration | Variables, replacement tokens, credential pool IDs, subscription pool IDs, collaborative lab settings |
+
+**Program summary panel:**
+
+Above the BOM, Phase 4 shows the complete program at a glance:
+- Total series / Total labs / Total activities
+- Skill framework mappings (if applicable) — frameworks selected, coverage summary
+- Delivery path confirmed
+- Environment templates: count and names
+- Export readiness status
+
+**Loading language:**
+BOM generation is the heaviest AI lift in Designer. The loading state uses Designer's signature invented words — *Skillifying... smartating... intelligentifing... job-ready-makin'...* — the same personality established throughout the tool. These are not placeholders; they are a deliberate UX decision.
+
+**The Skillable Studio Export Package:**
+
+A downloadable ZIP containing:
+- `data.json` — imports directly into Skillable Studio, creating all lab series, lab profiles, draft instructions, and activities
+- `bom.pdf` (or structured format TBD) — the complete Bill of Materials for the lab developer
+- Generated script files — all PowerShell, Bash, Bicep, and CloudFormation files, organized by environment template
+- Skill mapping export — framework mappings at the activity level, in a format suitable for import or reference
+
+The contracted SME or lab developer imports the Studio package, receives the BOM and generated scripts, and begins the technical build. The structural and environmental scaffolding is done. Their job is to make it work — not figure out what to build or how to start.
+
+> **Export format — pending SE validation.** The exact structure of `data.json`, the BOM document format, and the script packaging conventions are to be validated with Skillable Solution Engineers before Phase 4 is built. The legacy Designer export code is the current best reference and is likely close to the correct format. A separate **Designer Export Specification** document will capture the draft format for SE review.
 
 ### Delivery Path Respect
 
@@ -243,7 +304,7 @@ The defaults that shape every program Designer generates. Organized into five gr
 
 ### First-Run Onboarding
 
-When a new customer account is provisioned, the AI connection is configured by Skillable before the customer logs in. The first thing a new user sees is the Preferences guided setup — a walk-through of the six groups that explains why each section matters and establishes the organization's content DNA before any program is started.
+When a new customer account is provisioned, the AI connection is configured by Skillable before the customer logs in. The first thing a new user sees is the Preferences guided setup — a walk-through of the five groups that explains why each section matters and establishes the organization's content DNA before any program is started.
 
 If the customer has an Inspector analysis, Preferences can be pre-populated with smart defaults — a cybersecurity product triggers break/fix and collaborative lab recommendations; a networking product triggers Hyper-V default and multi-VM environment suggestions. The PS team or LC confirms before handing off to the program owner.
 
