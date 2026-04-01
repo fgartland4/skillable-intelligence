@@ -252,20 +252,30 @@ def body_bold(doc, text_parts, after=60):
     return p
 
 
-def bullet(doc, text, after=40):
-    p = doc.add_paragraph(style="List Bullet")
+def _bullet_para(doc, after=40):
+    """Base bullet paragraph — small elegant bullet, manual indent."""
+    p = doc.add_paragraph()
     set_paragraph_spacing(p, 0, after)
-    for run in p.runs:
-        run.text = ""
+    pPr = p._p.get_or_add_pPr()
+    ind = OxmlElement("w:ind")
+    ind.set(qn("w:left"), "432")    # ~0.3" left indent
+    ind.set(qn("w:hanging"), "216") # hanging matches bullet + space width
+    pPr.append(ind)
+    r = p.add_run("\u2022  ")       # bullet + 2 spaces
+    r.font.name = FONT_NAME
+    r.font.size = Pt(7)             # smaller than body — elegant, not chunky
+    r.font.color.rgb = DARK_TEXT
+    return p
+
+
+def bullet(doc, text, after=40):
+    p = _bullet_para(doc, after)
     make_run(p, text, color=DARK_TEXT)
     return p
 
 
 def bullet_bold(doc, label, rest, after=40):
-    p = doc.add_paragraph(style="List Bullet")
-    set_paragraph_spacing(p, 0, after)
-    for run in p.runs:
-        run.text = ""
+    p = _bullet_para(doc, after)
     make_run(p, label, bold=True, color=DARK_TEXT)
     make_run(p, rest, color=DARK_TEXT)
     return p
@@ -333,7 +343,7 @@ def add_margin_icon(doc, para):
 
     # Let python-docx add the picture inline — handles image part + rId correctly
     tmp_run = para.add_run()
-    tmp_run.add_picture(ICON_PATH, width=Inches(0.18))
+    tmp_run.add_picture(ICON_PATH, width=Inches(0.23))
 
     drawing = tmp_run._r.find(qn("w:drawing"))
     if drawing is None:
@@ -351,7 +361,7 @@ def add_margin_icon(doc, para):
     # Remove inline; we'll replace with anchor inside same drawing element
     drawing.remove(inline)
 
-    cx    = cy    = int(0.18 * 914400)           # 0.18" in EMU
+    cx    = cy    = int(0.23 * 914400)           # 0.23" in EMU
     pos_x = int((7.65 + 0.08) * 914400)          # just into right margin from page left
     pos_y = int(0.01 * 914400)                    # tiny vertical offset
 
@@ -428,63 +438,67 @@ def write_what(doc):
 
     body(doc, "Each tool addresses one of the three challenges directly. All three share the same research and scoring engine \u2014 which means every analysis makes the entire platform smarter. A company Prospector evaluates is available to Inspector without re-running research. An Inspector analysis seeds Designer with the product context it needs from day one. The intelligence compounds with every use.")
 
-    h2(doc, "Designer \u2014 closing the adoption gap")
-    body(doc, "A signed contract is not an adopted customer. The gap between \u201cwe want to build labs\u201d and \u201cwe have a running program\u201d is wide, and most customers cannot cross it without structured guidance.")
-    body(doc, "Program design is a specialized skill. Most buyers \u2014 even technically sophisticated ones with strong content teams \u2014 have never designed a hands-on lab curriculum. They\u2019ve built documentation, recorded videos, written certification exams. They have not mapped a product\u2019s administrative workflows to a sequence of learner activities, defined scoring logic for hands-on tasks, or produced a structured brief that a lab developer can build against without extensive back-and-forth.")
-    body(doc, "Without a process that takes them from goals and audience to a complete, buildable program architecture, customers stall at the design phase. In a consumption model, a stalled customer is not just a missed upsell opportunity \u2014 it is a churn risk. A customer who has not built a program has not realized value. A customer who has not realized value does not renew.")
-    body(doc, "Designer guides program owners, instructional designers, and subject matter experts through the full process \u2014 from goals and audience definition through a complete approved outline, activity-level content, and a Skillable Studio-ready export package. It doesn\u2019t require the customer to know how to design a lab program. Designer asks the right questions, sequences the decisions correctly, and generates a complete program architecture that a contracted lab developer can build against immediately.")
+    h2(doc, "Designer: Closing the adoption gap")
+    body(doc, "A signed contract is not an adopted customer. The gap between \u201cwe want labs\u201d and \u201cwe\u2019re building and delivering labs embedded in a variety of learning journeys\u201d is wide. And it\u2019s crystal clear that most customers are not, and cannot, make the leap without significant and structured support.")
+    body(doc, "Program design is a specialized skill. Embedding a new modality like hands-on experiences into your overall content strategy and content development operation is not a decision. It\u2019s a new discipline. They\u2019ve built documentation, recorded videos, written certification exams. They have not mapped a product\u2019s administrative workflows to a sequence of learner activities, defined scoring logic for hands-on tasks, or produced a structured brief that a lab developer can build against without extensive back-and-forth.")
+    body(doc, "Without a process that takes them from goals and audience to a complete, buildable program architecture, customers stall at the design phase. In a consumption model, a stalled customer is not just a missed upsell opportunity; it is a churn risk. A customer who has not built a program has not realized value. A customer who has not realized value does not renew.")
+    body(doc, "Designer guides program owners, instructional designers, and subject matter experts through the full process \u2014 from learning objectives and intended audience through every decision a program requires. It doesn\u2019t require the customer to know how to design a lab program. Designer asks the right questions and sequences the decisions correctly. Every program produces:")
+    bullet(doc, "A structured program outline")
+    bullet(doc, "Draft lab instructions for every lab in the program")
+    bullet(doc, "Learner activities for progress tracking")
+    bullet(doc, "Scoring methodology recommendations", after=60)
     ai_para(doc, [
         ("Designer generates a complete Bill of Materials", True),
         (" from everything it knows about the program and the product: environment templates, PowerShell and Bash scripts, Bicep and CloudFormation templates, lifecycle action scripts, credential pool configuration, scoring validation stubs. What previously required hours of Solutions Engineering and lab developer work is produced in the same session where the program was designed.", False),
     ])
-    body_bold(doc, [("What it unlocks: ", True), ("Every new customer engagement starts with Designer in the first week \u2014 before the technical environment is ready. Program design and environment build run as parallel workstreams. Day one is productive for the program owner. The adoption gap closes before it has a chance to form.", False)])
+    body_bold(doc, [("What it unlocks: ", True), ("Every new customer engagement starts with Designer in the first week \u2014 while the technical folks are working to get the technical details sorted. Program design and environment build run in parallel. Day one is productive for the program owner. The adoption gap closes before it has a chance to form.", False)])
 
-    h2(doc, "Inspector \u2014 proving labability and impact")
-    body(doc, "Proving that a Skillable lab program will work for a specific customer\u2019s products requires deep technical analysis. Which delivery path is right \u2014 standard virtual machine, cloud environment slice, containerized workload, custom integration? What are the architectural constraints? What would a realistic program look like in terms of scope, seat time, and scoring approach? What is the estimated consumption potential?")
-    body(doc, "This is exactly the kind of work a skilled Solutions Engineer does well. It requires knowing Skillable\u2019s platform deeply \u2014 delivery paths, technical constraints, feature availability, scoring feasibility \u2014 and applying that knowledge to a specific product\u2019s architecture. That synthesis takes hours per company, in a live conversation, with access to documentation and a customer contact who can fill in the gaps.")
-    body(doc, "The result is that qualification depth is rationed. It flows to deals already far enough along to justify the time. Early-stage prospects get a general conversation. The technical questions that would surface a Workday pattern early \u2014 before marketing dollars are spent, before SE time is committed \u2014 often go unasked until it is too late.")
-    body(doc, "Inspector performs a deep product-level analysis of a specific company. It runs in two stages.")
-    bullet_bold(doc, "Stage 1 \u2014 Company report: ", "A broad scan that surfaces all of a company\u2019s products, ranked by labability, with competitive pairings, company-level signals, and an overall fit score. The foundation document for any seller or SE entering a conversation with this account.")
-    bullet_bold(doc, "Stage 2 \u2014 Deep dive: ", "The seller or SE selects three to four products from Stage 1 for exhaustive analysis \u2014 full technical orchestrability evidence, delivery path recommendation with rationale, scoring approach, consumption potential estimate, and program scope.", after=60)
+    h2(doc, "Inspector: Proving labability and impact")
+    body(doc, "Proving that a Skillable lab program will work for a specific customer\u2019s products requires deep technical analysis. Which is the best delivery path for each software environment? A set of virtual machines or containers, leveraging Azure or AWS subscriptions, a custom API orchestration, or a hybrid setup? What are the architectural constraints? What would a realistic program look like in terms of scope, seat time, and scoring approach? What is the estimated consumption potential?")
+    body(doc, "This is the type of work that\u2019s required for virtually every new lab program with every new and existing customer and demands substantial commitment from our Solution Engineers and TSMs. It takes hours of conversation, researching API documents, and plain old trial and error.")
+    body(doc, "The result is that qualification depth is rationed. It flows to deals already far enough along to justify the time. Early-stage prospects get a general conversation. The technical questions that would surface a Workday pattern early (before marketing dollars are spent, before SE time is committed) often go unasked until it is too late.")
+    body(doc, "Inspector performs a deep product-level analysis of a specific company.")
+    bullet_bold(doc, "The Case Board. ", "A broad scan that surfaces all of a company\u2019s products, ranked by labability, with competitive pairings, company-level signals, and an overall fit score. You walk in the room and get the picture at a glance.")
+    bullet_bold(doc, "The Dossier. ", "The seller or SE selects three to four products from the Case Board for exhaustive analysis \u2014 full technical orchestrability evidence, delivery path recommendation with rationale, scoring approach, consumption potential estimate, and program scope.", after=60)
     ai_para(doc, [
         ("Inspector turns every sales conversation into a solution conversation.", True),
-        (" A seller walking into a meeting with a Stage 2 report knows what the customer\u2019s products can and cannot do on the Skillable platform, which delivery path makes sense and why, and what the estimated consumption potential is. That is not discovery. That is a standing start.", False),
+        (" A seller walking into a meeting with a Dossier knows what the customer\u2019s products can and cannot do on the Skillable platform, which delivery path makes sense and why, and what the estimated consumption potential is. That is not discovery. That is a standing start.", False),
     ])
-    body(doc, "Inspector also surfaces the competitive map for every analyzed company \u2014 which feeds directly into Prospector\u2019s lookalike targeting.")
-    body_bold(doc, [("What it unlocks: ", True), ("Pre-call preparation that was previously impossible at scale is now standard. Every seller and SE enters every conversation with the technical depth that used to require hours of individual research \u2014 applied automatically, to every product, before the first meeting.", False)])
+    body(doc, "Inspector also surfaces the competitive map for every analyzed company, which feeds directly into Prospector\u2019s lookalike targeting.")
+    body_bold(doc, [("What it unlocks: ", True), ("Pre-call preparation that was previously impossible at scale is now standard. Every seller and SE enters every conversation with the technical depth that used to require hours of individual research, applied automatically to every product before the first meeting.", False)])
 
-    h2(doc, "Prospector \u2014 finding the right companies")
-    body(doc, "Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses \u2014 ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator \u2014 are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company\u2019s products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.")
+    h2(doc, "Prospector: Finding the right companies")
+    body(doc, "Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses (ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator) are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company\u2019s products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.")
     body(doc, "We evaluate every prospect across three dimensions:")
     bullet_bold(doc, "Can we deliver a lab for this company\u2019s products? ", "This is the primary filter. If the answer is no, nothing else matters \u2014 not the size of their training organization, not the depth of their content team, not their enthusiasm for hands-on learning. A company whose products cannot be orchestrated into a Skillable environment is not a prospect.")
     bullet_bold(doc, "Is the product complex enough for labs to create real value? ", "Simple products with shallow workflows don\u2019t benefit enough from hands-on practice to justify the investment. Products with deep administrative workflows, meaningful configuration decisions, and real consequence of error \u2014 those are where labs change what learners can actually do.")
     bullet_bold(doc, "Does the organization have what it takes to build and sustain a program? ", "Content team skills, technical enablement maturity, program leadership. Some companies have it today. Others have the organizational DNA to build it. Either can become a strong customer. Companies with neither are high-risk regardless of product fit.", after=60)
     body(doc, "The Workday pattern illustrates what happens when this analysis doesn\u2019t happen early. On every traditional marketing signal, Workday is an ideal prospect: world-class training organization, dedicated learning division, deep technical enablement culture, massive install base. Two of the three dimensions are strong. The third ends the conversation.")
-    bullet_bold(doc, "Pure multi-tenant architecture \u2014 ", "every customer shares the same cloud environment. There is no Workday instance to give a learner.")
-    bullet_bold(doc, "No provisioning API \u2014 ", "no mechanism to spin up an individual environment programmatically. Skillable\u2019s entire delivery model depends on this capability.")
-    bullet_bold(doc, "No deployment model \u2014 ", "nothing to install, containerize, or slice.", after=60)
+    bullet_bold(doc, "Pure multi-tenant architecture: ", "Every customer shares the same cloud environment. There is no Workday instance to give a learner.")
+    bullet_bold(doc, "No provisioning API: ", "No mechanism to spin up an individual environment programmatically. Skillable\u2019s entire delivery model depends on this capability.")
+    bullet_bold(doc, "No deployment model: ", "Nothing to install, containerize, or slice.", after=60)
     body(doc, "These are specific technical facts findable in public documentation before a single sales conversation begins. Workday wasn\u2019t a bad lead. It was motivated, capable people who invested significant time before hitting a wall that was always there \u2014 because product-level technical fit was never evaluated before the pursuit began.")
     body(doc, "The same logic runs in the other direction. When Fortinet is a strong fit, it\u2019s not because Fortinet resembles other good customers as a company. It\u2019s because Fortinet\u2019s products have specific technical characteristics \u2014 multi-VM topology, deep administrative workflows, strong API surface, real consequence of misconfiguration \u2014 that make them ideal for hands-on labs. Every company selling products with those same characteristics is a strong fit for the same reasons. The competitive map of a strong-fit customer is a pre-qualified prospect list.")
     body(doc, "Prospector is the go-to-market tool for Marketing and RevOps. It takes a list of companies and returns a ranked assessment of ICP fit \u2014 with product-level evidence, composite scores, verdicts, delivery path signals, and key contacts for every company on the list.")
     ai_para(doc, [
         ("Prospector qualifies every company on product-level fit", True),
-        (" before a sequence is written, a dollar is spent, or an SDR makes a call. Companies that clear all three dimensions go into outreach. Workday patterns come off the list \u2014 with specific, documented technical reasons on the Company record. Prospector also surfaces customer expansion opportunities \u2014 mapping the department landscape of existing accounts to identify adoption opportunities for existing labs, greenfield departments, and buyers ready to expand.", False),
+        (" before a sequence is written, a dollar is spent, or an SDR makes a call. Companies that clear all three dimensions go into outreach. Workday patterns come off the list \u2014 with specific, documented technical reasons on the Company record. Prospector also surfaces customer expansion opportunities, mapping the department landscape of existing accounts to identify adoption opportunities for existing labs, greenfield departments, and buyers ready to expand.", False),
     ])
     body_bold(doc, [("What it unlocks: ", True), ("The list that goes into outreach is the right list. Every company on it has been evaluated on the question that actually determines Skillable fit \u2014 not on firmographic proxies that have nothing to do with whether their products can be orchestrated into a lab.", False)])
-    body(doc, "All of this intelligence \u2014 fit scores, product signals, delivery path recommendations, key contacts \u2014 needs to reach the right people at the right moment. That is what the HubSpot integration is built to do.")
+    body(doc, "Fit scores, product signals, delivery path recommendations, key contacts \u2014 all of it needs to reach the right people at the right moment. That is what the HubSpot integration is built to do.")
 
 
 # ── Section: HubSpot and Revenue Operations ───────────────────────────────────
 
 def write_how(doc):
-    h1(doc, "HubSpot and revenue operations")
-    section_note(doc, "This section is written for RevOps and Marketing leadership. Executive readers who do not own HubSpot infrastructure may stop here.")
+    h1(doc, "Surfacing the data. Right place. Right time. Right context.")
+    body(doc, "The balance of this document outlines the decisions for RevOps to make with Marketing and Security. It includes more context, several recommendations, and a list of decisions to be made. If you\u2019re not in one of those groups, feel free to stop reading if you so choose.")
 
     h2(doc, "The Integration Principle")
-    body(doc, "HubSpot is the seller and marketer's workspace. Intelligence is the specialist workspace. The integration surfaces the right intelligence in the right place — without requiring sellers to live in another tool or RevOps to build a parallel system.")
+    body(doc, "HubSpot is the seller and marketer\u2019s workspace. Intelligence is the specialist workspace. The integration surfaces the right intelligence, to the right people, in the right places, with the right context \u2014 without requiring sellers to live in another tool or RevOps to build a parallel system.")
 
-    h2(doc, "Prospector \u2194 HubSpot — bidirectional, marketing-driven")
-    body(doc, "Marketing triggers Prospector from inside HubSpot — selecting a ZoomInfo list or defining criteria and sending them to Prospector for analysis. Prospector writes enriched data back to HubSpot Company records, Contact records, and Deals. HubSpot is Prospector's primary output destination.")
+    h2(doc, "Prospector \u2194 HubSpot: Bidirectional, marketing-driven")
+    body(doc, "Marketing triggers Prospector from inside HubSpot \u2014 selecting a ZoomInfo list or defining criteria and sending them to Prospector for analysis. Prospector writes enriched data back to HubSpot Company records, Contact records, and Deals. HubSpot is Prospector\u2019s primary output destination.")
     body(doc, "Data written to the Company record:")
     add_table(doc,
         ["Data", "Purpose"],
@@ -500,11 +514,11 @@ def write_how(doc):
         ],
         col1_dxa=2600
     )
-    body(doc, "Intelligence surfaces up to two contacts per company — a decision maker and a day-to-day champion — extracted from public sources for ABM targeting.")
+    body(doc, "Intelligence surfaces up to two contacts per company \u2014 a decision maker and a day-to-day champion \u2014 extracted from public sources for ABM targeting.")
 
-    h2(doc, "Inspector \u2192 HubSpot — seller and SE-driven")
-    body(doc, "Company and Deal records in HubSpot surface a 'Run Inspector' link. Clicking it opens Inspector at the Stage 1 Company Report. The full Inspector experience runs in Intelligence — HubSpot is only the trigger.")
-    body(doc, "Stage 1 data written to the Company Record:")
+    h2(doc, "Inspector \u2192 HubSpot: Seller and SE-driven")
+    body(doc, "Company and Deal records in HubSpot surface a \u2018Run Inspector\u2019 link. Clicking it opens Inspector at the Case Board. The full Inspector experience runs in Intelligence \u2014 HubSpot is only the trigger.")
+    body(doc, "Case Board data written to the Company record:")
     add_table(doc,
         ["Data", "Purpose"],
         [
@@ -514,9 +528,9 @@ def write_how(doc):
             ["Key risk flag",                             "The most important constraint a seller needs to know"],
             ["Date of last analysis + link to full report", "Freshness tracking and one-click access"],
         ],
-        col1_dxa=2800
+        col1_dxa=4800
     )
-    body(doc, "Stage 2 data written to the Deal Record:")
+    body(doc, "Dossier data written to the Deal record:")
     add_table(doc,
         ["Data", "Purpose"],
         [
@@ -525,25 +539,25 @@ def write_how(doc):
             ["Consumption potential / ACV estimate",      "Deal-level revenue context"],
             ["Technical orchestrability evidence",        "Compressed analysis for the SE"],
             ["Program scope estimate",                    "Labs, seat time, curriculum depth"],
-            ["Link to full Inspector Stage 2 report",     "Full context one click away"],
+            ["Link to full Inspector Dossier",            "Full context one click away"],
         ],
-        col1_dxa=2800
+        col1_dxa=4800
     )
 
-    h2(doc, "Designer \u2192 HubSpot — read-only visibility")
-    body(doc, "Program owners and IDs go directly to Designer. HubSpot plays no role in triggering Designer's workflow.")
-    body(doc, "Designer-created Lab Programs surface in HubSpot as read-only links and summary data on the Company record — giving sellers and CSMs visibility into what programs have been designed, what is in progress, and what has been delivered. Critical context for renewal and expansion conversations before a QBR.")
+    h2(doc, "Designer \u2192 HubSpot: Read-only visibility")
+    body(doc, "Program owners and IDs go directly to Designer. HubSpot plays no role in triggering Designer\u2019s workflow.")
+    body(doc, "Designer-created Lab Programs surface in HubSpot as read-only links and summary data on the Company record \u2014 giving sellers and CSMs visibility into what programs have been designed, what is in progress, and what has been delivered. Critical context for renewal and expansion conversations before a QBR.")
 
 
 # ── Section: Recommendations and Open Decisions ───────────────────────────────
 
 def write_recommendations(doc):
-    h1(doc, "Recommendations and open decisions")
+    h1(doc, "Recommendations & open decisions")
 
     h2(doc, "What we are recommending")
     bullet_bold(doc, "Prospector as the primary Marketing data source for ICP outbound. ", "Replace or supplement the current ZoomInfo-only scoring motion with Intelligence-qualified lists. Companies that fail the technical orchestrability assessment come off the list before sequences are built. Companies that clear all three dimensions get prioritized outreach with seller-ready context already in HubSpot.")
-    bullet_bold(doc, "Inspector Stage 1 as the standard pre-call research tool for all sellers and SEs. ", "The 'Run Inspector' link on every Company and Deal record makes it a one-click motion. Stage 1 output gives every seller account intelligence they currently do not have before the first conversation.")
-    bullet_bold(doc, "Designer as a standard deliverable in every new customer engagement. ", "Skillable LC and PS should run every new customer through Designer in the first week — before the technical environment is ready. Program design and environment build run as parallel workstreams.", after=60)
+    bullet_bold(doc, "The Inspector Case Board as the standard pre-call research tool for all sellers and SEs. ", "The \u2018Run Inspector\u2019 link on every Company and Deal record makes it a one-click motion. The Case Board gives every seller account intelligence they currently do not have before the first conversation.")
+    bullet_bold(doc, "Designer as a standard deliverable in every new customer engagement. ", "Skillable LC and PS should run every new customer through Designer in the first week \u2014 while the technical folks are working to get the technical details sorted. Program design and environment build run in parallel.", after=60)
 
     h2(doc, "Decisions required from RevOps and Marketing")
     body(doc, "The following require RevOps and Marketing input before the HubSpot integration can be built:")
@@ -553,7 +567,7 @@ def write_recommendations(doc):
             ["Existing custom Company properties",   "Which recommended fields already exist vs. net-new?"],
             ["Deal template review",                 "Where does each data element fit in the existing deal UX?"],
             ["Deduplication rules",                  "What constitutes a match to an existing Deal for expansion opportunities?"],
-            ["Stage 2 multi-product question",       "Three products in one Inspector run — three Deals or one?"],
+            ["Dossier multi-product question",        "Three products in one Inspector run — three Deals or one?"],
             ["Buying Group Summary structure",        "Current state across the customer base?"],
             ["Ownership and notification rules",     "How should Intelligence-generated Deals trigger notifications for AEs and CSMs?"],
             ["ZoomInfo CSV column mapping",          "Minimum: Company Name + Domain. High value: Industry, LinkedIn URL, Employee Count, Technologies Used."],
@@ -573,7 +587,6 @@ def main():
     add_title(doc, "Skillable Intelligence Platform", "Executive Leadership Team Brief")
 
     write_why(doc)
-    page_break(doc)
     write_what(doc)
     page_break(doc)
     write_how(doc)
