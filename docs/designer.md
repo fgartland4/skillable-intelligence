@@ -115,7 +115,15 @@ The Phase 1 interface has two panels. The left panel is the main conversation ar
 
 Each item shows a filled green indicator when confirmed, a gray indicator when empty, and a summary of what's been captured when expanded. The AI prompts for missing items conversationally — it doesn't wait for the user to realize something is missing.
 
-Phase 1 is complete when the program owner and AI have enough shared understanding of goals, audience, and scope to generate a meaningful program outline.
+**The topic emerges in Phase 1 — it is not pre-determined.** Even when a program is seeded from an Inspector analysis, the actual subject of the labs is confirmed through the Phase 1 conversation. A customer seeded from a Tanium Inspector analysis might decide their first program is networking fundamentals — a primer for Tanium learners that has nothing to do with Tanium products. Phase 1 is where that gets established.
+
+**Intelligence informs the AI's prompts — it never restricts the direction.** If Inspector knows this is a Tanium customer with endpoint security products, the AI might ask: "Is this program for Tanium product skills, or for foundational skills that support your Tanium curriculum?" But the moment the program owner says "networking fundamentals," the AI follows completely — no steering back, no resistance. Intelligence context makes Phase 1 feel smarter and more relevant. It does not constrain what the program can be about.
+
+**When the program owner is stuck, the AI suggests.** If a program owner doesn't know what topics to cover, what labs to build, or how to structure the curriculum, the AI doesn't wait. It offers suggestions based on what it knows — documented product modules and workflows, Gate 2 complexity signals, common patterns for the product category, or natural prerequisite topics for the product being trained on. The program owner can take any suggestion, modify it, reject it, or use it as a starting point. The AI is a thinking partner, not a passive recorder.
+
+**The checklist is a thought provoker, not just a progress tracker.** Each checklist item signals a dimension of program design that matters for building a strong learning or skill validation program — many of which a first-time program owner may never have considered. Seeing "Competency Framework — not defined" prompts the question: *should I align this to a framework?* Seeing "Scenario Seeds — none yet" prompts: *what real-world situations should these labs simulate?* Each checklist item carries enough context to explain why it matters — not just what it is — so the program owner understands what they're being asked to think about, not just what field to fill in. The checklist is one of the primary ways Designer builds the discipline of thinking well about lab programs.
+
+Phase 1 is complete when the program owner and AI have enough shared understanding of goals, audience, scope, and topic to generate a meaningful program outline.
 
 ### Phase 2 — Program Architecture
 
