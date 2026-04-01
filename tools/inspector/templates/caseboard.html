@@ -361,7 +361,6 @@
                 {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
                 {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
                 {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
-                {% if discovery.org_contacts %}<span class="co-sig-bdg co-sig-gray">{{ discovery.org_contacts | length }} Contact{{ 's' if discovery.org_contacts | length != 1 else '' }}</span>{% endif %}
                 {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitor{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>{% endif %}
             </div>
 
