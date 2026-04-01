@@ -1292,7 +1292,9 @@ function addChatBubble(areaId, role, htmlContent) {
     return div;
 }
 
-const LOADING_STATES = [
+// Loading states — split into easter eggs (10%) and skill/training gerunds (90%)
+// Easter eggs: personal catchphrases, always present, shown ~10% of the time
+const _EASTER_EGG_STATES = [
     "Big Hitterifying...",
     "Schwackity-schwackin'...",
     "Nicklin', dimin' & quarterin'...",
@@ -1304,12 +1306,59 @@ const LOADING_STATES = [
     "Oh boy, this is makin' my stomach hurt...",
     "Breakin' off the rearview mirrors...",
     "Thinking up questions, comments, and queries...",
-    "Skillifying the situation...",
-    "Job-readyifyin' your program...",
-    "Hands-on-ificating...",
-    "Running the configuratorinator...",
 ];
+// Skill/training/enablement gerunds — the 90% pool (also receives customer blends)
+let _SKILL_STATES = [
+    "Skillifying the situation...",
+    "Curriculum-architectin'...",
+    "Competency-mappifying...",
+    "Job-readyifyin'...",
+    "Enablement-ificating...",
+    "Upskillifying the workforce...",
+    "Onboard-ificating...",
+    "Scaffold-ifying your blueprint...",
+    "Hands-on-ificating...",
+    "Lab-readyifyin'...",
+    "Assessment-ologizing...",
+    "Running the configuratorinator...",
+    "Proficiency-inating...",
+    "Blueprint-ificating...",
+    "Reskillifying...",
+    "Readiness-ologizing...",
+    "Activity-design-ifying...",
+    "Seat-time-ifying...",
+    "Scenario-ologizing...",
+    "Simulation-ificating...",
+];
+
+// Pick a loading state: 90% from skill pool, 10% easter egg
+function pickLoadingState() {
+    if (Math.random() < 0.10) {
+        return _EASTER_EGG_STATES[Math.floor(Math.random() * _EASTER_EGG_STATES.length)];
+    }
+    return _SKILL_STATES[Math.floor(Math.random() * _SKILL_STATES.length)];
+}
+
 let _typingTimers = {};
+
+// Fetch customer-specific loading states from VocabularyPack and blend into skill pool.
+// Called once on load when the program has a company set.
+async function fetchAndBlendVocabulary() {
+    if (!state.company_name) return;
+    try {
+        const res = await fetch(`/designer/${PROGRAM_ID}/vocabulary`);
+        if (!res.ok) return;
+        const data = await res.json();
+        // Customer states go into the skill pool (90% side), not easter eggs
+        const existing = new Set([..._EASTER_EGG_STATES, ..._SKILL_STATES]);
+        const customerStates = (data.loading_states || []).filter(s => !existing.has(s));
+        if (customerStates.length > 0) {
+            _SKILL_STATES = _SKILL_STATES.concat(customerStates);
+        }
+    } catch (e) {
+        // silently ignore — base states always work fine
+    }
+}
 
 function setTyping(phase, show) {
     const el = document.getElementById('p' + phase + '-typing');
@@ -1320,11 +1369,9 @@ function setTyping(phase, show) {
     if (show) {
         const label = el.querySelector('.typing-label');
         if (label) {
-            let idx = Math.floor(Math.random() * LOADING_STATES.length);
-            label.textContent = LOADING_STATES[idx];
+            label.textContent = pickLoadingState();
             _typingTimers[phase] = setInterval(() => {
-                idx = (idx + 1) % LOADING_STATES.length;
-                label.textContent = LOADING_STATES[idx];
+                label.textContent = pickLoadingState();
             }, 2800);
         }
     } else {
@@ -2019,6 +2066,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPhase3();
     restoreState();
     maybeGreet();
+    fetchAndBlendVocabulary();
 });
 </script>
 

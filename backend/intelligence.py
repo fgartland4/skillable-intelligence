@@ -659,12 +659,21 @@ _SKILLABLE_SEEDS = [
     # Real words — the raw material
     "skill", "lab", "hands-on", "build", "configure", "deploy",
     "enable", "certify", "validate", "master", "achieve", "prove",
+    # Training & enablement domain roots
+    "enablement", "training", "curriculum", "competency", "proficiency",
+    "onboarding", "upskilling", "reskilling", "readiness", "workforce",
+    "learning", "instruction", "scaffold", "blueprint", "assessment",
+    "seat-time", "activity", "outline", "scenario", "simulation",
     # Gerunds — real and invented; the engine of the whole thing
     "skillifying", "skillification", "job-readyifyin'", "job-readification",
     "labbing", "configuring", "deploying", "achievifying", "certifying",
     "masterification", "enablifying", "hands-on-ification",
+    "upskillifying", "curriculum-architectin'", "competency-mappifying",
+    "onboard-ificating", "readiness-ologizing", "enablement-inating",
+    "scaffold-ifying", "blueprint-ificating", "assessment-ologizing",
     # Bonus absurdity
     "skillificator", "achievificator", "the configuratorinator",
+    "the enablement-inator", "curriculum-ologist",
 ]
 
 # ---------------------------------------------------------------------------
@@ -674,6 +683,7 @@ _SKILLABLE_SEEDS = [
 # ---------------------------------------------------------------------------
 
 _BASE_LOADING_STATES = [
+    # Skillable personality — permanent easter eggs, never edited
     "Big Hitterifying...",
     "Schwackity-schwackin'...",
     "Nicklin', dimin' & quarterin'...",
@@ -685,6 +695,19 @@ _BASE_LOADING_STATES = [
     "Oh boy, this is makin' my stomach hurt...",
     "Breakin' off the rearview mirrors...",
     "Thinking up questions, comments, and queries...",
+    # Training & enablement domain gerunds — always present
+    "Skillifying the situation...",
+    "Curriculum-architectin'...",
+    "Competency-mappifying...",
+    "Job-readyifyin'...",
+    "Enablement-ificating...",
+    "Upskillifying the workforce...",
+    "Onboard-ificating...",
+    "Scaffold-ifying your blueprint...",
+    "Hands-on-ificating...",
+    "Lab-readyifyin'...",
+    "Assessment-ologizing...",
+    "Running the configuratorinator...",
 ]
 
 _VOCABULARY_PROMPT = """You are a playful word-manufacturing machine for Skillable, a hands-on lab platform.
@@ -744,12 +767,16 @@ Output a JSON object with these exact keys:
     // Each one is what the AI is "doing" while it works — shown as a spinner label
     // Must be -ing form (real or invented) with a root that relates to the company/product domain
     // The root should be recognizable; the -ing form should be absurd
+    // Mix training/enablement roots WITH company/product roots — both matter
     // Examples for a network security company:
     //   "Threatologizing...", "Firewallificating...", "Packet-inspectifying...",
-    //   "Zero-trust-inating...", "Skill-segmenting...", "Lab-architecturifying..."
+    //   "Zero-trust-inating...", "Curriculum-segmentifying...", "Lab-architecturifying...",
+    //   "Competency-mappifying your perimeter...", "Upskillifying the SOC..."
     // Examples for a data platform company:
     //   "Data-fabricating...", "Cohesify-ing...", "Snapshot-ologizing...",
-    //   "Immutabilifying...", "Replication-atorinating..."
+    //   "Immutabilifying...", "Replication-atorinating...",
+    //   "Enablement-ificating your data team...", "Job-readyifyin' your analysts..."
+    // The best ones blend a company term WITH a training/skill root — double meaning is gold
     // Always end with "..."
   ]
 }

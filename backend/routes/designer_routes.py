@@ -14,6 +14,7 @@ from storage import (
     load_designer_program,
     save_designer_program,
 )
+from intelligence import generate_vocabulary, _BASE_LOADING_STATES
 
 log = logging.getLogger(__name__)
 
@@ -239,6 +240,29 @@ def update_checklist(program_id: str):
     program["checklist"] = checklist
     save_designer_program(program_id, program)
     return jsonify({"ok": True, "checklist": checklist})
+
+
+@designer.route("/<program_id>/vocabulary")
+def get_vocabulary(program_id: str):
+    """Return VocabularyPack loading_states for this program.
+
+    If the program has a company_name set (from Inspector seed or manual entry),
+    generates a full company-blended VocabularyPack and returns its loading_states.
+    Otherwise returns just the base Skillable loading states.
+    """
+    program = load_designer_program(program_id)
+    if program is None:
+        return jsonify({"loading_states": _BASE_LOADING_STATES})
+    company_name = program.get("company_name", "").strip()
+    analysis_id = program.get("analysis_id")  # set when seeded from Inspector
+    if not company_name:
+        return jsonify({"loading_states": _BASE_LOADING_STATES})
+    try:
+        pack = generate_vocabulary(company_name, analysis_id=analysis_id)
+        return jsonify({"loading_states": pack.get("loading_states", _BASE_LOADING_STATES)})
+    except Exception as e:
+        log.warning("get_vocabulary: failed for %s: %s", company_name, e)
+        return jsonify({"loading_states": _BASE_LOADING_STATES})
 
 
 @designer.route("/<program_id>/outline", methods=["POST"])
