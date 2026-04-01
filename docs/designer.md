@@ -101,7 +101,24 @@ Designer also accepts manual entry when no Inspector analysis exists — the pro
 
 ### Phase 1 — Requirements & Intent
 
-The Phase 1 interface has two panels. The left panel is the main conversation area: the user uploads documents (job task analysis, existing course outlines, product documentation, audience profiles, any prior training materials), provides URLs to documentation sites, and responds to AI questions. The right panel is the Lab Blueprint checklist — a live progress tracker that updates as the AI processes uploads and confirms information.
+**Three-pane layout:**
+- **Left pane** — navigation and Preferences access
+- **Middle pane** — primary work area: content upload, URL input, and AI conversation
+- **Right pane** — Lab Blueprint checklist: live progress tracker and thought provoker
+
+The middle pane accepts content in as many ways as possible — the goal is zero friction for whatever the program owner has available:
+- Drag and drop files (job task analysis, existing course outlines, product documentation, audience profiles, any prior training materials)
+- URL input (documentation sites, knowledge bases, existing course pages)
+- Direct text input
+- Image upload — including photos of whiteboards, napkin drawings, and network diagrams. If a program owner sketched a curriculum structure on a whiteboard, they should be able to photograph it and upload it directly
+
+The AI reads all uploaded content, extracts relevant signals, and asks follow-up questions to fill gaps. The conversation happens in the middle pane — questions appear inline as the AI processes content and identifies what's missing.
+
+**Phase 1 → Phase 2 transition:**
+A "Generate Outline" button lives at the bottom of the right pane checklist — visible once the AI has enough to produce a meaningful program structure. The AI may proactively signal readiness ("I have enough to generate an outline — want to proceed?") but the program owner decides when to commit. Both the AI prompt and the button trigger Phase 2.
+
+**Phase fluidity — no hard walls:**
+The program owner can move between phases freely. There is no lock-out. Additionally, the Phase 2 AI conversation (right pane) can handle Phase 1 refinements directly — "we need to refine success criteria" doesn't require returning to Phase 1. The AI should proactively surface gaps it notices: *"Your success criteria are still general — want to refine those before we finalize the outline?"*
 
 **The Lab Blueprint checklist tracks eight requirements:**
 1. Business / Learning Objectives — what the program needs to achieve
@@ -127,6 +144,13 @@ Phase 1 is complete when the program owner and AI have enough shared understandi
 
 ### Phase 2 — Program Architecture
 
+**Three-pane layout:**
+- **Left pane** — navigation
+- **Middle pane** — the outline itself, fully live-editable inline
+- **Right pane** — AI conversation that drives outline changes
+
+The middle and right panes work together: the program owner edits the outline directly in the middle (rename a lab, reorder activities, add or delete items inline) OR directs the AI in the right pane to make structural changes ("merge labs 4 and 5," "make this two series," "suggest more activities for this section"). Both inputs change the same outline. A "Refactor Outline" button in the right pane triggers a more significant AI restructuring when the program owner wants the AI to re-examine the overall structure rather than make targeted edits.
+
 Once Phase 1 is approved, the AI generates a complete program outline structured as:
 
 **Series → Labs → Activities**
@@ -145,7 +169,12 @@ Once the outline is approved, it's saved. Collaborators (SMEs, IDs, additional p
 
 ### Phase 3 — Draft Instructions & Scoring Recommendations
 
-When the outline is approved, the UI shifts: the main pane becomes a lab-by-lab instructions workspace, and the right panel narrows to approximately the width of actual Skillable Studio lab instructions. This previews what learners will see.
+**Three-pane layout — the panes flip from Phase 2:**
+- **Left pane** — navigation
+- **Middle pane** — AI conversation: generating and refining draft instructions lab by lab
+- **Right pane** — learner preview: live rendering of draft instructions at Skillable Studio width
+
+When the outline is approved, the UI shifts: the right pane narrows to approximately the width of actual Skillable Studio lab instructions. This previews what learners will see.
 
 For each lab, the AI generates:
 - Draft lab instructions organized by activity
