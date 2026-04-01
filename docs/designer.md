@@ -225,12 +225,15 @@ The BOM is not a blank checklist the program owner fills in — it is AI-generat
 The goal of the generated BOM is not perfection — it is an enormous head start. Lab developers adjust a few variables rather than starting from scratch.
 
 Generated artifacts included in the BOM and export package:
-- **PowerShell and Bash scripts** — environment setup, teardown, and reset automation based on the delivery path and software requirements
-- **Bicep templates** (Azure Cloud Slice programs) — resource group definitions, role assignments, service configurations
-- **CloudFormation templates** (AWS Cloud Slice programs) — stack definitions for the specific services the program uses
-- **Lifecycle Action (LCA) scripts** — startup, teardown, and scoring automation; break/fix fault injection scripts where applicable
+- **Cloud Slice / API package** *(Cloud Slice and Custom API programs only)* — subscription configuration, API endpoint list, auth mechanism, scope/permission set, provisioning call sequence. Listed first because it is the foundational environment decision — everything else depends on it.
+- **PowerShell and Bash scripts** — environment setup and teardown automation based on the delivery path and software requirements
+- **Bicep templates** *(Azure Cloud Slice programs)* — resource group definitions, role assignments, service configurations
+- **CloudFormation templates** *(AWS Cloud Slice programs)* — stack definitions for the specific services the program uses
+- **Lifecycle Action (LCA) scripts** — automation that runs at lab launch, reset, and teardown. These build and tear down the environment — provisioning cloud resources, installing software, seeding credential data, injecting faults for break/fix scenarios. LCAs are configured in the **Lab Profile > Lifecycle Actions** section in Skillable Studio. They are NOT attached to activities.
+- **Scoring scripts** — per-activity validation scripts that check whether the learner correctly completed a task. Scoring scripts are attached to **Activities** in Skillable Studio — not to the Lab Profile. They run when the learner submits a task (ABA) or at end-of-lab (PBT), and they validate configuration state: a service is running, a policy exists, a resource was created, a file was placed correctly. The generated stubs are starting points based on Phase 3 scoring recommendations; the lab developer completes the validation logic.
 - **Credential pool configuration** — connection string format, reset procedure, pool size guidance
-- **Scoring validation stubs** — starting points for the validation scripts the lab developer will configure in Studio, based on Phase 3 scoring recommendations
+
+> **LCAs vs. Scoring Scripts — same language, entirely different purpose and location.** Both are PowerShell or Bash scripts. But a Lifecycle Action automates the *environment* — it runs without learner interaction to build, reset, or tear down the lab. A Scoring Script validates the *learner's work* — it runs against the environment after the learner acts, to confirm a task was completed correctly. In Skillable Studio, they live in completely different places: LCAs go in the Lab Profile; Scoring Scripts go inside Activities. Lab developers who confuse the two produce labs where the environment never validates, or validation runs at the wrong time.
 
 None of these are expected to be production-ready out of the box. They are authoritative starting points — structured, specific, and informed by everything Designer knows about the program.
 
@@ -248,15 +251,15 @@ Each BOM section is comprehensive. Everything the lab developer needs to build a
 
 | Category | Contents |
 |---|---|
-| Cloud & Subscriptions | Subscription type, resource groups, IAM roles, supported services, ownership (Skillable vs. customer) |
+| **Cloud Slice / API Package** *(Cloud Slice and Custom API programs — listed first; all other decisions depend on this)* | Subscription type (Azure/AWS/Custom), API endpoint list, auth mechanism and OAuth scopes, permission set, provisioning call sequence, Pre-Instancing requirements, ownership (Skillable-managed vs. customer-provided subscriptions) |
 | Virtual Machines | OS, version, CPU/RAM, disk size, snapshot strategy |
 | Containers & IDEs | Container images, IDE configuration, port mappings |
 | Software & Tools | Applications, versions, licenses, installation order, configuration notes |
 | Accounts & Credentials | User accounts, service accounts, credential pool setup, permission assignments |
 | Data & Files | Dummy data files (CRM records, log files, datasets), placement paths, seeding scripts |
 | Networking & Permissions | VNet/subnet config, firewall rules, DNS, inter-VM connectivity, collaborative lab network setup |
-| Lifecycle Scripts | Startup, teardown, reset, fault injection (break/fix), generated script files attached |
-| Scoring & Assessment | Validation approach per activity, scoring script stubs, pass threshold, Studio configuration notes |
+| **Lifecycle Action (LCA) Scripts** *(Lab Profile > Lifecycle Actions in Skillable Studio)* | Environment automation — startup provisioning, teardown, reset, fault injection for break/fix scenarios. Run without learner interaction. Generated script files attached. |
+| **Scoring Scripts** *(attached to Activities in Skillable Studio — not the Lab Profile)* | Per-activity validation scripts that check learner work against expected configuration state. Stubs generated from Phase 3 scoring recommendations; lab developer completes the validation logic. Pass threshold and scoring format (ABA / PBT / Activity Group) noted per activity. |
 | Studio Configuration | Variables, replacement tokens, credential pool IDs, subscription pool IDs, collaborative lab settings |
 
 **Program summary panel:**
