@@ -28,6 +28,7 @@ from storage import (
     find_analysis_by_company_name,
     find_discovery_by_company_name,
     load_all_discoveries,
+    load_competitor_candidates,
 )
 
 import logging
@@ -243,7 +244,6 @@ def dossier(analysis_id: str):
     from_cache = request.args.get("cached") == "1"
 
     # Count competitor candidates logged from this company's scoring
-    from storage import load_competitor_candidates
     company_name = data.get("company_name", "")
     all_candidates = load_competitor_candidates()
     competitors_logged = sum(
