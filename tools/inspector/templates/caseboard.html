@@ -168,11 +168,23 @@
         .comp-card {
             background: #0a1510; border: 1px solid #1e3329; border-left: 3px solid #2a3a32;
             border-radius: 10px; padding: 12px 18px; margin-bottom: 7px; opacity: 0.6;
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
         }
+        .comp-card-body { flex: 1; min-width: 0; }
         .comp-name-lbl { font-size: 0.67rem; font-weight: 800; color: #4b5563;
             text-transform: uppercase; letter-spacing: 0.06em; }
         .comp-prod { font-weight: 600; color: #6b9e88; font-size: 0.88rem; margin-top: 2px; }
         .comp-ctx { color: #4b5563; font-size: 0.77rem; margin-top: 4px; line-height: 1.4; }
+        .comp-caseboard-btn {
+            flex-shrink: 0; align-self: center;
+            font-size: 0.72rem; font-weight: 600; color: #24ED9B;
+            background: none; border: 1px solid rgba(36,237,155,0.2);
+            border-radius: 5px; padding: 3px 9px; cursor: pointer;
+            white-space: nowrap; transition: background 0.15s, border-color 0.15s;
+        }
+        .comp-caseboard-btn:hover {
+            background: rgba(36,237,155,0.08); border-color: rgba(36,237,155,0.4);
+        }
 
         /* Intel panel */
         .intel { position: sticky; top: 68px; }
@@ -534,12 +546,15 @@
                 </div>
                 {% for comp in discovery.competitive_products %}
                 <div class="comp-card">
-                    <div class="comp-name-lbl">{{ comp.competitor_name }}</div>
-                    <div class="comp-prod">{{ comp.product_name }}
-                        {% if comp.category %}<span class="bdg bdg-cat" style="margin-left:6px">{{ comp.category }}</span>{% endif %}
-                        <span class="bdg bdg-nl" style="margin-left:4px">competitor</span>
+                    <div class="comp-card-body">
+                        <div class="comp-name-lbl">{{ comp.competitor_name }}</div>
+                        <div class="comp-prod">{{ comp.product_name }}
+                            {% if comp.category %}<span class="bdg bdg-cat" style="margin-left:6px">{{ comp.category }}</span>{% endif %}
+                            <span class="bdg bdg-nl" style="margin-left:4px">competitor</span>
+                        </div>
+                        {% if comp.competitive_context %}<div class="comp-ctx">{{ comp.competitive_context }}</div>{% endif %}
                     </div>
-                    {% if comp.competitive_context %}<div class="comp-ctx">{{ comp.competitive_context }}</div>{% endif %}
+                    <button class="comp-caseboard-btn" onclick="runCaseboard('{{ comp.competitor_name | e }}')">Run Caseboard →</button>
                 </div>
                 {% endfor %}
             </div>
@@ -667,6 +682,18 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     syncFooter();
 });
+
+function runCaseboard(companyName) {
+    const form = document.getElementById('competitor-discover-form');
+    document.getElementById('competitor-company-input').value = companyName;
+    form.submit();
+}
 </script>
+
+<!-- Hidden form for competitor Caseboard discovery -->
+<form id="competitor-discover-form" method="POST" action="/inspector/discover" style="display:none">
+    <input type="hidden" id="competitor-company-input" name="company_name" value="">
+</form>
+
 </body>
 </html>
