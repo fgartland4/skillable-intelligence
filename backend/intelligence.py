@@ -326,32 +326,25 @@ def expand(company_name: str, additional_products: list[dict],
 
     from researcher import research_products
     from scorer import score_selected_products
+    import json
+    import os
+    from config import DATA_DIR
 
     research = research_products(company_name, new_products)
     research["discovery_data"] = discovery_data
-
-    from models import CompanyAnalysis
-    import dataclasses
 
     # Score only the new products
     new_analysis = score_selected_products(research)
     new_analysis.discovery_id = discovery_id
 
     # Merge: keep existing products, append new ones
-    # Reload from JSON to get a clean dict
     new_data = load_analysis(save_analysis(new_analysis))
     merged_products = data.get("products", []) + new_data.get("products", [])
 
     data["products"] = merged_products
     data["analyzed_at"] = _now_iso()
 
-    # Re-save merged data
-    from storage import save_analysis as _save
-    from models import _parse_response_to_models  # not public but we need it for type
-
-    # Simplest path: overwrite the JSON directly
-    import json, os
-    from config import DATA_DIR
+    # Write merged data back to the original analysis file
     filepath = os.path.join(DATA_DIR, f"{analysis_id}.json")
     with open(filepath, "w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2, default=str)

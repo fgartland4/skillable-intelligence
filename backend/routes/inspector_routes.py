@@ -116,14 +116,8 @@ def discover_progress(discovery_id: str):
 
 @inspector.route("/select/<discovery_id>")
 def select_products(discovery_id: str):
-    discovery = load_discovery(discovery_id)
-    if not discovery:
-        return redirect(url_for("inspector.home"))
-    for i, p in enumerate(discovery.get("products", []), start=1):
-        if not p.get("priority"):
-            p["priority"] = i
-    existing_analysis = find_analysis_by_discovery_id(discovery_id)
-    return render_template("select.html", discovery=discovery, existing_analysis=existing_analysis)
+    """Legacy redirect — /select was replaced by /caseboard."""
+    return redirect(url_for("inspector.caseboard", discovery_id=discovery_id), 301)
 
 
 @inspector.route("/caseboard/<discovery_id>")
