@@ -108,16 +108,36 @@ Designer also accepts manual entry when no Inspector analysis exists — the pro
 - **Middle pane** — primary work area: content upload, URL input, and AI conversation
 - **Right pane** — Lab Blueprint checklist: live progress tracker and thought provoker
 
+**AI persona and first move:**
+The AI speaks first — always. It never waits for the user to type. The tone is confident, measured, and present: a trusted advisor who earns trust by knowing things, not by performing eagerness. Think less "helpful assistant" and more "person in the room who already knows the answer."
+
+When a program is seeded from an Inspector analysis, the AI opens by naming what it knows and stating an assumption — not by asking from scratch:
+
+> *"I've reviewed your Cohesity analysis. DataProtect is the strongest lab candidate — cloud-native, REST API surface, Azure Marketplace listed. Want to build around that?"*
+
+The user confirms or redirects. The AI follows completely without resistance. When there is no Inspector analysis (cold start), the AI still speaks first with a short, direct opening: *"What are we building?"*
+
 The middle pane accepts content in as many ways as possible — the goal is zero friction for whatever the program owner has available:
 - Drag and drop files — supported formats: PDF, DOCX, PPTX, XLSX, CSV (job task analysis, existing course outlines, product documentation, audience profiles, any prior training materials)
 - URL input — any web page, documentation site, or knowledge base; Google Docs and Google Sheets URLs are supported and parsed as documents
 - Direct text input
 - Image upload — including photos of whiteboards, napkin drawings, and network diagrams. If a program owner sketched a curriculum structure on a whiteboard, they should be able to photograph it and upload it directly
 
-The AI reads all uploaded content, extracts relevant signals, and asks follow-up questions to fill gaps. The conversation happens in the middle pane — questions appear inline as the AI processes content and identifies what's missing.
+For every piece of content uploaded or fetched, the AI immediately and visibly processes it. The chat area shows a card for the file or URL: what it extracted, which checklist items it updated, and a clarifying question based on that specific content combined with what Intelligence already knows. The program owner can watch the checklist shift in real time — items moving from gray to yellow to green as the AI builds confidence from accumulated context.
+
+**In-place checklist editing:** Any checklist item is directly editable — click the value, type the correction, click away or press Enter to save. Edits update the AI's active context immediately. If the user corrects "IT Administrators" to "Network Engineers," the AI's subsequent questions and suggestions reflect the correction. In-place editing is not cosmetic.
 
 **Phase 1 → Phase 2 transition:**
-A "Generate Outline" button lives at the bottom of the right pane checklist — visible once the AI has enough to produce a meaningful program structure. The AI may proactively signal readiness ("I have enough to generate an outline — want to proceed?") but the program owner decides when to commit. Both the AI prompt and the button trigger Phase 2.
+A **[Generate Outline]** button lives at the bottom of the right pane checklist — visible from the start, but grayed out. A status message above the button evolves as the checklist fills, communicating the AI's honest assessment of readiness:
+
+| Checklist state | Status message | Button |
+|---|---|---|
+| Early — major gaps | "I need more to work with." | Disabled |
+| Building — some gaps remain | "More context sharpens this." | Disabled |
+| Sufficient — usable but improvable | "I can build something. More context improves it." | **Active** |
+| Strong — ready | "Ready when you are." | **Active** |
+
+The button becomes active at Stage 3 — when the AI has enough to produce something meaningful, even if more context would improve it. A permanent note below the button reads: *"You can return to refine this anytime."*
 
 **Phase fluidity — no hard walls:**
 The program owner can move between phases freely. There is no lock-out. Additionally, the Phase 2 AI conversation (right pane) can handle Phase 1 refinements directly — "we need to refine success criteria" doesn't require returning to Phase 1. The AI should proactively surface gaps it notices: *"Your success criteria are still general — want to refine those before we finalize the outline?"*
@@ -153,6 +173,17 @@ Phase 1 is complete when the program owner and AI have enough shared understandi
 - **Right pane** — AI conversation that drives outline changes
 
 The middle and right panes work together: the program owner edits the outline directly in the middle (rename a lab, reorder activities, add or delete items inline) OR directs the AI in the right pane to make structural changes ("merge labs 4 and 5," "make this two series," "suggest more activities for this section"). Both inputs change the same outline. A "Refactor Outline" button in the right pane triggers a more significant AI restructuring when the program owner wants the AI to re-examine the overall structure rather than make targeted edits.
+
+**Default expand/collapse state on arrival:**
+- Single series: open, showing all labs; activities collapsed
+- Multiple series: first series expanded, all others collapsed
+- Expand All / Collapse All controls available; multiple series can be open simultaneously; fully user-controlled
+
+**Returning from Phase 1 — edit retention:**
+If the user navigates back to Phase 1 and makes changes, the outline regenerates when they return to Phase 2. User edits are retained through AI-aware regeneration: the current edited outline is passed back to the AI as a scaffold it must respect, alongside the updated Phase 1 context. The AI preserves structural choices the user has made — renamed labs, added activities, reordered items — while incorporating new Phase 1 context. No versioning, no merge UI, no lock icons. The AI handles it.
+
+**Phase 2 → Phase 3 transition:**
+A **[Generate Draft Instructions]** button at the bottom of the outline panel. Clicking it kicks off parallel draft instruction generation for all labs and navigates to Phase 3.
 
 Once Phase 1 is approved, the AI generates a complete program outline structured as:
 
@@ -192,18 +223,34 @@ When the program owner or ID enters Skill Mapping Mode, the proposed mappings ar
 
 ### Phase 3 — Draft Instructions & Scoring Recommendations
 
-**Three-pane layout — the panes flip from Phase 2:**
+**Three-pane layout:**
 - **Left pane** — navigation
-- **Middle pane** — AI conversation: generating and refining draft instructions lab by lab
-- **Right pane** — learner preview: live rendering of draft instructions at Skillable Studio width
+- **Middle pane** — the outline (same series/lab structure as Phase 2); user clicks a lab to load its instructions
+- **Right pane** — draft instructions for the selected lab, rendered at actual Skillable Studio instruction width
 
-When the outline is approved, the UI shifts: the right pane narrows to approximately the width of actual Skillable Studio lab instructions. This previews what learners will see.
+**Generation — parallel and progressive:**
+When the user clicks **[Generate Draft Instructions]** in Phase 2, all lab generation calls kick off in parallel. Phase 3 opens immediately — the outline is visible and labs begin populating as they complete. The user does not wait for all labs before starting review.
 
-For each lab, the AI generates:
-- Draft lab instructions organized by activity
-- Recommendations for how each activity should be validated — the logic and approach for scoring, surfaced as guidance for the lab developer who will configure validation in Studio
+While a lab's instructions are generating, a small pulsing dot (Skillable green) appears to the left of the lab name in the outline. The lab name is muted and not clickable until generation completes. When ready, the dot resolves and the lab name becomes fully active.
 
-The program owner or ID reviews each lab's draft with the AI — refining language, adjusting task descriptions, clarifying validation approaches. SMEs can be brought in at this stage to tech-edit for accuracy.
+The first lab to complete auto-selects — its draft instructions appear in the right pane automatically. The user is already reading before they've clicked anything. They can then click any ready lab in any order; they are not forced to proceed sequentially.
+
+Typical generation time: 15–30 seconds for a full program (parallel calls). Very large programs may batch due to rate limits.
+
+**Middle pane — outline editing:**
+- Click any lab or series name → editable in place; click away or Enter to save
+- Drag handle (⋮⋮) on the left of each lab row → drag to reorder within a series
+
+**Right pane — fully editable draft instructions:**
+The draft instructions are directly editable — click anywhere in the right pane and type. No edit mode toggle, no separate form. Edits are auto-saved.
+
+**Draft reminders — three placements:**
+1. A small persistent pill above the right pane instructions: *"Draft · Finalized in Skillable Studio"* — muted color, always visible
+2. The AI's opening message when Phase 3 loads: acknowledges what it built and where the work goes next — *"I've generated draft instructions for all 12 labs. Review, edit, and hand these to your SMEs — they'll do the final authoring in Skillable Studio."*
+3. A brief note at the Phase 4 export moment, before the package downloads: *"This package contains draft instructions. Your lab developer will refine them in Skillable Studio."*
+
+**Phase 3 → Phase 4 transition:**
+A **[Generate Lab Package]** button at the bottom of the outline panel. Clicking it kicks off BOM and package generation and navigates to Phase 4.
 
 Phase 3 output is draft scaffolding — not finished content. The draft instructions are a head start for the SME or tech writer who will do final authoring in Skillable Studio.
 
@@ -281,6 +328,10 @@ A downloadable ZIP containing:
 - Skill mapping export — framework mappings at the activity level, in a format suitable for import or reference
 
 The contracted SME or lab developer imports the Studio package, receives the BOM and generated scripts, and begins the technical build. The structural and environmental scaffolding is done. Their job is to make it work — not figure out what to build or how to start.
+
+**Phase 4 actions:**
+- **[Export Lab Package]** — downloads the ZIP and concludes the program design workflow
+- **[Build Another Program]** — returns the user to a fresh Phase 1, AI ready to go again
 
 > **Export format — pending SE validation.** The exact structure of `data.json`, the BOM document format, and the script packaging conventions are to be validated with Skillable Solution Engineers before Phase 4 is built. The legacy Designer export code is the current best reference and is likely close to the correct format. A separate **Designer Export Specification** document will capture the draft format for SE review.
 
