@@ -14,6 +14,10 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #06100c;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
             color: #e8f5f0;
             height: 100vh; overflow: hidden;
         }
@@ -29,8 +33,12 @@
 
         /* Left sidebar */
         #sidebar {
-            width: 220px; flex-shrink: 0;
+            width: 240px; flex-shrink: 0;
             background: #060f0b;
+            background-image:
+                linear-gradient(rgba(36,237,155,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.025) 1px, transparent 1px);
+            background-size: 32px 32px;
             border-right: 1px solid #1e3329;
             display: flex; flex-direction: column;
             overflow: hidden;
@@ -103,6 +111,31 @@
             padding: 8px 12px; cursor: pointer; transition: all 0.12s;
         }
         .btn-prefs:hover { border-color: #24ED9B; color: #24ED9B; }
+        .btn-restart {
+            display: flex; align-items: center; gap: 8px;
+            width: 100%; background: none; border: 1px solid #1e3329;
+            border-radius: 6px; color: #3d6655; font-size: 0.78rem;
+            padding: 8px 12px; cursor: pointer; transition: all 0.12s;
+            margin-bottom: 8px;
+        }
+        .btn-restart:hover { border-color: #e05252; color: #e05252; }
+        .sidebar-copyright {
+            font-size: 0.58rem;
+            color: #1e3329;
+            text-align: center;
+            margin-top: 12px;
+            letter-spacing: 0.03em;
+        }
+
+        .sidebar-tool-label {
+            padding: 8px 16px 10px;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #3d6655;
+            border-bottom: 1px solid #1e3329;
+        }
 
         /* ================================================================
            MAIN CONTENT
@@ -118,17 +151,17 @@
 
         /* Two-pane split */
         .pane-mid {
-            flex: 60; display: flex; flex-direction: column;
+            flex: 72; display: flex; flex-direction: column;
             border-right: 1px solid #1e3329; overflow: hidden;
             min-width: 0;
         }
         .pane-right {
-            flex: 40; display: flex; flex-direction: column;
+            flex: 28; display: flex; flex-direction: column;
             overflow: hidden; min-width: 0;
         }
-        /* Phase 3 flips: mid=55, right=45 */
-        .phase-section.phase3-layout .pane-mid { flex: 55; }
-        .phase-section.phase3-layout .pane-right { flex: 45; }
+        /* Phase 3 flips: mid=68, right=32 */
+        .phase-section.phase3-layout .pane-mid { flex: 68; }
+        .phase-section.phase3-layout .pane-right { flex: 32; }
 
         /* Pane headers */
         .pane-header {
@@ -151,6 +184,7 @@
         .chat-area {
             flex: 1; overflow-y: auto; padding: 16px 20px;
             display: flex; flex-direction: column; gap: 12px;
+            justify-content: flex-end;
         }
         .chat-bubble {
             max-width: 88%; word-break: break-word;
@@ -692,6 +726,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <img src="/static/img/skillable-logo.png" alt="Skillable" class="sidebar-logo">
             </a>
         </div>
+        <div class="sidebar-tool-label">Lab Program Designer</div>
         <a href="/designer" class="sidebar-back">← All Programs</a>
         <div class="sidebar-program-name">
             <div class="program-name-display" id="program-name-display" title="Click to rename">
@@ -742,9 +777,13 @@ const INITIAL_DATA = {{ program_json | safe }};
             </ul>
         </nav>
         <div class="sidebar-footer">
+            <button class="btn-restart" id="restart-btn" onclick="if(confirm('Start over? This will clear the current program and open a new one.')) window.location='/designer/new';">
+                ↺ Restart
+            </button>
             <button class="btn-prefs" id="prefs-btn">
                 <span>&#9881;</span> Preferences
             </button>
+            <div class="sidebar-copyright">Skillable&#174; &mdash; All rights reserved</div>
         </div>
     </aside>
 
@@ -790,7 +829,7 @@ const INITIAL_DATA = {{ program_json | safe }};
             <div class="pane-right">
                 <div class="pane-header">
                     <h2>Lab Blueprint</h2>
-                    <span class="pane-header-sub" id="checklist-progress-label">0 / 9</span>
+                    <span class="pane-header-sub" id="checklist-progress-label">0 / 7</span>
                 </div>
                 <div class="checklist-area" id="checklist-area">
                     <!-- rendered by JS -->
@@ -1046,15 +1085,20 @@ const FRAMEWORKS = {
 
 // Checklist definitions
 const CHECKLIST_DEFS = [
-    { key: 'business_objectives',  label: 'Business Objectives',  desc: 'Why does this program exist? What business outcome does it support?' },
-    { key: 'learning_objectives',  label: 'Learning Objectives',  desc: 'What will learners be able to do after completing the program?' },
-    { key: 'target_audience',      label: 'Target Audience',      desc: 'Who are the learners? Role, experience level, technical background.' },
-    { key: 'primary_product',      label: 'Primary Product / Topic', desc: 'What software, platform, or subject is this program about?' },
-    { key: 'difficulty_seat_time', label: 'Difficulty &amp; Seat Time', desc: 'Beginner/Intermediate/Advanced; target minutes per lab.' },
-    { key: 'success_criteria',     label: 'Success Criteria',     desc: 'How will you know this program worked? Completion rate, cert pass rate, job performance?' },
-    { key: 'scenario_seeds',       label: 'Scenario Seeds',       desc: 'Real-world situations these labs should simulate. What does the learner actually do on the job?' },
-    { key: 'skill_framework',      label: 'Skill Framework',      desc: 'Optional. Which framework(s) to map to. AI recommends based on product category.' },
-    { key: 'competency_mapping',   label: 'Competency Mapping',   desc: 'Whether activity-level framework mapping will be applied. Set here, executed in Phase 2.' },
+    { key: 'program_objectives',  label: 'Program Objectives',
+      desc: 'What business outcome does this program support, and what will learners be able to do when they complete it?' },
+    { key: 'target_audience',     label: 'Target Audience',
+      desc: 'Who are the learners? Role, experience level, technical background.' },
+    { key: 'primary_product',     label: 'Primary Product(s) & Topic(s)',
+      desc: 'What software, platform, or subject is this program about? List products and key topic areas.' },
+    { key: 'difficulty_seat_time', label: 'Difficulty & Duration',
+      desc: 'Difficulty level (Beginner / Intermediate / Advanced) and target seat time per lab. Defaults pulled from Preferences — override here if needed.' },
+    { key: 'success_criteria',    label: 'Success Criteria',
+      desc: 'How will you know this program worked? Completion rate, cert pass rate, demonstrated job performance?' },
+    { key: 'scenario_seeds',      label: 'Scenario Seeds',
+      desc: 'Real-world situations these labs should simulate. What does the learner actually do on the job?' },
+    { key: 'skill_framework',     label: 'Skill Framework & Competency Mapping',
+      desc: 'Which framework(s) to map to (e.g., NICE NCWF, ITIL 4, Azure AZ-104). Competency-level activity mapping will be applied in Phase 2.' },
 ];
 
 // ============================================================
@@ -1205,6 +1249,13 @@ function renderChecklist() {
 
     CHECKLIST_DEFS.forEach(def => {
         const item = cl[def.key] || { state: 'gray', value: '' };
+        if (def.key === 'difficulty_seat_time' && (!item.value || !item.value.trim())) {
+            const prefs = state.preferences || {};
+            const diff = prefs.default_difficulty || 'Intermediate';
+            const seat = prefs.default_seat_time || 60;
+            item.value = `${diff}, ${seat} min`;
+            item.state = 'yellow';
+        }
         if (item.state === 'green') greenCount++;
 
         const div = document.createElement('div');
@@ -1231,7 +1282,7 @@ function renderChecklist() {
     });
 
     // Update label
-    document.getElementById('checklist-progress-label').textContent = greenCount + ' / 9';
+    document.getElementById('checklist-progress-label').textContent = greenCount + ' / 7';
 
     // Show/hide generate outline button
     const btn = document.getElementById('btn-generate-outline');
@@ -1251,7 +1302,7 @@ function updateNavDots() {
     const greenCount = Object.values(cl).filter(v => v.state === 'green').length;
     const yellowCount = Object.values(cl).filter(v => v.state === 'yellow').length;
     const dot1 = document.getElementById('nav-dot-1');
-    if (greenCount >= 7) dot1.className = 'nav-progress-dot complete';
+    if (greenCount >= 5) dot1.className = 'nav-progress-dot complete';
     else if (greenCount + yellowCount > 0) dot1.className = 'nav-progress-dot partial';
     else dot1.className = 'nav-progress-dot';
 
@@ -2044,16 +2095,9 @@ function restoreState() {
 // ============================================================
 function maybeGreet() {
     if ((state.phase1_messages || []).length === 0) {
-        const greeting = `Hi! I'm your Lab Program Designer assistant. I'll help you build a complete lab program for **${state.program_name || 'your program'}**.
-
-Let's start with the basics:
-- **What product or topic** will this program train learners on?
-- **Who are the learners?** (role, experience level, technical background)
-- **What's the business goal?** (skill development, onboarding, certification, etc.)
-
-You can also upload a job task analysis, existing course outline, product documentation, or any other materials — I'll read them and ask follow-up questions.`;
-
-        addChatBubble('p1-chat-area', 'assistant', renderMarkdown(greeting));
+        const welcomeHtml = `<p>Tell me about the program you're building.</p>
+<p style="margin-top:8px;">If you have any documents — like learning objectives, job task analyses, job descriptions, or even a task list — click the paperclip below to upload them and we'll get started.</p>`;
+        addChatBubble('p1-chat-area', 'assistant', welcomeHtml);
     }
 }
 
