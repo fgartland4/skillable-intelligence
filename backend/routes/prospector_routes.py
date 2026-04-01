@@ -114,7 +114,7 @@ def prospector_run():
                 else:
                     row = result_holder[0]
                     if row:
-                        # Academic path labels are set inside _quick_analyze_company — don't override
+                        # Academic path labels are set inside intelligence.qualify() — don't override
                         if not row.get("skillable_path"):
                             row["skillable_path"] = _derive_skillable_path(row.get("lab_score", 0))
                         row["flagged_poor_fit"] = False

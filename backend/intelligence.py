@@ -166,8 +166,9 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     if not discovery_data:
         discovery_data = load_discovery(discovery_id) or {}
 
-    # Build research input
-    cache = discovery_data.get("_research_cache", {}) if not research_cache else research_cache
+    # Build research input — explicit None check so an empty dict (Prospector qualify mode)
+    # is respected rather than falling back to the discovery cache.
+    cache = discovery_data.get("_research_cache", {}) if research_cache is None else research_cache
     research = {
         "company_name": company_name,
         "selected_products": selected_products,
@@ -196,6 +197,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
 # Discrepancy detection (internal)
 # ---------------------------------------------------------------------------
 
+# Single source of truth for labability tier ordering (used in discrepancy detection and qualify)
 _TIER_ORDER = {"highly_likely": 0, "likely": 1, "less_likely": 2, "not_likely": 3}
 
 
@@ -324,12 +326,6 @@ def expand(company_name: str, additional_products: list[dict],
     log.info("Intelligence.expand: adding %d products to analysis %s for %s",
              len(new_products), analysis_id, company_name)
 
-    from researcher import research_products
-    from scorer import score_selected_products
-    import json
-    import os
-    from config import DATA_DIR
-
     research = research_products(company_name, new_products)
     research["discovery_data"] = discovery_data
 
@@ -337,14 +333,26 @@ def expand(company_name: str, additional_products: list[dict],
     new_analysis = score_selected_products(research)
     new_analysis.discovery_id = discovery_id
 
-    # Merge: keep existing products, append new ones
-    new_data = load_analysis(save_analysis(new_analysis))
-    merged_products = data.get("products", []) + new_data.get("products", [])
+    # Save temporary analysis to get a clean dict, then immediately merge and delete it
+    temp_id = save_analysis(new_analysis)
+    new_data = load_analysis(temp_id)
 
+    # Clean up the temporary file — it served only as a parsing step
+    try:
+        import os
+        from config import DATA_DIR as _DATA_DIR
+        os.remove(os.path.join(_DATA_DIR, f"{temp_id}.json"))
+    except Exception as e:
+        log.warning("expand(): could not remove temp analysis %s: %s", temp_id, e)
+
+    merged_products = data.get("products", []) + new_data.get("products", [])
     data["products"] = merged_products
     data["analyzed_at"] = _now_iso()
 
     # Write merged data back to the original analysis file
+    import json
+    import os
+    from config import DATA_DIR
     filepath = os.path.join(DATA_DIR, f"{analysis_id}.json")
     with open(filepath, "w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2, default=str)
@@ -358,7 +366,6 @@ def expand(company_name: str, additional_products: list[dict],
 # Operation 5 — qualify  (Prospector lightweight path)
 # ---------------------------------------------------------------------------
 
-_LABABLE_ORDER = {"highly_likely": 0, "likely": 1, "less_likely": 2, "not_likely": 3}
 
 
 def qualify(company_name: str, force_refresh: bool = False) -> dict | None:
@@ -391,7 +398,7 @@ def qualify(company_name: str, force_refresh: bool = False) -> dict | None:
 
         all_products = discovery.get("products", [])
         labable = [p for p in all_products if p.get("likely_labable") != "not_likely"] or all_products
-        labable.sort(key=lambda p: _LABABLE_ORDER.get(p.get("likely_labable", "not_likely"), 4))
+        labable.sort(key=lambda p: _TIER_ORDER.get(p.get("likely_labable", "not_likely"), 4))
         selected = labable[:1]
         if not selected:
             return None

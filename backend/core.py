@@ -14,21 +14,51 @@ _SSE_TIMEOUT = 600  # 10 minutes
 # ---------------------------------------------------------------------------
 # In-memory progress store for SSE streaming
 # ---------------------------------------------------------------------------
+#
+# Memory management:
+#   _PROGRESS_MAX_JOBS     — evict oldest jobs when this many are tracked
+#   _PROGRESS_EVICT_COUNT  — how many to evict at once
+#   _PROGRESS_MAX_MSGS     — hard cap on messages per job (prevents unbounded growth
+#                            on long-running or stuck jobs)
+#   _PROGRESS_JOB_TTL      — seconds after which a completed job is eligible for
+#                            removal (streaming is fast; 5 min is generous)
+# ---------------------------------------------------------------------------
 
 _progress: dict[str, list[str]] = {}
+_progress_timestamps: dict[str, float] = {}   # job_id → creation time
 _progress_lock = threading.Lock()
-_PROGRESS_MAX_JOBS = 50
+_PROGRESS_MAX_JOBS   = 50
 _PROGRESS_EVICT_COUNT = 10
+_PROGRESS_MAX_MSGS   = 200    # no legitimate job needs more than ~20 messages
+_PROGRESS_JOB_TTL    = 300    # 5 minutes
 _cancelled_jobs: set[str] = set()
 
 
 def _push(job_id: str, msg: str):
+    now = time.time()
     with _progress_lock:
         if job_id not in _progress:
+            # Evict stale jobs first (TTL), then oldest-by-count if still over limit
+            stale = [jid for jid, ts in _progress_timestamps.items()
+                     if now - ts > _PROGRESS_JOB_TTL]
+            for jid in stale:
+                _progress.pop(jid, None)
+                _progress_timestamps.pop(jid, None)
+
             if len(_progress) >= _PROGRESS_MAX_JOBS:
                 for old_key in list(_progress.keys())[:_PROGRESS_EVICT_COUNT]:
-                    del _progress[old_key]
+                    _progress.pop(old_key, None)
+                    _progress_timestamps.pop(old_key, None)
+
             _progress[job_id] = []
+            _progress_timestamps[job_id] = now
+
+        # Per-job message cap — drop oldest messages if over limit
+        msgs = _progress[job_id]
+        if len(msgs) >= _PROGRESS_MAX_MSGS:
+            # Keep the last half; the front is already consumed by the SSE stream
+            _progress[job_id] = msgs[_PROGRESS_MAX_MSGS // 2:]
+
         _progress[job_id].append(msg)
 
 
@@ -38,11 +68,15 @@ def _sse_stream(job_id: str, poll_interval: float = 0.3):
     deadline = time.time() + _SSE_TIMEOUT
     while time.time() < deadline:
         with _progress_lock:
-            msgs = _progress.get(job_id, [])
+            msgs = list(_progress.get(job_id, []))
         for msg in msgs[last:]:
             last += 1
             yield f"data: {msg}\n\n"
             if msg.startswith("done:") or msg.startswith("error:"):
+                # Clean up immediately on completion — no need to keep the job in memory
+                with _progress_lock:
+                    _progress.pop(job_id, None)
+                    _progress_timestamps.pop(job_id, None)
                 return
         time.sleep(poll_interval)
     yield "data: error:Timed out — the operation took too long. Please try again.\n\n"
