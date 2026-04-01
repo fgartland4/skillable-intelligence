@@ -149,7 +149,7 @@
             {% for item in recent[:6] %}
             <li class="recent-item">
                 <a href="/inspector/results/{{ item.analysis_id }}">{{ item.company_name }}</a>
-                <span class="meta score-pill">{{ item.analyzed_at[:10] }} | <span{% if item.top_score < 35 %} style="color:#f87171"{% endif %}>{{ item.top_score }}/100</span></span>
+                <span class="meta score-pill">{{ item.analyzed_at[:10] }} | <span{% if item.top_score < 35 %} style="color:#a05858"{% endif %}>{{ item.top_score }}/100</span></span>
             </li>
             {% endfor %}
         </ul>
