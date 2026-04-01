@@ -70,9 +70,11 @@ Each of these signals maps directly to one of Skillable's delivery paths: Azure 
 
 ### The Workday Problem
 
-Workday is the clearest illustration of why product-level scoring matters — and why all three gates must be evaluated independently.
+**The goal of Intelligence is to surface the specific technical reasons a company cannot be a Skillable customer — before we spend a single dollar marketing to them.**
 
-On organizational signals, Workday clears the bar easily:
+Workday is the clearest illustration of why this matters — and why product-level scoring is the only scoring that counts.
+
+On every traditional marketing signal, Workday looks like an ideal prospect:
 
 - World-class training organization with a dedicated Workday Learning division and a substantial global partner program
 - Deep content ecosystem, strong technical enablement culture, massive install base
@@ -80,9 +82,17 @@ On organizational signals, Workday clears the bar easily:
 
 And Gate 2 passes too. Configuring Workday HCM or Financials is genuinely complex. The skills involved are real. Workday's own content teams recognized this — they *wanted* to build labs. The motivation and organizational capability were both present.
 
-Gate 1 is where the analysis ends. Workday is a pure multi-tenant cloud SaaS platform. There is no per-learner environment isolation, no deployment model Skillable can orchestrate, no API surface for provisioning individual lab instances. The platform architecture makes it technically impossible to deliver the labs that Workday's content teams were ready to build.
+Gate 1 is where the analysis ends. The specific technical reasons are articulable and discoverable from public documentation:
+
+- **Pure multi-tenant architecture** — every Workday customer shares the same cloud environment. There is no "Workday instance" to give a learner. The product is architecturally incapable of per-learner isolation.
+- **No provisioning API** — no mechanism to spin up an individual environment programmatically. Skillable's entire delivery model depends on this capability.
+- **No deployment model** — nothing to install, nothing to containerize, nothing to slice. The product lives entirely in Workday's cloud and cannot be replicated outside it.
+
+These are not hunches or soft signals. They are specific, technical facts — findable in Workday's architecture documentation and API references before a single sales conversation begins.
 
 This is the most important version of the Workday story: it wasn't a bad lead with weak signals. It was motivated, capable people inside a well-run organization who invested significant time before hitting a wall that was always there — because Gate 1 was never evaluated before the pursuit began.
+
+**Products that work like Workday are not a fit — and that determination should be made before any marketing motion begins.** The HubSpot verdict for these companies is "Do Not Pursue." The value isn't the label — it's that the specific technical reasons are documented on the Company record, so any seller or marketer who asks gets a clear, defensible answer.
 
 Intelligence surfaces this in the research phase, before the first conversation. The same analysis that flags Workday will surface a mid-market DevOps company with a Docker image, a Marketplace listing, and a clean API — a company that clears all three gates and can have a lab running in weeks.
 
