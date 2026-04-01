@@ -348,13 +348,21 @@ The pedagogical defaults that align labs to recognized frameworks and ensure con
 
 The Default Skill Framework(s) picker presents a curated catalog grouped by domain — Cybersecurity, Cloud & DevOps, Networking, Software Engineering, IT Operations, Data & AI, Cross-Domain. Organizations select one or more frameworks as their organization-wide default. Every new program inherits these defaults; program owners can override for a specific program without changing the global standard.
 
-The catalog includes public frameworks (NICE Cybersecurity Workforce Framework, DoD DCWF, LinkedIn Skill Framework, CompTIA certification domains, AWS/Azure certification frameworks, SFIA, Cisco CCNA/CCNP/CCIE, ITIL 4, and others) and supports custom framework uploads in JSON, CSV, or plain text format. Custom frameworks — consulting-built company frameworks, vendor-proprietary frameworks like Microsoft's internal skill model — appear at the top of the picker under "Your Frameworks."
+The catalog includes public frameworks (NICE Cybersecurity Workforce Framework, DoD DCWF, SFIA, ITIL 4, LinkedIn Skill Framework, and others) and a full vendor certification catalog (see below). Custom framework uploads — JSON, CSV, or plain text — appear at the top of the picker under "Your Frameworks."
 
 **LinkedIn Skill Framework.** LinkedIn's skill taxonomy is a large, flat framework covering thousands of skills grouped into domains. It is widely used by HR and L&D teams because LinkedIn Learning content is already tagged to it — making it easy to connect lab programs to broader L&D catalogs. For customers whose learning strategy is LinkedIn Learning-anchored, Designer can map activities to LinkedIn skill tags, enabling direct linkage between lab completion and LinkedIn Learning skill credits.
 
 **Soft skills and power skills frameworks are explicitly excluded.** The catalog contains only frameworks relevant to hands-on technical skills — the kind that map to keyboard-level tasks in a lab environment. Frameworks built around communication, leadership, or behavioral competencies have no meaningful relationship to lab activities and are not included.
 
-**Certification frameworks are included and treated as skill frameworks.** Certifications are built from job task analysis — the resulting skill domains are a structured competency framework. CompTIA Security+, AWS Solutions Architect, Cisco CCNA, and similar certifications belong in the catalog. A customer building labs to prepare learners for a certification exam is doing skill framework mapping whether they call it that or not.
+**Certification frameworks — hyper-simplified UX.** The picker shows cert names grouped by vendor. The user selects the cert their learners are targeting — "CompTIA Security+," "AZ-104," "CCNA" — and the AI maps activities to the appropriate domain objectives behind the scenes. The user never sees or selects domain breakdowns; the mapping is fully AI-managed and surfaces in the Phase 4 export at the activity level.
+
+Vendor catalogs in the picker:
+- **Microsoft:** AZ-104, AZ-500, AZ-900, SC-300, MS-102, DP-900, AI-900, and others
+- **CompTIA:** Security+, Network+, CySA+, PenTest+, Cloud+, Linux+, and others
+- **AWS:** Solutions Architect Associate, SysOps Administrator, DevOps Engineer Professional, and others
+- **Cisco:** CCNA, CCNP Enterprise, CCNP Security, CyberOps Associate, and others
+
+Certifications are built from job task analysis — their domain objectives are a structured competency framework. A customer building labs to prepare learners for a cert exam is doing skill framework mapping whether they call it that or not. Exam versions change periodically; the cert catalog requires periodic review to stay current.
 
 **Per-program override.** Program owners can select a different framework — or add a second framework — for any specific program without changing the organization default. Multiple frameworks can be active simultaneously on the same program. The instructional design team creates the mapping rules and governs approval; the program owner selects the framework; the AI does the mapping work.
 
