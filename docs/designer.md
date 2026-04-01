@@ -406,5 +406,20 @@ Lab scenario type flags from Inspector (break/fix, simulated attack, collaborati
 
 Designer program records link back to their source Inspector analysis via `inspector_analysis_id`. If the Inspector analysis is updated after a Designer program is created, the program displays a "⚠ Source analysis updated" badge — because the foundation the program was built on has changed.
 
+### VocabularyPack — Language That Belongs to This Customer
+
+When Designer starts a new program, Intelligence generates a **VocabularyPack** for the customer. The pack blends approximately 60% Skillable's own domain vocabulary with approximately 40% of the company's specific product and domain language — pulled directly from the product names, categories, deployment models, and domain signals Intelligence has already collected.
+
+The VocabularyPack is used throughout Designer — not just for naming, but for personality. Its contents:
+
+- **Manufactured Words** — invented portmanteaus, gerunds, and suffixes that blend Skillable and product vocabulary. These are intentionally not real words. Examples: *Skillifying*, *Job-Readyifyin'*, *Fortification* (Fortinet + fortification — the double meaning is the point), *CohesiFication*, *TaniumOlogizing*, *The Configuratorinator*. These appear in program name suggestions and wherever Designer wants to inject personality.
+- **Program Name Seeds** — 4–6 program name concepts using the manufactured vocabulary and real product terms.
+- **Lab Series Labels** — 4–6 series naming patterns the program owner can adopt or adapt.
+- **Skill Level Labels** — Designer replaces generic Beginner/Intermediate/Advanced with invented alternatives derived from the pack. A typical default: *Pre-Skillified → Getting Skillified → Fully Skillified*. A security product might produce: *Threat-Curious → Actively Securifying → Fully Threat-Hardened*.
+- **Action Verb Palette** — strong domain-specific verbs for lab and activity titles. Drawn from what the product actually does: *Provision*, *Orchestrate*, *Segment*, *Enforce* — or invented: *Skillify*, *Fortinate*, *Cohesify*.
+- **Loading States** — the most visible expression of the VocabularyPack in the UI. Instead of "Thinking..." appearing while the AI works, Designer shows a randomly selected invented gerund from the pack. Each one has a recognizable root and an absurd *-ing* form: *Threatologizing...*, *Firewallificating...*, *Data-fabricating...*, *Masterificating...*, *Program-architecturifying...*. The root is the joke setup; the gerund is the punchline.
+
+The VocabularyPack is generated once at program creation and saved with the Designer program. It does not change between phases — the vocabulary is consistent throughout the design session. Program owners will notice that the language feels like their product, not like generic training scaffolding. That is the intent.
+
 ---
 
