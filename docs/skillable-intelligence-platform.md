@@ -7,9 +7,9 @@
 
 We recently agreed that Skillable is PaaS and not SaaS. Does this distinction simply change some positioning — or does it signal our opportunity to shatter a few glass ceilings? It's the latter.
 
-- **Marketing:** Identifying companies in our ICP
-- **Revenue:** Proving labability and lab impact
-- **ProServ & Product:** Enabling bought-in customers to adopt labs
+- Identifying companies in our ICP
+- Proving labability and lab impact
+- Enabling bought-in customers to adopt labs
 
 ### The PaaS Difference
 
@@ -21,7 +21,7 @@ This creates a fundamentally different go-to-market challenge. The buyer profile
 
 These questions cannot be answered with firmographic data. They require a different kind of analysis entirely. That is what Intelligence provides.
 
-### Marketing Challenge: Identifying Companies in Our ICP
+### Knowing Exactly Who's in Our ICP — Before We Spend a Dollar
 
 Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses — ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator — are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company's products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.
 
@@ -41,7 +41,7 @@ Workday was not a bad lead. It was motivated, capable people who invested signif
 
 The same logic runs in the other direction. When Fortinet is a strong fit, it is not because Fortinet resembles other good customers as a company. It is because Fortinet's products have specific technical characteristics — multi-VM topology, deep administrative workflows, strong API surface, real consequence of misconfiguration — that make them ideal for hands-on labs. Every company selling products with those same characteristics is a strong fit for the same reasons. The competitive map of a strong-fit customer is a pre-qualified prospect list.
 
-### Revenue Challenge: Proving Labability and Lab Impact
+### Proving Labability and Impact — with SE-Level Depth at Scale
 
 Proving that a Skillable lab program will work for a specific customer's products requires deep technical analysis. Which delivery path is right for this product — standard virtual machine, cloud environment slice, containerized workload, custom integration? What are the architectural constraints? What would a realistic program look like in terms of scope, seat time, and scoring approach? What is the estimated consumption potential?
 
@@ -49,7 +49,7 @@ This is exactly the kind of work a skilled Solutions Engineer does well. It requ
 
 The result is that qualification depth is rationed. It flows to deals already far enough along to justify the time. Early-stage prospects get a general conversation. The technical questions that would surface a Workday pattern early — before marketing dollars are spent, before SE time is committed — often go unasked until it is too late.
 
-### ProServ & Product Challenge: Enabling Bought-In Customers to Adopt Labs
+### Jump-Starting Customer Adoption — Accelerate the Shift to Expansion
 
 A signed contract is not an adopted customer. The gap between "we want to build labs" and "we have a running program" is wide, and most customers cannot cross it without structured guidance.
 

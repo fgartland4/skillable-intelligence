@@ -409,9 +409,9 @@ def write_why(doc):
 
     body(doc, "We recently agreed that Skillable is PaaS and not SaaS. Does this distinction simply change some positioning — or does it signal our opportunity to shatter a few glass ceilings? It's the latter.")
 
-    bullet_bold(doc, "Marketing: ", "Identifying companies in our ICP")
-    bullet_bold(doc, "Revenue: ", "Proving labability and lab impact")
-    bullet_bold(doc, "ProServ & Product: ", "Enabling bought-in customers to adopt labs", after=60)
+    bullet(doc, "Identifying companies in our ICP")
+    bullet(doc, "Proving labability and lab impact")
+    bullet(doc, "Enabling bought-in customers to adopt labs", after=60)
 
     h2(doc, "The Platform Difference")
     body(doc, "Most B2B software companies sell a product that runs in their cloud. Their buyers interact with it through a browser. The product is the same for every customer. Qualifying a prospect means finding buyers who fit the profile: the right size, the right industry, the right pain point, the right budget.")
@@ -419,7 +419,7 @@ def write_why(doc):
     body(doc, "This creates a fundamentally different go-to-market challenge. The buyer profile question — does this company value training? — is necessary but not sufficient. The deeper question is whether their products can be orchestrated into a Skillable environment at all. Whether those products are technically complex enough that hands-on practice creates real value. Whether the company can build and sustain a lab program once they are a customer.")
     body(doc, "These questions cannot be answered with firmographic data. They require a different kind of analysis entirely. That is what Intelligence provides.")
 
-    h2(doc, "Marketing Challenge: Identifying Companies in Our ICP")
+    h2(doc, "Knowing Exactly Who\u2019s in Our ICP \u2014 Before We Spend a Dollar")
     body(doc, "Platform companies cannot qualify prospects the way product companies do. The tools Marketing uses — ZoomInfo, 6sense, HubSpot, LinkedIn Sales Navigator — are built to identify buyers who match a profile. For Skillable, that is the wrong question. The right question is whether a company's products can be delivered as hands-on lab experiences. That is a technical assessment, not a firmographic one.")
     body(doc, "We evaluate every prospect across three dimensions:")
     bullet_bold(doc, "Can we deliver a lab for this company's products? ", "This is the primary filter. If the answer is no, nothing else matters — not the size of their training organization, not the depth of their content team, not their enthusiasm for hands-on learning. A company whose products cannot be orchestrated into a Skillable environment is not a prospect.")
@@ -432,12 +432,12 @@ def write_why(doc):
     body(doc, "That fact is findable in public documentation before a single sales conversation begins. Workday was not a bad lead. It was motivated, capable people who invested significant time before hitting a wall that was always there. The Workday pattern repeats whenever product-level technical fit is evaluated late — or not at all.")
     body(doc, "The same logic runs in the other direction. When Fortinet is a strong fit, it is not because Fortinet resembles other good customers as a company. It is because Fortinet's products have specific technical characteristics — multi-VM topology, deep administrative workflows, strong API surface, real consequence of misconfiguration — that make them ideal for hands-on labs. Every company selling products with those same characteristics is a strong fit for the same reasons. The competitive map of a strong-fit customer is a pre-qualified prospect list.")
 
-    h2(doc, "Revenue Challenge: Proving Labability and Lab Impact")
+    h2(doc, "Proving Labability and Impact \u2014 with SE-Level Depth at Scale")
     body(doc, "Proving that a Skillable lab program will work for a specific customer's products requires deep technical analysis. Which delivery path is right for this product — standard virtual machine, cloud environment slice, containerized workload, custom integration? What are the architectural constraints? What would a realistic program look like in terms of scope, seat time, and scoring approach? What is the estimated consumption potential?")
     body(doc, "This is exactly the kind of work a skilled Solutions Engineer does well. It requires knowing Skillable's platform deeply — delivery paths, technical constraints, feature availability, scoring feasibility — and applying that knowledge to a specific product's architecture and deployment model. That synthesis takes hours per company, in a live conversation, with access to documentation and a customer contact who can fill in the gaps.")
     body(doc, "The result is that qualification depth is rationed. It flows to deals already far enough along to justify the time. Early-stage prospects get a general conversation. The technical questions that would surface a Workday pattern early — before marketing dollars are spent, before SE time is committed — often go unasked until it is too late.")
 
-    h2(doc, "ProServ & Product Challenge: Enabling Bought-In Customers to Adopt Labs")
+    h2(doc, "Jump-Starting Customer Adoption \u2014 Accelerate the Shift to Expansion")
     body(doc, "A signed contract is not an adopted customer. The gap between 'we want to build labs' and 'we have a running program' is wide, and most customers cannot cross it without structured guidance.")
     body(doc, "Program design is a specialized skill. Most buyers — even technically sophisticated ones with strong content teams — have never designed a hands-on lab curriculum. They have built documentation, recorded videos, written certification exams. They have not mapped a product's administrative workflows to a sequence of learner activities, defined scoring logic for hands-on tasks, or produced a structured brief that a lab developer can build against without extensive back-and-forth.")
     body(doc, "Without a process that takes them from goals and audience to a complete, buildable program architecture, customers stall at the design phase. In a consumption model, a stalled customer is not just a missed upsell opportunity — it is a churn risk. A customer who has not built a program has not realized value. A customer who has not realized value does not renew.")
