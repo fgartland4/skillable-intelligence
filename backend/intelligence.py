@@ -535,53 +535,71 @@ def lookup(company_name: str) -> dict:
 # ---------------------------------------------------------------------------
 
 _SKILLABLE_SEEDS = [
-    "skill", "lab", "hands-on", "build", "configure", "deploy", "enable",
-    "certify", "practice", "validate", "master", "operate", "mission",
-    "challenge", "scenario", "prove", "live", "ready", "achieve", "real",
-    "job-ready", "proficiency", "craft", "forge", "ground", "arena", "quest",
+    "skill", "skillify", "skillifying", "job-ready", "job-readify", "lab",
+    "hands-on", "build", "configure", "deploy", "enable", "certify", "practice",
+    "validate", "master", "operate", "prove", "live", "ready", "achieve",
+    "craft", "forge", "quest", "arena", "mission", "challenge", "scenario",
 ]
 
-_VOCABULARY_PROMPT = """You are a creative naming consultant for Skillable, a hands-on lab platform.
-Your job is to generate a fun, memorable naming vocabulary for a training program.
+_VOCABULARY_PROMPT = """You are a playful word-manufacturing machine for Skillable, a hands-on lab platform.
 
-You will be given:
-1. The SKILLABLE vocabulary seeds — core platform/learning concepts
-2. The COMPANY vocabulary seeds — extracted from their products and domain
+Your job is to INVENT fake-but-fun words and phrases for a training program — blending
+Skillable's learning vocabulary with the company's own product and domain vocabulary.
 
-Your output must be a JSON object with these keys:
+Think: portmanteaus, made-up suffixes (-ifying, -ifyin', -ification, -inator, -ology,
+-abilify, -esque, -ify), mash-ups, compound words, deliberate misspellings for effect.
+These don't need to be real words. That's the point. They should make people smile.
+
+Examples of the energy we're going for:
+  "Skillifying" (skill + -ifying)
+  "Job-Readyifyin'" (job-ready + -ifyin')
+  "Fortification" (Fortinet + fortification — double meaning is gold)
+  "CohesiFication" (Cohesity + -fication)
+  "The Configuratorinator" (configure + -inator, à la Phineas and Ferb)
+  "LabAchievification" (lab + achieve + -fication)
+  "DeployDojo-inator"
+  "TaniumOlogist"
+
+You will receive:
+1. SKILLABLE vocabulary seeds — the ~60% Skillable side
+2. COMPANY vocabulary seeds — the ~40% company/product side
+
+Output a JSON object with these exact keys:
 
 {
+  "manufactured_words": [
+    // 6-10 completely made-up words or phrases
+    // These are the stars of the show — go wild
+    // Each is a string: the invented word or phrase
+  ],
   "program_name_seeds": [
-    // 4-6 short, punchy program name concepts (2-4 words each)
-    // Mix Skillable + company vocabulary; can be playful portmanteaus
-    // Examples: "FortiSkills Live", "ConfigQuest", "CohesityAcademy Forge"
+    // 4-6 fun program name concepts (2-4 words, can use manufactured words)
+    // Examples: "The Skillifying", "FortiSkills Forge", "CohesiFication Academy"
   ],
   "lab_series_labels": [
-    // 4-6 series naming patterns (noun + action/concept)
-    // Used to group related labs into a series
-    // Examples: "Deploy Series", "Admin Arena", "Config Challenge"
+    // 4-6 series naming patterns — fun but still usable as labels
+    // Examples: "Deploy-inator Series", "The Configurationals", "Admin Achievification"
   ],
   "skill_level_labels": {
-    "beginner": "...",       // Fun alternative to "Beginner" (e.g. "Explorer", "Recruit", "Initiate")
-    "intermediate": "...",   // e.g. "Practitioner", "Builder", "Operator"
-    "advanced": "..."        // e.g. "Expert", "Architect", "Master"
+    "beginner": "...",       // Invented alternative — NOT "Beginner". E.g. "Pre-Skillified", "Skill-Curious"
+    "intermediate": "...",   // E.g. "Mid-Skillification", "Getting Skillified"
+    "advanced": "..."        // E.g. "Fully Skillified", "Peak Achievification"
   },
   "action_verb_palette": [
-    // 6-8 strong action verbs for lab titles
-    // Company-specific where possible (e.g. "Configure", "Provision", "Orchestrate")
+    // 6-8 verbs — can be real verbs from the product domain or invented ones
+    // E.g. "Skillify", "Cohesify", "Out-Configure", "Fortinate"
   ],
   "domain_terms": [
-    // 5-8 extracted company/product domain terms that should appear in program names
-    // These are the 40% company-specific contribution
+    // 5-8 actual company/product terms (not invented) that should appear in the program
+    // These are the real vocabulary anchors that make it feel like their program
   ]
 }
 
 Rules:
-- Approximately 60% of the vocabulary should draw from Skillable seeds
-- Approximately 40% should draw from the company/product vocabulary
-- Keep it professional but allow warmth and energy — these are for learners
-- Avoid generic words like "training", "course", "module" (boring)
-- Portmanteaus and compound words are encouraged
+- The manufactured_words list is the most important output — make them memorable
+- ~60% Skillable seeds, ~40% company seeds in the blend
+- Lean into the silliness — this is intentional, not accidental
+- The domain_terms should be real, not invented — they're the straight man to the comedy
 - Return only the JSON object, no explanation"""
 
 
@@ -657,25 +675,37 @@ COMPANY vocabulary seeds (use ~40%):
 Generate the vocabulary pack for {company_name_actual}'s training program."""
 
     try:
-        result = _call_claude(_VOCABULARY_PROMPT, user_content, max_tokens=1200)
-        # Ensure required keys are present
+        result = _call_claude(_VOCABULARY_PROMPT, user_content, max_tokens=1400)
+        # Ensure all required keys are present
+        result.setdefault("manufactured_words", [])
         result.setdefault("program_name_seeds", [])
         result.setdefault("lab_series_labels", [])
-        result.setdefault("skill_level_labels", {"beginner": "Explorer", "intermediate": "Practitioner", "advanced": "Expert"})
+        result.setdefault("skill_level_labels", {
+            "beginner": "Pre-Skillified",
+            "intermediate": "Getting Skillified",
+            "advanced": "Fully Skillified",
+        })
         result.setdefault("action_verb_palette", [])
         result.setdefault("domain_terms", unique_company[:5])
         result["_company_name"] = company_name_actual
         result["_generated_at"] = _now_iso()
-        log.info("Intelligence.generate_vocabulary: generated for %s (%d program seeds)",
-                 company_name_actual, len(result["program_name_seeds"]))
+        log.info("Intelligence.generate_vocabulary: generated for %s (%d manufactured words)",
+                 company_name_actual, len(result["manufactured_words"]))
         return result
     except Exception as e:
         log.warning("Intelligence.generate_vocabulary failed for %s: %s", company_name, e)
         return {
-            "program_name_seeds": [f"{company_name_actual} Skills Lab", f"{company_name_actual} Live Lab"],
-            "lab_series_labels": ["Deploy Series", "Config Challenge", "Admin Arena"],
-            "skill_level_labels": {"beginner": "Explorer", "intermediate": "Practitioner", "advanced": "Expert"},
-            "action_verb_palette": ["Configure", "Deploy", "Validate", "Operate", "Build", "Prove"],
+            "manufactured_words": ["Skillifying", "Job-Readyifyin'", "Achievification",
+                                   "The Configuratorinator", "LabAchievification"],
+            "program_name_seeds": [f"{company_name_actual} Skillification",
+                                   f"The {company_name_actual} Achievificators"],
+            "lab_series_labels": ["Deploy-inator Series", "The Configurationals", "Admin Achievification"],
+            "skill_level_labels": {
+                "beginner": "Pre-Skillified",
+                "intermediate": "Getting Skillified",
+                "advanced": "Fully Skillified",
+            },
+            "action_verb_palette": ["Skillify", "Configure", "Deploy", "Validate", "Achieve", "Build"],
             "domain_terms": unique_company[:5],
             "_company_name": company_name_actual,
             "_generated_at": _now_iso(),
