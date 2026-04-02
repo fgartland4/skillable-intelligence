@@ -132,6 +132,18 @@
         .phase-pip.pending { background: transparent; }
         .phase-label { font-size: 0.72rem; color: #6b9e88; margin-left: 6px; }
 
+        /* Delete button — appears on row hover */
+        .col-delete { width: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .btn-delete {
+            background: none; border: none; cursor: pointer;
+            color: #3d6655; font-size: 15px; padding: 4px 6px;
+            border-radius: 5px; opacity: 0;
+            transition: opacity 0.12s, color 0.12s, background 0.12s;
+            line-height: 1;
+        }
+        .program-row-link:hover .btn-delete { opacity: 1; }
+        .btn-delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
         @media (max-width: 700px) {
             .col-company, .col-updated { display: none; }
             .col-phase { width: 160px; }
@@ -177,6 +189,7 @@
                 <th class="col-company">Company</th>
                 <th class="col-phase">Phase Progress</th>
                 <th class="col-updated">Last Updated</th>
+                <th class="col-delete"></th>
             </tr>
         </thead>
         <tbody>
@@ -208,6 +221,9 @@
                                 {% endif %}
                             </span>
                         </div>
+                        <div class="col-delete">
+                            <button class="btn-delete" data-id="{{ p.program_id }}" title="Delete program">&#128465;</button>
+                        </div>
                     </a>
                 </td>
             </tr>
@@ -222,6 +238,32 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', async e => {
+        e.preventDefault();
+        e.stopPropagation(); // don't navigate into the program
+        const id = btn.dataset.id;
+        const name = btn.closest('.program-row-link')?.querySelector('.program-name')?.textContent || 'this program';
+        if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`/designer/${id}/delete`, { method: 'POST' });
+            if (res.ok) {
+                btn.closest('tr').remove();
+                // Update count
+                const countEl = document.querySelector('.programs-count');
+                if (countEl) {
+                    const n = document.querySelectorAll('.programs-table tbody tr').length;
+                    countEl.textContent = n + ' program' + (n !== 1 ? 's' : '');
+                }
+            }
+        } catch (err) {
+            alert('Could not delete program — please try again.');
+        }
+    });
+});
+</script>
 
 </body>
 </html>

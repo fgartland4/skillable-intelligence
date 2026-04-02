@@ -13,6 +13,7 @@ from storage import (
     list_designer_programs,
     load_designer_program,
     save_designer_program,
+    delete_designer_program,
 )
 from intelligence import generate_vocabulary, _BASE_LOADING_STATES
 
@@ -185,6 +186,14 @@ def designer_app(program_id: str):
     if program is None:
         return redirect(url_for("designer.designer_home"))
     return render_template("designer.html", program=program, program_json=json.dumps(program))
+
+
+@designer.route("/<program_id>/delete", methods=["POST"])
+def delete_program(program_id: str):
+    deleted = delete_designer_program(program_id)
+    if not deleted:
+        return jsonify({"error": "Program not found"}), 404
+    return jsonify({"ok": True})
 
 
 @designer.route("/<program_id>/save", methods=["POST"])

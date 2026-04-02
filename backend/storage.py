@@ -282,6 +282,15 @@ def save_designer_program(program_id: str, data: dict) -> str:
     return program_id
 
 
+def delete_designer_program(program_id: str) -> bool:
+    """Delete a designer program by ID. Returns True if deleted, False if not found."""
+    filepath = os.path.join(DESIGNER_DIR, f"{program_id}.json")
+    if not os.path.exists(filepath):
+        return False
+    os.remove(filepath)
+    return True
+
+
 def load_designer_program(program_id: str) -> dict | None:
     """Load designer program by ID. Returns None if not found."""
     filepath = os.path.join(DESIGNER_DIR, f"{program_id}.json")
