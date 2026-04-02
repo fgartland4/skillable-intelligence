@@ -3847,11 +3847,11 @@ function maybeGreet() {
         const analysisId = state.analysis_id;
         let welcomeHtml;
         if (analysisId && company) {
-            welcomeHtml = `<p>I've loaded your ${escHtml(company)} analysis from Inspector. Let's build on that — what are we making?</p>`;
+            welcomeHtml = `<p>I've loaded your ${escHtml(company)} analysis from Inspector. Let's build on that — tell me about the program you have in mind.</p>`;
         } else if (company) {
-            welcomeHtml = `<p>Working on a program for ${escHtml(company)}. What are we building?</p>`;
+            welcomeHtml = `<p>Tell me about the program you're building for ${escHtml(company)}.</p><p>If you have any documents — like learning objectives, job task analyses, job descriptions, or even a task list — click the <strong>+</strong> below to upload them and we'll get started.</p>`;
         } else {
-            welcomeHtml = `<p>What are we building?</p>`;
+            welcomeHtml = `<p>Tell me about the program you're building.</p><p>If you have any documents — like learning objectives, job task analyses, job descriptions, or even a task list — click the <strong>+</strong> below to upload them and we'll get started.</p>`;
         }
         addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
     }
