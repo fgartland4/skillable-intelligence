@@ -917,7 +917,6 @@
             color: var(--color-primary-dark);
             font-weight: 600;
         }
-        .prefs-nav-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
         .prefs-nav-footer {
             padding: 12px 16px 16px;
             border-top: 1px solid var(--color-border-light);
@@ -1353,18 +1352,10 @@ const INITIAL_DATA = {{ program_json | safe }};
                     <span class="prefs-nav-title">Preferences</span>
                 </div>
                 <ul class="prefs-nav-list">
-                    <li class="prefs-nav-item active" data-group="ai-connection">
-                        <span class="prefs-nav-icon">🔌</span> AI Connection
-                    </li>
-                    <li class="prefs-nav-item" data-group="org-identity">
-                        <span class="prefs-nav-icon">🏢</span> Organization Identity
-                    </li>
-                    <li class="prefs-nav-item" data-group="learning-standards">
-                        <span class="prefs-nav-icon">📐</span> Learning Design Standards
-                    </li>
-                    <li class="prefs-nav-item" data-group="scenario-defaults">
-                        <span class="prefs-nav-icon">⚙️</span> Scenario &amp; Lab Type Defaults
-                    </li>
+                    <li class="prefs-nav-item active" data-group="ai-connection">AI Connection</li>
+                    <li class="prefs-nav-item" data-group="org-identity">Organization Identity</li>
+                    <li class="prefs-nav-item" data-group="learning-standards">Learning Design Standards</li>
+                    <li class="prefs-nav-item" data-group="scenario-defaults">Scenario &amp; Lab Type Defaults</li>
                 </ul>
                 <div class="prefs-nav-footer">
                     <button class="btn-prefs-done" id="btn-prefs-done">Done</button>
@@ -1459,10 +1450,17 @@ const INITIAL_DATA = {{ program_json | safe }};
                     <div class="prefs-panel-title">Learning Design Standards</div>
                     <div class="prefs-panel-desc">These settings guide Neo's instructional design choices across all programs in your organization.</div>
 
-                    <div class="prefs-field">
-                        <label class="prefs-label">Lab Title Standard Pattern</label>
-                        <input type="text" class="prefs-input" id="pref-lab-title-pattern" placeholder='e.g. Lab {n}: {verb} {topic}'>
-                        <div class="prefs-field-hint">{n} = lab number, {verb} = action verb, {topic} = AI-generated topic name</div>
+                    <div class="prefs-input-row">
+                        <div class="prefs-field">
+                            <label class="prefs-label">Lab Number Format</label>
+                            <input type="text" class="prefs-input" id="pref-lab-number-format" placeholder='e.g. Lab {n}'>
+                            <div class="prefs-field-hint">{n} = lab number</div>
+                        </div>
+                        <div class="prefs-field">
+                            <label class="prefs-label">Lab Title Pattern</label>
+                            <input type="text" class="prefs-input" id="pref-lab-title-pattern" placeholder='e.g. {gerund} {topic}'>
+                            <div class="prefs-field-hint">{gerund} = -ing action verb &nbsp;·&nbsp; {topic} = AI-generated topic</div>
+                        </div>
                     </div>
                     <hr class="prefs-divider">
                     <div class="prefs-input-row">
@@ -2615,6 +2613,9 @@ function loadPrefsToUI() {
     }
 
     // Group 3: Learning Design Standards
+    const labNumberEl = document.getElementById('pref-lab-number-format');
+    if (labNumberEl) labNumberEl.value = p.lab_number_format || '';
+
     const labPatternEl = document.getElementById('pref-lab-title-pattern');
     if (labPatternEl) labPatternEl.value = p.lab_title_pattern || '';
 
@@ -2694,6 +2695,7 @@ function savePrefsFromUI() {
     p.ai_processing_messages_enabled = document.getElementById('pref-ai-processing-messages')?.classList.contains('on') !== false;
 
     // Group 3
+    p.lab_number_format      = document.getElementById('pref-lab-number-format')?.value || '';
     p.lab_title_pattern      = document.getElementById('pref-lab-title-pattern')?.value || '';
     p.style_guide_primary    = document.getElementById('pref-style-guide-primary')?.value || '';
     p.style_guide_secondary  = document.getElementById('pref-style-guide-secondary')?.value || '';
