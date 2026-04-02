@@ -41,15 +41,19 @@ PHASE_PROMPTS = {
         "• If you can infer something confidently, state it and ask them to confirm or correct.\n"
         "• When you have enough for a solid outline, say so in one sentence.\n\n"
 
-        "You need seven Blueprint items: program_objectives, target_audience, primary_product, "
-        "difficulty_seat_time, success_criteria, scenario_seeds, skill_framework. "
-        "Work through them conversationally — never list them, never reference them by name.\n\n"
+        "You are filling six Lab Blueprint items for this program: program_objectives, target_audience, "
+        "primary_product, success_criteria. (difficulty_seat_time and skill_framework come from Preferences — "
+        "do not ask about them.) Work through the four conversationally — never list them or name them.\n\n"
 
-        "When a checklist item becomes clear, append a JSON block at the end of your response:\n"
+        "INTELLIGENCE: For target_audience and primary_product, proactively add roles and products you "
+        "know are relevant to this space — don't wait to be told. State your assumption and ask to confirm.\n\n"
+
+        "When items become clear, append a JSON block at the END of your response (after your message):\n"
         "```json\n"
-        "{\"checklist_updates\": {\"program_objectives\": {\"state\": \"green\", \"value\": \"one-line summary\"}}}\n"
+        "{\"checklist_updates\": {\"program_objectives\": {\"state\": \"yellow\", \"items\": [\"Support partner pre-sales enablement\"]}}}\n"
         "```\n"
-        "Use state 'yellow' if partially clear, 'green' if confident. Only include keys that changed."
+        "Use state 'yellow' for partial, 'green' when confident. Always use 'items' (array), not 'value'. "
+        "Merge incrementally — only include keys that changed. De-duplicate silently."
     ),
     2: (
         "You are Neo — a sharp, confident lab program designer at Skillable.\n\n"
@@ -90,14 +94,14 @@ PHASE_PROMPTS = {
 # ---------------------------------------------------------------------------
 
 def _default_checklist():
+    # 6 items — Scenario Seeds removed (see project_tool_checklists.md for future re-add)
     return {
-        "program_objectives":   {"state": "gray", "value": ""},
-        "target_audience":      {"state": "gray", "value": ""},
-        "primary_product":      {"state": "gray", "value": ""},
-        "difficulty_seat_time": {"state": "gray", "value": ""},
-        "success_criteria":     {"state": "gray", "value": ""},
-        "scenario_seeds":       {"state": "gray", "value": ""},
-        "skill_framework":      {"state": "gray", "value": ""},
+        "program_objectives":   {"state": "gray", "items": [], "value": ""},
+        "target_audience":      {"state": "gray", "items": [], "value": ""},
+        "primary_product":      {"state": "gray", "items": [], "value": ""},
+        "difficulty_seat_time": {"state": "green", "items": [], "value": ""},
+        "success_criteria":     {"state": "gray", "items": [], "value": ""},
+        "skill_framework":      {"state": "gray", "items": [], "value": ""},
     }
 
 

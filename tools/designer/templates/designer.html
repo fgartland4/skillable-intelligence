@@ -526,90 +526,190 @@
         #file-input { display: none; }
 
         /* ================================================================
-           PHASE 1 RIGHT PANE — Blueprint Checklist (light mode)
+           PHASE 1 RIGHT PANE — Lab Blueprint (light mode)
         ================================================================ */
         .checklist-area {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 16px;
+            padding: 4px 0;
             background: var(--color-surface);
         }
-        /* Hairline separators between items, no card borders */
+        /* Hairline separator between items */
         .checklist-item {
             display: flex;
             flex-direction: column;
             border-bottom: 1px solid var(--color-border-light);
-            overflow: hidden;
-            transition: border-color 0.2s;
         }
         .checklist-item:last-child { border-bottom: none; }
+        /* Header row — not clickable, just label + dot */
         .checklist-item-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 4px;
-            cursor: pointer;
-            background: var(--color-surface);
-            transition: background 0.12s;
+            gap: 8px;
+            padding: 11px 16px 4px;
         }
-        .checklist-item-header:hover { background: var(--color-bg); }
-        /* Hollow circle — unfilled by default, fills on progress */
+        /* Status dot */
         .checklist-dot {
-            width: 10px; height: 10px;
+            width: 8px; height: 8px;
             border-radius: 50%;
-            border: 2px solid var(--color-border);
+            border: 1.5px solid var(--color-border);
             background: transparent;
             flex-shrink: 0;
             transition: all 0.2s;
         }
-        .checklist-dot.yellow {
-            border-color: var(--color-warning);
-            background: var(--color-warning);
-        }
-        .checklist-dot.green {
-            border-color: var(--color-primary);
-            background: var(--color-primary);
-        }
+        .checklist-dot.yellow { border-color: var(--color-warning); background: var(--color-warning); }
+        .checklist-dot.green  { border-color: var(--color-primary); background: var(--color-primary); }
         .checklist-item-name {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--color-text);
-            flex: 1;
+            letter-spacing: 0.01em;
         }
-        .checklist-item-value {
-            font-size: 12px;
-            color: var(--color-text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
-        }
-        .checklist-item-value.has-value { color: var(--color-text-light); }
-        .checklist-chevron {
-            font-size: 11px;
-            color: var(--color-text-muted);
-            transition: transform 0.15s;
-        }
-        .checklist-item.expanded .checklist-chevron { transform: rotate(90deg); }
+        /* Body — always visible */
         .checklist-item-body {
-            display: none;
-            padding: 8px 4px 14px 24px;
-            background: var(--color-bg);
+            padding: 2px 16px 12px 32px;
         }
-        .checklist-item.expanded .checklist-item-body { display: block; }
-        .checklist-item-desc {
+        /* Empty hint text */
+        .blueprint-empty-hint {
+            font-size: 11.5px;
+            color: var(--color-text-muted);
+            font-style: italic;
+            line-height: 1.55;
+            padding-top: 2px;
+        }
+        /* Bullet list */
+        .blueprint-bullets { list-style: none; margin: 0; padding: 0; }
+        .blueprint-bullet {
+            display: flex;
+            align-items: flex-start;
+            gap: 5px;
+            padding: 2px 0;
+        }
+        .blueprint-bullet-dot {
+            color: var(--color-primary);
             font-size: 12px;
-            color: var(--color-text-light);
+            flex-shrink: 0;
+            margin-top: 1px;
             line-height: 1.5;
-            margin-bottom: 8px;
+            user-select: none;
         }
-        .checklist-item-captured {
-            font-size: 13px;
+        .blueprint-bullet-text {
+            font-size: 12px;
             color: var(--color-text);
             line-height: 1.5;
-            white-space: pre-wrap;
+            flex: 1;
+            outline: none;
+            border-radius: 3px;
+            padding: 0 3px;
+            cursor: text;
+            word-break: break-word;
         }
-        .checklist-item-captured.empty { color: var(--color-text-muted); font-style: italic; }
+        .blueprint-bullet-text:focus {
+            background: var(--color-bg);
+            box-shadow: 0 0 0 1px var(--color-border);
+        }
+        .blueprint-bullet-delete {
+            background: none; border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            font-size: 10px;
+            padding: 2px 3px;
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.12s, color 0.12s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .blueprint-bullet:hover .blueprint-bullet-delete { opacity: 1; }
+        .blueprint-bullet-delete:hover { color: var(--color-danger); }
+        /* "+ Add" link below bullets */
+        .blueprint-add-btn {
+            background: none; border: none;
+            font-size: 11px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            padding: 3px 0 0 0;
+            margin-top: 2px;
+            display: block;
+            transition: color var(--transition);
+        }
+        .blueprint-add-btn:hover { color: var(--color-primary); }
+        /* Difficulty & Duration selects */
+        .blueprint-prefs-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        .blueprint-prefs-row label {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            width: 58px;
+            flex-shrink: 0;
+        }
+        .blueprint-select {
+            flex: 1;
+            font-size: 12px;
+            padding: 4px 6px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-surface);
+            color: var(--color-text);
+            outline: none;
+            cursor: pointer;
+        }
+        .blueprint-select:focus { border-color: var(--color-primary); }
+        /* Skill framework / style guide tags */
+        .blueprint-fw-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: 6px 0 3px;
+        }
+        .blueprint-fw-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 2px;
+        }
+        .blueprint-fw-tag {
+            font-size: 11px;
+            background: rgba(36,237,152,0.1);
+            color: var(--color-primary-dark);
+            border-radius: var(--radius-sm);
+            padding: 2px 7px;
+            font-weight: 500;
+        }
+        .blueprint-fw-tag.secondary {
+            background: var(--color-bg);
+            color: var(--color-text-light);
+            border: 1px solid var(--color-border);
+            font-weight: 400;
+        }
+        .blueprint-prefs-link {
+            display: inline-block;
+            font-size: 11px;
+            color: var(--color-primary-dark);
+            cursor: pointer;
+            margin-top: 6px;
+            background: none; border: none;
+            padding: 0;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .blueprint-prefs-link:hover { color: var(--color-primary); }
+        /* Upload dropzone inside blueprint — compact version */
+        .blueprint-dropzone-wrap { margin-top: 8px; }
+        .blueprint-dropzone-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
 
         /* Generate Outline button */
         .generate-outline-wrap {
@@ -1809,6 +1909,17 @@ const INITIAL_DATA = {{ program_json | safe }};
 
                     <div class="prefs-input-row">
                         <div class="prefs-field">
+                            <label class="prefs-label">Default Difficulty</label>
+                            <select class="prefs-select" id="pref-difficulty">
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate" selected>Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                                <option value="Expert">Expert</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="prefs-input-row">
+                        <div class="prefs-field">
                             <label class="prefs-label">Estimated Lab Duration</label>
                             <select class="prefs-select" id="pref-seat-time">
                                 <option value="30-45">30–45 mins</option>
@@ -1903,22 +2014,26 @@ const FRAMEWORKS = {
     'Cross-Domain': ['LinkedIn Skill Framework'],
 };
 
-// Checklist definitions
+// Checklist definitions — 6 items (Scenario Seeds removed; see project_tool_checklists.md)
 const CHECKLIST_DEFS = [
-    { key: 'program_objectives',  label: 'Program Objectives',
-      desc: 'What business outcome does this program support, and what will learners be able to do when they complete it?' },
-    { key: 'target_audience',     label: 'Target Audience',
-      desc: 'Who are the learners? Role, experience level, technical background.' },
-    { key: 'primary_product',     label: 'Primary Product(s) & Topic(s)',
-      desc: 'What software, platform, or subject is this program about? List products and key topic areas.' },
-    { key: 'difficulty_seat_time', label: 'Difficulty & Duration',
-      desc: 'Difficulty level (Beginner / Intermediate / Advanced) and target seat time per lab. Defaults pulled from Preferences — override here if needed.' },
-    { key: 'success_criteria',    label: 'Success Criteria',
-      desc: 'How will you know this program worked? Completion rate, cert pass rate, demonstrated job performance?' },
-    { key: 'scenario_seeds',      label: 'Scenario Seeds',
-      desc: 'Real-world situations these labs should simulate. What does the learner actually do on the job?' },
-    { key: 'skill_framework',     label: 'Skill Framework & Competency Mapping',
-      desc: 'Which framework(s) to map to (e.g., NICE NCWF, ITIL 4, Azure AZ-104). Competency-level activity mapping will be applied in Phase 2.' },
+    { key: 'program_objectives',
+      label: 'Program Objectives',
+      emptyHint: "As you tell me about the program or import documents, we'll refine the objectives." },
+    { key: 'target_audience',
+      label: 'Target Audience',
+      emptyHint: "As you tell me about the program or import documents, we'll clarify the target audiences (e.g., roles, personas)." },
+    { key: 'primary_product',
+      label: 'Primary Product(s) & Topic(s)',
+      emptyHint: "As you tell me about the program or import documents, we'll refine the products and topic list to help us generate the right labs." },
+    { key: 'difficulty_seat_time',
+      label: 'Difficulty & Duration',
+      special: 'prefs' },
+    { key: 'success_criteria',
+      label: 'Success Criteria',
+      emptyHint: "As you tell me about the program or import documents, we'll refine the success criteria. This can be done later if you're not sure." },
+    { key: 'skill_framework',
+      label: 'Skill Framework(s) & Style Guides',
+      special: 'frameworks' },
 ];
 
 // ============================================================
@@ -2076,60 +2191,313 @@ nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventD
 // ============================================================
 // CHECKLIST
 // ============================================================
+// ── Blueprint bullet helpers ──────────────────────────────────────────────────
+
+function getBlueprintItems(key) {
+    const item = (state.checklist || {})[key] || {};
+    if (Array.isArray(item.items)) return item.items;
+    if (item.value && item.value.trim()) return [item.value.trim()];
+    return [];
+}
+
+function setBlueprintItems(key, items) {
+    state.checklist = state.checklist || {};
+    const dotState = items.length >= 2 ? 'green' : (items.length === 1 ? 'yellow' : 'gray');
+    state.checklist[key] = { state: dotState, items: [...items], value: items[0] || '' };
+    renderChecklist();
+    scheduleSave();
+}
+
+function deleteBlueprintBullet(key, idx) {
+    setBlueprintItems(key, getBlueprintItems(key).filter((_, i) => i !== idx));
+}
+
+function editBlueprintBullet(key, idx, newText) {
+    const items = [...getBlueprintItems(key)];
+    items[idx] = newText;
+    setBlueprintItems(key, items);
+}
+
+function addBlueprintBullet(key, text) {
+    if (!text.trim()) return;
+    const items = getBlueprintItems(key);
+    if (!items.some(i => i.toLowerCase() === text.toLowerCase())) {
+        setBlueprintItems(key, [...items, text.trim()]);
+    }
+}
+
+// ── Blueprint custom framework/style-guide (per-program overrides) ────────────
+
+function getBlueprintFwCustom() {
+    return (state.checklist || {}).skill_framework_custom || {};
+}
+
+function setBlueprintFwCustom(patch) {
+    state.checklist = state.checklist || {};
+    state.checklist.skill_framework_custom = { ...getBlueprintFwCustom(), ...patch };
+    scheduleSave();
+}
+
+// ── renderChecklist ───────────────────────────────────────────────────────────
+
 function renderChecklist() {
     const area = document.getElementById('checklist-area');
-    const cl = state.checklist || {};
-    let greenCount = 0;
+    const cl   = state.checklist || {};
+    const p    = state.preferences || {};
     area.innerHTML = '';
+    let filledCount = 0;
 
     CHECKLIST_DEFS.forEach(def => {
-        const item = cl[def.key] || { state: 'gray', value: '' };
-        if (def.key === 'difficulty_seat_time' && (!item.value || !item.value.trim())) {
-            const prefs = state.preferences || {};
-            const diff = prefs.default_difficulty || 'Intermediate';
-            const seat = prefs.default_seat_time || 60;
-            item.value = `${diff}, ${seat} min`;
-            item.state = 'yellow';
-        }
-        if (item.state === 'green') greenCount++;
-
         const div = document.createElement('div');
-        div.className = 'checklist-item' + (item.state !== 'gray' ? ' state-' + item.state : '');
+        div.className = 'checklist-item';
         div.dataset.key = def.key;
 
-        const hasValue = item.value && item.value.trim();
-        div.innerHTML = `
-            <div class="checklist-item-header">
-                <div class="checklist-dot ${item.state === 'gray' ? '' : item.state}"></div>
-                <span class="checklist-item-name">${def.label}</span>
-                <span class="checklist-item-value ${hasValue ? 'has-value' : ''}">${hasValue ? escHtml(item.value.slice(0, 30)) : 'Not defined'}</span>
-                <span class="checklist-chevron">&#9654;</span>
-            </div>
-            <div class="checklist-item-body">
-                <div class="checklist-item-desc">${def.desc}</div>
-                <div class="checklist-item-captured ${hasValue ? '' : 'empty'}">${hasValue ? escHtml(item.value) : 'Nothing captured yet.'}</div>
-            </div>`;
+        // ── Difficulty & Duration (prefs-linked) ──────────────────────────────
+        if (def.special === 'prefs') {
+            const diff = p.default_difficulty || 'Intermediate';
+            const seat = p.default_seat_time  || '45-60';
+            filledCount++; // always filled from prefs
 
-        div.querySelector('.checklist-item-header').addEventListener('click', () => {
-            div.classList.toggle('expanded');
-        });
+            div.innerHTML = `
+                <div class="checklist-item-header">
+                    <div class="checklist-dot green"></div>
+                    <span class="checklist-item-name">${def.label}</span>
+                </div>
+                <div class="checklist-item-body">
+                    <div class="blueprint-prefs-row">
+                        <label>Difficulty</label>
+                        <select class="blueprint-select" id="bp-difficulty">
+                            <option value="Beginner"     ${diff==='Beginner'    ?'selected':''}>Beginner</option>
+                            <option value="Intermediate" ${diff==='Intermediate'?'selected':''}>Intermediate</option>
+                            <option value="Advanced"     ${diff==='Advanced'    ?'selected':''}>Advanced</option>
+                            <option value="Expert"       ${diff==='Expert'      ?'selected':''}>Expert</option>
+                        </select>
+                    </div>
+                    <div class="blueprint-prefs-row">
+                        <label>Duration</label>
+                        <select class="blueprint-select" id="bp-seat-time">
+                            <option value="30-45"  ${seat==='30-45' ?'selected':''}>30–45 mins</option>
+                            <option value="45-60"  ${seat==='45-60' ?'selected':''}>45–60 mins</option>
+                            <option value="60-120" ${seat==='60-120'?'selected':''}>60–120 mins</option>
+                            <option value="120+"   ${seat==='120+'  ?'selected':''}>120 mins +</option>
+                        </select>
+                    </div>
+                </div>`;
+
+            div.querySelector('#bp-difficulty').addEventListener('change', e => {
+                state.preferences = state.preferences || {};
+                state.preferences.default_difficulty = e.target.value;
+                const el = document.getElementById('pref-difficulty');
+                if (el) el.value = e.target.value;
+                scheduleSave();
+            });
+            div.querySelector('#bp-seat-time').addEventListener('change', e => {
+                state.preferences = state.preferences || {};
+                state.preferences.default_seat_time = e.target.value;
+                const el = document.getElementById('pref-seat-time');
+                if (el) el.value = e.target.value;
+                scheduleSave();
+            });
+
+        // ── Skill Framework(s) & Style Guides (prefs display + upload) ────────
+        } else if (def.special === 'frameworks') {
+            const primaryFw   = p.primary_framework || '';
+            const addlFws     = (p.skill_frameworks || []).filter(f => f !== '__custom_framework__');
+            const styleGuides = (p.style_guides     || []).filter(g => g !== '__custom__');
+            const fwCustom    = getBlueprintFwCustom();
+            const hasPrefs    = (primaryFw && primaryFw !== '__custom_framework__') || addlFws.length || styleGuides.length;
+            if (hasPrefs || fwCustom.framework_name || fwCustom.style_name) filledCount++;
+
+            const primaryTag  = (primaryFw && primaryFw !== '__custom_framework__')
+                ? `<span class="blueprint-fw-tag">${escHtml(primaryFw)}</span>` : '';
+            const addlTags    = addlFws.map(f => `<span class="blueprint-fw-tag secondary">${escHtml(f)}</span>`).join('');
+            const sgTags      = styleGuides.map(g => `<span class="blueprint-fw-tag secondary">${escHtml(g)}</span>`).join('');
+
+            const fwSection = (primaryTag || addlTags) ? `
+                <div class="blueprint-fw-section-label">Skill Frameworks</div>
+                <div class="blueprint-fw-tags">${primaryTag}${addlTags}</div>` : '';
+            const sgSection = sgTags ? `
+                <div class="blueprint-fw-section-label">Style Guides</div>
+                <div class="blueprint-fw-tags">${sgTags}</div>` : '';
+            const emptyHint = (!hasPrefs) ? `<div class="blueprint-empty-hint">Select frameworks and style guides in Preferences — they apply to every lab in this program.</div>` : '';
+
+            const customFwName  = fwCustom.framework_name  || '';
+            const customSgName  = fwCustom.style_name || '';
+
+            div.innerHTML = `
+                <div class="checklist-item-header">
+                    <div class="checklist-dot ${hasPrefs ? 'green' : ''}"></div>
+                    <span class="checklist-item-name">${def.label}</span>
+                </div>
+                <div class="checklist-item-body">
+                    ${emptyHint}${fwSection}${sgSection}
+                    <button class="blueprint-prefs-link" id="bp-open-fw-prefs">Edit in Preferences →</button>
+                    <div class="blueprint-dropzone-wrap">
+                        <div class="blueprint-dropzone-label">Custom Framework (this program)</div>
+                        <div class="upload-dropzone ${customFwName ? 'has-file' : ''}" id="bp-fw-dropzone" style="min-height:52px;">
+                            <div class="upload-dropzone-prompt">
+                                <span class="upload-dropzone-icon">↑</span>
+                                <span class="upload-dropzone-label">Click or drag</span>
+                                <span class="upload-dropzone-hint">.txt &nbsp;·&nbsp; .md &nbsp;·&nbsp; .csv &nbsp;·&nbsp; .json</span>
+                            </div>
+                            <div class="upload-dropzone-file">
+                                <span class="upload-file-name" id="bp-fw-file-name">${escHtml(customFwName)}</span>
+                                <button class="upload-file-clear" id="bp-fw-clear" type="button">✕</button>
+                            </div>
+                            <input type="file" id="bp-fw-file-input" accept=".txt,.md,.csv,.json">
+                        </div>
+                    </div>
+                    <div class="blueprint-dropzone-wrap">
+                        <div class="blueprint-dropzone-label">Custom Style Guide (this program)</div>
+                        <div class="upload-dropzone ${customSgName ? 'has-file' : ''}" id="bp-sg-dropzone" style="min-height:52px;">
+                            <div class="upload-dropzone-prompt">
+                                <span class="upload-dropzone-icon">↑</span>
+                                <span class="upload-dropzone-label">Click or drag</span>
+                                <span class="upload-dropzone-hint">.txt &nbsp;·&nbsp; .md &nbsp;·&nbsp; .pdf</span>
+                            </div>
+                            <div class="upload-dropzone-file">
+                                <span class="upload-file-name" id="bp-sg-file-name">${escHtml(customSgName)}</span>
+                                <button class="upload-file-clear" id="bp-sg-clear" type="button">✕</button>
+                            </div>
+                            <input type="file" id="bp-sg-file-input" accept=".txt,.md,.pdf,.docx">
+                        </div>
+                    </div>
+                </div>`;
+
+            // Open prefs → frameworks group
+            div.querySelector('#bp-open-fw-prefs').addEventListener('click', () => {
+                openPrefs();
+                setTimeout(() => document.querySelector('.prefs-nav-item[data-group="skill-frameworks"]')?.click(), 60);
+            });
+
+            // Custom framework upload
+            setupBlueprintDropzone(div, {
+                dropzoneId: 'bp-fw-dropzone', fileInputId: 'bp-fw-file-input',
+                fileNameId: 'bp-fw-file-name', clearId: 'bp-fw-clear',
+                prefKey: 'framework_content', nameKey: 'framework_name',
+            });
+
+            // Custom style guide upload
+            setupBlueprintDropzone(div, {
+                dropzoneId: 'bp-sg-dropzone', fileInputId: 'bp-sg-file-input',
+                fileNameId: 'bp-sg-file-name', clearId: 'bp-sg-clear',
+                prefKey: 'style_content', nameKey: 'style_name',
+            });
+
+        // ── Standard bullet item ──────────────────────────────────────────────
+        } else {
+            const items    = getBlueprintItems(def.key);
+            const dotClass = items.length >= 2 ? 'green' : (items.length === 1 ? 'yellow' : '');
+            if (items.length >= 1) filledCount++;
+
+            const bulletsHtml = items.map((txt, idx) => `
+                <li class="blueprint-bullet" data-idx="${idx}">
+                    <span class="blueprint-bullet-dot">•</span>
+                    <span class="blueprint-bullet-text" contenteditable="true"
+                          data-key="${def.key}" data-idx="${idx}">${escHtml(txt)}</span>
+                    <button class="blueprint-bullet-delete"
+                            data-key="${def.key}" data-idx="${idx}" title="Remove">✕</button>
+                </li>`).join('');
+
+            div.innerHTML = `
+                <div class="checklist-item-header">
+                    <div class="checklist-dot ${dotClass}"></div>
+                    <span class="checklist-item-name">${def.label}</span>
+                </div>
+                <div class="checklist-item-body">
+                    ${items.length === 0
+                        ? `<div class="blueprint-empty-hint">${def.emptyHint}</div>`
+                        : `<ul class="blueprint-bullets">${bulletsHtml}</ul>`
+                    }
+                    <button class="blueprint-add-btn" data-key="${def.key}">+ Add</button>
+                </div>`;
+
+            // Contenteditable: save on blur / Enter, cancel on Escape
+            div.querySelectorAll('.blueprint-bullet-text').forEach(el => {
+                el.addEventListener('blur', () => {
+                    const newText = el.textContent.trim();
+                    const key = el.dataset.key;
+                    const idx = parseInt(el.dataset.idx);
+                    if (!newText) deleteBlueprintBullet(key, idx);
+                    else editBlueprintBullet(key, idx, newText);
+                });
+                el.addEventListener('keydown', e => {
+                    if (e.key === 'Enter')  { e.preventDefault(); el.blur(); }
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        el.textContent = getBlueprintItems(el.dataset.key)[parseInt(el.dataset.idx)] || '';
+                        el.blur();
+                    }
+                });
+            });
+
+            // Delete buttons
+            div.querySelectorAll('.blueprint-bullet-delete').forEach(btn => {
+                btn.addEventListener('click', () =>
+                    deleteBlueprintBullet(btn.dataset.key, parseInt(btn.dataset.idx)));
+            });
+
+            // "+ Add" button — appends a blank editable bullet
+            div.querySelector('.blueprint-add-btn').addEventListener('click', () => {
+                const key = def.key;
+                const items = getBlueprintItems(key);
+                setBlueprintItems(key, [...items, '']);
+                // Focus the new item after re-render
+                setTimeout(() => {
+                    const spans = document.querySelectorAll(`.blueprint-bullet-text[data-key="${key}"]`);
+                    const last  = spans[spans.length - 1];
+                    if (last) { last.focus(); const r = document.createRange(); r.selectNodeContents(last); r.collapse(false); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); }
+                }, 30);
+            });
+        }
+
         area.appendChild(div);
     });
 
-    // Update label
-    document.getElementById('checklist-progress-label').textContent = greenCount + ' / 7';
+    // Progress label (Difficulty & framework are auto, count the 4 AI-driven bullet items + those 2 = 6 total)
+    const total = CHECKLIST_DEFS.length;
+    document.getElementById('checklist-progress-label').textContent = `${filledCount} / ${total}`;
 
-    // Show/hide generate outline button
+    // Show Generate Outline button when at least 3 of the 4 bullet items have content
+    const bulletFilled = ['program_objectives','target_audience','primary_product','success_criteria']
+        .filter(k => getBlueprintItems(k).length > 0).length;
     const btn = document.getElementById('btn-generate-outline');
-    const yellowCount = Object.values(cl).filter(v => v.state === 'yellow').length;
-    if (greenCount >= 5 || (greenCount + yellowCount) >= 6) {
-        btn.classList.remove('hidden');
-    } else {
-        btn.classList.add('hidden');
+    if (bulletFilled >= 3) btn.classList.remove('hidden');
+    else btn.classList.add('hidden');
+
+    updateNavDots();
+}
+
+// ── Blueprint dropzone helper (for Skill Framework & Style Guides item) ────────
+
+function setupBlueprintDropzone(container, cfg) {
+    const dropzone  = container.querySelector('#' + cfg.dropzoneId);
+    const fileInput = container.querySelector('#' + cfg.fileInputId);
+    const fileName  = container.querySelector('#' + cfg.fileNameId);
+    const clearBtn  = container.querySelector('#' + cfg.clearId);
+    if (!dropzone || !fileInput) return;
+
+    async function load(file) {
+        const text = await readFileAsText(file);
+        setBlueprintFwCustom({ [cfg.nameKey]: file.name, [cfg.prefKey]: text });
+        if (fileName) fileName.textContent = file.name;
+        dropzone.classList.add('has-file');
     }
 
-    // Update nav dots
-    updateNavDots();
+    fileInput.addEventListener('change', function() { if (this.files[0]) load(this.files[0]); this.value = ''; });
+    dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault(); dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]);
+    });
+    clearBtn?.addEventListener('click', e => {
+        e.stopPropagation();
+        setBlueprintFwCustom({ [cfg.nameKey]: '', [cfg.prefKey]: '' });
+        if (fileName) fileName.textContent = '';
+        dropzone.classList.remove('has-file');
+        fileInput.value = '';
+    });
 }
 
 function updateNavDots() {
@@ -2153,16 +2521,40 @@ function updateNavDots() {
 function applyChecklistUpdates(updates) {
     if (!updates || typeof updates !== 'object') return;
     let changed = false;
+
     Object.entries(updates).forEach(([key, val]) => {
-        if (state.checklist && state.checklist[key] !== undefined) {
-            state.checklist[key] = val;
-            changed = true;
+        if (!CHECKLIST_DEFS.find(d => d.key === key)) return; // ignore unknown keys
+        state.checklist = state.checklist || {};
+
+        if (val && typeof val === 'object' && !Array.isArray(val)) {
+            // { state, value, items } format
+            const incoming = Array.isArray(val.items) ? val.items : (val.value?.trim() ? [val.value.trim()] : []);
+            if (incoming.length > 0) {
+                // Merge — de-duplicate case-insensitively
+                const existing = getBlueprintItems(key);
+                const merged   = [...existing];
+                incoming.forEach(ni => {
+                    if (ni.trim() && !merged.some(ei => ei.toLowerCase() === ni.trim().toLowerCase()))
+                        merged.push(ni.trim());
+                });
+                const dotState = merged.length >= 2 ? 'green' : 'yellow';
+                state.checklist[key] = { state: dotState, items: merged, value: merged[0] || '' };
+            } else if (val.state) {
+                state.checklist[key] = { ...(state.checklist[key] || {}), state: val.state };
+            }
+        } else if (typeof val === 'string' && val.trim()) {
+            // Plain string shorthand
+            const existing = getBlueprintItems(key);
+            if (!existing.some(ei => ei.toLowerCase() === val.trim().toLowerCase())) {
+                const merged   = [...existing, val.trim()];
+                const dotState = merged.length >= 2 ? 'green' : 'yellow';
+                state.checklist[key] = { state: dotState, items: merged, value: merged[0] };
+            }
         }
+        changed = true;
     });
-    if (changed) {
-        renderChecklist();
-        scheduleSave();
-    }
+
+    if (changed) { renderChecklist(); scheduleSave(); }
 }
 
 // ============================================================
@@ -3047,6 +3439,9 @@ function loadPrefsToUI() {
     updateCustomUploadVisibility();
 
     // Group 5: Lab Defaults
+    const difficultyEl = document.getElementById('pref-difficulty');
+    if (difficultyEl) difficultyEl.value = p.default_difficulty || 'Intermediate';
+
     const seatTimeEl = document.getElementById('pref-seat-time');
     if (seatTimeEl) seatTimeEl.value = p.default_seat_time || '45-60';
 
@@ -3114,6 +3509,7 @@ function savePrefsFromUI() {
     p.skill_frameworks  = readPicklist('framework-picker');
 
     // Group 5: Lab Defaults
+    p.default_difficulty       = document.getElementById('pref-difficulty')?.value || 'Intermediate';
     p.default_seat_time        = document.getElementById('pref-seat-time')?.value || '45-60';
     p.activities_per_lab       = parseInt(document.getElementById('pref-activities-per-lab')?.value) || 5;
     p.hint_policy              = document.getElementById('pref-hint-policy')?.classList.contains('on') || false;
