@@ -478,10 +478,13 @@
                         {% endif %}
                     </div>
                     <div>
-                        <div class="ci-col-label">Lab Competitor</div>
+                        <div class="ci-col-label">Lab Competitors</div>
                         {% set elp = (discovery.partnership_signals or {}).get('existing_lab_partner') %}
-                        {% if elp %}
-                        <div style="font-size:0.75rem; color:#fb923c; margin-top:3px; font-weight:600;">{{ elp }}</div>
+                        {% set elp_list = elp if elp is iterable and elp is not string else ([elp] if elp else []) %}
+                        {% if elp_list %}
+                        <div style="font-size:0.75rem; color:#fb923c; margin-top:3px; font-weight:600;">
+                            {{ elp_list[:2] | join(', ') }}{% if elp_list | length > 2 %} <span style="color:#3d6655; font-weight:400;">+{{ elp_list | length - 2 }} more</span>{% endif %}
+                        </div>
                         {% else %}
                         <div class="ci-col-empty">None detected</div>
                         {% endif %}
