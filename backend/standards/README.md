@@ -126,6 +126,6 @@ type (style_guide / skill_framework), and whether file content is available. Ena
 ## Usage
 
 Designer Phase 3 reads selected style guides and frameworks from `state.preferences` and injects
-them into the generation context so Neo follows them when writing lab instructions.
+them into the generation context so the AI applies them when writing lab instructions.
 
 Future: `/standards/catalog` API route to serve available standards to any tool.

@@ -1448,7 +1448,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <!-- ── Group 1: AI Connection ── -->
                 <div class="prefs-panel-group active" id="prefs-group-ai-connection">
                     <div class="prefs-panel-title">AI Connection</div>
-                    <div class="prefs-panel-desc">Configure the AI provider that powers Neo's conversation and generation. Changes take effect on the next message.</div>
+                    <div class="prefs-panel-desc">Configure the AI provider that powers conversation and generation. Changes take effect on the next message.</div>
 
                     <div class="prefs-field">
                         <label class="prefs-label">Provider</label>
@@ -1492,7 +1492,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <!-- ── Group 2: Organization Identity ── -->
                 <div class="prefs-panel-group" id="prefs-group-org-identity">
                     <div class="prefs-panel-title">Organization Identity</div>
-                    <div class="prefs-panel-desc">Your organization's identity shapes how Neo frames programs and what context it brings to every conversation.</div>
+                    <div class="prefs-panel-desc">Your organization's identity shapes how programs are framed and what context the AI brings to every conversation.</div>
 
                     <div class="prefs-field">
                         <label class="prefs-label">Company Name <span style="color:var(--color-text-muted);font-weight:400;">(from Intelligence, if connected)</span></label>
@@ -1528,7 +1528,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <!-- ── Group 3: Style Guides & Standards ── -->
                 <div class="prefs-panel-group" id="prefs-group-style-guides-standards">
                     <div class="prefs-panel-title">Style Guides &amp; Standards</div>
-                    <div class="prefs-panel-desc">Writing and formatting standards Neo follows when generating lab instructions. Selected guides are injected into every instruction generation pass.</div>
+                    <div class="prefs-panel-desc">Writing and formatting standards applied when generating lab instructions. Selected guides are injected into every instruction generation pass.</div>
 
                     <div class="prefs-input-row">
                         <div class="prefs-field">
@@ -1550,7 +1550,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                                 <div class="prefs-picklist-check"></div>Custom Style Guide (upload)
                             </div>
                             <div class="custom-style-upload" id="custom-style-upload">
-                                <span class="custom-style-upload-label">Upload a .txt, .md, or .pdf style guide for Neo to follow when generating instructions.</span>
+                                <span class="custom-style-upload-label">Upload a .txt, .md, or .pdf style guide to apply when generating instructions.</span>
                                 <button class="btn-upload-guide" id="btn-upload-style-guide" type="button">📄 Choose file…</button>
                                 <div class="custom-guide-name" id="custom-style-guide-name"></div>
                                 <input type="file" id="style-guide-file-input" accept=".txt,.md,.pdf,.docx" style="display:none;">
@@ -1573,7 +1573,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                     <div class="prefs-field">
                         <label class="prefs-label">Always-On Reference — Documentation URL</label>
                         <input type="url" class="prefs-input" id="pref-ref-doc-url" placeholder="https://docs.example.com">
-                        <div class="prefs-field-hint">Neo references this URL when generating instructions that mention product documentation.</div>
+                        <div class="prefs-field-hint">This URL is referenced when generating instructions that mention product documentation.</div>
                     </div>
                     <div class="prefs-field">
                         <label class="prefs-label">Always-On Reference — Wiki / Knowledge Base URL</label>
@@ -1584,11 +1584,11 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <!-- ── Group 4: Skill Frameworks ── -->
                 <div class="prefs-panel-group" id="prefs-group-skill-frameworks">
                     <div class="prefs-panel-title">Skill Frameworks</div>
-                    <div class="prefs-panel-desc">Frameworks Neo uses to tag activities and map learning outcomes. Select frameworks with publicly available or uploaded content.</div>
+                    <div class="prefs-panel-desc">Frameworks used to tag activities and map learning outcomes. Select frameworks with publicly available or uploaded content.</div>
 
                     <div class="prefs-field">
                         <label class="prefs-label">Primary Framework</label>
-                        <div class="prefs-field-hint" style="margin-bottom:6px;">Neo aligns all activity skill tags to this framework first. Select one, or leave blank.</div>
+                        <div class="prefs-field-hint" style="margin-bottom:6px;">All activity skill tags align to this framework first. Select one, or leave blank.</div>
                         <div class="prefs-picklist" id="framework-primary-picker" data-select-mode="radio">
                             <div class="prefs-picklist-item" data-value="__custom_framework__">
                                 <div class="prefs-picklist-radio"></div>Custom Framework (upload)
@@ -1645,7 +1645,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                     </div>
                     <!-- Shared custom framework upload — shown when Custom is selected in either picker -->
                     <div class="custom-upload-panel" id="custom-framework-upload">
-                        <span class="custom-style-upload-label">Upload a .txt, .csv, .json, or .md framework file. Neo will use this as the framework taxonomy when tagging activities.</span>
+                        <span class="custom-style-upload-label">Upload a .txt, .csv, .json, or .md framework file. This taxonomy will be applied when tagging activities.</span>
                         <button class="btn-upload-guide" id="btn-upload-framework" type="button">📄 Choose file…</button>
                         <div class="custom-guide-name" id="custom-framework-name"></div>
                         <input type="file" id="framework-file-input" accept=".txt,.md,.csv,.json" style="display:none;">
