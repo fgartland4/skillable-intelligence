@@ -133,6 +133,15 @@
             background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3);
             border-radius: 8px; padding: 8px 14px; line-height: 1.3;
         }
+        .seller-hero-good {
+            display: flex; flex-direction: column; gap: 8px;
+            border-left: 2px solid rgba(36,237,155,0.4); padding-left: 20px;
+        }
+        .hero-good-badge {
+            font-size: 0.84rem; font-weight: 700; color: #24ED9B;
+            background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.3);
+            border-radius: 8px; padding: 8px 14px; line-height: 1.3;
+        }
 
         /* Zone 1 detail grid — 2×2 */
         .seller-grid {
@@ -592,22 +601,41 @@
         <p class="seller-desc">{{ data.company_description }}</p>
         {% endif %}
 
-        {# HERO ROW — Verdict + ACV + up to 2 gating blockers. One scan tells the whole story. #}
-        {# Gating blockers: not_likely products or critical poor_match_flags only — not SE detail #}
-        {% set ns_hero = namespace(gate_blocks=[]) %}
-        {% set _critical_flags = ['bare_metal_required', 'no_api_automation', 'saas_only', 'multi_tenant_only', 'no_scoring_api', 'credit_card_required', 'pii_required', 'consumer_product'] %}
+        {# HERO ROW — Verdict + ACV + root-cause signals (bad) or positive signals (good) #}
+        {% set ns_hero = namespace(bad=[], good=[]) %}
+        {# Prioritise root-cause technical blockers — NOT the deployment model label #}
         {% for p in data.products %}
-            {% if p.likely_labable == 'not_likely' and ns_hero.gate_blocks | length < 2 %}
-                {% set _ = ns_hero.gate_blocks.append('No lab path — ' ~ p.name) %}
-            {% endif %}
-            {% if p.poor_match_flags and ns_hero.gate_blocks | length < 2 %}
-                {% for flag in p.poor_match_flags %}
-                    {% if flag | lower in _critical_flags and ns_hero.gate_blocks | length < 2 %}
-                        {% set _ = ns_hero.gate_blocks.append(flag | replace('_',' ') | title) %}
-                    {% endif %}
-                {% endfor %}
+            {% for flag in (p.poor_match_flags or []) %}
+                {% set fl = flag | lower %}
+                {% if fl == 'no_api_automation' and 'No Automation APIs' not in ns_hero.bad and ns_hero.bad | length < 2 %}
+                    {% set ns_hero.bad = ns_hero.bad + ['No Automation APIs'] %}
+                {% elif fl == 'no_scoring_api' and 'No Scoring API' not in ns_hero.bad and ns_hero.bad | length < 2 %}
+                    {% set ns_hero.bad = ns_hero.bad + ['No Scoring API'] %}
+                {% elif fl == 'multi_tenant_only' and 'Multi-Tenant Only' not in ns_hero.bad and ns_hero.bad | length < 2 %}
+                    {% set ns_hero.bad = ns_hero.bad + ['Multi-Tenant Only'] %}
+                {% elif fl == 'bare_metal_required' and 'Bare Metal Required' not in ns_hero.bad and ns_hero.bad | length < 2 %}
+                    {% set ns_hero.bad = ns_hero.bad + ['Bare Metal Required'] %}
+                {% elif fl == 'consumer_product' and 'Consumer Product' not in ns_hero.bad and ns_hero.bad | length < 2 %}
+                    {% set ns_hero.bad = ns_hero.bad + ['Consumer Product'] %}
+                {% endif %}
+            {% endfor %}
+            {# Fallback: not_likely product with no specific API/tech flag surfaced yet #}
+            {% if p.likely_labable == 'not_likely' and ns_hero.bad | length == 0 %}
+                {% set ns_hero.bad = ns_hero.bad + ['SaaS-Only: No Install Path'] %}
             {% endif %}
         {% endfor %}
+        {# Positive signals for strong / pursue when no critical blockers dominate #}
+        {% if top_verdict in ('strong', 'pursue') %}
+            {% if top_p and top_p.likely_labable == 'highly_likely' %}
+                {% set ns_hero.good = ns_hero.good + ['Highly Labable'] %}
+            {% endif %}
+            {% if pr %}
+                {% set _pp_s  = (pr.get('partner_program', {}) or {}).get('score', 0) %}
+                {% set _tom_s = (pr.get('training_org_maturity', {}) or {}).get('score', 0) %}
+                {% if _pp_s >= 12 and ns_hero.good | length < 2 %}{% set ns_hero.good = ns_hero.good + ['ATP Program'] %}
+                {% elif _tom_s >= 20 and ns_hero.good | length < 2 %}{% set ns_hero.good = ns_hero.good + ['Training Org'] %}{% endif %}
+            {% endif %}
+        {% endif %}
 
         <div class="seller-hero">
             <div class="seller-hero-verdict">
@@ -620,11 +648,13 @@
                 <div class="seller-acv-note">estimated ACV based on {{ ns.cp_count }} of {{ data.products|length }} products</div>
             </div>
             {% endif %}
-            {% if ns_hero.gate_blocks %}
+            {% if ns_hero.bad %}
             <div class="seller-hero-blockers">
-                {% for b in ns_hero.gate_blocks %}
-                <div class="hero-blocker-badge">⚠ {{ b }}</div>
-                {% endfor %}
+                {% for b in ns_hero.bad %}<div class="hero-blocker-badge">&#9888; {{ b }}</div>{% endfor %}
+            </div>
+            {% elif ns_hero.good %}
+            <div class="seller-hero-good">
+                {% for g in ns_hero.good %}<div class="hero-good-badge">&#10003; {{ g }}</div>{% endfor %}
             </div>
             {% endif %}
         </div>
@@ -685,30 +715,31 @@
             {% endif %}
             <div class="seller-cell">
                 <div class="seller-cell-label">Composite Score</div>
-                <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px;">
-                    <span style="font-size:3.2rem;font-weight:900;letter-spacing:-0.04em;line-height:1;color:{% if top_score>=70 %}#24ED9B{% elif top_score>=45 %}#6b9e88{% elif top_score>=20 %}#fb923c{% else %}#f87171{% endif %};">{{ top_score }}</span>
-                    <div style="display:flex;flex-direction:column;gap:3px;">
-                        <span style="font-size:0.72rem;color:#3d6655;font-weight:600;">/100</span>
-                        <span class="verdict-badge verdict-{{ top_verdict }}">{{ top_verdict_label }}</span>
+                <div style="display:flex;align-items:center;gap:18px;margin-top:8px;">
+                    {# Big score number #}
+                    <div style="flex-shrink:0;line-height:1;">
+                        <span style="font-size:3.4rem;font-weight:900;letter-spacing:-0.04em;color:{% if top_score>=70 %}#24ED9B{% elif top_score>=45 %}#6b9e88{% elif top_score>=20 %}#fb923c{% else %}#f87171{% endif %};">{{ top_score }}</span>
+                        <span style="font-size:0.72rem;color:#3d6655;font-weight:600;vertical-align:top;margin-top:8px;display:inline-block;">/100</span>
                     </div>
-                </div>
-                {# 4-dimension breakdown #}
-                {% if top_p %}
-                <div style="display:flex;flex-direction:column;gap:5px;">
-                    {% for dim_label, dim_score, dim_max in [
-                        ('Product Labability', tp_tech, 40),
-                        ('Workflow Complexity', tp_wf, 30),
-                        ('Training Ecosystem', tp_te, 20),
-                        ('Market Fit', tp_mf, 10)
-                    ] %}
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:0.72rem;color:#6b9e88;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ dim_label }}</span>
-                        <span style="font-size:0.82rem;font-weight:900;flex-shrink:0;color:{% if (dim_score/dim_max)>=0.7 %}#24ED9B{% elif (dim_score/dim_max)>=0.45 %}#6b9e88{% elif (dim_score/dim_max)>=0.25 %}#fb923c{% else %}#f87171{% endif %};">{{ dim_score }}</span>
-                        <span style="font-size:0.62rem;color:#3d6655;flex-shrink:0;">/{{ dim_max }}</span>
+                    {# 4-dimension breakdown to the right #}
+                    {% if top_p %}
+                    <div style="flex:1;display:flex;flex-direction:column;gap:6px;border-left:1px solid #1e3329;padding-left:16px;">
+                        {% for dim_label, dim_score, dim_max in [
+                            ('Product Labability', tp_tech, 40),
+                            ('Workflow Complexity', tp_wf, 30),
+                            ('Training Ecosystem', tp_te, 20),
+                            ('Market Fit', tp_mf, 10)
+                        ] %}
+                        {% set dim_pct = dim_score / dim_max %}
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:0.7rem;color:#6b9e88;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ dim_label }}</span>
+                            <span style="font-size:0.9rem;font-weight:900;flex-shrink:0;color:{% if dim_pct>=0.7 %}#24ED9B{% elif dim_pct>=0.45 %}#6b9e88{% elif dim_pct>=0.25 %}#fb923c{% else %}#f87171{% endif %};">{{ dim_score }}</span>
+                            <span style="font-size:0.6rem;color:#3d6655;flex-shrink:0;min-width:22px;">/{{ dim_max }}</span>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
 
             {# TR: Product Labability — all products #}
@@ -747,18 +778,31 @@
                     {% endif %}
                     {% if ns_good.items %}
                     <div>
-                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#24ED9B;margin-bottom:5px;">Good</div>
+                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#24ED9B;margin-bottom:5px;">Positive Signals</div>
                         <div style="display:flex;flex-wrap:wrap;gap:4px;">
                             {% for item in ns_good.items %}<span class="lab-bdg lab-bdg-hl">{{ item }}</span>{% endfor %}
                         </div>
                     </div>
                     {% endif %}
-                    {# Blockers #}
+                    {# Blockers — explicit labels to ensure correct capitalisation #}
                     {% if ns_flags2.bad %}
                     <div>
                         <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#f87171;margin-bottom:5px;">Blockers</div>
                         <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                            {% for flag in ns_flags2.bad[:6] %}<span class="flag-badge">{{ flag|replace('_',' ')|title }}</span>{% endfor %}
+                            {% for flag in ns_flags2.bad[:6] %}
+                            {% set fl = flag | lower %}
+                            {% if fl == 'saas_only' %}{% set flbl = 'SaaS-Only' %}
+                            {% elif fl == 'no_api_automation' %}{% set flbl = 'No Automation APIs' %}
+                            {% elif fl == 'no_scoring_api' %}{% set flbl = 'No Scoring API' %}
+                            {% elif fl == 'multi_tenant_only' %}{% set flbl = 'Multi-Tenant Only' %}
+                            {% elif fl == 'bare_metal_required' %}{% set flbl = 'Bare Metal Required' %}
+                            {% elif fl == 'credit_card_required' %}{% set flbl = 'Credit Card Required' %}
+                            {% elif fl == 'pii_required' %}{% set flbl = 'PII Required' %}
+                            {% elif fl == 'consumer_product' %}{% set flbl = 'Consumer Product' %}
+                            {% elif fl == 'no_install_option' %}{% set flbl = 'No Install Option' %}
+                            {% else %}{% set flbl = flag | replace('_',' ') | title %}{% endif %}
+                            <span class="flag-badge">{{ flbl }}</span>
+                            {% endfor %}
                         </div>
                     </div>
                     {% else %}
