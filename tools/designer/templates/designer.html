@@ -1661,12 +1661,10 @@ const INITIAL_DATA = {{ program_json | safe }};
                         <div class="prefs-field">
                             <label class="prefs-label">Estimated Lab Duration</label>
                             <select class="prefs-select" id="pref-seat-time">
-                                <option value="30">30 min</option>
-                                <option value="45">45 min</option>
-                                <option value="60" selected>60 min</option>
-                                <option value="75">75 min</option>
-                                <option value="90">90 min</option>
-                                <option value="120">120 min</option>
+                                <option value="30-45">30–45 mins</option>
+                                <option value="45-60" selected>45–60 mins</option>
+                                <option value="60-120">60–120 mins</option>
+                                <option value="120+">120 mins +</option>
                             </select>
                         </div>
                         <div class="prefs-field">
@@ -2792,7 +2790,7 @@ function loadPrefsToUI() {
 
     // Group 5: Lab Defaults
     const seatTimeEl = document.getElementById('pref-seat-time');
-    if (seatTimeEl) seatTimeEl.value = String(p.default_seat_time || 60);
+    if (seatTimeEl) seatTimeEl.value = p.default_seat_time || '45-60';
 
     const activitiesEl = document.getElementById('pref-activities-per-lab');
     if (activitiesEl) activitiesEl.value = String(p.activities_per_lab || 5);
@@ -2858,7 +2856,7 @@ function savePrefsFromUI() {
     p.skill_frameworks  = readPicklist('framework-picker');
 
     // Group 5: Lab Defaults
-    p.default_seat_time        = parseInt(document.getElementById('pref-seat-time')?.value) || 60;
+    p.default_seat_time        = document.getElementById('pref-seat-time')?.value || '45-60';
     p.activities_per_lab       = parseInt(document.getElementById('pref-activities-per-lab')?.value) || 5;
     p.hint_policy              = document.getElementById('pref-hint-policy')?.classList.contains('on') || false;
     p.knowledge_block_policy   = document.getElementById('pref-knowledge-block-policy')?.classList.contains('on') || false;
