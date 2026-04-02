@@ -515,7 +515,7 @@
                                 {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
                                 <span class="bdg bdg-saas">SaaS Only</span>
                                 {% else %}
-                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
                                 {% endif %}
                             {% endif %}
                             <span class="bdg bdg-hl">highly likely</span>
@@ -544,7 +544,7 @@
                                 {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
                                 <span class="bdg bdg-saas">SaaS Only</span>
                                 {% else %}
-                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
                                 {% endif %}
                             {% endif %}
                             <span class="bdg bdg-l">likely</span>
@@ -573,7 +573,7 @@
                                 {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
                                 <span class="bdg bdg-saas">SaaS Only</span>
                                 {% else %}
-                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
                                 {% endif %}
                             {% endif %}
                             <span class="bdg bdg-ll">less likely</span>
@@ -601,7 +601,7 @@
                                 {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
                                 <span class="bdg bdg-saas">SaaS Only</span>
                                 {% else %}
-                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
                                 {% endif %}
                             {% endif %}
                             <span class="bdg bdg-nl">not likely</span>
