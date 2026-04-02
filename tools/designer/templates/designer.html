@@ -235,14 +235,17 @@
             gap: 6px;
         }
         .btn-restart {
-            display: flex; align-items: center; gap: 8px;
-            width: 100%; background: none;
-            border: 1px solid rgba(255,255,255,0.12);
+            position: absolute;
+            top: 14px; right: 16px;
+            z-index: 20;
+            background: none;
+            border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
-            color: var(--color-sidebar-muted);
-            font-size: 13px;
-            padding: 8px 12px; cursor: pointer; transition: all var(--transition);
-            text-align: left;
+            color: var(--color-text-muted);
+            font-size: 12px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all var(--transition);
         }
         .btn-restart:hover { border-color: var(--color-danger); color: var(--color-danger); }
         .btn-prefs {
@@ -269,6 +272,7 @@
             flex: 1;
             display: flex;
             overflow: hidden;
+            position: relative;
             position: relative;
             background: var(--color-bg);
         }
@@ -1032,9 +1036,6 @@ const INITIAL_DATA = {{ program_json | safe }};
         </nav>
         <div class="sidebar-footer">
             <a href="/designer" class="sidebar-back">← All Programs</a>
-            <button class="btn-restart" id="restart-btn" onclick="if(confirm('Start over? This will clear the current program and open a new one.')) window.location='/designer/new';">
-                ↺ Restart
-            </button>
             <button class="btn-prefs" id="prefs-btn">
                 <span>&#9881;</span> Preferences
             </button>
@@ -1044,6 +1045,7 @@ const INITIAL_DATA = {{ program_json | safe }};
 
     <!-- MAIN CONTENT -->
     <main id="main-content">
+        <button class="btn-restart" id="restart-btn" onclick="if(confirm('Start over? This will clear the current program and open a new one.')) window.location='/designer/new';">↺ Restart</button>
 
         <!-- ============================================================
              PHASE 1 — Requirements & Intent
