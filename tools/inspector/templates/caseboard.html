@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
-    <title>Seller Action Plan — {{ discovery.company_name }}</title>
+    <title>Caseboard — {{ discovery.company_name }} — Skillable Intelligence</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
@@ -27,13 +27,25 @@
             background: rgba(6,16,12,0.95); backdrop-filter: blur(8px);
             position: sticky; top: 0; z-index: 30;
         }
-        .nav img { height: 26px; }
+        .nav img { height: 26px; filter: brightness(0) invert(1); opacity: 0.9; }
         .nav-div { width: 1px; height: 18px; background: #1e3329; margin: 0 14px; }
         .nav-tool { font-size: 0.82rem; color: #6b9e88; font-weight: 600; }
         .nav-co { font-size: 0.82rem; color: #3d6655; margin-left: 6px; }
         .nav-sp { flex: 1; }
         .nav-back { font-size: 0.8rem; color: #3d6655; }
         .nav-back:hover { color: #24ED9B; }
+
+        /* Breadcrumbs */
+        .breadcrumbs {
+            padding: 7px 28px; border-bottom: 1px solid rgba(30,51,41,0.5);
+            background: rgba(6,16,12,0.6);
+            font-size: 0.68rem; color: #3d6655;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .breadcrumbs a { color: #3d6655; }
+        .breadcrumbs a:hover { color: #6b9e88; }
+        .bc-sep { color: #1e3329; }
+        .bc-current { color: #6b9e88; font-weight: 600; }
 
         /* Layout */
         .page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 110px; }
@@ -80,6 +92,8 @@
         .co-sig-green { background: rgba(36,237,155,0.1); color: #24ED9B; border: 1px solid rgba(36,237,155,0.22); }
         .co-sig-teal  { background: rgba(20,184,166,0.1); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.22); }
         .co-sig-gray  { background: rgba(100,116,139,0.1); color: #94a3b8; border: 1px solid rgba(100,116,139,0.2); }
+        .co-sig-amber { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.22); }
+        .co-sig-red   { background: rgba(248,113,113,0.08); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
 
         /* Org badges */
         .org-badge {
@@ -163,6 +177,7 @@
         .bdg-ll   { background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.18); }
         .bdg-nl   { background: rgba(248,113,113,0.08); color: #f87171; border: 1px solid rgba(248,113,113,0.15); }
         .bdg-path { background: rgba(36,237,155,0.06); color: #6b9e88; border: 1px solid #1e3329; }
+        .bdg-saas { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.28); }
 
         /* Competitor card */
         .comp-card {
@@ -240,7 +255,7 @@
         }
         .mat-labels { display: flex; justify-content: space-between; margin-top: 10px; }
         .mat-lbl {
-            font-size: 0.56rem; color: #2a4a3a; font-weight: 600;
+            font-size: 0.56rem; color: #3d6655; font-weight: 600;
             letter-spacing: 0.04em; text-transform: uppercase;
         }
         .mat-lbl:nth-child(2), .mat-lbl:nth-child(3) { text-align: center; }
@@ -308,25 +323,36 @@
 <body>
 
 <nav class="nav">
-    <img src="{{ url_for('static', filename='img/skillable-logo.png') }}" alt="Skillable"
-         onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'">
+    <a href="/" title="Skillable Intelligence">
+        <img src="{{ url_for('static', filename='img/skillable-logo.png') }}" alt="Skillable"
+             onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'">
+    </a>
     <div class="nav-div"></div>
     <span class="nav-tool">Inspector</span>
-    <span class="nav-co">/ {{ discovery.company_name }}</span>
     <div class="nav-sp"></div>
-    <a href="/inspector/" class="nav-back">&larr; New Search</a>
 </nav>
+
+<div class="breadcrumbs">
+    <a href="/">Start</a>
+    <span class="bc-sep">/</span>
+    <a href="/inspector/">Inspector</a>
+    <span class="bc-sep">/</span>
+    <span>Caseboard</span>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">{{ discovery.company_name }}</span>
+</div>
 
 <div class="page">
 
     <div class="header">
-        <div class="eyebrow">Seller Action Plan</div>
+        <div class="eyebrow">Caseboard</div>
+        <a href="/inspector/" style="display:inline-block; font-size:0.74rem; color:#3d6655; margin-bottom:10px;">&larr; New Search</a>
         <div class="header-row">
             <div>
                 <div class="company-title">
                     {{ discovery.company_name }}
                     {% set ot = discovery.organization_type or 'software_company' %}
-                    {% if ot == 'software_company' %}<span class="org-badge org-software">Software</span>
+                    {% if ot == 'software_company' %}<span class="org-badge org-software">Software Company</span>
                     {% elif ot == 'academic_institution' %}<span class="org-badge org-academic">Academic</span>
                     {% elif ot == 'training_organization' %}<span class="org-badge org-training">Training Org</span>
                     {% elif ot == 'systems_integrator' %}<span class="org-badge org-integrator">Systems Integrator</span>
@@ -371,21 +397,54 @@
 
             {# Company Intelligence box — sits inside products column, matches card width #}
             <div class="ci-box">
-                <div class="ci-box-title">Company Intelligence</div>
+                <div class="ci-box-title">Company Indicators</div>
+
+                {# Pre-compute SaaS warning signals #}
+                {% set ns_saas = namespace(count=0, all_saas=true) %}
+                {% for p in discovery.products %}
+                    {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
+                        {% set ns_saas.count = ns_saas.count + 1 %}
+                    {% else %}
+                        {% set ns_saas.all_saas = false %}
+                    {% endif %}
+                {% endfor %}
 
                 {# Top: key badges (left) | maturity slider (right) #}
                 <div style="display:flex; align-items:flex-start; gap:28px; margin-bottom:14px;">
-                    <div class="ci-badges" style="flex:1.2; min-width:200px;">
-                        {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">ATP / Partner Program</span>{% endif %}
-                        {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
-                        {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
-                        {% if discovery.competitive_products %}
-                        <div style="margin-top:8px;">
-                            <span class="co-sig-bdg co-sig-gray">{{ discovery.competitive_products | length }} Competitive Product{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>
+                    <div style="flex:1.2; min-width:200px;">
+                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:7px;">Positive Signals</div>
+                        <div class="ci-badges" style="margin-bottom:10px;">
+                            {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">Partner Program</span>{% endif %}
+                            {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
+                            {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
+                            {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-teal">{{ discovery.competitive_products | length }} Competitive Signal{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>{% endif %}
+                            {% if not discovery.atp_signals and not discovery.training_programs and not _tc_check and not discovery.competitive_products %}
+                            <span class="co-sig-bdg co-sig-gray">No strong signals yet</span>
+                            {% endif %}
                         </div>
-                        {% endif %}
+                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:7px;">Risk Indicators</div>
+                        <div class="ci-badges">
+                            {% if ns_saas.all_saas and discovery.products | length > 0 %}
+                            <span class="co-sig-bdg co-sig-red">All SaaS — Low Lab Fit</span>
+                            {% elif ns_saas.count > 0 %}
+                            <span class="co-sig-bdg co-sig-amber">{{ ns_saas.count }} SaaS-Only Product{{ 's' if ns_saas.count != 1 else '' }}</span>
+                            {% endif %}
+                            {% set ns_flags = namespace(no_api=false, bare_metal=false, multi_tenant=false) %}
+                            {% for p in discovery.products %}
+                                {% if 'no_api_automation' in (p.poor_match_flags or []) %}{% set ns_flags.no_api = true %}{% endif %}
+                                {% if 'bare_metal_required' in (p.poor_match_flags or []) %}{% set ns_flags.bare_metal = true %}{% endif %}
+                                {% if 'multi_tenant_only' in (p.poor_match_flags or []) %}{% set ns_flags.multi_tenant = true %}{% endif %}
+                            {% endfor %}
+                            {% if ns_flags.no_api %}<span class="co-sig-bdg co-sig-amber">No API Automation</span>{% endif %}
+                            {% if ns_flags.bare_metal %}<span class="co-sig-bdg co-sig-red">Hardware Required</span>{% endif %}
+                            {% if ns_flags.multi_tenant %}<span class="co-sig-bdg co-sig-amber">Multi-Tenant Only</span>{% endif %}
+                            {% if not ns_saas.count and not ns_flags.no_api and not ns_flags.bare_metal and not ns_flags.multi_tenant %}
+                            <span class="co-sig-bdg co-sig-gray">None detected pre-Dossier</span>
+                            {% endif %}
+                        </div>
                     </div>
                     <div style="flex:1; min-width:160px; max-width:300px;">
+                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:6px;">Training Maturity</div>
                         <div class="mat-level-name">{{ mat_level }}</div>
                         <div class="mat-track">
                             <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
@@ -404,12 +463,35 @@
                     </div>
                 </div>
 
-                {# Bottom: four signal columns — populated when researcher data is wired up #}
+                {# Bottom: signal columns — populated from available discovery data #}
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; border-top:1px solid #1e3329; padding-top:12px;">
-                    <div><div class="ci-col-label">Customer Base</div><div class="ci-col-empty">Pending research</div></div>
-                    <div><div class="ci-col-label">Content Signals</div><div class="ci-col-empty">Pending research</div></div>
-                    <div><div class="ci-col-label">Partner Ecosystem</div><div class="ci-col-empty">Pending research</div></div>
-                    <div><div class="ci-col-label">Urgency / Triggers</div><div class="ci-col-empty">Pending research</div></div>
+                    <div>
+                        <div class="ci-col-label">Org Type</div>
+                        {% set ot = discovery.organization_type or 'software_company' %}
+                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ ot | replace('_',' ') | title }}</div>
+                    </div>
+                    <div>
+                        <div class="ci-col-label">Training Programs</div>
+                        {% if discovery.training_programs %}
+                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.training_programs | length }} detected</div>
+                        {% elif discovery.atp_signals %}
+                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">ATP signals present</div>
+                        {% else %}
+                        <div class="ci-col-empty">None detected</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="ci-col-label">Competitive Signals</div>
+                        {% if discovery.competitive_products %}
+                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.competitive_products | length }} product{{ 's' if discovery.competitive_products | length != 1 else '' }}</div>
+                        {% else %}
+                        <div class="ci-col-empty">None detected</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="ci-col-label">Products Discovered</div>
+                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.products | length }} product{{ 's' if discovery.products | length != 1 else '' }}</div>
+                    </div>
                 </div>
             </div>
 
@@ -433,7 +515,13 @@
                         <div class="p-name">{{ p.name }}</div>
                         <div class="p-meta">
                             {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
+                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
+                                <span class="bdg bdg-saas">SaaS Only</span>
+                                {% else %}
+                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                {% endif %}
+                            {% endif %}
                             <span class="bdg bdg-hl">highly likely</span>
                             {% if p.candidate_paths %}{% for path in p.candidate_paths[:2] %}<span class="bdg bdg-path">{{ path }}</span>{% endfor %}{% endif %}
                         </div>
@@ -458,7 +546,13 @@
                         <div class="p-name">{{ p.name }}</div>
                         <div class="p-meta">
                             {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
+                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
+                                <span class="bdg bdg-saas">SaaS Only</span>
+                                {% else %}
+                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                {% endif %}
+                            {% endif %}
                             <span class="bdg bdg-l">likely</span>
                             {% if p.candidate_paths %}{% for path in p.candidate_paths[:2] %}<span class="bdg bdg-path">{{ path }}</span>{% endfor %}{% endif %}
                         </div>
@@ -483,7 +577,13 @@
                         <div class="p-name">{{ p.name }}</div>
                         <div class="p-meta">
                             {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
+                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
+                                <span class="bdg bdg-saas">SaaS Only</span>
+                                {% else %}
+                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                {% endif %}
+                            {% endif %}
                             <span class="bdg bdg-ll">less likely</span>
                         </div>
                         {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
@@ -507,7 +607,13 @@
                         <div class="p-name">{{ p.name }}</div>
                         <div class="p-meta">
                             {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}<span class="bdg bdg-dep">{{ p.deployment_model }}</span>{% endif %}
+                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
+                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
+                                <span class="bdg bdg-saas">SaaS Only</span>
+                                {% else %}
+                                <span class="bdg bdg-dep">{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}</span>
+                                {% endif %}
+                            {% endif %}
                             <span class="bdg bdg-nl">not likely</span>
                         </div>
                         {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
