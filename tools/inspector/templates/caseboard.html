@@ -478,14 +478,10 @@
                         {% endif %}
                     </div>
                     <div>
-                        <div class="ci-col-label">Competitive Signals</div>
-                        {% if discovery.competitive_products %}
-                            {% set cp_list = discovery.competitive_products %}
-                            {% set cp_count = cp_list | length %}
-                            {% set cp_names = cp_list | map(attribute='competitor_name') | list %}
-                            <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">
-                                {{ cp_names[:2] | join(', ') }}{% if cp_count > 2 %} <span style="color:#3d6655;">+{{ cp_count - 2 }} more</span>{% endif %}
-                            </div>
+                        <div class="ci-col-label">Lab Competitor</div>
+                        {% set elp = (discovery.partnership_signals or {}).get('existing_lab_partner') %}
+                        {% if elp %}
+                        <div style="font-size:0.75rem; color:#fb923c; margin-top:3px; font-weight:600;">{{ elp }}</div>
                         {% else %}
                         <div class="ci-col-empty">None detected</div>
                         {% endif %}
@@ -499,9 +495,8 @@
             {% set nl = discovery.products | selectattr('likely_labable','equalto','not_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
             {% set tc = discovery.products | selectattr('category','equalto','Training & Certification') | list | sort(attribute='name') %}
 
-            {% if hl %}
             <div class="tier-section">
-                <div class="tier-hdr">
+                <div class="tier-hdr" {% if not hl %}style="opacity:0.25"{% endif %}>
                     <span class="tier-lbl t-hl">Highly Likely</span>
                     <div class="tier-rule"></div>
                 </div>
@@ -528,11 +523,9 @@
                 </label>
                 {% endfor %}
             </div>
-            {% endif %}
 
-            {% if l %}
             <div class="tier-section">
-                <div class="tier-hdr">
+                <div class="tier-hdr" {% if not l %}style="opacity:0.25"{% endif %}>
                     <span class="tier-lbl t-l">Likely</span>
                     <div class="tier-rule"></div>
                 </div>
@@ -559,11 +552,9 @@
                 </label>
                 {% endfor %}
             </div>
-            {% endif %}
 
-            {% if ll %}
             <div class="tier-section">
-                <div class="tier-hdr">
+                <div class="tier-hdr" {% if not ll %}style="opacity:0.25"{% endif %}>
                     <span class="tier-lbl t-ll">Less Likely</span>
                     <div class="tier-rule"></div>
                 </div>
@@ -589,11 +580,9 @@
                 </label>
                 {% endfor %}
             </div>
-            {% endif %}
 
-            {% if nl %}
             <div class="tier-section">
-                <div class="tier-hdr">
+                <div class="tier-hdr" {% if not nl %}style="opacity:0.25"{% endif %}>
                     <span class="tier-lbl t-nl">Not Likely</span>
                     <div class="tier-rule"></div>
                 </div>
@@ -619,7 +608,6 @@
                 </label>
                 {% endfor %}
             </div>
-            {% endif %}
 
             {% if tc %}
             <div class="tier-section">

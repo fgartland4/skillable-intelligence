@@ -186,6 +186,8 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         # Customer success & LMS
         ("cs",              f"{company_name} customer success onboarding professional services"),
         ("lms",             f"{company_name} LMS learning management system platform"),
+        # Lab platform competitor signal
+        ("lab_platform",    f"{company_name} hands-on lab CloudShare OR Instruqt OR Skytap OR \"virtual lab\" OR \"lab environment\" OR \"we built\" training infrastructure"),
         # Org & contacts — 2 consolidated LinkedIn queries (reduced from 5 to limit rate-limiting):
         # (1) VP-and-above across all three key functions: customer education, partner enablement, certification
         ("org_senior",    f"site:linkedin.com/in/ {company_name} (VP OR SVP OR EVP OR Chief OR \"Head of\") (\"customer education\" OR \"customer training\" OR \"customer enablement\" OR \"partner enablement\" OR \"channel enablement\" OR \"partner training\" OR \"certification program\" OR \"technical certification\")"),
