@@ -743,25 +743,25 @@
         }
 
         /* Generate Outline button */
-        /* Readiness section — always visible at bottom of right pane.
-           Padding matches .chat-input-bar exactly so the border-top hairlines
-           align across both panes. min-height matches textarea min-height + padding. */
+        /* Readiness section — pinned to bottom of right pane.
+           No border-top — the bar provides visual separation.
+           Height matches chat-input-bar so Send and Generate Outline align. */
         .readiness-wrap {
             padding: 10px 16px 14px;
-            border-top: 1px solid var(--color-border-light);
             flex-shrink: 0;
             background: var(--color-surface);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            min-height: calc(83px + 10px + 14px); /* textarea min-height + top + bottom padding */
+            min-height: calc(83px + 10px + 14px);
         }
-        /* Progress bar */
+        /* Progress bar — top of the section */
         .readiness-bar-track {
             height: 6px;
             border-radius: 3px;
             background: var(--color-border);
             overflow: hidden;
+            flex-shrink: 0;
+            margin-bottom: 6px;
         }
         .readiness-bar-fill {
             height: 100%;
@@ -772,11 +772,13 @@
         }
         .readiness-bar-fill.amber { background: var(--color-warning); }
         .readiness-bar-fill.green { background: var(--color-primary); }
-        /* Status note */
+        /* Status note — grows to push button to bottom */
         .readiness-note {
+            flex: 1;
             font-size: 11.5px;
             color: var(--color-text-muted);
             line-height: 1.5;
+            padding-top: 2px;
         }
         .btn-generate {
             width: 100%;
@@ -2117,16 +2119,18 @@ let nudgeFired = false;
 
 function computeReadinessScore() {
     let pts = 0;
-    // Inspector dossier loaded — biggest signal
+    // Inspector dossier loaded — dominant signal (40 pts)
     if (state.analysis_id) pts += 40;
-    // Product intelligence gathered via lookup calls (15 pts each, cap 30)
-    pts += Math.min(((state.productIntelligence || []).length) * 15, 30);
-    // Checklist bullet items filled by AI (10 pts each)
+    // Product intelligence successfully retrieved (15 pts each, cap 30)
+    // Only counts entries where found:true — a failed lookup is no signal at all
+    const foundIntel = (state.productIntelligence || []).filter(p => p.found);
+    pts += Math.min(foundIntel.length * 15, 30);
+    // Checklist bullet items filled by AI (8 pts each, 4 items = 32 pts max)
     ['program_objectives', 'target_audience', 'primary_product', 'success_criteria'].forEach(k => {
-        if (getBlueprintItems(k).length > 0) pts += 10;
+        if (getBlueprintItems(k).length > 0) pts += 8;
     });
-    // Documents / URLs ingested (5 pts each, cap 15)
-    pts += Math.min((state.attachmentCount || 0) * 5, 15);
+    // Documents / URLs ingested (6 pts each, cap 18)
+    pts += Math.min((state.attachmentCount || 0) * 6, 18);
     // Message exchanges — proxy for dialogue depth (1 pt each exchange, cap 5)
     pts += Math.min(Math.floor(((state.phase1_messages || []).length) / 2), 5);
     return Math.min(pts, 100);
@@ -2146,7 +2150,7 @@ function renderReadinessBar() {
     if (score >= 90) {
         if (note) note.textContent = 'Ready when you are.';
         if (btn) { btn.disabled = false; btn.classList.add('ready'); }
-    } else if (score >= 70) {
+    } else if (score >= 80) {
         if (note) note.textContent = 'More is always better, but I can throw a draft together. You can keep refining from the outline.';
         if (btn) { btn.disabled = false; btn.classList.add('ready'); }
     } else if (score >= 40) {
