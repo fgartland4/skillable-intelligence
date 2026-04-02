@@ -743,14 +743,36 @@
         }
 
         /* Generate Outline button */
-        .generate-outline-wrap {
-            padding: 0;
+        /* Readiness section — always visible at bottom of right pane */
+        .readiness-wrap {
+            padding: 14px 16px 12px;
+            border-top: 1px solid var(--color-border-light);
             flex-shrink: 0;
             background: var(--color-surface);
         }
-        .generate-outline-wrap:has(.btn-generate:not(.hidden)) {
-            padding: 12px 16px;
-            border-top: 1px solid var(--color-border-light);
+        /* Progress bar */
+        .readiness-bar-track {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--color-border);
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .readiness-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--color-text-muted);
+            width: 0%;
+            transition: width 0.7s ease, background-color 0.5s ease;
+        }
+        .readiness-bar-fill.amber { background: var(--color-warning); }
+        .readiness-bar-fill.green { background: var(--color-primary); }
+        /* Status note */
+        .readiness-note {
+            font-size: 11.5px;
+            color: var(--color-text-muted);
+            line-height: 1.5;
+            margin-bottom: 10px;
         }
         .btn-generate {
             width: 100%;
@@ -1498,7 +1520,11 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <div class="checklist-area" id="checklist-area">
                     <!-- rendered by JS -->
                 </div>
-                <div class="generate-outline-wrap">
+                <div class="readiness-wrap" id="readiness-wrap">
+                    <div class="readiness-bar-track">
+                        <div class="readiness-bar-fill" id="readiness-bar-fill"></div>
+                    </div>
+                    <p class="readiness-note" id="readiness-note">Keep adding — I'll organize as we go.</p>
                     <button class="btn-generate hidden" id="btn-generate-outline">
                         Generate Outline →
                     </button>
@@ -2073,6 +2099,123 @@ const CHECKLIST_DEFS = [
 // Tracks which checklist keys are expanded — persists across renderChecklist() calls
 const expandedChecklistKeys = new Set();
 
+// Tracks which products have had an intelligence lookup triggered this session
+const productIntelTriggered = new Set();
+
+// Idle nudge state
+let idleTimer = null;
+let nudgeFired = false;
+
+// ============================================================
+// READINESS BAR
+// ============================================================
+
+function computeReadinessScore() {
+    let pts = 0;
+    // Inspector dossier loaded — biggest signal
+    if (state.analysis_id) pts += 40;
+    // Product intelligence gathered via lookup calls (15 pts each, cap 30)
+    pts += Math.min(((state.productIntelligence || []).length) * 15, 30);
+    // Checklist bullet items filled by AI (10 pts each)
+    ['program_objectives', 'target_audience', 'primary_product', 'success_criteria'].forEach(k => {
+        if (getBlueprintItems(k).length > 0) pts += 10;
+    });
+    // Documents / URLs ingested (5 pts each, cap 15)
+    pts += Math.min((state.attachmentCount || 0) * 5, 15);
+    // Message exchanges — proxy for dialogue depth (1 pt each exchange, cap 5)
+    pts += Math.min(Math.floor(((state.phase1_messages || []).length) / 2), 5);
+    return Math.min(pts, 100);
+}
+
+function renderReadinessBar() {
+    const score = computeReadinessScore();
+    const fill  = document.getElementById('readiness-bar-fill');
+    const note  = document.getElementById('readiness-note');
+    const btn   = document.getElementById('btn-generate-outline');
+    if (!fill) return;
+
+    fill.style.width = score + '%';
+    fill.className = 'readiness-bar-fill' +
+        (score >= 70 ? ' green' : score >= 40 ? ' amber' : '');
+
+    if (score >= 90) {
+        if (note) note.textContent = 'Ready when you are.';
+        btn?.classList.remove('hidden');
+    } else if (score >= 70) {
+        if (note) note.textContent = 'More is always better, but I can throw a draft together. You can keep refining from the outline.';
+        btn?.classList.remove('hidden');
+    } else if (score >= 40) {
+        if (note) note.textContent = "Getting there, but keep the ideas coming…";
+        btn?.classList.add('hidden');
+    } else {
+        if (note) note.textContent = "Keep adding — I'll organize as we go.";
+        btn?.classList.add('hidden');
+    }
+}
+
+// ============================================================
+// PRODUCT INTELLIGENCE LOOKUP
+// ============================================================
+
+function triggerProductIntel(productName, companyName) {
+    const key = productName.toLowerCase();
+    if (productIntelTriggered.has(key)) return;
+    productIntelTriggered.add(key);
+
+    // Show a visible "checking" bubble in the chat
+    const bubble = addChatBubble('p1-chat-area', 'assistant',
+        `<p><em>Running a quick check on <strong>${escHtml(productName)}</strong> through Inspector…</em></p>`);
+
+    fetch(`/designer/${PROGRAM_ID}/product-intel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_name: productName, company_name: companyName || '' }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        state.productIntelligence = state.productIntelligence || [];
+        state.productIntelligence.push({ product: productName, ...data });
+        if (data.found) {
+            bubble.innerHTML = `<p>Found <strong>${escHtml(productName)}</strong> in Inspector — ${escHtml(data.summary || 'pulled delivery and technical signals')}. Using that to build out the blueprint.</p>`;
+        } else {
+            bubble.innerHTML = `<p>No existing Inspector data for <strong>${escHtml(productName)}</strong> — no problem, I'll work from what you share.</p>`;
+        }
+        renderReadinessBar();
+        scheduleSave();
+    })
+    .catch(() => {
+        bubble.innerHTML = `<p>Couldn't reach Inspector for <strong>${escHtml(productName)}</strong> — continuing with what we have.</p>`;
+    });
+}
+
+// ============================================================
+// IDLE NUDGE
+// ============================================================
+
+function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    if (nudgeFired || currentPhase !== 1) return;
+    idleTimer = setTimeout(() => {
+        if (nudgeFired || currentPhase !== 1) return;
+        nudgeFired = true;
+        const score = computeReadinessScore();
+        let nudgeHtml;
+        if (score < 20) {
+            nudgeHtml = `<p>Still here if you need me. Sometimes it helps to start with what you <em>know</em> — even a rough topic or a product name gets us moving.</p><p>Or drop a document in and I'll pull what I need.</p>`;
+        } else {
+            // Some context exists — ask something specific
+            const missing = ['program_objectives','target_audience','primary_product','success_criteria']
+                .filter(k => getBlueprintItems(k).length === 0);
+            const labels = { program_objectives: 'objectives', target_audience: 'who this is for', primary_product: 'what product or technology we\'re building around', success_criteria: 'what success looks like' };
+            const firstMissing = missing[0] ? labels[missing[0]] : null;
+            nudgeHtml = firstMissing
+                ? `<p>One thing that would sharpen this: can you tell me ${firstMissing}? Even a rough answer is enough to keep moving.</p>`
+                : `<p>We're making good progress. Anything else you want me to factor in before we generate the outline?</p>`;
+        }
+        addChatBubble('p1-chat-area', 'assistant welcome', nudgeHtml);
+    }, 2 * 60 * 1000); // 2 minutes
+}
+
 // ============================================================
 // UTILITIES
 // ============================================================
@@ -2152,6 +2295,8 @@ async function doSave() {
             phase3_messages: state.phase3_messages,
             draft_instructions: state.draft_instructions,
             preferences: state.preferences,
+            productIntelligence: state.productIntelligence || [],
+            attachmentCount: state.attachmentCount || 0,
         };
         await fetch(`/designer/${PROGRAM_ID}/save`, {
             method: 'POST',
@@ -2509,13 +2654,7 @@ function renderChecklist() {
     const total = CHECKLIST_DEFS.length;
     document.getElementById('checklist-progress-label').textContent = `${filledCount} / ${total}`;
 
-    // Show Generate Outline button when at least 3 of the 4 bullet items have content
-    const bulletFilled = ['program_objectives','target_audience','primary_product','success_criteria']
-        .filter(k => getBlueprintItems(k).length > 0).length;
-    const btn = document.getElementById('btn-generate-outline');
-    if (bulletFilled >= 3) btn.classList.remove('hidden');
-    else btn.classList.add('hidden');
-
+    renderReadinessBar();
     updateNavDots();
 }
 
@@ -2607,7 +2746,18 @@ function applyChecklistUpdates(updates) {
         changed = true;
     });
 
-    if (changed) { renderChecklist(); scheduleSave(); }
+    if (changed) {
+        renderChecklist();
+        scheduleSave();
+
+        // Trigger product intelligence lookup when primary_product is first populated
+        const productItems = getBlueprintItems('primary_product');
+        if (productItems.length > 0 && !state.analysis_id) {
+            const productName = productItems[0];
+            const companyName = (state.company_name || '').trim();
+            triggerProductIntel(productName, companyName);
+        }
+    }
 }
 
 // ============================================================
@@ -3001,12 +3151,15 @@ function handleP1Send(overrideText) {
         } else {
             text = (text ? text + '\n\n' : 'Please analyze this uploaded document:\n\n') + `--- ${attach.name} ---\n${attach.content}`;
         }
+        // Track attachment count for readiness score
+        state.attachmentCount = (state.attachmentCount || 0) + 1;
         clearChatAttach(1);
     }
 
     if (!text) return;
     textarea.value = '';
     textarea.style.height = 'auto';
+    resetIdleTimer(); // user is active — reset the 2-min nudge clock
     sendChat(1, text);
 }
 
@@ -3893,7 +4046,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setupChatAttach(3);
     setupPicklists();
     restoreState();
+    // Pre-populate product intel tracker from saved state so we don't re-trigger on reload
+    (state.productIntelligence || []).forEach(pi =>
+        productIntelTriggered.add((pi.product || '').toLowerCase()));
     maybeGreet();
+    renderReadinessBar();
+    resetIdleTimer(); // start 2-min idle nudge clock
     fetchAndBlendVocabulary();
 });
 </script>

@@ -290,6 +290,68 @@ def get_vocabulary(program_id: str):
         return jsonify({"loading_states": _BASE_LOADING_STATES})
 
 
+@designer.route("/<program_id>/product-intel", methods=["POST"])
+def product_intel(program_id: str):
+    """Lightweight intelligence lookup for a product identified in Phase 1 conversation.
+
+    Step 1: pure cache read (free, instant).
+    Step 2: if not found and company_name provided, run qualify() — discover + light scoring.
+    Returns { found, summary, score_boost }.
+    """
+    program = load_designer_program(program_id)
+    if program is None:
+        return jsonify({"error": "Program not found"}), 404
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "JSON body required"}), 400
+
+    product_name = (data.get("product_name") or "").strip()
+    company_name = (data.get("company_name") or "").strip()
+
+    if not product_name and not company_name:
+        return jsonify({"found": False, "summary": "", "score_boost": 0}), 200
+
+    from intelligence import lookup, qualify
+    from storage import find_analysis_by_company_name, find_discovery_by_company_name
+
+    # Step 1 — cache read (no API cost)
+    lookup_name = company_name or product_name
+    cached = lookup(lookup_name)
+    if cached.get("found"):
+        analysis = cached.get("analysis") or {}
+        products = analysis.get("products_json") or []
+        matched = next(
+            (p for p in products
+             if product_name and product_name.lower() in (p.get("name", "")).lower()),
+            None,
+        )
+        if matched:
+            delivery = matched.get("recommended_delivery_pattern", "")
+            lab_score = matched.get("lab_score", 0)
+            summary = (
+                f"delivery via {delivery}, labability score {lab_score}"
+                if delivery else f"labability score {lab_score}"
+            )
+            return jsonify({"found": True, "summary": summary, "score_boost": 20})
+        # Company found in cache but specific product not matched — still useful signal
+        co = analysis.get("company_name") or company_name
+        return jsonify({"found": True, "summary": f"{co} analysis loaded from Inspector", "score_boost": 10})
+
+    # Step 2 — qualify (discover + light Claude scoring) — only if we have a company name
+    if company_name:
+        try:
+            row = qualify(company_name)
+            if row:
+                method = row.get("labability_method") or ""
+                summary = f"discovered via Intelligence — {method}" if method else "discovered via Intelligence"
+                return jsonify({"found": True, "summary": summary, "score_boost": 15})
+        except Exception:
+            log.warning("product_intel: qualify failed for %s / %s", company_name, product_name)
+
+    return jsonify({"found": False, "summary": "", "score_boost": 0}), 200
+
+
 @designer.route("/<program_id>/outline", methods=["POST"])
 def save_outline(program_id: str):
     program = load_designer_program(program_id)
