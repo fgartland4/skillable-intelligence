@@ -27,7 +27,7 @@
             background: rgba(6,16,12,0.95); backdrop-filter: blur(8px);
             position: sticky; top: 0; z-index: 30;
         }
-        .nav img { height: 26px; filter: brightness(0) invert(1); opacity: 0.9; }
+        .nav img { height: 26px; }
         .nav-div { width: 1px; height: 18px; background: #1e3329; margin: 0 14px; }
         .nav-tool { font-size: 0.82rem; color: #6b9e88; font-weight: 600; }
         .nav-co { font-size: 0.82rem; color: #3d6655; margin-left: 6px; }
@@ -324,8 +324,7 @@
 
 <nav class="nav">
     <a href="/" title="Skillable Intelligence">
-        <img src="{{ url_for('static', filename='img/skillable-logo.png') }}" alt="Skillable"
-             onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'">
+        <img src="{{ url_for('static', filename='img/skillable-logo-white.svg') }}" alt="Skillable">
     </a>
     <div class="nav-div"></div>
     <span class="nav-tool">Inspector</span>

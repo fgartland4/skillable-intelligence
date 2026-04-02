@@ -98,11 +98,9 @@
         /* <a> must be block so it doesn't add inline spacing */
         .sidebar-header a { display: block; }
         .sidebar-logo {
-            width: 190px;
+            width: 120px;
             height: auto;
             display: block;
-            /* Compensate for internal whitespace in the logo PNG */
-            margin-left: -6px;
         }
 
         /* App label + program name — pushed down ~50px from logo */
@@ -1393,7 +1391,7 @@ const INITIAL_DATA = {{ program_json | safe }};
     <aside id="sidebar">
         <div class="sidebar-header">
             <a href="/">
-                <img src="/static/img/skillable-logo.png" alt="Skillable" class="sidebar-logo">
+                <img src="/static/img/skillable-logo-white.svg" alt="Skillable" class="sidebar-logo">
             </a>
         </div>
         <div class="sidebar-program-block">
