@@ -250,23 +250,20 @@
             transition: all var(--transition);
         }
         .btn-restart:hover { border-color: var(--color-danger); color: var(--color-danger); }
-        /* Shared style for Back + Preferences sidebar buttons */
-        .btn-sidebar-action {
-            display: flex; align-items: center; gap: 8px;
-            width: 100%; background: none;
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: var(--radius-sm);
-            color: var(--color-sidebar-muted);
-            font-size: 13px; font-family: inherit;
-            padding: 8px 12px; cursor: pointer; transition: all var(--transition);
-            text-align: left; text-decoration: none;
+        /* button.nav-link reset — so <button> elements get identical treatment to <a> nav links */
+        button.nav-link {
+            background: none;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
         }
-        .btn-sidebar-action:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
 
-        /* Actions block — raised above copyright */
+        /* Actions block — matches nav li margins, raised above copyright */
         .sidebar-actions {
-            padding: 0 16px 110px;
-            display: flex; flex-direction: column; gap: 6px;
+            padding: 0 8px 110px;
+            display: flex; flex-direction: column; gap: 2px;
             position: relative; z-index: 1;
         }
         .sidebar-copyright {
@@ -1153,11 +1150,17 @@ const INITIAL_DATA = {{ program_json | safe }};
             </ul>
         </nav>
         <div class="sidebar-actions">
-            <a href="/designer" class="btn-sidebar-action">
-                <span style="font-size:18px;line-height:1;">&#8617;</span> All Programs
+            <a href="/designer" class="nav-link">
+                <span class="nav-num">&#8617;</span>
+                <div class="nav-text">
+                    <span class="nav-title">All Programs</span>
+                </div>
             </a>
-            <button class="btn-sidebar-action btn-prefs" id="prefs-btn">
-                <span style="font-size:18px;line-height:1;">&#9881;</span> Preferences
+            <button class="nav-link btn-prefs" id="prefs-btn">
+                <span class="nav-num">&#9881;</span>
+                <div class="nav-text">
+                    <span class="nav-title">Preferences</span>
+                </div>
             </button>
         </div>
         <div class="sidebar-footer">
