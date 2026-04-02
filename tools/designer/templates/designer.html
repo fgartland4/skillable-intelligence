@@ -226,8 +226,9 @@
 
         /* Sidebar footer */
         .sidebar-footer {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
             padding: 8px 16px 14px;
-            position: relative;
             z-index: 1;
         }
         .btn-restart {
@@ -257,9 +258,9 @@
         }
         .btn-sidebar-action:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
 
-        /* Actions block — sits above copyright, not pinned to bottom edge */
+        /* Actions block — raised above copyright */
         .sidebar-actions {
-            padding: 0 16px 16px;
+            padding: 0 16px 110px;
             display: flex; flex-direction: column; gap: 6px;
             position: relative; z-index: 1;
         }
@@ -1041,7 +1042,7 @@ const INITIAL_DATA = {{ program_json | safe }};
         </nav>
         <div class="sidebar-actions">
             <a href="/designer" class="btn-sidebar-action">
-                <span style="font-size:18px;line-height:1;">&#8592;</span> Back to All Programs
+                <span style="font-size:18px;line-height:1;">&#8617;</span> All Programs
             </a>
             <button class="btn-sidebar-action btn-prefs" id="prefs-btn">
                 <span style="font-size:18px;line-height:1;">&#9881;</span> Preferences
