@@ -2113,6 +2113,9 @@ const productIntelTriggered = new Set();
 let idleTimer = null;
 let nudgeFired = false;
 
+// Demo mode flag — set when DEMO Hexelo is triggered
+let demoModeActive = false;
+
 // ============================================================
 // READINESS BAR
 // ============================================================
@@ -3165,10 +3168,249 @@ function handleP1Send(overrideText) {
     textarea.value = '';
     textarea.style.height = 'auto';
     resetIdleTimer(); // user is active — reset the 2-min nudge clock
+
+    // DEMO MODE trigger
+    if (text.trim().toLowerCase() === 'demo hexelo') {
+        addChatBubble('p1-chat-area', 'user', `<p>${escHtml(text)}</p>`);
+        runDemoMode();
+        return;
+    }
+
     sendChat(1, text);
 }
 
+// ============================================================
+// DEMO MODE — scripted simulation for "DEMO Hexelo"
+// ============================================================
+
+// Shared demo helpers (used by both Phase 1 and Phase 2 sequences)
+const _demoDelay = (ms) => new Promise(r => setTimeout(r, ms));
+
+function _demoTypeBubble(areaId, text, msPerWord = 52) {
+    return new Promise(resolve => {
+        const bubble = addChatBubble(areaId, 'assistant', '<p></p>');
+        const p = bubble.querySelector('p');
+        const words = text.split(' ');
+        let i = 0;
+        const tick = () => {
+            if (i >= words.length) { resolve(bubble); return; }
+            p.textContent += (i === 0 ? '' : ' ') + words[i++];
+            bubble.parentElement.scrollTop = bubble.parentElement.scrollHeight;
+            setTimeout(tick, msPerWord + Math.random() * 28);
+        };
+        tick();
+    });
+}
+
+function _demoChecklistSet(key, items, dotState) {
+    state.checklist = state.checklist || {};
+    state.checklist[key] = { state: dotState, items, value: items[0] || '' };
+    expandedChecklistKeys.add(key);
+    renderChecklist();
+    renderReadinessBar();
+    scheduleSave();
+}
+
+function runDemoMode() {
+    demoModeActive = true;
+
+    // Hexelo — fictional cybersecurity company, full Inspector dossier loaded
+    state.company_name = 'Hexelo';
+    state.program_name = 'Hexelo Sentinel Partner SE Enablement';
+    state.analysis_id = 'hexelo00';   // pre-loaded Inspector dossier → +40 readiness pts
+    state.attachmentCount = (state.attachmentCount || 0) + 4;
+    renderReadinessBar(); // show dossier score immediately
+
+    async function sequence() {
+        const area = 'p1-chat-area';
+
+        await _demoTypeBubble(area, 'Got it — pulling in those docs. Synthesizing now…');
+        await _demoDelay(800);
+
+        await _demoTypeBubble(area, 'Parsing learning objectives…');
+        await _demoDelay(500);
+        _demoChecklistSet('program_objectives', ['Enable partner SEs to deliver Hexelo Sentinel pre-sales POCs independently'], 'yellow');
+        await _demoDelay(900);
+
+        await _demoTypeBubble(area, 'Organizing. Identifying audience signals…');
+        await _demoDelay(400);
+        _demoChecklistSet('target_audience', ['Partner sales engineers and pre-sales consultants'], 'yellow');
+        await _demoDelay(700);
+
+        await _demoTypeBubble(area, 'Mapping primary product…');
+        await _demoDelay(400);
+        _demoChecklistSet('primary_product', ['Hexelo Sentinel'], 'yellow');
+
+        // Fake Inspector lookup — Sentinel is already in the dossier
+        await _demoDelay(600);
+        const intelBubble = addChatBubble(area, 'assistant',
+            '<p><em>Looking up <strong>Hexelo Sentinel</strong> in Inspector… keep going, I\'ll be right back.</em></p>');
+        await _demoDelay(1600);
+        intelBubble.innerHTML = '<p>Already have it — <strong>Hexelo Sentinel</strong> is in your Inspector dossier. AI-native EDR/XDR, lab score 88. Excellent fit for hands-on delivery.</p>';
+        state.productIntelligence = state.productIntelligence || [];
+        if (!state.productIntelligence.find(p => p.product === 'Hexelo Sentinel')) {
+            state.productIntelligence.push({ product: 'Hexelo Sentinel', found: true, summary: 'AI-native EDR/XDR, lab score 88', score_boost: 15 });
+            productIntelTriggered.add('hexelo sentinel');
+        }
+        renderReadinessBar();
+        await _demoDelay(800);
+
+        await _demoTypeBubble(area, 'Synthesizing… objectives are shaping up.');
+        await _demoDelay(400);
+        _demoChecklistSet('program_objectives', [
+            'Enable partner SEs to deliver Hexelo Sentinel pre-sales POCs independently',
+            'Build channel-ready demo fluency across Sentinel modules within two lab sessions'
+        ], 'green');
+        await _demoDelay(700);
+
+        _demoChecklistSet('target_audience', [
+            'Partner sales engineers and pre-sales consultants',
+            'Channel account managers seeking hands-on technical depth'
+        ], 'green');
+        await _demoDelay(600);
+
+        _demoChecklistSet('primary_product', [
+            'Hexelo Sentinel',
+            'Hexelo Perimeter (network detection, secondary scope)'
+        ], 'green');
+        await _demoDelay(600);
+
+        await _demoTypeBubble(area, 'Organizing success criteria…');
+        await _demoDelay(400);
+        _demoChecklistSet('success_criteria', ['Partners complete a live Sentinel POC end-to-end within the lab environment'], 'yellow');
+        await _demoDelay(800);
+
+        _demoChecklistSet('success_criteria', [
+            'Partners complete a live Sentinel POC end-to-end within the lab environment',
+            'Lab completion rate ≥ 80% across enrolled partner SEs in Q3'
+        ], 'green');
+        await _demoDelay(700);
+
+        await _demoTypeBubble(area, 'Got it. All four pillars are solid.');
+        await _demoDelay(600);
+        await _demoTypeBubble(area, "We've got enough to build a solid outline — the Generate Outline button is ready when you are.");
+        renderReadinessBar();
+        scheduleSave();
+    }
+
+    sequence().catch(err => console.error('Demo mode Phase 1 error:', err));
+}
+
+async function runDemoPhase2() {
+    switchPhase(2);
+    await _demoDelay(400);
+
+    const area = 'p2-chat-area';
+
+    await _demoTypeBubble(area, 'Building your program outline now — two series, thirteen labs total. Give me just a moment…');
+    await _demoDelay(700);
+    await _demoTypeBubble(area, 'Structuring Series 1: Hexelo Sentinel Foundations…');
+    await _demoDelay(500);
+
+    // Build outline progressively — Series 1 first (5 labs)
+    const series1 = {
+        id: 's1', title: 'Hexelo Sentinel Foundations',
+        labs: [
+            { id: 'l1', title: 'Navigating the Command Console', seat_time: 60, activities: [
+                { id: 'a1', title: 'Command Console orientation and NeuralScan health review', skill_tags: ['platform-navigation'] },
+                { id: 'a2', title: 'Configure a detection policy for a Windows endpoint', skill_tags: ['policy-management'] },
+                { id: 'a3', title: 'Verify agent deployment and connectivity via Sentinel API v2', skill_tags: ['deployment'] },
+            ]},
+            { id: 'l2', title: 'NeuralScan & Threat Detection', seat_time: 75, activities: [
+                { id: 'a1', title: 'Trigger a simulated behavioral attack and review the NeuralScan alert timeline', skill_tags: ['EDR', 'threat-detection'] },
+                { id: 'a2', title: 'Investigate process lineage using ProcessTrace', skill_tags: ['investigation'] },
+                { id: 'a3', title: 'Contain an endpoint and initiate a remote response session', skill_tags: ['response'] },
+                { id: 'a4', title: 'Document findings in the Command Console incident workflow', skill_tags: ['reporting'] },
+            ]},
+            { id: 'l3', title: 'ThreatCorr AI Investigation Workflows', seat_time: 60, activities: [
+                { id: 'a1', title: 'Review a ThreatCorr-correlated alert chain and validate AI evidence mapping', skill_tags: ['threat-intel', 'AI'] },
+                { id: 'a2', title: 'Build a custom behavioral detection rule in ProcessTrace', skill_tags: ['detection-engineering'] },
+                { id: 'a3', title: 'Map ThreatCorr findings to MITRE ATT&CK via TacticMap', skill_tags: ['MITRE', 'threat-intel'] },
+            ]},
+            { id: 'l4', title: 'MemoryGuard & In-Memory Attack Response', seat_time: 75, activities: [
+                { id: 'a1', title: 'Trigger an in-memory injection attack and validate MemoryGuard detection', skill_tags: ['EDR', 'memory-security'] },
+                { id: 'a2', title: 'Triage the MemoryGuard alert and execute a pre-built response playbook', skill_tags: ['IR', 'playbooks'] },
+                { id: 'a3', title: 'Escalate and assign the incident using the Command Console workflow', skill_tags: ['IR'] },
+                { id: 'a4', title: 'Generate a post-incident summary and export for stakeholder review', skill_tags: ['reporting'] },
+            ]},
+            { id: 'l5', title: 'Dashboards, Reporting & Executive Views', seat_time: 45, activities: [
+                { id: 'a1', title: 'Build a custom Command Console dashboard for executive security posture view', skill_tags: ['reporting', 'dashboards'] },
+                { id: 'a2', title: 'Schedule and export a compliance summary report via the Sentinel API', skill_tags: ['compliance'] },
+                { id: 'a3', title: 'Configure alert notification and escalation routing rules', skill_tags: ['configuration'] },
+            ]},
+        ]
+    };
+
+    state.outline = { series: [series1] };
+    renderOutline();
+    await _demoDelay(900);
+
+    await _demoTypeBubble(area, 'Series 1 is in. Building Series 2: Advanced Threat Hunting & Partner Delivery — eight labs…');
+    await _demoDelay(600);
+
+    const series2 = {
+        id: 's2', title: 'Advanced Threat Hunting & Partner Delivery',
+        labs: [
+            { id: 'l6', title: 'Threat Hunting with ThreatCorr Query Engine', seat_time: 75, activities: [
+                { id: 'a1', title: 'Write a baseline telemetry query against ProcessTrace event logs', skill_tags: ['threat-hunting', 'query'] },
+                { id: 'a2', title: 'Pivot on a suspicious process and build a hunt hypothesis in ThreatCorr', skill_tags: ['threat-hunting'] },
+                { id: 'a3', title: 'Save and schedule a recurring hunt in the Command Console', skill_tags: ['automation', 'hunting'] },
+                { id: 'a4', title: 'Export hunt findings and share with the team via the collaboration portal', skill_tags: ['collaboration'] },
+            ]},
+            { id: 'l7', title: 'Custom Detection Rule Engineering', seat_time: 60, activities: [
+                { id: 'a1', title: 'Identify a behavioral pattern and write a custom NeuralScan detection rule', skill_tags: ['detection-engineering'] },
+                { id: 'a2', title: 'Test the rule against historical ProcessTrace telemetry', skill_tags: ['validation'] },
+                { id: 'a3', title: 'Deploy the rule to a pilot endpoint group and monitor for false positives', skill_tags: ['deployment'] },
+            ]},
+            { id: 'l8', title: 'Hexelo Perimeter: Network Threat Detection', seat_time: 75, activities: [
+                { id: 'a1', title: 'Deploy Hexelo Perimeter virtual appliance and validate FlowSense ingestion', skill_tags: ['NDR', 'deployment'] },
+                { id: 'a2', title: 'Simulate lateral movement and validate FlowSense detection and alert', skill_tags: ['NDR', 'lateral-movement'] },
+                { id: 'a3', title: 'Configure ZoneGuard microsegmentation to isolate a simulated critical asset zone', skill_tags: ['microsegmentation', 'zero-trust'] },
+                { id: 'a4', title: 'Review TrafficIQ topology and map network anomalies to incident timeline', skill_tags: ['investigation', 'NDR'] },
+            ]},
+            { id: 'l9', title: 'Hexelo Vault: Privileged Access Fundamentals', seat_time: 60, activities: [
+                { id: 'a1', title: 'Run CredentialMap discovery against a multi-OU Active Directory domain', skill_tags: ['PAM', 'identity'] },
+                { id: 'a2', title: 'Configure VaultCore just-in-time access for a privileged admin account', skill_tags: ['PAM', 'JIT-access'] },
+                { id: 'a3', title: 'Review a SessionShield recording and identify policy violations', skill_tags: ['PAM', 'audit'] },
+            ]},
+            { id: 'l10', title: 'Cross-Platform Correlation: Sentinel + Perimeter', seat_time: 60, activities: [
+                { id: 'a1', title: 'Configure Sentinel–Perimeter integration and validate correlated alert flow in Command Console', skill_tags: ['XDR', 'integration'] },
+                { id: 'a2', title: 'Investigate a correlated endpoint+network threat chain using ThreatCorr and FlowSense data', skill_tags: ['investigation', 'XDR'] },
+                { id: 'a3', title: 'Produce an integrated incident report covering endpoint and network findings', skill_tags: ['reporting', 'XDR'] },
+            ]},
+            { id: 'l11', title: 'Zero Trust Architecture with Hexelo', seat_time: 75, activities: [
+                { id: 'a1', title: 'Map the customer environment to a Zero Trust maturity model using AccessGraph', skill_tags: ['zero-trust', 'identity'] },
+                { id: 'a2', title: 'Configure ZoneGuard and VaultCore policies to enforce Zero Trust access controls', skill_tags: ['zero-trust', 'policy'] },
+                { id: 'a3', title: 'Simulate an untrusted device access attempt and verify combined Sentinel+Perimeter block', skill_tags: ['zero-trust', 'validation'] },
+                { id: 'a4', title: 'Review access analytics and produce a Zero Trust posture summary for stakeholder presentation', skill_tags: ['reporting', 'pre-sales'] },
+            ]},
+            { id: 'l12', title: 'POC Delivery Workshop', seat_time: 90, activities: [
+                { id: 'a1', title: 'Scope a Hexelo Sentinel POC using the Nexus partner POC template', skill_tags: ['pre-sales', 'POC'] },
+                { id: 'a2', title: 'Deploy Sentinel agents and configure Command Console in the POC environment', skill_tags: ['deployment', 'POC'] },
+                { id: 'a3', title: 'Run a live NeuralScan threat simulation and walk evaluator through ThreatCorr findings', skill_tags: ['POC', 'presentation'] },
+                { id: 'a4', title: 'Produce and present a POC summary report with Hexelo value mapping', skill_tags: ['reporting', 'pre-sales'] },
+            ]},
+            { id: 'l13', title: 'Customer Scenario Simulations', seat_time: 90, activities: [
+                { id: 'a1', title: 'Run the financial services insider threat scenario using Sentinel + Vault', skill_tags: ['scenario', 'IR'] },
+                { id: 'a2', title: 'Run the healthcare ransomware containment scenario using MemoryGuard and ZoneGuard', skill_tags: ['scenario', 'IR'] },
+                { id: 'a3', title: 'Debrief and map scenario outcomes to Hexelo customer value metrics for stakeholder presentation', skill_tags: ['pre-sales', 'value-selling'] },
+            ]},
+        ]
+    };
+
+    state.outline.series.push(series2);
+    renderOutline();
+    await _demoDelay(700);
+
+    await _demoTypeBubble(area, 'Done — 2 series, 13 labs, 43 activities. Review the outline and let me know what to adjust before we move to content.');
+    scheduleSave();
+}
+
 document.getElementById('btn-generate-outline').addEventListener('click', () => {
+    if (demoModeActive) {
+        runDemoPhase2();
+        return;
+    }
     switchPhase(2);
     sendChat(2, 'Based on the program requirements we\'ve discussed, please generate a complete program outline with series, labs, and activities. Use the JSON block format for the outline.');
 });
