@@ -776,20 +776,22 @@
         }
         .btn-generate {
             width: 100%;
-            background: var(--color-primary);
-            color: #ffffff;
+            background: var(--color-border);
+            color: var(--color-text-muted);
             border: none;
             border-radius: var(--radius-sm);
-            padding: 11px;
+            padding: 10px 20px;
             font-size: 14px;
             font-weight: 600;
-            cursor: pointer;
-            transition: background var(--transition), opacity var(--transition);
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+            cursor: not-allowed;
+            transition: background var(--transition), color var(--transition);
         }
-        .btn-generate:hover { background: var(--color-primary-hover); }
-        .btn-generate:disabled { background: var(--color-border); color: var(--color-text-muted); cursor: not-allowed; }
-        .btn-generate.hidden { display: none; }
+        .btn-generate.ready {
+            background: var(--color-primary);
+            color: #ffffff;
+            cursor: pointer;
+        }
+        .btn-generate.ready:hover { background: var(--color-primary-hover); }
 
         /* ================================================================
            PHASE 2 — OUTLINE (middle pane, light mode)
@@ -1524,7 +1526,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                         <div class="readiness-bar-fill" id="readiness-bar-fill"></div>
                     </div>
                     <p class="readiness-note" id="readiness-note">Keep adding — I'll organize as we go.</p>
-                    <button class="btn-generate hidden" id="btn-generate-outline">
+                    <button class="btn-generate" id="btn-generate-outline" disabled>
                         Generate Outline →
                     </button>
                 </div>
@@ -2139,16 +2141,16 @@ function renderReadinessBar() {
 
     if (score >= 90) {
         if (note) note.textContent = 'Ready when you are.';
-        btn?.classList.remove('hidden');
+        if (btn) { btn.disabled = false; btn.classList.add('ready'); }
     } else if (score >= 70) {
         if (note) note.textContent = 'More is always better, but I can throw a draft together. You can keep refining from the outline.';
-        btn?.classList.remove('hidden');
+        if (btn) { btn.disabled = false; btn.classList.add('ready'); }
     } else if (score >= 40) {
         if (note) note.textContent = "Getting there, but keep the ideas coming…";
-        btn?.classList.add('hidden');
+        if (btn) { btn.disabled = true; btn.classList.remove('ready'); }
     } else {
         if (note) note.textContent = "Keep adding — I'll organize as we go.";
-        btn?.classList.add('hidden');
+        if (btn) { btn.disabled = true; btn.classList.remove('ready'); }
     }
 }
 
