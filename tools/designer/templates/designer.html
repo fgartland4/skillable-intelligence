@@ -269,6 +269,13 @@
             color: var(--color-sidebar-muted);
             text-align: center;
             margin-top: 4px;
+            text-decoration: none;
+            display: block;
+            transition: color var(--transition);
+        }
+        .sidebar-copyright:hover {
+            color: var(--color-sidebar-text);
+            text-decoration: none;
         }
 
         /* ================================================================
@@ -1049,7 +1056,7 @@ const INITIAL_DATA = {{ program_json | safe }};
             </button>
         </div>
         <div class="sidebar-footer">
-            <div class="sidebar-copyright">Skillable&#174; &nbsp;|&nbsp; All rights reserved</div>
+            <a href="https://skillable.com" target="_blank" rel="noopener" class="sidebar-copyright">Skillable&#174; &nbsp;|&nbsp; All rights reserved</a>
         </div>
     </aside>
 
