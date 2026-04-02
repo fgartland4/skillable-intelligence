@@ -1879,7 +1879,14 @@ function switchPhase(n) {
 document.querySelectorAll('#phase-nav .nav-link').forEach(a => {
     a.addEventListener('click', e => {
         e.preventDefault();
-        switchPhase(parseInt(a.dataset.phase));
+        const targetPhase = parseInt(a.dataset.phase);
+        // If Preferences is open, save and close it first, then land on the clicked phase
+        if (document.getElementById('prefs-section').classList.contains('active')) {
+            currentPhase = targetPhase;
+            closePrefs(); // saves prefs and calls switchPhase(currentPhase)
+        } else {
+            switchPhase(targetPhase);
+        }
     });
 });
 
