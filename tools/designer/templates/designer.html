@@ -333,15 +333,6 @@
             font-size: 12px;
             color: var(--color-text-muted);
         }
-        /* Wrapper div inside .pane-header when a phase label sits below the h2 */
-        .pane-header-block { flex: 1; }
-        .pane-header-block h2 { flex: unset; }
-        /* Phase indicator sub-label — muted green, sits under the h2 */
-        .pane-phase-label {
-            font-size: 11px;
-            color: #3d6655;
-            margin-top: 2px;
-        }
 
         /* ================================================================
            CHAT AREA — light bg, messages stack TOP to BOTTOM
@@ -1319,10 +1310,7 @@ const INITIAL_DATA = {{ program_json | safe }};
             <!-- Middle pane: chat -->
             <div class="pane-mid pane-mid-chat">
                 <div class="pane-header">
-                    <div class="pane-header-block">
-                        <h2>Collaborate &amp; Design</h2>
-                        <div class="pane-phase-label">Phase 1 of 4 — Program Blueprint</div>
-                    </div>
+                    <h2>Collaborate &amp; Design</h2>
                 </div>
                 <div class="drop-overlay" id="p1-drop-overlay">
                     <div class="drop-overlay-icon">&#128196;</div>
@@ -1391,10 +1379,7 @@ const INITIAL_DATA = {{ program_json | safe }};
             <!-- Middle pane: outline -->
             <div class="pane-mid">
                 <div class="pane-header">
-                    <div class="pane-header-block">
-                        <h2>Program Outline</h2>
-                        <div class="pane-phase-label">Phase 2 of 4 — Generate Outline</div>
-                    </div>
+                    <h2>Generate Outline</h2>
                     <button class="btn-skill-map" id="btn-skill-map">Skill Mapping</button>
                 </div>
                 <div class="outline-area" id="outline-area">
@@ -1464,10 +1449,7 @@ const INITIAL_DATA = {{ program_json | safe }};
             <!-- Middle pane: AI chat + lab selector -->
             <div class="pane-mid">
                 <div class="pane-header">
-                    <div class="pane-header-block">
-                        <h2>Draft Instructions</h2>
-                        <div class="pane-phase-label">Phase 3 of 4 — Draft Instructions</div>
-                    </div>
+                    <h2>Draft Instructions</h2>
                 </div>
                 <div class="lab-selector-bar">
                     <select class="lab-selector" id="p3-lab-selector">
@@ -1538,10 +1520,7 @@ const INITIAL_DATA = {{ program_json | safe }};
         <section class="phase-section" id="phase-4">
             <div class="pane-mid">
                 <div class="pane-header">
-                    <div class="pane-header-block">
-                        <h2>Package &amp; Export</h2>
-                        <div class="pane-phase-label">Phase 4 of 4 — Package &amp; Export</div>
-                    </div>
+                    <h2>Package &amp; Export</h2>
                 </div>
                 <div class="phase4-placeholder">
                     <div class="phase4-icon">&#128230;</div>
