@@ -77,11 +77,11 @@
             position: relative;
             z-index: 10;
         }
-        /* 18×18px grid overlay on sidebar — starts below the logo header */
+        /* 18×18px grid overlay on sidebar — starts below logo/title/nav header */
         #sidebar::after {
             content: '';
             position: absolute;
-            top: 64px; left: 0; right: 0; bottom: 0;
+            top: 160px; left: 0; right: 0; bottom: 0;
             background-image:
                 linear-gradient(var(--color-sidebar-grid) 1px, transparent 1px),
                 linear-gradient(90deg, var(--color-sidebar-grid) 1px, transparent 1px);
@@ -129,7 +129,6 @@
             position: relative;
             z-index: 1;
             transition: color var(--transition);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
         .sidebar-back:hover { color: var(--color-sidebar-text); }
         /* Program name area */
@@ -992,7 +991,6 @@ const INITIAL_DATA = {{ program_json | safe }};
         </div>
         <div class="sidebar-title-block">
             <h1>Lab Program Designer</h1>
-            <hr class="sidebar-hairline">
         </div>
         <a href="/designer" class="sidebar-back">← All Programs</a>
         <div class="sidebar-program-name">
