@@ -260,7 +260,7 @@
         }
         .mat-lbl:nth-child(2), .mat-lbl:nth-child(3) { text-align: center; }
         .mat-lbl:last-child { text-align: right; }
-        .mat-lbl-active { color: #24ED9B; }
+        .mat-lbl-active { color: #24ED9B; font-weight: 800; font-size: 0.65rem; }
         /* Signal badges (compact — snapshot only) */
         .mat-signals { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
         .mat-sig-badge {
@@ -335,8 +335,6 @@
     <a href="/">Start</a>
     <span class="bc-sep">/</span>
     <a href="/inspector/">Inspector</a>
-    <span class="bc-sep">/</span>
-    <span>Caseboard</span>
     <span class="bc-sep">/</span>
     <span class="bc-current">{{ discovery.company_name }}</span>
 </div>
@@ -459,17 +457,15 @@
                             <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
                             {% endfor %}
                         </div>
-                        <div class="mat-level-name" style="margin-top:8px; margin-bottom:0; font-size:0.9rem;">{{ mat_level }}</div>
                     </div>
 
                 </div>
 
                 {# Bottom: signal columns — populated from available discovery data #}
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; border-top:1px solid #1e3329; padding-top:12px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; border-top:1px solid #1e3329; padding-top:12px;">
                     <div>
-                        <div class="ci-col-label">Org Type</div>
-                        {% set ot = discovery.organization_type or 'software_company' %}
-                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ ot | replace('_',' ') | title }}</div>
+                        <div class="ci-col-label">Products Discovered</div>
+                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.products | length }} product{{ 's' if discovery.products | length != 1 else '' }}</div>
                     </div>
                     <div>
                         <div class="ci-col-label">Training Programs</div>
@@ -484,14 +480,15 @@
                     <div>
                         <div class="ci-col-label">Competitive Signals</div>
                         {% if discovery.competitive_products %}
-                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.competitive_products | length }} product{{ 's' if discovery.competitive_products | length != 1 else '' }}</div>
+                            {% set cp_list = discovery.competitive_products %}
+                            {% set cp_count = cp_list | length %}
+                            {% set cp_names = cp_list | map(attribute='competitor_name') | list %}
+                            <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">
+                                {{ cp_names[:2] | join(', ') }}{% if cp_count > 2 %} <span style="color:#3d6655;">+{{ cp_count - 2 }} more</span>{% endif %}
+                            </div>
                         {% else %}
                         <div class="ci-col-empty">None detected</div>
                         {% endif %}
-                    </div>
-                    <div>
-                        <div class="ci-col-label">Products Discovered</div>
-                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.products | length }} product{{ 's' if discovery.products | length != 1 else '' }}</div>
                     </div>
                 </div>
             </div>
