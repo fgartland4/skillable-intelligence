@@ -345,7 +345,7 @@
             flex-direction: column;
             gap: 16px;
             background: var(--color-bg);
-            /* NO justify-content: flex-end — messages stack top-to-bottom */
+            justify-content: flex-end; /* opening phrase anchored to bottom; scrolls up as messages grow */
         }
 
         /* Chat bubbles */
@@ -541,12 +541,25 @@
             border-bottom: 1px solid var(--color-border-light);
         }
         .checklist-item:last-child { border-bottom: none; }
-        /* Header row — not clickable, just label + dot */
+        /* Header row — clickable, toggles expanded */
         .checklist-item-header {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 11px 16px 4px;
+            padding: 11px 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checklist-item-header::after {
+            content: '›';
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-left: auto;
+            transition: transform 0.15s;
+            line-height: 1;
+        }
+        .checklist-item.expanded .checklist-item-header::after {
+            transform: rotate(90deg);
         }
         /* Status dot */
         .checklist-dot {
@@ -565,9 +578,13 @@
             color: var(--color-text);
             letter-spacing: 0.01em;
         }
-        /* Body — always visible */
+        /* Body — collapsed by default, expanded on click */
         .checklist-item-body {
-            padding: 2px 16px 12px 32px;
+            display: none;
+            padding: 0 16px 12px 32px;
+        }
+        .checklist-item.expanded .checklist-item-body {
+            display: block;
         }
         /* Empty hint text */
         .blueprint-empty-hint {
@@ -622,18 +639,32 @@
         }
         .blueprint-bullet:hover .blueprint-bullet-delete { opacity: 1; }
         .blueprint-bullet-delete:hover { color: var(--color-danger); }
-        /* "+ Add" link below bullets */
+        /* "+ Add" — styled as a bullet row */
         .blueprint-add-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
             background: none; border: none;
-            font-size: 11px;
+            font-size: 12px;
             color: var(--color-text-muted);
             cursor: pointer;
-            padding: 3px 0 0 0;
-            margin-top: 2px;
-            display: block;
+            padding: 2px 0;
+            margin-top: 1px;
+            width: 100%;
+            text-align: left;
             transition: color var(--transition);
         }
-        .blueprint-add-btn:hover { color: var(--color-primary); }
+        .blueprint-add-btn:hover { color: var(--color-primary-dark); }
+        .blueprint-add-btn::before {
+            content: '+';
+            color: var(--color-primary);
+            font-size: 13px;
+            line-height: 1.4;
+            flex-shrink: 0;
+            opacity: 0.65;
+            width: 9px;
+            text-align: center;
+        }
         /* Difficulty & Duration selects */
         .blueprint-prefs-row {
             display: flex;
@@ -2036,6 +2067,9 @@ const CHECKLIST_DEFS = [
       special: 'frameworks' },
 ];
 
+// Tracks which checklist keys are expanded — persists across renderChecklist() calls
+const expandedChecklistKeys = new Set();
+
 // ============================================================
 // UTILITIES
 // ============================================================
@@ -2251,6 +2285,8 @@ function renderChecklist() {
         const div = document.createElement('div');
         div.className = 'checklist-item';
         div.dataset.key = def.key;
+        // Restore expanded state across re-renders
+        if (expandedChecklistKeys.has(def.key)) div.classList.add('expanded');
 
         // ── Difficulty & Duration (prefs-linked) ──────────────────────────────
         if (def.special === 'prefs') {
@@ -2409,7 +2445,7 @@ function renderChecklist() {
                         ? `<div class="blueprint-empty-hint">${def.emptyHint}</div>`
                         : `<ul class="blueprint-bullets">${bulletsHtml}</ul>`
                     }
-                    <button class="blueprint-add-btn" data-key="${def.key}">+ Add</button>
+                    <button class="blueprint-add-btn" data-key="${def.key}">Add</button>
                 </div>`;
 
             // Contenteditable: save on blur / Enter, cancel on Escape
@@ -2437,9 +2473,10 @@ function renderChecklist() {
                     deleteBlueprintBullet(btn.dataset.key, parseInt(btn.dataset.idx)));
             });
 
-            // "+ Add" button — appends a blank editable bullet
+            // "Add" button — ensures expanded, appends a blank editable bullet
             div.querySelector('.blueprint-add-btn').addEventListener('click', () => {
                 const key = def.key;
+                expandedChecklistKeys.add(key);
                 const items = getBlueprintItems(key);
                 setBlueprintItems(key, [...items, '']);
                 // Focus the new item after re-render
@@ -2450,6 +2487,17 @@ function renderChecklist() {
                 }, 30);
             });
         }
+
+        // ── Header click → toggle expanded ───────────────────────────────────
+        div.querySelector('.checklist-item-header').addEventListener('click', () => {
+            if (expandedChecklistKeys.has(def.key)) {
+                expandedChecklistKeys.delete(def.key);
+                div.classList.remove('expanded');
+            } else {
+                expandedChecklistKeys.add(def.key);
+                div.classList.add('expanded');
+            }
+        });
 
         area.appendChild(div);
     });
@@ -2539,6 +2587,7 @@ function applyChecklistUpdates(updates) {
                 });
                 const dotState = merged.length >= 2 ? 'green' : 'yellow';
                 state.checklist[key] = { state: dotState, items: merged, value: merged[0] || '' };
+                expandedChecklistKeys.add(key); // auto-expand when AI adds content
             } else if (val.state) {
                 state.checklist[key] = { ...(state.checklist[key] || {}), state: val.state };
             }
@@ -2549,6 +2598,7 @@ function applyChecklistUpdates(updates) {
                 const merged   = [...existing, val.trim()];
                 const dotState = merged.length >= 2 ? 'green' : 'yellow';
                 state.checklist[key] = { state: dotState, items: merged, value: merged[0] };
+                expandedChecklistKeys.add(key); // auto-expand when AI adds content
             }
         }
         changed = true;
@@ -2674,9 +2724,10 @@ async function sendChat(phase, userText, extraContext) {
     let context = '';
     if (phase === 1) {
         context = `Program: ${state.program_name || 'Untitled'}\nCompany: ${state.company_name || ''}\n`;
-        context += 'Current checklist:\n' + CHECKLIST_DEFS.map(d => {
-            const item = (state.checklist || {})[d.key] || { state: 'gray', value: '' };
-            return `  ${d.label}: ${item.state} — ${item.value || 'empty'}`;
+        if (state.analysis_id) context += `Inspector analysis_id: ${state.analysis_id}\n`;
+        context += 'Current blueprint:\n' + CHECKLIST_DEFS.map(d => {
+            const items = getBlueprintItems(d.key);
+            return `  ${d.label}: ${items.length ? items.join('; ') : 'empty'}`;
         }).join('\n');
     } else if (phase === 2) {
         context = `Program: ${state.program_name || 'Untitled'}\n`;
@@ -3793,14 +3844,14 @@ function restoreState() {
 function maybeGreet() {
     if ((state.phase1_messages || []).length === 0) {
         const company = (state.company_name || '').trim();
-        const product = (state.primary_product || '').trim();
+        const analysisId = state.analysis_id;
         let welcomeHtml;
-        if (product) {
-            welcomeHtml = `<p>Got the ${product} context from Inspector. Who's the audience?</p>`;
+        if (analysisId && company) {
+            welcomeHtml = `<p>I've loaded your ${escHtml(company)} analysis from Inspector. Let's build on that — what are we making?</p>`;
         } else if (company) {
-            welcomeHtml = `<p>Working on a program for ${company} — what product or technology is this lab program built around?</p>`;
+            welcomeHtml = `<p>Working on a program for ${escHtml(company)}. What are we building?</p>`;
         } else {
-            welcomeHtml = `<p>What are we building — and who's it for?</p>`;
+            welcomeHtml = `<p>What are we building?</p>`;
         }
         addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
     }
