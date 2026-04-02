@@ -2699,8 +2699,9 @@ function loadPrefsToUI() {
     const labPatternEl = document.getElementById('pref-lab-title-pattern');
     if (labPatternEl) labPatternEl.value = p.lab_title_pattern || '';
 
-    // Style guide picklist
-    renderPicklist('style-guide-picker', p.style_guides || []);
+    // Style guide picklist — default to Microsoft Writing Style Guide if nothing set
+    const defaultStyleGuides = p.style_guides ?? ['Microsoft Writing Style Guide'];
+    renderPicklist('style-guide-picker', defaultStyleGuides);
     if ((p.style_guides || []).includes('__custom__')) {
         document.getElementById('custom-style-upload')?.classList.add('show');
     }
