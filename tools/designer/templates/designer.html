@@ -20,7 +20,7 @@
             --color-primary-light:  #e6faf2;
             --color-bg:             #f7f8fa;
             --color-surface:        #ffffff;
-            --color-sidebar:        #033c23;
+            --color-sidebar:        #0A3E28;
             --color-sidebar-hover:  #0a4f30;
             --color-sidebar-text:   rgba(255,255,255,0.85);
             --color-sidebar-muted:  rgba(255,255,255,0.45);
@@ -77,11 +77,11 @@
             position: relative;
             z-index: 10;
         }
-        /* 18×18px grid overlay on sidebar */
+        /* 18×18px grid overlay on sidebar — starts below the logo header */
         #sidebar::after {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 64px; left: 0; right: 0; bottom: 0;
             background-image:
                 linear-gradient(var(--color-sidebar-grid) 1px, transparent 1px),
                 linear-gradient(90deg, var(--color-sidebar-grid) 1px, transparent 1px);
