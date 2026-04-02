@@ -1452,14 +1452,14 @@ const INITIAL_DATA = {{ program_json | safe }};
 
                     <div class="prefs-input-row">
                         <div class="prefs-field">
-                            <label class="prefs-label">Lab Number Format</label>
-                            <input type="text" class="prefs-input" id="pref-lab-number-format" placeholder='e.g. Lab {n}'>
-                            <div class="prefs-field-hint">{n} = lab number</div>
+                            <label class="prefs-label">Standard Lab Number Pattern</label>
+                            <input type="text" class="prefs-input" id="pref-lab-number-format" placeholder='e.g. {company}-{product}-0000'>
+                            <div class="prefs-field-hint">Lab numbers can be helpful in Skillable Studio and can follow any pattern you like.</div>
                         </div>
                         <div class="prefs-field">
-                            <label class="prefs-label">Lab Title Pattern</label>
+                            <label class="prefs-label">Standard Lab Title Pattern</label>
                             <input type="text" class="prefs-input" id="pref-lab-title-pattern" placeholder='e.g. {gerund} {topic}'>
-                            <div class="prefs-field-hint">{gerund} = -ing action verb &nbsp;·&nbsp; {topic} = AI-generated topic</div>
+                            <div class="prefs-field-hint">Lab titles will be AI-generated following this pattern — you can change them at any time.</div>
                         </div>
                     </div>
                     <hr class="prefs-divider">
