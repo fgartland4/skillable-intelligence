@@ -1090,36 +1090,103 @@
             border-radius: 50%; background: var(--color-primary);
             display: block;
         }
-        /* Custom upload panel — used outside picklist (shared for framework pickers) */
+        /* ── Custom upload panels ─────────────────────────────────────
+           Used for both Custom Style Guide and Custom Skill Framework.
+           .custom-style-upload   — lives inside the style-guide-picker picklist
+           .custom-upload-panel   — lives outside both framework pickers (shared)
+           Both use the same inner .upload-dropzone + .upload-or-divider + URL input.
+        ──────────────────────────────────────────────────────────── */
+        .custom-style-upload {
+            display: none;
+            padding: 10px 12px 12px;
+            background: var(--color-bg);
+            border-top: 1px solid var(--color-border-light);
+        }
+        .custom-style-upload.show { display: block; }
+
         .custom-upload-panel {
-            display: none; margin-top: 8px;
-            padding: 10px 12px;
+            display: none; margin-top: 10px;
+            padding: 12px;
             background: var(--color-bg);
             border: 1px solid var(--color-border-light);
             border-radius: var(--radius-sm);
         }
         .custom-upload-panel.show { display: block; }
-        /* Custom style guide upload row */
-        .custom-style-upload {
-            display: none; padding: 8px 12px 10px;
-            background: var(--color-bg);
-            border-top: 1px solid var(--color-border-light);
+
+        /* Drag-and-drop dropzone */
+        .upload-dropzone {
+            position: relative;
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 18px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color var(--transition), background var(--transition);
+            background: var(--color-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 68px;
         }
-        .custom-style-upload.show { display: block; }
-        .custom-style-upload-label {
-            font-size: 12px; color: var(--color-text-light);
-            margin-bottom: 6px; display: block;
+        .upload-dropzone:hover,
+        .upload-dropzone.dragover {
+            border-color: var(--color-primary);
+            background: rgba(36, 237, 152, 0.04);
         }
-        .btn-upload-guide {
-            background: none; border: 1px dashed var(--color-border);
-            border-radius: var(--radius-sm); color: var(--color-text-muted);
-            font-size: 12px; padding: 6px 12px; cursor: pointer;
-            transition: all var(--transition); width: 100%; text-align: left;
+        .upload-dropzone input[type="file"] {
+            position: absolute; inset: 0;
+            opacity: 0; cursor: pointer; width: 100%; height: 100%;
         }
-        .btn-upload-guide:hover { border-color: var(--color-primary); color: var(--color-primary); }
-        .custom-guide-name {
-            font-size: 12px; color: var(--color-primary);
-            margin-top: 4px; display: none;
+        .upload-dropzone-prompt {
+            display: flex; flex-direction: column;
+            align-items: center; gap: 3px;
+            pointer-events: none;
+        }
+        .upload-dropzone-icon {
+            font-size: 20px; color: var(--color-text-muted);
+            line-height: 1; margin-bottom: 2px;
+        }
+        .upload-dropzone-label {
+            font-size: 13px; color: var(--color-text-muted); font-weight: 500;
+        }
+        .upload-dropzone-hint {
+            font-size: 11px; color: var(--color-text-light);
+        }
+        /* File loaded state */
+        .upload-dropzone-file {
+            display: none; align-items: center; gap: 8px;
+            pointer-events: none; width: 100%;
+            justify-content: center;
+        }
+        .upload-dropzone.has-file .upload-dropzone-prompt { display: none; }
+        .upload-dropzone.has-file .upload-dropzone-file { display: flex; }
+        .upload-file-name {
+            font-size: 13px; font-weight: 500;
+            color: var(--color-primary); word-break: break-all;
+        }
+        .upload-file-clear {
+            pointer-events: all;
+            background: none; border: none;
+            color: var(--color-text-muted); cursor: pointer;
+            font-size: 14px; padding: 2px 4px;
+            border-radius: 3px; line-height: 1; flex-shrink: 0;
+        }
+        .upload-file-clear:hover { color: #e53e3e; }
+        /* "or" divider between dropzone and URL input */
+        .upload-or-divider {
+            text-align: center; font-size: 11px;
+            color: var(--color-text-muted); margin: 8px 0;
+            position: relative;
+        }
+        .upload-or-divider::before,
+        .upload-or-divider::after {
+            content: ''; position: absolute; top: 50%;
+            width: 44%; height: 1px; background: var(--color-border-light);
+        }
+        .upload-or-divider::before { left: 0; }
+        .upload-or-divider::after { right: 0; }
+        .upload-url-hint {
+            font-size: 11px; color: var(--color-text-muted); margin-top: 4px;
         }
 
         /* ================================================================
@@ -1550,10 +1617,21 @@ const INITIAL_DATA = {{ program_json | safe }};
                                 <div class="prefs-picklist-check"></div>Custom Style Guide (upload)
                             </div>
                             <div class="custom-style-upload" id="custom-style-upload">
-                                <span class="custom-style-upload-label">Upload a .txt, .md, or .pdf style guide to apply when generating instructions.</span>
-                                <button class="btn-upload-guide" id="btn-upload-style-guide" type="button">📄 Choose file…</button>
-                                <div class="custom-guide-name" id="custom-style-guide-name"></div>
-                                <input type="file" id="style-guide-file-input" accept=".txt,.md,.pdf,.docx" style="display:none;">
+                                <div class="upload-dropzone" id="style-guide-dropzone">
+                                    <div class="upload-dropzone-prompt">
+                                        <span class="upload-dropzone-icon">↑</span>
+                                        <span class="upload-dropzone-label">Click or drag to upload</span>
+                                        <span class="upload-dropzone-hint">.txt &nbsp;·&nbsp; .md &nbsp;·&nbsp; .pdf &nbsp;·&nbsp; .docx</span>
+                                    </div>
+                                    <div class="upload-dropzone-file">
+                                        <span class="upload-file-name" id="style-guide-file-name"></span>
+                                        <button class="upload-file-clear" data-clear="style-guide" type="button">✕</button>
+                                    </div>
+                                    <input type="file" id="style-guide-file-input" accept=".txt,.md,.pdf,.docx">
+                                </div>
+                                <div class="upload-or-divider">or</div>
+                                <input type="url" class="prefs-input" id="pref-custom-style-url" placeholder="https://your-company.com/style-guide">
+                                <div class="upload-url-hint">Paste a URL to your style guide</div>
                             </div>
                             <hr class="prefs-picklist-divider">
                             <div class="prefs-picklist-item" data-value="Microsoft Writing Style Guide">
@@ -1570,6 +1648,7 @@ const INITIAL_DATA = {{ program_json | safe }};
                             </div>
                         </div>
                     </div>
+                    <hr class="prefs-divider">
                     <div class="prefs-field">
                         <label class="prefs-label">Always-On Reference — Documentation URL</label>
                         <input type="url" class="prefs-input" id="pref-ref-doc-url" placeholder="https://docs.example.com">
@@ -1645,10 +1724,21 @@ const INITIAL_DATA = {{ program_json | safe }};
                     </div>
                     <!-- Shared custom framework upload — shown when Custom is selected in either picker -->
                     <div class="custom-upload-panel" id="custom-framework-upload">
-                        <span class="custom-style-upload-label">Upload a .txt, .csv, .json, or .md framework file. This taxonomy will be applied when tagging activities.</span>
-                        <button class="btn-upload-guide" id="btn-upload-framework" type="button">📄 Choose file…</button>
-                        <div class="custom-guide-name" id="custom-framework-name"></div>
-                        <input type="file" id="framework-file-input" accept=".txt,.md,.csv,.json" style="display:none;">
+                        <div class="upload-dropzone" id="framework-dropzone">
+                            <div class="upload-dropzone-prompt">
+                                <span class="upload-dropzone-icon">↑</span>
+                                <span class="upload-dropzone-label">Click or drag to upload</span>
+                                <span class="upload-dropzone-hint">.txt &nbsp;·&nbsp; .md &nbsp;·&nbsp; .csv &nbsp;·&nbsp; .json</span>
+                            </div>
+                            <div class="upload-dropzone-file">
+                                <span class="upload-file-name" id="framework-file-name"></span>
+                                <button class="upload-file-clear" data-clear="framework" type="button">✕</button>
+                            </div>
+                            <input type="file" id="framework-file-input" accept=".txt,.md,.csv,.json">
+                        </div>
+                        <div class="upload-or-divider">or</div>
+                        <input type="url" class="prefs-input" id="pref-custom-framework-url" placeholder="https://your-company.com/framework">
+                        <div class="upload-url-hint">Paste a URL to your framework</div>
                     </div>
                 </div>
 
@@ -2767,11 +2857,17 @@ function loadPrefsToUI() {
     const defaultStyleGuides = p.style_guides ?? ['Microsoft Writing Style Guide'];
     renderPicklist('style-guide-picker', defaultStyleGuides);
 
-    const csgName = document.getElementById('custom-style-guide-name');
-    if (csgName && p.custom_style_guide_name) {
-        csgName.textContent = '✓ ' + p.custom_style_guide_name;
-        csgName.style.display = 'block';
+    // Restore custom style guide dropzone state
+    const sgDropzone = document.getElementById('style-guide-dropzone');
+    const sgFileName = document.getElementById('style-guide-file-name');
+    if (sgDropzone && p.custom_style_guide_name) {
+        if (sgFileName) sgFileName.textContent = p.custom_style_guide_name;
+        sgDropzone.classList.add('has-file');
+    } else if (sgDropzone) {
+        sgDropzone.classList.remove('has-file');
     }
+    const sgUrlEl = document.getElementById('pref-custom-style-url');
+    if (sgUrlEl) sgUrlEl.value = p.custom_style_guide_url || '';
 
     const refDocEl = document.getElementById('pref-ref-doc-url');
     if (refDocEl) refDocEl.value = p.ref_doc_url || '';
@@ -2786,11 +2882,17 @@ function loadPrefsToUI() {
     // Additional frameworks — multi-select checkbox picklist
     renderPicklist('framework-picker', p.skill_frameworks || []);
 
-    const cfName = document.getElementById('custom-framework-name');
-    if (cfName && p.custom_framework_name) {
-        cfName.textContent = '✓ ' + p.custom_framework_name;
-        cfName.style.display = 'block';
+    // Restore custom framework dropzone state
+    const fwDropzone = document.getElementById('framework-dropzone');
+    const fwFileName = document.getElementById('framework-file-name');
+    if (fwDropzone && p.custom_framework_name) {
+        if (fwFileName) fwFileName.textContent = p.custom_framework_name;
+        fwDropzone.classList.add('has-file');
+    } else if (fwDropzone) {
+        fwDropzone.classList.remove('has-file');
     }
+    const fwUrlEl = document.getElementById('pref-custom-framework-url');
+    if (fwUrlEl) fwUrlEl.value = p.custom_framework_url || '';
 
     // Sync custom upload panel visibility after rendering both framework pickers
     updateCustomUploadVisibility();
@@ -2946,36 +3048,97 @@ function setupPicklists() {
     });
 }
 
-// ── Custom style guide upload ────────────────────────────────
-document.getElementById('btn-upload-style-guide')?.addEventListener('click', () => {
-    document.getElementById('style-guide-file-input')?.click();
+// ── Upload dropzone helpers ──────────────────────────────────
+
+// Wire a drag-and-drop dropzone + file input + clear button.
+// config: { dropzoneId, fileInputId, fileNameId, prefKey, prefNameKey, accept }
+function setupUploadDropzone(config) {
+    const dropzone  = document.getElementById(config.dropzoneId);
+    const fileInput = document.getElementById(config.fileInputId);
+    const fileNameEl = document.getElementById(config.fileNameId);
+    if (!dropzone || !fileInput) return;
+
+    // Restore loaded state on open
+    function restoreState() {
+        const name = (state.preferences || {})[config.prefNameKey];
+        if (name) {
+            if (fileNameEl) fileNameEl.textContent = name;
+            dropzone.classList.add('has-file');
+        }
+    }
+    restoreState();
+
+    // Load a file: read as text, store content + name, show filename in dropzone
+    async function loadFile(file) {
+        if (!file) return;
+        const text = await readFileAsText(file);
+        state.preferences = state.preferences || {};
+        state.preferences[config.prefKey]     = text;
+        state.preferences[config.prefNameKey] = file.name;
+        if (fileNameEl) fileNameEl.textContent = file.name;
+        dropzone.classList.add('has-file');
+        // Clear any URL that was set
+        const urlEl = document.getElementById(config.urlInputId);
+        if (urlEl) urlEl.value = '';
+        if (config.prefUrlKey) delete state.preferences[config.prefUrlKey];
+    }
+
+    // File input change
+    fileInput.addEventListener('change', function() {
+        loadFile(this.files[0]);
+        this.value = '';
+    });
+
+    // Drag-and-drop events
+    dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', ()  => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        loadFile(e.dataTransfer.files[0]);
+    });
+
+    // Clear button
+    dropzone.querySelector('.upload-file-clear')?.addEventListener('click', e => {
+        e.stopPropagation(); // don't trigger file picker
+        state.preferences = state.preferences || {};
+        delete state.preferences[config.prefKey];
+        delete state.preferences[config.prefNameKey];
+        if (fileNameEl) fileNameEl.textContent = '';
+        dropzone.classList.remove('has-file');
+        fileInput.value = '';
+    });
+}
+
+// ── Style guide dropzone ─────────────────────────────────────
+setupUploadDropzone({
+    dropzoneId:  'style-guide-dropzone',
+    fileInputId: 'style-guide-file-input',
+    fileNameId:  'style-guide-file-name',
+    prefKey:     'custom_style_guide_content',
+    prefNameKey: 'custom_style_guide_name',
+    prefUrlKey:  'custom_style_guide_url',
+    urlInputId:  'pref-custom-style-url',
 });
-document.getElementById('style-guide-file-input')?.addEventListener('change', async function() {
-    const file = this.files[0];
-    if (!file) return;
-    const text = await readFileAsText(file);
+document.getElementById('pref-custom-style-url')?.addEventListener('input', function() {
     state.preferences = state.preferences || {};
-    state.preferences.custom_style_guide_content = text;
-    state.preferences.custom_style_guide_name = file.name;
-    const nameEl = document.getElementById('custom-style-guide-name');
-    if (nameEl) { nameEl.textContent = '✓ ' + file.name; nameEl.style.display = 'block'; }
-    this.value = '';
+    state.preferences.custom_style_guide_url = this.value;
 });
 
-// ── Custom framework upload ──────────────────────────────────
-document.getElementById('btn-upload-framework')?.addEventListener('click', () => {
-    document.getElementById('framework-file-input')?.click();
+// ── Framework dropzone ───────────────────────────────────────
+setupUploadDropzone({
+    dropzoneId:  'framework-dropzone',
+    fileInputId: 'framework-file-input',
+    fileNameId:  'framework-file-name',
+    prefKey:     'custom_framework_content',
+    prefNameKey: 'custom_framework_name',
+    prefUrlKey:  'custom_framework_url',
+    urlInputId:  'pref-custom-framework-url',
 });
-document.getElementById('framework-file-input')?.addEventListener('change', async function() {
-    const file = this.files[0];
-    if (!file) return;
-    const text = await readFileAsText(file);
+document.getElementById('pref-custom-framework-url')?.addEventListener('input', function() {
     state.preferences = state.preferences || {};
-    state.preferences.custom_framework_content = text;
-    state.preferences.custom_framework_name = file.name;
-    const nameEl = document.getElementById('custom-framework-name');
-    if (nameEl) { nameEl.textContent = '✓ ' + file.name; nameEl.style.display = 'block'; }
-    this.value = '';
+    state.preferences.custom_framework_url = this.value;
+});
 });
 
 // Provider change → show/hide custom endpoint
