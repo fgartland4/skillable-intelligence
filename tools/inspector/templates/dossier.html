@@ -193,10 +193,10 @@
             display: flex; flex-direction: column; gap: 6px;
         }
         .next-steps-list li {
-            font-size: 0.84rem; color: #a8d5c2; line-height: 1.5;
+            font-size: 0.84rem; color: #c8e8d8; line-height: 1.5;
         }
-        .next-steps-list li strong { color: #e8f5f0; font-weight: 600; }
-        .next-steps-list li a { color: #24ED9B; }
+        .next-steps-list li strong { color: #e8f5f0; font-weight: 700; }
+        .next-steps-list li a { color: #e8f5f0; }
         .next-steps-list .step-risk { color: #f87171; }
 
         /* ======================================
@@ -536,26 +536,21 @@
 <div class="container">
 
     {# Top nav row #}
-    <div style="margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap;">
         {% if data.discovery_id %}
-        <a href="/inspector/caseboard/{{ data.discovery_id }}" class="back">&larr; Inspector Caseboard</a>
+        <a href="/inspector/caseboard/{{ data.discovery_id }}" class="btn-choose-products">&larr; Choose Different Products</a>
         {% else %}
-        <a href="/inspector/" class="back">&larr; New Search</a>
+        <a href="/inspector/" class="btn-choose-products">&larr; New Search</a>
         {% endif %}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
-            <span style="font-size:0.72rem;color:#3d6655;">
-                Analyzed {{ data.analyzed_at[:10] if data.analyzed_at else '' }}
-                &middot; {{ data.products|length }}
-                {% set ot = data.organization_type %}
-                {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}program{% else %}product{% endif %}{{ 's' if data.products|length != 1 else '' }} scored
-                {% if competitors_logged and competitors_logged > 0 %}
-                &middot; <button class="comp-link" onclick="document.getElementById('compModal').classList.add('open')">{{ competitors_logged }} competitor{{ 's' if competitors_logged != 1 else '' }} logged</button>
-                {% endif %}
-            </span>
-            {% if data.discovery_id %}
-            <a href="/inspector/caseboard/{{ data.discovery_id }}" class="btn-choose-products">&larr; Choose Different Products</a>
+        <span style="font-size:0.72rem;color:#3d6655;white-space:nowrap;">
+            Analyzed {{ data.analyzed_at[:10] if data.analyzed_at else '' }}
+            &middot; {{ data.products|length }}
+            {% set ot = data.organization_type %}
+            {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}program{% else %}product{% endif %}{{ 's' if data.products|length != 1 else '' }} scored
+            {% if competitors_logged and competitors_logged > 0 %}
+            &middot; <button class="comp-link" onclick="document.getElementById('compModal').classList.add('open')">{{ competitors_logged }} competitor{{ 's' if competitors_logged != 1 else '' }} logged</button>
             {% endif %}
-        </div>
+        </span>
     </div>
 
     {% if from_cache %}
@@ -622,7 +617,7 @@
             <div class="seller-acv-hero">
                 <div class="seller-acv-label">Estimated Annual Value</div>
                 <div class="seller-acv-value">${{ "{:,}".format(ns.acv_low | int) }}&ndash;${{ "{:,}".format(ns.acv_high | int) }}</div>
-                <div class="seller-acv-note">estimated ACV across {{ ns.cp_count }} product{{ 's' if ns.cp_count != 1 else '' }}</div>
+                <div class="seller-acv-note">estimated ACV based on {{ ns.cp_count }} of {{ data.products|length }} products</div>
             </div>
             {% endif %}
             {% if ns_hero.gate_blocks %}
@@ -659,6 +654,18 @@
             {% endif %}
         {% endfor %}
 
+        {# Pre-compute champion insight from top product's recommendation bullets #}
+        {% set ns_champ = namespace(text=none) %}
+        {% if top_p and top_p.recommendation %}
+            {% for bullet in top_p.recommendation %}
+                {% set bl = bullet | lower %}
+                {% if ns_champ.text is none and ('help your champion' in bl or 'essential technical' in bl) %}
+                    {% set stripped = bullet | replace('**Help your champion find:**', '') | replace('**Essential technical question:**', '') | replace('Help your champion find:', '') | trim %}
+                    {% set ns_champ.text = stripped %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
         {# Info grid — 2×2 #}
         {% set pr = data.lab_maturity or data.partnership_readiness or {} %}
         {% set ns_flags2 = namespace(bad=[]) %}
@@ -669,19 +676,38 @@
         {% endfor %}
         <div class="seller-grid">
 
-            {# TL: Composite Score #}
+            {# TL: Composite Score + 40/30/20/10 breakdown #}
+            {% if top_p %}
+            {% set tp_tech = top_p.labability_score.technical_orchestrability.score | default(0) %}
+            {% set tp_wf   = top_p.labability_score.workflow_complexity.score | default(0) %}
+            {% set tp_te   = top_p.labability_score.training_ecosystem.score | default(0) %}
+            {% set tp_mf   = top_p.labability_score.market_fit.score | default(0) %}
+            {% endif %}
             <div class="seller-cell">
-                <div class="seller-cell-label">Composite Score &mdash; Lead Product</div>
-                <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 10px;">
+                <div class="seller-cell-label">Composite Score</div>
+                <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px;">
                     <span style="font-size:3.2rem;font-weight:900;letter-spacing:-0.04em;line-height:1;color:{% if top_score>=70 %}#24ED9B{% elif top_score>=45 %}#6b9e88{% elif top_score>=20 %}#fb923c{% else %}#f87171{% endif %};">{{ top_score }}</span>
-                    <span style="font-size:0.78rem;color:#3d6655;font-weight:600;">/100</span>
+                    <div style="display:flex;flex-direction:column;gap:3px;">
+                        <span style="font-size:0.72rem;color:#3d6655;font-weight:600;">/100</span>
+                        <span class="verdict-badge verdict-{{ top_verdict }}">{{ top_verdict_label }}</span>
+                    </div>
                 </div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-                    <span class="verdict-badge verdict-{{ top_verdict }}">{{ top_verdict_label }}</span>
-                    {% if top_p %}<span style="font-size:0.72rem;color:#6b9e88;">{{ top_p.name }}</span>{% endif %}
+                {# 4-dimension breakdown #}
+                {% if top_p %}
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                    {% for dim_label, dim_score, dim_max in [
+                        ('Product Labability', tp_tech, 40),
+                        ('Workflow Complexity', tp_wf, 30),
+                        ('Training Ecosystem', tp_te, 20),
+                        ('Market Fit', tp_mf, 10)
+                    ] %}
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:0.72rem;color:#6b9e88;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ dim_label }}</span>
+                        <span style="font-size:0.82rem;font-weight:900;flex-shrink:0;color:{% if (dim_score/dim_max)>=0.7 %}#24ED9B{% elif (dim_score/dim_max)>=0.45 %}#6b9e88{% elif (dim_score/dim_max)>=0.25 %}#fb923c{% else %}#f87171{% endif %};">{{ dim_score }}</span>
+                        <span style="font-size:0.62rem;color:#3d6655;flex-shrink:0;">/{{ dim_max }}</span>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% if data.lab_maturity_score %}
-                <div style="font-size:0.68rem;color:#3d6655;margin-top:6px;">Program Maturity: <span style="color:#6b9e88;font-weight:700;">{{ data.lab_maturity_score }}</span>/100</div>
                 {% endif %}
             </div>
 
@@ -703,66 +729,80 @@
                 </div>
             </div>
 
-            {# BL: Company Profile #}
+            {# BL: Company Profile + Signals #}
             <div class="seller-cell">
-                <div class="seller-cell-label">Company Profile</div>
-                <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;">
-                    {% set ot = data.organization_type %}
-                    {% if ot == 'software_company' %}<span class="org-badge org-software">Software Company</span>
-                    {% elif ot == 'training_organization' %}<span class="org-badge org-training">Training Org</span>
-                    {% elif ot == 'academic_institution' %}<span class="org-badge org-academic">Academic</span>
-                    {% elif ot == 'systems_integrator' %}<span class="org-badge org-integrator">Systems Integrator</span>
-                    {% elif ot == 'technology_distributor' %}<span class="org-badge org-distributor">Distributor</span>
-                    {% elif ot %}<span class="org-badge org-services">{{ ot|replace('_',' ')|title }}</span>{% endif %}
-                    {% if pr %}
-                        {% set tom = pr.get('training_org_maturity', {}) or {} %}
-                        {% set pp2 = pr.get('partner_program', {}) or {} %}
-                        {% set tr2 = pr.get('tech_readiness', {}) or {} %}
-                        {% if tom.get('score', 0) >= 15 %}<span class="co-sig-bdg co-sig-green">Training Org</span>{% endif %}
-                        {% if pp2.get('score', 0) >= 10 %}<span class="co-sig-bdg co-sig-green">Partner Program</span>{% endif %}
-                        {% if tr2.get('score', 0) >= 5 %}<span class="co-sig-bdg co-sig-teal">Lab-Ready Tech</span>{% endif %}
-                    {% endif %}
-                    {% set ns_s2 = namespace(saas=0) %}
-                    {% for p in data.products %}
-                        {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}{% set ns_s2.saas = ns_s2.saas + 1 %}{% endif %}
-                    {% endfor %}
-                    {% if ns_s2.saas == data.products|length and data.products|length > 0 %}<span class="co-sig-bdg co-sig-red">All SaaS</span>
-                    {% elif ns_s2.saas > 0 %}<span class="co-sig-bdg co-sig-amber">{{ ns_s2.saas }} SaaS-Only</span>{% endif %}
-                </div>
-            </div>
-
-            {# BR: Good / Bad / Ugly #}
-            <div class="seller-cell">
-                <div class="seller-cell-label">Signals</div>
-                <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
-                    {# Good #}
+                <div class="seller-cell-label">Company Profile &amp; Signals</div>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                    {# Good signals #}
                     {% set ns_good = namespace(items=[]) %}
                     {% if pr %}
                         {% set tom = pr.get('training_org_maturity', {}) or {} %}
                         {% set pp2 = pr.get('partner_program', {}) or {} %}
                         {% set cs2 = pr.get('customer_success', {}) or {} %}
+                        {% set tr2 = pr.get('tech_readiness', {}) or {} %}
                         {% if tom.get('score', 0) >= 20 %}{% set ns_good.items = ns_good.items + ['Training Org'] %}{% endif %}
                         {% if pp2.get('score', 0) >= 12 %}{% set ns_good.items = ns_good.items + ['ATP Program'] %}{% endif %}
                         {% if cs2.get('score', 0) >= 18 %}{% set ns_good.items = ns_good.items + ['Customer Success'] %}{% endif %}
+                        {% if tr2.get('score', 0) >= 5 %}{% set ns_good.items = ns_good.items + ['Lab-Ready Tech'] %}{% endif %}
                     {% endif %}
                     {% if ns_good.items %}
                     <div>
-                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#24ED9B;margin-bottom:4px;">Good</div>
+                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#24ED9B;margin-bottom:5px;">Good</div>
                         <div style="display:flex;flex-wrap:wrap;gap:4px;">
                             {% for item in ns_good.items %}<span class="lab-bdg lab-bdg-hl">{{ item }}</span>{% endfor %}
                         </div>
                     </div>
                     {% endif %}
-                    {# Bad / Ugly #}
+                    {# Blockers #}
                     {% if ns_flags2.bad %}
                     <div>
-                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#f87171;margin-bottom:4px;">Blockers</div>
+                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#f87171;margin-bottom:5px;">Blockers</div>
                         <div style="display:flex;flex-wrap:wrap;gap:4px;">
                             {% for flag in ns_flags2.bad[:6] %}<span class="flag-badge">{{ flag|replace('_',' ')|title }}</span>{% endfor %}
                         </div>
                     </div>
                     {% else %}
                     <div style="font-size:0.72rem;color:#3d6655;font-style:italic;">No blockers detected</div>
+                    {% endif %}
+                    {# SaaS risk #}
+                    {% set ns_s2 = namespace(saas=0) %}
+                    {% for p in data.products %}
+                        {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}{% set ns_s2.saas = ns_s2.saas + 1 %}{% endif %}
+                    {% endfor %}
+                    {% if ns_s2.saas > 0 %}
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                        {% if ns_s2.saas == data.products|length %}<span class="co-sig-bdg co-sig-red">All SaaS-Only</span>
+                        {% else %}<span class="co-sig-bdg co-sig-amber">{{ ns_s2.saas }} SaaS-Only</span>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# BR: Per-product ACV estimates #}
+            <div class="seller-cell">
+                <div class="seller-cell-label">Consumption Potential</div>
+                <div style="display:flex;flex-direction:column;gap:7px;margin-top:8px;">
+                    {% set ns_any_acv = namespace(found=false) %}
+                    {% for p in data.products %}
+                    {% set cp_br = p.get('consumption_potential', {}) or {} %}
+                    {% set br_hi = cp_br.get('annual_hours_high', 0) %}
+                    {% if br_hi > 0 %}
+                    {% set ns_any_acv.found = true %}
+                    {% set br_sp = p.skillable_path or '' %}
+                    {% if br_sp == 'C' %}{% set br_rlo = 5.0 %}{% set br_rhi = 5.0 %}
+                    {% elif cp_br.get('vm_rate_estimate', 0) > 0 %}{% set br_rlo = cp_br.get('vm_rate_estimate') %}{% set br_rhi = cp_br.get('vm_rate_estimate') %}
+                    {% elif br_sp in ['A','A1','A2'] %}{% set br_rlo = 10.5 %}{% set br_rhi = 10.5 %}
+                    {% else %}{% set br_rlo = 12.0 %}{% set br_rhi = 15.0 %}{% endif %}
+                    {% set br_acv_lo = (cp_br.get('annual_hours_low', 0) * br_rlo) | int %}
+                    {% set br_acv_hi = (br_hi * br_rhi) | int %}
+                    <div style="display:flex;align-items:baseline;gap:6px;">
+                        <span style="font-size:0.75rem;color:#6b9e88;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</span>
+                        <span style="font-size:0.82rem;font-weight:800;color:#24ED9B;flex-shrink:0;white-space:nowrap;">${{ "{:,}".format(br_acv_lo) }}&ndash;${{ "{:,}".format(br_acv_hi) }}</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% if not ns_any_acv.found %}
+                    <span style="font-size:0.75rem;color:#3d6655;font-style:italic;">No consumption models available</span>
                     {% endif %}
                 </div>
             </div>
@@ -781,11 +821,15 @@
         <div class="next-steps-block">
             <div class="next-steps-block-label">Next Steps</div>
             <ul class="next-steps-list">
-                {# Step 1 — lead action based on verdict #}
+                {# Step 1 — lead action + champion insight #}
                 {% if top_verdict == 'strong' %}
-                <li>Schedule a <strong>technical deep dive</strong> with your SE — this account is ready to move.</li>
+                <li>Schedule a <strong>technical deep dive</strong> with your SE — this account is ready to move.
+                    {% if ns_champ.text %}<span style="display:block;margin-top:5px;font-size:0.8rem;color:#6b9e88;line-height:1.55;">{{ ns_champ.text | truncate(220) }}</span>{% endif %}
+                </li>
                 {% elif top_verdict == 'pursue' %}
-                <li>Run a <strong>targeted discovery call</strong> to validate delivery path and confirm program scope.</li>
+                <li>Run a <strong>targeted discovery call</strong> to validate delivery path and confirm program scope.
+                    {% if ns_champ.text %}<span style="display:block;margin-top:5px;font-size:0.8rem;color:#6b9e88;line-height:1.55;">{{ ns_champ.text | truncate(220) }}</span>{% endif %}
+                </li>
                 {% elif top_verdict == 'monitor' %}
                 <li><strong>Flag in CRM</strong> and set a follow-up trigger — revisit when product or org capability matures.</li>
                 {% else %}
@@ -804,22 +848,17 @@
                 </li>
                 {% endif %}
 
-                {# Step 3 — top contact engagement #}
+                {# Step 3 — top contact: name is the link, LinkedIn icon inline #}
                 {% if ns_c.top_contact and top_verdict in ('strong', 'pursue') %}
-                <li>Engage <strong>{{ ns_c.top_contact.name }}</strong>
-                    {% if ns_c.top_contact.title %}({{ ns_c.top_contact.title }}){% endif %}
-                    {% if ns_c.top_contact.linkedin_url %} — <a href="{{ ns_c.top_contact.linkedin_url }}" target="_blank">LinkedIn {{ li_svg }}</a>{% endif %}.
+                <li>Engage
+                    {% if ns_c.top_contact.linkedin_url %}<a href="{{ ns_c.top_contact.linkedin_url }}" target="_blank" style="color:#e8f5f0;font-weight:700;">{{ ns_c.top_contact.name }}{{ li_svg }}</a>{% else %}<strong>{{ ns_c.top_contact.name }}</strong>{% endif %}
+                    {% if ns_c.top_contact.title %} ({{ ns_c.top_contact.title }}){% endif %}.
                 </li>
                 {% endif %}
 
                 {# Step 4 — key risk to address #}
                 {% if ns_r.first_flag %}
                 <li class="step-risk">Address <strong>{{ ns_r.first_flag }}</strong> in discovery — confirm whether this is a blocker or a workaround exists.</li>
-                {% endif %}
-
-                {# Step 5 — ACV context for commercial conversation #}
-                {% if ns.has_cp and ns.acv_high > 0 and top_verdict in ('strong', 'pursue') %}
-                <li>Use <strong>${{ "{:,}".format(ns.acv_low | int) }}&ndash;${{ "{:,}".format(ns.acv_high | int) }} estimated ACV</strong> as the commercial anchor in your qualification conversation.</li>
                 {% endif %}
             </ul>
         </div>
