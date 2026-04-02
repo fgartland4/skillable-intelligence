@@ -89,21 +89,21 @@
             pointer-events: none;
             z-index: 0;
         }
-        /* Logo — equidistant from top and left */
+        /* Logo — left-aligned with text blocks */
         .sidebar-header {
-            padding: 14px 20px 18px 14px;
+            padding: 14px 20px 18px 20px;
             position: relative;
             z-index: 1;
         }
         .sidebar-logo {
-            width: 140px;
+            width: 170px;
             height: auto;
             display: block;
         }
 
-        /* App label + program name — one visual group */
+        /* App label + program name — pushed down ~100px from logo */
         .sidebar-program-block {
-            padding: 24px 20px 20px 20px;
+            padding: 100px 20px 20px 20px;
             position: relative;
             z-index: 1;
         }
@@ -233,7 +233,8 @@
         }
         .btn-restart {
             position: absolute;
-            top: 14px; right: 16px;
+            top: 14px;
+            right: calc(420px + 16px); /* right pane width + gutter — pins button to top-right of middle pane */
             z-index: 20;
             background: none;
             border: 1px solid var(--color-border);
@@ -859,54 +860,178 @@
         .phase4-desc { font-size: 14px; color: var(--color-text-light); line-height: 1.7; max-width: 480px; }
 
         /* ================================================================
-           PREFERENCES DRAWER (light mode)
+           PREFERENCES — Full main-content takeover (two-pane)
         ================================================================ */
-        #prefs-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.35);
-            z-index: 100; display: none; align-items: flex-start; justify-content: flex-start;
+        #prefs-section {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: var(--color-bg);
         }
-        #prefs-overlay.open { display: flex; }
-        #prefs-drawer {
-            width: 420px; max-width: 95vw; background: var(--color-surface);
-            border-right: 1px solid var(--color-border); height: 100vh;
-            overflow-y: auto; padding: 24px 24px 48px;
-            transform: translateX(-100%); transition: transform 0.25s ease;
-            box-shadow: var(--shadow-md);
+        #prefs-section.active { display: flex; }
+
+        /* Left nav — 220px */
+        .prefs-nav {
+            width: 220px;
+            min-width: 220px;
+            background: var(--color-surface);
+            border-right: 1px solid var(--color-border-light);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-        #prefs-overlay.open #prefs-drawer { transform: translateX(0); }
-        .prefs-header {
-            display: flex; align-items: center; justify-content: space-between;
+        .prefs-nav-header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--color-border-light);
+            flex-shrink: 0;
+        }
+        .prefs-nav-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+        .prefs-nav-list {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+            list-style: none;
+        }
+        .prefs-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--color-text-light);
+            transition: all var(--transition);
+            margin-bottom: 2px;
+            user-select: none;
+        }
+        .prefs-nav-item:hover { background: var(--color-bg); color: var(--color-text); }
+        .prefs-nav-item.active {
+            background: var(--color-primary-light);
+            color: var(--color-primary-dark);
+            font-weight: 600;
+        }
+        .prefs-nav-icon { font-size: 16px; line-height: 1; flex-shrink: 0; }
+        .prefs-nav-footer {
+            padding: 12px 16px 16px;
+            border-top: 1px solid var(--color-border-light);
+            flex-shrink: 0;
+        }
+        .btn-prefs-done {
+            width: 100%;
+            background: var(--color-primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+        .btn-prefs-done:hover { background: var(--color-primary-hover); }
+
+        /* Right panel */
+        .prefs-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px 40px 60px;
+            background: var(--color-bg);
+        }
+        .prefs-panel-group { display: none; max-width: 640px; }
+        .prefs-panel-group.active { display: block; }
+        .prefs-panel-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--color-text);
+            margin-bottom: 4px;
+        }
+        .prefs-panel-desc {
+            font-size: 13px;
+            color: var(--color-text-muted);
             margin-bottom: 24px;
+            line-height: 1.5;
         }
-        .prefs-title { font-size: 16px; font-weight: 700; color: var(--color-text); }
-        .btn-prefs-close {
-            background: none; border: none; color: var(--color-text-muted); cursor: pointer;
-            font-size: 18px; transition: color 0.12s;
+        .prefs-divider {
+            border: none;
+            border-top: 1px solid var(--color-border-light);
+            margin: 20px 0;
         }
-        .btn-prefs-close:hover { color: var(--color-danger); }
-        .prefs-group { margin-bottom: 28px; }
-        .prefs-group-label {
-            font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-            text-transform: uppercase; color: var(--color-primary);
-            margin-bottom: 14px; display: block;
+
+        /* Shared field styles */
+        .prefs-field { margin-bottom: 16px; }
+        .prefs-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-light);
+            margin-bottom: 5px;
+            display: block;
         }
-        .prefs-field { margin-bottom: 12px; }
-        .prefs-label { font-size: 12px; color: var(--color-text-light); margin-bottom: 5px; display: block; }
         .prefs-input, .prefs-select {
-            width: 100%; background: var(--color-surface); border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm); color: var(--color-text); font-size: 13px;
-            padding: 8px 10px; transition: border-color 0.15s;
+            width: 100%;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 13px;
+            padding: 8px 10px;
+            transition: border-color 0.15s;
         }
         .prefs-input:focus, .prefs-select:focus { outline: none; border-color: var(--color-primary); }
-        .prefs-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .prefs-toggle-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 0; border-bottom: 1px solid var(--color-border-light);
+        .prefs-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* API key row — input + show/hide button */
+        .prefs-key-row { display: flex; gap: 8px; align-items: center; }
+        .prefs-key-row .prefs-input { flex: 1; font-family: 'SF Mono', 'Cascadia Code', monospace; letter-spacing: 0.04em; }
+        .btn-key-toggle {
+            background: none; border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm); color: var(--color-text-muted);
+            font-size: 12px; padding: 8px 10px; cursor: pointer;
+            white-space: nowrap; transition: all var(--transition); flex-shrink: 0;
         }
-        .prefs-toggle-label { font-size: 14px; color: var(--color-text); }
+        .btn-key-toggle:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+        /* Test connection */
+        .btn-test-connection {
+            background: none; border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm); color: var(--color-text-light);
+            font-size: 13px; font-weight: 500; padding: 8px 16px;
+            cursor: pointer; transition: all var(--transition); margin-top: 4px;
+        }
+        .btn-test-connection:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .btn-test-connection.testing { color: var(--color-warning); border-color: var(--color-warning); }
+        .btn-test-connection.ok { color: var(--color-primary); border-color: var(--color-primary); }
+        .btn-test-connection.fail { color: var(--color-danger); border-color: var(--color-danger); }
+
+        /* Logo dropzone */
+        .prefs-logo-zone {
+            border: 1.5px dashed var(--color-border); border-radius: var(--radius-md);
+            padding: 20px; text-align: center; cursor: pointer;
+            transition: all var(--transition); background: var(--color-surface);
+            font-size: 13px; color: var(--color-text-muted);
+        }
+        .prefs-logo-zone:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+        /* Toggle rows inside panel */
+        .prefs-toggle-row {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            padding: 12px 0; border-bottom: 1px solid var(--color-border-light); gap: 16px;
+        }
+        .prefs-toggle-row:last-of-type { border-bottom: none; }
+        .prefs-toggle-info { flex: 1; }
+        .prefs-toggle-label { font-size: 13px; font-weight: 500; color: var(--color-text); display: block; }
+        .prefs-toggle-sub { font-size: 12px; color: var(--color-text-muted); margin-top: 3px; display: block; line-height: 1.4; }
+
+        /* Toggle control */
         .toggle {
             width: 36px; height: 20px; background: var(--color-border); border-radius: 10px;
             position: relative; cursor: pointer; border: none; transition: background 0.2s; flex-shrink: 0;
+            margin-top: 2px;
         }
         .toggle.on { background: var(--color-primary); }
         .toggle::after {
@@ -915,32 +1040,8 @@
         }
         .toggle.on::after { left: 18px; }
 
-        /* Framework picker */
-        .framework-picker {
-            background: var(--color-bg); border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm); padding: 10px; max-height: 260px; overflow-y: auto;
-        }
-        .framework-group-label {
-            font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-            text-transform: uppercase; color: var(--color-text-muted); padding: 6px 0 4px;
-        }
-        .framework-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; cursor: pointer; }
-        .framework-checkbox {
-            width: 14px; height: 14px; border: 1.5px solid var(--color-border);
-            border-radius: 3px; display: flex; align-items: center;
-            justify-content: center; flex-shrink: 0; transition: all 0.12s;
-        }
-        .framework-item.selected .framework-checkbox { background: var(--color-primary); border-color: var(--color-primary); }
-        .framework-item.selected .framework-checkbox::after {
-            content: '✓'; font-size: 10px; color: #fff; font-weight: 700;
-        }
-        .framework-name { font-size: 13px; color: var(--color-text); }
-        .btn-save-prefs {
-            width: 100%; background: var(--color-primary); color: #fff; border: none;
-            border-radius: var(--radius-sm); padding: 11px; font-size: 14px; font-weight: 700;
-            cursor: pointer; margin-top: 8px; transition: background 0.12s;
-        }
-        .btn-save-prefs:hover { background: var(--color-primary-hover); }
+        /* Field hint text */
+        .prefs-field-hint { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
 
         /* ================================================================
            MISC UTILITIES
@@ -1235,105 +1336,275 @@ const INITIAL_DATA = {{ program_json | safe }};
             </div>
         </section>
 
+        <!-- ============================================================
+             PREFERENCES — two-pane takeover (left nav + right panel)
+        ============================================================ -->
+        <section id="prefs-section">
+            <!-- Left nav -->
+            <nav class="prefs-nav">
+                <div class="prefs-nav-header">
+                    <span class="prefs-nav-title">Preferences</span>
+                </div>
+                <ul class="prefs-nav-list">
+                    <li class="prefs-nav-item active" data-group="ai-connection">
+                        <span class="prefs-nav-icon">🔌</span> AI Connection
+                    </li>
+                    <li class="prefs-nav-item" data-group="org-identity">
+                        <span class="prefs-nav-icon">🏢</span> Organization Identity
+                    </li>
+                    <li class="prefs-nav-item" data-group="learning-standards">
+                        <span class="prefs-nav-icon">📐</span> Learning Design Standards
+                    </li>
+                    <li class="prefs-nav-item" data-group="scenario-defaults">
+                        <span class="prefs-nav-icon">⚙️</span> Scenario &amp; Lab Type Defaults
+                    </li>
+                </ul>
+                <div class="prefs-nav-footer">
+                    <button class="btn-prefs-done" id="btn-prefs-done">Done</button>
+                </div>
+            </nav>
+
+            <!-- Right panel -->
+            <div class="prefs-panel">
+
+                <!-- ── Group 1: AI Connection ── -->
+                <div class="prefs-panel-group active" id="prefs-group-ai-connection">
+                    <div class="prefs-panel-title">AI Connection</div>
+                    <div class="prefs-panel-desc">Configure the AI provider that powers Neo's conversation and generation. Changes take effect on the next message.</div>
+
+                    <div class="prefs-field">
+                        <label class="prefs-label">Provider</label>
+                        <select class="prefs-select" id="pref-ai-provider">
+                            <option value="claude">Anthropic Claude</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="custom">Custom / Self-hosted</option>
+                        </select>
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">API Key</label>
+                        <div class="prefs-key-row">
+                            <input type="password" class="prefs-input" id="pref-api-key" placeholder="sk-…" autocomplete="off">
+                            <button class="btn-key-toggle" id="btn-key-toggle" type="button">Show</button>
+                        </div>
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Model</label>
+                        <select class="prefs-select" id="pref-ai-model">
+                            <optgroup label="Anthropic Claude">
+                                <option value="claude-opus-4-5">Claude Opus 4.5</option>
+                                <option value="claude-sonnet-4-5" selected>Claude Sonnet 4.5</option>
+                                <option value="claude-haiku-3-5">Claude Haiku 3.5</option>
+                            </optgroup>
+                            <optgroup label="OpenAI">
+                                <option value="gpt-4o">GPT-4o</option>
+                                <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            </optgroup>
+                            <optgroup label="Custom">
+                                <option value="custom">Custom model ID…</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="prefs-field" id="prefs-custom-endpoint-field" style="display:none;">
+                        <label class="prefs-label">Custom Endpoint URL</label>
+                        <input type="url" class="prefs-input" id="pref-custom-endpoint" placeholder="https://…">
+                    </div>
+                    <button class="btn-test-connection" id="btn-test-connection" type="button">Test Connection</button>
+                </div>
+
+                <!-- ── Group 2: Organization Identity ── -->
+                <div class="prefs-panel-group" id="prefs-group-org-identity">
+                    <div class="prefs-panel-title">Organization Identity</div>
+                    <div class="prefs-panel-desc">Your organization's identity shapes how Neo frames programs and what context it brings to every conversation.</div>
+
+                    <div class="prefs-field">
+                        <label class="prefs-label">Company Name <span style="color:var(--color-text-muted);font-weight:400;">(from Intelligence, if connected)</span></label>
+                        <input type="text" class="prefs-input" id="pref-company-name" placeholder="Acme Corporation">
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Department / Team Name</label>
+                        <input type="text" class="prefs-input" id="pref-dept-name" placeholder="e.g. Learning &amp; Development">
+                    </div>
+                    <hr class="prefs-divider">
+                    <div class="prefs-field">
+                        <label class="prefs-label">Logo</label>
+                        <div class="prefs-logo-zone" id="prefs-logo-zone">
+                            <div style="font-size:1.5rem; margin-bottom:6px;">🖼</div>
+                            <div>Drop a logo file here, or click to upload</div>
+                            <div style="font-size:11px; margin-top:4px;">PNG, SVG, or JPEG · max 2 MB</div>
+                        </div>
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Brand URL</label>
+                        <input type="url" class="prefs-input" id="pref-brand-url" placeholder="https://example.com">
+                    </div>
+                    <hr class="prefs-divider">
+                    <div class="prefs-toggle-row">
+                        <div class="prefs-toggle-info">
+                            <span class="prefs-toggle-label">AI Processing Messages</span>
+                            <span class="prefs-toggle-sub">Custom AI "thinking" language blended from your company context. Disable to use standard prompts.</span>
+                        </div>
+                        <button class="toggle on" id="pref-ai-processing-messages" type="button"></button>
+                    </div>
+                </div>
+
+                <!-- ── Group 3: Learning Design Standards ── -->
+                <div class="prefs-panel-group" id="prefs-group-learning-standards">
+                    <div class="prefs-panel-title">Learning Design Standards</div>
+                    <div class="prefs-panel-desc">These settings guide Neo's instructional design choices across all programs in your organization.</div>
+
+                    <div class="prefs-field">
+                        <label class="prefs-label">Lab Title Standard Pattern</label>
+                        <input type="text" class="prefs-input" id="pref-lab-title-pattern" placeholder='e.g. Lab {n}: {verb} {topic}'>
+                        <div class="prefs-field-hint">{n} = lab number, {verb} = action verb, {topic} = AI-generated topic name</div>
+                    </div>
+                    <hr class="prefs-divider">
+                    <div class="prefs-input-row">
+                        <div class="prefs-field">
+                            <label class="prefs-label">Primary Style Guide</label>
+                            <input type="text" class="prefs-input" id="pref-style-guide-primary" placeholder="e.g. Microsoft Style Guide">
+                        </div>
+                        <div class="prefs-field">
+                            <label class="prefs-label">Secondary Style Guide</label>
+                            <input type="text" class="prefs-input" id="pref-style-guide-secondary" placeholder="Optional">
+                        </div>
+                    </div>
+                    <hr class="prefs-divider">
+                    <div class="prefs-input-row">
+                        <div class="prefs-field">
+                            <label class="prefs-label">Primary Skill Framework</label>
+                            <select class="prefs-select" id="pref-framework-primary">
+                                <option value="">None</option>
+                                <optgroup label="Cybersecurity">
+                                    <option value="NICE NCWF">NICE NCWF</option>
+                                    <option value="DoD DCWF">DoD DCWF</option>
+                                    <option value="CompTIA Security+">CompTIA Security+</option>
+                                    <option value="CompTIA CySA+">CompTIA CySA+</option>
+                                </optgroup>
+                                <optgroup label="Cloud &amp; DevOps">
+                                    <option value="Azure AZ-104">Azure AZ-104</option>
+                                    <option value="Azure AZ-900">Azure AZ-900</option>
+                                    <option value="AWS SAA">AWS Solutions Architect</option>
+                                    <option value="Cisco CCNA">Cisco CCNA</option>
+                                </optgroup>
+                                <optgroup label="Cross-Domain">
+                                    <option value="SFIA">SFIA</option>
+                                    <option value="ITIL 4">ITIL 4</option>
+                                    <option value="LinkedIn">LinkedIn Skill Framework</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="prefs-field">
+                            <label class="prefs-label">Secondary Skill Framework</label>
+                            <select class="prefs-select" id="pref-framework-secondary">
+                                <option value="">None</option>
+                                <optgroup label="Cybersecurity">
+                                    <option value="NICE NCWF">NICE NCWF</option>
+                                    <option value="DoD DCWF">DoD DCWF</option>
+                                    <option value="CompTIA Security+">CompTIA Security+</option>
+                                    <option value="CompTIA CySA+">CompTIA CySA+</option>
+                                </optgroup>
+                                <optgroup label="Cloud &amp; DevOps">
+                                    <option value="Azure AZ-104">Azure AZ-104</option>
+                                    <option value="Azure AZ-900">Azure AZ-900</option>
+                                    <option value="AWS SAA">AWS Solutions Architect</option>
+                                    <option value="Cisco CCNA">Cisco CCNA</option>
+                                </optgroup>
+                                <optgroup label="Cross-Domain">
+                                    <option value="SFIA">SFIA</option>
+                                    <option value="ITIL 4">ITIL 4</option>
+                                    <option value="LinkedIn">LinkedIn Skill Framework</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <hr class="prefs-divider">
+                    <div class="prefs-toggle-row">
+                        <div class="prefs-toggle-info">
+                            <span class="prefs-toggle-label">Hints Policy</span>
+                            <span class="prefs-toggle-sub">Include Skillable Studio hint blocks in generated lab instructions by default.</span>
+                        </div>
+                        <button class="toggle" id="pref-hint-policy" type="button"></button>
+                    </div>
+                    <div class="prefs-toggle-row">
+                        <div class="prefs-toggle-info">
+                            <span class="prefs-toggle-label">Knowledge Block Policy</span>
+                            <span class="prefs-toggle-sub">Include knowledge callout blocks in generated instructions by default.</span>
+                        </div>
+                        <button class="toggle" id="pref-knowledge-block-policy" type="button"></button>
+                    </div>
+                    <hr class="prefs-divider">
+                    <div class="prefs-field">
+                        <label class="prefs-label">Always-On Reference — Documentation URL</label>
+                        <input type="url" class="prefs-input" id="pref-ref-doc-url" placeholder="https://docs.example.com">
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Always-On Reference — Wiki / Knowledge Base URL</label>
+                        <input type="url" class="prefs-input" id="pref-ref-wiki-url" placeholder="https://wiki.example.com">
+                    </div>
+                </div>
+
+                <!-- ── Group 4: Scenario & Lab Type Defaults ── -->
+                <div class="prefs-panel-group" id="prefs-group-scenario-defaults">
+                    <div class="prefs-panel-title">Scenario &amp; Lab Type Defaults</div>
+                    <div class="prefs-panel-desc">Default lab structure and scenario type settings. These are starting points — every program can override them in Phase 1.</div>
+
+                    <div class="prefs-toggle-row">
+                        <div class="prefs-toggle-info">
+                            <span class="prefs-toggle-label">Break/Fix Scenarios</span>
+                            <span class="prefs-toggle-sub">Labs default to starting in a broken or degraded state for learners to diagnose and repair.</span>
+                        </div>
+                        <button class="toggle" id="pref-breakfix" type="button"></button>
+                    </div>
+                    <div class="prefs-toggle-row">
+                        <div class="prefs-toggle-info">
+                            <span class="prefs-toggle-label">Collaborative Lab</span>
+                            <span class="prefs-toggle-sub">Labs default to multi-learner, shared-environment collaboration scenarios.</span>
+                        </div>
+                        <button class="toggle" id="pref-collab" type="button"></button>
+                    </div>
+                    <div class="prefs-toggle-row">
+                        <div class="prefs-toggle-info">
+                            <span class="prefs-toggle-label">Simulated Attack</span>
+                            <span class="prefs-toggle-sub">Labs default to including a simulated adversarial element or attack scenario.</span>
+                        </div>
+                        <button class="toggle" id="pref-attack" type="button"></button>
+                    </div>
+                    <hr class="prefs-divider">
+                    <div class="prefs-input-row">
+                        <div class="prefs-field">
+                            <label class="prefs-label">Default Lab Duration (minutes)</label>
+                            <select class="prefs-select" id="pref-seat-time">
+                                <option value="30">30 min</option>
+                                <option value="45">45 min</option>
+                                <option value="60" selected>60 min</option>
+                                <option value="75">75 min</option>
+                                <option value="90">90 min</option>
+                                <option value="120">120 min</option>
+                            </select>
+                        </div>
+                        <div class="prefs-field">
+                            <label class="prefs-label">Activities per Lab (default)</label>
+                            <select class="prefs-select" id="pref-activities-per-lab">
+                                <option value="3">3 activities</option>
+                                <option value="4">4 activities</option>
+                                <option value="5" selected>5 activities</option>
+                                <option value="6">6 activities</option>
+                                <option value="7">7 activities</option>
+                                <option value="8">8 activities</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Lab Naming Formula</label>
+                        <input type="text" class="prefs-input" id="pref-naming-formula" placeholder='e.g. Lab {n} — {topic}'>
+                        <div class="prefs-field-hint">{n} = lab number, {topic} = AI-generated topic name</div>
+                    </div>
+                </div>
+
+            </div><!-- /prefs-panel -->
+        </section><!-- /prefs-section -->
+
     </main>
-</div>
-
-<!-- ========================================================================
-     PREFERENCES DRAWER
-======================================================================== -->
-<div id="prefs-overlay">
-    <div id="prefs-drawer">
-        <div class="prefs-header">
-            <span class="prefs-title">Preferences</span>
-            <button class="btn-prefs-close" id="prefs-close">✕</button>
-        </div>
-
-        <!-- Group 1: Program Defaults -->
-        <div class="prefs-group">
-            <div class="prefs-group-label">Program Defaults</div>
-            <div class="prefs-input-row">
-                <div class="prefs-field">
-                    <label class="prefs-label">Default Series Count</label>
-                    <input type="number" class="prefs-input" id="pref-series-count" min="1" max="10">
-                </div>
-                <div class="prefs-field">
-                    <label class="prefs-label">Labs per Series</label>
-                    <input type="number" class="prefs-input" id="pref-labs-per-series" min="1" max="20">
-                </div>
-            </div>
-            <div class="prefs-field">
-                <label class="prefs-label">Default Seat Time (minutes)</label>
-                <input type="number" class="prefs-input" id="pref-seat-time" min="15" max="180" step="5">
-            </div>
-        </div>
-
-        <!-- Group 2: Learning Design Standards -->
-        <div class="prefs-group">
-            <div class="prefs-group-label">Learning Design Standards</div>
-            <div class="prefs-field">
-                <label class="prefs-label">Default Difficulty</label>
-                <select class="prefs-select" id="pref-difficulty">
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate" selected>Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                    <option value="Expert">Expert</option>
-                </select>
-            </div>
-            <div class="prefs-field">
-                <label class="prefs-label">Default Skill Framework(s)</label>
-                <div class="framework-picker" id="framework-picker">
-                    <!-- rendered by JS -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Group 3: Scenario & Lab Type Defaults -->
-        <div class="prefs-group">
-            <div class="prefs-group-label">Scenario &amp; Lab Type Defaults</div>
-            <div class="prefs-toggle-row">
-                <span class="prefs-toggle-label">Break/Fix scenarios</span>
-                <button class="toggle" id="pref-breakfix" data-key="breakfix_default"></button>
-            </div>
-            <div class="prefs-toggle-row">
-                <span class="prefs-toggle-label">Collaborative Lab</span>
-                <button class="toggle" id="pref-collab" data-key="collaborative_lab_default"></button>
-            </div>
-            <div class="prefs-toggle-row">
-                <span class="prefs-toggle-label">Simulated Attack</span>
-                <button class="toggle" id="pref-attack" data-key="simulated_attack_default"></button>
-            </div>
-        </div>
-
-        <!-- Group 4: Brand & Identity -->
-        <div class="prefs-group">
-            <div class="prefs-group-label">Brand &amp; Identity</div>
-            <div class="prefs-field">
-                <label class="prefs-label">Brand URL</label>
-                <input type="url" class="prefs-input" id="pref-brand-url" placeholder="https://example.com">
-            </div>
-        </div>
-
-        <!-- Group 5: Export & Handoff -->
-        <div class="prefs-group">
-            <div class="prefs-group-label">Export &amp; Handoff</div>
-            <div class="prefs-field">
-                <label class="prefs-label">Export Format</label>
-                <select class="prefs-select" id="pref-export-format">
-                    <option value="ZIP">ZIP</option>
-                </select>
-            </div>
-            <div class="prefs-field">
-                <label class="prefs-label">SME Handoff Format</label>
-                <select class="prefs-select" id="pref-sme-format">
-                    <option value="docx">Word (.docx)</option>
-                    <option value="md">Markdown (.md)</option>
-                    <option value="pdf">PDF</option>
-                </select>
-            </div>
-        </div>
-
-        <button class="btn-save-prefs" id="btn-save-prefs">Save Preferences</button>
-    </div>
 </div>
 
 <!-- Autosave indicator -->
@@ -2262,94 +2533,241 @@ function updatePreviewNav() {
 }
 
 // ============================================================
-// PREFERENCES
+// PREFERENCES — full main-content takeover
 // ============================================================
-function renderFrameworkPicker() {
-    const picker = document.getElementById('framework-picker');
-    const selected = new Set(state.preferences?.skill_frameworks || []);
-    picker.innerHTML = '';
-    Object.entries(FRAMEWORKS).forEach(([group, items]) => {
-        const glabel = document.createElement('div');
-        glabel.className = 'framework-group-label';
-        glabel.textContent = group;
-        picker.appendChild(glabel);
-        items.forEach(name => {
-            const item = document.createElement('div');
-            item.className = 'framework-item' + (selected.has(name) ? ' selected' : '');
-            item.dataset.name = name;
-            item.innerHTML = `<div class="framework-checkbox"></div><span class="framework-name">${escHtml(name)}</span>`;
-            item.addEventListener('click', () => {
-                item.classList.toggle('selected');
-            });
-            picker.appendChild(item);
-        });
+
+let _prevPhase = 1; // remember where to return on prefs close
+
+function openPrefs() {
+    savePrefsFromUI_live = false; // reset
+    loadPrefsToUI();
+    // Hide all phase sections, show prefs
+    document.querySelectorAll('.phase-section').forEach(s => s.style.display = 'none');
+    document.getElementById('prefs-section').classList.add('active');
+    // Switch to first group
+    switchPrefsGroup('ai-connection');
+    // Hide restart button while in prefs
+    document.getElementById('restart-btn').style.display = 'none';
+}
+
+function closePrefs() {
+    savePrefsFromUI();
+    document.getElementById('prefs-section').classList.remove('active');
+    // Restore phase sections
+    document.querySelectorAll('.phase-section').forEach(s => s.style.display = '');
+    // Re-apply active phase
+    switchPhase(currentPhase);
+    document.getElementById('restart-btn').style.display = '';
+    setAutosave('saving');
+    doSave();
+}
+
+function switchPrefsGroup(groupId) {
+    document.querySelectorAll('.prefs-nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.group === groupId);
+    });
+    document.querySelectorAll('.prefs-panel-group').forEach(panel => {
+        panel.classList.toggle('active', panel.id === 'prefs-group-' + groupId);
     });
 }
 
 function loadPrefsToUI() {
     const p = state.preferences || {};
-    document.getElementById('pref-series-count').value = p.default_series_count || 3;
-    document.getElementById('pref-labs-per-series').value = p.default_labs_per_series || 4;
-    document.getElementById('pref-seat-time').value = p.default_seat_time || 60;
-    document.getElementById('pref-difficulty').value = p.default_difficulty || 'Intermediate';
-    document.getElementById('pref-brand-url').value = p.brand_url || '';
-    document.getElementById('pref-export-format').value = p.export_format || 'ZIP';
-    document.getElementById('pref-sme-format').value = p.sme_handoff_format || 'docx';
 
-    // Toggles
-    const toggles = [
-        { id: 'pref-breakfix', key: 'breakfix_default' },
-        { id: 'pref-collab', key: 'collaborative_lab_default' },
-        { id: 'pref-attack', key: 'simulated_attack_default' },
-    ];
-    toggles.forEach(({ id, key }) => {
-        const btn = document.getElementById(id);
-        btn.classList.toggle('on', !!p[key]);
-        btn.onclick = () => btn.classList.toggle('on');
-    });
+    // Group 1: AI Connection
+    const provider = p.ai_provider || 'claude';
+    const providerEl = document.getElementById('pref-ai-provider');
+    if (providerEl) providerEl.value = provider;
 
-    renderFrameworkPicker();
+    const apiKeyEl = document.getElementById('pref-api-key');
+    if (apiKeyEl) apiKeyEl.value = p.api_key || '';
+
+    const modelEl = document.getElementById('pref-ai-model');
+    if (modelEl) modelEl.value = p.ai_model || 'claude-sonnet-4-5';
+
+    const endpointEl = document.getElementById('pref-custom-endpoint');
+    if (endpointEl) endpointEl.value = p.custom_endpoint || '';
+    const endpointField = document.getElementById('prefs-custom-endpoint-field');
+    if (endpointField) endpointField.style.display = (provider === 'custom') ? '' : 'none';
+
+    // Group 2: Organization Identity
+    const companyEl = document.getElementById('pref-company-name');
+    if (companyEl) companyEl.value = state.company_name || p.company_name || '';
+
+    const deptEl = document.getElementById('pref-dept-name');
+    if (deptEl) deptEl.value = p.dept_name || '';
+
+    const brandUrlEl = document.getElementById('pref-brand-url');
+    if (brandUrlEl) brandUrlEl.value = p.brand_url || '';
+
+    const aiMsgToggle = document.getElementById('pref-ai-processing-messages');
+    if (aiMsgToggle) {
+        const enabled = p.ai_processing_messages_enabled !== false; // default on
+        aiMsgToggle.classList.toggle('on', enabled);
+        aiMsgToggle.onclick = () => aiMsgToggle.classList.toggle('on');
+    }
+
+    // Group 3: Learning Design Standards
+    const labPatternEl = document.getElementById('pref-lab-title-pattern');
+    if (labPatternEl) labPatternEl.value = p.lab_title_pattern || '';
+
+    const sgPrimEl = document.getElementById('pref-style-guide-primary');
+    if (sgPrimEl) sgPrimEl.value = p.style_guide_primary || '';
+
+    const sgSecEl = document.getElementById('pref-style-guide-secondary');
+    if (sgSecEl) sgSecEl.value = p.style_guide_secondary || '';
+
+    const fwPrimEl = document.getElementById('pref-framework-primary');
+    if (fwPrimEl) fwPrimEl.value = p.framework_primary || '';
+
+    const fwSecEl = document.getElementById('pref-framework-secondary');
+    if (fwSecEl) fwSecEl.value = p.framework_secondary || '';
+
+    const hintToggle = document.getElementById('pref-hint-policy');
+    if (hintToggle) {
+        hintToggle.classList.toggle('on', !!p.hint_policy);
+        hintToggle.onclick = () => hintToggle.classList.toggle('on');
+    }
+
+    const kbToggle = document.getElementById('pref-knowledge-block-policy');
+    if (kbToggle) {
+        kbToggle.classList.toggle('on', !!p.knowledge_block_policy);
+        kbToggle.onclick = () => kbToggle.classList.toggle('on');
+    }
+
+    const refDocEl = document.getElementById('pref-ref-doc-url');
+    if (refDocEl) refDocEl.value = p.ref_doc_url || '';
+
+    const refWikiEl = document.getElementById('pref-ref-wiki-url');
+    if (refWikiEl) refWikiEl.value = p.ref_wiki_url || '';
+
+    // Group 4: Scenario & Lab Type Defaults
+    const breakfixToggle = document.getElementById('pref-breakfix');
+    if (breakfixToggle) {
+        breakfixToggle.classList.toggle('on', !!p.breakfix_default);
+        breakfixToggle.onclick = () => breakfixToggle.classList.toggle('on');
+    }
+
+    const collabToggle = document.getElementById('pref-collab');
+    if (collabToggle) {
+        collabToggle.classList.toggle('on', !!p.collaborative_lab_default);
+        collabToggle.onclick = () => collabToggle.classList.toggle('on');
+    }
+
+    const attackToggle = document.getElementById('pref-attack');
+    if (attackToggle) {
+        attackToggle.classList.toggle('on', !!p.simulated_attack_default);
+        attackToggle.onclick = () => attackToggle.classList.toggle('on');
+    }
+
+    const seatTimeEl = document.getElementById('pref-seat-time');
+    if (seatTimeEl) seatTimeEl.value = String(p.default_seat_time || 60);
+
+    const activitiesEl = document.getElementById('pref-activities-per-lab');
+    if (activitiesEl) activitiesEl.value = String(p.activities_per_lab || 5);
+
+    const namingEl = document.getElementById('pref-naming-formula');
+    if (namingEl) namingEl.value = p.naming_formula || '';
 }
 
 function savePrefsFromUI() {
     const p = state.preferences || {};
-    p.default_series_count = parseInt(document.getElementById('pref-series-count').value) || 3;
-    p.default_labs_per_series = parseInt(document.getElementById('pref-labs-per-series').value) || 4;
-    p.default_seat_time = parseInt(document.getElementById('pref-seat-time').value) || 60;
-    p.default_difficulty = document.getElementById('pref-difficulty').value;
-    p.brand_url = document.getElementById('pref-brand-url').value;
-    p.export_format = document.getElementById('pref-export-format').value;
-    p.sme_handoff_format = document.getElementById('pref-sme-format').value;
-    p.breakfix_default = document.getElementById('pref-breakfix').classList.contains('on');
-    p.collaborative_lab_default = document.getElementById('pref-collab').classList.contains('on');
-    p.simulated_attack_default = document.getElementById('pref-attack').classList.contains('on');
-    p.skill_frameworks = Array.from(document.querySelectorAll('#framework-picker .framework-item.selected'))
-        .map(el => el.dataset.name);
+
+    // Group 1
+    p.ai_provider    = document.getElementById('pref-ai-provider')?.value || 'claude';
+    p.api_key        = document.getElementById('pref-api-key')?.value || '';
+    p.ai_model       = document.getElementById('pref-ai-model')?.value || 'claude-sonnet-4-5';
+    p.custom_endpoint = document.getElementById('pref-custom-endpoint')?.value || '';
+
+    // Group 2
+    const companyVal = document.getElementById('pref-company-name')?.value || '';
+    state.company_name = companyVal; // company_name lives at program level
+    p.dept_name       = document.getElementById('pref-dept-name')?.value || '';
+    p.brand_url       = document.getElementById('pref-brand-url')?.value || '';
+    p.ai_processing_messages_enabled = document.getElementById('pref-ai-processing-messages')?.classList.contains('on') !== false;
+
+    // Group 3
+    p.lab_title_pattern      = document.getElementById('pref-lab-title-pattern')?.value || '';
+    p.style_guide_primary    = document.getElementById('pref-style-guide-primary')?.value || '';
+    p.style_guide_secondary  = document.getElementById('pref-style-guide-secondary')?.value || '';
+    p.framework_primary      = document.getElementById('pref-framework-primary')?.value || '';
+    p.framework_secondary    = document.getElementById('pref-framework-secondary')?.value || '';
+    p.hint_policy            = document.getElementById('pref-hint-policy')?.classList.contains('on') || false;
+    p.knowledge_block_policy = document.getElementById('pref-knowledge-block-policy')?.classList.contains('on') || false;
+    p.ref_doc_url            = document.getElementById('pref-ref-doc-url')?.value || '';
+    p.ref_wiki_url           = document.getElementById('pref-ref-wiki-url')?.value || '';
+
+    // Group 4
+    p.breakfix_default         = document.getElementById('pref-breakfix')?.classList.contains('on') || false;
+    p.collaborative_lab_default = document.getElementById('pref-collab')?.classList.contains('on') || false;
+    p.simulated_attack_default  = document.getElementById('pref-attack')?.classList.contains('on') || false;
+    p.default_seat_time        = parseInt(document.getElementById('pref-seat-time')?.value) || 60;
+    p.activities_per_lab       = parseInt(document.getElementById('pref-activities-per-lab')?.value) || 5;
+    p.naming_formula           = document.getElementById('pref-naming-formula')?.value || '';
+
     state.preferences = p;
-    scheduleSave();
 }
 
-document.getElementById('prefs-btn').addEventListener('click', () => {
-    loadPrefsToUI();
-    document.getElementById('prefs-overlay').classList.add('open');
+// Provider change → show/hide custom endpoint
+document.getElementById('pref-ai-provider')?.addEventListener('change', function() {
+    const endpointField = document.getElementById('prefs-custom-endpoint-field');
+    if (endpointField) endpointField.style.display = (this.value === 'custom') ? '' : 'none';
 });
 
-document.getElementById('prefs-close').addEventListener('click', () => {
-    document.getElementById('prefs-overlay').classList.remove('open');
-});
-
-document.getElementById('prefs-overlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('prefs-overlay')) {
-        document.getElementById('prefs-overlay').classList.remove('open');
+// API key show/hide
+document.getElementById('btn-key-toggle')?.addEventListener('click', function() {
+    const input = document.getElementById('pref-api-key');
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        this.textContent = 'Hide';
+    } else {
+        input.type = 'password';
+        this.textContent = 'Show';
     }
 });
 
-document.getElementById('btn-save-prefs').addEventListener('click', () => {
-    savePrefsFromUI();
-    document.getElementById('prefs-overlay').classList.remove('open');
-    setAutosave('saving');
-    doSave();
+// Test connection
+document.getElementById('btn-test-connection')?.addEventListener('click', async function() {
+    this.className = 'btn-test-connection testing';
+    this.textContent = 'Testing…';
+    // Simple ping to backend
+    try {
+        const resp = await fetch(`/designer/${PROGRAM_ID}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phase: 1, messages: [{ role: 'user', content: 'ping' }], context: '' }),
+        });
+        if (resp.ok) {
+            this.className = 'btn-test-connection ok';
+            this.textContent = '✓ Connected';
+        } else {
+            throw new Error('not ok');
+        }
+    } catch (e) {
+        this.className = 'btn-test-connection fail';
+        this.textContent = '✕ Failed';
+    }
+    const btn = this;
+    setTimeout(() => {
+        btn.className = 'btn-test-connection';
+        btn.textContent = 'Test Connection';
+    }, 3000);
 });
+
+// Prefs nav group switching
+document.querySelectorAll('.prefs-nav-item').forEach(item => {
+    item.addEventListener('click', () => switchPrefsGroup(item.dataset.group));
+});
+
+// Open prefs
+document.getElementById('prefs-btn').addEventListener('click', () => {
+    _prevPhase = currentPhase;
+    openPrefs();
+});
+
+// Done button
+document.getElementById('btn-prefs-done').addEventListener('click', closePrefs);
 
 // ============================================================
 // RESTORE STATE FROM INITIAL_DATA
