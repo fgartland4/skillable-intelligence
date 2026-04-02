@@ -1515,7 +1515,6 @@ const INITIAL_DATA = {{ program_json | safe }};
             <div class="pane-right">
                 <div class="pane-header">
                     <h2>Lab Blueprint</h2>
-                    <span class="pane-header-sub" id="checklist-progress-label">0 / 7</span>
                 </div>
                 <div class="checklist-area" id="checklist-area">
                     <!-- rendered by JS -->
@@ -2649,10 +2648,6 @@ function renderChecklist() {
 
         area.appendChild(div);
     });
-
-    // Progress label (Difficulty & framework are auto, count the 4 AI-driven bullet items + those 2 = 6 total)
-    const total = CHECKLIST_DEFS.length;
-    document.getElementById('checklist-progress-label').textContent = `${filledCount} / ${total}`;
 
     renderReadinessBar();
     updateNavDots();
