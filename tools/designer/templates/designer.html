@@ -155,7 +155,7 @@
         .sidebar-back:hover { color: rgba(255,255,255,0.7); text-decoration: none; }
 
         /* Phase nav */
-        #phase-nav { flex: 1; padding: 20px 0 6px; overflow-y: auto; position: relative; z-index: 1; }
+        #phase-nav { flex: 1; padding: 20px 0 20px; overflow-y: auto; position: relative; z-index: 1; }
         #phase-nav ul { list-style: none; }
         #phase-nav li { margin: 2px 8px; }
 
@@ -226,13 +226,9 @@
 
         /* Sidebar footer */
         .sidebar-footer {
-            margin-top: auto;
-            padding: 12px 16px 14px;
+            padding: 8px 16px 14px;
             position: relative;
             z-index: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
         }
         .btn-restart {
             position: absolute;
@@ -248,17 +244,25 @@
             transition: all var(--transition);
         }
         .btn-restart:hover { border-color: var(--color-danger); color: var(--color-danger); }
-        .btn-prefs {
+        /* Shared style for Back + Preferences sidebar buttons */
+        .btn-sidebar-action {
             display: flex; align-items: center; gap: 8px;
             width: 100%; background: none;
             border: 1px solid rgba(255,255,255,0.12);
             border-radius: var(--radius-sm);
             color: var(--color-sidebar-muted);
-            font-size: 13px;
+            font-size: 13px; font-family: inherit;
             padding: 8px 12px; cursor: pointer; transition: all var(--transition);
-            text-align: left;
+            text-align: left; text-decoration: none;
         }
-        .btn-prefs:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .btn-sidebar-action:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
+
+        /* Actions block — sits above copyright, not pinned to bottom edge */
+        .sidebar-actions {
+            padding: 0 16px 16px;
+            display: flex; flex-direction: column; gap: 6px;
+            position: relative; z-index: 1;
+        }
         .sidebar-copyright {
             font-size: 11px;
             color: var(--color-sidebar-muted);
@@ -1035,11 +1039,15 @@ const INITIAL_DATA = {{ program_json | safe }};
                 </li>
             </ul>
         </nav>
-        <div class="sidebar-footer">
-            <a href="/designer" class="sidebar-back">← All Programs</a>
-            <button class="btn-prefs" id="prefs-btn">
+        <div class="sidebar-actions">
+            <a href="/designer" class="btn-sidebar-action">
+                <span style="font-size:18px;line-height:1;">&#8592;</span> Back to All Programs
+            </a>
+            <button class="btn-sidebar-action btn-prefs" id="prefs-btn">
                 <span style="font-size:18px;line-height:1;">&#9881;</span> Preferences
             </button>
+        </div>
+        <div class="sidebar-footer">
             <div class="sidebar-copyright">Skillable&#174; &nbsp;|&nbsp; All rights reserved</div>
         </div>
     </aside>
