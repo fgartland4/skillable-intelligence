@@ -3852,9 +3852,9 @@ function maybeGreet() {
         if (analysisId && company) {
             welcomeHtml = `<p>I've loaded your ${escHtml(company)} analysis from Inspector. Let's build on that — tell me about the program you have in mind.</p>`;
         } else if (company) {
-            welcomeHtml = `<p>Tell me about the program you're building for ${escHtml(company)}.</p><p>If you have any documents — like learning objectives, job task analyses, job descriptions, or even a task list — click the <strong>+</strong> below to upload them and we'll get started.</p>`;
+            welcomeHtml = `<p>Let's build a lab program together for ${escHtml(company)}…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>I'll let you know when we have enough to build an outline.</p>`;
         } else {
-            welcomeHtml = `<p>Tell me about the program you're building.</p><p>If you have any documents — like learning objectives, job task analyses, job descriptions, or even a task list — click the <strong>+</strong> below to upload them and we'll get started.</p>`;
+            welcomeHtml = `<p>Let's build a lab program together…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>I'll let you know when we have enough to build an outline.</p>`;
         }
         addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
     }
