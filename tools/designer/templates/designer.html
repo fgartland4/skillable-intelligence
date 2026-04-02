@@ -1043,6 +1043,62 @@
         /* Field hint text */
         .prefs-field-hint { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
 
+        /* Style guide / framework picklist */
+        .prefs-picklist {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 6px 0;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        .prefs-picklist-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 7px 12px; cursor: pointer;
+            transition: background var(--transition);
+            font-size: 13px; color: var(--color-text);
+        }
+        .prefs-picklist-item:hover { background: var(--color-bg); }
+        .prefs-picklist-check {
+            width: 15px; height: 15px;
+            border: 1.5px solid var(--color-border);
+            border-radius: 3px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.12s;
+        }
+        .prefs-picklist-item.selected .prefs-picklist-check {
+            background: var(--color-primary); border-color: var(--color-primary);
+        }
+        .prefs-picklist-item.selected .prefs-picklist-check::after {
+            content: '✓'; font-size: 10px; color: #fff; font-weight: 700;
+        }
+        .prefs-picklist-divider {
+            border: none; border-top: 1px solid var(--color-border-light);
+            margin: 4px 0;
+        }
+        /* Custom style guide upload row */
+        .custom-style-upload {
+            display: none; padding: 8px 12px 10px;
+            background: var(--color-bg);
+            border-top: 1px solid var(--color-border-light);
+        }
+        .custom-style-upload.show { display: block; }
+        .custom-style-upload-label {
+            font-size: 12px; color: var(--color-text-light);
+            margin-bottom: 6px; display: block;
+        }
+        .btn-upload-guide {
+            background: none; border: 1px dashed var(--color-border);
+            border-radius: var(--radius-sm); color: var(--color-text-muted);
+            font-size: 12px; padding: 6px 12px; cursor: pointer;
+            transition: all var(--transition); width: 100%; text-align: left;
+        }
+        .btn-upload-guide:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .custom-guide-name {
+            font-size: 12px; color: var(--color-primary);
+            margin-top: 4px; display: none;
+        }
+
         /* ================================================================
            MISC UTILITIES
         ================================================================ */
@@ -1463,64 +1519,71 @@ const INITIAL_DATA = {{ program_json | safe }};
                         </div>
                     </div>
                     <hr class="prefs-divider">
-                    <div class="prefs-input-row">
-                        <div class="prefs-field">
-                            <label class="prefs-label">Primary Style Guide</label>
-                            <input type="text" class="prefs-input" id="pref-style-guide-primary" placeholder="e.g. Microsoft Style Guide">
+                    <div class="prefs-field">
+                        <label class="prefs-label">Style Guide(s) — select all that apply</label>
+                        <div class="prefs-picklist" id="style-guide-picker">
+                            <div class="prefs-picklist-item" data-value="Microsoft Writing Style Guide">
+                                <div class="prefs-picklist-check"></div>Microsoft Writing Style Guide
+                            </div>
+                            <div class="prefs-picklist-item" data-value="Apple Style Guide">
+                                <div class="prefs-picklist-check"></div>Apple Style Guide
+                            </div>
+                            <div class="prefs-picklist-item" data-value="IBM Style Guide">
+                                <div class="prefs-picklist-check"></div>IBM Style Guide
+                            </div>
+                            <div class="prefs-picklist-item" data-value="Red Hat Documentation Guide">
+                                <div class="prefs-picklist-check"></div>Red Hat Documentation Guide
+                            </div>
+                            <div class="prefs-picklist-item" data-value="DigitalOcean Technical Writing Guidelines">
+                                <div class="prefs-picklist-check"></div>DigitalOcean Technical Writing Guidelines
+                            </div>
+                            <hr class="prefs-picklist-divider">
+                            <div class="prefs-picklist-item" data-value="__custom__">
+                                <div class="prefs-picklist-check"></div>Custom Style Guide (upload)
+                            </div>
+                            <div class="custom-style-upload" id="custom-style-upload">
+                                <span class="custom-style-upload-label">Upload a .txt, .md, or .pdf style guide for Neo to follow when generating instructions.</span>
+                                <button class="btn-upload-guide" id="btn-upload-style-guide" type="button">📄 Choose file…</button>
+                                <div class="custom-guide-name" id="custom-style-guide-name"></div>
+                                <input type="file" id="style-guide-file-input" accept=".txt,.md,.pdf,.docx" style="display:none;">
+                            </div>
                         </div>
-                        <div class="prefs-field">
-                            <label class="prefs-label">Secondary Style Guide</label>
-                            <input type="text" class="prefs-input" id="pref-style-guide-secondary" placeholder="Optional">
-                        </div>
+                        <div class="prefs-field-hint">Selected style guides are injected into every draft instructions generation pass.</div>
                     </div>
                     <hr class="prefs-divider">
-                    <div class="prefs-input-row">
-                        <div class="prefs-field">
-                            <label class="prefs-label">Primary Skill Framework</label>
-                            <select class="prefs-select" id="pref-framework-primary">
-                                <option value="">None</option>
-                                <optgroup label="Cybersecurity">
-                                    <option value="NICE NCWF">NICE NCWF</option>
-                                    <option value="DoD DCWF">DoD DCWF</option>
-                                    <option value="CompTIA Security+">CompTIA Security+</option>
-                                    <option value="CompTIA CySA+">CompTIA CySA+</option>
-                                </optgroup>
-                                <optgroup label="Cloud &amp; DevOps">
-                                    <option value="Azure AZ-104">Azure AZ-104</option>
-                                    <option value="Azure AZ-900">Azure AZ-900</option>
-                                    <option value="AWS SAA">AWS Solutions Architect</option>
-                                    <option value="Cisco CCNA">Cisco CCNA</option>
-                                </optgroup>
-                                <optgroup label="Cross-Domain">
-                                    <option value="SFIA">SFIA</option>
-                                    <option value="ITIL 4">ITIL 4</option>
-                                    <option value="LinkedIn">LinkedIn Skill Framework</option>
-                                </optgroup>
-                            </select>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Skill Framework(s) — select all that apply</label>
+                        <div class="prefs-picklist" id="framework-picker">
+                            <div class="prefs-picklist-item" data-value="NICE Cybersecurity Workforce Framework (NICE NCWF)">
+                                <div class="prefs-picklist-check"></div>NICE Cybersecurity Workforce Framework (NICE NCWF)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="DoD Cybersecurity Workforce Framework (DoD DCWF)">
+                                <div class="prefs-picklist-check"></div>DoD Cybersecurity Workforce Framework (DoD DCWF)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="DoD 8570 / 8140">
+                                <div class="prefs-picklist-check"></div>DoD 8570 / 8140
+                            </div>
+                            <div class="prefs-picklist-item" data-value="Skills Framework for the Information Age (SFIA)">
+                                <div class="prefs-picklist-check"></div>Skills Framework for the Information Age (SFIA)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="Information Technology Infrastructure Library (ITIL 4)">
+                                <div class="prefs-picklist-check"></div>Information Technology Infrastructure Library (ITIL 4)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="LinkedIn Skill Framework">
+                                <div class="prefs-picklist-check"></div>LinkedIn Skill Framework
+                            </div>
+                            <hr class="prefs-picklist-divider">
+                            <div class="prefs-picklist-item" data-value="__custom_framework__">
+                                <div class="prefs-picklist-check"></div>Custom Framework (upload)
+                            </div>
+                            <div class="custom-style-upload" id="custom-framework-upload">
+                                <span class="custom-style-upload-label">Upload a .txt, .csv, .json, or .md framework file.</span>
+                                <button class="btn-upload-guide" id="btn-upload-framework" type="button">📄 Choose file…</button>
+                                <div class="custom-guide-name" id="custom-framework-name"></div>
+                                <input type="file" id="framework-file-input" accept=".txt,.md,.csv,.json" style="display:none;">
+                            </div>
                         </div>
-                        <div class="prefs-field">
-                            <label class="prefs-label">Secondary Skill Framework</label>
-                            <select class="prefs-select" id="pref-framework-secondary">
-                                <option value="">None</option>
-                                <optgroup label="Cybersecurity">
-                                    <option value="NICE NCWF">NICE NCWF</option>
-                                    <option value="DoD DCWF">DoD DCWF</option>
-                                    <option value="CompTIA Security+">CompTIA Security+</option>
-                                    <option value="CompTIA CySA+">CompTIA CySA+</option>
-                                </optgroup>
-                                <optgroup label="Cloud &amp; DevOps">
-                                    <option value="Azure AZ-104">Azure AZ-104</option>
-                                    <option value="Azure AZ-900">Azure AZ-900</option>
-                                    <option value="AWS SAA">AWS Solutions Architect</option>
-                                    <option value="Cisco CCNA">Cisco CCNA</option>
-                                </optgroup>
-                                <optgroup label="Cross-Domain">
-                                    <option value="SFIA">SFIA</option>
-                                    <option value="ITIL 4">ITIL 4</option>
-                                    <option value="LinkedIn">LinkedIn Skill Framework</option>
-                                </optgroup>
-                            </select>
-                        </div>
+                        <div class="prefs-field-hint">Only include frameworks with downloadable or licensable content Neo can reference during outline and instruction generation.</div>
                     </div>
                     <hr class="prefs-divider">
                     <div class="prefs-toggle-row">
@@ -2028,6 +2091,23 @@ async function sendChat(phase, userText, extraContext) {
         if (sel && sel.value) {
             const lab = findLabById(sel.value);
             if (lab) context += 'Current lab: ' + JSON.stringify(lab, null, 2);
+        }
+        // Inject style guides
+        const prefs = state.preferences || {};
+        const styleGuides = (prefs.style_guides || []).filter(g => g !== '__custom__');
+        if (styleGuides.length) {
+            context += '\n\nStyle guide(s) to follow strictly:\n' + styleGuides.map(g => '- ' + g).join('\n');
+        }
+        if ((prefs.style_guides || []).includes('__custom__') && prefs.custom_style_guide_content) {
+            context += '\n\nCustom style guide content (follow these rules when writing instructions):\n' + prefs.custom_style_guide_content.slice(0, 6000);
+        }
+        // Inject skill frameworks
+        const frameworks = (prefs.skill_frameworks || []).filter(f => f !== '__custom_framework__');
+        if (frameworks.length) {
+            context += '\n\nSkill framework(s) to map activities to:\n' + frameworks.map(f => '- ' + f).join('\n');
+        }
+        if ((prefs.skill_frameworks || []).includes('__custom_framework__') && prefs.custom_framework_content) {
+            context += '\n\nCustom skill framework content:\n' + prefs.custom_framework_content.slice(0, 4000);
         }
     }
     if (extraContext) context += '\n' + extraContext;
@@ -2619,17 +2699,27 @@ function loadPrefsToUI() {
     const labPatternEl = document.getElementById('pref-lab-title-pattern');
     if (labPatternEl) labPatternEl.value = p.lab_title_pattern || '';
 
-    const sgPrimEl = document.getElementById('pref-style-guide-primary');
-    if (sgPrimEl) sgPrimEl.value = p.style_guide_primary || '';
+    // Style guide picklist
+    renderPicklist('style-guide-picker', p.style_guides || []);
+    if ((p.style_guides || []).includes('__custom__')) {
+        document.getElementById('custom-style-upload')?.classList.add('show');
+    }
+    const csgName = document.getElementById('custom-style-guide-name');
+    if (csgName && p.custom_style_guide_name) {
+        csgName.textContent = '✓ ' + p.custom_style_guide_name;
+        csgName.style.display = 'block';
+    }
 
-    const sgSecEl = document.getElementById('pref-style-guide-secondary');
-    if (sgSecEl) sgSecEl.value = p.style_guide_secondary || '';
-
-    const fwPrimEl = document.getElementById('pref-framework-primary');
-    if (fwPrimEl) fwPrimEl.value = p.framework_primary || '';
-
-    const fwSecEl = document.getElementById('pref-framework-secondary');
-    if (fwSecEl) fwSecEl.value = p.framework_secondary || '';
+    // Framework picklist
+    renderPicklist('framework-picker', p.skill_frameworks || []);
+    if ((p.skill_frameworks || []).includes('__custom_framework__')) {
+        document.getElementById('custom-framework-upload')?.classList.add('show');
+    }
+    const cfName = document.getElementById('custom-framework-name');
+    if (cfName && p.custom_framework_name) {
+        cfName.textContent = '✓ ' + p.custom_framework_name;
+        cfName.style.display = 'block';
+    }
 
     const hintToggle = document.getElementById('pref-hint-policy');
     if (hintToggle) {
@@ -2695,12 +2785,10 @@ function savePrefsFromUI() {
     p.ai_processing_messages_enabled = document.getElementById('pref-ai-processing-messages')?.classList.contains('on') !== false;
 
     // Group 3
-    p.lab_number_format      = document.getElementById('pref-lab-number-format')?.value || '';
-    p.lab_title_pattern      = document.getElementById('pref-lab-title-pattern')?.value || '';
-    p.style_guide_primary    = document.getElementById('pref-style-guide-primary')?.value || '';
-    p.style_guide_secondary  = document.getElementById('pref-style-guide-secondary')?.value || '';
-    p.framework_primary      = document.getElementById('pref-framework-primary')?.value || '';
-    p.framework_secondary    = document.getElementById('pref-framework-secondary')?.value || '';
+    p.lab_number_format  = document.getElementById('pref-lab-number-format')?.value || '';
+    p.lab_title_pattern  = document.getElementById('pref-lab-title-pattern')?.value || '';
+    p.style_guides       = readPicklist('style-guide-picker');
+    p.skill_frameworks   = readPicklist('framework-picker');
     p.hint_policy            = document.getElementById('pref-hint-policy')?.classList.contains('on') || false;
     p.knowledge_block_policy = document.getElementById('pref-knowledge-block-policy')?.classList.contains('on') || false;
     p.ref_doc_url            = document.getElementById('pref-ref-doc-url')?.value || '';
@@ -2716,6 +2804,73 @@ function savePrefsFromUI() {
 
     state.preferences = p;
 }
+
+// ── Picklist helpers ────────────────────────────────────────
+function renderPicklist(picklistId, selectedValues) {
+    const picker = document.getElementById(picklistId);
+    if (!picker) return;
+    const selected = new Set(selectedValues);
+    picker.querySelectorAll('.prefs-picklist-item').forEach(item => {
+        item.classList.toggle('selected', selected.has(item.dataset.value));
+    });
+}
+
+function readPicklist(picklistId) {
+    const picker = document.getElementById(picklistId);
+    if (!picker) return [];
+    return Array.from(picker.querySelectorAll('.prefs-picklist-item.selected'))
+        .map(el => el.dataset.value);
+}
+
+// Attach picklist click behavior — called once after DOM ready
+function setupPicklists() {
+    document.querySelectorAll('.prefs-picklist').forEach(picker => {
+        picker.querySelectorAll('.prefs-picklist-item').forEach(item => {
+            item.addEventListener('click', () => {
+                item.classList.toggle('selected');
+                // Show/hide custom upload panels
+                if (item.dataset.value === '__custom__') {
+                    document.getElementById('custom-style-upload')?.classList.toggle('show', item.classList.contains('selected'));
+                }
+                if (item.dataset.value === '__custom_framework__') {
+                    document.getElementById('custom-framework-upload')?.classList.toggle('show', item.classList.contains('selected'));
+                }
+            });
+        });
+    });
+}
+
+// ── Custom style guide upload ────────────────────────────────
+document.getElementById('btn-upload-style-guide')?.addEventListener('click', () => {
+    document.getElementById('style-guide-file-input')?.click();
+});
+document.getElementById('style-guide-file-input')?.addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+    const text = await readFileAsText(file);
+    state.preferences = state.preferences || {};
+    state.preferences.custom_style_guide_content = text;
+    state.preferences.custom_style_guide_name = file.name;
+    const nameEl = document.getElementById('custom-style-guide-name');
+    if (nameEl) { nameEl.textContent = '✓ ' + file.name; nameEl.style.display = 'block'; }
+    this.value = '';
+});
+
+// ── Custom framework upload ──────────────────────────────────
+document.getElementById('btn-upload-framework')?.addEventListener('click', () => {
+    document.getElementById('framework-file-input')?.click();
+});
+document.getElementById('framework-file-input')?.addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+    const text = await readFileAsText(file);
+    state.preferences = state.preferences || {};
+    state.preferences.custom_framework_content = text;
+    state.preferences.custom_framework_name = file.name;
+    const nameEl = document.getElementById('custom-framework-name');
+    if (nameEl) { nameEl.textContent = '✓ ' + file.name; nameEl.style.display = 'block'; }
+    this.value = '';
+});
 
 // Provider change → show/hide custom endpoint
 document.getElementById('pref-ai-provider')?.addEventListener('change', function() {
@@ -2854,6 +3009,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPhase1();
     setupPhase2();
     setupPhase3();
+    setupPicklists();
     restoreState();
     maybeGreet();
     fetchAndBlendVocabulary();

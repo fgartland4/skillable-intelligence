@@ -76,7 +76,12 @@ PHASE_PROMPTS = {
         "Include scoring recommendations for how each activity can be validated. "
         "Format instructions in Markdown. Use ## for activity headers and numbered lists for steps. "
         "After each activity's instructions, add a > **Scoring Recommendation:** block describing "
-        "how to validate completion of that activity."
+        "how to validate completion of that activity.\n\n"
+        "CRITICAL — Program context will include style guides and skill frameworks. You MUST:\n"
+        "• Follow every style guide listed — apply their voice, terminology, and formatting rules throughout.\n"
+        "• If a custom style guide is provided, treat it as the primary writing authority.\n"
+        "• Map each activity to the skill frameworks listed — include a brief skill tag or competency reference after each activity header.\n"
+        "• If a custom skill framework is provided, use its taxonomy for mapping."
     ),
 }
 
