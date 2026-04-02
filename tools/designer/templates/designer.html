@@ -1049,8 +1049,6 @@
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             padding: 6px 0;
-            max-height: 220px;
-            overflow-y: auto;
         }
         .prefs-picklist-item {
             display: flex; align-items: center; gap: 10px;
@@ -1522,6 +1520,10 @@ const INITIAL_DATA = {{ program_json | safe }};
                     <div class="prefs-field">
                         <label class="prefs-label">Style Guide(s) — select all that apply</label>
                         <div class="prefs-picklist" id="style-guide-picker">
+                            <div class="prefs-picklist-item" data-value="__custom__">
+                                <div class="prefs-picklist-check"></div>Custom Style Guide (upload)
+                            </div>
+                            <hr class="prefs-picklist-divider">
                             <div class="prefs-picklist-item" data-value="Microsoft Writing Style Guide">
                                 <div class="prefs-picklist-check"></div>Microsoft Writing Style Guide
                             </div>
@@ -1533,10 +1535,6 @@ const INITIAL_DATA = {{ program_json | safe }};
                             </div>
                             <div class="prefs-picklist-item" data-value="DigitalOcean Technical Writing Guidelines">
                                 <div class="prefs-picklist-check"></div>DigitalOcean Technical Writing Guidelines
-                            </div>
-                            <hr class="prefs-picklist-divider">
-                            <div class="prefs-picklist-item" data-value="__custom__">
-                                <div class="prefs-picklist-check"></div>Custom Style Guide (upload)
                             </div>
                             <div class="custom-style-upload" id="custom-style-upload">
                                 <span class="custom-style-upload-label">Upload a .txt, .md, or .pdf style guide for Neo to follow when generating instructions.</span>
@@ -1551,6 +1549,10 @@ const INITIAL_DATA = {{ program_json | safe }};
                     <div class="prefs-field">
                         <label class="prefs-label">Skill Framework(s) — select all that apply</label>
                         <div class="prefs-picklist" id="framework-picker">
+                            <div class="prefs-picklist-item" data-value="__custom_framework__">
+                                <div class="prefs-picklist-check"></div>Custom Framework (upload)
+                            </div>
+                            <hr class="prefs-picklist-divider">
                             <div class="prefs-picklist-item" data-value="NICE Cybersecurity Workforce Framework (NICE NCWF)">
                                 <div class="prefs-picklist-check"></div>NICE Cybersecurity Workforce Framework (NICE NCWF)
                             </div>
@@ -1568,10 +1570,6 @@ const INITIAL_DATA = {{ program_json | safe }};
                             </div>
                             <div class="prefs-picklist-item" data-value="LinkedIn Skill Framework">
                                 <div class="prefs-picklist-check"></div>LinkedIn Skill Framework
-                            </div>
-                            <hr class="prefs-picklist-divider">
-                            <div class="prefs-picklist-item" data-value="__custom_framework__">
-                                <div class="prefs-picklist-check"></div>Custom Framework (upload)
                             </div>
                             <div class="custom-style-upload" id="custom-framework-upload">
                                 <span class="custom-style-upload-label">Upload a .txt, .csv, .json, or .md framework file.</span>
