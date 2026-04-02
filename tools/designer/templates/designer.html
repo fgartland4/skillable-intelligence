@@ -744,10 +744,13 @@
 
         /* Generate Outline button */
         .generate-outline-wrap {
-            padding: 12px 16px;
-            border-top: 1px solid var(--color-border-light);
+            padding: 0;
             flex-shrink: 0;
             background: var(--color-surface);
+        }
+        .generate-outline-wrap:has(.btn-generate:not(.hidden)) {
+            padding: 12px 16px;
+            border-top: 1px solid var(--color-border-light);
         }
         .btn-generate {
             width: 100%;
