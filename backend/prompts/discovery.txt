@@ -47,6 +47,11 @@ For each item, identify:
 - category: One of: Cloud Infrastructure, Cybersecurity, Data Protection, Networking, DevOps, Application Development, Data & Analytics, Data Science & Engineering, Collaboration, ERP/CRM, Healthcare IT, Industrial/OT, Content Management, Legal Tech, FinTech, AI/ML Platform, Academic Program, Training & Certification, Technology Platform, Other
 - description: One sentence describing what it does or covers
 - deployment_model: "self-hosted", "cloud", "hybrid", or "saas-only"
+  - "self-hosted": installs on customer-managed machines (Windows/Linux servers, VMs). Examples: Windows Server, SQL Server, Active Directory, VMware vSphere, Splunk Enterprise, any software with an installer.
+  - "hybrid": available BOTH as self-hosted AND as a cloud/SaaS service. Examples: SQL Server (on-prem + Azure SQL), Exchange Server (on-prem + Exchange Online), SharePoint (on-prem + Online).
+  - "cloud": runs on cloud infrastructure the customer controls (Azure VMs, EC2, AKS) — not a managed SaaS, but not a traditional installer either. Examples: Azure Kubernetes Service, cloud-native services.
+  - "saas-only": vendor-managed ONLY — no self-hosted, no installer, no Docker image, no Azure/AWS marketplace VM path. Customer cannot run it on their own infrastructure under any circumstances. Examples: Salesforce, Workday, pure SaaS tools.
+  ⚠️ DO NOT mark a product "saas-only" just because the vendor also offers a cloud version. If it can be installed on a VM or server, use "self-hosted" or "hybrid". Many Microsoft products (Windows Server, SQL Server, Exchange Server) are self-hosted or hybrid — NOT saas-only.
 - likely_labable: one of "highly_likely" | "likely" | "less_likely" | "not_likely"
   - "highly_likely": Installs in VM/container (any Windows or Linux software), OR native Azure/AWS IaaS/PaaS service — AND has meaningful admin workflows or technical depth. This is the default for any installable enterprise software.
   - "likely": Technically viable but with caveats — e.g., cloud-hosted with some API access, hybrid deployment, or installable but very limited interaction surface. Worth scoring.
