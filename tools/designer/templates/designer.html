@@ -1074,6 +1074,31 @@
             border: none; border-top: 1px solid var(--color-border-light);
             margin: 4px 0;
         }
+        /* Radio-style picklist (single-select — Primary Framework) */
+        .prefs-picklist-radio {
+            width: 15px; height: 15px;
+            border: 1.5px solid var(--color-border);
+            border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.12s;
+        }
+        .prefs-picklist-item.selected .prefs-picklist-radio {
+            border-color: var(--color-primary);
+        }
+        .prefs-picklist-item.selected .prefs-picklist-radio::after {
+            content: ''; width: 8px; height: 8px;
+            border-radius: 50%; background: var(--color-primary);
+            display: block;
+        }
+        /* Custom upload panel — used outside picklist (shared for framework pickers) */
+        .custom-upload-panel {
+            display: none; margin-top: 8px;
+            padding: 10px 12px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border-light);
+            border-radius: var(--radius-sm);
+        }
+        .custom-upload-panel.show { display: block; }
         /* Custom style guide upload row */
         .custom-style-upload {
             display: none; padding: 8px 12px 10px;
@@ -1408,8 +1433,9 @@ const INITIAL_DATA = {{ program_json | safe }};
                 <ul class="prefs-nav-list">
                     <li class="prefs-nav-item active" data-group="ai-connection">AI Connection</li>
                     <li class="prefs-nav-item" data-group="org-identity">Organization Identity</li>
-                    <li class="prefs-nav-item" data-group="learning-standards">Learning Design Standards</li>
-                    <li class="prefs-nav-item" data-group="scenario-defaults">Scenario &amp; Lab Type Defaults</li>
+                    <li class="prefs-nav-item" data-group="style-guides-standards">Style Guides &amp; Standards</li>
+                    <li class="prefs-nav-item" data-group="skill-frameworks">Skill Frameworks</li>
+                    <li class="prefs-nav-item" data-group="lab-defaults">Lab Defaults</li>
                 </ul>
                 <div class="prefs-nav-footer">
                     <button class="btn-prefs-done" id="btn-prefs-done">Done</button>
@@ -1499,10 +1525,10 @@ const INITIAL_DATA = {{ program_json | safe }};
                     </div>
                 </div>
 
-                <!-- ── Group 3: Learning Design Standards ── -->
-                <div class="prefs-panel-group" id="prefs-group-learning-standards">
-                    <div class="prefs-panel-title">Learning Design Standards</div>
-                    <div class="prefs-panel-desc">These settings guide Neo's instructional design choices across all programs in your organization.</div>
+                <!-- ── Group 3: Style Guides & Standards ── -->
+                <div class="prefs-panel-group" id="prefs-group-style-guides-standards">
+                    <div class="prefs-panel-title">Style Guides &amp; Standards</div>
+                    <div class="prefs-panel-desc">Writing and formatting standards Neo follows when generating lab instructions. Selected guides are injected into every instruction generation pass.</div>
 
                     <div class="prefs-input-row">
                         <div class="prefs-field">
@@ -1523,6 +1549,12 @@ const INITIAL_DATA = {{ program_json | safe }};
                             <div class="prefs-picklist-item" data-value="__custom__">
                                 <div class="prefs-picklist-check"></div>Custom Style Guide (upload)
                             </div>
+                            <div class="custom-style-upload" id="custom-style-upload">
+                                <span class="custom-style-upload-label">Upload a .txt, .md, or .pdf style guide for Neo to follow when generating instructions.</span>
+                                <button class="btn-upload-guide" id="btn-upload-style-guide" type="button">📄 Choose file…</button>
+                                <div class="custom-guide-name" id="custom-style-guide-name"></div>
+                                <input type="file" id="style-guide-file-input" accept=".txt,.md,.pdf,.docx" style="display:none;">
+                            </div>
                             <hr class="prefs-picklist-divider">
                             <div class="prefs-picklist-item" data-value="Microsoft Writing Style Guide">
                                 <div class="prefs-picklist-check"></div>Microsoft Writing Style Guide
@@ -1536,18 +1568,56 @@ const INITIAL_DATA = {{ program_json | safe }};
                             <div class="prefs-picklist-item" data-value="DigitalOcean Technical Writing Guidelines">
                                 <div class="prefs-picklist-check"></div>DigitalOcean Technical Writing Guidelines
                             </div>
-                            <div class="custom-style-upload" id="custom-style-upload">
-                                <span class="custom-style-upload-label">Upload a .txt, .md, or .pdf style guide for Neo to follow when generating instructions.</span>
-                                <button class="btn-upload-guide" id="btn-upload-style-guide" type="button">📄 Choose file…</button>
-                                <div class="custom-guide-name" id="custom-style-guide-name"></div>
-                                <input type="file" id="style-guide-file-input" accept=".txt,.md,.pdf,.docx" style="display:none;">
+                        </div>
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Always-On Reference — Documentation URL</label>
+                        <input type="url" class="prefs-input" id="pref-ref-doc-url" placeholder="https://docs.example.com">
+                        <div class="prefs-field-hint">Neo references this URL when generating instructions that mention product documentation.</div>
+                    </div>
+                    <div class="prefs-field">
+                        <label class="prefs-label">Always-On Reference — Wiki / Knowledge Base URL</label>
+                        <input type="url" class="prefs-input" id="pref-ref-wiki-url" placeholder="https://wiki.example.com">
+                    </div>
+                </div>
+
+                <!-- ── Group 4: Skill Frameworks ── -->
+                <div class="prefs-panel-group" id="prefs-group-skill-frameworks">
+                    <div class="prefs-panel-title">Skill Frameworks</div>
+                    <div class="prefs-panel-desc">Frameworks Neo uses to tag activities and map learning outcomes. Select frameworks with publicly available or uploaded content.</div>
+
+                    <div class="prefs-field">
+                        <label class="prefs-label">Primary Framework</label>
+                        <div class="prefs-field-hint" style="margin-bottom:6px;">Neo aligns all activity skill tags to this framework first. Select one, or leave blank.</div>
+                        <div class="prefs-picklist" id="framework-primary-picker" data-select-mode="radio">
+                            <div class="prefs-picklist-item" data-value="__custom_framework__">
+                                <div class="prefs-picklist-radio"></div>Custom Framework (upload)
+                            </div>
+                            <hr class="prefs-picklist-divider">
+                            <div class="prefs-picklist-item" data-value="NICE Cybersecurity Workforce Framework (NICE NCWF)">
+                                <div class="prefs-picklist-radio"></div>NICE Cybersecurity Workforce Framework (NICE NCWF)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="DoD Cybersecurity Workforce Framework (DoD DCWF)">
+                                <div class="prefs-picklist-radio"></div>DoD Cybersecurity Workforce Framework (DoD DCWF)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="DoD 8570 / 8140">
+                                <div class="prefs-picklist-radio"></div>DoD 8570 / 8140
+                            </div>
+                            <div class="prefs-picklist-item" data-value="Skills Framework for the Information Age (SFIA)">
+                                <div class="prefs-picklist-radio"></div>Skills Framework for the Information Age (SFIA)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="Information Technology Infrastructure Library (ITIL 4)">
+                                <div class="prefs-picklist-radio"></div>Information Technology Infrastructure Library (ITIL 4)
+                            </div>
+                            <div class="prefs-picklist-item" data-value="LinkedIn Skill Framework">
+                                <div class="prefs-picklist-radio"></div>LinkedIn Skill Framework
                             </div>
                         </div>
-                        <div class="prefs-field-hint">Selected style guides are injected into every draft instructions generation pass.</div>
                     </div>
                     <hr class="prefs-divider">
                     <div class="prefs-field">
-                        <label class="prefs-label">Skill Framework(s) — select all that apply</label>
+                        <label class="prefs-label">Additional Frameworks</label>
+                        <div class="prefs-field-hint" style="margin-bottom:6px;">Supplementary frameworks for secondary skill tagging and cross-mapping. Select all that apply.</div>
                         <div class="prefs-picklist" id="framework-picker">
                             <div class="prefs-picklist-item" data-value="__custom_framework__">
                                 <div class="prefs-picklist-check"></div>Custom Framework (upload)
@@ -1571,14 +1641,45 @@ const INITIAL_DATA = {{ program_json | safe }};
                             <div class="prefs-picklist-item" data-value="LinkedIn Skill Framework">
                                 <div class="prefs-picklist-check"></div>LinkedIn Skill Framework
                             </div>
-                            <div class="custom-style-upload" id="custom-framework-upload">
-                                <span class="custom-style-upload-label">Upload a .txt, .csv, .json, or .md framework file.</span>
-                                <button class="btn-upload-guide" id="btn-upload-framework" type="button">📄 Choose file…</button>
-                                <div class="custom-guide-name" id="custom-framework-name"></div>
-                                <input type="file" id="framework-file-input" accept=".txt,.md,.csv,.json" style="display:none;">
-                            </div>
                         </div>
-                        <div class="prefs-field-hint">Only include frameworks with downloadable or licensable content Neo can reference during outline and instruction generation.</div>
+                    </div>
+                    <!-- Shared custom framework upload — shown when Custom is selected in either picker -->
+                    <div class="custom-upload-panel" id="custom-framework-upload">
+                        <span class="custom-style-upload-label">Upload a .txt, .csv, .json, or .md framework file. Neo will use this as the framework taxonomy when tagging activities.</span>
+                        <button class="btn-upload-guide" id="btn-upload-framework" type="button">📄 Choose file…</button>
+                        <div class="custom-guide-name" id="custom-framework-name"></div>
+                        <input type="file" id="framework-file-input" accept=".txt,.md,.csv,.json" style="display:none;">
+                    </div>
+                </div>
+
+                <!-- ── Group 5: Lab Defaults ── -->
+                <div class="prefs-panel-group" id="prefs-group-lab-defaults">
+                    <div class="prefs-panel-title">Lab Defaults</div>
+                    <div class="prefs-panel-desc">Default lab structure and content settings. These are starting points — every program can override them in Phase 1.</div>
+
+                    <div class="prefs-input-row">
+                        <div class="prefs-field">
+                            <label class="prefs-label">Estimated Lab Duration</label>
+                            <select class="prefs-select" id="pref-seat-time">
+                                <option value="30">30 min</option>
+                                <option value="45">45 min</option>
+                                <option value="60" selected>60 min</option>
+                                <option value="75">75 min</option>
+                                <option value="90">90 min</option>
+                                <option value="120">120 min</option>
+                            </select>
+                        </div>
+                        <div class="prefs-field">
+                            <label class="prefs-label">Target Activities per Lab</label>
+                            <select class="prefs-select" id="pref-activities-per-lab">
+                                <option value="3">3 activities</option>
+                                <option value="4">4 activities</option>
+                                <option value="5" selected>5 activities</option>
+                                <option value="6">6 activities</option>
+                                <option value="7">7 activities</option>
+                                <option value="8">8 activities</option>
+                            </select>
+                        </div>
                     </div>
                     <hr class="prefs-divider">
                     <div class="prefs-toggle-row">
@@ -1596,21 +1697,6 @@ const INITIAL_DATA = {{ program_json | safe }};
                         <button class="toggle" id="pref-knowledge-block-policy" type="button"></button>
                     </div>
                     <hr class="prefs-divider">
-                    <div class="prefs-field">
-                        <label class="prefs-label">Always-On Reference — Documentation URL</label>
-                        <input type="url" class="prefs-input" id="pref-ref-doc-url" placeholder="https://docs.example.com">
-                    </div>
-                    <div class="prefs-field">
-                        <label class="prefs-label">Always-On Reference — Wiki / Knowledge Base URL</label>
-                        <input type="url" class="prefs-input" id="pref-ref-wiki-url" placeholder="https://wiki.example.com">
-                    </div>
-                </div>
-
-                <!-- ── Group 4: Scenario & Lab Type Defaults ── -->
-                <div class="prefs-panel-group" id="prefs-group-scenario-defaults">
-                    <div class="prefs-panel-title">Scenario &amp; Lab Type Defaults</div>
-                    <div class="prefs-panel-desc">Default lab structure and scenario type settings. These are starting points — every program can override them in Phase 1.</div>
-
                     <div class="prefs-toggle-row">
                         <div class="prefs-toggle-info">
                             <span class="prefs-toggle-label">Break/Fix Scenarios</span>
@@ -1631,36 +1717,6 @@ const INITIAL_DATA = {{ program_json | safe }};
                             <span class="prefs-toggle-sub">Labs default to including a simulated adversarial element or attack scenario.</span>
                         </div>
                         <button class="toggle" id="pref-attack" type="button"></button>
-                    </div>
-                    <hr class="prefs-divider">
-                    <div class="prefs-input-row">
-                        <div class="prefs-field">
-                            <label class="prefs-label">Default Lab Duration (minutes)</label>
-                            <select class="prefs-select" id="pref-seat-time">
-                                <option value="30">30 min</option>
-                                <option value="45">45 min</option>
-                                <option value="60" selected>60 min</option>
-                                <option value="75">75 min</option>
-                                <option value="90">90 min</option>
-                                <option value="120">120 min</option>
-                            </select>
-                        </div>
-                        <div class="prefs-field">
-                            <label class="prefs-label">Activities per Lab (default)</label>
-                            <select class="prefs-select" id="pref-activities-per-lab">
-                                <option value="3">3 activities</option>
-                                <option value="4">4 activities</option>
-                                <option value="5" selected>5 activities</option>
-                                <option value="6">6 activities</option>
-                                <option value="7">7 activities</option>
-                                <option value="8">8 activities</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="prefs-field">
-                        <label class="prefs-label">Lab Naming Formula</label>
-                        <input type="text" class="prefs-input" id="pref-naming-formula" placeholder='e.g. Lab {n} — {topic}'>
-                        <div class="prefs-field-hint">{n} = lab number, {topic} = AI-generated topic name</div>
                     </div>
                 </div>
 
@@ -2096,13 +2152,21 @@ async function sendChat(phase, userText, extraContext) {
         if ((prefs.style_guides || []).includes('__custom__') && prefs.custom_style_guide_content) {
             context += '\n\nCustom style guide content (follow these rules when writing instructions):\n' + prefs.custom_style_guide_content.slice(0, 6000);
         }
-        // Inject skill frameworks
-        const frameworks = (prefs.skill_frameworks || []).filter(f => f !== '__custom_framework__');
-        if (frameworks.length) {
-            context += '\n\nSkill framework(s) to map activities to:\n' + frameworks.map(f => '- ' + f).join('\n');
+        // Inject skill frameworks — primary first (gets highest weight), then additional
+        const primaryFw = prefs.primary_framework || '';
+        const isPrimaryCustom = primaryFw === '__custom_framework__';
+        if (primaryFw && !isPrimaryCustom) {
+            context += '\n\nPrimary skill framework (align ALL activity skill tags to this taxonomy first):\n- ' + primaryFw;
         }
-        if ((prefs.skill_frameworks || []).includes('__custom_framework__') && prefs.custom_framework_content) {
-            context += '\n\nCustom skill framework content:\n' + prefs.custom_framework_content.slice(0, 4000);
+        const additionalFws = (prefs.skill_frameworks || []).filter(f => f !== '__custom_framework__' && f !== primaryFw);
+        if (additionalFws.length) {
+            context += '\n\nAdditional skill frameworks (use for secondary tagging and cross-mapping):\n' + additionalFws.map(f => '- ' + f).join('\n');
+        }
+        // Custom framework content — used by whichever picker selected it
+        const customFwUsed = isPrimaryCustom || (prefs.skill_frameworks || []).includes('__custom_framework__');
+        if (customFwUsed && prefs.custom_framework_content) {
+            const customFwRole = isPrimaryCustom ? 'Primary custom framework taxonomy (align all activities to this)' : 'Additional custom framework taxonomy';
+            context += '\n\n' + customFwRole + ':\n' + prefs.custom_framework_content.slice(0, 4000);
         }
     }
     if (extraContext) context += '\n' + extraContext;
@@ -2687,35 +2751,51 @@ function loadPrefsToUI() {
         aiMsgToggle.onclick = () => aiMsgToggle.classList.toggle('on');
     }
 
-    // Group 3: Learning Design Standards
+    // Group 3: Style Guides & Standards
     const labNumberEl = document.getElementById('pref-lab-number-format');
     if (labNumberEl) labNumberEl.value = p.lab_number_format || '';
 
     const labPatternEl = document.getElementById('pref-lab-title-pattern');
     if (labPatternEl) labPatternEl.value = p.lab_title_pattern || '';
 
-    // Style guide picklist — default to Microsoft Writing Style Guide if nothing set
+    // Style guide picklist — default to Microsoft Writing Style Guide if nothing saved yet
     const defaultStyleGuides = p.style_guides ?? ['Microsoft Writing Style Guide'];
     renderPicklist('style-guide-picker', defaultStyleGuides);
-    if ((p.style_guides || []).includes('__custom__')) {
-        document.getElementById('custom-style-upload')?.classList.add('show');
-    }
+
     const csgName = document.getElementById('custom-style-guide-name');
     if (csgName && p.custom_style_guide_name) {
         csgName.textContent = '✓ ' + p.custom_style_guide_name;
         csgName.style.display = 'block';
     }
 
-    // Framework picklist
+    const refDocEl = document.getElementById('pref-ref-doc-url');
+    if (refDocEl) refDocEl.value = p.ref_doc_url || '';
+
+    const refWikiEl = document.getElementById('pref-ref-wiki-url');
+    if (refWikiEl) refWikiEl.value = p.ref_wiki_url || '';
+
+    // Group 4: Skill Frameworks
+    // Primary framework — single-select radio picklist
+    renderRadioPicklist('framework-primary-picker', p.primary_framework || '');
+
+    // Additional frameworks — multi-select checkbox picklist
     renderPicklist('framework-picker', p.skill_frameworks || []);
-    if ((p.skill_frameworks || []).includes('__custom_framework__')) {
-        document.getElementById('custom-framework-upload')?.classList.add('show');
-    }
+
     const cfName = document.getElementById('custom-framework-name');
     if (cfName && p.custom_framework_name) {
         cfName.textContent = '✓ ' + p.custom_framework_name;
         cfName.style.display = 'block';
     }
+
+    // Sync custom upload panel visibility after rendering both framework pickers
+    updateCustomUploadVisibility();
+
+    // Group 5: Lab Defaults
+    const seatTimeEl = document.getElementById('pref-seat-time');
+    if (seatTimeEl) seatTimeEl.value = String(p.default_seat_time || 60);
+
+    const activitiesEl = document.getElementById('pref-activities-per-lab');
+    if (activitiesEl) activitiesEl.value = String(p.activities_per_lab || 5);
 
     const hintToggle = document.getElementById('pref-hint-policy');
     if (hintToggle) {
@@ -2729,13 +2809,6 @@ function loadPrefsToUI() {
         kbToggle.onclick = () => kbToggle.classList.toggle('on');
     }
 
-    const refDocEl = document.getElementById('pref-ref-doc-url');
-    if (refDocEl) refDocEl.value = p.ref_doc_url || '';
-
-    const refWikiEl = document.getElementById('pref-ref-wiki-url');
-    if (refWikiEl) refWikiEl.value = p.ref_wiki_url || '';
-
-    // Group 4: Scenario & Lab Type Defaults
     const breakfixToggle = document.getElementById('pref-breakfix');
     if (breakfixToggle) {
         breakfixToggle.classList.toggle('on', !!p.breakfix_default);
@@ -2753,15 +2826,6 @@ function loadPrefsToUI() {
         attackToggle.classList.toggle('on', !!p.simulated_attack_default);
         attackToggle.onclick = () => attackToggle.classList.toggle('on');
     }
-
-    const seatTimeEl = document.getElementById('pref-seat-time');
-    if (seatTimeEl) seatTimeEl.value = String(p.default_seat_time || 60);
-
-    const activitiesEl = document.getElementById('pref-activities-per-lab');
-    if (activitiesEl) activitiesEl.value = String(p.activities_per_lab || 5);
-
-    const namingEl = document.getElementById('pref-naming-formula');
-    if (namingEl) namingEl.value = p.naming_formula || '';
 }
 
 function savePrefsFromUI() {
@@ -2780,28 +2844,34 @@ function savePrefsFromUI() {
     p.brand_url       = document.getElementById('pref-brand-url')?.value || '';
     p.ai_processing_messages_enabled = document.getElementById('pref-ai-processing-messages')?.classList.contains('on') !== false;
 
-    // Group 3
-    p.lab_number_format  = document.getElementById('pref-lab-number-format')?.value || '';
-    p.lab_title_pattern  = document.getElementById('pref-lab-title-pattern')?.value || '';
-    p.style_guides       = readPicklist('style-guide-picker');
-    p.skill_frameworks   = readPicklist('framework-picker');
-    p.hint_policy            = document.getElementById('pref-hint-policy')?.classList.contains('on') || false;
-    p.knowledge_block_policy = document.getElementById('pref-knowledge-block-policy')?.classList.contains('on') || false;
-    p.ref_doc_url            = document.getElementById('pref-ref-doc-url')?.value || '';
-    p.ref_wiki_url           = document.getElementById('pref-ref-wiki-url')?.value || '';
+    // Group 3: Style Guides & Standards
+    p.lab_number_format = document.getElementById('pref-lab-number-format')?.value || '';
+    p.lab_title_pattern = document.getElementById('pref-lab-title-pattern')?.value || '';
+    p.style_guides      = readPicklist('style-guide-picker');
+    p.ref_doc_url       = document.getElementById('pref-ref-doc-url')?.value || '';
+    p.ref_wiki_url      = document.getElementById('pref-ref-wiki-url')?.value || '';
 
-    // Group 4
+    // Group 4: Skill Frameworks
+    // primary_framework — single value (empty string means none selected)
+    p.primary_framework = readRadioPicklist('framework-primary-picker');
+    // skill_frameworks — additional frameworks array
+    p.skill_frameworks  = readPicklist('framework-picker');
+
+    // Group 5: Lab Defaults
+    p.default_seat_time        = parseInt(document.getElementById('pref-seat-time')?.value) || 60;
+    p.activities_per_lab       = parseInt(document.getElementById('pref-activities-per-lab')?.value) || 5;
+    p.hint_policy              = document.getElementById('pref-hint-policy')?.classList.contains('on') || false;
+    p.knowledge_block_policy   = document.getElementById('pref-knowledge-block-policy')?.classList.contains('on') || false;
     p.breakfix_default         = document.getElementById('pref-breakfix')?.classList.contains('on') || false;
     p.collaborative_lab_default = document.getElementById('pref-collab')?.classList.contains('on') || false;
     p.simulated_attack_default  = document.getElementById('pref-attack')?.classList.contains('on') || false;
-    p.default_seat_time        = parseInt(document.getElementById('pref-seat-time')?.value) || 60;
-    p.activities_per_lab       = parseInt(document.getElementById('pref-activities-per-lab')?.value) || 5;
-    p.naming_formula           = document.getElementById('pref-naming-formula')?.value || '';
 
     state.preferences = p;
 }
 
 // ── Picklist helpers ────────────────────────────────────────
+
+// Render a multi-select (checkbox) picklist from an array of values
 function renderPicklist(picklistId, selectedValues) {
     const picker = document.getElementById(picklistId);
     if (!picker) return;
@@ -2811,6 +2881,7 @@ function renderPicklist(picklistId, selectedValues) {
     });
 }
 
+// Read selected values from a multi-select (checkbox) picklist
 function readPicklist(picklistId) {
     const picker = document.getElementById(picklistId);
     if (!picker) return [];
@@ -2818,19 +2889,53 @@ function readPicklist(picklistId) {
         .map(el => el.dataset.value);
 }
 
-// Attach picklist click behavior — called once after DOM ready
+// Render a single-select (radio) picklist from a single value string
+function renderRadioPicklist(picklistId, selectedValue) {
+    const picker = document.getElementById(picklistId);
+    if (!picker) return;
+    picker.querySelectorAll('.prefs-picklist-item').forEach(item => {
+        item.classList.toggle('selected', !!selectedValue && item.dataset.value === selectedValue);
+    });
+}
+
+// Read the selected value from a single-select (radio) picklist
+function readRadioPicklist(picklistId) {
+    const picker = document.getElementById(picklistId);
+    if (!picker) return '';
+    return picker.querySelector('.prefs-picklist-item.selected')?.dataset.value || '';
+}
+
+// Sync visibility of custom upload panels based on current picklist selections.
+// Called after any picklist click.
+function updateCustomUploadVisibility() {
+    // Style guide custom upload — shown when __custom__ is selected
+    const styleCustom = document.querySelector('#style-guide-picker .prefs-picklist-item[data-value="__custom__"]')?.classList.contains('selected');
+    document.getElementById('custom-style-upload')?.classList.toggle('show', !!styleCustom);
+
+    // Framework custom upload — shown when __custom_framework__ is selected in EITHER picker
+    const fwPrimary   = document.querySelector('#framework-primary-picker .prefs-picklist-item[data-value="__custom_framework__"]')?.classList.contains('selected');
+    const fwAdditional = document.querySelector('#framework-picker .prefs-picklist-item[data-value="__custom_framework__"]')?.classList.contains('selected');
+    document.getElementById('custom-framework-upload')?.classList.toggle('show', !!(fwPrimary || fwAdditional));
+}
+
+// Attach picklist click behavior — called once after DOM ready.
+// Respects data-select-mode="radio" for single-select pickers.
 function setupPicklists() {
     document.querySelectorAll('.prefs-picklist').forEach(picker => {
+        const isRadio = picker.dataset.selectMode === 'radio';
         picker.querySelectorAll('.prefs-picklist-item').forEach(item => {
             item.addEventListener('click', () => {
-                item.classList.toggle('selected');
-                // Show/hide custom upload panels
-                if (item.dataset.value === '__custom__') {
-                    document.getElementById('custom-style-upload')?.classList.toggle('show', item.classList.contains('selected'));
+                if (isRadio) {
+                    // Single-select: clicking selected item deselects (toggle off); clicking
+                    // another item selects it and deselects the rest
+                    const wasSelected = item.classList.contains('selected');
+                    picker.querySelectorAll('.prefs-picklist-item').forEach(i => i.classList.remove('selected'));
+                    if (!wasSelected) item.classList.add('selected');
+                } else {
+                    // Multi-select: toggle this item
+                    item.classList.toggle('selected');
                 }
-                if (item.dataset.value === '__custom_framework__') {
-                    document.getElementById('custom-framework-upload')?.classList.toggle('show', item.classList.contains('selected'));
-                }
+                updateCustomUploadVisibility();
             });
         });
     });
