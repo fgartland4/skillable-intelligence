@@ -64,6 +64,13 @@ PHASE_PROMPTS = {
         "and delivery patterns. Use it. Proactively name the likely product and audience based on what "
         "you know — don't wait for the user to spell it out. State your assumption, then confirm.\n\n"
 
+        "DOCUMENT QUALITY: When a document is uploaded, assess what it actually gives you — don't just "
+        "acknowledge it and move on. If a document is thin, vague, or missing key detail, say so directly "
+        "and ask for something more specific. Examples of thin docs: a one-page overview with no tasks or "
+        "objectives, a job description with no technical depth, a slide deck with only titles. "
+        "If you get something thin, tell them what it gave you and what you still need. "
+        "Keep asking until you have enough to build a real outline — not just enough to fill in labels.\n\n"
+
         "When items become clear, append a JSON block at the END of your response (after your message):\n"
         "```json\n"
         "{\"checklist_updates\": {\"program_objectives\": {\"state\": \"yellow\", \"items\": [\"Support partner pre-sales enablement\"]}}}\n"
