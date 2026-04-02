@@ -428,76 +428,61 @@
         }
 
         /* ================================================================
-           CHAT INPUT BAR — separate textarea + green Send button
+           CHAT INPUT BAR — popup attach widget + taller textarea + Send
         ================================================================ */
         .chat-input-bar {
-            padding: 12px 16px 16px;
+            padding: 10px 16px 14px;
             border-top: 1px solid var(--color-border-light);
             background: var(--color-surface);
             flex-shrink: 0;
+            position: relative; /* anchor for the popup */
         }
-        /* URL fetch row */
-        .url-input-row {
-            display: none; align-items: center; gap: 8px; margin-bottom: 8px;
-        }
-        .url-input-row.show { display: flex; }
-        .chat-url-input {
-            flex: 1;
+        /* Popup attach panel — floats above the input bar when triggered */
+        .chat-attach-popup {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 16px; right: 16px;
             background: var(--color-surface);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
-            color: var(--color-text);
-            font-size: 13px;
-            padding: 7px 10px;
+            padding: 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.10);
+            z-index: 20;
         }
-        .chat-url-input:focus { outline: none; border-color: var(--color-primary); }
-        .btn-url-send {
-            background: var(--color-primary);
-            border: none;
+        .chat-attach-popup.show { display: block; }
+        /* Attachment badge — shows above input row when a file is loaded */
+        .chat-attach-badge {
+            display: none;
+            align-items: center; gap: 8px;
+            background: rgba(36, 237, 152, 0.08);
+            border: 1px solid rgba(36, 237, 152, 0.3);
             border-radius: var(--radius-sm);
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 7px 12px;
-            cursor: pointer;
+            padding: 5px 10px;
+            margin-bottom: 8px;
+            font-size: 12px; color: var(--color-primary);
         }
-        .btn-url-send:hover { background: var(--color-primary-hover); }
-        .btn-url-cancel {
-            background: none; border: none;
+        .chat-attach-badge.show { display: flex; }
+        .attach-badge-name { flex: 1; font-weight: 500; }
+        /* Attach button — clean, consistent */
+        .btn-chat-attach {
+            background: none; border: 1.5px dashed var(--color-border);
+            border-radius: var(--radius-sm);
             color: var(--color-text-muted);
-            cursor: pointer; font-size: 13px; padding: 4px;
+            padding: 0 10px; cursor: pointer; flex-shrink: 0;
+            font-size: 15px; line-height: 1;
+            transition: border-color var(--transition), color var(--transition);
+            align-self: stretch; /* match textarea height */
         }
-        /* Upload badge chips */
-        #p1-upload-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
-        .upload-badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: var(--color-primary-light);
-            border: 1px solid rgba(0,208,130,0.3);
-            border-radius: 20px;
-            font-size: 12px;
-            color: var(--color-primary-dark);
-            padding: 4px 12px;
+        .btn-chat-attach:hover,
+        .btn-chat-attach.active {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            border-style: solid;
         }
-        .upload-badge button {
-            background: none; border: none;
-            color: var(--color-text-muted);
-            cursor: pointer; font-size: 13px;
-            line-height: 1; padding: 0;
-        }
-        .upload-badge button:hover { color: var(--color-danger); }
         /* Input row */
         .chat-input-row { display: flex; align-items: flex-end; gap: 8px; }
-        .btn-upload {
-            background: none; border: none;
-            border-radius: var(--radius-sm);
-            color: var(--color-text-light);
-            padding: 8px; cursor: pointer;
-            transition: color var(--transition);
-            flex-shrink: 0;
-            font-size: 16px; line-height: 1;
-        }
-        .btn-upload:hover { color: var(--color-primary); }
-        /* Textarea — standalone, visible border */
+        /* Textarea — standalone, visible border, taller */
         .chat-textarea {
             flex: 1;
             resize: none;
@@ -509,7 +494,8 @@
             outline: none;
             background: var(--color-surface);
             color: var(--color-text);
-            max-height: 120px;
+            min-height: 83px;
+            max-height: 160px;
             transition: border-color var(--transition), box-shadow var(--transition);
         }
         .chat-textarea:focus {
@@ -537,7 +523,7 @@
             color: var(--color-text-muted);
             cursor: not-allowed;
         }
-        #file-input, #p1-file-input { display: none; }
+        #file-input { display: none; }
 
         /* ================================================================
            PHASE 1 RIGHT PANE — Blueprint Checklist (light mode)
@@ -1341,22 +1327,34 @@ const INITIAL_DATA = {{ program_json | safe }};
                     </div>
                 </div>
                 <div class="chat-input-bar">
-                    <div class="url-input-row" id="p1-url-row">
-                        <input type="text" class="chat-url-input" id="p1-url-input" placeholder="https://…">
-                        <button class="btn-url-send" id="p1-url-send">Fetch</button>
-                        <button class="btn-url-cancel" id="p1-url-cancel">✕</button>
+                    <div class="chat-attach-popup" id="p1-attach-popup">
+                        <div class="upload-dropzone" id="p1-attach-dropzone">
+                            <div class="upload-dropzone-prompt">
+                                <span class="upload-dropzone-icon">↑</span>
+                                <span class="upload-dropzone-label">Click or drag to upload</span>
+                                <span class="upload-dropzone-hint">.pdf &nbsp;·&nbsp; .docx &nbsp;·&nbsp; .txt &nbsp;·&nbsp; .md</span>
+                            </div>
+                            <div class="upload-dropzone-file">
+                                <span class="upload-file-name" id="p1-attach-file-name"></span>
+                                <button class="upload-file-clear" data-clear="p1-attach" type="button">✕</button>
+                            </div>
+                            <input type="file" id="p1-attach-file-input" accept=".txt,.md,.pdf,.docx,.json,.csv,.png,.jpg,.jpeg,.webp">
+                        </div>
+                        <div class="upload-or-divider">or</div>
+                        <input type="url" class="prefs-input" id="p1-attach-url-input" placeholder="https://…">
+                        <div class="upload-url-hint">Paste a URL to fetch and analyze</div>
                     </div>
-                    <div id="p1-upload-badges"></div>
+                    <div class="chat-attach-badge" id="p1-attach-badge">
+                        <span class="attach-badge-name" id="p1-attach-badge-name"></span>
+                        <button class="upload-file-clear" id="p1-attach-badge-clear" type="button">✕</button>
+                    </div>
                     <div class="chat-input-row">
-                        <button class="btn-upload" id="p1-upload-btn" title="Upload file">📎</button>
-                        <button class="btn-upload" id="p1-url-btn" title="Fetch URL">🔗</button>
+                        <button class="btn-chat-attach" id="p1-attach-btn" title="Attach file or URL">+</button>
                         <textarea class="chat-textarea" id="p1-textarea"
                                   placeholder="Describe your program, upload a document, or ask a question…"
-                                  rows="1"></textarea>
+                                  rows="3"></textarea>
                         <button class="btn-send" id="p1-send">Send</button>
                     </div>
-                    <input type="file" id="p1-file-input"
-                           accept=".txt,.md,.pdf,.docx,.json,.csv,.png,.jpg,.jpeg,.webp">
                 </div>
             </div>
 
@@ -1415,10 +1413,32 @@ const INITIAL_DATA = {{ program_json | safe }};
                     </div>
                 </div>
                 <div class="chat-input-bar">
+                    <div class="chat-attach-popup" id="p2-attach-popup">
+                        <div class="upload-dropzone" id="p2-attach-dropzone">
+                            <div class="upload-dropzone-prompt">
+                                <span class="upload-dropzone-icon">↑</span>
+                                <span class="upload-dropzone-label">Click or drag to upload</span>
+                                <span class="upload-dropzone-hint">.pdf &nbsp;·&nbsp; .docx &nbsp;·&nbsp; .txt &nbsp;·&nbsp; .md</span>
+                            </div>
+                            <div class="upload-dropzone-file">
+                                <span class="upload-file-name" id="p2-attach-file-name"></span>
+                                <button class="upload-file-clear" data-clear="p2-attach" type="button">✕</button>
+                            </div>
+                            <input type="file" id="p2-attach-file-input" accept=".txt,.md,.pdf,.docx,.json,.csv">
+                        </div>
+                        <div class="upload-or-divider">or</div>
+                        <input type="url" class="prefs-input" id="p2-attach-url-input" placeholder="https://…">
+                        <div class="upload-url-hint">Paste a URL to fetch and analyze</div>
+                    </div>
+                    <div class="chat-attach-badge" id="p2-attach-badge">
+                        <span class="attach-badge-name" id="p2-attach-badge-name"></span>
+                        <button class="upload-file-clear" id="p2-attach-badge-clear" type="button">✕</button>
+                    </div>
                     <div class="chat-input-row">
+                        <button class="btn-chat-attach" id="p2-attach-btn" title="Attach file or URL">+</button>
                         <textarea class="chat-textarea" id="p2-textarea"
                                   placeholder="Describe outline changes, ask for suggestions…"
-                                  rows="1"></textarea>
+                                  rows="3"></textarea>
                         <button class="btn-send" id="p2-send">Send</button>
                     </div>
                 </div>
@@ -1446,10 +1466,32 @@ const INITIAL_DATA = {{ program_json | safe }};
                     </div>
                 </div>
                 <div class="chat-input-bar">
+                    <div class="chat-attach-popup" id="p3-attach-popup">
+                        <div class="upload-dropzone" id="p3-attach-dropzone">
+                            <div class="upload-dropzone-prompt">
+                                <span class="upload-dropzone-icon">↑</span>
+                                <span class="upload-dropzone-label">Click or drag to upload</span>
+                                <span class="upload-dropzone-hint">.pdf &nbsp;·&nbsp; .docx &nbsp;·&nbsp; .txt &nbsp;·&nbsp; .md</span>
+                            </div>
+                            <div class="upload-dropzone-file">
+                                <span class="upload-file-name" id="p3-attach-file-name"></span>
+                                <button class="upload-file-clear" data-clear="p3-attach" type="button">✕</button>
+                            </div>
+                            <input type="file" id="p3-attach-file-input" accept=".txt,.md,.pdf,.docx,.json,.csv">
+                        </div>
+                        <div class="upload-or-divider">or</div>
+                        <input type="url" class="prefs-input" id="p3-attach-url-input" placeholder="https://…">
+                        <div class="upload-url-hint">Paste a URL to fetch and analyze</div>
+                    </div>
+                    <div class="chat-attach-badge" id="p3-attach-badge">
+                        <span class="attach-badge-name" id="p3-attach-badge-name"></span>
+                        <button class="upload-file-clear" id="p3-attach-badge-clear" type="button">✕</button>
+                    </div>
                     <div class="chat-input-row">
+                        <button class="btn-chat-attach" id="p3-attach-btn" title="Attach file or URL">+</button>
                         <textarea class="chat-textarea" id="p3-textarea"
                                   placeholder="Ask to revise instructions, adjust an activity…"
-                                  rows="1"></textarea>
+                                  rows="3"></textarea>
                         <button class="btn-send" id="p3-send">Send</button>
                     </div>
                 </div>
@@ -1844,7 +1886,7 @@ const state = JSON.parse(JSON.stringify(INITIAL_DATA));
 let currentPhase = state.current_phase || 1;
 let saveTimer = null;
 let currentStreamingBubble = null;
-let pendingFiles = []; // { name, content, type }
+const chatAttach = { 1: null, 2: null, 3: null }; // { name, content, type: 'file'|'url' }
 let skillMapMode = false;
 let currentPreviewLabIndex = 0;
 
@@ -2380,55 +2422,115 @@ async function sendChat(phase, userText, extraContext) {
 }
 
 // ============================================================
+// CHAT ATTACH — unified file/URL attach widget for all phases
+// ============================================================
+function clearChatAttach(phase) {
+    chatAttach[phase] = null;
+    const badge     = document.getElementById(`p${phase}-attach-badge`);
+    const badgeName = document.getElementById(`p${phase}-attach-badge-name`);
+    const dropzone  = document.getElementById(`p${phase}-attach-dropzone`);
+    const fileName  = document.getElementById(`p${phase}-attach-file-name`);
+    const fileInput = document.getElementById(`p${phase}-attach-file-input`);
+    const urlInput  = document.getElementById(`p${phase}-attach-url-input`);
+    if (badge)     badge.classList.remove('show');
+    if (badgeName) badgeName.textContent = '';
+    if (dropzone)  dropzone.classList.remove('has-file');
+    if (fileName)  fileName.textContent = '';
+    if (fileInput) fileInput.value = '';
+    if (urlInput)  urlInput.value = '';
+}
+
+function setupChatAttach(phase) {
+    const btn       = document.getElementById(`p${phase}-attach-btn`);
+    const popup     = document.getElementById(`p${phase}-attach-popup`);
+    const dropzone  = document.getElementById(`p${phase}-attach-dropzone`);
+    const fileInput = document.getElementById(`p${phase}-attach-file-input`);
+    const fileName  = document.getElementById(`p${phase}-attach-file-name`);
+    const urlInput  = document.getElementById(`p${phase}-attach-url-input`);
+    const badge     = document.getElementById(`p${phase}-attach-badge`);
+    const badgeName = document.getElementById(`p${phase}-attach-badge-name`);
+    const badgeClear = document.getElementById(`p${phase}-attach-badge-clear`);
+    const dropClear  = dropzone?.querySelector('.upload-file-clear');
+    if (!btn || !popup) return;
+
+    function togglePopup() {
+        const isOpen = popup.classList.toggle('show');
+        btn.classList.toggle('active', isOpen);
+    }
+    function closePopup() {
+        popup.classList.remove('show');
+        btn.classList.remove('active');
+    }
+
+    btn.addEventListener('click', e => { e.stopPropagation(); togglePopup(); });
+    document.addEventListener('click', e => {
+        if (!popup.contains(e.target) && e.target !== btn) closePopup();
+    });
+
+    function setAttach(name, content, type) {
+        chatAttach[phase] = { name, content, type };
+        if (fileName)  fileName.textContent = name;
+        dropzone?.classList.add('has-file');
+        if (badgeName) badgeName.textContent = (type === 'url' ? '🔗 ' : '📄 ') + name;
+        badge?.classList.add('show');
+        closePopup();
+        if (urlInput) urlInput.value = '';
+    }
+
+    // File input change
+    fileInput?.addEventListener('change', async function() {
+        const file = this.files[0];
+        if (!file) return;
+        const text = await readFileAsText(file);
+        setAttach(file.name, text, 'file');
+        this.value = '';
+    });
+
+    // Drag onto dropzone
+    dropzone?.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone?.addEventListener('drop', async e => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const text = await readFileAsText(file);
+        setAttach(file.name, text, 'file');
+    });
+
+    // URL input — confirm on Enter or blur
+    urlInput?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const url = urlInput.value.trim();
+            if (url) setAttach(url, url, 'url');
+        }
+    });
+    urlInput?.addEventListener('blur', () => {
+        const url = urlInput.value.trim();
+        if (url) setAttach(url, url, 'url');
+    });
+
+    // Clear buttons
+    dropClear?.addEventListener('click',  e => { e.stopPropagation(); clearChatAttach(phase); });
+    badgeClear?.addEventListener('click', () => clearChatAttach(phase));
+}
+
+// ============================================================
 // PHASE 1 INTERACTIONS
 // ============================================================
 function setupPhase1() {
     const textarea = document.getElementById('p1-textarea');
-    const sendBtn = document.getElementById('p1-send');
-    const uploadBtn = document.getElementById('p1-upload-btn');
-    const urlBtn = document.getElementById('p1-url-btn');
-    const fileInput = document.getElementById('p1-file-input');
+    const sendBtn  = document.getElementById('p1-send');
 
     textarea.addEventListener('input', () => {
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
     });
     textarea.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleP1Send(); }
     });
     sendBtn.addEventListener('click', handleP1Send);
-
-    uploadBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', async () => {
-        const file = fileInput.files[0];
-        if (!file) return;
-        fileInput.value = '';
-        addUploadBadge(file.name);
-        const text = await readFileAsText(file);
-        pendingFiles.push({ name: file.name, content: text });
-    });
-
-    urlBtn.addEventListener('click', () => {
-        document.getElementById('p1-url-row').classList.toggle('show');
-    });
-    document.getElementById('p1-url-cancel').addEventListener('click', () => {
-        document.getElementById('p1-url-row').classList.remove('show');
-    });
-    document.getElementById('p1-url-send').addEventListener('click', () => {
-        const url = document.getElementById('p1-url-input').value.trim();
-        if (!url) return;
-        document.getElementById('p1-url-row').classList.remove('show');
-        document.getElementById('p1-url-input').value = '';
-        handleP1Send(`Please analyze this URL and extract relevant program design context: ${url}`);
-    });
-}
-
-function addUploadBadge(name) {
-    const wrap = document.getElementById('p1-upload-badges');
-    const badge = document.createElement('span');
-    badge.className = 'upload-badge';
-    badge.innerHTML = `📄 ${escHtml(name)} <button onclick="this.parentElement.remove()">✕</button>`;
-    wrap.appendChild(badge);
 }
 
 async function readFileAsText(file) {
@@ -2444,11 +2546,14 @@ function handleP1Send(overrideText) {
     const textarea = document.getElementById('p1-textarea');
     let text = overrideText || textarea.value.trim();
 
-    if (pendingFiles.length > 0) {
-        const fileContext = pendingFiles.map(f => `--- ${f.name} ---\n${f.content}`).join('\n\n');
-        text = (text ? text + '\n\n' : 'Please analyze these uploaded documents:\n\n') + fileContext;
-        pendingFiles = [];
-        document.getElementById('p1-upload-badges').innerHTML = '';
+    const attach = chatAttach[1];
+    if (attach) {
+        if (attach.type === 'url') {
+            text = (text ? text + '\n\n' : '') + `Please analyze this URL and extract relevant program design context: ${attach.content}`;
+        } else {
+            text = (text ? text + '\n\n' : 'Please analyze this uploaded document:\n\n') + `--- ${attach.name} ---\n${attach.content}`;
+        }
+        clearChatAttach(1);
     }
 
     if (!text) return;
@@ -2656,7 +2761,7 @@ function setupPhase2() {
 
     textarea.addEventListener('input', () => {
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
     });
     textarea.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleP2Send(); }
@@ -2685,7 +2790,18 @@ function setupPhase2() {
 
 function handleP2Send() {
     const textarea = document.getElementById('p2-textarea');
-    const text = textarea.value.trim();
+    let text = textarea.value.trim();
+
+    const attach = chatAttach[2];
+    if (attach) {
+        if (attach.type === 'url') {
+            text = (text ? text + '\n\n' : '') + `Please analyze this URL: ${attach.content}`;
+        } else {
+            text = (text ? text + '\n\n' : 'Please analyze this document:\n\n') + `--- ${attach.name} ---\n${attach.content}`;
+        }
+        clearChatAttach(2);
+    }
+
     if (!text) return;
     textarea.value = '';
     textarea.style.height = 'auto';
@@ -2715,7 +2831,7 @@ function setupPhase3() {
 
     textarea.addEventListener('input', () => {
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
     });
     textarea.addEventListener('keydown', e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleP3Send(); }
@@ -2754,7 +2870,18 @@ function setupPhase3() {
 
 function handleP3Send() {
     const textarea = document.getElementById('p3-textarea');
-    const text = textarea.value.trim();
+    let text = textarea.value.trim();
+
+    const attach = chatAttach[3];
+    if (attach) {
+        if (attach.type === 'url') {
+            text = (text ? text + '\n\n' : '') + `Please analyze this URL: ${attach.content}`;
+        } else {
+            text = (text ? text + '\n\n' : 'Please analyze this document:\n\n') + `--- ${attach.name} ---\n${attach.content}`;
+        }
+        clearChatAttach(3);
+    }
+
     if (!text) return;
     textarea.value = '';
     textarea.style.height = 'auto';
@@ -3309,6 +3436,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPhase1();
     setupPhase2();
     setupPhase3();
+    setupChatAttach(1);
+    setupChatAttach(2);
+    setupChatAttach(3);
     setupPicklists();
     restoreState();
     maybeGreet();
