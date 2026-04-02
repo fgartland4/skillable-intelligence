@@ -4010,9 +4010,9 @@ function maybeGreet() {
         if (analysisId && company) {
             welcomeHtml = `<p>I've loaded your ${escHtml(company)} analysis from Inspector. Let's build on that — tell me about the program you have in mind.</p>`;
         } else if (company) {
-            welcomeHtml = `<p>Let's build a lab program together for ${escHtml(company)}…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>I'll let you know when we have enough to build an outline.</p>`;
+            welcomeHtml = `<p>Let's build a lab program together for ${escHtml(company)}…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>Our next step is building a detailed outline, so please upload one if you have one… I'll be working here right alongside you.</p>`;
         } else {
-            welcomeHtml = `<p>Let's build a lab program together…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>I'll let you know when we have enough to build an outline.</p>`;
+            welcomeHtml = `<p>Let's build a lab program together…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>Our next step is building a detailed outline, so please upload one if you have one… I'll be working here right alongside you.</p>`;
         }
         addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
     }
