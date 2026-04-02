@@ -408,44 +408,44 @@
                     {% endif %}
                 {% endfor %}
 
-                {# Top: key badges (left) | maturity slider (right) #}
-                <div style="display:flex; align-items:flex-start; gap:28px; margin-bottom:14px;">
-                    <div style="flex:1.2; min-width:200px;">
-                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:7px;">Positive Signals</div>
-                        <div class="ci-badges" style="margin-bottom:10px;">
+                {# Top: badges (left 50%) | maturity slider (right 50%) #}
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-bottom:14px; align-items:start;">
+
+                    {# Left — two rows of up to 3 badges each #}
+                    <div>
+                        <div class="ci-badges" style="margin-bottom:8px;">
                             {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">Partner Program</span>{% endif %}
-                            {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
                             {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
-                            {% if discovery.competitive_products %}<span class="co-sig-bdg co-sig-teal">{{ discovery.competitive_products | length }} Competitive Signal{{ 's' if discovery.competitive_products | length != 1 else '' }}</span>{% endif %}
-                            {% if not discovery.atp_signals and not discovery.training_programs and not _tc_check and not discovery.competitive_products %}
-                            <span class="co-sig-bdg co-sig-gray">No strong signals yet</span>
+                            {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
+                            {% if not discovery.atp_signals and not discovery.training_programs and not _tc_check %}
+                            <span class="co-sig-bdg co-sig-gray">No signals yet</span>
                             {% endif %}
                         </div>
-                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:7px;">Risk Indicators</div>
                         <div class="ci-badges">
-                            {% if ns_saas.all_saas and discovery.products | length > 0 %}
-                            <span class="co-sig-bdg co-sig-red">All SaaS — Low Lab Fit</span>
-                            {% elif ns_saas.count > 0 %}
-                            <span class="co-sig-bdg co-sig-amber">{{ ns_saas.count }} SaaS-Only Product{{ 's' if ns_saas.count != 1 else '' }}</span>
-                            {% endif %}
                             {% set ns_flags = namespace(no_api=false, bare_metal=false, multi_tenant=false) %}
                             {% for p in discovery.products %}
                                 {% if 'no_api_automation' in (p.poor_match_flags or []) %}{% set ns_flags.no_api = true %}{% endif %}
                                 {% if 'bare_metal_required' in (p.poor_match_flags or []) %}{% set ns_flags.bare_metal = true %}{% endif %}
                                 {% if 'multi_tenant_only' in (p.poor_match_flags or []) %}{% set ns_flags.multi_tenant = true %}{% endif %}
                             {% endfor %}
+                            {% if ns_saas.all_saas and discovery.products | length > 0 %}
+                            <span class="co-sig-bdg co-sig-red">All SaaS — Low Fit</span>
+                            {% elif ns_saas.count > 0 %}
+                            <span class="co-sig-bdg co-sig-amber">{{ ns_saas.count }} SaaS-Only</span>
+                            {% endif %}
                             {% if ns_flags.no_api %}<span class="co-sig-bdg co-sig-amber">No API Automation</span>{% endif %}
                             {% if ns_flags.bare_metal %}<span class="co-sig-bdg co-sig-red">Hardware Required</span>{% endif %}
                             {% if ns_flags.multi_tenant %}<span class="co-sig-bdg co-sig-amber">Multi-Tenant Only</span>{% endif %}
                             {% if not ns_saas.count and not ns_flags.no_api and not ns_flags.bare_metal and not ns_flags.multi_tenant %}
-                            <span class="co-sig-bdg co-sig-gray">None detected pre-Dossier</span>
+                            <span class="co-sig-bdg co-sig-gray">No risks detected</span>
                             {% endif %}
                         </div>
                     </div>
-                    <div style="flex:1; min-width:160px; max-width:300px;">
-                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:6px;">Training Maturity</div>
-                        <div class="mat-level-name">{{ mat_level }}</div>
-                        <div class="mat-track">
+
+                    {# Right — Training Maturity slider, level name at bottom #}
+                    <div>
+                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:10px;">Training Maturity</div>
+                        <div class="mat-track" style="margin-top:0;">
                             <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
                             <div class="mat-nodes">
                                 {% for i in range(4) %}
@@ -459,7 +459,9 @@
                             <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
                             {% endfor %}
                         </div>
+                        <div class="mat-level-name" style="margin-top:8px; margin-bottom:0; font-size:0.9rem;">{{ mat_level }}</div>
                     </div>
+
                 </div>
 
                 {# Bottom: signal columns — populated from available discovery data #}
