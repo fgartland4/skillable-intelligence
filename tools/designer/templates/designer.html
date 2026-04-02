@@ -108,12 +108,12 @@
             z-index: 1;
         }
         .sidebar-app-label {
-            font-size: 10px;
+            font-size: 11.5px;
             font-weight: 600;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.07em;
             text-transform: uppercase;
             color: rgba(255,255,255,0.45);
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
         .program-name-display {
             font-size: 17px;
@@ -131,10 +131,15 @@
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: var(--radius-sm);
             color: #fff;
-            font-size: 15px;
+            font-size: 17px;
             font-weight: 700;
-            padding: 6px 10px;
+            letter-spacing: -0.2px;
+            line-height: 1.3;
+            padding: 4px 8px;
             display: none;
+            resize: none;
+            overflow: hidden;
+            min-height: 1.5em;
         }
         .program-name-input:focus { outline: none; border-color: var(--color-primary); }
 
@@ -981,9 +986,8 @@ const INITIAL_DATA = {{ program_json | safe }};
             <div class="program-name-display" id="program-name-display" title="Click to rename">
                 {{ program.program_name or 'New Program' }}
             </div>
-            <input type="text" class="program-name-input" id="program-name-input"
-                   value="{{ program.program_name or 'New Program' }}"
-                   maxlength="80" placeholder="Program name…">
+            <textarea class="program-name-input" id="program-name-input"
+                      maxlength="80" placeholder="Program name…" rows="1">{{ program.program_name or 'New Program' }}</textarea>
         </div>
         <nav id="phase-nav">
             <ul>
@@ -1477,9 +1481,16 @@ document.querySelectorAll('#phase-nav .nav-link').forEach(a => {
 const nameDisplay = document.getElementById('program-name-display');
 const nameInput = document.getElementById('program-name-input');
 
+function autoResizeName() {
+    nameInput.style.height = 'auto';
+    nameInput.style.height = nameInput.scrollHeight + 'px';
+}
+
 nameDisplay.addEventListener('click', () => {
     nameDisplay.style.display = 'none';
+    nameInput.value = state.program_name || 'New Program';
     nameInput.style.display = 'block';
+    autoResizeName();
     nameInput.focus(); nameInput.select();
 });
 
@@ -1493,6 +1504,7 @@ function commitNameEdit() {
     scheduleSave();
 }
 
+nameInput.addEventListener('input', autoResizeName);
 nameInput.addEventListener('blur', commitNameEdit);
 nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); commitNameEdit(); } });
 
