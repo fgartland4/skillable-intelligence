@@ -4003,19 +4003,19 @@ function restoreState() {
 // INITIAL GREETING (Phase 1, only if no messages)
 // ============================================================
 function maybeGreet() {
-    if ((state.phase1_messages || []).length === 0) {
-        const company = (state.company_name || '').trim();
-        const analysisId = state.analysis_id;
-        let welcomeHtml;
-        if (analysisId && company) {
-            welcomeHtml = `<p>I've loaded your ${escHtml(company)} analysis from Inspector. Let's build on that — tell me about the program you have in mind.</p>`;
-        } else if (company) {
-            welcomeHtml = `<p>Let's build a lab program together for ${escHtml(company)}…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>Our next step is building a detailed outline, so please upload one if you have one… I'll be working here right alongside you.</p>`;
-        } else {
-            welcomeHtml = `<p>Let's build a lab program together…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>Our next step is building a detailed outline, so please upload one if you have one… I'll be working here right alongside you.</p>`;
-        }
-        addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
+    // Always inject the welcome bubble as the first pinned message —
+    // called before restoreState() so it appears above all conversation history.
+    const company = (state.company_name || '').trim();
+    const analysisId = state.analysis_id;
+    let welcomeHtml;
+    if (analysisId && company) {
+        welcomeHtml = `<p>I've loaded your ${escHtml(company)} analysis from Inspector. Let's build on that — tell me about the program you have in mind.</p>`;
+    } else if (company) {
+        welcomeHtml = `<p>Let's build a lab program together for ${escHtml(company)}…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>Our next step is building a detailed outline, so please upload one if you have one… I'll be working here right alongside you.</p>`;
+    } else {
+        welcomeHtml = `<p>Let's build a lab program together…</p><p>Just start typing or upload whatever you have (Learning Objectives, job task analyses, job descriptions, task lists) — anything…</p><p>I'll ingest it, organize it, and synthesize it to populate our checklist…</p><p>Our next step is building a detailed outline, so please upload one if you have one… I'll be working here right alongside you.</p>`;
     }
+    addChatBubble('p1-chat-area', 'assistant welcome', welcomeHtml);
 }
 
 // ============================================================
@@ -4050,11 +4050,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupChatAttach(2);
     setupChatAttach(3);
     setupPicklists();
-    restoreState();
+    maybeGreet();   // pinned first bubble — must come before restoreState()
+    restoreState(); // conversation history renders after the welcome bubble
     // Pre-populate product intel tracker from saved state so we don't re-trigger on reload
     (state.productIntelligence || []).forEach(pi =>
         productIntelTriggered.add((pi.product || '').toLowerCase()));
-    maybeGreet();
     renderReadinessBar();
     resetIdleTimer(); // start 2-min idle nudge clock
     fetchAndBlendVocabulary();
