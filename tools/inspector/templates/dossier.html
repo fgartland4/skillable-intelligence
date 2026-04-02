@@ -291,15 +291,25 @@
         .pd-bullets li a { color: #a8d5c2; border-bottom: 1px solid rgba(168,213,194,0.3); text-decoration: none; }
         .pd-bullets li a:hover { border-bottom-color: #a8d5c2; }
 
-        /* Recommendation bullets (per-product in dossier) */
-        .rec-bullet { padding: 6px 10px 6px 12px; margin-bottom: 5px; border-radius: 3px; font-size: 0.78rem; line-height: 1.5; border-left: 3px solid #1e3329; background: #0a1610; color: #b8d4c0; }
-        .rec-blocker { border-left-color: #c0392b; background: rgba(192,57,43,0.08); color: #e8a09a; }
-        .rec-delivery { border-left-color: #24ED9B; background: rgba(36,237,155,0.06); color: #b8d4c0; }
-        .rec-scoring { border-left-color: #3a7bd5; background: rgba(58,123,213,0.07); color: #b8d4c0; }
-        .rec-champion { border-left-color: #f39c12; background: rgba(243,156,18,0.07); color: #d4c4a0; }
-        .rec-program { border-left-color: #8e44ad; background: rgba(142,68,173,0.07); color: #c4b0d4; }
-        .rec-similar { border-left-color: #1e3329; background: #0a1610; color: #6a9a7a; }
-        .rec-default { border-left-color: #2a4a3a; }
+        /* Sub-label inside a pd-section */
+        .pd-item-label {
+            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.08em; color: #3d6655;
+        }
+        .pd-item-label.green  { color: #24ED9B; }
+        .pd-item-label.red    { color: #f87171; }
+        .pd-item-label.purple { color: #a78bfa; }
+        /* Score inline in section title */
+        .pd-section-title-score {
+            font-size: 0.75rem; font-weight: 800; letter-spacing: 0.02em; flex-shrink: 0;
+        }
+        /* Score summary one-liner */
+        .pd-score-summary { font-size: 0.78rem; font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
+        /* Delivery path + mechanism inline row */
+        .pd-path-inline { display: inline-flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .pd-mechanism-text { font-size: 0.78rem; color: #6b9e88; line-height: 1.5; }
+        /* Sub-section spacing inside a pd-section */
+        .pd-sub { margin-top: 14px; }
 
         /* Lab highlight badge (dossier product card header) */
         .lab-highlight-badge { display: inline-block; padding: 2px 8px; background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.3); color: #24ED9B; border-radius: 3px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; margin-left: 8px; }
@@ -378,26 +388,6 @@
             background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);
         }
 
-        /* Scoring sub-sections */
-        .sa-sub {
-            background: rgba(6,16,12,0.8); border: 1px solid #1e3329;
-            border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;
-        }
-        .sa-sub-label {
-            font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.09em; color: #3d6655; margin-bottom: 7px;
-        }
-
-        /* Expand/collapse toggle */
-        .expand-toggle {
-            display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end;
-        }
-        .expand-toggle button {
-            background: none; border: 1px solid #1e3329; color: #3d6655;
-            padding: 4px 12px; border-radius: 6px; font-size: 0.7rem;
-            cursor: pointer; transition: all 0.15s;
-        }
-        .expand-toggle button:hover { border-color: rgba(36,237,155,0.3); color: #6b9e88; }
 
         /* Designer CTA */
         .designer-cta {
@@ -531,7 +521,7 @@
         <img src="{{ url_for('static', filename='img/skillable-logo-white.svg') }}" alt="Skillable">
     </a>
     <div class="nav-divider"></div>
-    <span class="nav-tool">Inspector</span>
+    <span class="nav-tool">Dossier</span>
     <div class="nav-sp"></div>
 </nav>
 
@@ -838,9 +828,9 @@
 
 
     {# ===========================================
-       ZONE 2: SE/SC TECHNICAL DETAIL
+       ZONE 2: PRODUCT CARDS
        =========================================== #}
-    <div class="zone2-heading" id="acv-detail">Technical Analysis &mdash; Full Evidence</div>
+    <div class="zone2-heading">Products</div>
 
     {% for product in data.products %}
     {# ── Per-product score shortcuts ── #}
@@ -893,136 +883,7 @@
 
         <div class="pd-body">
 
-            {# Recommendation bullets — compact seller view #}
-            {% if product.recommendation %}
-            <div class="rec-bullets" style="margin: 14px 0 10px;">
-                {% for bullet in product.recommendation %}
-                {% set bl = bullet | lower %}
-                {% if 'blocker' in bl or 'do not pursue' in bl %}
-                <div class="rec-bullet rec-blocker">{{ bullet | linkify }}</div>
-                {% elif 'delivery path' in bl %}
-                <div class="rec-bullet rec-delivery">{{ bullet | linkify }}</div>
-                {% elif 'scoring approach' in bl %}
-                <div class="rec-bullet rec-scoring">{{ bullet | linkify }}</div>
-                {% elif 'help your champion' in bl or 'essential technical' in bl %}
-                <div class="rec-bullet rec-champion">{{ bullet | linkify }}</div>
-                {% elif 'program fit' in bl %}
-                <div class="rec-bullet rec-program">{{ bullet | linkify }}</div>
-                {% elif 'similar products' in bl %}
-                <div class="rec-bullet rec-similar">{{ bullet | linkify }}</div>
-                {% else %}
-                <div class="rec-bullet rec-default">{{ bullet | linkify }}</div>
-                {% endif %}
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {# Section A: Gate 1 — Technical Orchestrability #}
-            <div class="pd-section">
-                <div class="pd-section-title">Gate 1: Technical Orchestrability</div>
-                <div class="pd-score-row">
-                    <span class="pd-dim-score {% if sc_tech >= 29 %}score-high{% elif sc_tech >= 16 %}score-mid{% else %}score-low{% endif %}">{{ sc_tech }}<span class="pd-dim-max"> / 40</span></span>
-                    <div class="bar-track">
-                        <div class="bar-fill {% if sc_tech >= 29 %}bar-green{% elif sc_tech >= 16 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ ((sc_tech/40)*100)|round|int }}%;"></div>
-                    </div>
-                </div>
-                {% if tech_dim.summary %}<p class="pd-summary">{{ tech_dim.summary }}</p>{% endif %}
-                {% if tech_dim.evidence %}
-                <ul class="pd-bullets">
-                    {% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                </ul>
-                {% endif %}
-                {% if product.skillable_path or product.skillable_mechanism %}
-                <div style="margin-top:12px;">
-                    {% if product.skillable_path %}<div style="font-size:0.78rem;color:#24ED9B;font-weight:600;margin-bottom:4px;">Delivery path: {{ path_label }}</div>{% endif %}
-                    {% if product.skillable_mechanism %}<div style="font-size:0.78rem;color:#6b9e88;line-height:1.5;">{{ product.skillable_mechanism }}</div>{% endif %}
-                </div>
-                {% endif %}
-            </div>
-
-            {# Section B: Gate 2 — Potential Lab Program Impact #}
-            <div class="pd-section">
-                <div class="pd-section-title">Gate 2: Potential Lab Program Impact</div>
-                <div class="pd-score-row">
-                    <span class="pd-dim-score {% if sc_g2 >= 36 %}score-high{% elif sc_g2 >= 20 %}score-mid{% else %}score-low{% endif %}">{{ sc_g2 }}<span class="pd-dim-max"> / 50</span></span>
-                    <div class="bar-track">
-                        <div class="bar-fill {% if sc_g2 >= 36 %}bar-green{% elif sc_g2 >= 20 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ ((sc_g2/50)*100)|round|int }}%;"></div>
-                    </div>
-                </div>
-                <p class="pd-framing-note">Signals: product complexity, audience reach, learner career impact</p>
-                {% if wf_dim.summary %}<p class="pd-summary">{{ wf_dim.summary }}</p>{% endif %}
-                {% if te_dim.summary %}<p class="pd-summary">{{ te_dim.summary }}</p>{% endif %}
-                {% set g2_evs = [] %}
-                {% if wf_dim.evidence %}{% set g2_evs = g2_evs + wf_dim.evidence %}{% endif %}
-                {% if te_dim.evidence %}{% set g2_evs = g2_evs + te_dim.evidence %}{% endif %}
-                {% if g2_evs %}
-                <ul class="pd-bullets">
-                    {% for ev in g2_evs %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-
-            {# Section C: Gate 3 — Organizational Readiness #}
-            <div class="pd-section">
-                <div class="pd-section-title">Gate 3: Organizational Readiness</div>
-                {% set lm_total = data._pr_total | default(0) %}
-                {% if lm_total > 0 %}
-                <div class="pd-score-row">
-                    <span class="pd-dim-score {% if lm_total >= 70 %}score-high{% elif lm_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ lm_total }}<span class="pd-dim-max"> / 100</span></span>
-                    <div class="bar-track">
-                        <div class="bar-fill {% if lm_total >= 70 %}bar-green{% elif lm_total >= 40 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ lm_total }}%;"></div>
-                    </div>
-                </div>
-                {% endif %}
-                {% if mf_dim.summary %}<p class="pd-summary">{{ mf_dim.summary }}</p>{% endif %}
-                {% if mf_dim.evidence %}
-                <ul class="pd-bullets">
-                    {% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                </ul>
-                {% endif %}
-                {% if product.poor_match_flags %}
-                <div class="poor-flags">
-                    {% for label in product.poor_match_flags | flag_labels %}<span class="flag-badge">&#9888; {{ label }}</span>{% endfor %}
-                </div>
-                {% endif %}
-            </div>
-
-            {# Section D: Scoring Approach & Delivery Rationale #}
-            {% if product.scoring_approach or product.delivery_path_rationale or product.custom_label %}
-            <div class="pd-section">
-                <div class="pd-section-title">Scoring Approach &amp; Delivery Rationale</div>
-                {% if product.scoring_approach %}
-                <div class="sa-sub">
-                    <div class="sa-sub-label">Scoring Approach</div>
-                    <ul class="pd-bullets">{% for b in product.scoring_approach %}<li>{{ b }}</li>{% endfor %}</ul>
-                </div>
-                {% endif %}
-                {% if product.delivery_path_rationale %}
-                <div class="sa-sub">
-                    <div class="sa-sub-label">Delivery Path Rationale</div>
-                    <ul class="pd-bullets">{% for b in product.delivery_path_rationale %}<li>{{ b }}</li>{% endfor %}</ul>
-                </div>
-                {% endif %}
-                {% if product.custom_label %}
-                <div class="sa-sub">
-                    <div class="sa-sub-label">Additional Notes</div>
-                    <ul class="pd-bullets">{% for b in product.custom_label %}<li>{{ b }}</li>{% endfor %}</ul>
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            {# Section E: Lab Concepts #}
-            {% if product.lab_concepts %}
-            <div class="pd-section">
-                <div class="pd-section-title">Lab Concepts</div>
-                <div class="lab-concepts-grid">
-                    {% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {# Section F: Consumption Estimate #}
+            {# ── 1: Consumption Estimate ── #}
             <div class="pd-section">
                 <div class="pd-section-title">Consumption Estimate</div>
                 {% set cp5 = product.get('consumption_potential', {}) or {} %}
@@ -1059,15 +920,184 @@
                 <div class="consumption-methodology">{{ cp5.get('methodology_note') }}</div>
                 {% endif %}
                 {% else %}
-                <p style="font-size:0.78rem;color:#3d6655;line-height:1.5;">Consumption potential is modeled for products with a clear lab delivery pathway.</p>
+                <p style="font-size:0.78rem;color:#3d6655;font-style:italic;">Consumption potential is modeled for products with a clear lab delivery pathway.</p>
                 {% endif %}
             </div>
 
-            {# Section G: Contacts #}
+            {# ── 2: Product Labability ── #}
+            <div class="pd-section">
+                <div class="pd-section-title">
+                    Product Labability
+                    <span class="pd-section-title-score {% if sc_tech >= 29 %}score-high{% elif sc_tech >= 16 %}score-mid{% else %}score-low{% endif %}">{{ sc_tech }}/40</span>
+                </div>
+                <div class="pd-score-row">
+                    <span class="pd-dim-score {% if sc_tech >= 29 %}score-high{% elif sc_tech >= 16 %}score-mid{% else %}score-low{% endif %}">{{ sc_tech }}<span class="pd-dim-max"> / 40</span></span>
+                    <div class="bar-track">
+                        <div class="bar-fill {% if sc_tech >= 29 %}bar-green{% elif sc_tech >= 16 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ ((sc_tech/40)*100)|round|int }}%;"></div>
+                    </div>
+                </div>
+                {# Delivery path #}
+                {% if product.skillable_path or product.skillable_mechanism %}
+                <div class="pd-path-inline" style="margin-top:8px;">
+                    {% if product.skillable_path %}<span class="pd-path-badge">{{ path_label }}</span>{% endif %}
+                    {% if product.skillable_mechanism %}<span class="pd-mechanism-text">{{ product.skillable_mechanism }}</span>{% endif %}
+                </div>
+                {% endif %}
+                {# Score summary one-liner #}
+                <p class="pd-score-summary {% if sc_tech >= 29 %}score-high{% elif sc_tech >= 16 %}score-mid{% else %}score-low{% endif %}" style="margin-top:8px;">
+                    {% if sc_tech >= 29 %}Strong technical fit — ready to build
+                    {% elif sc_tech >= 16 %}Moderate fit — verify deployment details
+                    {% else %}Significant barriers — requires investigation{% endif %}
+                </p>
+                {# Good Points #}
+                {% if tech_dim.evidence %}
+                <div class="pd-sub">
+                    <div class="pd-item-label green">Good Points</div>
+                    <ul class="pd-bullets" style="margin-top:6px;">
+                        {% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {# Scoring #}
+                {% if product.scoring_approach %}
+                <div class="pd-sub">
+                    <div class="pd-item-label">Scoring</div>
+                    <ul class="pd-bullets" style="margin-top:6px;">
+                        {% for b in product.scoring_approach %}<li>{{ b }}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {# Delivery rationale #}
+                {% if product.delivery_path_rationale %}
+                <div class="pd-sub">
+                    <div class="pd-item-label">Delivery Rationale</div>
+                    <ul class="pd-bullets" style="margin-top:6px;">
+                        {% for b in product.delivery_path_rationale %}<li>{{ b }}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {# Blockers #}
+                {% if product.poor_match_flags %}
+                <div class="pd-sub">
+                    <div class="pd-item-label red">Blockers</div>
+                    <div class="poor-flags">
+                        {% for label in product.poor_match_flags | flag_labels %}<span class="flag-badge">&#9888; {{ label }}</span>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {# Recommendations — delivery path + blocker bullets only; drop champion/similar/program fit #}
+                {% if product.recommendation %}
+                {% set ns_lr = namespace(has=false) %}
+                {% for bullet in product.recommendation %}{% set bl = bullet|lower %}
+                {% if 'help your champion' not in bl and 'essential technical' not in bl and 'similar products' not in bl and 'program fit' not in bl %}{% set ns_lr.has = true %}{% endif %}
+                {% endfor %}
+                {% if ns_lr.has %}
+                <div class="pd-sub">
+                    <div class="pd-item-label">Recommendations</div>
+                    <ul class="pd-bullets" style="margin-top:6px;">
+                    {% for bullet in product.recommendation %}{% set bl = bullet|lower %}
+                    {% if 'help your champion' not in bl and 'essential technical' not in bl and 'similar products' not in bl and 'program fit' not in bl %}
+                    <li>{{ bullet | linkify }}</li>
+                    {% endif %}{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% endif %}
+                {# Custom notes #}
+                {% if product.custom_label %}
+                <div class="pd-sub">
+                    <ul class="pd-bullets" style="margin-top:6px;">
+                        {% for b in product.custom_label %}<li>{{ b }}</li>{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ── 3: Likely Instructional Value & Impact ── #}
+            <div class="pd-section">
+                <div class="pd-section-title">
+                    Likely Instructional Value &amp; Impact
+                    <span class="pd-section-title-score {% if sc_g2 >= 36 %}score-high{% elif sc_g2 >= 20 %}score-mid{% else %}score-low{% endif %}">{{ sc_g2 }}/50</span>
+                </div>
+                <div class="pd-score-row">
+                    <span class="pd-dim-score {% if sc_g2 >= 36 %}score-high{% elif sc_g2 >= 20 %}score-mid{% else %}score-low{% endif %}">{{ sc_g2 }}<span class="pd-dim-max"> / 50</span></span>
+                    <div class="bar-track">
+                        <div class="bar-fill {% if sc_g2 >= 36 %}bar-green{% elif sc_g2 >= 20 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ ((sc_g2/50)*100)|round|int }}%;"></div>
+                    </div>
+                </div>
+                {# Evidence bullets only — no prose summaries #}
+                {% set g2_evs = [] %}
+                {% if wf_dim.evidence %}{% set g2_evs = g2_evs + wf_dim.evidence %}{% endif %}
+                {% if te_dim.evidence %}{% set g2_evs = g2_evs + te_dim.evidence %}{% endif %}
+                {% if g2_evs %}
+                <ul class="pd-bullets" style="margin-top:10px;">
+                    {% for ev in g2_evs %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+                {# Program fit bullets #}
+                {% if product.recommendation %}
+                {% set ns_pf = namespace(has=false) %}
+                {% for bullet in product.recommendation %}{% if 'program fit' in (bullet|lower) %}{% set ns_pf.has = true %}{% endif %}{% endfor %}
+                {% if ns_pf.has %}
+                <div class="pd-sub">
+                    <div class="pd-item-label">Recommendations</div>
+                    <ul class="pd-bullets" style="margin-top:6px;">
+                    {% for bullet in product.recommendation %}{% if 'program fit' in (bullet|lower) %}<li>{{ bullet | linkify }}</li>{% endif %}{% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% endif %}
+                {# Potential Labs #}
+                {% if product.lab_concepts %}
+                <div class="pd-sub">
+                    <div class="pd-item-label purple">Potential Labs</div>
+                    <div class="lab-concepts-grid" style="margin-top:8px;">
+                        {% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# ── 4: Organization Readiness ── #}
+            <div class="pd-section">
+                {% set lm_total = data._pr_total | default(0) %}
+                <div class="pd-section-title">
+                    Organization Readiness
+                    {% if lm_total > 0 %}<span class="pd-section-title-score {% if lm_total >= 70 %}score-high{% elif lm_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ lm_total }}/100</span>{% endif %}
+                </div>
+                {% if lm_total > 0 %}
+                <div class="pd-score-row">
+                    <span class="pd-dim-score {% if lm_total >= 70 %}score-high{% elif lm_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ lm_total }}<span class="pd-dim-max"> / 100</span></span>
+                    <div class="bar-track">
+                        <div class="bar-fill {% if lm_total >= 70 %}bar-green{% elif lm_total >= 40 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ lm_total }}%;"></div>
+                    </div>
+                </div>
+                {% endif %}
+                {# Signal badges #}
+                {% if pr %}
+                {% set tom = pr.get('training_org_maturity', {}) or {} %}
+                {% set pp2 = pr.get('partner_program', {}) or {} %}
+                {% set tr2 = pr.get('tech_readiness', {}) or {} %}
+                {% set cs2 = pr.get('customer_success', {}) or {} %}
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:10px;">
+                    {% if tom.get('score', 0) >= 15 %}<span class="co-sig-bdg co-sig-green">Training Org</span>{% endif %}
+                    {% if pp2.get('score', 0) >= 10 %}<span class="co-sig-bdg co-sig-green">Partner Program</span>{% endif %}
+                    {% if tr2.get('score', 0) >= 5 %}<span class="co-sig-bdg co-sig-teal">Lab-Ready Tech</span>{% endif %}
+                    {% if cs2.get('score', 0) >= 15 %}<span class="co-sig-bdg co-sig-teal">Customer Success</span>{% endif %}
+                </div>
+                {% endif %}
+                {# mf_dim evidence bullets #}
+                {% if mf_dim.evidence %}
+                <ul class="pd-bullets">
+                    {% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            {# ── 5: Contacts ── #}
             {% if product.contacts %}
             <div class="pd-section">
                 <div class="pd-section-title">Contacts</div>
-                {# Normalize to contact_type or role_type #}
                 {% set dms  = product.contacts | selectattr('contact_type', 'equalto', 'decision_maker') | list %}
                 {% set infs = product.contacts | rejectattr('contact_type', 'equalto', 'decision_maker') | list %}
                 {% if not dms and not infs %}
@@ -1099,11 +1129,6 @@
             </div>
             {% endif %}
 
-            <div class="expand-toggle">
-                <button onclick="toggleSections(this,true)">expand all</button>
-                <button onclick="toggleSections(this,false)">collapse all</button>
-            </div>
-
         </div>{# /pd-body #}
     </details>
     {% endfor %}
@@ -1121,13 +1146,6 @@ document.querySelectorAll('.product-details').forEach(function(det) {
         arrow.innerHTML = det.open ? '&#9652;' : '&#9662;';
     });
 });
-
-// Expand/collapse all details inside a product body (future use for nested details)
-function toggleSections(btn, open) {
-    var body = btn.closest('.pd-body');
-    if (!body) return;
-    body.querySelectorAll('details').forEach(function(d) { d.open = open; });
-}
 
 // Competitor modal
 document.getElementById('compModal').addEventListener('click', function(e) {
