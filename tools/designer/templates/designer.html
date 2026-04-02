@@ -1672,6 +1672,23 @@ const INITIAL_DATA = {{ program_json | safe }};
                             <div class="prefs-picklist-item" data-value="__custom_framework__">
                                 <div class="prefs-picklist-radio"></div>Custom Framework (upload)
                             </div>
+                            <div class="custom-style-upload" id="custom-framework-upload-primary">
+                                <div class="upload-dropzone" id="framework-dropzone-primary">
+                                    <div class="upload-dropzone-prompt">
+                                        <span class="upload-dropzone-icon">↑</span>
+                                        <span class="upload-dropzone-label">Click or drag to upload</span>
+                                        <span class="upload-dropzone-hint">.txt &nbsp;·&nbsp; .md &nbsp;·&nbsp; .csv &nbsp;·&nbsp; .json</span>
+                                    </div>
+                                    <div class="upload-dropzone-file">
+                                        <span class="upload-file-name" id="framework-file-name-primary"></span>
+                                        <button class="upload-file-clear" data-clear="framework" type="button">✕</button>
+                                    </div>
+                                    <input type="file" id="framework-file-input-primary" accept=".txt,.md,.csv,.json">
+                                </div>
+                                <div class="upload-or-divider">or</div>
+                                <input type="url" class="prefs-input" id="pref-custom-framework-url-primary" placeholder="https://your-company.com/framework">
+                                <div class="upload-url-hint">Paste a URL to your framework</div>
+                            </div>
                             <hr class="prefs-picklist-divider">
                             <div class="prefs-picklist-item" data-value="NICE Cybersecurity Workforce Framework (NICE NCWF)">
                                 <div class="prefs-picklist-radio"></div>NICE Cybersecurity Workforce Framework (NICE NCWF)
@@ -1701,6 +1718,23 @@ const INITIAL_DATA = {{ program_json | safe }};
                             <div class="prefs-picklist-item" data-value="__custom_framework__">
                                 <div class="prefs-picklist-check"></div>Custom Framework (upload)
                             </div>
+                            <div class="custom-style-upload" id="custom-framework-upload-additional">
+                                <div class="upload-dropzone" id="framework-dropzone-additional">
+                                    <div class="upload-dropzone-prompt">
+                                        <span class="upload-dropzone-icon">↑</span>
+                                        <span class="upload-dropzone-label">Click or drag to upload</span>
+                                        <span class="upload-dropzone-hint">.txt &nbsp;·&nbsp; .md &nbsp;·&nbsp; .csv &nbsp;·&nbsp; .json</span>
+                                    </div>
+                                    <div class="upload-dropzone-file">
+                                        <span class="upload-file-name" id="framework-file-name-additional"></span>
+                                        <button class="upload-file-clear" data-clear="framework" type="button">✕</button>
+                                    </div>
+                                    <input type="file" id="framework-file-input-additional" accept=".txt,.md,.csv,.json">
+                                </div>
+                                <div class="upload-or-divider">or</div>
+                                <input type="url" class="prefs-input" id="pref-custom-framework-url-additional" placeholder="https://your-company.com/framework">
+                                <div class="upload-url-hint">Paste a URL to your framework</div>
+                            </div>
                             <hr class="prefs-picklist-divider">
                             <div class="prefs-picklist-item" data-value="NICE Cybersecurity Workforce Framework (NICE NCWF)">
                                 <div class="prefs-picklist-check"></div>NICE Cybersecurity Workforce Framework (NICE NCWF)
@@ -1721,24 +1755,6 @@ const INITIAL_DATA = {{ program_json | safe }};
                                 <div class="prefs-picklist-check"></div>LinkedIn Skill Framework
                             </div>
                         </div>
-                    </div>
-                    <!-- Shared custom framework upload — shown when Custom is selected in either picker -->
-                    <div class="custom-upload-panel" id="custom-framework-upload">
-                        <div class="upload-dropzone" id="framework-dropzone">
-                            <div class="upload-dropzone-prompt">
-                                <span class="upload-dropzone-icon">↑</span>
-                                <span class="upload-dropzone-label">Click or drag to upload</span>
-                                <span class="upload-dropzone-hint">.txt &nbsp;·&nbsp; .md &nbsp;·&nbsp; .csv &nbsp;·&nbsp; .json</span>
-                            </div>
-                            <div class="upload-dropzone-file">
-                                <span class="upload-file-name" id="framework-file-name"></span>
-                                <button class="upload-file-clear" data-clear="framework" type="button">✕</button>
-                            </div>
-                            <input type="file" id="framework-file-input" accept=".txt,.md,.csv,.json">
-                        </div>
-                        <div class="upload-or-divider">or</div>
-                        <input type="url" class="prefs-input" id="pref-custom-framework-url" placeholder="https://your-company.com/framework">
-                        <div class="upload-url-hint">Paste a URL to your framework</div>
                     </div>
                 </div>
 
@@ -2882,17 +2898,21 @@ function loadPrefsToUI() {
     // Additional frameworks — multi-select checkbox picklist
     renderPicklist('framework-picker', p.skill_frameworks || []);
 
-    // Restore custom framework dropzone state
-    const fwDropzone = document.getElementById('framework-dropzone');
-    const fwFileName = document.getElementById('framework-file-name');
-    if (fwDropzone && p.custom_framework_name) {
-        if (fwFileName) fwFileName.textContent = p.custom_framework_name;
-        fwDropzone.classList.add('has-file');
-    } else if (fwDropzone) {
-        fwDropzone.classList.remove('has-file');
-    }
-    const fwUrlEl = document.getElementById('pref-custom-framework-url');
-    if (fwUrlEl) fwUrlEl.value = p.custom_framework_url || '';
+    // Restore custom framework dropzone state — both primary and additional share same data
+    ['primary', 'additional'].forEach(suffix => {
+        const dz  = document.getElementById('framework-dropzone-' + suffix);
+        const fn  = document.getElementById('framework-file-name-' + suffix);
+        const url = document.getElementById('pref-custom-framework-url-' + suffix);
+        if (dz) {
+            if (p.custom_framework_name) {
+                if (fn) fn.textContent = p.custom_framework_name;
+                dz.classList.add('has-file');
+            } else {
+                dz.classList.remove('has-file');
+            }
+        }
+        if (url) url.value = p.custom_framework_url || '';
+    });
 
     // Sync custom upload panel visibility after rendering both framework pickers
     updateCustomUploadVisibility();
@@ -3019,10 +3039,11 @@ function updateCustomUploadVisibility() {
     const styleCustom = document.querySelector('#style-guide-picker .prefs-picklist-item[data-value="__custom__"]')?.classList.contains('selected');
     document.getElementById('custom-style-upload')?.classList.toggle('show', !!styleCustom);
 
-    // Framework custom upload — shown when __custom_framework__ is selected in EITHER picker
-    const fwPrimary   = document.querySelector('#framework-primary-picker .prefs-picklist-item[data-value="__custom_framework__"]')?.classList.contains('selected');
+    // Framework upload panels — each inline in its own picker
+    const fwPrimary    = document.querySelector('#framework-primary-picker .prefs-picklist-item[data-value="__custom_framework__"]')?.classList.contains('selected');
     const fwAdditional = document.querySelector('#framework-picker .prefs-picklist-item[data-value="__custom_framework__"]')?.classList.contains('selected');
-    document.getElementById('custom-framework-upload')?.classList.toggle('show', !!(fwPrimary || fwAdditional));
+    document.getElementById('custom-framework-upload-primary')?.classList.toggle('show', !!fwPrimary);
+    document.getElementById('custom-framework-upload-additional')?.classList.toggle('show', !!fwAdditional);
 }
 
 // Attach picklist click behavior — called once after DOM ready.
@@ -3125,19 +3146,30 @@ document.getElementById('pref-custom-style-url')?.addEventListener('input', func
     state.preferences.custom_style_guide_url = this.value;
 });
 
-// ── Framework dropzone ───────────────────────────────────────
+// ── Framework dropzones — primary and additional share the same state keys ──
 setupUploadDropzone({
-    dropzoneId:  'framework-dropzone',
-    fileInputId: 'framework-file-input',
-    fileNameId:  'framework-file-name',
+    dropzoneId:  'framework-dropzone-primary',
+    fileInputId: 'framework-file-input-primary',
+    fileNameId:  'framework-file-name-primary',
     prefKey:     'custom_framework_content',
     prefNameKey: 'custom_framework_name',
     prefUrlKey:  'custom_framework_url',
-    urlInputId:  'pref-custom-framework-url',
+    urlInputId:  'pref-custom-framework-url-primary',
 });
-document.getElementById('pref-custom-framework-url')?.addEventListener('input', function() {
-    state.preferences = state.preferences || {};
-    state.preferences.custom_framework_url = this.value;
+setupUploadDropzone({
+    dropzoneId:  'framework-dropzone-additional',
+    fileInputId: 'framework-file-input-additional',
+    fileNameId:  'framework-file-name-additional',
+    prefKey:     'custom_framework_content',
+    prefNameKey: 'custom_framework_name',
+    prefUrlKey:  'custom_framework_url',
+    urlInputId:  'pref-custom-framework-url-additional',
+});
+['pref-custom-framework-url-primary', 'pref-custom-framework-url-additional'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', function() {
+        state.preferences = state.preferences || {};
+        state.preferences.custom_framework_url = this.value;
+    });
 });
 
 // Provider change → show/hide custom endpoint
