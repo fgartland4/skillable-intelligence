@@ -2169,7 +2169,7 @@ function triggerProductIntel(productName, companyName) {
 
     // Show a visible "checking" bubble in the chat
     const bubble = addChatBubble('p1-chat-area', 'assistant',
-        `<p><em>Running a quick check on <strong>${escHtml(productName)}</strong> through Inspector…</em></p>`);
+        `<p><em>Looking up <strong>${escHtml(productName)}</strong> in Inspector… keep going, I'll be right back.</em></p>`);
 
     fetch(`/designer/${PROGRAM_ID}/product-intel`, {
         method: 'POST',
@@ -2181,15 +2181,15 @@ function triggerProductIntel(productName, companyName) {
         state.productIntelligence = state.productIntelligence || [];
         state.productIntelligence.push({ product: productName, ...data });
         if (data.found) {
-            bubble.innerHTML = `<p>Found <strong>${escHtml(productName)}</strong> in Inspector — ${escHtml(data.summary || 'pulled delivery and technical signals')}. Using that to build out the blueprint.</p>`;
+            bubble.innerHTML = `<p>Got it — found <strong>${escHtml(productName)}</strong> in Inspector (${escHtml(data.summary || 'delivery and technical signals pulled')}). I'll use that to fill out the blueprint.</p>`;
         } else {
-            bubble.innerHTML = `<p>No existing Inspector data for <strong>${escHtml(productName)}</strong> — no problem, I'll work from what you share.</p>`;
+            bubble.innerHTML = `<p>Nothing on <strong>${escHtml(productName)}</strong> in Inspector yet — that's fine, I'll work from what you share and we can run a full analysis later if needed.</p>`;
         }
         renderReadinessBar();
         scheduleSave();
     })
     .catch(() => {
-        bubble.innerHTML = `<p>Couldn't reach Inspector for <strong>${escHtml(productName)}</strong> — continuing with what we have.</p>`;
+        bubble.innerHTML = `<p>Couldn't reach Inspector for <strong>${escHtml(productName)}</strong> — no worries, continuing with what we have.</p>`;
     });
 }
 
