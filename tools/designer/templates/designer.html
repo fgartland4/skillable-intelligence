@@ -95,15 +95,19 @@
             position: relative;
             z-index: 1;
         }
+        /* <a> must be block so it doesn't add inline spacing */
+        .sidebar-header a { display: block; }
         .sidebar-logo {
-            width: 170px;
+            width: 190px;
             height: auto;
             display: block;
+            /* Compensate for internal whitespace in the logo PNG */
+            margin-left: -6px;
         }
 
-        /* App label + program name — pushed down ~100px from logo */
+        /* App label + program name — pushed down ~50px from logo */
         .sidebar-program-block {
-            padding: 100px 20px 20px 20px;
+            padding: 50px 20px 20px 20px;
             position: relative;
             z-index: 1;
         }
