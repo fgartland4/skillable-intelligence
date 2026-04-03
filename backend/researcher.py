@@ -23,6 +23,41 @@ _SKILLABLE_CUSTOMER_NAMES = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# Source type classification — drives per-page fetch depth
+# ---------------------------------------------------------------------------
+
+def _classify_source_type(url: str) -> str:
+    """Classify a URL as 'api_ref', 'docs', or 'marketing' for fetch depth decisions.
+
+    Applied automatically by _fetch_pages_parallel — callers don't need to specify depth.
+    Priority: api_ref > docs > marketing (most specific wins).
+    """
+    u = url.lower()
+    if any(s in u for s in [
+        "swagger", "openapi", "api-reference", "api_reference", "/api-docs", "apidocs",
+        "redoc", "stoplight.io", "readme.io/reference", "/api/v",
+    ]):
+        return "api_ref"
+    if any(s in u for s in [
+        "docs.", "/docs/", "/documentation", "learn.", "/learn/", "help.",
+        "support.", "/help/", "knowledge", "/guide", "/tutorial", "/manual",
+        "techzone", "technet", "developer.microsoft", "developer.apple",
+        "developer.android", "/kb/", "/reference/",
+    ]):
+        return "docs"
+    return "marketing"
+
+
+# Fetch depth per source type — api_ref gets the most content to catch DELETE endpoints,
+# auth details, and lifecycle coverage that tend to appear deep in reference docs.
+_FETCH_DEPTH: dict[str, int] = {
+    "marketing": 2500,
+    "docs":      6000,
+    "api_ref":   10000,
+}
+
+
 def _fetch_page_text(url: str, max_chars: int = 8000) -> str:
     """Fetch a URL and return its text content."""
     try:
@@ -127,14 +162,21 @@ def _run_searches_parallel(queries: list[tuple[str, str]], num_results: int = 5)
 
 
 def _fetch_pages_parallel(targets: list[tuple[str, str]], max_chars: int = 3000) -> dict[str, str]:
-    """Fetch multiple pages in parallel. targets is a list of (label, url) tuples."""
+    """Fetch multiple pages in parallel. targets is a list of (label, url) tuples.
+
+    max_chars is a fallback; source type classification automatically applies higher
+    limits for documentation and API reference pages (_FETCH_DEPTH).
+    """
     contents = {}
     valid = [(label, url) for label, url in targets if url and not url.startswith("[")]
     if not valid:
         return contents
     with ThreadPoolExecutor(max_workers=10) as executor:
         future_to_label = {
-            executor.submit(_fetch_page_text, url, max_chars): label
+            executor.submit(
+                _fetch_page_text, url,
+                _FETCH_DEPTH.get(_classify_source_type(url), max_chars)
+            ): label
             for label, url in valid
         }
         for future in as_completed(future_to_label):
@@ -227,7 +269,7 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         if r.get("url"):
             fetch_targets.append(("partner_portal_page", r["url"]))
 
-    page_contents = _fetch_pages_parallel(fetch_targets, max_chars=4000)
+    page_contents = _fetch_pages_parallel(fetch_targets)
 
     return {
         "company_name":     company_name,
@@ -265,10 +307,20 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
         queries.append((f"nfr_{name}",     f"{name} developer license NFR trial free evaluation"))
         queries.append((f"deploy_{name}",  f"{name} deployment guide system requirements installation prerequisites"))
         queries.append((f"compete_{name}", f"{name} hands-on lab sandbox CloudShare Instruqt Appsembler"))
+        # API lifecycle — critical for Gate 1 SaaS and automation scoring
+        # Looks for OpenAPI/Swagger specs (highest evidence quality) and explicit DELETE/teardown endpoints
+        queries.append((f"openapi_{name}", f"{name} openapi spec swagger site:github.com OR site:readme.io OR site:stoplight.io OR filetype:yaml OR filetype:json"))
+        queries.append((f"api_lifecycle_{name}", f"{company_name} {name} REST API provision create configure delete teardown tenant lifecycle"))
+        # SaaS delivery path signals — sandbox availability and authentication model
+        queries.append((f"sandbox_{name}", f"{company_name} {name} sandbox trial developer account training environment partner"))
+        queries.append((f"api_auth_{name}", f"{company_name} {name} API authentication service account OAuth token MFA SSO"))
 
     all_results = _run_searches_parallel(queries, num_results=3)
 
-    # Fetch up to 3 pages per product: primary tech/doc page + training page + API/dev docs page
+    # Fetch up to 5 pages per product:
+    #   tech/doc page, training page, API/dev docs, OpenAPI/Swagger spec, API lifecycle
+    # Source type classification in _fetch_pages_parallel automatically applies the right
+    # depth per URL — api_ref pages (swagger, readme.io/reference, etc.) get 10,000 chars.
     fetch_targets = []
     for p in selected_products[:5]:
         name = p.get("name", "")
@@ -281,9 +333,17 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
         api_results = all_results.get(f"api_{name}", [])
         if api_results and api_results[0].get("url"):
             fetch_targets.append((f"api_{name}", api_results[0]["url"]))
-        # ai_ is snippet-only — AI features are covered by tech/train pages
+        # OpenAPI/Swagger spec — fetch top result; classification gives it 10,000 chars
+        openapi_results = all_results.get(f"openapi_{name}", [])
+        if openapi_results and openapi_results[0].get("url"):
+            fetch_targets.append((f"openapi_{name}", openapi_results[0]["url"]))
+        # API lifecycle — fetch top result to look for provision/delete endpoints
+        lifecycle_results = all_results.get(f"api_lifecycle_{name}", [])
+        if lifecycle_results and lifecycle_results[0].get("url"):
+            fetch_targets.append((f"api_lifecycle_{name}", lifecycle_results[0]["url"]))
+        # ai_, sandbox_, api_auth_ are snippet-only — no page fetch needed
 
-    page_contents = _fetch_pages_parallel(fetch_targets, max_chars=3500)
+    page_contents = _fetch_pages_parallel(fetch_targets)
 
     return {
         "company_name":     company_name,
