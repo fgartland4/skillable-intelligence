@@ -155,6 +155,9 @@
         }
         orgInput.addEventListener('input', checkReady);
         prodInput.addEventListener('input', checkReady);
+        // Handle pre-filled values on load and browser back (bfcache restore).
+        checkReady();
+        window.addEventListener('pageshow', checkReady);
         document.getElementById('analyzeForm').addEventListener('submit', function() {
             btn.disabled = true;
             btn.innerHTML = '<span>Researching...</span>';

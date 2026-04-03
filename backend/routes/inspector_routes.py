@@ -575,13 +575,17 @@ def _persist_product_scores(discovery_id: str, discovery: dict, analysis_id: str
     data = load_analysis(analysis_id)
     if not data:
         return
+    # Reload from storage to preserve _research_cache written during the score run.
+    # Using the in-memory `discovery` snapshot would overwrite any saves that happened
+    # during scoring (e.g. the _research_cache update on line 256).
+    current = load_discovery(discovery_id) or discovery
     now = datetime.now(timezone.utc).isoformat()
-    product_scores = dict(discovery.get("_product_scores", {}))
+    product_scores = dict(current.get("_product_scores", {}))
     for p in data.get("products", []):
         name = p.get("name", "")
         if name:
             product_scores[name] = {"scored_at": now, "product_data": p}
-    updated = {**discovery, "_product_scores": product_scores}
+    updated = {**current, "_product_scores": product_scores}
     save_discovery(discovery_id, updated)
 
 
