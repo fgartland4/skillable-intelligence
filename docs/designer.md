@@ -88,10 +88,10 @@ Skillable Learning Consultants and Professional Services are avid Designer users
 
 When a program is seeded from an Inspector analysis, Intelligence doesn't just pre-fill fields — it actively shapes the AI's recommendations throughout Phase 1 and into Phase 2. What Inspector knows about the customer's products is present from the first interaction:
 
-- Gate 2 complexity signals inform program scope recommendations — a deeply complex product with high module count and strong interoperability generates multi-series curriculum suggestions before the program owner has said anything
-- Gate 1 delivery path feeds Preferences defaults and BOM recommendations
+- Instructional Value complexity signals inform program scope recommendations — a deeply complex product with high module count and strong interoperability generates multi-series curriculum suggestions before the program owner has said anything
+- Product Labability delivery path feeds Preferences defaults and BOM recommendations
 - Scenario type flags (break/fix, simulated attack, collaborative lab) surface in scenario seed suggestions and Phase 2 outline generation
-- Gate 3 organizational readiness signals calibrate how prescriptive the scaffolding is — an early-stage team gets more detailed guidance; a mature team gets a framework
+- Organizational Readiness signals calibrate how prescriptive the scaffolding is — an early-stage team gets more detailed guidance; a mature team gets a framework
 
 The program owner doesn't need to re-explain the product. Designer already knows it.
 
@@ -159,7 +159,7 @@ Each checklist item has three states: **gray** (nothing captured yet), **yellow*
 
 **Intelligence informs the AI's prompts — it never restricts the direction.** If Inspector knows this is a Tanium customer with endpoint security products, the AI might ask: "Is this program for Tanium product skills, or for foundational skills that support your Tanium curriculum?" But the moment the program owner says "networking fundamentals," the AI follows completely — no steering back, no resistance. Intelligence context makes Phase 1 feel smarter and more relevant. It does not constrain what the program can be about.
 
-**When the program owner is stuck, the AI suggests.** If a program owner doesn't know what topics to cover, what labs to build, or how to structure the curriculum, the AI doesn't wait. It offers suggestions based on what it knows — documented product modules and workflows, Gate 2 complexity signals, common patterns for the product category, or natural prerequisite topics for the product being trained on. The program owner can take any suggestion, modify it, reject it, or use it as a starting point. The AI is a thinking partner, not a passive recorder.
+**When the program owner is stuck, the AI suggests.** If a program owner doesn't know what topics to cover, what labs to build, or how to structure the curriculum, the AI doesn't wait. It offers suggestions based on what it knows — documented product modules and workflows, Instructional Value complexity signals, common patterns for the product category, or natural prerequisite topics for the product being trained on. The program owner can take any suggestion, modify it, reject it, or use it as a starting point. The AI is a thinking partner, not a passive recorder.
 
 **The checklist is a thought provoker, not just a progress tracker.** Each checklist item signals a dimension of program design that matters for building a strong learning or skill validation program — many of which a first-time program owner may never have considered. Seeing "Competency Framework — not defined" prompts the question: *should I align this to a framework?* Seeing "Scenario Seeds — none yet" prompts: *what real-world situations should these labs simulate?* Each checklist item carries enough context to explain why it matters — not just what it is — so the program owner understands what they're being asked to think about, not just what field to fill in. The checklist is one of the primary ways Designer builds the discipline of thinking well about lab programs.
 
@@ -459,16 +459,16 @@ Without Intelligence, Designer produces generic scaffolding. With Intelligence, 
 **The BOM is the clearest example.** A Bill of Materials is not a template. It is a precise artifact that reflects this product's delivery path, VM topology, provisioning pattern, software requirements, and orchestration constraints. Intelligence holds all of that. Designer synthesizes it into something a lab developer can build from directly. The human's job is to confirm and refine — not to generate the technical specification from scratch.
 
 The same principle applies throughout the design process:
-- **Number of labs and series** — derived from Gate 2 complexity signals, not from a default program structure
+- **Number of labs and series** — derived from Instructional Value complexity signals, not from a default program structure
 - **Intended audience** — derived from product user personas and organizational context, not from a generic audience prompt
 - **Lab titles and activities** — derived from what the product actually does and how administrators, engineers, and operators interact with it
 - **Scenario types** — derived from scenario type flags surfaced by Intelligence (break/fix, simulated attack, collaborative lab patterns)
 - **Seat time estimates** — derived from workflow depth and activity count, grounded in the product's actual complexity
 
 The three qualification gates inform Designer throughout:
-- **Gate 1** determines environment architecture, delivery path, and provisioning pattern — surfaced in Preferences defaults and BOM
-- **Gate 2** determines program scope, lab complexity, scenario types, and seat time — high complexity generates multi-series curricula; low complexity generates focused single-series programs
-- **Gate 3** determines how prescriptive Designer's scaffolding needs to be — a mature content team needs a framework; an early-stage team benefits from more detailed scaffolding and may need Skillable PS support
+- **Product Labability** determines environment architecture, delivery path, and provisioning pattern — surfaced in Preferences defaults and BOM
+- **Instructional Value** determines program scope, lab complexity, scenario types, and seat time — high complexity generates multi-series curricula; low complexity generates focused single-series programs
+- **Organizational Readiness** determines how prescriptive Designer's scaffolding needs to be — a mature content team needs a framework; an early-stage team benefits from more detailed scaffolding and may need Skillable PS support
 
 Lab scenario type flags from Inspector (break/fix, simulated attack, collaborative lab — parallel/adversarial or sequential/assembly line) carry into Designer's Phase 2 outline recommendations. A cybersecurity product with Red/Blue Team signals gets a program architecture that includes both self-paced guided labs and an ILT cyber range track. A data pipeline product with multi-role handoff signals gets assembly line collaborative lab scenarios alongside role-specific tracks.
 

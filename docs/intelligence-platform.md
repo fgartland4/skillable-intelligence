@@ -12,9 +12,9 @@ A SaaS company asks: does this organization have the budget, the pain point, and
 
 Skillable has to ask three harder questions:
 
-1. **Technical Orchestrability** — Can Skillable's platform provision, configure, score, and tear down a lab for what this company sells? Does their product have the deployment model, API surface, and technical architecture that Skillable can orchestrate?
+1. **Product Labability** — Can Skillable's platform provision, configure, score, and tear down a lab for what this company sells? Does their product have the deployment model, API surface, and technical architecture that Skillable can orchestrate?
 
-2. **Potential Lab Program Impact** — Would a lab program for this product create meaningful business impact for the customer AND meaningful skill and career impact for their learners? The customer's end users — customers, partners, technical sellers, employees — genuinely need hands-on experience because the product is too complex to learn by reading or watching alone. And people who get hands-on practice will be measurably more confident using the product on the job and more capable of advancing their careers. Products that are too simple, too shallow, or too narrow in audience score low here regardless of orchestrability.
+2. **Instructional Value** — Would a lab program for this product create meaningful business impact for the customer AND meaningful skill and career impact for their learners? The customer's end users — customers, partners, technical sellers, employees — genuinely need hands-on experience because the product is too complex to learn by reading or watching alone. And people who get hands-on practice will be measurably more confident using the product on the job and more capable of advancing their careers. Products that are too simple, too shallow, or too narrow in audience score low here regardless of orchestrability.
 
 3. **Organizational Readiness** — Does this company have the content team skills, technical enablement maturity, and program leadership to build and sustain a lab program — not just complete a pilot?
 
@@ -72,7 +72,7 @@ Skillable Intelligence produces a lot of numbers: scores, percentages, populatio
 
 **We only read what's publicly accessible.** The Research Engine fetches public web pages, reads search snippets, and scrapes technical documentation. It does not authenticate to any vendor system, access paywalled content, or read internal roadmaps. It sees what a well-prepared SE with a browser and a few hours would see — and sometimes less, because not every vendor documents their deployment model clearly on a public page. When the research finds strong evidence, that's genuine signal. When it doesn't, scores reflect that gap — not a judgment that the product is weak.
 
-**Scores are Claude's interpretation of available evidence — not measurements.** A Technical Orchestrability score of 34 means Claude found strong evidence of a clean provisioning path, a REST API with lifecycle coverage, and no blocking dependencies. It does not mean an SE with a test environment confirmed all of this. Every score is calibrated against real Skillable customer deployments (Tanium, Cohesity, Hyland, Microsoft, Cisco, and others) to ensure that a 70 here means the same thing across different analyses and different people running the tool — but calibrated AI judgment is still AI judgment. Treat scores as a strong hypothesis, not a measurement.
+**Scores are Claude's interpretation of available evidence — not measurements.** A Product Labability score of 34 means Claude found strong evidence of a clean provisioning path, a REST API with lifecycle coverage, and no blocking dependencies. It does not mean an SE with a test environment confirmed all of this. Every score is calibrated against real Skillable customer deployments (Tanium, Cohesity, Hyland, Microsoft, Cisco, and others) to ensure that a 70 here means the same thing across different analyses and different people running the tool — but calibrated AI judgment is still AI judgment. Treat scores as a strong hypothesis, not a measurement.
 
 **Findings are directional. They are not a substitute for conversation.** The right use of an Inspector or Prospector result is to walk into a discovery call knowing which questions to ask, which risks to probe, and which signals to validate — not to present the score as a verdict. The Essential Technical Resource in each product's recommendation exists specifically for this reason: it is the explicit acknowledgment of the single most important thing the research could not confirm from public sources alone.
 
@@ -222,11 +222,11 @@ Each scoring dimension maps directly to one of the three qualification gates —
 
 | Dimension | Gate | The Skillable Question It Answers |
 |---|---|---|
-| **Technical Orchestrability** | Gate 1 | Can Skillable's automation platform provision, configure, score, and tear down a lab for this product without manual intervention? |
-| **Workflow Complexity** | Gate 2 | Are there enough meaningful, repeatable technical tasks to justify a multi-lab program — things that require a real environment to learn, not a video or walkthrough? |
-| **Training Ecosystem Maturity** | Gate 2 | Is there demonstrated demand for hands-on training on this product? Do the customer's end users — customers, partners, sellers, employees — need to learn it, and will hands-on practice make them meaningfully more capable and confident? |
-| **Market & Strategic Fit** | Gate 2 | Does this align with the verticals and skill areas where Skillable has proven lab program ROI? |
-| **Lab Maturity** | Gate 3 | Does this company have the organizational infrastructure — content team skills, program leadership, technical readiness — to build and scale a lab program? |
+| **Product Labability** | Product Labability | Can Skillable's automation platform provision, configure, score, and tear down a lab for this product without manual intervention? |
+| **Instructional Value** | Instructional Value | Are there enough meaningful, repeatable technical tasks to justify a multi-lab program — things that require a real environment to learn, not a video or walkthrough? |
+| **Organizational Readiness** | Instructional Value | Is there demonstrated demand for hands-on training on this product? Do the customer's end users — customers, partners, sellers, employees — need to learn it, and will hands-on practice make them meaningfully more capable and confident? |
+| **Market Readiness** | Instructional Value | Does this align with the verticals and skill areas where Skillable has proven lab program ROI? |
+| **Organizational Readiness** | Organizational Readiness | Does this company have the organizational infrastructure — content team skills, program leadership, technical readiness — to build and scale a lab program? |
 
 ### 5.2 Skillable Path — The Core Qualification Decision
 
@@ -234,38 +234,35 @@ Before any dimension score is calculated, the platform determines which Skillabl
 
 | Path | Fabric | What It Means |
 |---|---|---|
-| **A1 — Azure Cloud Slice** | Azure infrastructure provisioned per learner via Skillable's Cloud Slice engine | Product runs natively on Azure; Entra ID provides per-learner isolation; richest automation surface |
-| **A2 — Custom API / BYOC** | Vendor's own cloud API, called by Skillable Life Cycle Actions | Product lives on vendor's infrastructure; Skillable calls vendor APIs to provision/teardown; MFA is a risk |
-| **B — VM Lab** | Hyper-V, ESX, or Docker fabric; software installed in a VM or container | Product installs on Windows/Linux; the VM image IS the lab; provisioning APIs not required |
-| **C — Simulation** | Simulated interface; no live product instance | Real lab is impractical (cost, duration, data sensitivity); simulation captures workflows only |
+| **Azure Cloud Slice** | Azure infrastructure provisioned per learner via Skillable's Cloud Slice engine | Product runs natively on Azure; Entra ID provides per-learner isolation; richest automation surface |
+| **Custom API / BYOC** | Vendor's own cloud API, called by Skillable Life Cycle Actions | Product lives on vendor's infrastructure; Skillable calls vendor APIs to provision/teardown; MFA is a risk |
+| **Hyper-V / VM** | Hyper-V, ESX, or Docker fabric; software installed in a VM or container | Product installs on Windows/Linux; the VM image IS the lab; provisioning APIs not required |
+| **Simulation** | Simulated interface; no live product instance | Real lab is impractical (cost, duration, data sensitivity); simulation captures workflows only |
 | **Unknown** | Cannot determine without more information | Insufficient evidence; scores conservatively; Essential Technical Resource question is required |
 
-**Why the path matters for scoring:** The Technical Orchestrability dimension has a different score ceiling for each path. A product that only runs in its vendor's cloud (Path A2) with a flawed API cannot score as high as a Path A1 product with Entra ID isolation — even if both products are "technically possible" to lab.
+**Why the path matters for scoring:** The Product Labability dimension has a different score ceiling for each path. A product that only runs in its vendor's cloud (Custom API / BYOC) with a flawed API cannot score as high as an Azure Cloud Slice product with Entra ID isolation — even if both products are "technically possible" to lab.
 
 ### 5.3 The Multiplier Model — Why Low Technical Scores Cap Everything Else
 
-The platform uses a **multiplier** on non-technical dimensions based on the Technical Orchestrability score. This prevents a product with a great training ecosystem but a terrible technical story from scoring well overall.
+The platform uses a **multiplier** on non-technical dimensions based on the Product Labability score. This prevents a product with a great training ecosystem but a terrible technical story from scoring well overall.
 
 ```
-If Technical score ≥ 32:              multiplier = 1.0x   (full credit for all dimensions)
-If Technical score ≥ 24 AND Path B:   multiplier = 1.0x   (VM image solves provisioning)
-If Technical score ≥ 19:              multiplier = 0.75x
-If Technical score ≥ 10:              multiplier = 0.40x
-If Technical score < 10:              multiplier = 0.15x
+If Product Labability score ≥ 32:                      multiplier = 1.0x   (full credit for all dimensions)
+If Product Labability score ≥ 24 AND Hyper-V / VM:     multiplier = 1.0x   (VM image solves provisioning)
+If Product Labability score ≥ 19:                      multiplier = 0.75x
+If Product Labability score ≥ 10:                      multiplier = 0.40x
+If Product Labability score < 10:                      multiplier = 0.15x
 
-Total = min(100, Technical + round(Other × multiplier))
+Total = min(100, Product Labability + round(Other × multiplier))
 ```
 
-**Why this is valid:** A product that cannot be provisioned or scored automatically is a custom professional services engagement, not a scalable lab product. No amount of training ecosystem maturity makes that viable at scale. The multiplier enforces this constraint in the score rather than leaving it to interpretation.
+**Why this is valid:** A product that cannot be provisioned or scored automatically is a custom professional services engagement, not a scalable lab product. No amount of organizational readiness makes that viable at scale. The multiplier enforces this constraint in the score rather than leaving it to interpretation.
 
 ### 5.4 The Composite Score — Balancing Product Fit and Organizational Readiness
 
-The Composite Score blends Product Labability (can Skillable build the lab?) with Lab Maturity (can this organization deliver it?). The weighting differs by organization type because the constraint is different:
+The Composite Score blends Product Labability (can Skillable build the lab?) with Organizational Readiness (can this organization deliver it?).
 
-| Org Type | Product Weight | Lab Maturity Weight | Rationale |
-|---|---|---|---|
-| Software Company | 65% | 35% | Technical fit is the primary gating factor — if the product can't be labbed, Lab Maturity doesn't save it |
-| Training Organization / Systems Integrator / Distributor / Academic | 35% | 65% | Organizational readiness is the primary value; these orgs can work with lower-scoring products if their infrastructure is strong |
+Scoring uses the 40/30/20/10 composite model. See Scoring-Framework-Core for the 40/30/20/10 composite scoring model.
 
 **Gating rules** (applied before composite calculation):
 - Software company with Product score < 30 → Composite capped at 25
@@ -324,10 +321,10 @@ These constraints are encoded in the scoring prompts so the AI flags them approp
 
 | Blocker | Impact |
 |---|---|
-| Bare metal required | Cannot virtualize; Path B impossible |
+| Bare metal required | Cannot virtualize; Hyper-V / VM path impossible |
 | Hardware-locked licensing (BIOS GUID) | **Not a blocker** — Skillable VM profiles can pin BIOS GUIDs |
 | Credit card required for trial | Risk, not a blocker; flags NFR license question |
-| MFA on API authentication | Blocks headless scoring (Path A2); MCQ/Vision only |
+| MFA on API authentication | Blocks headless scoring (Custom API / BYOC); MCQ/Vision only |
 | Provisioning time > 30 minutes | Risk; Pre-Instancing required (keeps lab "warm" before learner starts) |
 | No programmatic teardown | Resource leak risk; requires manual cleanup script |
 | GPU required | Not universally available; flags availability question |
@@ -340,13 +337,13 @@ The platform's scoring is calibrated against real Skillable customer deployments
 
 | Signal | What It Means for Scoring |
 |---|---|
-| Product in Azure Marketplace | Strong A1 signal; near-certain cloud slice path |
-| Official Docker Hub image with automated build | Strong Path B signal; VM lab straightforward |
-| PowerShell module in PSGallery | Strong scoring surface for Path B; ABA scripts likely |
-| Entra ID / Azure SSO support | A1 path; per-learner isolation free; credential management eliminated |
-| Existing CloudShare or Instruqt labs | Confirmed training demand; migration opportunity; Training Ecosystem signal |
+| Product in Azure Marketplace | Strong Azure Cloud Slice signal; near-certain cloud slice path |
+| Official Docker Hub image with automated build | Strong Hyper-V / VM signal; VM lab straightforward |
+| PowerShell module in PSGallery | Strong scoring surface for Hyper-V / VM; ABA scripts likely |
+| Entra ID / Azure SSO support | Azure Cloud Slice path; per-learner isolation free; credential management eliminated |
+| Existing CloudShare or Instruqt labs | Confirmed training demand; migration opportunity; Instructional Value signal |
 | Named ATP/Learning Partner network with 5+ partners | Strong partner program signal; channel enablement labs likely valuable |
-| Active hiring for "Lab Author" or "Training Developer" | Company is building content capability; strong Lab Maturity signal |
+| Active hiring for "Lab Author" or "Training Developer" | Company is building content capability; strong Organizational Readiness signal |
 | Pre-sales POC labs (7x win rate increase — Tanium benchmark) | Strongest business case signal available |
 
 ---

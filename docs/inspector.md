@@ -11,9 +11,9 @@
 Inspector is the depth contextualization layer of Skillable Intelligence. It takes the same centralized company intelligence — the three qualification gates, the research signals, the scoring — and renders it at full resolution for the people who need to walk into a conversation fully prepared.
 
 The three gates Inspector evaluates are:
-- **Gate 1 — Technical Orchestrability:** Can Skillable provision, configure, score, and tear down a lab for this company's products?
-- **Gate 2 — Potential Lab Program Impact:** Would a lab program for this product create meaningful business impact for the customer AND meaningful skill and career impact for their learners? Two signals: (1) the customer's end users — customers, partners, technical sellers, employees — genuinely need hands-on experience because the product is too complex to learn by reading or watching; (2) people who practice hands-on will be measurably more confident using the product on the job and more capable of advancing their careers.
-- **Gate 3 — Organizational Readiness:** Does this company have the content team, program leadership, and technical maturity to build and sustain a lab program?
+- **Product Labability:** Can Skillable provision, configure, score, and tear down a lab for this company's products?
+- **Instructional Value — Potential Lab Program Impact:** Would a lab program for this product create meaningful business impact for the customer AND meaningful skill and career impact for their learners? Two signals: (1) the customer's end users — customers, partners, technical sellers, employees — genuinely need hands-on experience because the product is too complex to learn by reading or watching; (2) people who practice hands-on will be measurably more confident using the product on the job and more capable of advancing their careers.
+- **Organizational Readiness:** Does this company have the content team, program leadership, and technical maturity to build and sustain a lab program?
 
 Every score, every evidence bullet, every recommendation in Inspector maps back to one of those gates. The output is designed to serve two conversations simultaneously — the technical discovery conversation an SE needs to run, and the qualification conversation an AE or executive needs to have — from the same underlying analysis.
 
@@ -29,13 +29,13 @@ Inspector runs that same research — 12 parallel web searches, fetched document
 
 **Account Executives** use Inspector to qualify a logo before committing SE time to it. The signals they need are high-level: composite score, the pursuit recommendation, and the names of the decision makers most likely to own a training or enablement initiative. They are not reading the evidence section or interpreting dimension breakdowns — they want to know whether this account is worth a deeper investment and who to call. Typical trigger: an SDR passes a warm account, or the AE is preparing for a QBR and needs to identify expansion logos in their territory.
 
-**Technical Sales Managers and Customer Success Managers** use Inspector on existing accounts, looking for expansion opportunities. They want to know which products haven't been incorporated into a lab program yet, what the Lab Maturity signals look like, and who the relevant contacts are for an expansion conversation. Inspector's Lab Maturity Score is particularly useful here — it surfaces organizational readiness signals like training org structure, partner program depth, and LMS usage that indicate whether a customer has the infrastructure to absorb an expanded program. Typical trigger: renewal prep, QBR preparation, or an active expansion motion where the CSM needs to identify the next program to propose.
+**Technical Sales Managers and Customer Success Managers** use Inspector on existing accounts, looking for expansion opportunities. They want to know which products haven't been incorporated into a lab program yet, what the Organizational Readiness signals look like, and who the relevant contacts are for an expansion conversation. Inspector's Organizational Readiness score is particularly useful here — it surfaces organizational readiness signals like training org structure, partner program depth, and LMS usage that indicate whether a customer has the infrastructure to absorb an expanded program. Typical trigger: renewal prep, QBR preparation, or an active expansion motion where the CSM needs to identify the next program to propose.
 
 ---
 
 ## What Inspector Delivers
 
-At the end of a full Inspector run, you have a `CompanyAnalysis` that contains everything an SE needs to walk into a discovery call prepared. For each scored product: a 0–100 labability score with dimension-level breakdowns, a Skillable Path determination (A1/A2/B/C), evidence claims sourced to specific URLs and organized by the lab lifecycle (Provision → Configure → Score → Teardown), and a set of recommendations anchored by the **Essential Technical Resource** — the single most important open question that public research couldn't confirm and that must be answered before a pilot can start. At the company level: an org type classification, a Lab Maturity score that gauges organizational readiness independently of any specific product, a Consumption Potential table projecting lab volume across six business motions, and a contact list with role types and inferred ownership of a lab program conversation.
+At the end of a full Inspector run, you have a `CompanyAnalysis` that contains everything an SE needs to walk into a discovery call prepared. For each scored product: a 0–100 labability score with dimension-level breakdowns, a Skillable Path determination (A1/A2/B/C), evidence claims sourced to specific URLs and organized by the lab lifecycle (Provision → Configure → Score → Teardown), and a set of recommendations anchored by the **Essential Technical Resource** — the single most important open question that public research couldn't confirm and that must be answered before a pilot can start. At the company level: an org type classification, an Organizational Readiness score that gauges organizational readiness independently of any specific product, a Consumption Potential table projecting lab volume across six business motions, and a contact list with role types and inferred ownership of a lab program conversation.
 
 That output serves two conversations simultaneously. The SE gets the technical depth they need to run an informed discovery call. The AE gets the composite score and pursuit recommendation they need to decide whether to invest.
 
@@ -51,7 +51,7 @@ Inspector executes in four sequential phases, and understanding the flow explain
 
 The Caseboard also surfaces the company's competitive landscape — a list of competing products and vendors identified during discovery. Each competitor card includes a **Run Caseboard →** link. Clicking it immediately runs discovery on that competitor and opens their Caseboard. This turns competitive intelligence into a one-click prospecting action: if a prospect mentions a competitor, the SE can open that competitor's Caseboard mid-conversation without leaving the tool. Discovery caching means previously analyzed competitors load instantly.
 
-**Deep Research and Scoring** is where the real work happens. For each selected product, the Research Engine runs 9 additional web searches and fetches up to 3 high-value pages, targeting specific evidence categories: deployment architecture, training catalog, REST API / CLI / PowerShell surface, AI features, Marketplace listings, Docker images, NFR license programs, system requirements, and competitive lab offerings. Once research completes for all selected products, every scoring call runs fully in parallel — one call per product for the four labability dimensions, one for Lab Maturity, one for Consumption Potential, one for Contacts, and one for Recommendations. Each individual call has a 5-minute timeout; the full scoring pass has a 10-minute total timeout enforced via the SSE stream. Progress is streamed in real time through six descriptive steps so the user has a clear signal of what's happening rather than watching a spinner.
+**Deep Research and Scoring** is where the real work happens. For each selected product, the Research Engine runs 9 additional web searches and fetches up to 3 high-value pages, targeting specific evidence categories: deployment architecture, training catalog, REST API / CLI / PowerShell surface, AI features, Marketplace listings, Docker images, NFR license programs, system requirements, and competitive lab offerings. Once research completes for all selected products, every scoring call runs fully in parallel — one call per product for the four labability dimensions, one for Organizational Readiness, one for Consumption Potential, one for Contacts, and one for Recommendations. Each individual call has a 5-minute timeout; the full scoring pass has a 10-minute total timeout enforced via the SSE stream. Progress is streamed in real time through six descriptive steps so the user has a clear signal of what's happening rather than watching a spinner.
 
 **Dossier** is when the full analysis renders. The dashboard surfaces everything — scores, evidence, paths, consumption table, contacts, recommendations — in a format designed to support both a technical discovery conversation and an executive qualification conversation. A "Design Lab Program →" button appears at the top when scoring is complete, ready to carry the analysis into Designer.
 
@@ -71,9 +71,9 @@ The Caseboard also surfaces the company's competitive landscape — a list of co
 
 **Why it exists:** Running full per-product research on every product a company makes before the user has indicated which products matter is expensive and slow. Discovery solves this by producing a low-cost preliminary map — enough to tier the products, orient the user, and target the deeper research pass.
 
-**What it does:** Produces a structured company-level output: organization type (one of six values: `software_company`, `academic_institution`, `training_organization`, `systems_integrator`, `technology_distributor`, `professional_services`), a complete product list with a labability tier per product (`highly_likely`, `likely`, `less_likely`, `not_likely`), deployment model signals, candidate Skillable paths, a company description, and partnership signals. This classification is not cosmetic — the org type drives the composite score formula and the Lab Maturity rubric adjustments used in Phase 3.
+**What it does:** Produces a structured company-level output: organization type (one of six values: `software_company`, `academic_institution`, `training_organization`, `systems_integrator`, `technology_distributor`, `professional_services`), a complete product list with a labability tier per product (`highly_likely`, `likely`, `less_likely`, `not_likely`), deployment model signals, candidate Skillable paths, a company description, and partnership signals. This classification is not cosmetic — the org type drives the composite score formula and the Organizational Readiness rubric adjustments used in Phase 3.
 
-**How it works:** 12 parallel web searches fire across six query categories: product portfolio, training and certification catalog, authorized training partner signals, customer success and onboarding motion, organizational and contact signals, and targeted queries for any named products the user supplied. Simultaneously, the company homepage and up to five additional high-value pages are fetched and read in parallel. Inspector-specific discovery queries target the signals that most directly proxy for technical orchestrability before committing to per-product research: Azure/AWS/Google Cloud Marketplace listings, Docker Hub and container image availability, NFR or developer license programs, AI and Copilot feature announcements, and competitive lab platform presence (CloudShare, Instruqt, Appsembler). A product on the Azure Marketplace or with a public Docker image has almost certainly cleared the bare-metal dependency hurdle before a single scoring prompt runs. Discovery results are cached for 45 days keyed by company name. A cache hit skips all Phase 1 web research entirely and jumps directly to product selection.
+**How it works:** 12 parallel web searches fire across six query categories: product portfolio, training and certification catalog, authorized training partner signals, customer success and onboarding motion, organizational and contact signals, and targeted queries for any named products the user supplied. Simultaneously, the company homepage and up to five additional high-value pages are fetched and read in parallel. Inspector-specific discovery queries target the signals that most directly proxy for product labability before committing to per-product research: Azure/AWS/Google Cloud Marketplace listings, Docker Hub and container image availability, NFR or developer license programs, AI and Copilot feature announcements, and competitive lab platform presence (CloudShare, Instruqt, Appsembler). A product on the Azure Marketplace or with a public Docker image has almost certainly cleared the bare-metal dependency hurdle before a single scoring prompt runs. Discovery results are cached for 45 days keyed by company name. A cache hit skips all Phase 1 web research entirely and jumps directly to product selection.
 
 One constraint that applies to everything the Discovery Engine produces: it reads only what's publicly accessible. Vendor documentation behind a login, internal roadmaps, private API references, and paywalled partner portals are invisible to it. Labability tiers assigned at this stage should be read as "best estimate from public signals" — not as a confirmed assessment.
 
@@ -81,7 +81,7 @@ One constraint that applies to everything the Discovery Engine produces: it read
 
 ### Product-Level Research Engine
 
-**Why it exists:** Company-level discovery can identify that a product exists and estimate its labability tier from category signals and Marketplace presence. It cannot score Technical Orchestrability or flag a provisioning time risk. That requires dedicated, product-specific research that reads the actual technical documentation, API reference, and system requirements for each candidate.
+**Why it exists:** Company-level discovery can identify that a product exists and estimate its labability tier from category signals and Marketplace presence. It cannot score Product Labability or flag a provisioning time risk. That requires dedicated, product-specific research that reads the actual technical documentation, API reference, and system requirements for each candidate.
 
 **What it does:** Produces a product-specific evidence corpus — search results plus fetched page content — covering every dimension needed for scoring. This corpus is what the scoring calls receive as their evidence input. Without it, scoring would be inference from product names. With it, scoring is inference from actual technical documentation.
 
@@ -99,7 +99,7 @@ One constraint that applies to everything the Discovery Engine produces: it read
 
 Up to three high-value pages are fetched per product and read alongside search snippets. Sources include technical documentation sites, API reference pages, deployment and admin guides, training catalogs, Marketplace listing pages, Docker Hub, GitHub repositories, and competitive lab platform catalogs.
 
-Two limitations apply to everything this engine produces. First, it reads public sources only — API references behind authentication walls, private deployment guides, and vendor-internal documentation are not accessible. Second, technical documentation is often aspirational: vendor docs describe what the product *can* do in ideal conditions, not what's typical in the field deployments Skillable's SE team will encounter. Both of these mean that Technical Orchestrability evidence in particular should be treated as a well-researched hypothesis, with the Essential Technical Resource in the recommendations being the explicit flag for what couldn't be confirmed.
+Two limitations apply to everything this engine produces. First, it reads public sources only — API references behind authentication walls, private deployment guides, and vendor-internal documentation are not accessible. Second, technical documentation is often aspirational: vendor docs describe what the product *can* do in ideal conditions, not what's typical in the field deployments Skillable's SE team will encounter. Both of these mean that Product Labability evidence in particular should be treated as a well-researched hypothesis, with the Essential Technical Resource in the recommendations being the explicit flag for what couldn't be confirmed.
 
 Research results are stored per product within the discovery cache file. If a product was researched in a previous Inspector session for the same company, those results are reused — only products being scored for the first time trigger new web queries.
 
@@ -115,7 +115,7 @@ Research results are stored per product within the discovery cache file. If a pr
 
 | Level | TTL | Key | What It Stores | When It Triggers |
 |---|---|---|---|---|
-| Full analysis cache | 45 days | `company_name` | Complete `CompanyAnalysis` including all product scores, Lab Maturity, contacts, recommendations, consumption potential | Inspector has been fully run for this company before |
+| Full analysis cache | 45 days | `company_name` | Complete `CompanyAnalysis` including all product scores, Organizational Readiness, contacts, recommendations, consumption potential | Inspector has been fully run for this company before |
 | Discovery cache | 45 days | `company_name` | Discovery output: product list with labability tiers, org type, deployment models, partnership signals | Company was discovered but some products may not have been scored |
 | Research cache | Per-discovery | `company_name` + `product_name` | Web search results and fetched page contents for a specific product | Product was researched in a previous Inspector session for this company |
 
@@ -129,7 +129,7 @@ A force-refresh checkbox on the Inspector home page bypasses all three cache lev
 
 **Why:** Raw research evidence — search snippets, fetched page content, Docker Hub hits — doesn't directly answer "should we pursue this account?" That answer requires structured judgment: calibrated, consistent, and traceable back to specific evidence. The Scoring Layer is where evidence becomes scores, and scores become a recommendation.
 
-**What:** Four parallel scoring components produce the full output: a product labability score across four dimensions, a Lab Maturity score across five dimensions, a Composite Score that combines the two into a single pursuit signal, and a Consumption Potential estimate that quantifies what "pursuing" would actually mean in volume and revenue terms.
+**What:** Four parallel scoring components produce the full output: a product labability score across four dimensions, an Organizational Readiness score across five dimensions, a Composite Score that combines the two into a single pursuit signal, and a Consumption Potential estimate that quantifies what "pursuing" would actually mean in volume and revenue terms.
 
 **How:** All scoring calls run fully in parallel after research completes. Each call receives the evidence corpus gathered during the Research Layer and returns structured scores, evidence citations, and flags. Parallel execution is load-bearing — waiting for each call sequentially on a three-product analysis would add significant latency to an already long operation.
 
@@ -145,13 +145,13 @@ A force-refresh checkbox on the Inspector home page bypasses all three cache lev
 
 | Dimension | Max Score | What It Measures |
 |---|---|---|
-| Technical Orchestrability | 40 | Can the product be provisioned, configured, and torn down programmatically? API surface, deployment model, containerization, Marketplace presence |
-| Workflow Complexity | 30 | How complex is the lab workflow? Multi-step configurations, dependency chains, realistic exercise design |
-| Training Ecosystem Maturity | 20 | How developed is the training infrastructure around this product? Catalog depth, certification programs, partner training |
-| Market & Strategic Fit | 10 | Is the market moving in a direction that makes labs strategically relevant? |
+| Product Labability | 40 | Can the product be provisioned, configured, and torn down programmatically? API surface, deployment model, containerization, Marketplace presence |
+| Instructional Value | 30 | How complex is the lab workflow? Multi-step configurations, dependency chains, realistic exercise design |
+| Organizational Readiness | 20 | How developed is the training infrastructure around this product? Catalog depth, certification programs, partner training |
+| Market Readiness | 10 | Is the market moving in a direction that makes labs strategically relevant? |
 | **Total** | **100** | — |
 
-Technical Orchestrability carries the heaviest weight because it's the gate. If Skillable can't provision, configure, and score an environment for this product automatically, the other three dimensions are irrelevant at scale. Workflow Complexity, Training Ecosystem Maturity, and Market & Strategic Fit amplify or constrain the foundation — but they can't rescue a product that fails the technical test. This is enforced by a multiplier model: a low Technical score caps the contribution of everything else. See [intelligence-platform.md §5.3](intelligence-platform.md#53-the-multiplier-model--why-low-technical-scores-cap-everything-else) for the exact thresholds.
+Product Labability carries the heaviest weight because it's the gate. If Skillable can't provision, configure, and score an environment for this product automatically, the other three dimensions are irrelevant at scale. Instructional Value, Organizational Readiness, and Market Readiness amplify or constrain the foundation — but they can't rescue a product that fails the technical test. This is enforced by a multiplier model: a low Product Labability score caps the contribution of everything else. See [intelligence-platform.md §5.3](intelligence-platform.md#53-the-multiplier-model--why-low-technical-scores-cap-everything-else) for the exact thresholds.
 
 Scoring prompts contain embedded calibration benchmarks derived from real Skillable customer deployments. These anchors ensure that a 70 in Inspector reflects a consistent standard across different analyses and different people running the tool — not just a Claude judgment call on that day's evidence.
 
@@ -162,18 +162,18 @@ The scoring engine also enforces specific constraint logic based on detected sig
 | Constraint Signal | Scoring Behavior |
 |---|---|
 | Bare metal hardware requirement | Automatic disqualifier — scored at floor |
-| MFA on API authentication | Risk flag on Technical Orchestrability; Path A2 ceiling applied |
+| MFA on API authentication | Risk flag on Product Labability; Custom API / BYOC ceiling applied |
 | Provisioning time > 30 minutes | Pre-Instancing flag added to recommendations |
-| No DELETE endpoint detected | Resource leak risk flag on Technical Orchestrability |
+| No DELETE endpoint detected | Resource leak risk flag on Product Labability |
 | Hardware-locked licensing (BIOS GUID) | Not a blocker — Skillable pins BIOS GUIDs; flag noted, not penalized |
 
 ---
 
-### Lab Maturity Scorer
+### Organizational Readiness Scorer
 
-**Why it exists:** A product that scores 85 for Technical Orchestrability is still a poor investment if the company has no training function, no partner program, and no internal capacity to build or maintain lab content. Lab Maturity captures the organizational side of the equation — independently of any specific product's technical characteristics.
+**Why it exists:** A product that scores 85 for Product Labability is still a poor investment if the company has no training function, no partner program, and no internal capacity to build or maintain lab content. Organizational Readiness captures the organizational side of the equation — independently of any specific product's technical characteristics.
 
-**What it does:** Produces a 0–100 Lab Maturity score that reflects the company's organizational readiness to build, deliver, and scale a lab program. This score runs in parallel with the product scoring calls — it's a company-level judgment, not a per-product one.
+**What it does:** Produces a 0–100 Organizational Readiness score that reflects the company's organizational readiness to build, deliver, and scale a lab program. This score runs in parallel with the product scoring calls — it's a company-level judgment, not a per-product one.
 
 **How it works:** One dedicated Claude call evaluates the company across five dimensions based on evidence gathered during discovery and product research:
 
@@ -188,20 +188,19 @@ The scoring engine also enforces specific constraint logic based on detected sig
 
 The five dimensions are not equally weighted by design, and their raw totals intentionally exceed 100. The normalized score is computed as: `raw_score ÷ 1.17 = normalized 0–100`. Scoring rubrics are adjusted by organization type — a training organization without its own certification program is penalized less heavily than a software company with no training function, because the organizational models and expectations genuinely differ.
 
+Scoring uses the 40/30/20/10 composite model. See Scoring-Framework-Core for the 40/30/20/10 composite scoring model.
+
 ---
 
 ### Composite Score Engine
 
-**Why it exists:** Product labability and Lab Maturity measure different things, and the right way to combine them depends on what kind of company you're looking at. A software company with a great product but no training function is a different conversation than a training organization with a mature delivery infrastructure but a technically challenging product. The Composite Score Engine handles that distinction explicitly rather than pretending a single fixed formula works for everyone.
+**Why it exists:** Product Labability and Organizational Readiness measure different things, and the right way to combine them depends on what kind of company you're looking at. A software company with a great product but no training function is a different conversation than a training organization with a mature delivery infrastructure but a technically challenging product. The Composite Score Engine handles that distinction explicitly rather than pretending a single fixed formula works for everyone.
 
 **What it does:** Produces a single 0–100 composite score that drives the "pursue / pilot / monitor / do not pursue" recommendation. The formula weights and gating rules differ by org type.
 
 **How it works:**
 
-| Org Type | Product Labability Weight | Lab Maturity Weight |
-|---|---|---|
-| Software company | 65% | 35% |
-| Channel org (training org, SI, distributor, academic) | 35% | 65% |
+Scoring uses the 40/30/20/10 composite model. See Scoring-Framework-Core for the 40/30/20/10 composite scoring model.
 
 **Gating rules:**
 
@@ -210,7 +209,7 @@ The five dimensions are not equally weighted by design, and their raw totals int
 | Software company with Product score < 30 | Composite capped at 25 |
 | Channel org with Product score < 20 | Composite capped at 30 |
 
-The asymmetry is intentional. For a software company, the product *is* the program — if it can't be provisioned, scored, and torn down automatically, no amount of organizational readiness makes a scalable lab program viable. A high Lab Maturity score sitting on top of a failing product score should not produce a composite that implies viability. For a channel organization — training orgs, SIs, distributors, academic institutions — the primary investment signal is the delivery machine. These organizations can build effective programs even with products that score lower technically, provided their delivery infrastructure and distribution capabilities are strong. The gating rules protect against composite scores that would mislead a pursuit recommendation in either direction.
+The asymmetry is intentional. For a software company, the product *is* the program — if it can't be provisioned, scored, and torn down automatically, no amount of organizational readiness makes a scalable lab program viable. A high Organizational Readiness score sitting on top of a failing product score should not produce a composite that implies viability. For a channel organization — training orgs, SIs, distributors, academic institutions — the primary investment signal is the delivery machine. These organizations can build effective programs even with products that score lower technically, provided their delivery infrastructure and distribution capabilities are strong. The gating rules protect against composite scores that would mislead a pursuit recommendation in either direction.
 
 ---
 
@@ -252,12 +251,12 @@ Population ranges are also required to stay tight — the high end should be no 
 
 | Delivery Path | Environment | $/hr |
 |---|---|---|
-| Cloud Slice (Path A1/A2) | Any Azure or AWS lab | $10.50 |
-| Standard VM (Path B) | 1–3 VMs, typical complexity | $12–15 |
-| Large/Complex VM (Path B) | Many VMs, multiple networks, GPU, large clusters | $45–55 |
-| Simulation (Path C) | AI Vision compute + platform overhead, no live environment | $5 |
+| Cloud Slice (Azure Cloud Slice / Custom API / BYOC) | Any Azure or AWS lab | $10.50 |
+| Standard VM (Hyper-V / VM) | 1–3 VMs, typical complexity | $12–15 |
+| Large/Complex VM (Hyper-V / VM) | Many VMs, multiple networks, GPU, large clusters | $45–55 |
+| Simulation | AI Vision compute + platform overhead, no live environment | $5 |
 
-The Cloud Slice rate ($10.50) is a Skillable platform overhead rate — it applies regardless of which Azure or AWS services are used in the lab, and is separate from any Azure/AWS consumption costs the customer pays through their cloud subscription. Simulation ($5) reflects AI Vision compute and platform overhead even though no live environment is provisioned. The VM rate reflects environment complexity: a clean single-VM install gets $12, 2–3 VMs get $15, and demanding topologies (multi-VM with networking, GPU) reach $45–55. Claude defaults to the standard VM tier unless the product genuinely requires a large environment — the $45–55 range should be rare.
+The Cloud Slice rate ($10.50) is a Skillable platform overhead rate — it applies regardless of which Azure or AWS services are used in the lab, and is separate from any Azure/AWS consumption costs the customer pays through their cloud subscription. Simulation ($5) reflects AI Vision compute and platform overhead even though no live environment is provisioned. The Hyper-V / VM rate reflects environment complexity: a clean single-VM install gets $12, 2–3 VMs get $15, and demanding topologies (multi-VM with networking, GPU) reach $45–55. Claude defaults to the standard VM tier unless the product genuinely requires a large environment — the $45–55 range should be rare.
 
 **Inspector does not trust Claude's arithmetic.** After the scoring call returns, the server recomputes every annual hours total from the parsed motion fields — population midpoint × hours per user per year × adoption % — and replaces whatever figures Claude produced. Claude reasons well about the inputs; it is not a reliable calculator at the motion-summation level.
 
@@ -284,14 +283,14 @@ Every result includes a `methodology_note` field generated by the scoring call, 
 **How it works:** The Dossier surfaces the following:
 
 - **Company overview:** Organization name, description, org type, composite score, pursuit recommendation, and analysis date.
-- **Per-product labability scores:** Dimension breakdown (Technical Orchestrability, Workflow Complexity, Training Ecosystem Maturity, Market and Strategic Fit), total score, Skillable Path determination (A1 / A2 / B / C / Unknown), and any risk or qualification flags.
+- **Per-product labability scores:** Dimension breakdown (Product Labability, Instructional Value, Organizational Readiness, Market Readiness), total score, Skillable Path determination (Azure Cloud Slice / Custom API / BYOC / Hyper-V / VM / Simulation / Unknown), and any risk or qualification flags.
 - **Evidence:** Every score is backed by evidence claims organized by the lab lifecycle — Provision → Configure → Score → Teardown. Each claim is labeled by the aspect it supports and includes the source URL and page title so the SE can verify or follow up directly.
-- **Lab Maturity score:** Company-level score with dimension breakdown and supporting evidence.
+- **Organizational Readiness score:** Company-level score with dimension breakdown and supporting evidence.
 - **Consumption Potential table:** All six motions with population range, hours per user per year, adoption %, annual hours total, and VM rate estimate.
 - **Contacts:** Decision makers and influencers for each product and the company overall, with title, inferred role in a lab program conversation, and source. **Important:** Contact names and titles are extracted from LinkedIn snippets returned in search results — not from direct LinkedIn profile scrapes. These snippets may be months out of date. People change roles frequently. Treat every contact as a starting point for verification, not a confirmed outreach target. If a contact is flagged as a Skillable alumni (previously at a known customer in a training or enablement role), that's a warm outreach signal worth prioritizing — but still verify their current role before reaching out.
 - **Recommendations:** Per product — Delivery Path, Scoring Approach, Essential Technical Resource (the single highest-priority open question blocking a pilot), and Next Step. These are grounded in the evidence, not generated from a template.
 
-A CSV export of all scored products is available from the Dossier. Columns include company name, product name, composite score, product labability score, Lab Maturity score, Skillable Path, and org type.
+A CSV export of all scored products is available from the Dossier. Columns include company name, product name, composite score, product labability score, Organizational Readiness score, Skillable Path, and org type.
 
 ---
 
@@ -322,7 +321,7 @@ Request body:
 }
 ```
 
-Returns the full `CompanyAnalysis` JSON, including all discovered products with labability tiers, all scored products with dimension scores and evidence, Lab Maturity score, contacts, consumption potential, and recommendations.
+Returns the full `CompanyAnalysis` JSON, including all discovered products with labability tiers, all scored products with dimension scores and evidence, Organizational Readiness score, contacts, consumption potential, and recommendations.
 
 This endpoint bypasses the discovery and research caches and runs the full pipeline synchronously. The `known_products` field, if supplied, seeds the product list and adds targeted discovery queries for each named product. Prospector calls this endpoint when it needs Inspector-quality analysis as part of a batch run — rather than duplicating the research and scoring pipeline, Prospector delegates to Inspector and stores the returned `CompanyAnalysis` under the Prospector account record.
 

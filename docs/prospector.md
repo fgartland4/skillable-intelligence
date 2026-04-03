@@ -11,13 +11,13 @@
 Prospector is the comparison and prioritization contextualization layer of Skillable Intelligence. It takes the same centralized company intelligence — the three qualification gates, the research signals, the scoring — and renders it in the form most useful for ranking and comparing a list of companies. The goal is not depth on any one account. The goal is signal across many accounts: which ones clear all three gates well enough to be worth pursuing, and which ones don't.
 
 The three gates Prospector evaluates for every company in a batch:
-- **Gate 1 — Technical Orchestrability:** Can Skillable provision and orchestrate labs for this company's products?
-- **Gate 2 — Product Complexity:** Is the product technically rich enough to justify a lab program?
-- **Gate 3 — Organizational Readiness:** Does this company have the content team maturity and program infrastructure to build and sustain one?
+- **Product Labability:** Can Skillable provision and orchestrate labs for this company's products?
+- **Instructional Value:** Is the product technically rich enough to justify a lab program?
+- **Organizational Readiness:** Does this company have the content team maturity and program infrastructure to build and sustain one?
 
 What makes Prospector more than a fast Google search is what it's scoring against. The research runs those signals through Skillable's accumulated knowledge of what actually makes a lab program viable — which deployment models Skillable can orchestrate, which technical patterns are hard blockers vs. manageable risks, and which organizational signals genuinely predict a successful program.
 
-The Workday example makes this concrete. Massive install base. A dedicated Workday Learning division with a serious partner program. Strong organizational signals across the board — Gates 2 and 3 both pass. But Workday is pure multi-tenant SaaS with no per-learner environment isolation, no meaningful API surface for provisioning, and no deployment model Skillable can orchestrate. Gate 1 fails, and the composite score reflects that regardless of how impressive everything else looks. A seller without this information might pursue that account for months. Prospector surfaces the reality in the first batch run.
+The Workday example makes this concrete. Massive install base. A dedicated Workday Learning division with a serious partner program. Strong organizational signals across the board — Instructional Value and Organizational Readiness both pass. But Workday is pure multi-tenant SaaS with no per-learner environment isolation, no meaningful API surface for provisioning, and no deployment model Skillable can orchestrate. Product Labability fails, and the composite score reflects that regardless of how impressive everything else looks. A seller without this information might pursue that account for months. Prospector surfaces the reality in the first batch run.
 
 Prospector operates in two modes:
 
@@ -55,7 +55,7 @@ You submit a list of companies. Somewhere between 5 and 8 minutes later (dependi
 
 Practical batch size is constrained by the underlying services — Serper search API and Claude API both have rate limits and concurrency ceilings. The platform itself imposes no hard limit; throughput is a function of which service tiers are provisioned. If Marketing needs higher volume, the conversation is about service capacity, not platform capability.
 
-Every row contains: the company's rank and name, a breakdown of product counts by labability tier (Highly Labable / Likely / Not Labable), the name of the top product that drove the score, the Lab Score for that product (0–100, color-coded green/amber/red), the Skillable Path label, a Lab Maturity score for organizational readiness, the Composite score that combines both, a set of partnership signal checkmarks (ATP Program, Channel Program, Existing Lab Partner, ILT/vILT, On-Demand, Certifications, Gray Market), two contacts with name, title, and LinkedIn URL, and a Score Report link that connects directly to Inspector.
+Every row contains: the company's rank and name, a breakdown of product counts by labability tier (Highly Labable / Likely / Not Labable), the name of the top product that drove the score, the Lab Score for that product (0–100, color-coded green/Amber/red), the Skillable Path label, an Organizational Readiness score, the Composite score that combines both, a set of partnership signal checkmarks (ATP Program, Channel Program, Existing Lab Partner, ILT/vILT, On-Demand, Certifications, Gray Market), two contacts with name, title, and LinkedIn URL, and a Score Report link that connects directly to Inspector.
 
 You can export that table as a CSV or a dark-themed Excel file. You can flag companies as poor fits with a reason, and they'll be permanently excluded from future runs. And when you're ready to go deeper on any account, one click takes you there.
 
@@ -67,7 +67,7 @@ You paste in company names — comma-separated or newline-separated — or uploa
 
 The moment you submit, the batch job spins up. Up to 6 companies are analyzed in parallel, and a live progress feed streams each company's state back to the UI: waiting, analyzing, done, or cache (with a date stamp showing how old the cached result is). Companies that don't complete within 3 minutes are marked as skipped and the batch continues without them.
 
-For each company in the batch, the analysis follows six steps. First, the same 12 parallel discovery searches that Inspector runs — surfacing deployment model, training programs, certifications, partner program, API and developer ecosystem, pricing, existing labs, and gray market activity. Second, automatic selection of the single highest-labability product from discovery output; if multiple products share the top tier, the first one returned is used, and that selection is logged in the job record. Third, lightweight scoring of that product from discovery context — the same `ProductLababilityScore` model as Inspector, but without the Phase 2 deep research evidence. Fourth, Lab Maturity scoring for organizational readiness. Fifth, composite scoring using the same formula and gating rules as Inspector. Sixth, extraction of the top 2 contacts.
+For each company in the batch, the analysis follows six steps. First, the same 12 parallel discovery searches that Inspector runs — surfacing deployment model, training programs, certifications, partner program, API and developer ecosystem, pricing, existing labs, and gray market activity. Second, automatic selection of the single highest-labability product from discovery output; if multiple products share the top tier, the first one returned is used, and that selection is logged in the job record. Third, lightweight scoring of that product from discovery context — the same `ProductLababilityScore` model as Inspector, but without the Phase 2 deep research evidence. Fourth, Organizational Readiness scoring. Fifth, composite scoring using the same formula and gating rules as Inspector. Sixth, extraction of the top 2 contacts.
 
 When all companies are done (or timed out), the results table renders sorted by composite score. The poor-fit registry runs before any of this — companies flagged in previous runs are stripped from the input list before analysis begins, so they never consume API calls or semaphore slots.
 
@@ -121,7 +121,7 @@ Prospector is responsible for knowing its own practical ceiling and communicatin
 
 **What:** Four components that take raw discovery output and produce a ranked composite score plus two contacts, without any of the deep per-product research that Inspector's Phase 2 provides.
 
-**How:** Discovery runs first, producing the product list and evidence context. Product selection happens automatically. The lightweight scorer and Lab Maturity model run against that discovery context. The composite engine combines the results. Contacts are extracted in parallel.
+**How:** Discovery runs first, producing the product list and evidence context. Product selection happens automatically. The lightweight scorer and Organizational Readiness model run against that discovery context. The composite engine combines the results. Contacts are extracted in parallel.
 
 ### Discovery Engine
 
@@ -137,11 +137,11 @@ Prospector is responsible for knowing its own practical ceiling and communicatin
 
 **What it does:** Produces a `ProductLababilityScore` (displayed as Labability Score in the results table) and `LabMaturityScore` from discovery-level evidence alone — the same data models as Inspector, built from shallower inputs.
 
-**How it works:** The scoring prompt is identical to Inspector's. The difference is the evidence fed into it: discovery search summaries and fetched content from the company homepage, top product pages, and training and partner program pages. No Phase 2 product-specific searches. No fetched technical documentation, API reference pages, or Docker Hub listings. This means Technical Orchestrability scores will tend to be conservative — that dimension benefits most from the Phase 2 deep-dive, because containerization signals, REST API coverage, and SDK availability are often buried in technical docs that discovery doesn't reliably surface. The other dimensions — Content Richness, Training Ecosystem, Market Reach — are less affected by the lighter pass. The composite score is directionally accurate enough for prioritization; it just shouldn't be treated as a final verdict.
+**How it works:** The scoring prompt is identical to Inspector's. The difference is the evidence fed into it: discovery search summaries and fetched content from the company homepage, top product pages, and training and partner program pages. No Phase 2 product-specific searches. No fetched technical documentation, API reference pages, or Docker Hub listings. This means Product Labability scores will tend to be conservative — that dimension benefits most from the Phase 2 deep-dive, because containerization signals, REST API coverage, and SDK availability are often buried in technical docs that discovery doesn't reliably surface. The other dimensions — Content Richness, Organizational Readiness, Market Readiness — are less affected by the lighter pass. The composite score is directionally accurate enough for prioritization; it just shouldn't be treated as a final verdict.
 
 ### Composite Score Engine
 
-**Why it exists:** Lab Score and Lab Maturity need to be combined into a single ranking signal so the results table has a meaningful sort order.
+**Why it exists:** Lab Score and Organizational Readiness score need to be combined into a single ranking signal so the results table has a meaningful sort order.
 
 **What it does:** Produces a composite score (0–100) that gates and weights both dimensions according to the same rules Inspector uses.
 
@@ -171,7 +171,7 @@ Prospector is responsible for knowing its own practical ceiling and communicatin
 
 **What it does:** Renders the full ranked results with 26 columns of data per company, applies visual score coloring, and produces named export files in CSV or Excel format.
 
-**How it works:** Results are sorted by composite score descending. Score coloring applies green (`#24ED9B`) for scores ≥ 70, amber (`#F59E0B`) for scores ≥ 40, and red (`#F87171`) for scores below 40.
+**How it works:** Results are sorted by composite score descending. Score coloring applies green (`#24ED9B`) for scores ≥ 70, Amber (`#F59E0B`) for scores ≥ 40, and red (`#F87171`) for scores below 40.
 
 The full column set:
 
@@ -183,8 +183,8 @@ The full column set:
 | **Top Product** | Name of the highest-scoring product analyzed |
 | **Labability Score** | Product labability score of the top product (0–100), color-coded |
 | **Skillable Path** | Software: "Labable", "Simulations", or "Do Not Pursue". Academic: school name or tier label |
-| **Lab Maturity** | Organizational readiness score (0–100) |
-| **Composite** | Weighted combination of Labability Score and Lab Maturity (0–100) |
+| **Organizational Readiness** | Organizational readiness score (0–100) |
+| **Composite** | Weighted combination of Labability Score and Organizational Readiness (0–100) |
 | **Partnership Signals** | Checkmarks or counts for: ATP Program, Channel Program, Existing Lab Partner, ILT/vILT, On-Demand, Certifications, Gray Market |
 | **Contact 1** | Name, title, LinkedIn URL |
 | **Contact 2** | Name, title, LinkedIn URL |
@@ -206,7 +206,7 @@ The full column set:
 **Export formats:**
 
 - **CSV:** 26 columns, filename pattern: `Prospector-{YYYY-MM-DD}-{count}-{job_id[:6]}.csv`
-- **Excel (.xlsx):** 26 columns, dark-themed and styled for direct stakeholder delivery — header row background `#06100C`, data row background `#0D1A14`, frozen pane, score column coloring using the same green/amber/red thresholds
+- **Excel (.xlsx):** 26 columns, dark-themed and styled for direct stakeholder delivery — header row background `#06100C`, data row background `#0D1A14`, frozen pane, score column coloring using the same green/Amber/red thresholds
 
 ### Poor-Fit Registry
 

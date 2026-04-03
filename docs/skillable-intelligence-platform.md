@@ -63,7 +63,7 @@ Inspector proves labability and impact.
 Inspector performs a deep product-level analysis of a specific company. It runs in two stages.
 
 - **The Case Board.** A broad scan that surfaces all of a company's products, ranked by labability, with competitive pairings, company-level signals, and an overall fit score. You walk in the room and get the picture at a glance.
-- **The Dossier.** The seller or SE selects three to four products from the Case Board for exhaustive analysis — full technical orchestrability evidence, delivery path recommendation with rationale, scoring approach, consumption potential estimate, and program scope.
+- **The Dossier.** The seller or SE selects three to four products from the Case Board for exhaustive analysis — full product labability evidence, delivery path recommendation with rationale, scoring approach, consumption potential estimate, and program scope.
 
 **Inspector turns every sales conversation into a solution conversation.** A seller walking into a meeting with a Dossier knows what the customer's products can and cannot do on the Skillable platform, which delivery path makes sense and why, and what the estimated consumption potential is. That is not discovery. That is a standing start.
 
@@ -153,7 +153,7 @@ Company and Deal records in HubSpot surface a "Run Inspector" link. Clicking it 
 | Delivery path recommendation + rationale | What path, and why |
 | Scoring approach recommendation | How learner actions will be validated |
 | Consumption potential / ACV estimate | Deal-level revenue context |
-| Technical orchestrability evidence | Compressed analysis for the SE |
+| Product labability evidence | Compressed analysis for the SE |
 | Program scope estimate | Labs, seat time, curriculum depth |
 | Link to full Inspector Dossier | Full context one click away |
 
@@ -169,7 +169,7 @@ Designer-created Lab Programs surface in HubSpot as read-only links and summary 
 
 ### What we are recommending
 
-1. **Prospector as the primary Marketing data source for ICP outbound.** Replace or supplement the current ZoomInfo-only scoring motion with Intelligence-qualified lists. Companies that fail the technical orchestrability assessment come off the list before sequences are built. Companies that clear all three dimensions get prioritized outreach with seller-ready context already in HubSpot.
+1. **Prospector as the primary Marketing data source for ICP outbound.** Replace or supplement the current ZoomInfo-only scoring motion with Intelligence-qualified lists. Companies that fail the product labability assessment come off the list before sequences are built. Companies that clear all three dimensions get prioritized outreach with seller-ready context already in HubSpot.
 
 2. **The Inspector Case Board as the standard pre-call research tool for all sellers and SEs.** The "Run Inspector" link on every Company and Deal record makes it a one-click motion. The Case Board gives every seller account intelligence they currently don't have before the first conversation.
 
