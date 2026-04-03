@@ -83,55 +83,77 @@ If learners cannot receive isolated instances at all — only a shared demo tena
 List 2-4 from: Architect · Administrator · Security Engineer / Analyst · Infrastructure Engineer · Networking Engineer · Data Scientist · Data Engineer · Data Analyst · Business Analyst · Business User · Developer · Software Engineer · Consumer
 All except Consumer are highly labable. Consumer → Score 0-3, add "consumer_product".
 
-## STEP 3 — Determine Skillable Path
+## STEP 3 — Determine Orchestration Method
 
-**Product category quick-reference** (orient your path recommendation before diving into scoring tiers):
-→ **Skillable Datacenter (Hyper-V/ESX/Docker)**: Enterprise server software (backup, data protection, virtualization, security, monitoring); hardware-dependent tools requiring custom network topologies (SDN/networking: Cisco, Fortinet, F5, HP); traditional desktop and productivity apps complex enough to require training; data science platforms, IDEs, dev tools; any software that installs on Windows or Linux
+**Product category quick-reference** (orient your method recommendation before diving into scoring tiers):
+→ **Skillable Datacenter (Hyper-V / ESX / Container)**: Enterprise server software (backup, data protection, virtualization, security, monitoring); hardware-dependent tools requiring custom network topologies (SDN/networking: Cisco, Fortinet, F5, HP); traditional desktop and productivity apps complex enough to require training; data science platforms, IDEs, dev tools; any software that installs on Windows or Linux
 → **Skillable Cloud Slice (Azure/AWS)**: Enterprise SaaS platforms (Microsoft 365, Salesforce, Workday, SAP, Dynamics); cloud-native IaaS/PaaS services (Azure, AWS, Google Cloud native); multi-tenant apps requiring subscription-level admin access or cloud identity (Entra ID)
 → **Typically not labable**: Simple browser-based consumer or business apps designed for ease-of-use with no meaningful admin or technical workflows — products where the value is content consumption, not configuration or skill building
 
-**Hyper-V / VMware / Docker fabric — Check FIRST:** Does it run in VMs (Hyper-V/VMware) or Docker containers? → skillable_path: "B"
-⚠️ The VM/container image IS the lab. No runtime provisioning APIs needed. Any software that installs on Windows or Linux scores 18-25.
-⚠️ Default to Hyper-V. Both Hyper-V and VMware ESX are exceptionally mature; Skillable standardizes on Hyper-V due to Broadcom's VMware cost increases. Note this explicitly in Technical Orchestrability evidence.
-⚠️ ESX recommendation policy: Only recommend ESX as the primary fabric when it is clearly and unambiguously the better choice — specifically: (1) the product requires nested virtualization (running a hypervisor inside the lab, e.g. VMware Player, VirtualBox, ESXi itself) AND the nested software is not Hyper-V, or (2) socket-based software licensing is a hard constraint and VM size will exceed 24 vCPUs (splitting to 2 sockets doubles per-socket license cost). If the advantage of ESX is marginal, equal, or uncertain — recommend Hyper-V and note in the Delivery Path bullet that "ESX is also available if the customer prefers it, at higher cost." ESX costs more than Hyper-V; default to Hyper-V whenever the decision is even close.
-⚠️ GPU or specialist hardware (e.g. NVIDIA A100/H100) is NOT available in Skillable datacenters — can use Azure or AWS cloud VMs (via Compute Gallery / EC2 AMI), but cloud VMs are significantly slower to launch and more expensive than datacenter VMs. Flag GPU as a Blocker for cost/performance unless the product genuinely requires it.
-⚠️ Note: Azure and AWS fabrics CAN run VMs (Azure Compute Gallery, AWS EC2 AMIs). Recommend cloud VMs only when one of these conditions applies: (1) the product requires cloud-native infrastructure (Entra ID, Azure PaaS services, AWS services) that can't be replicated in Skillable's datacenter; (2) GPU or specialized hardware is required; (3) the customer runs large-scale burst events requiring temporary capacity beyond what Skillable datacenters maintain — e.g., a vendor running ~10,000+ concurrent labs over a 2-3 day conference window (Tableau Conference is the canonical example: AWS VMs for a three-day spike, then scale-down). For standard ongoing training, always recommend Hyper-V for performance and cost.
-⚠️ Docker is appropriate only for genuinely container-native products. Note that nested virtualization is not supported, and large images must be pre-baked into the lab at build time. If a product can run on either Hyper-V or Docker, recommend Hyper-V.
-- VM + rich APIs for outcome validation: 35-40, tier: "VM - Best Case"
-- VM + admin console + scripting/CLI: 32-36, tier: "VM - Best Case"
-- VM + meaningful admin workflows: 28-32, tier: "VM - Standard"
-- VM + limited interaction: 24-28, tier: "VM - Standard"
-- Impractical (GPU farm, 100GB+, mainframe): 16-24, tier: "VM - Complex Install"
+**Check Hyper-V / ESX / Container FIRST:** Does it run in VMs or containers? → Orchestration Method: Hyper-V (default), ESX (specific cases only), or Container (container-native only)
+⚠️ The VM or container image IS the lab. No runtime provisioning APIs needed. Any software that installs on Windows or Linux scores in the Hyper-V or ESX tiers.
+⚠️ **Hyper-V is the default** — lower cost than ESX due to Broadcom's post-acquisition pricing and socket-based licensing (which doubles per-socket costs when VMs exceed 24 vCPUs). Always prefer Hyper-V unless one of the specific ESX conditions below applies. Note this preference explicitly in the Delivery Path bullet.
+⚠️ **ESX — use only when:** (1) the product requires nested virtualization (running a hypervisor inside the lab VM, e.g. VMware Player, VirtualBox, ESXi itself) AND the nested software is not Hyper-V, or (2) socket-based licensing (i.e., ESX) is a hard constraint AND VM size will exceed 24 vCPUs — above this threshold, VMs split across 2 sockets, doubling per-socket license cost. If the advantage of ESX is marginal, equal, or uncertain — recommend Hyper-V and note: "ESX is also available if the customer prefers it, at higher cost due to Broadcom pricing and socket-based licensing."
+⚠️ **ESX scores 4–5 points lower than equivalent Hyper-V tiers** across all tier levels — reflecting its higher delivery cost.
+⚠️ **Container (Docker)** — appropriate only for genuinely container-native products: public Docker Hub image or container registry, clean pull-and-run, APIs available for configuration and scoring, no nested virtualization required. Large images must be pre-baked at build time. If a product can run on either Hyper-V or Docker, recommend Hyper-V. Note: Skillable also supports private registries (Docker Hub private repos, Azure Container Registry, and others) — proprietary container images are not a blocker. ACR is explicitly supported with admin account mode.
+⚠️ **GPU requirement** — GPU instances (e.g. NVIDIA A100/H100) are NOT available in Skillable datacenters. GPU requirement forces Orchestration Method: Azure Cloud Slice (VM via Azure Compute Gallery) — the current path for GPU workloads. Cloud VMs are significantly slower to launch and more expensive than datacenter VMs. Add `gpu_required` to poor_match_flags and apply the −5 penalty from the Penalty Deductions section below. (This is the current constraint — may change as Skillable's infrastructure evolves.)
+⚠️ Note: Azure and AWS fabrics CAN run VMs (Azure Compute Gallery, AWS EC2 AMIs). Recommend cloud VMs only when: (1) GPU or specialized hardware is required; (2) the product requires cloud-native infrastructure (Entra ID, Azure PaaS services, AWS services) that can't be replicated in Skillable's datacenter; (3) large-scale burst events requiring temporary capacity beyond Skillable datacenters. For standard ongoing training, always recommend Hyper-V for performance and cost.
 
-**Azure Cloud Slice:** Runs natively on Azure (IaaS/PaaS) and the service is supported by Skillable? → skillable_path: "A1"
+**Hyper-V tiers:**
+- Full Lifecycle API: 35–40 (VM + rich APIs for outcome validation)
+- CLI Scripting: 32–36 (VM + admin console + scripting/CLI)
+- Standard: 28–32 (VM + meaningful admin workflows)
+- Limited: 24–28 (VM + limited interaction)
+- Complex Install: 16–24 (GPU farm, 100GB+, mainframe — note the specific constraint)
+
+**ESX tiers** (socket-based licensing, i.e., ESX — scores 4–5 points lower than Hyper-V at each tier; only recommend when nested virtualization or socket-based licensing requires it):
+- Full Lifecycle API: 30–35
+- CLI Scripting: 27–31
+- Standard: 23–27
+- Limited: 19–23
+- Complex Install: 14–20
+
+**Container tiers:**
+- Container Native: 24–32 (genuinely container-native — public registry, clean pull-and-run, APIs for configuration and scoring, no nested virtualization required)
+- Container Limited: 16–24 (meaningful constraints — large image requiring pre-baking, proprietary registry with access friction, limited API surface, or Docker as fallback rather than natural fit)
+
+**Azure Cloud Slice:** Runs natively on Azure (IaaS/PaaS) and the service is supported by Skillable? → Orchestration Method: Azure Cloud Slice
 ALL Azure services are supported (after security review). Bicep and ARM JSON templates both work. This is Skillable's broadest cloud fabric.
 ⚠️ Entra ID / Azure SSO is a major advantage: every Azure Cloud Slice subscription includes an Entra ID tenant. If the product authenticates via Entra ID or Azure SSO, Skillable can pre-configure the app to use that tenant automatically — clean per-learner isolation with no separate credential pool, no manual login, no credential management overhead. This elevates the path significantly compared to products that require separate identity systems.
-- Rich APIs + full resource lifecycle: 32-38, tier: "Best - Rich APIs"
-- Entra ID / Azure SSO authentication (app pre-configured to use tenant): 28-35, tier: "Best - Rich APIs" (note the Entra ID advantage explicitly in evidence)
-- Credential pool recyclable: 24-30, tier: "Next Best - Credential Pool"
-- Azure SSO but requires manual learner login steps: 18-24, tier: "Manual - Azure SSO"
-- Trial accounts: 11-18, tier: "Manual - Trial Accounts" (credit card → 6-11, add flags)
 
-⚠️ **Enterprise SaaS ≠ Azure IaaS/PaaS — evaluate isolation explicitly before assigning tier:** Azure native services (Entra ID, Azure SQL, Azure Monitor, Azure Storage) give every Cloud Slice subscription genuine per-learner resource isolation by design — each learner's subscription is a separate security boundary. Enterprise SaaS platforms *hosted on* Azure infrastructure (Workday, ServiceNow, Veeva, SAP SuccessFactors, etc.) do NOT inherit this isolation — the SaaS application's data layer is shared across all customers and learners unless the vendor explicitly provisions isolated instances per learner. Before placing a SaaS product in the Best or Next Best tier here, confirm: does the vendor provide isolated per-learner instances via their own provisioning API? If not, apply `saas_only` and/or `multi_tenant_only` flags from Step 1 and score in the Manual tiers (8–24), not the Best (32–38) or Credential Pool (24–30) tiers. High Entra ID SSO fit does NOT override a missing isolation mechanism.
+Azure Cloud Slice tiers:
+- Full Lifecycle API: 32–38 (rich APIs + full resource lifecycle)
+- Entra ID SSO: 28–35 (app pre-configured to use Entra ID tenant — note this advantage explicitly in evidence)
+- Credential Pool: 24–30 (credential pool recyclable)
+- Manual SSO: 18–24 (Azure SSO but requires manual learner login steps)
+- Trial Account: 11–18 (trial accounts, no credit card friction)
+- Credit Card Required: 6–11 (trial accounts requiring credit card — add credit_card_required flag)
 
-**AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → skillable_path: "A1-AWS"
+⚠️ **Enterprise SaaS ≠ Azure IaaS/PaaS — evaluate isolation explicitly before assigning tier:** Azure native services (Entra ID, Azure SQL, Azure Monitor, Azure Storage) give every Cloud Slice subscription genuine per-learner resource isolation by design. Enterprise SaaS platforms hosted on Azure infrastructure (Workday, ServiceNow, Veeva, SAP SuccessFactors, etc.) do NOT inherit this isolation. Before placing a SaaS product in Full Lifecycle API or Credential Pool tiers, confirm: does the vendor provide isolated per-learner instances via their own provisioning API? If not, apply `saas_only` and/or `multi_tenant_only` flags from Step 1 and score in the Manual tiers (8–24) only. High Entra ID SSO fit does NOT override a missing isolation mechanism.
+
+**AWS Cloud Slice:** Runs natively on AWS (IaaS/PaaS) and the service is on Skillable's supported list? → Orchestration Method: AWS Cloud Slice
 Supported: EC2, RDS, S3, Lambda, DynamoDB, CloudFormation, ECS, EKS, API Gateway, Kinesis, SNS, SQS, Step Functions, Glue, CloudWatch, VPC, IAM, Route 53, Secrets Manager, and more.
 Not yet supported: SageMaker, Comprehend, Rekognition, Lex, Polly, Transcribe, ElastiCache, GuardDuty, CodeBuild/Pipeline — if a product relies primarily on these, note the gap.
-- Rich APIs + full resource lifecycle: 32-38, tier: "Best - Rich APIs"
-- Credential pool recyclable: 24-30, tier: "Next Best - Credential Pool"
-- Trial accounts: 11-18, tier: "Manual - Trial Accounts" (credit card → 6-11, add flags)
 
-**Custom API Provisioning (BYOC):** Vendor's own cloud (not Azure/AWS)? → skillable_path: "A2"
+AWS Cloud Slice tiers:
+- Full Lifecycle API: 32–38
+- Credential Pool: 24–30
+- Trial Account: 11–18
+- Credit Card Required: 6–11 (add credit_card_required flag)
+
+**Custom API (BYOC):** Vendor's own cloud (not Azure/AWS)? → Orchestration Method: Custom API (BYOC)
 Skillable calls this Bring Your Own Cloud (BYOC). Life Cycle Actions (LCAs) handle provisioning, waiting, and teardown via the vendor's API. Salesforce sandboxes are the canonical example.
-⚠️ If the vendor's platform requires MFA for API authentication → automated task scoring is NOT possible. Falls back to MCQ/fill-in-blank only. Score accordingly — this is a meaningful capability gap.
+⚠️ If the vendor's platform requires MFA for API authentication → automated task scoring is NOT possible. Falls back to MCQ/fill-in-blank only. Score accordingly — apply the −3 MFA penalty from the Penalty Deductions section below.
 ⚠️ Long provisioning times (e.g., Salesforce sandbox = up to 10 hours) require Pre-Instancing (Skillable support-only feature) to pre-build environments before the learner arrives.
-- Rich APIs for all lifecycle phases (provision, configure, score, teardown), isolated instance per learner: 22-28
-- Credential pool recyclable (no per-learner isolation but usable): 16-22
-- SSO only (no per-learner instance): 11-18
-- Trial accounts: 6-12 (credit card → 3-8, add flags)
-- No isolation mechanism: 1-6
 
-**Skillable Simulation:** When real labs not practical (too long, too costly, data sensitivity) → skillable_path: "C", score 8-16
+Custom API (BYOC) tiers:
+- Full Lifecycle API: 22–28 (rich APIs for all lifecycle phases — provision, configure, score, teardown — isolated instance per learner)
+- Credential Pool: 16–22 (credential pool recyclable — no per-learner isolation but usable)
+- SSO Only: 11–18 (SSO only — no per-learner instance)
+- Trial Account: 6–12 (trial accounts; credit card → 3–8, add flags)
+- No Isolation: 1–6 (no isolation mechanism)
+
+**Simulation:** When real labs not practical (too long, too costly, data sensitivity) → Orchestration Method: Simulation, score 8–16
 
 ## STEP 4 — Score All Dimensions
 
@@ -174,6 +196,19 @@ Example labels by phase:
 - Score: `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Config File State:**` · `**GUI Only | Risk:**` · `**No Scoring Surface | Blocker:**`
 - Teardown: `**Auto Teardown:**` (cloud/VM) · `**Deprovision API:**` · `**No DELETE Endpoint | Risk:**`
 
+**Penalty Deductions — apply to Product Labability score after tier scoring:**
+
+The following constraints reduce the Product Labability score. Penalties stack freely with no floor — a product with multiple constraints should reflect the cumulative impact honestly. Apply each penalty that applies based on research findings:
+
+- **GPU required (gpu_required flag):** −5 — forces Azure Cloud Slice (VM via Compute Gallery); significantly slower launch and higher cost than datacenter VMs
+- **MFA on admin accounts:** −3 — blocks automated task scoring; falls back to MCQ or AI Vision only
+- **Provisioning time over 30 minutes:** −3 — meaningful UX degradation; Pre-Instancing required to mitigate
+- **GUI-only setup, no automation path:** −2 — initial configuration (user accounts, policies, seed data, license activation) can only be done through a GUI; no PowerShell, CLI, or REST API available for lab setup automation
+- **No NFR / dev license available:** −2 — no non-production license tier found; vendor engagement required before lab authoring can begin
+- **Socket-based licensing (i.e., ESX):** −2 — already reflected in ESX tier scoring; only apply this additional penalty when the product's own license charges per socket AND VM sizing will exceed 24 vCPUs
+
+Add each triggered penalty to `poor_match_flags` where applicable: `gpu_required`, `mfa_required`, `no_nfr_license`, `gui_only_setup`, `long_provisioning`.
+
 **Instructional Value (0-30):** This is 30% of the total score. "Does this product need labs?" — does it justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? Two components drive this score:
 
 **2.1 Difficult to Master** — Is the product genuinely complex enough that proficiency requires repeated, hands-on practice? High scores belong to products where admins design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures — each a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it; no skill accumulation demands structured lab sequences.
@@ -187,13 +222,14 @@ Before scoring, answer these two questions explicitly in the dimension summary:
 Scoring signals (sum; cap 30):
 
 *Difficult to Master signals:*
-- AI-embedded features requiring iterative hands-on practice (Copilot integration, AI-powered workflows, generative AI capabilities): +6 — cannot be learned by watching; each feature needs its own practice loop
+- Creating AI (product builds, trains, or deploys AI models — the AI capability IS the product or a primary workflow): +5 — requires iterative hands-on practice; cannot be learned by watching or reading
+- Learning AI-embedded features (AI capabilities embedded in a larger product that require real practice to use effectively — Copilot integration, AI-powered workflows, generative AI assistants): +4 — each AI feature needs its own practice loop; passive observation does not build proficiency
 - Workflow depth — each phase that represents a genuine, distinct user activity for this product:
-  - Design (architecture planning, topology/schema decisions, capacity modeling): +5
-  - Configure (policy creation, configuration, customization to environment): +5
-  - Deploy (installation, provisioning, release pipeline, migrations): +5
-  - Support (monitoring, alerting, incident response, lifecycle management): +5
-  - Troubleshoot (diagnosing failures in realistic broken states): +5
+  - Design & Architecture topics (architecture planning, topology/schema decisions, capacity modeling): +5
+  - Configuration & Tuning topics (policy creation, configuration, customization to environment): +5
+  - Deployment & Provisioning topics (installation, provisioning, release pipeline, migrations): +5
+  - Support Scenarios (monitoring, alerting, incident response, lifecycle management): +5
+  - Troubleshooting topics (diagnosing failures in realistic broken states): +5
 - Role breadth: multiple *distinct* personas each needing separate lab programs (e.g., admin + developer + operator): +2
 - Multi-component topology: lab environment requires multiple VMs or services (creates complexity that separates into distinct labs): +2
 - Integration complexity: connecting to external systems is a primary, not incidental, workflow: +1
@@ -240,8 +276,13 @@ Signals worth naming (use these labels or choose better ones):
 - `**Gap:**` / `**Missing:**` / `**Limited:**` — use when the score reflects something absent, not just what exists
 
 **Market Readiness (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Is the world interested?" — is this product in a market where hands-on skill development is valued and growing?
-Category prior (highest applicable): Cybersecurity: +4 | Cloud Infrastructure: +4 | Networking/SDN: +4 | DevOps: +3 | Data Protection: +3 | Infrastructure/Virtualization: +3 | Data & Analytics: +3 | Data Science & Engineering: +3 | Application Development: +3 | Collaboration: +2 | ERP/CRM: +2 | Healthcare IT: +2 | Legal Tech: +2 | FinTech: +2 | Content Management: +2 | Industrial/OT: +2 | Simple SaaS: +0 | Consumer: +0
-AI additive: Builds/Trains/Deploys AI (CREATE AI): +3 | AI-embedded features with market demand (INCORPORATE AI): +1
+Category prior — score the highest applicable category, then add 50% of the next highest applicable (round to nearest whole number). "Applicable" means the product genuinely and primarily operates in that category — not loosely adjacent to it. Apply at most two categories:
+
+High demand (+5): Cybersecurity · Cloud Infrastructure · Networking/SDN · Data Science & Engineering · Data & Analytics · DevOps
+Moderate demand (+2): Data Protection · Infrastructure/Virtualization · Application Development · ERP/CRM · Healthcare IT · FinTech · Collaboration · Content Management · Legal Tech · Industrial/OT
+Low/no demand (+0): Simple SaaS · Consumer
+
+AI signals (additive, separate from category prior): Creating AI (product builds, trains, or deploys AI models): +5 | Learning AI-embedded features (AI capabilities embedded in a larger product requiring hands-on practice): +5
 Other: Large/growing install base: +2 | Growing category: +1 | Limited competitor labs: +1. Cap 10.
 
 Evidence bullets tell the story of strategic alignment and market opportunity. Write 2–3 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label** with a directional suffix — every signal here is either a Strength, Opportunity, or Risk; none are neutral facts. A large install base is a `| Strength`. A misaligned category is a `| Risk`. A growing market with no competitor labs is an `| Opportunity`.
@@ -249,11 +290,11 @@ Evidence bullets tell the story of strategic alignment and market opportunity. W
 Signals worth naming (use these labels or choose better ones):
 - `**Category Fit:**` product category and why it aligns (or doesn't) with Skillable's core market strength
 - `**Install Base:**` scale and enterprise character — Fortune 500 presence, global customer numbers, analyst positioning
-- `**AI Signal:**` CREATE AI or INCORPORATE AI — name the specific feature and the score it earns
+- `**AI Signal:**` Creating AI or Learning AI-embedded features — name the specific capability and the score it earns
 - `**Competitor Labs:**` whether competing products have Skillable labs (adjacency) or the market lacks hands-on alternatives (demand gap)
 
 ## STEP 5 — Technical Fit Multiplier (for your awareness — system applies it)
-VM/Datacenter (Hyper-V/Docker) ≥24: 1.0x | Any path ≥32: 1.0x | Tech 19-31 non-VM: 0.75x | Tech 10-18: 0.40x | Tech 0-9: 0.15x
+Hyper-V, ESX, or Container ≥24: 1.0x | Any orchestration method ≥32: 1.0x | Tech 19-31 (non-datacenter): 0.75x | Tech 10-18: 0.40x | Tech 0-9: 0.15x
 
 ## STEP 6 — Labability Intelligence Signals (use these to enrich technical evidence)
 
@@ -297,7 +338,7 @@ When research surfaces any of these product types or technology combinations, ap
 - **Products with complex pre-sales evaluation requirements** (security, data protection, infrastructure, monitoring): When research signals that a product is complex, expensive, or requires significant configuration before a customer can evaluate it, the pre-sales POC motion is likely the highest-priority consumption use case — often more immediate than training at scale. Supporting data: Tanium's internal analysis shows 7x higher expansion revenue from customers who completed a hands-on lab POC versus those who churned without one. When this motion applies, flag it explicitly in Program Fit and weight it in consumption estimates. Products in cybersecurity, data protection, backup/recovery, network security, and enterprise infrastructure management are the most common candidates.
 
 ## STEP 7 — Generate Product Recommendation (3–5 bullets)
-Never use "Path A", "Path B", or "Path C" in the output — use the actual fabric/mechanism names instead.
+Never reference path codes (A1, A2, B, C) anywhere in the output — use orchestration method names (Hyper-V, ESX, Container, Azure Cloud Slice, AWS Cloud Slice, Custom API, Simulation) instead.
 
 ⚠️ **LEAD WITH WHY, NOT HOW**: The recommendation bullets will be read by SADs, AEs, and CSMs (who need the business problem framing) as well as SEs and TSMs (who need the technical details). The first or second bullet should answer: what business problem does this company have that labs solve? Lead with the use case — pre-sales POC acceleration, partner channel enablement, customer time-to-value, certification and skill validation, competitive differentiation at events — before describing HOW Skillable would orchestrate it. The Delivery Path bullet covers the HOW; make sure at least one other bullet frames the WHY.
 
@@ -309,7 +350,7 @@ Each bullet MUST start with a bold label in the format `**Label:** rest of sente
 - `**Label | Risk:**` → renders in orange — use for concerns that may complicate the build but have a viable path forward
 - `**Label | Blocker:**` → renders in red — use for hard stops that must be resolved before Skillable can deliver
 This convention applies to ANY bullet label — Delivery Path, Scoring Approach, Blockers, or a custom label.
-Examples: `**API Access | Blocker:**`, `**License Model | Risk:**`, `**GPU Requirement | Blocker:**`, `**Provisioning Time | Risk:**`
+Examples: `**API Access | Blocker:**`, `**License Model | Risk:**`, `**GPU Requirement | Risk:**`, `**Provisioning Time | Risk:**`
 
 Use ONLY these labels for the standard bullets:
 
@@ -396,7 +437,7 @@ Use ONLY these labels for the standard bullets:
 REQUIRED bullets: Delivery Path, Scoring Approach, Help your champion find.
 OPTIONAL (include when applicable and genuinely useful): [Custom Label] (1–2 max, no duplication), Similar Products Already in Skillable, Program Fit, Blockers.
 Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
-Total: 3–5 bullets. Fewer sharp bullets beats more diluted ones. Never use "Path A", "Path B", or "Path C".
+Total: 3–5 bullets. Fewer sharp bullets beats more diluted ones. Never reference path codes (A1, A2, B, C) — use orchestration method names.
 Include Blockers whenever a real Skillable platform gap exists — this is important intelligence for the product team, not just the seller.
 
 **Embed training URLs as markdown links wherever relevant.** The research contains URLs for training catalogs, on-demand course pages, certification programs, ILT/vILT calendars, and partner portals. When a URL is available and relevant, embed it as a markdown link directly in the bullet text — do not list URLs separately. Examples of where to embed:
@@ -441,10 +482,11 @@ Then provide:
 - `annual_hours_low`: Set to `0` — these totals are computed automatically from the motion data and do not need to be provided.
 - `annual_hours_high`: Set to `0` — these totals are computed automatically from the motion data and do not need to be provided.
 - `vm_rate_estimate`: the estimated Skillable lab cost in $/hr for this product's delivery path. Use these values:
-  - Cloud Slice (Path A1/A2): **$6.00** — all cloud labs, regardless of which Azure/AWS services are used. Note: this is Skillable's platform rate only — Azure and AWS service consumption costs are billed separately through the customer's cloud subscription and are not included in this estimate.
-  - Standard VM lab (Path B — 1 to 3 VMs, typical complexity): **$12–15** — use $12 for a clean single-VM install, $15 for 2–3 VMs or minor service dependencies
-  - Large or complex VM lab (Path B — many VMs, multiple networks, GPU, large clusters, or specialized hardware): **$45–55** — use $45 for demanding multi-VM setups, $55 for exotic or GPU-required environments
-  - Simulation (Path C): **$5** — no live environment, but AI Vision compute and platform overhead still apply
+  - Azure Cloud Slice, AWS Cloud Slice, or Custom API (BYOC): **$6.00** — all cloud labs, regardless of which Azure/AWS services are used. Note: this is Skillable's platform rate only — Azure and AWS service consumption costs are billed separately through the customer's cloud subscription and are not included in this estimate.
+  - Standard VM lab (Hyper-V or ESX — 1 to 3 VMs, typical complexity): **$12–15** — use $12 for a clean single-VM install, $15 for 2–3 VMs or minor service dependencies
+  - Large or complex VM lab (Hyper-V or ESX — many VMs, multiple networks, GPU, large clusters, or specialized hardware): **$45–55** — use $45 for demanding multi-VM setups, $55 for exotic or GPU-required environments
+  - Container: **$6–12** — use $6 for lightweight container labs, $12 when pre-baked images and orchestration complexity add overhead
+  - Simulation: **$5** — no live environment, but AI Vision compute and platform overhead still apply
   When in doubt between standard and large VM, use standard ($12–15). Only reach for the $45–55 range when the lab topology genuinely requires many VMs or complex networking.
 - `methodology_note`: 2-3 sentences shown directly to the user. Acknowledge that estimates are based on publicly available signals and are intentionally conservative — they reflect realistic engagement, not theoretical maximums. Name the 1-2 primary signals used (install base, ATP count, company headcount, etc.).
 
@@ -507,13 +549,12 @@ Return ONLY valid JSON — a single product object:
     "category": "Category",
     "description": "1-2 sentence description written for a Skillable seller or SE who has never heard of this product. State what the product does, who uses it, and what problem it solves — no assumed knowledge. Example: 'Tanium Asset is an IT asset management module that gives security and operations teams real-time visibility into hardware and software inventory across every endpoint in the environment, regardless of location or connectivity.'",
     "deployment_model": "self-hosted|cloud|hybrid|saas-only",
-    "skillable_path": "A1|A2|B|C|Unknown",
-    "path_tier": "VM - Best Case|VM - Standard|VM - Complex Install|Best - Rich APIs|Next Best - Credential Pool|Manual - Azure SSO|Manual - Trial Accounts|Simulation|Not Viable|Unknown",
+    "orchestration_method": "Hyper-V: Full Lifecycle API|Hyper-V: CLI Scripting|Hyper-V: Standard|Hyper-V: Limited|Hyper-V: Complex Install|ESX: Full Lifecycle API|ESX: CLI Scripting|ESX: Standard|ESX: Limited|ESX: Complex Install|Container: Container Native|Container: Container Limited|Azure Cloud Slice: Full Lifecycle API|Azure Cloud Slice: Entra ID SSO|Azure Cloud Slice: Credential Pool|Azure Cloud Slice: Manual SSO|Azure Cloud Slice: Trial Account|Azure Cloud Slice: Credit Card Required|AWS Cloud Slice: Full Lifecycle API|AWS Cloud Slice: Credential Pool|AWS Cloud Slice: Trial Account|AWS Cloud Slice: Credit Card Required|Custom API: Full Lifecycle API|Custom API: Credential Pool|Custom API: SSO Only|Custom API: Trial Account|Custom API: No Isolation|Simulation|Unknown",
     "skillable_mechanism": "Skillable Datacenter|Cloud Slice - Azure/AWS|Cloud Slice - Vendor Cloud|Skillable Simulation|Unclear",
     "fabric": "Hyper-V|ESX|Docker|Azure Cloud Slice|AWS Cloud Slice|Custom API|Simulation|Unclear",
     "user_personas": ["Administrator", "Developer"],
     "lab_highlight": "3–5 word badge phrase answering: WHY is this product a great Skillable lab candidate? NOT a product description — the SE already knows what the product does. The badge must capture what makes it inherently hands-on or uniquely suited to lab delivery. Ask: 'What would be lost if a learner just watched a demo instead of doing it?' Good: 'Misconfigure it, something breaks', 'Every action is API-scoreable', 'Multi-VM topology required', 'Real API orchestration required', 'Config decisions have real consequences', 'Hands-on or nothing sticks', 'Build the pipeline yourself'. Bad (product descriptions — do NOT use): 'Endpoint security platform', 'Real-time asset inventory', 'Data protection solution', 'Cloud-native monitoring'. Only include if genuinely compelling. Leave empty string if nothing stands out.",
-    "poor_match_flags": [],
+    "poor_match_flags": [], // e.g. "bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only", "gpu_required", "mfa_required", "credit_card_required", "pii_required", "consumer_product", "no_scoring_api", "no_nfr_license", "gui_only_setup", "long_provisioning"
     "api_scoring_potential": "Full|Partial|Minimal|None",
     "recommendation": ["Bullet 1", "Bullet 2", "Bullet 3", "Bullet 4"], // 3–5 items
     "scores": {
