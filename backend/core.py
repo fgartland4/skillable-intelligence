@@ -136,7 +136,7 @@ def _verdict(score: int) -> str:
 
 # Badge name → subsection within Product Labability (for dossier SE drill-down grouping)
 _BADGE_SUBSECTION: dict[str, str] = {
-    # Provisioning (1.1)
+    # Provisioning (1.1) — canonical names
     "Runs in Hyper-V": "provisioning", "Runs in Azure": "provisioning",
     "Runs in AWS": "provisioning", "Requires GCP": "provisioning",
     "Runs in Containers": "provisioning", "ESX Required": "provisioning",
@@ -144,17 +144,37 @@ _BADGE_SUBSECTION: dict[str, str] = {
     "Learner Isolation": "provisioning", "Bare Metal Required": "provisioning",
     "No Deployment Method": "provisioning", "Potential IaC Friction": "provisioning",
     "Full Tenant Required": "provisioning",
-    # Licensing & Accounts (1.2)
+    # Provisioning — non-canonical aliases Claude sometimes generates
+    "Virtual Appliance Deploy": "provisioning", "Virtual Server Deployment": "provisioning",
+    "Agent Install": "provisioning", "Windows Install": "provisioning",
+    "Linux Installer": "provisioning", "Docker Image": "provisioning",
+    "Azure Service": "provisioning", "Vendor Sandbox API": "provisioning",
+    "System Requirements": "provisioning", "Deployment Model": "provisioning",
+    "No Isolation": "provisioning", "Provisioning Time": "provisioning",
+    "Container Image": "provisioning", "VM Image": "provisioning",
+    # Licensing & Accounts (1.2) — canonical names
     "AuthN/AuthZ APIs": "licensing", "Credential Pool": "licensing",
     "Account Recycling": "licensing", "Supports NFR Accounts": "licensing",
     "NFR License Path": "licensing", "High License Cost": "licensing",
     "Tenant Provisioning Lag": "licensing", "Provisioning Rate Limits": "licensing",
     "Anti-Automation Controls": "licensing", "MFA Required": "licensing",
     "Credit Card Required": "licensing",
-    # Scoring (1.3)
+    # Licensing — non-canonical aliases Claude sometimes generates
+    "Trial License": "licensing", "NFR License": "licensing",
+    "NFR Program": "licensing", "License Activation": "licensing",
+    "License Model": "licensing", "No NFR": "licensing",
+    "MFA Dependency": "licensing", "GUI Setup Only": "licensing",
+    # Scoring (1.3) — canonical names
     "Scoring APIs": "scoring", "Script Scorable": "scoring",
+    # Scoring — non-canonical aliases Claude sometimes generates
+    "REST API Surface": "scoring", "REST API": "scoring",
+    "PowerShell Module": "scoring", "CLI Surface": "scoring",
+    "Config File State": "scoring", "GUI Only": "scoring",
+    "No Scoring Surface": "scoring", "PowerShell Config": "scoring",
+    "REST Seed Data": "scoring", "API Surface": "scoring",
     # Teardown (1.4)
-    "Teardown APIs": "teardown",
+    "Teardown APIs": "teardown", "Auto Teardown": "teardown",
+    "Deprovision API": "teardown", "No DELETE Endpoint": "teardown",
 }
 
 

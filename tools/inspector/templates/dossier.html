@@ -101,12 +101,12 @@ a:hover { text-decoration: underline; }
 
 /* ── Hero boxes (side by side) ────────────────────────────────── */
 .hero-score-box {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     background: #0c1f19; border: 1px solid #1e3329; border-radius: 12px;
     padding: 20px 24px;
 }
 .hero-acv {
-    flex: 0 0 260px;
+    flex: 1 1 0;
     background: #0c1f19; border: 1px solid #1e3329; border-radius: 12px;
     padding: 20px 24px; text-align: right;
 }
@@ -589,7 +589,10 @@ details[open] .chevron { transform: rotate(180deg); }
 {%- set lead_recs = [] -%}
 {%- set risk_recs = [] -%}
 {%- for rec in top_recs -%}
-    {%- if '| Risk' in rec or '| Blocker' in rec or '— Risk' in rec or '— Blocker' in rec -%}
+    {%- set _rl = rec.lower() -%}
+    {%- if ('| risk' in _rl or '| blocker' in _rl or '— risk' in _rl or '— blocker' in _rl
+            or _rl.startswith('**blocker') or _rl.startswith('**risk')
+            or '**help your champion' in _rl) -%}
         {%- set _ = risk_recs.append(rec) -%}
     {%- else -%}
         {%- set _ = lead_recs.append(rec) -%}
@@ -735,7 +738,8 @@ details[open] .chevron { transform: rotate(180deg); }
         {# Labability recommendations: Delivery Path, Scoring Approach #}
         {%- set lab_recs = [] -%}
         {%- for rec in precs -%}
-            {%- if 'Delivery Path' in rec or 'Scoring Approach' in rec or 'Scoring Bot' in rec -%}
+            {%- if 'Delivery Path' in rec or 'Scoring Approach' in rec or 'Scoring Bot' in rec
+                    or 'Help your champion' in rec or 'Help Your Champion' in rec -%}
                 {%- set _ = lab_recs.append(rec) -%}
             {%- endif -%}
         {%- endfor -%}
@@ -755,8 +759,11 @@ details[open] .chevron { transform: rotate(180deg); }
         </div>
         {%- if pp_iv_sum %}<div class="dim-summary">{{ pp_iv_sum }}</div>{% endif %}
         {%- if pp_iv_evs -%}
-            {%- set dtm_kw = ['Product Breadth', 'Workflow Complexity', 'Configuration Complexity', 'Not Lab Appropriate'] -%}
-            {%- set mm_kw  = ['Adoption', 'TTV', 'High-Stakes', 'Certification Program'] -%}
+            {%- set dtm_kw = ['Product Breadth', 'Workflow Complexity', 'Configuration Complexity', 'Not Lab Appropriate',
+                               'Workflow Depth', 'Integration Complexity', 'Hands-On AI', 'Role Breadth',
+                               'Multi-component', 'Multi-VM', 'Training Scope'] -%}
+            {%- set mm_kw  = ['Adoption', 'TTV', 'High-Stakes', 'Certification Program',
+                               'Existing ILT', 'ILT Course', 'Hands-On Event', 'Customer Impact'] -%}
             {%- set dtm_evs2 = [] -%}{%- set mm_evs2 = [] -%}{%- set oth_iv = [] -%}
             {%- for ev in pp_iv_evs -%}
                 {%- set cl = (ev.get('claim','') if ev is mapping else ev.claim) -%}
@@ -828,10 +835,14 @@ details[open] .chevron { transform: rotate(180deg); }
         </div>
         {%- if pp_or_sum %}<div class="dim-summary">{{ pp_or_sum }}</div>{% endif %}
         {%- if pp_or_evs -%}
-            {%- set cd_kw2 = ['Content Dept', 'Content Team', 'Dedicated Content', 'Outsourced', 'Authoring'] -%}
+            {%- set cd_kw2 = ['Content Dept', 'Content Team', 'Dedicated Content', 'Outsourced', 'Authoring',
+                               'Training Org', 'Training Team', 'Education Services', 'Content Dev',
+                               'Learning Team', 'Curriculum'] -%}
             {%- set de_kw2 = ['ATP', 'Learning Program', 'ILT', 'vILT', 'On-Demand', 'LMS', 'LXP',
                                'Skillable', 'Instruqt', 'CloudShare', 'Skytap', 'DIY',
-                               'Immersive', 'Hack The Box', 'TryHackMe', 'GoDeploy', 'Vocareum', 'Appsembler'] -%}
+                               'Immersive', 'Hack The Box', 'TryHackMe', 'GoDeploy', 'Vocareum', 'Appsembler',
+                               'Partner Network', 'Partner Program', 'Channel Partner', 'Certification',
+                               'Gray Market', 'Reseller', 'Training Partner'] -%}
             {%- set cd_evs3 = [] -%}{%- set de_evs3 = [] -%}{%- set oth_or = [] -%}
             {%- for ev in pp_or_evs -%}
                 {%- set cl2 = (ev.get('claim','') if ev is mapping else ev.claim) -%}
@@ -876,7 +887,8 @@ details[open] .chevron { transform: rotate(180deg); }
     </div>
 
     {# Any remaining recommendations not already categorised #}
-    {%- set shown_kw2 = ['Delivery Path', 'Scoring Approach', 'Scoring Bot', 'Program Fit', 'Lab Format', 'Scenario'] -%}
+    {%- set shown_kw2 = ['Delivery Path', 'Scoring Approach', 'Scoring Bot', 'Program Fit', 'Lab Format', 'Scenario',
+                          'Help your champion', 'Help Your Champion'] -%}
     {%- set other_recs2 = [] -%}
     {%- for rec in precs -%}
         {%- set used2 = false -%}

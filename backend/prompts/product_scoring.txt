@@ -229,16 +229,14 @@ The `product_labability` evidence bullets are solutioning guidance — written f
 
 **4. Teardown** — Only include when teardown requires explicit action. For VM/Hyper-V labs, skip this entirely — snapshot revert is automatic, it's never a concern. For cloud subscriptions (Azure/AWS), one sentence is enough — auto-deleted at lab end. For BYOC/custom API products, this IS a real build task — the vendor API must have a DELETE or deprovision endpoint, and the absence of one is a `| Risk` or `| Blocker`.
 
-Each bullet MUST begin with a **2–4 word bold label:** `**Label:** finding.`
-The label names the specific signal — not a generic category. 1–2 sentences per bullet.
-Use `| Risk` or `| Blocker` suffix on any label that signals a problem: `**License Model | Risk:**`, `**Teardown API | Blocker:**`
+Each bullet MUST begin with a **canonical badge label** from the locked vocabulary list above, followed by `| Strength:`, `| Risk:`, or `| Blocker:` suffix. 1–2 sentences per bullet.
 Do NOT use Skillable platform terms in evidence claims (LCA, Life Cycle Action, Pre-Build, Post-Build, Cloud Slice, Scoring Bot, AI Vision, ABA, PBT — those belong in Scoring Approach and Delivery Path bullets).
 
-Example labels by phase:
-- Provision: `**Windows Install:**` · `**Linux Installer:**` · `**Docker Image:**` · `**Azure Service:**` · `**Vendor Sandbox API:**` · `**Provisioning Time | Risk:**` · `**No Isolation | Blocker:**`
-- Configure: `**PowerShell Config:**` · `**REST Seed Data:**` · `**License Activation:**` · `**MFA Dependency | Risk:**` · `**GUI Setup Only | Risk:**` · `**NFR Program:**`
-- Score: `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Config File State:**` · `**GUI Only | Risk:**` · `**No Scoring Surface | Blocker:**`
-- Teardown: `**Auto Teardown:**` (cloud/VM) · `**Deprovision API:**` · `**No DELETE Endpoint | Risk:**`
+Canonical examples by phase (use these exact label names — do not paraphrase):
+- Provision: `**Runs in Hyper-V | Strength:**` · `**Runs in Azure | Strength:**` · `**Runs in Containers | Strength:**` · `**Learner Isolation | Strength:**` · `**Provisioning APIs | Strength:**` · `**Potential IaC Friction | Risk:**` · `**No Deployment Method | Blocker:**` · `**Bare Metal Required | Blocker:**`
+- Configure: `**Supports NFR Accounts | Strength:**` · `**Anti-Automation Controls | Risk:**` · `**MFA Required | Risk:**` · `**Credit Card Required | Blocker:**` · `**Credential Pool | Strength:**` · `**AuthN/AuthZ APIs | Strength:**`
+- Score: `**Scoring APIs | Strength:**` · `**Script Scorable | Strength:**` · `**Lifecycle APIs | Strength:**`
+- Teardown: `**Teardown APIs | Strength:**` (BYOC/custom API only — omit entirely for Hyper-V/VM labs where snapshot revert is automatic)
 
 **Penalty Deductions — apply to Product Labability score after tier scoring:**
 
@@ -295,13 +293,15 @@ Scoring signals (sum; cap 30):
 
 Evidence bullets tell the story of why this product does or doesn't justify a multi-lab program. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal. Cover what's relevant — don't force all labels if fewer tell the story cleanly.
 
-Signals worth naming (use these labels or choose better ones for the product):
-- `**Training Scope:**` how many distinct learning programs this product naturally warrants and why
-- `**Workflow Depth:**` which workflow phases (design, configure, deploy, support, troubleshoot) are primary activities — be specific about what each looks like in practice for this product
-- `**Hands-On AI Features:**` name the specific AI features and why iterative practice is essential (not just a demo or observation)
-- `**Role Breadth:**` how distinct personas create separate program demand (don't repeat personas already listed — focus on the demand implication)
-- `**High-Stakes Skills:**` what goes wrong if the learner gets it wrong — and why that makes mastery matter
-- `**Certification Program:**` credential name, type, and exam delivery partner (Pearson VUE, Certiport, PSI, Certiverse, or unconfirmed — flag if unconfirmed)
+Signals worth naming — use these EXACT canonical label names (from the locked vocabulary above):
+- `**Workflow Complexity | Strength:**` which workflow phases are primary activities and what hands-on skill each requires
+- `**Configuration Complexity | Strength:**` depth of configuration decisions, tuning, and options that require practiced skill
+- `**Product Breadth & Depth | Strength:**` number of distinct workflows or role-specific scenarios that anchor separate lab programs
+- `**Hands-On AI Features | Strength:**` specific AI capability requiring iterative hands-on practice — name it and explain why observation is insufficient
+- `**High-Stakes Skills | Strength:**` what goes wrong when misconfigured — name the consequence and why mastery matters
+- `**Adoption & TTV Risks | Risk:**` evidence that poor adoption or slow time-to-value is a documented risk for this product's users
+- `**Certification Program | Strength:**` credential name, exam type, delivery partner (Pearson VUE / Certiport / PSI / Certiverse / unconfirmed)
+- `**Not Lab Appropriate | Blocker:**` only for consumer or wizard-driven UIs with no meaningful consequence of error
 
 **Organizational Readiness (0-20):** This is 20% of the total score. "Does this organization have the resources to create and deliver labs?" — score the organization's content development capabilities and delivery ecosystem.
 
@@ -344,13 +344,15 @@ Cap 20.
 
 Evidence bullets tell the story of how mature the org's delivery infrastructure is. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal.
 
-Signals worth naming (use these labels or choose better ones):
-- `**Training Org:**` the named training organization, what it covers, approximate scale
-- `**Certification Program:**` credential name, type, and scale (e.g., "~500 active badge holders per LinkedIn")
-- `**Partner Network:**` ATP/Learning Partner size and structure — how many, tier requirements
-- `**Events / Community:**` flagship events with hands-on components, gray market training presence
-- `**Existing Labs:**` any CloudShare, Instruqt, Appsembler, or Skillable labs found — confirms demand and migration opportunity
-- `**Gap:**` / `**Missing:**` / `**Limited:**` — use when the score reflects something absent, not just what exists
+Signals worth naming — use these EXACT canonical label names (from the locked vocabulary above):
+- `**Dedicated Content Dept | Strength:**` named training org, what it covers, approximate scale (ILT / eLearning / both)
+- `**Outsourced Content Creation | Risk:**` catalog exists but authoring is entirely outsourced — signals Skillable PS required, not just platform
+- `**ATP / Learning Program | Strength:**` ATP or Learning Partner network size, technical depth requirements, hands-on lab mandates
+- `**ILT / vILT Offerings | Strength:**` confirmed instructor-led courses — signals curriculum infrastructure exists and hands-on training is valued
+- `**On-Demand Catalog | Strength:**` self-paced eLearning library scale and learner accessibility
+- `**LMS / LXP | Strength:**` named platform (NetExam, Docebo, Cornerstone, Moodle, etc.) — confirms delivery infrastructure and Skillable integration path
+- `**Gray Market Offering | Risk:**` third-party unofficial courses in market — signals demand exists but also competing content
+- Lab platform badges — use exact platform name as the label: `**Instruqt | Risk:**` / `**CloudShare | Risk:**` / `**Skillable | Strength:**` / `**Kyndryl / Skytap | Risk:**` etc.
 
 **Market Readiness (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Is the world interested?" — is this product in a market where hands-on skill development is valued and growing?
 Category prior — score the highest applicable category, then add 50% of the next highest applicable (round to nearest whole number). "Applicable" means the product genuinely and primarily operates in that category — not loosely adjacent to it. Apply at most two categories:
@@ -364,11 +366,11 @@ Other: Large/growing install base: +2 | Growing category: +1 | Limited competito
 
 Evidence bullets tell the story of strategic alignment and market opportunity. Write 2–3 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label** with a directional suffix — every signal here is either a Strength, Opportunity, or Risk; none are neutral facts. A large install base is a `| Strength`. A misaligned category is a `| Risk`. A growing market with no competitor labs is an `| Opportunity`.
 
-Signals worth naming (use these labels or choose better ones):
-- `**Category Fit:**` product category and why it aligns (or doesn't) with Skillable's core market strength
-- `**Install Base:**` scale and enterprise character — Fortune 500 presence, global customer numbers, analyst positioning
-- `**AI Signal:**` Creating AI or Learning AI-embedded features — name the specific capability and the score it earns
-- `**Competitor Labs:**` whether competing products have Skillable labs (adjacency) or the market lacks hands-on alternatives (demand gap)
+Signals worth naming — use these EXACT canonical label names (from the locked vocabulary above):
+- `**Growth Trajectory | Strength:**` or `**Growth Trajectory | Risk:**` — category growth direction; include directional signal in claim (↑ Growing / → Stable / ↓ Declining) and why it matters for lab demand
+- `**Geographic Reach | Strength:**` — global presence, key regions, enterprise customer character
+- `**Annual Users | Strength:**` — scale of user community; prefix with ~NM in the claim (e.g., "~2M annual users")
+- `**Key Customers | Strength:**` — notable enterprise or government customers that validate strategic alignment with Skillable's market
 
 ## STEP 5 — Technical Fit Multiplier (for your awareness — system applies it)
 Hyper-V, ESX, or Container ≥24: 1.0x | Any orchestration method ≥32: 1.0x | Tech 19-31 (non-datacenter): 0.75x | Tech 10-18: 0.40x | Tech 0-9: 0.15x
