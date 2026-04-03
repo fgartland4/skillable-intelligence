@@ -163,7 +163,14 @@ Custom API (BYOC) tiers:
 - Trial Account: 6–12 (trial accounts; credit card → 3–8, add flags)
 - No Isolation: 1–6 (no isolation mechanism)
 
-**Simulation:** When real labs not practical (too long, too costly, data sensitivity) → Orchestration Method: Simulation, score 8–16
+**Simulation:** Simulation is a provisioning method — not a fallback or a lesser choice. It is the correct recommendation when any of the following conditions are present:
+- **Cost-prohibitive:** Real provisioning of required services would cost hundreds of dollars per learner per hour at scale (GPU clusters, high-compute AI platforms, enterprise data services)
+- **Time-impractical:** The actual operation takes hours in the real world (database migrations, large security scans, big data processing jobs) — not feasible in a class setting
+- **All real paths blocked:** GUI-only setup, no deployment method, no API, no VM/container/cloud path available (Workday-pattern products are the canonical example)
+
+Score range: 8–16. Recommending Simulation does not rescue the score — it stays in this range regardless.
+
+**`No Deployment Method`** applies ONLY when the product cannot be provisioned or simulated in any software environment — purely physical products (heavy equipment, physical machinery). If Simulation is viable, use Simulation instead. In almost all cases, Simulation is viable.
 
 ## STEP 4 — Score All Dimensions
 
@@ -181,12 +188,12 @@ Bare labels with no suffix (e.g., `**Install Base:**`) are only acceptable for t
 
 ⚠️ **URL PLACEMENT RULE:** Never embed URLs directly in `claim` text — not as raw URLs and not as markdown links `[label](url)`. All source citations belong in the structured `source_url` and `source_title` fields of the evidence object. A claim like `**Windows Install:** Silent installer confirmed at [deployment guide](https://...)` is wrong — move the URL to `source_url`. Claims with embedded URLs will not render correctly.
 
-⚠️ **CANONICAL BADGE NAME LIST — use these exact names when the signal matches. Do not paraphrase, abbreviate, or invent alternatives.**
+🚫 **MANDATORY BADGE NAME LIST — you MUST use ONLY the exact names below. No other badge names are permitted under any circumstances.**
 
-These names are locked vocabulary shared across all Skillable tools. Using the exact name ensures correct rendering, grouping, and display.
+These are the only badge names that exist in the Skillable Intelligence system. Any name not on this list will break rendering, routing, and reporting. If a signal doesn't fit any canonical name perfectly, use the closest match from this list. You may NEVER invent, abbreviate, paraphrase, or generalize a badge name. There are no exceptions.
 
 **Product Labability — Provisioning:**
-`Runs in Hyper-V` · `Runs in Azure` · `Runs in AWS` · `Requires GCP` · `Runs in Containers` · `ESX Required` · `Learner Isolation` · `Provisioning APIs` · `Lifecycle APIs` · `Full Tenant Required` · `Potential IaC Friction` · `Bare Metal Required` · `No Deployment Method`
+`Runs in Hyper-V` · `Runs in Azure` · `Runs in AWS` · `Requires GCP` · `Runs in Containers` · `ESX Required` · `Learner Isolation` · `Provisioning APIs` · `Lifecycle APIs` · `Full Tenant Required` · `Potential IaC Friction` · `Simulation` · `Bare Metal Required` · `No Deployment Method`
 
 **Product Labability — Licensing & Accounts:**
 `AuthN/AuthZ APIs` · `Credential Pool` · `Account Recycling` · `Supports NFR Accounts` · `High License Cost` · `Tenant Provisioning Lag` · `Provisioning Rate Limits` · `Anti-Automation Controls` · `MFA Required` · `Credit Card Required`
@@ -198,7 +205,7 @@ These names are locked vocabulary shared across all Skillable tools. Using the e
 `Teardown APIs` · `Lifecycle APIs` · `Full Tenant Required`
 
 **Instructional Value — Difficult to Master:**
-`Product Breadth & Depth` · `Workflow Complexity` · `Configuration Complexity` · `Not Lab Appropriate`
+`Product Breadth & Depth` · `Workflow Complexity` · `Configuration Complexity` · `Hands-On AI Features` · `Not Lab Appropriate`
 
 **Instructional Value — Mastery Matters:**
 `Adoption & TTV Risks` · `High-Stakes Skills` · `Certification Program`
@@ -213,7 +220,7 @@ Lab platform badges (use exact platform name): `Skillable` · `Instruqt` · `Clo
 **Market Readiness — Product Popularity:**
 `Growth Trajectory` (suffix: ↑ Growing / → Stable / ↓ Declining) · `Geographic Reach` (suffix: Global / NAMER & EMEA / Primarily NAMER / etc.) · `Annual Users` (prefix with ~NM) · `Key Customers`
 
-**When a signal doesn't match any canonical name:** use a short descriptive label that follows the same naming style — 2–4 words, plain English, no vendor jargon. The canonical list covers the most common signals; novel findings may require a custom label.
+**When a signal doesn't match any canonical name exactly:** use the closest name from the mandatory list above. Do not create new labels. The canonical list is complete — every signal you will encounter has a match.
 
 **Product Labability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we orchestrate this product?"
 
