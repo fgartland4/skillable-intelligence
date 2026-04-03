@@ -31,6 +31,35 @@
         .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
         .nav-title { font-size: 0.875rem; color: #6b9e88; font-weight: 500; letter-spacing: 0.03em; }
 
+        /* Top nav tools */
+        .nav-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+        .nav-tool {
+            position: relative;
+            font-size: 0.82rem; font-weight: 600; color: #6b9e88;
+            padding: 7px 14px; border-radius: 8px; cursor: pointer;
+            text-decoration: none; transition: color 0.15s, background 0.15s;
+            letter-spacing: 0.01em;
+        }
+        .nav-tool:hover { color: #e8f5f0; background: rgba(255,255,255,0.04); }
+        .nav-tool.active { color: #24ED9B; background: rgba(36,237,155,0.08); }
+        .nav-tool.has-dropdown { padding-right: 22px; }
+        .nav-tool.has-dropdown::after {
+            content: '▾'; font-size: 0.7rem; position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+        }
+        .nav-dropdown {
+            display: none; position: absolute; top: calc(100% + 6px); left: 0;
+            background: #0d1a14; border: 1px solid #1e3329; border-radius: 10px;
+            padding: 6px; min-width: 160px; z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .nav-tool:hover .nav-dropdown { display: block; }
+        .nav-dropdown a {
+            display: block; padding: 8px 12px; font-size: 0.82rem; color: #6b9e88;
+            border-radius: 6px; text-decoration: none; font-weight: 500;
+            transition: color 0.15s, background 0.15s;
+        }
+        .nav-dropdown a:hover { color: #24ED9B; background: rgba(36,237,155,0.08); }
+
         /* Hero */
         .hero { text-align: center; padding: 80px 20px 60px; }
         .hero-eyebrow {
@@ -103,6 +132,18 @@
     <nav class="nav">
         <div class="nav-logo">
             <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-tools">
+            <a href="/prospector" class="nav-tool has-dropdown">
+                Prospector
+                <div class="nav-dropdown">
+                    <a href="/prospector/score">Score a List</a>
+                    <a href="/prospector/lookalikes">Find Lookalikes</a>
+                </div>
+            </a>
+            <a href="/inspector" class="nav-tool active">Inspector</a>
+            <a href="/designer" class="nav-tool">Designer</a>
         </div>
     </nav>
 
