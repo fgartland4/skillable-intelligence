@@ -19,28 +19,6 @@
             min-height: 100vh;
         }
 
-        /* Nav */
-        .nav {
-            display: flex; align-items: center; padding: 16px 32px;
-            border-bottom: 1px solid #1e3329;
-            background: rgba(6,16,12,0.9); backdrop-filter: blur(8px);
-            position: sticky; top: 0; z-index: 10;
-        }
-        .nav-logo { display: flex; align-items: center; gap: 10px; }
-        .nav-logo img { height: 28px; }
-        .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
-        .nav-title { font-size: 0.875rem; color: #6b9e88; font-weight: 500; letter-spacing: 0.03em; }
-
-        /* Top nav tools */
-        .nav-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-        .nav-tool {
-            font-size: 0.82rem; font-weight: 600; color: #6b9e88;
-            padding: 7px 14px; border-radius: 8px;
-            text-decoration: none; transition: color 0.15s, background 0.15s;
-            letter-spacing: 0.01em;
-        }
-        .nav-tool:hover { color: #e8f5f0; background: rgba(255,255,255,0.04); text-decoration: none; }
-        .nav-tool.active { color: #24ED9B; background: rgba(36,237,155,0.08); }
 
         /* Hero */
         .hero { text-align: center; padding: 80px 20px 60px; }
@@ -111,16 +89,8 @@
     </style>
 </head>
 <body>
-    <nav class="nav">
-        <div class="nav-logo">
-            <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
-        </div>
-        <div class="nav-tools">
-            <a href="/prospector" class="nav-tool">Prospector</a>
-            <a href="/inspector" class="nav-tool active">Inspector</a>
-            <a href="/designer" class="nav-tool">Designer</a>
-        </div>
-    </nav>
+    {% set active_tool = 'inspector' %}
+    {% include '_nav.html' %}
 
     <div class="hero">
         <div class="hero-eyebrow">Labability Intelligence Engine</div>

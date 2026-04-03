@@ -33,6 +33,7 @@ app = Flask(
 
 # Allow templates to be found across all three tool directories
 app.jinja_loader = jinja2.ChoiceLoader([
+    jinja2.FileSystemLoader(str(_TOOLS_DIR / "shared" / "templates")),
     jinja2.FileSystemLoader(str(_TOOLS_DIR / "inspector" / "templates")),
     jinja2.FileSystemLoader(str(_TOOLS_DIR / "designer" / "templates")),
     jinja2.FileSystemLoader(str(_TOOLS_DIR / "prospector" / "templates")),

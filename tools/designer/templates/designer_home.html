@@ -20,23 +20,6 @@
         a { color: #24ED9B; text-decoration: none; }
         a:hover { color: #1dd88a; }
 
-        /* Nav */
-        .nav {
-            display: flex; align-items: center; padding: 14px 28px;
-            border-bottom: 1px solid #1e3329;
-            background: rgba(6,16,12,0.95); backdrop-filter: blur(8px);
-            position: sticky; top: 0; z-index: 30;
-        }
-        .nav img { height: 26px; }
-        .nav-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-        .nav-tool {
-            font-size: 0.82rem; font-weight: 600; color: #6b9e88;
-            padding: 7px 14px; border-radius: 8px;
-            text-decoration: none; transition: color 0.15s, background 0.15s;
-            letter-spacing: 0.01em;
-        }
-        .nav-tool:hover { color: #e8f5f0; background: rgba(255,255,255,0.04); }
-        .nav-tool.active { color: #24ED9B; background: rgba(36,237,155,0.08); }
 
         /* Page */
         .page { max-width: 1100px; margin: 0 auto; padding: 48px 24px 120px; }
@@ -156,16 +139,8 @@
 </head>
 <body>
 
-<nav class="nav">
-    <a href="/" title="Skillable Intelligence">
-        <img src="/static/img/skillable-logo-white.svg" alt="Skillable" style="height:26px; width:auto;">
-    </a>
-    <div class="nav-tools">
-        <a href="/prospector" class="nav-tool">Prospector</a>
-        <a href="/inspector" class="nav-tool">Inspector</a>
-        <a href="/designer" class="nav-tool active">Designer</a>
-    </div>
-</nav>
+{% set active_tool = 'designer' %}
+{% include '_nav.html' %}
 
 <div class="page">
     <div class="page-eyebrow">Skillable Intelligence</div>

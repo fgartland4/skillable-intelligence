@@ -1,0 +1,29 @@
+<style>
+    .nav {
+        display: flex; align-items: center; padding: 16px 32px;
+        border-bottom: 1px solid #1e3329;
+        background: rgba(6,16,12,0.9); backdrop-filter: blur(8px);
+        position: sticky; top: 0; z-index: 10;
+    }
+    .nav-logo { display: flex; align-items: center; }
+    .nav-logo img { height: 28px; }
+    .nav-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .nav-tool {
+        font-size: 0.82rem; font-weight: 600; color: #6b9e88;
+        padding: 7px 14px; border-radius: 8px;
+        text-decoration: none; transition: color 0.15s, background 0.15s;
+        letter-spacing: 0.01em;
+    }
+    .nav-tool:hover { color: #e8f5f0; background: rgba(255,255,255,0.04); text-decoration: none; }
+    .nav-tool.active { color: #24ED9B; background: rgba(36,237,155,0.08); }
+</style>
+<nav class="nav">
+    <div class="nav-logo">
+        <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
+    </div>
+    <div class="nav-tools">
+        <a href="/prospector" class="nav-tool {% if active_tool == 'prospector' %}active{% endif %}">Prospector</a>
+        <a href="/inspector" class="nav-tool {% if active_tool == 'inspector' %}active{% endif %}">Inspector</a>
+        <a href="/designer" class="nav-tool {% if active_tool == 'designer' %}active{% endif %}">Designer</a>
+    </div>
+</nav>
