@@ -147,12 +147,14 @@
                         <div class="drop-selected" id="file-selected-label"></div>
                     </div>
                     <div class="field-hint" style="margin-top:10px;">Works with ZoomInfo exports, ABM lists, or any CSV where the first column is the company name.</div>
-                    <div class="submit-row">
-                        <button type="submit" class="btn-primary">Run Prospector &rarr;</button>
-                    </div>
-                    <div class="refresh-row">
-                        <input type="checkbox" id="force-refresh-csv" name="force_refresh" value="1">
-                        <label for="force-refresh-csv">Force refresh — ignore cached results and re-run research</label>
+                    <div style="text-align:center; margin-top:22px;">
+                        <button type="submit" class="btn-primary">Score &rarr;</button>
+                        <div style="margin-top:14px;">
+                            <label style="display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none;">
+                                <input type="checkbox" id="force-refresh-csv" name="force_refresh" value="1" style="width:14px; height:14px; accent-color:#24ED9B; cursor:pointer;">
+                                <span style="font-size:0.75rem; color:#3d6655;">Refresh cache</span>
+                            </label>
+                        </div>
                     </div>
                     {% if poor_fit_count %}
                     <div class="pf-notice">{{ poor_fit_count }} previously flagged poor-fit {{ 'company' if poor_fit_count == 1 else 'companies' }} will be skipped automatically.</div>
@@ -166,8 +168,8 @@
                     <textarea id="anchor_companies" name="anchor_companies"
                         placeholder="Enter your best customers or strongest labability fits — one per line. The engine will find similar companies."></textarea>
                     <div class="field-hint">One company per line. Use companies you've already run through Inspector for best results.</div>
-                    <div class="submit-row">
-                        <button type="submit" class="btn-primary">Find Lookalikes &rarr;</button>
+                    <div style="text-align:center; margin-top:22px;">
+                        <button type="submit" class="btn-primary">Find &rarr;</button>
                     </div>
                 </form>
             </div>
@@ -178,12 +180,14 @@
                     <textarea id="companies" name="companies"
                         placeholder="Paste or type a list of companies, then press Run Prospector"></textarea>
                     <div class="field-hint">One company per line (or comma-separated). Limit to 25 companies per batch for best results.</div>
-                    <div class="submit-row">
-                        <button type="submit" class="btn-primary">Run Prospector &rarr;</button>
-                    </div>
-                    <div class="refresh-row">
-                        <input type="checkbox" id="force-refresh-paste" name="force_refresh" value="1">
-                        <label for="force-refresh-paste">Force refresh — ignore cached results and re-run research</label>
+                    <div style="text-align:center; margin-top:22px;">
+                        <button type="submit" class="btn-primary">Score &rarr;</button>
+                        <div style="margin-top:14px;">
+                            <label style="display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none;">
+                                <input type="checkbox" id="force-refresh-paste" name="force_refresh" value="1" style="width:14px; height:14px; accent-color:#24ED9B; cursor:pointer;">
+                                <span style="font-size:0.75rem; color:#3d6655;">Refresh cache</span>
+                            </label>
+                        </div>
                     </div>
                     {% if poor_fit_count %}
                     <div class="pf-notice">{{ poor_fit_count }} previously flagged poor-fit {{ 'company' if poor_fit_count == 1 else 'companies' }} will be skipped automatically.</div>
