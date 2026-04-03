@@ -63,14 +63,23 @@ def _push(job_id: str, msg: str):
 
 
 def _sse_stream(job_id: str, poll_interval: float = 0.3):
-    """Generic SSE generator: yields messages for job_id until done/error or timeout."""
+    """Generic SSE generator: yields messages for job_id until done/error or timeout.
+
+    Sends SSE comment heartbeats every 15 seconds when no data messages arrive,
+    preventing Windows / browser from treating the idle connection as dead.
+    """
     last = 0
     deadline = time.time() + _SSE_TIMEOUT
+    last_yield = time.time()
+    _HEARTBEAT_INTERVAL = 15  # seconds between keep-alive pings
     while time.time() < deadline:
         with _progress_lock:
             msgs = list(_progress.get(job_id, []))
+        sent_this_loop = False
         for msg in msgs[last:]:
             last += 1
+            sent_this_loop = True
+            last_yield = time.time()
             yield f"data: {msg}\n\n"
             if msg.startswith("done:") or msg.startswith("error:"):
                 # Clean up immediately on completion — no need to keep the job in memory
@@ -78,6 +87,10 @@ def _sse_stream(job_id: str, poll_interval: float = 0.3):
                     _progress.pop(job_id, None)
                     _progress_timestamps.pop(job_id, None)
                 return
+        if not sent_this_loop and time.time() - last_yield >= _HEARTBEAT_INTERVAL:
+            # SSE comment — browsers ignore these; they just keep the TCP connection alive
+            yield ": heartbeat\n\n"
+            last_yield = time.time()
         time.sleep(poll_interval)
     yield "data: error:Timed out — the operation took too long. Please try again.\n\n"
 
