@@ -7,7 +7,7 @@
     <title>Caseboard — {{ discovery.company_name }} — Skillable Intelligence</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        button { font-family: inherit; }
+        button, label { font-family: inherit; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #06100c;
@@ -20,72 +20,21 @@
         a { color: #24ED9B; text-decoration: none; }
         a:hover { color: #1dd88a; }
 
-        .btn-search-new { font-size:0.78rem; color:#6b9e88; text-decoration:none; background:rgba(36,237,155,0.07); border:1px solid rgba(36,237,155,0.2); padding:5px 12px; border-radius:7px; white-space:nowrap; transition:color 0.15s, border-color 0.15s; display:inline-block; margin-bottom:16px; }
-        .btn-search-new:hover { color:#24ED9B; border-color:rgba(36,237,155,0.4); text-decoration:none; }
+        /* ── Page layout ── */
+        .page { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
 
-        /* Breadcrumbs */
-        .breadcrumbs {
-            padding: 7px 28px; border-bottom: 1px solid #1e3329;
-            background: rgba(6,16,12,0.8);
-            font-size: 0.7rem; color: #6b9e88;
-            display: flex; align-items: center; gap: 6px;
+        /* ── Back link ── */
+        .btn-back {
+            display: inline-block; font-size: 0.78rem; color: #6b9e88;
+            background: rgba(36,237,155,0.06); border: 1px solid rgba(36,237,155,0.18);
+            padding: 5px 12px; border-radius: 7px; margin-bottom: 20px;
+            transition: color 0.15s, border-color 0.15s;
         }
-        .breadcrumbs a { color: #4a7a65; }
-        .breadcrumbs a:hover { color: #24ED9B; }
-        .bc-sep { color: #2a4a3a; }
-        .bc-current { color: #e8f5f0; font-weight: 600; }
+        .btn-back:hover { color: #24ED9B; border-color: rgba(36,237,155,0.4); }
 
-        /* Layout */
-        .page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 110px; }
-
-        /* Header */
-        .header { margin-bottom: 28px; }
-        .eyebrow {
-            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.15em;
-            text-transform: uppercase; color: #24ED9B; margin-bottom: 6px;
-        }
-        .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-        .company-title { font-size: 2rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.02em; }
-        .header-desc { color: #6b9e88; margin-top: 8px; font-size: 0.84rem; line-height: 1.6; max-width: 680px; }
-
-        /* Top action block */
-        .top-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
-        .top-sel-status {
-            font-size: 0.78rem; font-weight: 700; color: #fb923c;
-            text-align: right; min-height: 1.2em;
-        }
-
-        /* Company Intelligence box (between header and board) */
-        .ci-box {
-            background: rgba(13,26,20,0.8); border: 1px solid #1e3329;
-            border-radius: 12px; padding: 16px 24px;
-            margin-bottom: 20px;
-        }
-        .ci-box-title {
-            font-size: 0.56rem; font-weight: 800; letter-spacing: 0.12em;
-            text-transform: uppercase; color: #3d6655; margin-bottom: 12px;
-        }
-        .ci-badges { display: flex; flex-wrap: wrap; gap: 5px; }
-        .ci-col-label {
-            font-size: 0.56rem; font-weight: 800; letter-spacing: 0.1em;
-            text-transform: uppercase; color: #3d6655; margin-bottom: 7px;
-        }
-        .ci-col-empty {
-            font-size: 0.68rem; color: #1e3329; font-style: italic;
-        }
-        .co-sig-bdg {
-            display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 3px 9px;
-            border-radius: 6px; white-space: nowrap;
-        }
-        .co-sig-green { background: rgba(36,237,155,0.1); color: #24ED9B; border: 1px solid rgba(36,237,155,0.22); }
-        .co-sig-teal  { background: rgba(20,184,166,0.1); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.22); }
-        .co-sig-gray  { background: rgba(100,116,139,0.1); color: #94a3b8; border: 1px solid rgba(100,116,139,0.2); }
-        .co-sig-amber { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.22); }
-        .co-sig-red   { background: rgba(248,113,113,0.08); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
-
-        /* Org badges */
+        /* ── Org type badges ── */
         .org-badge {
-            display: inline-block; font-size: 0.58rem; padding: 3px 9px;
+            display: inline-block; font-size: 0.56rem; padding: 3px 9px;
             border-radius: 20px; font-weight: 700; letter-spacing: 0.08em;
             text-transform: uppercase; margin-left: 10px; vertical-align: middle;
         }
@@ -96,216 +45,238 @@
         .org-distributor { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.22); }
         .org-services    { background: rgba(148,163,184,0.08);color: #94a3b8; border: 1px solid rgba(148,163,184,0.18); }
 
-        /* Two-column board */
+        /* ── Header ── */
+        .header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 20px; margin-bottom: 28px;
+        }
+        .header-left { flex: 1 1 auto; min-width: 0; }
+        .company-title {
+            font-size: 1.9rem; font-weight: 800; color: #e8f5f0;
+            letter-spacing: -0.02em; line-height: 1.2;
+        }
+        .header-desc {
+            color: #6b9e88; margin-top: 8px; font-size: 0.84rem;
+            line-height: 1.6; max-width: 640px;
+        }
+
+        /* ── Header right: actions + counter ── */
+        .header-right { flex-shrink: 0; text-align: right; }
+        .action-row { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-bottom: 8px; }
+
+        .btn-dossier {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 11px 24px; background: #24ED9B; color: #06100c;
+            border: none; border-radius: 10px; font-size: 0.9rem;
+            font-weight: 700; cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+            letter-spacing: 0.01em;
+        }
+        .btn-dossier:hover:not(:disabled) { background: #1dd88a; box-shadow: 0 0 20px rgba(36,237,155,0.28); }
+        .btn-dossier:disabled { background: #1e3329; color: #3d6655; cursor: not-allowed; }
+
+        .btn-view-prev {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 11px 18px; background: transparent; color: #6b9e88;
+            border: 1px solid #1e3329; border-radius: 10px; font-size: 0.84rem;
+            font-weight: 600; cursor: pointer; text-decoration: none;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .btn-view-prev:hover { color: #24ED9B; border-color: rgba(36,237,155,0.35); }
+
+        .sel-status {
+            font-size: 0.78rem; font-weight: 700; color: #3d6655;
+            min-height: 1.2em; transition: color 0.15s;
+        }
+        .sel-status.has-selection { color: #fb923c; }
+        .sel-status.at-limit { color: #fb923c; }
+
+        .time-estimate {
+            font-size: 0.73rem; color: #3d6655; margin-top: 3px;
+            font-variant-numeric: tabular-nums; white-space: nowrap;
+        }
+
+        /* ── Two-column board ── */
         .board {
             display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 18px;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
             align-items: start;
         }
-        @media (max-width: 920px) { .board { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
 
-        /* Tier sections */
-        .tier-section { margin-bottom: 18px; }
+        /* ── Tier sections ── */
+        .tier-section { margin-bottom: 20px; }
+        .tier-section.tier-empty .tier-hdr { opacity: 0.35; }
+
         .tier-hdr {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 9px;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
         }
         .tier-lbl {
-            font-size: 0.63rem; font-weight: 800; letter-spacing: 0.1em;
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em;
             text-transform: uppercase; white-space: nowrap;
         }
         .t-hl { color: #24ED9B; }
         .t-l  { color: #6dd9a8; }
         .t-ll { color: #fb923c; }
         .t-nl { color: #f87171; }
-        .t-tc { color: #a78bfa; }
-        .t-cp { color: #4b5563; }
-        .tier-rule { flex: 1; height: 1px; background: #122019; }
-        .tier-ct { font-size: 0.7rem; color: #3d6655; }
 
-        /* Product cards */
+        .tier-rule {
+            flex: 1; height: 1px;
+            background: linear-gradient(to right, currentColor, transparent);
+            opacity: 0.18;
+        }
+        .tier-count {
+            font-size: 0.65rem; color: #2a4a3a; font-weight: 600;
+        }
+
+        /* ── Product cards ── */
+        .tier-cards { display: flex; flex-direction: column; gap: 4px; }
+
         .product-card {
-            display: flex; align-items: flex-start; gap: 14px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px;
             background: #0d1a14; border: 1px solid #1e3329;
-            border-left: 3px solid #1e3329;
-            border-radius: 10px; padding: 14px 18px; margin-bottom: 7px;
-            cursor: pointer; transition: all 0.15s; user-select: none;
+            border-radius: 9px; cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            user-select: none;
         }
-        .product-card:hover { background: #0f1e17; border-color: #2a4a3a; }
-        .product-card.selected { border-color: rgba(36,237,155,0.35); background: #0f2019; }
-        .product-card.hl { border-left-color: #24ED9B; }
-        .product-card.ll-tier { border-left-color: #6dd9a8; }
-        .product-card.less { border-left-color: #fb923c; opacity: 0.72; }
-        .product-card.nope { border-left-color: #f87171; opacity: 0.55; }
-        .product-card.less:hover, .product-card.nope:hover { opacity: 0.9; }
-        .product-card.dimmed { opacity: 0.3 !important; pointer-events: none; }
-        .tc-card { border-left-color: rgba(167,139,250,0.27); opacity: 0.65; cursor: default; pointer-events: none; }
+        .product-card:hover { background: #0f2018; border-color: rgba(36,237,155,0.22); }
+        .product-card.card-checked { border-color: rgba(36,237,155,0.45); background: rgba(36,237,155,0.04); }
+        .product-card.card-dimmed { opacity: 0.38; pointer-events: none; }
 
-        /* Checkbox */
-        .cbx {
-            width: 20px; height: 20px; border-radius: 5px;
-            border: 1.5px solid #2a4a3a; flex-shrink: 0; margin-top: 2px;
+        .product-cb { display: none; } /* hidden — card label acts as toggle */
+
+        .cb-visual {
+            width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0;
+            border: 1.5px solid #2a4a3a; background: transparent;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.15s; background: transparent;
+            transition: background 0.12s, border-color 0.12s;
         }
-        .product-card.selected .cbx { background: #24ED9B; border-color: #24ED9B; }
-        .cbx-mark { font-size: 0.68rem; font-weight: 900; color: #06100c; display: none; }
-        .product-card.selected .cbx-mark { display: block; }
-
-        .p-body { flex: 1; min-width: 0; }
-        .p-name { font-weight: 600; color: #e8f5f0; font-size: 0.94rem; }
-        .p-meta { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; align-items: center; }
-        .p-desc { color: #6b9e88; font-size: 0.79rem; margin-top: 5px; line-height: 1.4; }
-
-        .bdg { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.67rem; font-weight: 600; }
-        .bdg-cat  { background: rgba(112,0,255,0.1); color: #a78bfa; border: 1px solid rgba(112,0,255,0.18); }
-        .bdg-dep  { background: #122019; color: #6b9e88; }
-        .bdg-hl   { background: rgba(36,237,155,0.1); color: #24ED9B; border: 1px solid rgba(36,237,155,0.22); }
-        .bdg-l    { background: rgba(110,215,173,0.1); color: #6dd9a8; border: 1px solid rgba(110,215,173,0.18); }
-        .bdg-ll   { background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.18); }
-        .bdg-nl   { background: rgba(248,113,113,0.08); color: #f87171; border: 1px solid rgba(248,113,113,0.15); }
-        .bdg-path { background: rgba(36,237,155,0.06); color: #6b9e88; border: 1px solid #1e3329; }
-        .bdg-saas { background: rgba(251,146,60,0.12); color: #fb923c; border: 1px solid rgba(251,146,60,0.28); }
-
-        /* Competitor card */
-        .comp-card {
-            background: #0a1510; border: 1px solid #1e3329; border-left: 3px solid #2a3a32;
-            border-radius: 10px; padding: 12px 18px; margin-bottom: 7px; opacity: 0.6;
-            display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+        .product-card.card-checked .cb-visual {
+            background: #24ED9B; border-color: #24ED9B;
         }
-        .comp-card-body { flex: 1; min-width: 0; }
-        .comp-name-lbl { font-size: 0.67rem; font-weight: 800; color: #4b5563;
-            text-transform: uppercase; letter-spacing: 0.06em; }
-        .comp-prod { font-weight: 600; color: #6b9e88; font-size: 0.88rem; margin-top: 2px; }
-        .comp-ctx { color: #4b5563; font-size: 0.77rem; margin-top: 4px; line-height: 1.4; }
-        .comp-caseboard-btn {
-            flex-shrink: 0; align-self: center;
-            font-size: 0.72rem; font-weight: 600; color: #24ED9B;
-            background: none; border: 1px solid rgba(36,237,155,0.2);
-            border-radius: 5px; padding: 3px 9px; cursor: pointer;
-            white-space: nowrap; transition: background 0.15s, border-color 0.15s;
-        }
-        .comp-caseboard-btn:hover {
-            background: rgba(36,237,155,0.08); border-color: rgba(36,237,155,0.4);
+        .cb-tick { display: none; font-size: 10px; color: #06100c; font-weight: 800; }
+        .product-card.card-checked .cb-tick { display: block; }
+
+        .card-name {
+            flex: 1 1 auto; font-size: 0.87rem; font-weight: 600; color: #e8f5f0;
+            overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
         }
 
-        /* Intel panel */
-        .intel { position: sticky; top: 68px; }
-        .intel-card {
-            background: linear-gradient(135deg, #0d1a14 0%, #0f2019 100%);
-            border: 1px solid rgba(36,237,155,0.14);
-            border-radius: 14px; padding: 18px 20px; margin-bottom: 12px;
+        .badge-cat {
+            display: inline-block; font-size: 0.6rem; font-weight: 700;
+            padding: 2px 7px; border-radius: 5px; white-space: nowrap; flex-shrink: 0;
+            background: rgba(139,92,246,0.12); color: #a78bfa;
+            border: 1px solid rgba(139,92,246,0.22); letter-spacing: 0.04em;
         }
-        .ic-title {
-            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
-            text-transform: uppercase; color: #3d6655; margin-bottom: 12px;
-        }
-        .ic-org { font-size: 0.84rem; color: #e8f5f0; font-weight: 600; }
 
-        /* Tier summary rows */
-        .ts-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(30,51,41,0.4); }
-        .ts-row:last-child { border-bottom: none; }
-        .ts-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .ts-dot-hl { background: #24ED9B; }
-        .ts-dot-l  { background: #6dd9a8; }
-        .ts-dot-ll { background: #fb923c; }
-        .ts-dot-nl { background: #4b5563; }
-        .ts-lbl { font-size: 0.9rem; color: #6b9e88; flex: 1; }
-        .ts-ct  { font-size: 1.15rem; color: #e8f5f0; font-weight: 800; }
+        /* Tier indicator badges on cards */
+        .badge-tier {
+            display: inline-block; font-size: 0.58rem; font-weight: 800;
+            padding: 2px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
+            letter-spacing: 0.06em; text-transform: uppercase;
+        }
+        .btier-hl { background: rgba(36,237,155,0.1);  color: #24ED9B; border: 1px solid rgba(36,237,155,0.25); }
+        .btier-l  { background: rgba(109,217,168,0.1); color: #6dd9a8; border: 1px solid rgba(109,217,168,0.25); }
+        .btier-ll { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
+        .btier-nl { background: rgba(248,113,113,0.08);color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
 
-        /* Lab Maturity slider */
-        .mat-level-name {
-            font-size: 0.78rem; font-weight: 800; color: #24ED9B;
-            letter-spacing: 0.02em; margin-bottom: 14px;
+        .tier-empty-hint {
+            font-size: 0.73rem; color: #1e3329; font-style: italic; padding-left: 4px;
         }
-        .mat-track {
-            height: 2px; background: #122019; border-radius: 1px;
-            position: relative; margin: 14px 0 10px;
-        }
-        .mat-fill {
-            position: absolute; left: 0; top: 0; bottom: 0; border-radius: 1px;
-            background: linear-gradient(90deg, rgba(36,237,155,0.35), rgba(36,237,155,0.8));
-        }
-        .mat-nodes {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            left: 0; right: 0; display: flex; justify-content: space-between;
-            z-index: 2; pointer-events: none;
-        }
-        .mat-node {
-            width: 11px; height: 11px; border-radius: 50%;
-            background: #0d1a14; border: 2px solid #1e3329; flex-shrink: 0;
-        }
-        .mat-passed { border-color: rgba(36,237,155,0.45); background: rgba(36,237,155,0.1); }
-        .mat-active {
-            border-color: #24ED9B !important; background: #24ED9B !important;
-            box-shadow: 0 0 8px rgba(36,237,155,0.5);
-            width: 13px; height: 13px; margin-top: -1px;
-        }
-        .mat-labels { display: flex; justify-content: space-between; margin-top: 10px; }
-        .mat-lbl {
-            font-size: 0.56rem; color: #3d6655; font-weight: 600;
-            letter-spacing: 0.04em; text-transform: uppercase;
-        }
-        .mat-lbl:nth-child(2), .mat-lbl:nth-child(3) { text-align: center; }
-        .mat-lbl:last-child { text-align: right; }
-        .mat-lbl-active { color: #24ED9B; font-weight: 800; font-size: 0.65rem; }
-        /* Signal badges (compact — snapshot only) */
-        .mat-signals { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
-        .mat-sig-badge {
-            font-size: 0.6rem; font-weight: 700; padding: 2px 8px;
-            border-radius: 5px; letter-spacing: 0.03em; white-space: nowrap;
-        }
-        .mat-sig-green { background: rgba(36,237,155,0.1); color: #6b9e88; border: 1px solid rgba(36,237,155,0.2); }
-        .mat-sig-amber { background: rgba(251,191,36,0.08); color: #a68a3a; border: 1px solid rgba(251,191,36,0.2); }
-        .mat-sig-gray  { background: rgba(148,163,184,0.07); color: #4b5563; border: 1px solid rgba(148,163,184,0.12); }
 
-        /* Signal rows */
-        .sig-row { display: flex; align-items: center; gap: 8px; padding: 5px 0;
-            border-bottom: 1px solid rgba(30,51,41,0.4); font-size: 0.79rem; }
-        .sig-row:last-child { border-bottom: none; }
-        .sig-dot { width: 6px; height: 6px; border-radius: 50%; background: #24ED9B; flex-shrink: 0; }
-        .sig-lbl { color: #6b9e88; flex: 1; }
-        .sig-tag { font-size: 0.66rem; color: #3d6655; }
+        /* ── Right panel ── */
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
 
-        /* Contacts */
-        .ct-item { padding: 8px 0; border-bottom: 1px solid rgba(30,51,41,0.4); }
-        .ct-item:last-child { border-bottom: none; }
-        .ct-name { font-size: 0.84rem; font-weight: 600; color: #e8f5f0; }
-        .ct-title { font-size: 0.75rem; color: #6b9e88; margin-top: 1px; }
-        .ct-role { font-size: 0.66rem; color: #3d6655; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
-        .ct-li { display: inline-block; margin-top: 3px; font-size: 0.71rem; color: #24ED9B; }
-
-        /* Sticky footer */
-        .footer {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(6,16,12,0.97); backdrop-filter: blur(12px);
-            border-top: 1px solid #1e3329; padding: 13px 28px; z-index: 30;
-            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        .panel-box {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 10px; padding: 14px 16px;
         }
-        .f-left { display: flex; align-items: center; gap: 14px; }
-        .f-lbl { font-size: 0.79rem; color: #6b9e88; }
-        .f-ct { font-size: 1.1rem; font-weight: 800; color: #e8f5f0; }
-        .f-max { font-size: 0.84rem; color: #3d6655; }
-        .f-hint { font-size: 0.74rem; color: #3d6655; }
-        .f-right { display: flex; align-items: center; gap: 10px; }
-
-        .btn-dossier {
-            background: #24ED9B; color: #06100c; border: none;
-            padding: 10px 22px; border-radius: 10px; width: 170px;
-            font-size: 0.92rem; font-weight: 800; cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s; white-space: nowrap;
+        .panel-label {
+            font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: #3d6655; margin-bottom: 10px;
         }
-        .btn-dossier:hover { background: #1dd88a; box-shadow: 0 0 24px rgba(36,237,155,0.3); }
-        .btn-dossier:disabled { background: #122019; color: #3d6655; cursor: not-allowed; box-shadow: none; }
 
-        .btn-prev {
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-            width: 170px;
-            background: rgba(36,237,155,0.07); border: 1px solid rgba(36,237,155,0.22);
-            color: #24ED9B; padding: 9px 16px; border-radius: 8px;
-            font-size: 0.8rem; font-weight: 600; transition: all 0.15s;
+        /* AT A GLANCE tier dots */
+        .glance-rows { display: flex; flex-direction: column; gap: 5px; }
+        .glance-row {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.78rem;
         }
-        .btn-prev:hover { background: rgba(36,237,155,0.13); }
+        .glance-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        }
+        .gdot-hl { background: #24ED9B; }
+        .gdot-l  { background: #6dd9a8; }
+        .gdot-ll { background: #fb923c; }
+        .gdot-nl { background: #f87171; }
+        .glance-tier-name { flex: 1; color: #6b9e88; }
+        .glance-count { font-weight: 700; color: #e8f5f0; }
+        .glance-divider { border: none; border-top: 1px solid #1e3329; margin: 8px 0; }
+        .glance-total { font-size: 0.78rem; color: #3d6655; }
+        .glance-total-count { font-weight: 700; color: #6b9e88; }
+
+        /* Training & Certification panel */
+        .panel-box-tc { border-color: rgba(139,92,246,0.25); }
+        .panel-label-tc { color: #a78bfa; }
+        .tc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+        .tc-list li {
+            font-size: 0.78rem; color: #6b9e88; padding: 3px 0;
+            border-bottom: 1px solid rgba(139,92,246,0.08);
+        }
+        .tc-list li:last-child { border-bottom: none; }
+        .tc-list li::before { content: "●  "; color: rgba(167,139,250,0.5); font-size: 0.55rem; }
+
+        /* Competitive Landscape panel */
+        .comp-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+        .comp-item { font-size: 0.78rem; color: #6b9e88; line-height: 1.4; }
+        .comp-name { font-weight: 600; color: #94a3b8; }
+        .comp-product { color: #3d6655; font-size: 0.73rem; }
+
+        /* Family picker modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(6,16,12,0.88); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal-box {
+            background: #0d1a14; border: 1px solid #1e3329;
+            border-radius: 14px; padding: 0; width: 460px; max-width: 95vw;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            padding: 20px 24px 14px;
+            border-bottom: 1px solid #1e3329;
+        }
+        .modal-company { font-size: 1rem; font-weight: 700; color: #e8f5f0; }
+        .modal-count { font-size: 0.78rem; color: #3d6655; margin-top: 3px; }
+        .modal-prompt { font-size: 0.8rem; color: #6b9e88; margin-top: 6px; }
+        .modal-body {
+            padding: 14px 0; max-height: 360px; overflow-y: auto;
+        }
+        .family-radio {
+            display: flex; align-items: center; gap: 12px;
+            padding: 9px 24px; cursor: pointer;
+            transition: background 0.12s;
+        }
+        .family-radio:hover { background: rgba(36,237,155,0.04); }
+        .family-radio input[type=radio] { accent-color: #24ED9B; width: 14px; height: 14px; flex-shrink: 0; }
+        .family-name { flex: 1; font-size: 0.86rem; color: #e8f5f0; font-weight: 500; }
+        .family-count { font-size: 0.75rem; color: #3d6655; white-space: nowrap; }
+        .modal-footer {
+            padding: 14px 24px 20px;
+            border-top: 1px solid #1e3329; text-align: right;
+        }
+        .btn-family-continue {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 22px; background: #24ED9B; color: #06100c;
+            border: none; border-radius: 9px; font-size: 0.88rem;
+            font-weight: 700; cursor: pointer; transition: background 0.15s;
+        }
+        .btn-family-continue:hover { background: #1dd88a; }
+        .btn-family-continue:disabled { background: #1e3329; color: #3d6655; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -313,464 +284,308 @@
 {% set active_tool = 'inspector' %}
 {% include '_nav.html' %}
 
-<div class="breadcrumbs">
-    <a href="/">Start</a>
-    <span class="bc-sep">/</span>
-    <a href="/inspector/">Inspector</a>
-    <span class="bc-sep">/</span>
-    <span class="bc-current">{{ discovery.company_name }}</span>
-</div>
+{# ── Computed sets ── #}
+{% set tc_prods = discovery.products | selectattr('category', 'equalto', 'Training & Certification') | list %}
+{% set non_tc_prods = discovery.products | rejectattr('category', 'equalto', 'Training & Certification') | list %}
+{% set hl_prods = non_tc_prods | selectattr('likely_labable', 'equalto', 'highly_likely') | list %}
+{% set l_prods  = non_tc_prods | selectattr('likely_labable', 'equalto', 'likely') | list %}
+{% set ll_prods = non_tc_prods | selectattr('likely_labable', 'equalto', 'less_likely') | list %}
+{% set nl_prods = non_tc_prods | selectattr('likely_labable', 'equalto', 'not_likely') | list %}
+
+{# ── Org badge mapping ── #}
+{% set org_map = {
+    'software_company':       ('Software',              'org-software'),
+    'academic_institution':   ('Academic',              'org-academic'),
+    'training_organization':  ('Training Org',          'org-training'),
+    'systems_integrator':     ('Systems Integrator',    'org-integrator'),
+    'technology_distributor': ('Tech Distributor',      'org-distributor'),
+    'professional_services':  ('Professional Services', 'org-services')
+} %}
+{% set org_info = org_map.get(discovery.organization_type, ('Organization', 'org-services')) %}
+
+{# ── Family picker: show modal if >15 products returned from discovery ── #}
+{% set show_family_picker = discovery.product_families is defined and discovery.product_families | length > 0 %}
 
 <div class="page">
 
+    {# ── Back link ── #}
+    <a href="/inspector" class="btn-back">← Search Different Company</a>
+
+    {# ── Header ── #}
     <div class="header">
-        <a href="/inspector/" class="btn-search-new">&larr; Search Different Company</a>
-        <div class="eyebrow">Inspector Caseboard</div>
-        <div class="header-row">
-            <div>
-                <div class="company-title">
-                    {{ discovery.company_name }}
-                    {% set ot = discovery.organization_type or 'software_company' %}
-                    {% if ot == 'software_company' %}<span class="org-badge org-software">Software Company</span>
-                    {% elif ot == 'academic_institution' %}<span class="org-badge org-academic">Academic</span>
-                    {% elif ot == 'training_organization' %}<span class="org-badge org-training">Training Org</span>
-                    {% elif ot == 'systems_integrator' %}<span class="org-badge org-integrator">Systems Integrator</span>
-                    {% elif ot == 'technology_distributor' %}<span class="org-badge org-distributor">Distributor</span>
-                    {% elif ot == 'professional_services' %}<span class="org-badge org-services">Prof. Services</span>
-                    {% else %}<span class="org-badge org-services">{{ ot | replace('_',' ') | title }}</span>{% endif %}
+        <div class="header-left">
+            <h1 class="company-title">
+                {{ discovery.company_name }}
+                <span class="org-badge {{ org_info[1] }}">{{ org_info[0] }}</span>
+            </h1>
+            {% if discovery.company_description %}
+            <p class="header-desc">{{ discovery.company_description }}</p>
+            {% endif %}
+        </div>
+
+        <div class="header-right">
+            <form method="POST" action="/inspector/score" id="dossierForm">
+                <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
+                <div class="action-row">
+                    <button type="submit" class="btn-dossier" id="dossierBtn" disabled>
+                        Run Dossier →
+                    </button>
+                    {% if existing_analysis %}
+                    <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-view-prev">
+                        View Previous →
+                    </a>
+                    {% endif %}
                 </div>
-                {% if discovery.company_description %}
-                <div class="header-desc">{{ discovery.company_description }}</div>
-                {% endif %}
-            </div>
-            <div class="top-actions">
-                <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn-top" disabled>Run Dossier &rarr;</button>
-                {% if existing_analysis %}
-                <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous &rarr;</a>
-                {% endif %}
-                <div class="top-sel-status" id="top-sel-status">&nbsp;</div>
-            </div>
+                <div class="sel-status" id="selStatus">0 of {{ non_tc_prods | length }} products selected</div>
+                <div class="time-estimate" id="timeEstimate">Est. Research Time: — min, — sec</div>
+            </form>
         </div>
     </div>
 
-    {# ── Pre-compute maturity before rendering ci-box ── #}
-    {% set _tc_check = discovery.products | selectattr('category','equalto','Training & Certification') | list %}
-    {% set ns_mat = namespace(score=0) %}
-    {% if discovery.organization_type == 'training_organization' %}{% set ns_mat.score = ns_mat.score + 4 %}{% endif %}
-    {% if discovery.atp_signals %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
-    {% if discovery.training_programs %}{% set ns_mat.score = ns_mat.score + 2 %}{% endif %}
-    {% if _tc_check %}{% set ns_mat.score = ns_mat.score + 1 %}{% endif %}
-    {% if ns_mat.score >= 6 %}{% set mat_level = 'Mature' %}{% set mat_idx = 3 %}
-    {% elif ns_mat.score >= 4 %}{% set mat_level = 'Established' %}{% set mat_idx = 2 %}
-    {% elif ns_mat.score >= 1 %}{% set mat_level = 'Emerging' %}{% set mat_idx = 1 %}
-    {% else %}{% set mat_level = 'Nascent' %}{% set mat_idx = 0 %}{% endif %}
-    {% set mat_pcts = [0, 33, 67, 100] %}
-
-    <form method="POST" action="/inspector/score" id="scoreForm">
-    <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
-
+    {# ── Two-column board ── #}
     <div class="board">
 
-        <!-- Products column -->
-        <div>
-
-            {# Company Intelligence box — sits inside products column, matches card width #}
-            <div class="ci-box">
-                <div class="ci-box-title">Company Indicators</div>
-
-                {# Pre-compute SaaS warning signals #}
-                {% set ns_saas = namespace(count=0, all_saas=true) %}
-                {% for p in discovery.products %}
-                    {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
-                        {% set ns_saas.count = ns_saas.count + 1 %}
-                    {% else %}
-                        {% set ns_saas.all_saas = false %}
-                    {% endif %}
-                {% endfor %}
-
-                {# Top: badges (left 50%) | maturity slider (right 50%) #}
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-bottom:14px; align-items:start;">
-
-                    {# Left — two rows of up to 3 badges each #}
-                    <div>
-                        <div class="ci-badges" style="margin-bottom:8px;">
-                            {% if discovery.atp_signals %}<span class="co-sig-bdg co-sig-green">Partner Program</span>{% endif %}
-                            {% if discovery.training_programs %}<span class="co-sig-bdg co-sig-green">Training Programs</span>{% endif %}
-                            {% if _tc_check %}<span class="co-sig-bdg co-sig-teal">Training &amp; Cert Org</span>{% endif %}
-                            {% if not discovery.atp_signals and not discovery.training_programs and not _tc_check %}
-                            <span class="co-sig-bdg co-sig-gray">No signals yet</span>
-                            {% endif %}
-                        </div>
-                        <div class="ci-badges">
-                            {% set ns_flags = namespace(no_api=false, bare_metal=false, multi_tenant=false) %}
-                            {% for p in discovery.products %}
-                                {% if 'no_api_automation' in (p.poor_match_flags or []) %}{% set ns_flags.no_api = true %}{% endif %}
-                                {% if 'bare_metal_required' in (p.poor_match_flags or []) %}{% set ns_flags.bare_metal = true %}{% endif %}
-                                {% if 'multi_tenant_only' in (p.poor_match_flags or []) %}{% set ns_flags.multi_tenant = true %}{% endif %}
-                            {% endfor %}
-                            {% if ns_saas.all_saas and discovery.products | length > 0 %}
-                            <span class="co-sig-bdg co-sig-red">All SaaS — Low Fit</span>
-                            {% elif ns_saas.count > 0 %}
-                            <span class="co-sig-bdg co-sig-amber">{{ ns_saas.count }} SaaS-Only</span>
-                            {% endif %}
-                            {% if ns_flags.no_api %}<span class="co-sig-bdg co-sig-amber">No API Automation</span>{% endif %}
-                            {% if ns_flags.bare_metal %}<span class="co-sig-bdg co-sig-red">Hardware Required</span>{% endif %}
-                            {% if ns_flags.multi_tenant %}<span class="co-sig-bdg co-sig-amber">Multi-Tenant Only</span>{% endif %}
-                            {% if not ns_saas.count and not ns_flags.no_api and not ns_flags.bare_metal and not ns_flags.multi_tenant %}
-                            <span class="co-sig-bdg co-sig-gray">No risks detected</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {# Right — Org Readiness slider, level name at bottom #}
-                    <div>
-                        <div style="font-size:0.56rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#3d6655; margin-bottom:10px;">Org Readiness</div>
-                        <div class="mat-track" style="margin-top:0;">
-                            <div class="mat-fill" style="width:{{ mat_pcts[mat_idx] }}%"></div>
-                            <div class="mat-nodes">
-                                {% for i in range(4) %}
-                                <div class="mat-node {% if i < mat_idx %}mat-passed{% elif i == mat_idx %}mat-active{% endif %}"></div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <div class="mat-labels">
-                            {% set mat_lbls = ['Nascent','Emerging','Established','Mature'] %}
-                            {% for i in range(4) %}
-                            <span class="mat-lbl {% if i == mat_idx %}mat-lbl-active{% endif %}">{{ mat_lbls[i] }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                </div>
-
-                {# Bottom: signal columns — populated from available discovery data #}
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; border-top:1px solid #1e3329; padding-top:12px;">
-                    <div>
-                        <div class="ci-col-label">Products Discovered</div>
-                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.products | length }} product{{ 's' if discovery.products | length != 1 else '' }}</div>
-                    </div>
-                    <div>
-                        <div class="ci-col-label">Training Programs</div>
-                        {% if discovery.training_programs %}
-                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">{{ discovery.training_programs | length }} detected</div>
-                        {% elif discovery.atp_signals %}
-                        <div style="font-size:0.75rem; color:#6b9e88; margin-top:3px;">ATP signals present</div>
-                        {% else %}
-                        <div class="ci-col-empty">None detected</div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <div class="ci-col-label">Lab Competitors</div>
-                        {% set elp = (discovery.partnership_signals or {}).get('existing_lab_partner') %}
-                        {% set elp_list = elp if elp is iterable and elp is not string else ([elp] if elp else []) %}
-                        {% if elp_list %}
-                        <div style="font-size:0.75rem; color:#fb923c; margin-top:3px; font-weight:600;">
-                            {{ elp_list[:2] | join(', ') }}{% if elp_list | length > 2 %} <span style="color:#3d6655; font-weight:400;">+{{ elp_list | length - 2 }} more</span>{% endif %}
-                        </div>
-                        {% else %}
-                        <div class="ci-col-empty">None detected</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            {% set hl = discovery.products | selectattr('likely_labable','equalto','highly_likely') | list | sort(attribute='priority') %}
-            {% set l  = discovery.products | selectattr('likely_labable','equalto','likely') | list | sort(attribute='priority') %}
-            {% set ll = discovery.products | selectattr('likely_labable','equalto','less_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
-            {% set nl = discovery.products | selectattr('likely_labable','equalto','not_likely') | rejectattr('category','equalto','Training & Certification') | list | sort(attribute='priority') %}
-            {% set tc = discovery.products | selectattr('category','equalto','Training & Certification') | list | sort(attribute='name') %}
-
-            <div class="tier-section">
-                <div class="tier-hdr" {% if not hl %}style="opacity:0.25"{% endif %}>
-                    <span class="tier-lbl t-hl">Highly Likely</span>
-                    <div class="tier-rule"></div>
-                </div>
-                {% for p in hl %}
-                <label class="product-card hl selected" onclick="toggleCard(this)">
-                    <input type="checkbox" name="products" value="{{ p.name }}" checked onchange="syncFooter()" style="display:none">
-                    <div class="cbx"><span class="cbx-mark">✓</span></div>
-                    <div class="p-body">
-                        <div class="p-name">{{ p.name }}</div>
-                        <div class="p-meta">
-                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
-                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
-                                <span class="bdg bdg-saas">SaaS Only</span>
-                                {% else %}
-                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
-                                {% endif %}
-                            {% endif %}
-                            <span class="bdg bdg-hl">highly likely</span>
-                            {% if p.candidate_paths %}{% for path in p.candidate_paths[:2] %}<span class="bdg bdg-path">{{ path }}</span>{% endfor %}{% endif %}
-                        </div>
-                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
-                    </div>
-                </label>
-                {% endfor %}
-            </div>
-
-            <div class="tier-section">
-                <div class="tier-hdr" {% if not l %}style="opacity:0.25"{% endif %}>
-                    <span class="tier-lbl t-l">Likely</span>
-                    <div class="tier-rule"></div>
-                </div>
-                {% for p in l %}
-                <label class="product-card ll-tier selected" onclick="toggleCard(this)">
-                    <input type="checkbox" name="products" value="{{ p.name }}" checked onchange="syncFooter()" style="display:none">
-                    <div class="cbx"><span class="cbx-mark">✓</span></div>
-                    <div class="p-body">
-                        <div class="p-name">{{ p.name }}</div>
-                        <div class="p-meta">
-                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
-                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
-                                <span class="bdg bdg-saas">SaaS Only</span>
-                                {% else %}
-                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
-                                {% endif %}
-                            {% endif %}
-                            <span class="bdg bdg-l">likely</span>
-                            {% if p.candidate_paths %}{% for path in p.candidate_paths[:2] %}<span class="bdg bdg-path">{{ path }}</span>{% endfor %}{% endif %}
-                        </div>
-                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
-                    </div>
-                </label>
-                {% endfor %}
-            </div>
-
-            <div class="tier-section">
-                <div class="tier-hdr" {% if not ll %}style="opacity:0.25"{% endif %}>
-                    <span class="tier-lbl t-ll">Less Likely</span>
-                    <div class="tier-rule"></div>
-                </div>
-                {% for p in ll %}
-                <label class="product-card less" onclick="toggleCard(this)">
-                    <input type="checkbox" name="products" value="{{ p.name }}" onchange="syncFooter()" style="display:none">
-                    <div class="cbx"><span class="cbx-mark">✓</span></div>
-                    <div class="p-body">
-                        <div class="p-name">{{ p.name }}</div>
-                        <div class="p-meta">
-                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
-                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
-                                <span class="bdg bdg-saas">SaaS Only</span>
-                                {% else %}
-                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
-                                {% endif %}
-                            {% endif %}
-                            <span class="bdg bdg-ll">less likely</span>
-                        </div>
-                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
-                    </div>
-                </label>
-                {% endfor %}
-            </div>
-
-            <div class="tier-section">
-                <div class="tier-hdr" {% if not nl %}style="opacity:0.25"{% endif %}>
-                    <span class="tier-lbl t-nl">Not Likely</span>
-                    <div class="tier-rule"></div>
-                </div>
-                {% for p in nl %}
-                <label class="product-card nope" onclick="toggleCard(this)">
-                    <input type="checkbox" name="products" value="{{ p.name }}" onchange="syncFooter()" style="display:none">
-                    <div class="cbx"><span class="cbx-mark">✓</span></div>
-                    <div class="p-body">
-                        <div class="p-name">{{ p.name }}</div>
-                        <div class="p-meta">
-                            {% if p.category %}<span class="bdg bdg-cat">{{ p.category }}</span>{% endif %}
-                            {% if p.deployment_model and p.deployment_model != 'unknown' %}
-                                {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}
-                                <span class="bdg bdg-saas">SaaS Only</span>
-                                {% else %}
-                                <span class="bdg bdg-dep">{% if p.deployment_model in ['self-hosted','self_hosted'] %}On-Prem{% else %}{{ p.deployment_model | replace('-',' ') | replace('_',' ') | title }}{% endif %}</span>
-                                {% endif %}
-                            {% endif %}
-                            <span class="bdg bdg-nl">not likely</span>
-                        </div>
-                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
-                    </div>
-                </label>
-                {% endfor %}
-            </div>
-
-            {% if tc %}
-            <div class="tier-section">
+        {# ── Left: tier sections ── #}
+        <div class="left-col">
+            {% set tiers = [
+                ('highly_likely', 'HIGHLY LIKELY', 'hl', 'HL',  hl_prods),
+                ('likely',        'LIKELY',         'l',  'L',   l_prods),
+                ('less_likely',   'LESS LIKELY',    'll', 'LL',  ll_prods),
+                ('not_likely',    'NOT LIKELY',     'nl', 'NL',  nl_prods)
+            ] %}
+            {% for tier_key, tier_label, tier_cls, tier_abbr, tier_prods in tiers %}
+            <div class="tier-section {% if tier_prods | length == 0 %}tier-empty{% endif %}">
                 <div class="tier-hdr">
-                    <span class="tier-lbl t-tc">Training &amp; Certification</span>
-                    <div class="tier-rule"></div>
+                    <span class="tier-lbl t-{{ tier_cls }}">{{ tier_label }}</span>
+                    <span class="tier-rule" style="color: {% if tier_cls == 'hl' %}#24ED9B{% elif tier_cls == 'l' %}#6dd9a8{% elif tier_cls == 'll' %}#fb923c{% else %}#f87171{% endif %}"></span>
+                    <span class="tier-count">{{ tier_prods | length }}</span>
                 </div>
-                {% for p in tc %}
-                <div class="product-card tc-card">
-                    <div class="p-body">
-                        <div class="p-name">{{ p.name }}</div>
-                        <div class="p-meta">
-                            <span class="bdg bdg-cat">{{ p.category }}</span>
-                            <span class="bdg" style="background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.18)">channel signal</span>
-                        </div>
-                        {% if p.description %}<div class="p-desc">{{ p.description }}</div>{% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
 
-            {% if discovery.competitive_products %}
-            <div class="tier-section">
-                <div class="tier-hdr">
-                    <span class="tier-lbl t-cp">Competitive Landscape</span>
-                    <div class="tier-rule"></div>
-                </div>
-                {% for comp in discovery.competitive_products %}
-                <div class="comp-card">
-                    <div class="comp-card-body">
-                        <div class="comp-name-lbl">{{ comp.competitor_name }}</div>
-                        <div class="comp-prod">{{ comp.product_name }}
-                            {% if comp.category %}<span class="bdg bdg-cat" style="margin-left:6px">{{ comp.category }}</span>{% endif %}
-                            <span class="bdg bdg-nl" style="margin-left:4px">competitor</span>
+                {% if tier_prods %}
+                <div class="tier-cards">
+                    {% for p in tier_prods | sort(attribute='priority') %}
+                    <label class="product-card"
+                           data-cached="{{ 'true' if p.get('cached') else 'false' }}">
+                        <input type="checkbox" name="products" value="{{ p.name }}"
+                               form="dossierForm" class="product-cb">
+                        <div class="cb-visual">
+                            <span class="cb-tick">✓</span>
                         </div>
-                        {% if comp.competitive_context %}<div class="comp-ctx">{{ comp.competitive_context }}</div>{% endif %}
-                    </div>
-                    <button class="comp-caseboard-btn" onclick="runCaseboard('{{ comp.competitor_name | e }}')">Run Caseboard →</button>
+                        <span class="card-name">{{ p.name }}</span>
+                        {% if p.category %}
+                        <span class="badge-cat">{{ p.category }}</span>
+                        {% endif %}
+                        <span class="badge-tier btier-{{ tier_cls }}">{{ tier_abbr }}</span>
+                    </label>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                {% else %}
+                <div class="tier-empty-hint">No products in this tier</div>
+                {% endif %}
             </div>
-            {% endif %}
+            {% endfor %}
         </div>
 
-        <!-- Intel panel -->
-        <div class="intel">
+        {# ── Right: AT A GLANCE + T&C + Competitive ── #}
+        <div class="right-col">
 
-            {# ── Product Labability ── #}
-            <div class="intel-card">
-                <div class="ic-title">Product Labability</div>
-                <div style="margin-top:6px">
-                    {% set hl2 = discovery.products | selectattr('likely_labable','equalto','highly_likely') | list %}
-                    {% set l2  = discovery.products | selectattr('likely_labable','equalto','likely') | list %}
-                    {% set ll2 = discovery.products | selectattr('likely_labable','equalto','less_likely') | rejectattr('category','equalto','Training & Certification') | list %}
-                    {% set nl2 = discovery.products | selectattr('likely_labable','equalto','not_likely') | rejectattr('category','equalto','Training & Certification') | list %}
-                    <div class="ts-row"><div class="ts-dot ts-dot-hl"></div><span class="ts-lbl">Highly Likely</span><span class="ts-ct">{{ hl2 | length }}</span></div>
-                    <div class="ts-row"><div class="ts-dot ts-dot-l"></div><span class="ts-lbl">Likely</span><span class="ts-ct">{{ l2 | length }}</span></div>
-                    <div class="ts-row"><div class="ts-dot ts-dot-ll"></div><span class="ts-lbl">Less Likely</span><span class="ts-ct">{{ ll2 | length }}</span></div>
-                    <div class="ts-row"><div class="ts-dot ts-dot-nl"></div><span class="ts-lbl">Not Likely</span><span class="ts-ct">{{ nl2 | length }}</span></div>
+            {# AT A GLANCE #}
+            <div class="panel-box">
+                <div class="panel-label">AT A GLANCE</div>
+                <div class="glance-rows">
+                    <div class="glance-row">
+                        <span class="glance-dot gdot-hl"></span>
+                        <span class="glance-tier-name">Highly Likely</span>
+                        <span class="glance-count">{{ hl_prods | length }}</span>
+                    </div>
+                    <div class="glance-row">
+                        <span class="glance-dot gdot-l"></span>
+                        <span class="glance-tier-name">Likely</span>
+                        <span class="glance-count">{{ l_prods | length }}</span>
+                    </div>
+                    <div class="glance-row">
+                        <span class="glance-dot gdot-ll"></span>
+                        <span class="glance-tier-name">Less Likely</span>
+                        <span class="glance-count">{{ ll_prods | length }}</span>
+                    </div>
+                    <div class="glance-row">
+                        <span class="glance-dot gdot-nl"></span>
+                        <span class="glance-tier-name">Not Likely</span>
+                        <span class="glance-count">{{ nl_prods | length }}</span>
+                    </div>
+                    <hr class="glance-divider">
+                    <div class="glance-row">
+                        <span class="glance-total" style="flex:1">Total products</span>
+                        <span class="glance-total-count">{{ non_tc_prods | length }}</span>
+                    </div>
                 </div>
             </div>
 
-            {% if discovery.atp_signals or discovery.training_programs %}
-            <div class="intel-card">
-                <div class="ic-title">Training Signals</div>
-                {% if discovery.training_programs %}{% for prog in discovery.training_programs[:5] %}
-                <div class="sig-row">
-                    <div class="sig-dot"></div>
-                    <span class="sig-lbl">{% if prog is string %}{{ prog }}{% elif prog.title is defined %}{{ prog.title }}{% elif prog.name is defined %}{{ prog.name }}{% else %}{{ prog }}{% endif %}</span>
-                </div>
-                {% endfor %}{% endif %}
-                {% if discovery.atp_signals %}{% for sig in discovery.atp_signals[:3] %}
-                <div class="sig-row">
-                    <div class="sig-dot"></div>
-                    <span class="sig-lbl">{% if sig is string %}{{ sig }}{% elif sig.title is defined %}{{ sig.title }}{% elif sig.name is defined %}{{ sig.name }}{% else %}{{ sig }}{% endif %}</span>
-                    <span class="sig-tag">ATP</span>
-                </div>
-                {% endfor %}{% endif %}
+            {# Training & Certification #}
+            {% if tc_prods %}
+            <div class="panel-box panel-box-tc">
+                <div class="panel-label panel-label-tc">Training &amp; Certification</div>
+                <ul class="tc-list">
+                    {% for p in tc_prods %}
+                    <li>{{ p.name }}</li>
+                    {% endfor %}
+                </ul>
             </div>
             {% endif %}
 
+            {# Competitive Landscape #}
+            {% if discovery.competitive_landscape %}
+            <div class="panel-box">
+                <div class="panel-label">Competitive Landscape</div>
+                <ul class="comp-list">
+                    {% for c in discovery.competitive_landscape %}
+                    <li class="comp-item">
+                        {% if c is mapping %}
+                            <span class="comp-name">{{ c.name }}</span>
+                            {% if c.product %}<span class="comp-product"> — {{ c.product }}</span>{% endif %}
+                        {% else %}
+                            <span class="comp-name">{{ c }}</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
 
         </div>
     </div>
-    </form>
 </div>
 
-<!-- Sticky footer -->
-<div class="footer">
-    <div class="f-left">
-        <span class="f-lbl">Selected:</span>
-        <div><span class="f-ct" id="fct">0</span><span class="f-max"> / 4</span></div>
-        <span class="f-hint" id="fhint">Select 1–4 products to run a Dossier</span>
-    </div>
-    <div class="f-right">
-        {% if existing_analysis %}
-        <a href="/inspector/results/{{ existing_analysis.analysis_id }}" class="btn-prev">View Previous</a>
-        {% endif %}
-        <button type="submit" form="scoreForm" class="btn-dossier" id="runBtn" disabled>Run Dossier &rarr;</button>
+{# ── Family Picker Modal ── #}
+{% if show_family_picker %}
+<div class="modal-overlay visible" id="familyModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-company">{{ discovery.company_name }}</div>
+            <div class="modal-count">{{ discovery.products | length }} products discovered</div>
+            <div class="modal-prompt">Select a product family to continue</div>
+        </div>
+        <form method="GET" action="/inspector/caseboard/{{ discovery.discovery_id }}" id="familyForm">
+            <div class="modal-body">
+                {% for family in discovery.product_families %}
+                <label class="family-radio">
+                    <input type="radio" name="family" value="{{ family.name }}" required>
+                    <span class="family-name">{{ family.name }}</span>
+                    <span class="family-count">{{ family.product_count }} products</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn-family-continue" id="familyContinueBtn" disabled>
+                    Continue →
+                </button>
+            </div>
+        </form>
     </div>
 </div>
+{% endif %}
 
 <script>
-const MAX = 4;
+(function() {
+    const MAX_SEL = 6;
+    const form    = document.getElementById('dossierForm');
+    const btn     = document.getElementById('dossierBtn');
+    const status  = document.getElementById('selStatus');
+    const timeEl  = document.getElementById('timeEstimate');
+    const TOTAL   = {{ non_tc_prods | length }};
 
-function toggleCard(label) {
-    event.preventDefault();
-    const cb = label.querySelector('input[type="checkbox"]');
-    if (!cb) return;
-    const cnt = document.querySelectorAll('input[name="products"]:checked').length;
-    if (!cb.checked && cnt >= MAX) return;
-    cb.checked = !cb.checked;
-    if (cb.checked) {
-        label.classList.add('selected');
-    } else {
-        label.classList.remove('selected');
-    }
-    syncFooter();
-}
+    const CACHED_SECS   = 2;
+    const UNCACHED_SECS = 35;
 
-function syncFooter() {
-    const cnt = document.querySelectorAll('input[name="products"]:checked').length;
-    document.getElementById('fct').textContent = cnt;
-    document.getElementById('runBtn').disabled = cnt === 0;
-    document.getElementById('runBtn-top').disabled = cnt === 0;
-    const total = document.querySelectorAll('input[name="products"]').length;
-    const topStatus = document.getElementById('top-sel-status');
-    if (cnt === 0) {
-        topStatus.textContent = '0 of ' + total + ' products selected';
-    } else {
-        topStatus.textContent = cnt + ' of ' + total + ' product' + (total === 1 ? '' : 's') + ' selected';
-    }
-    const hint = document.getElementById('fhint');
-    if (cnt >= MAX) {
-        hint.textContent = 'Maximum selected — deselect to change';
-        hint.style.color = '#fb923c';
-        topStatus.style.color = '#fb923c';
-    } else {
-        hint.textContent = 'Select 1–4 products to run a Dossier';
-        hint.style.color = '#3d6655';
-        topStatus.style.color = cnt === 0 ? '#94a3b8' : '#fb923c';
-    }
-    // Dim unselected when at max
-    document.querySelectorAll('.product-card').forEach(card => {
-        const cb = card.querySelector('input[type="checkbox"]');
-        if (!cb) return;
-        if (!cb.checked && cnt >= MAX) {
-            card.classList.add('dimmed');
+    function zeroPad(n) { return String(n).padStart(2, '0'); }
+
+    function updateState() {
+        const cbs = Array.from(form.querySelectorAll('.product-cb'));
+        const checked = cbs.filter(cb => cb.checked);
+        const n = checked.length;
+
+        /* Update button */
+        btn.disabled = n === 0;
+
+        /* Update status label */
+        status.classList.remove('has-selection', 'at-limit');
+        if (n === 0) {
+            status.textContent = `0 of ${TOTAL} products selected`;
+        } else if (n < MAX_SEL) {
+            status.textContent = `${n} of ${TOTAL} products selected`;
+            status.classList.add('has-selection');
         } else {
-            card.classList.remove('dimmed');
+            status.textContent = `${MAX_SEL} of ${MAX_SEL} — uncheck one to swap`;
+            status.classList.add('at-limit');
+        }
+
+        /* Dim / undim unchecked cards when at limit */
+        const cards = form.querySelectorAll('.product-card');
+        cards.forEach(card => {
+            const cb = card.querySelector('.product-cb');
+            if (n >= MAX_SEL && !cb.checked) {
+                card.classList.add('card-dimmed');
+                cb.disabled = true;
+            } else {
+                card.classList.remove('card-dimmed');
+                cb.disabled = false;
+            }
+        });
+
+        /* Est. research time */
+        let totalSecs = 0;
+        checked.forEach(cb => {
+            const card = cb.closest('.product-card');
+            const cached = card.dataset.cached === 'true';
+            totalSecs += cached ? CACHED_SECS : UNCACHED_SECS;
+        });
+
+        if (n === 0) {
+            timeEl.textContent = 'Est. Research Time: — min, — sec';
+        } else {
+            const mins = Math.floor(totalSecs / 60);
+            const secs = totalSecs % 60;
+            timeEl.textContent = `Est. Research Time: ${zeroPad(mins)} min, ${zeroPad(secs)} sec`;
+        }
+    }
+
+    /* Checkbox sync with styled card */
+    form.addEventListener('change', function(e) {
+        if (!e.target.classList.contains('product-cb')) return;
+        const card = e.target.closest('.product-card');
+        if (e.target.checked) {
+            card.classList.add('card-checked');
+        } else {
+            card.classList.remove('card-checked');
+        }
+        updateState();
+    });
+
+    /* Prevent unchecking beyond limit via direct click */
+    form.addEventListener('click', function(e) {
+        const card = e.target.closest('.product-card');
+        if (!card) return;
+        const cb = card.querySelector('.product-cb');
+        if (!cb) return;
+        if (cb.disabled && !cb.checked) {
+            e.preventDefault();
         }
     });
-}
 
-// Pre-select: enforce max from initial checked state
-window.addEventListener('DOMContentLoaded', () => {
-    let cnt = 0;
-    document.querySelectorAll('input[name="products"]').forEach(cb => {
-        if (cb.checked) {
-            cnt++;
-            if (cnt > MAX) { cb.checked = false; cb.closest('.product-card').classList.remove('selected'); }
-        }
-    });
-    syncFooter();
-});
+    /* Family picker enable/disable Continue */
+    const familyContinueBtn = document.getElementById('familyContinueBtn');
+    if (familyContinueBtn) {
+        const familyRadios = document.querySelectorAll('input[name="family"]');
+        familyRadios.forEach(r => {
+            r.addEventListener('change', () => {
+                familyContinueBtn.disabled = false;
+            });
+        });
+    }
 
-function runCaseboard(companyName) {
-    const form = document.getElementById('competitor-discover-form');
-    document.getElementById('competitor-company-input').value = companyName;
-    form.submit();
-}
+    updateState();
+})();
 </script>
-
-<!-- Hidden form for competitor Caseboard discovery -->
-<form id="competitor-discover-form" method="POST" action="/inspector/discover" style="display:none">
-    <input type="hidden" id="competitor-company-input" name="company_name" value="">
-</form>
 
 </body>
 </html>

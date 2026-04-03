@@ -22,7 +22,7 @@ from intelligence import (
 from datetime import datetime, timezone
 
 from storage import (
-    save_analysis, load_analysis, list_analyses,
+    save_analysis, save_analysis_dict, load_analysis, list_analyses,
     save_discovery, load_discovery,
     find_analysis_by_discovery_id,
     find_analysis_by_company_name,
@@ -70,21 +70,15 @@ def discover():
         search_label = company_name
 
     if not force_refresh:
-        # ── Level 1: complete analysis cache ──────────────────────────────────
-        cached_analysis = find_analysis_by_company_name(company_name)
-        if cached_analysis and _cache_is_fresh(cached_analysis.get("analyzed_at", "")):
-            aid = cached_analysis.get("analysis_id", "")
-            if aid:
-                log.info("Inspector cache hit (analysis) for %s → %s", company_name, aid)
-                return redirect(url_for("inspector.results", analysis_id=aid) + "?cached=1")
-
-        # ── Level 2: discovery cache (skip searches, go straight to case board) ──
+        # Discovery cache → always land on Caseboard, never skip directly to Dossier.
+        # The existing analysis (if any) surfaces via the "View Previous →" button on
+        # the Caseboard, letting the user decide whether to re-run or review the old one.
         cached_disc = find_discovery_by_company_name(company_name)
         if cached_disc and _cache_is_fresh(cached_disc.get("created_at", "")):
             disc_id = cached_disc.get("discovery_id", "")
             if disc_id:
                 log.info("Inspector cache hit (discovery) for %s → %s", company_name, disc_id)
-                return redirect(url_for("inspector.caseboard", discovery_id=disc_id) + "?cached=1")
+                return redirect(url_for("inspector.caseboard", discovery_id=disc_id))
 
     discovery_id = str(uuid.uuid4())[:8]
 
@@ -137,9 +131,28 @@ def caseboard(discovery_id: str):
         if analysis and analysis.get("discovery_id"):
             return redirect(url_for("inspector.caseboard", discovery_id=analysis["discovery_id"]))
         return redirect(url_for("inspector.home"))
+
+    # Tag each product with its per-product score cache status so the Caseboard
+    # can compute Est. Research Time client-side without an extra server call.
+    product_score_cache = discovery.get("_product_scores", {})
     for i, p in enumerate(discovery.get("products", []), start=1):
         if not p.get("priority"):
             p["priority"] = i
+        cached_score = product_score_cache.get(p.get("name", ""))
+        p["cached"] = bool(cached_score and _cache_is_fresh(cached_score.get("scored_at", "")))
+
+    # Extract competitive_landscape from discovery for the right panel.
+    # Source: partnership_signals.existing_lab_partner from Claude discovery response.
+    partnership = discovery.get("partnership_signals") or {}
+    existing_partner = partnership.get("existing_lab_partner")
+    if isinstance(existing_partner, list):
+        competitive_landscape = [{"name": c} for c in existing_partner if c]
+    elif isinstance(existing_partner, str) and existing_partner.strip():
+        competitive_landscape = [{"name": existing_partner.strip()}]
+    else:
+        competitive_landscape = []
+    discovery["competitive_landscape"] = competitive_landscape
+
     existing_analysis = find_analysis_by_discovery_id(discovery_id)
     return render_template("caseboard.html", discovery=discovery, existing_analysis=existing_analysis)
 
@@ -162,17 +175,55 @@ def score():
 
     job_id = str(uuid.uuid4())[:8]
     company_name = discovery.get("company_name", "")
+    # Read form flags before the thread starts — request context is not thread-safe.
+    force_refresh = request.form.get("force_refresh") == "1"
 
     def run_scoring():
         try:
             from researcher import research_products
 
-            # Check research cache — skip web searches if all products already researched
-            cache = discovery.get("_research_cache", {})
-            cached_names = set(cache.get("researched_products", []))
-            selected_name_set = {p["name"] for p in selected_products}
+            # ── Per-product score cache split ──────────────────────────────────
+            # Products with a fresh cached score are served from cache; only
+            # uncached products go through research + Claude scoring.
+            product_score_cache = discovery.get("_product_scores", {})
+            fresh_cached_products = []   # full scored product dicts, ready to use
+            needs_scoring = []           # original discovery product dicts
 
-            if selected_name_set <= cached_names:
+            for p in selected_products:
+                name = p.get("name", "")
+                cached = product_score_cache.get(name)
+                if not force_refresh and cached and _cache_is_fresh(cached.get("scored_at", "")):
+                    fresh_cached_products.append(cached["product_data"])
+                else:
+                    needs_scoring.append(p)
+
+            # ── Case A: all products are fresh from cache ──────────────────────
+            if not needs_scoring:
+                _push(job_id, "status:Loading cached scores")
+                new_aid = str(uuid.uuid4())[:8]
+                assembled = {
+                    "analysis_id": new_aid,
+                    "company_name": company_name,
+                    "company_description": discovery.get("company_description", ""),
+                    "organization_type": discovery.get("organization_type", "software_company"),
+                    "company_url": discovery.get("company_url", ""),
+                    "discovery_id": discovery_id,
+                    "analyzed_at": datetime.now(timezone.utc).isoformat(),
+                    "total_products_discovered": len(discovery.get("products", [])),
+                    "products": fresh_cached_products,
+                }
+                _attach_scores(assembled)
+                save_analysis_dict(new_aid, assembled)
+                _push(job_id, f"done:{new_aid}")
+                return
+
+            # ── Case B: some products need scoring ────────────────────────────
+            # Research phase — only for products that need scoring.
+            cache = discovery.get("_research_cache", {})
+            cached_research_names = set(cache.get("researched_products", []))
+            scoring_name_set = {p["name"] for p in needs_scoring}
+
+            if scoring_name_set <= cached_research_names:
                 _push(job_id, "status:Loading cached research data")
                 research_cache = cache
             else:
@@ -192,14 +243,13 @@ def score():
 
                 msg_thread = threading.Thread(target=push_research_messages, daemon=True)
                 msg_thread.start()
-                raw_research = research_products(company_name, selected_products)
+                raw_research = research_products(company_name, needs_scoring)
                 msg_thread.join()
 
-                # Merge into discovery research cache for future re-runs
                 merged_search = {**cache.get("search_results", {}), **raw_research["search_results"]}
                 merged_pages  = {**cache.get("page_contents", {}),  **raw_research["page_contents"]}
                 research_cache = {
-                    "researched_products": list(cached_names | selected_name_set),
+                    "researched_products": list(cached_research_names | scoring_name_set),
                     "search_results": merged_search,
                     "page_contents":  merged_pages,
                 }
@@ -207,12 +257,25 @@ def score():
                 save_discovery(discovery_id, updated_discovery)
 
             _push(job_id, "status:Scoring with Claude AI")
-            # Intelligence handles scoring, discrepancy detection, and storage
             analysis_id, _ = intel_score(
-                company_name, selected_products, discovery_id,
+                company_name, needs_scoring, discovery_id,
                 discovery_data=discovery,
                 research_cache=research_cache,
             )
+
+            # If any products came from cache, inject them into the new analysis
+            # and recompute the composite score across the full set.
+            if fresh_cached_products:
+                data = load_analysis(analysis_id)
+                if data:
+                    data["products"] = fresh_cached_products + (data.get("products") or [])
+                    _attach_scores(data)
+                    save_analysis_dict(analysis_id, data)
+
+            # Persist newly scored products to the per-product score cache on the
+            # discovery record so future Caseboard visits reflect the new cache state.
+            _persist_product_scores(discovery_id, discovery, analysis_id)
+
             _push(job_id, "status:Generating report")
             _push(job_id, f"done:{analysis_id}")
         except Exception as e:
@@ -432,16 +495,16 @@ def blockers():
             flags = product.get("poor_match_flags") or []
             tech_score = None
 
-            # Extract technical_orchestrability from dimension scores
+            # Extract product_labability score from dimension scores
             dims = product.get("dimension_scores") or {}
             if isinstance(dims, dict):
-                tech_score = dims.get("technical_orchestrability")
+                tech_score = dims.get("product_labability")
             if tech_score is None:
-                # Try nested structure
-                for key in ("technical_orchestrability", "tech_orchestrability"):
-                    if key in product:
-                        tech_score = product[key]
-                        break
+                # Fallback: check labability_score nested structure (primary storage location)
+                labability = product.get("labability_score") or {}
+                pl = labability.get("product_labability") or {}
+                if isinstance(pl, dict):
+                    tech_score = pl.get("score")
 
             dedup_key = f"analysis:{aid}:{p_name}"
             disc_dedup_key = f"disc:{data.get('discovery_id', '')}:{p_name}"
@@ -466,7 +529,7 @@ def blockers():
                     blocker_rows.append({
                         "company_name": company_name,
                         "product_name": p_name,
-                        "blocker_type": "Low technical orchestrability",
+                        "blocker_type": "Low Product Labability score",
                         "likely_labable": _labable_tier_from_score(product),
                         "tech_score": tech_score,
                         "source_id": aid,
@@ -510,6 +573,22 @@ def blockers():
         total_products=total_products,
         distinct_types=distinct_types,
     )
+
+
+def _persist_product_scores(discovery_id: str, discovery: dict, analysis_id: str) -> None:
+    """Write newly scored product data back to the per-product score cache on the
+    discovery record so subsequent Caseboard renders can tag products as cached."""
+    data = load_analysis(analysis_id)
+    if not data:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    product_scores = dict(discovery.get("_product_scores", {}))
+    for p in data.get("products", []):
+        name = p.get("name", "")
+        if name:
+            product_scores[name] = {"scored_at": now, "product_data": p}
+    updated = {**discovery, "_product_scores": product_scores}
+    save_discovery(discovery_id, updated)
 
 
 def _labable_tier_from_score(product: dict) -> str:

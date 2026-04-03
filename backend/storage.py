@@ -46,6 +46,14 @@ def save_analysis(analysis: CompanyAnalysis) -> str:
     return analysis.analysis_id
 
 
+def save_analysis_dict(analysis_id: str, data: dict) -> str:
+    """Save a pre-assembled analysis dict (e.g. merged cached + newly scored products)."""
+    filepath = os.path.join(DATA_DIR, f"{analysis_id}.json")
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, default=str)
+    return analysis_id
+
+
 def load_analysis(analysis_id: str) -> dict | None:
     filepath = os.path.join(DATA_DIR, f"{analysis_id}.json")
     if not os.path.exists(filepath):
