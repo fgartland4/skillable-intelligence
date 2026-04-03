@@ -129,10 +129,19 @@ a:hover { text-decoration: underline; }
     background: #0c1f19; border: 1px solid #1e3329; border-radius: 10px;
     padding: 16px 18px;
 }
+.dim-box-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 12px;
+}
 .dim-box-title {
     font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
-    color: #4a7060; text-transform: uppercase; margin-bottom: 12px;
+    color: #4a7060; text-transform: uppercase;
 }
+.dim-box-score {
+    font-size: 0.78rem; font-weight: 700; color: #e8f5f0;
+    font-variant-numeric: tabular-nums;
+}
+.dim-box-max { color: #2e4d40; font-weight: 400; }
 .dim-badges { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
 .dim-badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -491,7 +500,7 @@ details[open] .chevron { transform: rotate(180deg); }
     <div class="hero-boxes">
         <div class="hero-score-box">
             <div class="hero-score-row">
-                <span class="hero-score {{ v_cls }}">{{ composite }}</span>
+                <span class="hero-score {{ v_cls }}">{{ composite }}<span style="font-size:1.2rem;font-weight:400;color:#2e4d40;"> / 100</span></span>
                 <span class="verdict-label {{ v_cls }}">{{ v }}</span>
             </div>
             <div class="hero-badges">
@@ -537,21 +546,37 @@ details[open] .chevron { transform: rotate(180deg); }
 {# ─────────────────────────────────────────────────────────────── #}
 {#  FOUR DIMENSION BOXES                                           #}
 {# ─────────────────────────────────────────────────────────────── #}
+{%- set _pl_sc = (_pl.get('score', 0) if _pl is mapping else _pl.score) | default(0) -%}
+{%- set _iv_sc = (_iv.get('score', 0) if _iv is mapping else _iv.score) | default(0) -%}
+{%- set _or_sc = (_or.get('score', 0) if _or is mapping else _or.score) | default(0) -%}
+{%- set _mr_sc = (_mr.get('score', 0) if _mr is mapping else _mr.score) | default(0) -%}
 <div class="dim-grid">
     <div class="dim-box">
-        <div class="dim-box-title">Product Labability</div>
+        <div class="dim-box-header">
+            <div class="dim-box-title">Product Labability</div>
+            <div class="dim-box-score">{{ _pl_sc }}<span class="dim-box-max"> / 40</span></div>
+        </div>
         <div class="dim-badges">{{ render_dim_badges(pl_evs) }}</div>
     </div>
     <div class="dim-box">
-        <div class="dim-box-title">Instructional Value</div>
+        <div class="dim-box-header">
+            <div class="dim-box-title">Instructional Value</div>
+            <div class="dim-box-score">{{ _iv_sc }}<span class="dim-box-max"> / 30</span></div>
+        </div>
         <div class="dim-badges">{{ render_dim_badges(iv_evs) }}</div>
     </div>
     <div class="dim-box">
-        <div class="dim-box-title">Organizational Readiness</div>
+        <div class="dim-box-header">
+            <div class="dim-box-title">Organizational Readiness</div>
+            <div class="dim-box-score">{{ _or_sc }}<span class="dim-box-max"> / 20</span></div>
+        </div>
         <div class="dim-badges">{{ render_dim_badges(or_evs) }}</div>
     </div>
     <div class="dim-box">
-        <div class="dim-box-title">Market Readiness</div>
+        <div class="dim-box-header">
+            <div class="dim-box-title">Market Readiness</div>
+            <div class="dim-box-score">{{ _mr_sc }}<span class="dim-box-max"> / 10</span></div>
+        </div>
         <div class="dim-badges">{{ render_dim_badges(mr_evs) }}</div>
     </div>
 </div><!-- dim-grid -->
