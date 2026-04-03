@@ -284,7 +284,8 @@ def score():
 
     threading.Thread(target=run_scoring, daemon=True).start()
     return render_template("scoring.html", job_id=job_id, company_name=company_name,
-                           product_count=len(selected_products))
+                           product_count=len(selected_products),
+                           discovery_id=discovery_id)
 
 
 @inspector.route("/score/progress/<job_id>")
@@ -299,6 +300,17 @@ def score_poll(job_id: str):
     """Polling fallback for SSE — returns job status as JSON.
     Used by the scoring page when the SSE connection drops."""
     return jsonify(_poll_job(job_id))
+
+
+@inspector.route("/latest-analysis/<discovery_id>")
+def latest_analysis(discovery_id: str):
+    """Return the most recent analysis for a discovery as JSON.
+    Reliable fallback when job-based polling loses track of the analysis_id."""
+    analysis = find_analysis_by_discovery_id(discovery_id)
+    if analysis:
+        return jsonify({"found": True, "analysis_id": analysis["analysis_id"],
+                        "analyzed_at": analysis.get("analyzed_at", "")})
+    return jsonify({"found": False})
 
 
 # Results

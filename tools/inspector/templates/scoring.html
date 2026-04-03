@@ -301,16 +301,21 @@
                 document.getElementById("status").textContent = "Error: " + msg.slice(6);
             }
         };
-        // When SSE drops, start polling every 5s so we still redirect on completion.
+        // When SSE drops, poll the discovery-based latest-analysis endpoint every 5s.
+        // This is reliable because it finds the analysis by discovery_id, not by job_id,
+        // so it works even if the SSE job queue has stale or incorrect data.
+        const _discoveryId = '{{ discovery_id }}';
         let _pollInterval = null;
+        let _lastAnalysisAt = '';
         source.onerror = function() {
             document.getElementById("status").textContent = "Still working — connection interrupted, checking status...";
             if (!_pollInterval) {
                 _pollInterval = setInterval(function() {
-                    fetch('/inspector/score/poll/{{ job_id }}')
+                    fetch('/inspector/latest-analysis/' + _discoveryId)
                         .then(r => r.json())
                         .then(d => {
-                            if (d.status === 'done') {
+                            if (d.found && d.analyzed_at !== _lastAnalysisAt) {
+                                _lastAnalysisAt = d.analyzed_at;
                                 clearInterval(_pollInterval);
                                 source.close();
                                 finishClaude();
@@ -321,16 +326,8 @@
                                     document.getElementById("status").textContent = "Complete — loading results...";
                                     window.location.href = '/inspector/dossier/' + d.analysis_id;
                                 }, 1500);
-                            } else if (d.status === 'error') {
-                                clearInterval(_pollInterval);
-                                source.close();
-                                document.getElementById("status").textContent = "Error: " + d.message;
-                            } else if (d.status === 'unknown') {
-                                clearInterval(_pollInterval);
-                                source.close();
-                                document.getElementById("status").textContent = "Something went wrong. Please try again.";
                             }
-                            // status === 'running': keep polling
+                            // Not found yet: keep polling
                         })
                         .catch(() => { /* network error, keep polling */ });
                 }, 5000);
