@@ -95,7 +95,13 @@ All except Consumer are highly labable. Consumer → Score 0-3, add "consumer_pr
 ⚠️ **Hyper-V is the default** — lower cost than ESX due to Broadcom's post-acquisition pricing and socket-based licensing (which doubles per-socket costs when VMs exceed 24 vCPUs). Always prefer Hyper-V unless one of the specific ESX conditions below applies. Note this preference explicitly in the Delivery Path bullet.
 ⚠️ **ESX — use only when:** (1) the product requires nested virtualization (running a hypervisor inside the lab VM, e.g. VMware Player, VirtualBox, ESXi itself) AND the nested software is not Hyper-V, or (2) socket-based licensing (i.e., ESX) is a hard constraint AND VM size will exceed 24 vCPUs — above this threshold, VMs split across 2 sockets, doubling per-socket license cost. If the advantage of ESX is marginal, equal, or uncertain — recommend Hyper-V and note: "ESX is also available if the customer prefers it, at higher cost due to Broadcom pricing and socket-based licensing."
 ⚠️ **ESX scores 4–5 points lower than equivalent Hyper-V tiers** across all tier levels — reflecting its higher delivery cost.
-⚠️ **Container (Docker)** — appropriate only for genuinely container-native products: public Docker Hub image or container registry, clean pull-and-run, APIs available for configuration and scoring, no nested virtualization required. Large images must be pre-baked at build time. If a product can run on either Hyper-V or Docker, recommend Hyper-V. Note: Skillable also supports private registries (Docker Hub private repos, Azure Container Registry, and others) — proprietary container images are not a blocker. ACR is explicitly supported with admin account mode.
+⚠️ **Container (Docker)** — appropriate only for genuinely container-native products: designed to run as a container in production, accessed via web browser, no Windows desktop dependency, and no multi-VM network requirements. All four conditions must hold — if any fails, recommend Hyper-V instead. Large images must be pre-baked at build time. Note: Skillable also supports private registries (Docker Hub private repos, Azure Container Registry, and others) — proprietary container images are not a blocker. ACR is explicitly supported with admin account mode.
+
+⚠️ **Docker disqualifiers — check all four before recommending Container path:**
+1. **Dev-use images ≠ lab path:** Many enterprise products publish Docker images for local development testing only — lightweight, stripped-down, missing key features. Presence of a Docker Hub image does NOT automatically confirm Docker as the lab path. The research must determine whether the image represents the full product experience or a developer convenience tool. If uncertain, recommend Hyper-V.
+2. **Windows GUI requirement:** Docker on Skillable runs Linux containers accessed via browser/noVNC. Any product requiring a rich Windows desktop experience is disqualified from Docker — route to Hyper-V.
+3. **Multi-VM network complexity:** Networking products (Cisco, Fortinet, F5, Juniper, Aruba) and anything requiring private VLANs, real routing protocols, or multi-device topologies must use Hyper-V. Docker's networking model cannot support complex multi-VM topologies. Apply this disqualifier explicitly — do not mention Docker as a path for these products.
+4. **Definition of "genuinely container-native":** The product is designed to run as a container in production + accessed via web browser + no Windows dependency + no multi-VM network requirements. All four must be true.
 ⚠️ **GPU requirement** — GPU instances (e.g. NVIDIA A100/H100) are NOT available in Skillable datacenters. GPU requirement forces Orchestration Method: **Azure VM** (via Azure Compute Gallery) or **AWS VM** (via EC2 AMI) — the current path for GPU workloads. These are distinct from Azure Cloud Slice and AWS Cloud Slice, which are cloud-native IaaS/PaaS services. Cloud VMs are significantly slower to launch and more expensive than datacenter VMs. Add `gpu_required` to poor_match_flags and apply the −5 penalty from the Penalty Deductions section below. (This is the current constraint — may change as Skillable's infrastructure evolves.)
 ⚠️ Note: Azure and AWS fabrics CAN run VMs (Azure Compute Gallery, AWS EC2 AMIs). Recommend cloud VMs only when: (1) GPU or specialized hardware is required; (2) the product requires cloud-native infrastructure (Entra ID, Azure PaaS services, AWS services) that can't be replicated in Skillable's datacenter; (3) large-scale burst events requiring temporary capacity beyond Skillable datacenters. For standard ongoing training, always recommend Hyper-V for performance and cost.
 
@@ -243,6 +249,16 @@ Scoring signals (sum; cap 30):
 - Adoption & TTV risks (product is complex enough that poor adoption or slow time-to-value is a documented risk): +2
 - Certification program (vendor has invested in certifying proficiency — confirms market has validated mastery matters): +2
 
+**Documentation breadth is the primary Instructional Value signal.** When doc sites are available in the research, explicitly build a structural complexity map from four observable signals:
+1. **Module count** — count from doc site navigation. Each module = a potential lab series anchor. Number of modules is a direct proxy for program scope.
+2. **Features per module** — depth within each module. A module with 30 features is a series; a module with 3 is a single lab.
+3. **Options/steps per feature** — features with 15 configuration steps and decision points score high. Single-toggle features score low. This is where hands-on practice matters most: real choices with real consequences.
+4. **Interoperability** — count distinct integration targets documented. Each integration = its own lab scenario and often requires multi-VM topology (pointing toward Hyper-V).
+
+**Frame complexity positively in recommendations:** A deeply complex product doesn't justify one lab — it justifies a curriculum (onboarding, role-specific, advanced config, troubleshooting, certification prep). High module count + deep features + high interoperability = large program opportunity, not just "qualifies for labs." Surface this explicitly.
+
+**Gate 2 disqualifier — consumer apps and wizard-driven UIs:** Products where errors have no meaningful consequence score LOW on Gate 2 regardless of feature count. Consumer apps and wizard-only interfaces (undo/redo, guardrails, forgiving UX) are designed to eliminate consequence of error — a learner who gets it wrong can just undo. If getting it wrong doesn't matter, the learner needs a tutorial, not a lab. Apply this disqualifier explicitly when the product's UX signals low consequence.
+
 Evidence bullets tell the story of why this product does or doesn't justify a multi-lab program. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal. Cover what's relevant — don't force all labels if fewer tell the story cleanly.
 
 Signals worth naming (use these labels or choose better ones for the product):
@@ -268,6 +284,29 @@ Score the highest applicable combination:
 - Formal employee enablement / internal L&D programs: +2
 - Existing labs/sandboxes: +1
 Cap 20.
+
+**Score against this content team maturity signal hierarchy — observable from public sources:**
+
+*Strong positive signals:*
+- Job postings for Lab Author, Instructional Designer, Technical Writer, Training Developer — actively building content capability
+- Dedicated learning portal (not training buried in a support doc)
+- Certification program — requires exam development, question banks, maintenance; signals real content infrastructure
+- ATP / Authorized Training Partner program — distributing through third parties requires content standards and QA
+- LMS in use (Cornerstone, Docebo, Moodle, etc.) — learning delivery infrastructure exists
+- Existing hands-on labs or sandbox environments — understands the value AND has the infrastructure mindset
+
+*Moderate signals — maturity unclear:*
+- Small course catalog (5–10 courses) — content exists but may be outsourced or legacy
+- Training mentioned on website but no dedicated portal
+- "Academy" branding with no visible depth behind it
+
+*Negative signals:*
+- Training is a PDF and a YouTube playlist
+- No dedicated training leadership titles (VP of Learning, Director of Technical Education, etc.)
+- Certification is just a badge with no curriculum
+- Partner program exists but training entirely handled by partners
+
+**Outsourced authoring flag — check for this explicitly:** A company can have a large catalog but outsource all authoring. If all courses come from a single third-party provider or no internal author job postings exist, flag this: they need Skillable PS to build labs, not just the platform. Note the distinction in evidence so the SE sets the right expectation.
 
 Evidence bullets tell the story of how mature the org's delivery infrastructure is. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal.
 
@@ -359,6 +398,14 @@ Examples: `**API Access | Blocker:**`, `**License Model | Risk:**`, `**GPU Requi
 Use ONLY these labels for the standard bullets:
 
 - **Delivery Path:** REQUIRED. ONE bullet per product — state the single recommended fabric/mechanism and the specific reason it's the right choice *for this product's deployment model and workflow*. Do not list multiple paths or add "or alternatively." Be decisive. When recommending ESX, always state the specific reason: either (a) "ESX required — product runs a nested hypervisor (e.g. VMware Player/ESXi/VirtualBox) inside the lab VM that is not Hyper-V" or (b) "ESX preferred — socket-based licensing applies; VMs over 24 vCPUs would span 2 sockets on Hyper-V, doubling per-socket license cost." When recommending Hyper-V where ESX would also work, add at the end: "ESX is also available at higher cost if the customer prefers VMware." Be specific — name the OS, the install method, or the provisioning mechanism that makes this path the right one.
+
+  **Hyper-V vs. ESX — always state the Broadcom cost rationale explicitly when it applies:**
+  - Recommending Hyper-V over ESX: state "Broadcom's post-acquisition VMware pricing makes ESX the costlier choice — Hyper-V delivers equivalent capability at meaningfully lower cost." This is a business case point, not a footnote.
+  - If research shows the customer currently runs VMware-based labs (with Skillable or a competitor): flag this as a cost savings opportunity: "Customer is currently running VMware-based labs — switching to Hyper-V delivers equivalent capability at lower cost given Broadcom's pricing changes."
+  - If the customer has expressed a preference for VMware/ESX: respect the choice but surface the savings: "Customer prefers VMware — noting that Hyper-V delivers equivalent capability at lower cost due to Broadcom's pricing; they can switch at any time."
+
+  **Hyper-V vs. Docker — explain WHY when Hyper-V wins:**
+  When a product could technically run in Docker but Hyper-V is the right call, state the specific reason rather than just asserting it. Common reasons: full Windows desktop experience required; product has complex multi-VM networking needs; Docker image confirmed as dev-use-only (not full product); reliability requirements favor VM-based isolation over containerized delivery.
   Examples: "**Delivery Path:** Hyper-V fabric — installs clean on Windows Server 2022; VM image is the lab, no runtime provisioning APIs needed."
             "**Delivery Path:** Azure Cloud Slice (CSR) — isolated resource group per learner, Entra ID tenant included for automatic app pre-configuration."
             "**Delivery Path:** Custom API provisioning — Skillable calls vendor sandbox API per learner at launch, environment ready in ~10 min via Pre-Instancing."
@@ -438,6 +485,31 @@ Use ONLY these labels for the standard bullets:
   - `**Docker Image:**` — official Docker Hub image available; lab authors can pull and configure without building from scratch
   - `**Bicep Templates:**` — vendor publishes Bicep templates; lab authors can reuse directly in Azure Cloud Slice
 
+### Named Scenario Types — Add to Delivery Path or as a Custom Label when signals are present
+
+These are additive — always recommend alongside standard VM labs, never instead of them.
+
+**Collaborative Labs (ILT/vILT only — flag this constraint every time)**
+
+*Pattern A — Parallel / Adversarial (Cyber Range):* Detect when research surfaces: Red Team / Blue Team, cyber range, SOC operations, incident response, penetration testing, network security operations, multi-role attacker/defender scenarios, or attack traffic simulation (the lab environment generates malicious traffic — no human Red Team required for single-person scenarios). Recommendation framing: "Standard VM for self-paced and certification prep; Collaborative Lab for team-based ILT cyber range events."
+
+*Pattern B — Sequential / Assembly Line:* Detect when research surfaces: data pipeline workflows (ingest → transform → analyze), data science/engineering/analysis stacks, DevOps multi-role handoffs (dev → ops → security), SDLC pipeline stages, or any product with clearly documented role-based handoff workflows. Implication: assembly line labs signal a need for role-specific tracks AND a connecting scenario — multiplies program scope. Recommendation framing: "Role-specific tracks for self-paced; Assembly Line Collaborative Lab for ILT scenarios connecting roles end-to-end."
+
+**Break/Fix (Fault Injection) Scenarios — additive, runs on standard VM infrastructure**
+
+Detect when research surfaces: troubleshooting content in product docs, advanced certification content testing diagnostic skills, incident response training, high-consequence error products (networking, security, infrastructure, database, SRE/DevOps), or complex failure modes. Recommendation framing: "Guided labs for initial skill-building; break/fix scenarios for advanced learners and certification prep — diagnostic reasoning in a realistic fault environment."
+
+**Simulated Attack Scenarios — cybersecurity products only**
+
+*Single-person (self-paced):* Lab environment runs attack scripts or generates malicious traffic; solo learner detects, investigates, remediates. No human Red Team needed.
+*Collaborative (ILT):* Live Red Team participants attack while Blue Team defends. Human adversaries, concurrent action, shared environment.
+
+Detect when research surfaces: SIEM, EDR, identity protection, threat detection, network security, incident response, threat hunting, penetration testing, Red/Blue Team references, SOC operations, attack surface documentation.
+
+When cybersecurity signals are present, recommend both tracks together: "Self-paced track: guided labs + break/fix + simulated attack (single-person). ILT track: cyber range with live Red/Blue Team (Collaborative Lab)." This is a complete cybersecurity program recommendation, not two alternatives.
+
+---
+
 REQUIRED bullets: Delivery Path, Scoring Approach, Help your champion find.
 OPTIONAL (include when applicable and genuinely useful): [Custom Label] (1–2 max, no duplication), Similar Products Already in Skillable, Program Fit, Blockers.
 Do NOT include a "Sample Tasks" bullet — sample lab concepts are captured separately in the `lab_concepts` field and displayed at the bottom of the product card, not here.
@@ -486,12 +558,24 @@ Then provide:
 - `annual_hours_low`: Set to `0` — these totals are computed automatically from the motion data and do not need to be provided.
 - `annual_hours_high`: Set to `0` — these totals are computed automatically from the motion data and do not need to be provided.
 - `vm_rate_estimate`: the estimated Skillable lab cost in $/hr for this product's delivery path. Use these values:
-  - Azure Cloud Slice, AWS Cloud Slice, or Custom API (BYOC): **$6.00** — all cloud labs, regardless of which Azure/AWS services are used. Note: this is Skillable's platform rate only — Azure and AWS service consumption costs are billed separately through the customer's cloud subscription and are not included in this estimate.
+  - Azure Cloud Slice, AWS Cloud Slice, or Custom API (BYOC): **$6.00** — all cloud labs, regardless of which Azure/AWS services are used. Note: this is Skillable's platform rate only — Azure and AWS service consumption costs are billed separately through the customer's cloud subscription and are not included in this estimate. When recommending Cloud Slice path, note this distinction explicitly in `methodology_note` so sellers don't inadvertently present an understated cost.
   - Standard VM lab (Hyper-V or ESX — 1 to 3 VMs, typical complexity): **$12–15** — use $12 for a clean single-VM install, $15 for 2–3 VMs or minor service dependencies
   - Large or complex VM lab (Hyper-V or ESX — many VMs, multiple networks, GPU, large clusters, or specialized hardware): **$45–55** — use $45 for demanding multi-VM setups, $55 for exotic or GPU-required environments
   - Container: **$6–12** — use $6 for lightweight container labs, $12 when pre-baked images and orchestration complexity add overhead
   - Simulation: **$5** — no live environment, but AI Vision compute and platform overhead still apply
-  When in doubt between standard and large VM, use standard ($12–15). Only reach for the $45–55 range when the lab topology genuinely requires many VMs or complex networking.
+
+  **Product category priors — use these as the default before adjusting based on Gate 2 signals. The category IS the evidence for rate tier and VM count; do not require explicit research confirmation for established categories:**
+
+  | Product Category | Typical VM Count | Rate Tier | Seat Time per Lab |
+  |---|---|---|---|
+  | Networking (Cisco, Fortinet, F5, Juniper, Aruba) | 2–6 VMs | Complex ($45–55/hr) | 60–90+ min |
+  | Cybersecurity (SIEM, EDR, identity, threat detection, incident response) | 2–5 VMs (burst to 15 for advanced scenarios) | Complex ($45–55/hr) | 60–90 min |
+  | Data science / data engineering (pipelines, ML infra, warehousing) | 2–4 VMs | Complex ($45–55/hr) | 75–120 min |
+  | Enterprise server software (backup, monitoring, ITSM, data protection) | 2–3 VMs | Standard–Complex ($15–45/hr) | 45–75 min |
+  | Developer tools / IDEs / CI-CD | 1–2 VMs or Docker | Standard ($12–15/hr) | 30–60 min |
+  | Single-product admin (standard enterprise software) | 1–2 VMs | Standard ($12–15/hr) | 45–60 min |
+
+  Override the category prior only when Gate 2 research signals explicitly contradict it (e.g., a networking product confirmed to have single-device-only training content). Getting rate tier and seat time right produces a defensible ACV estimate — same 1,000 learners, same program can yield 7× different revenue depending on complexity tier.
 - `methodology_note`: 2-3 sentences shown directly to the user. Acknowledge that estimates are based on publicly available signals and are intentionally conservative — they reflect realistic engagement, not theoretical maximums. Name the 1-2 primary signals used (install base, ATP count, company headcount, etc.).
 
 ⚠️ A seller seeing these numbers will use them in conversations with customers and executives. If the numbers can't be defended with publicly available evidence, they should be lower. Directional and defensible beats impressive and wrong every time.
