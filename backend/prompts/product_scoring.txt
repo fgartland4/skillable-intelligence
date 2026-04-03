@@ -181,6 +181,40 @@ Bare labels with no suffix (e.g., `**Install Base:**`) are only acceptable for t
 
 ⚠️ **URL PLACEMENT RULE:** Never embed URLs directly in `claim` text — not as raw URLs and not as markdown links `[label](url)`. All source citations belong in the structured `source_url` and `source_title` fields of the evidence object. A claim like `**Windows Install:** Silent installer confirmed at [deployment guide](https://...)` is wrong — move the URL to `source_url`. Claims with embedded URLs will not render correctly.
 
+⚠️ **CANONICAL BADGE NAME LIST — use these exact names when the signal matches. Do not paraphrase, abbreviate, or invent alternatives.**
+
+These names are locked vocabulary shared across all Skillable tools. Using the exact name ensures correct rendering, grouping, and display.
+
+**Product Labability — Provisioning:**
+`Runs in Hyper-V` · `Runs in Azure` · `Runs in AWS` · `Requires GCP` · `Runs in Containers` · `ESX Required` · `Learner Isolation` · `Provisioning APIs` · `Lifecycle APIs` · `Full Tenant Required` · `Potential IaC Friction` · `Bare Metal Required` · `No Deployment Method`
+
+**Product Labability — Licensing & Accounts:**
+`AuthN/AuthZ APIs` · `Credential Pool` · `Account Recycling` · `Supports NFR Accounts` · `High License Cost` · `Tenant Provisioning Lag` · `Provisioning Rate Limits` · `Anti-Automation Controls` · `MFA Required` · `Credit Card Required`
+
+**Product Labability — Scoring:**
+`Scoring APIs` · `Script Scorable`
+
+**Product Labability — Teardown:**
+`Teardown APIs` · `Lifecycle APIs` · `Full Tenant Required`
+
+**Instructional Value — Difficult to Master:**
+`Product Breadth & Depth` · `Workflow Complexity` · `Configuration Complexity` · `Not Lab Appropriate`
+
+**Instructional Value — Mastery Matters:**
+`Adoption & TTV Risks` · `High-Stakes Skills` · `Certification Program`
+
+**Organizational Readiness — Content Development:**
+`Dedicated Content Dept` · `Outsourced Content Creation`
+
+**Organizational Readiness — Content Delivery Ecosystem:**
+`ATP / Learning Program` · `ILT / vILT Offerings` · `On-Demand Catalog` · `Gray Market Offering` · `LMS / LXP`
+Lab platform badges (use exact platform name): `Skillable` · `Instruqt` · `CloudShare` · `Kyndryl / Skytap` · `GoDeploy` · `Vocareum` · `Appsembler` · `ReadyTech` · `DIY` · `ACI Learning` · `Immersive Labs` · `Hack The Box` · `TryHackMe`
+
+**Market Readiness — Product Popularity:**
+`Growth Trajectory` (suffix: ↑ Growing / → Stable / ↓ Declining) · `Geographic Reach` (suffix: Global / NAMER & EMEA / Primarily NAMER / etc.) · `Annual Users` (prefix with ~NM) · `Key Customers`
+
+**When a signal doesn't match any canonical name:** use a short descriptive label that follows the same naming style — 2–4 words, plain English, no vendor jargon. The canonical list covers the most common signals; novel findings may require a custom label.
+
 **Product Labability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we orchestrate this product?"
 
 The `product_labability` evidence bullets are solutioning guidance — written for whoever at Skillable will be doing the solutioning (SE, TSM, Solution Architect) who needs to understand why this product is or is not labable, and how to approach building it.
