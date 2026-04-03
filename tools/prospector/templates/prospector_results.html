@@ -6,6 +6,7 @@
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
     <title>Prospector Results — Skillable Intelligence</title>
     <style>
+        {% include '_theme.html' %}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button { font-family: inherit; }
         body {
@@ -67,9 +68,7 @@
         .view-link { font-size: 0.78rem; white-space: nowrap; color: #6b9e88; }
         .view-link:hover { color: #24ED9B; }
         th.num, td.num { text-align: center; }
-        .score-high { color: #24ED9B; font-weight: 700; }
-        .score-mid  { color: #f59e0b; font-weight: 700; }
-        .score-low  { color: #f87171; font-weight: 700; }
+        /* score-high, score-mid, score-low — from _theme.html */
         .td-top-product { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .td-contact     { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .td-li { white-space: nowrap; text-align: center; }

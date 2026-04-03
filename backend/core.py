@@ -293,3 +293,25 @@ def _fmt_cert(val) -> str:
     if s in ("", "no", "false", "null", "none", "0"):
         return ""
     return str(val).strip()
+
+
+# ---------------------------------------------------------------------------
+# Error response helpers — consistent error formatting across all routes
+# ---------------------------------------------------------------------------
+
+def _error_response(message: str, status: int = 404):
+    """Return a consistent error response. JSON for XHR/API requests, HTML for page requests."""
+    from flask import request, jsonify, render_template_string
+    if request.is_json or request.headers.get("Accept", "").startswith("application/json"):
+        return jsonify({"error": message}), status
+
+    return render_template_string("""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>{{ status }} - Skillable Intelligence</title>
+<style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+background:#060f0b;color:#c8ddd6;display:flex;justify-content:center;align-items:center;
+min-height:100vh;margin:0;} .box{text-align:center;max-width:480px;padding:40px;}
+h1{font-size:3rem;color:#1e3329;margin-bottom:8px;} p{font-size:1rem;color:#6b9e88;margin-bottom:24px;}
+a{color:#24ED9B;text-decoration:none;font-size:0.9rem;} a:hover{text-decoration:underline;}</style>
+</head><body><div class="box"><h1>{{ status }}</h1><p>{{ message }}</p>
+<a href="/">Back to Intelligence</a></div></body></html>""",
+        status=status, message=message), status

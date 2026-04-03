@@ -16,12 +16,86 @@ const Phase2 = (() => {
 
     // ── Initialisation ───────────────────────────────────────────
 
+    let _outlineEventsBound = false;
+    let _skillMappingEventsBound = false;
+    let _currentMappingProject = null;
+    let _currentMappingTargets = [];
+
+    /**
+     * Bind skill mapping events once on the persistent #phase2-framework-content.
+     * Uses _currentMappingProject/_currentMappingTargets for fresh data on each click.
+     */
+    function _bindSkillMappingEventsOnce(content) {
+        if (_skillMappingEventsBound) return;
+        _skillMappingEventsBound = true;
+
+        content.addEventListener('change', (e) => {
+            // Framework select
+            if (e.target.id === 'phase2-framework-select') {
+                handleFrameworkSelect(e.target.value, _currentMappingProject?.id);
+                return;
+            }
+            // Mapping target select
+            const targetSelect = e.target.closest('.mapping-target-select');
+            if (targetSelect && _currentMappingProject) {
+                const idx = parseInt(targetSelect.dataset.mappingIdx);
+                const selectedOpt = targetSelect.selectedOptions[0];
+                const targetId = targetSelect.value;
+                const targetType = selectedOpt ? selectedOpt.dataset.type : 'lab';
+                _updateMappingTarget(_currentMappingProject.id, idx, targetId, targetType);
+            }
+        });
+
+        content.addEventListener('click', (e) => {
+            // Auto-map button
+            if (e.target.closest('#phase2-auto-map') && _currentMappingProject) {
+                _autoMapSkills(_currentMappingProject, _currentMappingTargets);
+                return;
+            }
+            // Approve all button
+            if (e.target.closest('#phase2-approve-all') && _currentMappingProject) {
+                _approveAll(_currentMappingProject.id);
+                return;
+            }
+            // Re-map button
+            if (e.target.closest('#phase2-remap') && _currentMappingProject) {
+                const p = Store.getProject(_currentMappingProject.id);
+                if (p) { p.skillMappings = []; Store.updateProject(p); renderSkillMapping(p); }
+                return;
+            }
+            // Approve/unapprove individual mapping
+            const approveBtn = e.target.closest('.mapping-approve-btn');
+            if (approveBtn && _currentMappingProject) {
+                _setMappingApproved(_currentMappingProject.id, parseInt(approveBtn.dataset.mappingIdx), true);
+                return;
+            }
+            const unapproveBtn = e.target.closest('.mapping-unapprove-btn');
+            if (unapproveBtn && _currentMappingProject) {
+                _setMappingApproved(_currentMappingProject.id, parseInt(unapproveBtn.dataset.mappingIdx), false);
+                return;
+            }
+        });
+    }
+
     function init() {
         const container = _getContainer();
         if (!container) return;
 
         _bindTabButtons(container);
         _bindFrameworkUploadInput(container);
+    }
+
+    /**
+     * Bind outline tree events once on the persistent #phase2-outline-tree element.
+     * Called from renderOutline() but guarded so listeners are only added once —
+     * the tree container persists across innerHTML replacements.
+     */
+    function _bindOutlineEventsOnce() {
+        if (_outlineEventsBound) return;
+        const container = $('#phase2-outline-tree');
+        if (!container) return;
+        _bindOutlineEvents(container);
+        _outlineEventsBound = true;
     }
 
     function _getContainer() {
@@ -66,8 +140,10 @@ const Phase2 = (() => {
         const firstBtn = $('[data-phase2-tab]', container);
         if (firstBtn) firstBtn.click();
 
-        _bindTabButtons(container);
-        _bindFrameworkUploadInput(container);
+        // Tab and framework upload listeners are bound once in init() on the
+        // persistent container — do NOT re-bind here.  The container survives
+        // innerHTML replacement (only children are destroyed), so the init()
+        // listeners remain active via event delegation.
     }
 
     function _buildTabsShell(project) {
@@ -121,7 +197,7 @@ const Phase2 = (() => {
         const autoCollapseLabs = totalLabs > 8;
 
         treeContainer.innerHTML = _renderLabSeriesList(programStructure.labSeries, autoCollapseLabs);
-        _bindOutlineEvents(treeContainer);
+        _bindOutlineEventsOnce();
         _bindToolbarOnly();
     }
 
@@ -556,34 +632,11 @@ const Phase2 = (() => {
             ${mappingsHtml}
         `;
 
-        // Bind events
-        const select = $('#phase2-framework-select', content);
-        if (select) {
-            select.addEventListener('change', () => {
-                handleFrameworkSelect(select.value, project.id);
-            });
-        }
-
-        const autoMapBtn = $('#phase2-auto-map', content);
-        if (autoMapBtn) {
-            autoMapBtn.addEventListener('click', () => _autoMapSkills(project, targets));
-        }
-
-        const approveAllBtn = $('#phase2-approve-all', content);
-        if (approveAllBtn) {
-            approveAllBtn.addEventListener('click', () => _approveAll(project.id));
-        }
-
-        const remapBtn = $('#phase2-remap', content);
-        if (remapBtn) {
-            remapBtn.addEventListener('click', () => {
-                const p = Store.getProject(project.id);
-                if (p) { p.skillMappings = []; Store.updateProject(p); renderSkillMapping(p); }
-            });
-        }
-
-        // Bind individual mapping actions
-        _bindMappingActions(content, project.id, targets);
+        // Bind skill mapping events once on the persistent content element.
+        // Store current project/targets so the delegated handler always has fresh data.
+        _currentMappingProject = project;
+        _currentMappingTargets = targets;
+        _bindSkillMappingEventsOnce(content);
     }
 
     function _buildMappingTargets(structure) {
@@ -638,31 +691,7 @@ const Phase2 = (() => {
         `;
     }
 
-    function _bindMappingActions(container, projectId, targets) {
-        container.addEventListener('click', (e) => {
-            const approveBtn = e.target.closest('.mapping-approve-btn');
-            if (approveBtn) {
-                _setMappingApproved(projectId, parseInt(approveBtn.dataset.mappingIdx), true);
-                return;
-            }
-            const unapproveBtn = e.target.closest('.mapping-unapprove-btn');
-            if (unapproveBtn) {
-                _setMappingApproved(projectId, parseInt(unapproveBtn.dataset.mappingIdx), false);
-                return;
-            }
-        });
-
-        container.addEventListener('change', (e) => {
-            const targetSelect = e.target.closest('.mapping-target-select');
-            if (targetSelect) {
-                const idx = parseInt(targetSelect.dataset.mappingIdx);
-                const selectedOption = targetSelect.options[targetSelect.selectedIndex];
-                const targetId = targetSelect.value;
-                const targetType = selectedOption ? selectedOption.dataset.type : 'lab';
-                _updateMappingTarget(projectId, idx, targetId, targetType);
-            }
-        });
-    }
+    // _bindMappingActions removed — logic consolidated into _bindSkillMappingEventsOnce()
 
     function _autoMapSkills(project, targets) {
         // Client-side heuristic auto-mapping: match competency names to activity/lab titles

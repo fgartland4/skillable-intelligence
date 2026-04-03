@@ -6,6 +6,7 @@
 <link rel="icon" type="image/png" href="/static/img/favicon.png">
 <title>{{ data.company_name }} — Dossier · Skillable Intelligence</title>
 <style>
+{% include '_theme.html' %}
 /* ── Reset & base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -36,19 +37,7 @@ a:hover { text-decoration: underline; }
     color: #24ED9B; text-transform: uppercase; margin-top: 2px;
 }
 
-/* ── Org badge ─────────────────────────────────────────────────── */
-.org-badge {
-    display: inline-block; font-size: 0.68rem; font-weight: 600;
-    padding: 2px 8px; border-radius: 4px; vertical-align: middle;
-    margin-left: 8px; text-transform: uppercase; letter-spacing: 0.06em;
-    border: 1px solid;
-}
-.org-badge.software_company       { color: #7dd8b8; border-color: #1e4035; background: rgba(29,74,59,0.35); }
-.org-badge.training_organization  { color: #a78bfa; border-color: #3b2c6e; background: rgba(59,44,110,0.35); }
-.org-badge.academic_institution   { color: #93c5fd; border-color: #1e3a5f; background: rgba(30,58,95,0.35); }
-.org-badge.systems_integrator     { color: #fdba74; border-color: #5c3a1e; background: rgba(92,58,30,0.35); }
-.org-badge.technology_distributor { color: #6ee7b7; border-color: #1a4535; background: rgba(26,69,53,0.35); }
-.org-badge.professional_services  { color: #cbd5e1; border-color: #334155; background: rgba(51,65,85,0.35); }
+/* ── Org badge — from _theme.html ─────────────────────────────── */
 
 /* ── Hero ─────────────────────────────────────────────────────── */
 .hero {
@@ -74,26 +63,8 @@ a:hover { text-decoration: underline; }
 .hero-score.monitor    { color: #f59e0b; }
 .hero-score.pass       { color: #e05252; }
 
-.verdict-label {
-    font-size: 1rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-    padding: 4px 12px; border-radius: 6px;
-}
-.verdict-label.strong-fit { color: #24ED9B; background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.3); }
-.verdict-label.pursue     { color: #7dd8b8; background: rgba(125,216,184,0.08); border: 1px solid rgba(125,216,184,0.25); }
-.verdict-label.monitor    { color: #f59e0b; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); }
-.verdict-label.pass       { color: #e05252; background: rgba(224,82,82,0.08); border: 1px solid rgba(224,82,82,0.3); }
-
-/* ── Hero dimension badges ─────────────────────────────────────── */
+/* ── verdict-label, hero-badge — from _theme.html ────────────── */
 .hero-badges { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.hero-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 0.82rem; font-weight: 500;
-    padding: 5px 12px; border-radius: 6px;
-    border: 1px solid;
-}
-.hero-badge.green  { color: #24ED9B; border-color: rgba(36,237,155,0.25); background: rgba(36,237,155,0.06); }
-.hero-badge.amber { color: #f59e0b; border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.06); }
-.hero-badge.red    { color: #e05252; border-color: rgba(224,82,82,0.25); background: rgba(224,82,82,0.06); }
 .hero-badge .dim-label {
     font-size: 0.65rem; color: #4a7060; text-transform: uppercase;
     letter-spacing: 0.08em; margin-right: 2px; white-space: nowrap;
@@ -142,15 +113,8 @@ a:hover { text-decoration: underline; }
     font-variant-numeric: tabular-nums;
 }
 .dim-box-max { color: #2e4d40; font-weight: 400; }
+/* ── dim-badge — from _theme.html ─────────────────────────────── */
 .dim-badges { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
-.dim-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 0.8rem; padding: 4px 10px; border-radius: 5px;
-    border: 1px solid; width: fit-content;
-}
-.dim-badge.green  { color: #24ED9B; border-color: rgba(36,237,155,0.2); background: rgba(36,237,155,0.05); }
-.dim-badge.amber { color: #f59e0b; border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.05); }
-.dim-badge.red    { color: #e05252; border-color: rgba(224,82,82,0.2); background: rgba(224,82,82,0.05); }
 .dim-empty { font-size: 0.8rem; color: #2e4d40; font-style: italic; }
 
 /* ── Next Steps ───────────────────────────────────────────────── */

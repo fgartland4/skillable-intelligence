@@ -11,7 +11,7 @@ import uuid
 
 from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
 
-from core import _push, _sse_stream, _poll_job, _attach_scores, _labable_tier
+from core import _push, _sse_stream, _poll_job, _attach_scores, _labable_tier, _error_response
 from researcher import resolve_company_from_product
 from intelligence import (
     discover as intel_discover,
@@ -332,7 +332,7 @@ def dossier(analysis_id: str):
     """
     data = load_analysis(analysis_id)
     if not data:
-        return "Analysis not found", 404
+        return _error_response("Analysis not found", 404)
 
     _attach_scores(data)
     from_cache = request.args.get("cached") == "1"
@@ -357,12 +357,12 @@ def dossier(analysis_id: str):
 def product_detail(analysis_id: str, product_idx: int):
     data = load_analysis(analysis_id)
     if not data:
-        return "Analysis not found", 404
+        return _error_response("Analysis not found", 404)
 
     _attach_scores(data)
     products = data.get("products") or []
     if product_idx < 0 or product_idx >= len(products):
-        return "Product not found", 404
+        return _error_response("Product not found", 404)
 
     product = products[product_idx]
     return render_template("product_detail.html", data=data, product=product, product_idx=product_idx, analysis_id=analysis_id)
@@ -374,7 +374,7 @@ def product_detail(analysis_id: str, product_idx: int):
 def export(analysis_id: str):
     data = load_analysis(analysis_id)
     if not data:
-        return "Analysis not found", 404
+        return _error_response("Analysis not found", 404)
 
     _attach_scores(data)
     products = data.get("products") or []

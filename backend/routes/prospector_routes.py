@@ -18,7 +18,7 @@ from constants import (
     EXCEL_BG_HEADER, EXCEL_BG_ROW, EXCEL_TEXT_WHITE, EXCEL_TEXT_MUTED, EXCEL_GREEN_MID,
     COMPANY_TIMEOUT_SECS, MAX_PROSPECTOR_WORKERS,
 )
-from core import _push, _sse_stream, _attach_scores, _fmt_ondemand, _fmt_cert, _cancelled_jobs
+from core import _push, _sse_stream, _attach_scores, _fmt_ondemand, _fmt_cert, _cancelled_jobs, _error_response
 from intelligence import qualify as intel_qualify
 from storage import (
     save_analysis, load_analysis,
@@ -223,7 +223,7 @@ def prospector_flag():
 def prospector_export_csv(job_id: str):
     job = load_prospector_run(job_id)
     if not job:
-        return "Job not found", 404
+        return _error_response("Job not found", 404)
 
     results = job.get("results", {})
     rows = sorted([r for r in results.values() if r and "error" not in r],
@@ -290,7 +290,7 @@ def prospector_export(job_id: str):
 
     job = load_prospector_run(job_id)
     if not job:
-        return "Job not found", 404
+        return _error_response("Job not found", 404)
 
     results = job.get("results", {})
     rows = sorted([r for r in results.values() if r and "error" not in r],
