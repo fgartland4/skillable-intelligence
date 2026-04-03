@@ -83,8 +83,34 @@ def _sse_stream(job_id: str, poll_interval: float = 0.3):
 
 
 # ---------------------------------------------------------------------------
-# Composite score helper (single source of truth)
+# Composite score helpers (single source of truth)
 # ---------------------------------------------------------------------------
+
+# Ceiling flags: fundamental delivery constraints that cap the labability tier
+# regardless of raw score. Defined once here; all modules import this set.
+_CEILING_FLAGS = {"bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only"}
+
+
+def _labable_tier(product: dict) -> str:
+    """Canonical tier derivation from a scored product dict.
+
+    Requires _total_score to already be set on the product (i.e. call after
+    compute_product_score or _attach_scores). Ceiling flags take precedence
+    over score — a flagged product is capped at less_likely or not_likely
+    regardless of how high the raw score came in.
+    """
+    score = product.get("_total_score", 0)
+    flags = set(product.get("poor_match_flags", []) or [])
+    if flags & _CEILING_FLAGS:
+        return "less_likely" if score >= 20 else "not_likely"
+    if score >= 70:
+        return "highly_likely"
+    if score >= 45:
+        return "likely"
+    if score >= 20:
+        return "less_likely"
+    return "not_likely"
+
 
 def _attach_scores(data: dict) -> None:
     """Score products, sort by score, and set _composite_score on data in place.
@@ -99,21 +125,7 @@ def _attach_scores(data: dict) -> None:
     products = data.get("products") or []
     for p in products:
         p["_total_score"] = compute_product_score(p)
-        _score = p.get("_total_score", 0)
-        _flags = set(p.get("poor_match_flags", []) or [])
-        # Ceiling flags: fundamental delivery constraints that cap the score
-        # regardless of raw score. Any of these present → less_likely or not_likely.
-        _CEILING = {"bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only"}
-        if _flags & _CEILING:
-            p["likely_labable"] = "less_likely" if _score >= 20 else "not_likely"
-        elif _score >= 70:
-            p["likely_labable"] = "highly_likely"
-        elif _score >= 45:
-            p["likely_labable"] = "likely"
-        elif _score >= 20:
-            p["likely_labable"] = "less_likely"
-        else:
-            p["likely_labable"] = "not_likely"
+        p["likely_labable"] = _labable_tier(p)
     products.sort(key=lambda p: p.get("_total_score", 0), reverse=True)
     data["products"] = products
 

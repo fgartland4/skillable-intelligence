@@ -57,7 +57,7 @@ from storage import (
     find_analysis_by_discovery_id,
     save_competitor_candidates,
 )
-from core import _attach_scores
+from core import _attach_scores, _labable_tier
 from config import ANTHROPIC_MODEL
 
 # ---------------------------------------------------------------------------
@@ -90,40 +90,7 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _labable_tier(product: dict) -> str:
-    """Compute the labability tier label from a scored product dict.
-
-    Flag-based ceiling: products carrying any of the CEILING_FLAGS represent
-    fundamental delivery constraints — bare metal orchestration, no viable
-    provisioning API, pure SaaS with no per-learner isolation, or multi-tenant
-    only.  Regardless of how high the raw score comes in, these products are
-    capped at less_likely (or not_likely if the raw score is also low).  A
-    high score on a saas_only product usually means the prompt over-credited
-    Entra ID SSO or marketing-tier API coverage — this gate corrects that.
-    """
-    score = product.get("_total_score", 0)
-    flags = set(product.get("poor_match_flags", []) or [])
-
-    # Any of these flags indicates a constraint that caps the deliverable tier.
-    CEILING_FLAGS = {
-        "bare_metal_required",   # physical hardware — no viable fabric
-        "no_api_automation",     # no programmable provisioning path
-        "saas_only",             # pure SaaS, no per-learner isolation mechanism
-        "multi_tenant_only",     # shared tenant only, no learner separation
-    }
-    if flags & CEILING_FLAGS:
-        # Still distinguish less_likely vs not_likely within the cap so that
-        # the product surfaces correctly in blocker lists and UI tiers.
-        return "less_likely" if score >= 20 else "not_likely"
-
-    if score >= 70:
-        return "highly_likely"
-    if score >= 45:
-        return "likely"
-    if score >= 20:
-        return "less_likely"
-    return "not_likely"
-
+# _labable_tier is imported from core — single source of truth.
 
 # ---------------------------------------------------------------------------
 # Operation 1 — discover

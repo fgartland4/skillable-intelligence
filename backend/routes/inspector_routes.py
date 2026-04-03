@@ -11,7 +11,7 @@ import uuid
 
 from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
 
-from core import _push, _sse_stream, _attach_scores
+from core import _push, _sse_stream, _attach_scores, _labable_tier
 from researcher import resolve_company_from_product
 from intelligence import (
     discover as intel_discover,
@@ -517,7 +517,7 @@ def blockers():
                             "company_name": company_name,
                             "product_name": p_name,
                             "blocker_type": flag,
-                            "likely_labable": _labable_tier_from_score(product),
+                            "likely_labable": _labable_tier(product),
                             "tech_score": tech_score,
                             "source_id": aid,
                             "source_type": "analysis",
@@ -530,7 +530,7 @@ def blockers():
                         "company_name": company_name,
                         "product_name": p_name,
                         "blocker_type": "Low Product Labability score",
-                        "likely_labable": _labable_tier_from_score(product),
+                        "likely_labable": _labable_tier(product),
                         "tech_score": tech_score,
                         "source_id": aid,
                         "source_type": "analysis",
@@ -591,18 +591,4 @@ def _persist_product_scores(discovery_id: str, discovery: dict, analysis_id: str
     save_discovery(discovery_id, updated)
 
 
-def _labable_tier_from_score(product: dict) -> str:
-    """Tier from score + CEILING_FLAGS. Mirror of intelligence._labable_tier."""
-    score = product.get("_total_score", 0)
-    flags = set(product.get("poor_match_flags", []) or [])
-    _CEILING = {"bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only"}
-    if flags & _CEILING:
-        return "less_likely" if score >= 20 else "not_likely"
-    if score >= 70:
-        return "highly_likely"
-    if score >= 45:
-        return "likely"
-    if score >= 20:
-        return "less_likely"
-    return "not_likely"
 
