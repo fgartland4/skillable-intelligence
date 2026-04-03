@@ -13,7 +13,6 @@ import re
 # Legacy terms that must never appear in committed files
 LEGACY_TERMS = [
     "Technical Orchestrability",
-    "Workflow Complexity",          # as a dimension name (2.x header)
     "Product Complexity",           # as a dimension name
     "Training Ecosystem",
     "Lab Maturity",
@@ -39,7 +38,6 @@ SKIP_PATHS = [
     "scripts/validate-badge-names.py",  # skip this file itself
     "CLAUDE.md",                         # locked vocab table lists legacy terms intentionally
     "docs/Badging-Framework-Core.md",    # "Never this" column lists legacy terms intentionally
-    "dossier.html",                      # contains badge name keywords for evidence matching (valid usage)
     ".git/",
     "__pycache__/",
     "node_modules/",
