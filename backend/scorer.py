@@ -219,20 +219,48 @@ def _build_company_context(company_name: str, discovery_data: dict | None = None
 
 
 def _build_product_context(name: str, all_results: dict, page_contents: dict) -> str:
-    """Build per-product research context string."""
+    """Build per-product research context string.
+
+    Includes all search result keys and fetched page content, organized into
+    labelled sections so Claude can weight evidence appropriately.
+    """
     lines = [f"## Research: {name}"]
-    search_keys = [
+
+    # Core labability signals (snippets only)
+    core_keys = [
         f"tech_{name}", f"train_{name}", f"api_{name}", f"ai_{name}",
         f"marketplace_{name}", f"docker_{name}", f"nfr_{name}", f"deploy_{name}", f"compete_{name}",
     ]
-    for key in search_keys:
+    for key in core_keys:
         for r in all_results.get(key, []):
             lines.append(f"- **{r.get('title', '')}** ({r.get('url', '')}): {r.get('snippet', '')}")
-    for key in [name, f"train_{name}", f"api_{name}"]:
+
+    # API lifecycle signals — Gate 1 SaaS path evidence
+    # Surfaces DELETE/teardown endpoints, provision/configure coverage, auth model
+    api_lifecycle_keys = [
+        f"openapi_{name}", f"api_lifecycle_{name}", f"sandbox_{name}", f"api_auth_{name}",
+    ]
+    api_lines = []
+    for key in api_lifecycle_keys:
+        for r in all_results.get(key, []):
+            api_lines.append(f"- **{r.get('title', '')}** ({r.get('url', '')}): {r.get('snippet', '')}")
+    if api_lines:
+        lines.append(f"\n### API Lifecycle & SaaS Path Signals for {name}:")
+        lines.extend(api_lines)
+
+    # Fetched page content — doc/api_ref pages get more content via source type classification
+    page_key_labels = [
+        (name,                        "Documentation"),
+        (f"train_{name}",             "Training"),
+        (f"api_{name}",               "API Reference"),
+        (f"openapi_{name}",           "OpenAPI / Swagger Spec"),
+        (f"api_lifecycle_{name}",     "API Lifecycle Docs"),
+    ]
+    for key, label in page_key_labels:
         if key in page_contents:
-            label = "Documentation" if key == name else key.replace(f"_{name}", "").replace("_", " ").title()
             lines.append(f"\n### {label} page for {name}:")
             lines.append(page_contents[key])
+
     return "\n".join(lines)
 
 
