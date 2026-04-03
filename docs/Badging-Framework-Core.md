@@ -1,9 +1,14 @@
-# Skillable Intelligence — Product Labability Scoring Reference
-## Badge Vocabulary, Color Criteria, and Dimension Outline
+# Skillable Intelligence — Badging Framework Core
+## Badge Vocabulary, Color Criteria, and Display Standards
 
-This document is the single source of truth for badge names and color logic across all Skillable Intelligence tools (Inspector, Prospector, Designer). Use these exact names — no paraphrasing, no abbreviations.
+This document is the single source of truth for badge names, color logic, and display standards across all Skillable Intelligence tools (Inspector, Prospector, Designer). Use these exact names — no paraphrasing, no abbreviations.
 
 **Color key:** ✅ Green = Strength or Opportunity · ⚠️ Yellow = Risk or caution · 🚫 Red = Blocker
+
+**Qualifier labels** (used inside evidence bullets):
+✅ `| Strength:` or `| Opportunity:` · ⚠️ `| Risk:` · 🚫 `| Blocker:`
+
+*For scoring signals, point values, and score ranges, see Scoring-Framework-Core.*
 
 ---
 
@@ -15,16 +20,6 @@ This document is the single source of truth for badge names and color logic acro
 | **Instructional Value** | 30% | Does this product need labs? |
 | **Organizational Readiness** | 20% | Do they have resources to create and deliver labs? |
 | **Market Readiness** | 10% | Is the world interested? |
-
-**Technical Fit Multiplier** (applied by the system after scoring):
-
-| Product Labability Score | Orchestration Method | Multiplier |
-|---|---|---|
-| ≥32 | Any | 1.0× |
-| 24–31 | Hyper-V / ESX / Container / Azure VM / AWS VM | 1.0× |
-| 19–31 | Non-datacenter (cloud-only) | 0.75× |
-| 10–18 | Any | 0.40× |
-| 0–9 | Any | 0.15× |
 
 ---
 
@@ -38,7 +33,7 @@ This document is the single source of truth for badge names and color logic acro
 | `Runs in Hyper-V` | ✅⚠️ | Clean VM install confirmed; Skillable datacenter path | Installs but with complexity (large image, GPU, multi-step) | — |
 | `Runs in Azure` | ✅⚠️ | Supported Azure service; Cloud Slice path confirmed | Azure path works but with friction (IaC gaps, non-standard services) | — |
 | `Runs in AWS` | ✅⚠️ | Supported AWS service; Cloud Slice path confirmed | AWS path works but unsupported services in use | — |
-| `Requires GCP` | ⚠️ | — | Product runs on GCP; Skillable has no native GCP fabric (Custom API path only) | — |
+| `Requires GCP` | ⚠️ | — | Product runs on GCP; Skillable has no native GCP path (Custom API only) | — |
 | `Runs in Containers` | ✅⚠️ | Genuinely container-native; all 4 Docker conditions met | Container image exists but dev-use only or disqualifiers present | — |
 | `ESX Required` | ⚠️ | — | Nested virtualization or socket licensing requires ESX over Hyper-V (higher cost) | — |
 | `Learner Isolation` | ✅⚠️🚫 | Strong per-learner isolation confirmed (dedicated VM, dedicated cloud sub, isolated API instance) | Isolation partial or dependent on vendor configuration | No per-learner isolation; shared tenant only |
@@ -48,23 +43,6 @@ This document is the single source of truth for badge names and color logic acro
 | `Potential IaC Friction` | ⚠️ | — | IaC templates exist but untested, incomplete, or require significant customization | — |
 | `Bare Metal Required` | 🚫 | — | — | Product requires physical hardware orchestration — no virtualization path exists |
 | `No Deployment Method` | 🚫 | — | — | No viable deployment path found; cannot provision a lab environment |
-
-**Orchestration Method Score Ranges:**
-
-| Method | Full Lifecycle API | CLI Scripting | Standard | Limited | Complex Install |
-|---|---|---|---|---|---|
-| Hyper-V *(default)* | 35–40 | 32–36 | 28–32 | 24–28 | 16–24 |
-| ESX *(nested virt / socket licensing only)* | 30–35 | 27–31 | 23–27 | 19–23 | 14–20 |
-| Container *(all 4 conditions required)* | Native: 24–32 | Limited: 16–24 | — | — | — |
-
-| Method | Full Lifecycle API | Entra ID SSO | Credential Pool | Manual SSO | Trial Account | Credit Card Required |
-|---|---|---|---|---|---|---|
-| Azure Cloud Slice | 32–38 | 28–35 | 24–30 | 18–24 | 11–18 | 6–11 |
-| AWS Cloud Slice | 32–38 | — | 24–30 | — | 11–18 | 6–11 |
-| Custom API (BYOC) | 22–28 | — | 16–22 | SSO Only: 11–18 | 6–12 | — |
-| Simulation | 8–16 | — | — | — | — | — |
-
----
 
 ### 1.2 Licensing & Accounts
 
@@ -81,16 +59,12 @@ This document is the single source of truth for badge names and color logic acro
 | `MFA Required` | ⚠️🚫 | — | MFA required on admin accounts — blocks automated task scoring; MCQ fallback only | MFA cannot be bypassed and blocks all lab delivery automation |
 | `Credit Card Required` | 🚫 | — | — | Trial or learner accounts require a credit card; cannot provision at scale |
 
----
-
 ### 1.3 Scoring
 
 | Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `Scoring APIs` | ✅⚠️🚫 | REST API or SDK surface confirmed; lab tasks can be validated programmatically | API exists but limited coverage (some tasks scorable, others GUI-only) | No programmatic scoring surface; GUI-only interface |
 | `Script Scorable` | ✅⚠️🚫 | PowerShell, CLI, or config file state can be queried to validate learner work | Scripting surface exists but partial — covers some tasks, not all | No scriptable interface for scoring; AI Vision is the only option |
-
----
 
 ### 1.4 Teardown
 
@@ -100,47 +74,12 @@ This document is the single source of truth for badge names and color logic acro
 | `Full Tenant Required` | ⚠️ | — | Full tenant provisioning required; teardown must explicitly deprovision the tenant *(also in 1.1)* | — |
 | `Teardown APIs` | ✅⚠️🚫 | DELETE or deprovision endpoint confirmed; clean teardown programmable | Teardown API exists but incomplete (partial cleanup, orphaned resources possible) | No DELETE endpoint; resources must be manually deprovisioned — ongoing cost risk |
 
-**Penalty Deductions** (stack freely, no floor):
-
-| Condition | Deduction | Flag |
-|---|---|---|
-| GPU required | −5 | `gpu_required` |
-| MFA on admin accounts | −3 | `mfa_required` |
-| Provisioning time >30 min | −3 | `long_provisioning` |
-| GUI-only setup, no automation path | −2 | `gui_only_setup` |
-| No NFR / dev license available | −2 | `no_nfr_license` |
-| Socket-based licensing (ESX) AND VM >24 vCPUs | −2 | *(additional to ESX tier discount)* |
-
-**Ceiling Flags** (cap tier regardless of score):
-
-| Flag | Effect |
-|---|---|
-| `bare_metal_required` | Caps at less_likely (≥20) or not_likely (<20) |
-| `no_api_automation` | Same |
-| `saas_only` | Same |
-| `multi_tenant_only` | Same |
-
 ---
 
 ## Dimension 2 — Instructional Value (30%)
 *"Does this product need labs?"*
 
 ### 2.1 Difficult to Master
-
-**Scoring signals** (sum; cap 30 across 2.1 + 2.2 combined):
-
-| Signal | Points |
-|---|---|
-| Creating AI (product builds/trains/deploys AI — AI IS the product) | +5 |
-| Learning AI-embedded features (AI embedded in larger product; requires hands-on practice) | +4 |
-| Design & Architecture topics | +5 |
-| Configuration & Tuning topics | +5 |
-| Deployment & Provisioning topics | +5 |
-| Support Scenarios (monitoring, alerting, incident response, lifecycle) | +5 |
-| Troubleshooting topics (diagnosing failures in realistic broken states) | +5 |
-| Role breadth (multiple distinct personas needing separate lab programs) | +2 |
-| Multi-component topology (multiple VMs or services) | +2 |
-| Integration complexity (external system connection is primary workflow) | +1 |
 
 | Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
 |---|---|---|---|---|
@@ -152,36 +91,26 @@ This document is the single source of truth for badge names and color logic acro
 
 ### 2.2 Mastery Matters
 
-**Scoring signals** (additive, within cap 30):
-
-| Signal | Points |
-|---|---|
-| High-stakes skills (misconfiguration causes data loss, breach, compliance failure, downtime) | +3 |
-| Adoption & TTV risks (poor adoption or slow TTV is a documented risk) | +2 |
-| Certification program (vendor has invested in certifying proficiency) | +2 |
-
 | Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `High-Stakes Skills` | ✅ | Misconfiguration causes data loss, security breach, compliance failure, or significant downtime | — | — |
 | `Adoption & TTV Risks` | ⚠️ | — | Poor adoption or slow time-to-value is a documented risk for this product's users | — |
 | `Certification Program` | ✅ | Vendor has an active certification program — market has confirmed mastery matters | — | — |
 
+### 2.3 Lab Format Opportunities
+
+These badges surface when research detects signals for specialized lab formats beyond standard VM labs. Always additive — recommend alongside standard labs, never instead of them.
+
+| Badge | Possible Colors | ✅ Green when… |
+|---|---|---|
+| `Collaborative Lab Opportunity` | ✅ | Multi-role ILT signals detected — Red Team/Blue Team, attacker/defender, cyber range, or sequential assembly-line workflows where multiple learners operate simultaneously *(ILT/vILT only — always flag this constraint)* |
+| `Break/Fix Opportunity` | ✅ | Troubleshooting, fault injection, incident response, or diagnostic skill signals detected — advanced learners or certification prep benefit from realistic fault environments |
+| `Simulated Attack Opportunity` | ✅ | SIEM, EDR, threat detection, threat hunting, SOC operations, or attack surface signals detected *(cybersecurity products only)* — solo or ILT Red/Blue Team scenario |
+
 ---
 
 ## Dimension 3 — Organizational Readiness (20%)
 *"Do they have resources to create and deliver labs?"*
-
-**Scoring** (highest applicable combination, cap 20):
-
-| Signal | Points |
-|---|---|
-| ATP / Learning Partner program | +8 |
-| Certification program | +5 |
-| Events / conferences | +4 |
-| Channel demos & tailored PoCs | +3 |
-| Gray market / community training | +3 |
-| Formal employee enablement / internal L&D | +2 |
-| Existing labs / sandboxes | +1 |
 
 ### 3.1 Content Development Capabilities
 
@@ -225,39 +154,14 @@ This document is the single source of truth for badge names and color logic acro
 ## Dimension 4 — Market Readiness (10%)
 *"Is the world interested?"*
 
-**Scoring** (highest applicable category + 50% of next highest; AI signals additive and separate):
+### 4.1 Product Popularity
 
-| Category | Points |
-|---|---|
-| Cybersecurity · Cloud Infrastructure · Networking/SDN · Data Science & Engineering · Data & Analytics · DevOps | +5 (High) |
-| Data Protection · Infrastructure/Virtualization · App Development · ERP/CRM · Healthcare IT · FinTech · Collaboration · Content Mgmt · Legal Tech · Industrial/OT | +2 (Moderate) |
-| Simple SaaS · Consumer | +0 (Low) |
-| Creating AI (product builds, trains, or deploys AI models) | +5 AI signal |
-| Learning AI-embedded features (AI embedded in larger product requiring hands-on practice) | +5 AI signal |
-| Large/growing install base | +2 |
-| Growing category | +1 |
-| Limited competitor labs | +1 |
-| **Cap** | **10** |
-
-| Badge | Possible Colors | ✅ / ⚠️ / 🚫 when… |
+| Badge | Possible Colors | ✅ / ⚠️ when… |
 |---|---|---|
 | `Growth Trajectory` | ✅⚠️ | Suffix required: ↑ Growing / → Stable / ↓ Declining. Green = growing category; Yellow = stable or declining |
 | `Geographic Reach` | ✅⚠️ | Suffix: Global / NAMER & EMEA / Primarily NAMER / etc. Green = broad global presence; Yellow = narrow geographic reach |
 | `Annual Users` | ✅ | Prefix with ~NM in the claim (e.g., "~2M annual users") — large install base is a Strength |
 | `Key Customers` | ✅ | Notable enterprise or government customers that validate strategic alignment with Skillable's market |
-
----
-
-## Verdict / Tier Labels
-
-| Composite Score | Verdict | Labable Tier |
-|---|---|---|
-| ≥70 | Strong Fit | highly_likely |
-| 45–69 | Pursue | likely |
-| 20–44 | Monitor | less_likely |
-| <20 | Pass | not_likely |
-
-*Ceiling flags override score: any ceiling flag + score ≥20 → less_likely; ceiling flag + score <20 → not_likely.*
 
 ---
 
@@ -270,6 +174,11 @@ This document is the single source of truth for badge names and color logic acro
 | **Inspector Dossier hero** | Color + badge name; click-through to evidence |
 | **Inspector Dossier drill-down** | Full evidence bullet with source and rationale |
 | **Designer** | Green signals become program design inputs; badges not shown |
+
+**Color qualifier labels** (used inside evidence bullets):
+- ✅ `| Strength:` or `| Opportunity:`
+- ⚠️ `| Risk:`
+- 🚫 `| Blocker:`
 
 **Evidence format (universal):**
 `**[Badge Name] | [Qualifier]:** [Specific finding] — [source title]. [What it means for lab delivery.]`
@@ -297,3 +206,6 @@ This document is the single source of truth for badge names and color logic acro
 | Learner Isolation | SaaS-only / multi-tenant (as disqualifier label) |
 | Not Lab Appropriate | Consumer Product / Simple App / Phone App Only |
 | Hands-On AI Features | AI Practice Surface / DTDS Coverage |
+| Collaborative Lab Opportunity | Cyber Range Badge / Shared Lab Badge |
+| Break/Fix Opportunity | Fault Injection Badge / Troubleshooting Badge |
+| Simulated Attack Opportunity | Attack Simulation Badge |
