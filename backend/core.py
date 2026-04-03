@@ -34,6 +34,25 @@ _PROGRESS_JOB_TTL    = 300    # 5 minutes
 _cancelled_jobs: set[str] = set()
 
 
+def _poll_job(job_id: str) -> dict:
+    """Return the current job status without opening an SSE stream.
+
+    Used as a polling fallback when the SSE connection drops mid-scoring.
+    Returns {"status": "done", "analysis_id": "..."} | {"status": "error", "message": "..."}
+    | {"status": "running"} | {"status": "unknown"}.
+    """
+    with _progress_lock:
+        msgs = list(_progress.get(job_id, []))
+    if not msgs:
+        return {"status": "unknown"}
+    for msg in reversed(msgs):
+        if msg.startswith("done:"):
+            return {"status": "done", "analysis_id": msg[5:]}
+        if msg.startswith("error:"):
+            return {"status": "error", "message": msg[6:]}
+    return {"status": "running"}
+
+
 def _push(job_id: str, msg: str):
     now = time.time()
     with _progress_lock:

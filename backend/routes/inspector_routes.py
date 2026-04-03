@@ -11,7 +11,7 @@ import uuid
 
 from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
 
-from core import _push, _sse_stream, _attach_scores, _labable_tier
+from core import _push, _sse_stream, _poll_job, _attach_scores, _labable_tier
 from researcher import resolve_company_from_product
 from intelligence import (
     discover as intel_discover,
@@ -292,6 +292,13 @@ def score_progress(job_id: str):
     return Response(stream_with_context(_sse_stream(job_id)),
                     mimetype="text/event-stream",
                     headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@inspector.route("/score/poll/<job_id>")
+def score_poll(job_id: str):
+    """Polling fallback for SSE — returns job status as JSON.
+    Used by the scoring page when the SSE connection drops."""
+    return jsonify(_poll_job(job_id))
 
 
 # Results

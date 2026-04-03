@@ -301,8 +301,40 @@
                 document.getElementById("status").textContent = "Error: " + msg.slice(6);
             }
         };
+        // When SSE drops, start polling every 5s so we still redirect on completion.
+        let _pollInterval = null;
         source.onerror = function() {
-            document.getElementById("status").textContent = "Something went wrong. Please try again.";
+            document.getElementById("status").textContent = "Still working — connection interrupted, checking status...";
+            if (!_pollInterval) {
+                _pollInterval = setInterval(function() {
+                    fetch('/inspector/score/poll/{{ job_id }}')
+                        .then(r => r.json())
+                        .then(d => {
+                            if (d.status === 'done') {
+                                clearInterval(_pollInterval);
+                                source.close();
+                                finishClaude();
+                                setTimeout(() => {
+                                    markDone(claudeStep);
+                                    litMark('mark-l2', '#e8f5f0');
+                                    litMark('mark-check', '#24ED9B');
+                                    document.getElementById("status").textContent = "Complete — loading results...";
+                                    window.location.href = '/inspector/dossier/' + d.analysis_id;
+                                }, 1500);
+                            } else if (d.status === 'error') {
+                                clearInterval(_pollInterval);
+                                source.close();
+                                document.getElementById("status").textContent = "Error: " + d.message;
+                            } else if (d.status === 'unknown') {
+                                clearInterval(_pollInterval);
+                                source.close();
+                                document.getElementById("status").textContent = "Something went wrong. Please try again.";
+                            }
+                            // status === 'running': keep polling
+                        })
+                        .catch(() => { /* network error, keep polling */ });
+                }, 5000);
+            }
         };
 
         const _t0 = Date.now();
