@@ -208,6 +208,16 @@ def _build_company_context(company_name: str, discovery_data: dict | None = None
         for r in cs_lms:
             lines.append(f"- **{r.get('title', '')}** ({r.get('url', '')}): {r.get('snippet', '')}")
 
+    # Lab platform signals — Skillable/LOD history and competitors
+    # CRITICAL: Skillable labs rarely launch from skillable.com — look for labondemand.com, LODS,
+    # Cloud Slice, LCAs, IDLX, "Learn on Demand Systems" as strong Skillable detection signals.
+    lab_platforms = _good(disc.get("lab_platform_signals", []))
+    if lab_platforms:
+        lines.append("\n## Lab Platform Signals (Skillable / Competitors)")
+        lines.append("# Note: labondemand.com, LODS, Cloud Slice, LCAs, IDLX = Skillable customer signals")
+        for r in lab_platforms:
+            lines.append(f"- **{r.get('title', '')}** ({r.get('url', '')}): {r.get('snippet', '')}")
+
     # Org & contacts
     org = _good(disc.get("org_contacts", []))
     if org:

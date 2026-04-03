@@ -228,8 +228,11 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         # Customer success & LMS
         ("cs",              f"{company_name} customer success onboarding professional services"),
         ("lms",             f"{company_name} LMS learning management system platform"),
-        # Lab platform competitor signal
-        ("lab_platform",    f"{company_name} hands-on lab CloudShare OR Instruqt OR Skytap OR \"virtual lab\" OR \"lab environment\" OR \"we built\" training infrastructure"),
+        # Lab platform — Skillable / LOD detection (critical: most labs launch from non-Skillable URLs)
+        # Hits all known Skillable signals: labondemand.com, LODS, Cloud Slice, LCAs, IDLX, legacy brand
+        ("lab_skillable",   f"{company_name} (labondemand.com OR \"learnondemandsystems.com\" OR \"Learn on Demand Systems\" OR LODS OR \"Cloud Slice\" OR \"Lifecycle Actions\" OR LCA OR IDLX OR Skillable) labs training"),
+        # Lab platform — direct competitors (broad)
+        ("lab_compete",     f"{company_name} (Instruqt OR CloudShare OR Skytap OR Kyndryl OR GoDeploy OR Vocareum OR Appsembler OR ReadyTech OR \"Immersive Labs\" OR \"Hack The Box\" OR TryHackMe OR \"ACI Learning\" OR \"virtual lab\" OR \"we built our own\" OR \"internal lab\") training"),
         # Org & contacts — 2 consolidated LinkedIn queries (reduced from 5 to limit rate-limiting):
         # (1) VP-and-above across all three key functions: customer education, partner enablement, certification
         ("org_senior",    f"site:linkedin.com/in/ {company_name} (VP OR SVP OR EVP OR Chief OR \"Head of\") (\"customer education\" OR \"customer training\" OR \"customer enablement\" OR \"partner enablement\" OR \"channel enablement\" OR \"partner training\" OR \"certification program\" OR \"technical certification\")"),
@@ -283,6 +286,7 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         "cs_signals":       all_results.get("cs", []),
         "lms_signals":      all_results.get("lms", []),
         "org_contacts":     (all_results.get("org_senior", []) + all_results.get("org_directors", [])),
+        "lab_platform_signals": (all_results.get("lab_skillable", []) + all_results.get("lab_compete", [])),
         "page_contents":    page_contents,
     }
 
