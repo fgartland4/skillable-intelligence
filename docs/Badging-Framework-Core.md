@@ -3,7 +3,7 @@
 
 This document is the single source of truth for badge names, color logic, and display standards across all Skillable Intelligence tools (Inspector, Prospector, Designer). Use these exact names — no paraphrasing, no abbreviations.
 
-**Color key:** ✅ Green = Strength or Opportunity · ⚠️ Yellow = Risk or caution · 🚫 Red = Blocker
+**Color key:** ✅ Green = Strength or Opportunity · ⚠️ Amber = Risk or caution · 🚫 Red = Blocker
 
 **Qualifier labels** (used inside evidence bullets):
 ✅ `| Strength:` or `| Opportunity:` · ⚠️ `| Risk:` · 🚫 `| Blocker:`
@@ -41,8 +41,9 @@ This document is the single source of truth for badge names, color logic, and di
 | `Lifecycle APIs` | ✅ | Full provision → configure → score → teardown API coverage confirmed | — | — |
 | `Full Tenant Required` | ⚠️ | — | Product requires a full production tenant (not a dev/sandbox instance) — adds provisioning complexity | — |
 | `Potential IaC Friction` | ⚠️ | — | IaC templates exist but untested, incomplete, or require significant customization | — |
+| `Simulation` | ⚠️ | — | No real lab path is viable — provisioning is cost-prohibitive, operations are time-impractical (hours-long tasks), or all real delivery paths are blocked. Simulation is the recommended provisioning method. Score range: 8–16. | — |
 | `Bare Metal Required` | 🚫 | — | — | Product requires physical hardware orchestration — no virtualization path exists |
-| `No Deployment Method` | 🚫 | — | — | No viable deployment path found; cannot provision a lab environment |
+| `No Deployment Method` | 🚫 | — | — | Product cannot be provisioned or simulated in any software environment — applies only to purely physical products (e.g., heavy equipment, physical machinery). Not used when Simulation is a viable alternative. |
 
 ### 1.2 Licensing & Accounts
 
@@ -177,7 +178,7 @@ These badges surface when research detects signals for specialized lab formats b
 
 **Color qualifier labels** (used inside evidence bullets):
 - ✅ `| Strength:` or `| Opportunity:`
-- ⚠️ `| Risk:`
+- ⚠️ `| Risk:` *(Amber)*
 - 🚫 `| Blocker:`
 
 **Evidence format (universal):**
@@ -201,7 +202,7 @@ These badges surface when research detects signals for specialized lab formats b
 | Licensing & Accounts | Gate 2 / Configure / Accounts & Identity |
 | Scoring | Gate 3 |
 | Teardown | Gate 4 |
-| Green / Yellow / Red | Pass / Partial / Fail |
+| Green / Amber / Red | Pass / Partial / Fail |
 | Blocker | Red (in badge context) |
 | Learner Isolation | SaaS-only / multi-tenant (as disqualifier label) |
 | Not Lab Appropriate | Consumer Product / Simple App / Phone App Only |

@@ -52,6 +52,19 @@ This document defines how each dimension is scored. For canonical badge names, c
 | Custom API (BYOC) | 22–28 | — | 16–22 | SSO Only: 11–18 | 6–12 | — |
 | Simulation | 8–16 | — | — | — | — | — |
 
+**Simulation — when to recommend:**
+Simulation is a provisioning method, not a fallback. It is the correct recommendation when any of the following conditions are present:
+
+| Trigger | Example |
+|---|---|
+| Cost-prohibitive real provisioning | GPU clusters, high-compute AI services, enterprise data platforms — hundreds of dollars per learner per hour at scale |
+| Time-impractical operations | Database migrations, large security scans, big data processing jobs that take hours in the real world |
+| All real provisioning paths blocked | GUI-only setup, no deployment method, no API, no VM/container/cloud path (e.g., Workday-pattern products) |
+
+**Rule:** Recommending Simulation does not rescue the score. Score stays in the 8–16 range. Simulation is the right delivery choice — it is not a high-scoring one.
+
+**`No Deployment Method`** applies only when the product cannot be provisioned or simulated in any software environment — purely physical products (heavy equipment, physical machinery). If Simulation is viable, use Simulation instead.
+
 ### Penalty Deductions (stack freely, no floor)
 
 | Penalty | Deduction | Flag |
