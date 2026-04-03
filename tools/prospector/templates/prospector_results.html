@@ -196,7 +196,7 @@
                             {%- elif ls -%}<span class="score-low">{{ ls }}</span>
                             {%- else -%}—{%- endif -%}
                         </td>
-                        <td class="num">{{ row.skillable_path or '—' }}</td>
+                        <td class="num">{{ row.orchestration_method or row.skillable_path or '—' }}</td>
                         <td class="num">
                             {%- set cs = row.composite_score or 0 -%}
                             {%- if cs >= 70 -%}<span class="score-high">{{ cs }}</span>

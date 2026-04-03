@@ -480,14 +480,14 @@ def _build_qualify_row(data: dict, discovery: dict | None = None,
     total_not    = sum(1 for p in all_disc if p.get("likely_labable") in ("less_likely", "not_likely"))
     ps = (disc or {}).get("partnership_signals") or {}
 
-    skillable_path = top_product.get("skillable_path", "")
+    orchestration_method = top_product.get("orchestration_method") or top_product.get("skillable_path", "")
     if org_type == "academic_institution":
         academic_sigs = (disc or {}).get("academic_signals") or {}
         school_name = academic_sigs.get("engineering_school_name")
         has_tech = _has_academic_tech_programs(disc or {})
-        skillable_path = _derive_academic_path(lab_score, school_name, has_tech)
+        orchestration_method = _derive_academic_path(lab_score, school_name, has_tech)
     else:
-        skillable_path = _fmt_labability_method(skillable_path)
+        orchestration_method = _fmt_labability_method(orchestration_method)
 
     row = {
         "company_name": data.get("company_name", ""),
@@ -495,7 +495,7 @@ def _build_qualify_row(data: dict, discovery: dict | None = None,
         "top_product":  top_product.get("name", ""),
         "lab_score":    lab_score,
         "composite_score":    composite,
-        "skillable_path":     skillable_path,
+        "orchestration_method":     orchestration_method,
         "top_contact_name":    dm.get("name", "")         if dm  else "",
         "top_contact_title":   dm.get("title", "")        if dm  else "",
         "top_contact_linkedin":dm.get("linkedin_url", "") if dm  else "",
@@ -525,7 +525,7 @@ def _academic_no_fit_row(company_name: str, discovery: dict) -> dict:
         "company_name": discovery.get("company_name", company_name),
         "company_url":  discovery.get("company_url", ""),
         "top_product": "", "lab_score": 0,
-        "composite_score": 0, "skillable_path": "Not a Fit",
+        "composite_score": 0, "orchestration_method": "Not a Fit",
         "top_contact_name": "", "top_contact_title": "", "top_contact_linkedin": "",
         "second_contact_name": "", "second_contact_title": "", "second_contact_linkedin": "",
         "analysis_id": "",

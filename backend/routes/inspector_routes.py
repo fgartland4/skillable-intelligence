@@ -298,7 +298,7 @@ def export(analysis_id: str):
     products = data.get("products") or []
 
     output = io.StringIO()
-    fieldnames = ["company_name", "product_name", "composite_score", "skillable_path", "org_type"]
+    fieldnames = ["company_name", "product_name", "composite_score", "orchestration_method", "org_type"]
     writer = csv.DictWriter(output, fieldnames=fieldnames)
     _csv_defaults = {f: "" for f in fieldnames}
     writer.writeheader()
@@ -308,7 +308,7 @@ def export(analysis_id: str):
                          "company_name": data.get("company_name", ""),
                          "product_name": p.get("name", ""),
                          "composite_score": p.get("_total_score", 0),
-                         "skillable_path": p.get("skillable_path", ""),
+                         "orchestration_method": p.get("orchestration_method") or p.get("skillable_path", ""),
                          "org_type": org_type})
 
     output.seek(0)

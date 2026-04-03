@@ -94,12 +94,12 @@ provided), load the following from the InspectorAnalysis record and pre-fill
 Phase 1:
 - company_name, company_description, organization_type
 - top_products (sorted by labability_score.total)
-- skillable_path, fabric, skillable_mechanism per product
+- orchestration_method, fabric, skillable_mechanism per product
 - consumption_potential per product (for program sizing context)
 - contacts (decision makers and influencers — for stakeholder context)
 
 Phase 2 (Program Architecture) should use the product's `fabric` and
-`skillable_path` to select the correct SA build notes above and include them
+`orchestration_method` to select the correct SA build notes above and include them
 in the Claude prompt for that phase.
 """
 

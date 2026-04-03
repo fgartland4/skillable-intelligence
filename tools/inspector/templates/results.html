@@ -666,9 +666,10 @@
             {% if cp and cp.get('annual_hours_high', 0) > 0 %}
                 {% set ns.total_low = ns.total_low + cp.get('annual_hours_low', 0) %}
                 {% set ns.total_high = ns.total_high + cp.get('annual_hours_high', 0) %}
-                {% if product.skillable_path == 'C' %}{% set r_lo = 5 %}{% set r_hi = 5 %}
+                {% set _om = product.orchestration_method or product.skillable_path or '' %}
+                {% if 'Sim' in _om or _om == 'C' %}{% set r_lo = 5 %}{% set r_hi = 5 %}
                 {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set r_lo = cp.get('vm_rate_estimate') %}{% set r_hi = cp.get('vm_rate_estimate') %}
-                {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
+                {% elif 'Azure' in _om or 'AWS' in _om or _om in ['A', 'A1', 'A1-AWS', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
                 {% else %}{% set r_lo = 12 %}{% set r_hi = 15 %}{% endif %}
                 {% set ns.acv_low = ns.acv_low + cp.get('annual_hours_low', 0) * r_lo %}
                 {% set ns.acv_high = ns.acv_high + cp.get('annual_hours_high', 0) * r_hi %}
@@ -849,9 +850,10 @@
             {% set _sc3h = (product.labability_score.organizational_readiness.score | default(product.labability_score.training_ecosystem.score | default(0))) %}
             {% set _sc4h = (product.labability_score.market_readiness.score | default(product.labability_score.market_fit.score | default(0))) %}
             {% set _cph = product.get('consumption_potential', {}) %}
-            {% if product.skillable_path == 'C' %}{% set _rate_h = 5.0 %}
+            {% set _om_h = product.orchestration_method or product.skillable_path or '' %}
+            {% if 'Sim' in _om_h or _om_h == 'C' %}{% set _rate_h = 5.0 %}
             {% elif _cph.get('vm_rate_estimate', 0) > 0 %}{% set _rate_h = _cph.get('vm_rate_estimate') %}
-            {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set _rate_h = 10.5 %}
+            {% elif 'Azure' in _om_h or 'AWS' in _om_h or _om_h in ['A', 'A1', 'A1-AWS', 'A2'] %}{% set _rate_h = 10.5 %}
             {% else %}{% set _rate_h = 12.0 %}{% endif %}
             {% set tech_dim = product.labability_score.product_labability or product.labability_score.technical_orchestrability %}
             {% set wf_dim = product.labability_score.instructional_value or product.labability_score.workflow_complexity %}
@@ -998,9 +1000,10 @@
             {# ── 5. Estimated Consumption Potential ── always shown #}
             {% set _cp5 = product.get('consumption_potential', {}) or {} %}
             {% set _cp5_hours = _cp5.get('annual_hours_high', 0) %}
-            {% if product.skillable_path == 'C' %}{% set _r5lo = 5.0 %}{% set _r5hi = 5.0 %}
+            {% set _om5 = product.orchestration_method or product.skillable_path or '' %}
+            {% if 'Sim' in _om5 or _om5 == 'C' %}{% set _r5lo = 5.0 %}{% set _r5hi = 5.0 %}
             {% elif _cp5.get('vm_rate_estimate', 0) > 0 %}{% set _r5lo = _cp5.get('vm_rate_estimate') %}{% set _r5hi = _cp5.get('vm_rate_estimate') %}
-            {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set _r5lo = 10.5 %}{% set _r5hi = 10.5 %}
+            {% elif 'Azure' in _om5 or 'AWS' in _om5 or _om5 in ['A', 'A1', 'A1-AWS', 'A2'] %}{% set _r5lo = 10.5 %}{% set _r5hi = 10.5 %}
             {% else %}{% set _r5lo = 12.0 %}{% set _r5hi = 15.0 %}{% endif %}
             <details class="dim-section dim-section-cons">
                 <summary>
@@ -1083,9 +1086,10 @@
                     {% for product in data.products %}
                     {% set cp = product.get('consumption_potential', {}) %}
                     {% if cp and cp.get('annual_hours_high', 0) > 0 %}
-                    {% if product.skillable_path == 'C' %}{% set p_rlo = 5 %}{% set p_rhi = 5 %}
+                    {% set _omt = product.orchestration_method or product.skillable_path or '' %}
+                    {% if 'Sim' in _omt or _omt == 'C' %}{% set p_rlo = 5 %}{% set p_rhi = 5 %}
                     {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set p_rlo = cp.get('vm_rate_estimate') %}{% set p_rhi = cp.get('vm_rate_estimate') %}
-                    {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
+                    {% elif 'Azure' in _omt or 'AWS' in _omt or _omt in ['A', 'A1', 'A1-AWS', 'A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
                     {% else %}{% set p_rlo = 12 %}{% set p_rhi = 15 %}{% endif %}
                     <tr>
                         <td>{{ product.name }}</td>

@@ -31,10 +31,10 @@ def compute_product_score(p: dict) -> int:
         for k, s in scores.items()
         if k not in ("product_labability", "technical_orchestrability") and isinstance(s, dict)
     )
-    return compute_labability_total(tech, other, p.get("skillable_path", ""))
+    return compute_labability_total(tech, other, p.get("orchestration_method") or p.get("skillable_path", ""))
 
 
-def compute_labability_total(tech: int, other: int, path: str = "") -> int:
+def compute_labability_total(tech: int, other: int, orchestration_method: str = "") -> int:
     """Single source of truth for the labability total score with multiplier logic.
 
     Composite scoring model (40/30/20/10):
@@ -43,20 +43,21 @@ def compute_labability_total(tech: int, other: int, path: str = "") -> int:
       Organizational Readiness 20% (0–20)  — Do they have resources to create and deliver labs?
       Market Readiness        10%  (0–10)  — Is the world interested?
 
-    tech  — product_labability score (0-40)
-    other — sum of instructional_value (0-30) + organizational_readiness (0-20) + market_readiness (0-10) = 0-60
-    path  — skillable_path string ("A1", "A2", "B", "C", "Unknown")
+    tech                 — product_labability score (0-40)
+    other                — sum of instructional_value (0-30) + organizational_readiness (0-20) + market_readiness (0-10) = 0-60
+    orchestration_method — e.g. "Hyper-V: Standard", "Azure Cloud Slice: Full Lifecycle API", "Simulation"
 
     Multiplier: Product Labability gates the composite. A product that cannot be
     orchestrated gets no credit for how strong the other dimensions are — the multiplier
     enforces this gate. Thresholds scaled proportionally from legacy 0-25 → 0-40 range.
 
     """
+    _datacenter_prefixes = ("Hyper-V", "ESX", "Container", "Azure VM", "AWS VM")
     if tech >= 32:
         multiplier = 1.0
-    elif tech >= 24 and path == "B":
-        # VM/Datacenter path: the VM image IS the lab — no cloud APIs needed.
-        # Any viable VM product with tech ≥ 24 gets full 1.0x multiplier.
+    elif tech >= 24 and any(orchestration_method.startswith(m) for m in _datacenter_prefixes):
+        # Datacenter/VM path: the VM image IS the lab — no cloud APIs needed.
+        # Any viable VM/datacenter product with tech ≥ 24 gets full 1.0x multiplier.
         multiplier = 1.0
     elif tech >= 19:
         multiplier = 0.75
@@ -73,7 +74,7 @@ class ProductLababilityScore:
     instructional_value: DimensionScore = field(default_factory=DimensionScore)       # 30% — Does this product need labs?
     organizational_readiness: DimensionScore = field(default_factory=DimensionScore)  # 20% — Do they have resources to build and deliver?
     market_readiness: DimensionScore = field(default_factory=DimensionScore)          # 10% — Is the world interested?
-    path: str = ""  # mirrors Product.skillable_path for correct multiplier in .total
+    orchestration_method: str = ""  # mirrors Product.orchestration_method for correct multiplier in .total
 
     @property
     def total(self) -> int:
@@ -83,7 +84,7 @@ class ProductLababilityScore:
             + self.organizational_readiness.score
             + self.market_readiness.score
         )
-        return compute_labability_total(tech, other, self.path)
+        return compute_labability_total(tech, other, self.orchestration_method)
 
 
 @dataclass
@@ -128,8 +129,7 @@ class Product:
     category: str
     description: str = ""
     deployment_model: str = ""          # "self-hosted", "cloud", "hybrid", "SaaS-only"
-    skillable_path: str = ""            # "A1", "A2", "B", "C", "Unknown"
-    path_tier: str = ""                 # "Best - Rich APIs", "Next Best - Credential Pool", etc.
+    orchestration_method: str = ""      # e.g. "Hyper-V: Standard", "Azure Cloud Slice: Full Lifecycle API", "Simulation"
     skillable_mechanism: str = ""       # "Skillable Datacenter", "Cloud Slice - Azure/AWS", etc.
     fabric: str = ""                    # "Hyper-V", "ESX", "Docker", "Azure Cloud Slice", "AWS Cloud Slice", "Custom API", "Simulation", "Unclear"
     user_personas: list[str] = field(default_factory=list)  # e.g. ["IT Admin / Operator", "Developer / Engineer"]
@@ -172,7 +172,7 @@ class ProspectorRow:
     top_product: str = ""
     lab_score: int = 0
     composite_score: int = 0       # = top product score (40/30/20/10 composite)
-    skillable_path: str = ""          # "Labable" | "Simulations" | "Do Not Pursue"
+    orchestration_method: str = ""
     top_contact_name: str = ""
     top_contact_title: str = ""
     top_contact_linkedin: str = ""

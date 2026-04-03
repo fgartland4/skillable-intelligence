@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 prospector = Blueprint("prospector", __name__, url_prefix="/prospector")
 
 
-def _derive_skillable_path(lab_score: int) -> str:
+def _derive_orchestration_method(lab_score: int) -> str:
     """Map a lab score to the three Prospector path labels (software companies)."""
     if lab_score >= 50:
         return "Labable"
@@ -119,8 +119,8 @@ def prospector_run():
                     row = result_holder[0]
                     if row:
                         # Academic path labels are set inside intelligence.qualify() — don't override
-                        if not row.get("skillable_path"):
-                            row["skillable_path"] = _derive_skillable_path(row.get("lab_score", 0))
+                        if not row.get("orchestration_method"):
+                            row["orchestration_method"] = _derive_orchestration_method(row.get("lab_score", 0))
                         row["flagged_poor_fit"] = False
                     results[name] = row or {"company_name": name, "error": "Analysis failed"}
                     if row and row.get("_from_cache"):
@@ -245,7 +245,7 @@ def prospector_export_csv(job_id: str):
             row.get("total_not_labable", ""),
             row.get("top_product", ""),
             row.get("lab_score", ""),
-            row.get("skillable_path", ""),
+            row.get("orchestration_method") or row.get("skillable_path", ""),
             row.get("composite_score", ""),
             row.get("atp_program", ""),       # full name, not ✓
             row.get("channel_program", ""),   # full name, not ✓
@@ -341,7 +341,7 @@ def prospector_export(job_id: str):
     for i, row in enumerate(rows, 2):
         lab   = row.get("lab_score", 0)
         comp  = row.get("composite_score", 0)
-        path  = row.get("skillable_path", "")
+        path  = row.get("orchestration_method") or row.get("skillable_path", "")
         aid   = row.get("analysis_id", "")
 
         def score_color(s):
@@ -405,7 +405,7 @@ def prospector_export(job_id: str):
     )
 
 
-# _derive_skillable_path defined at top of file — no duplicate needed here
+# _derive_orchestration_method defined at top of file — no duplicate needed here
 
 
 @prospector.route("/competitor-candidates")

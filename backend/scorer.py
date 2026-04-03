@@ -361,6 +361,25 @@ def _parse_dimension(d: dict) -> DimensionScore:
     )
 
 
+def _legacy_path(prod: dict) -> str:
+    """Construct an orchestration_method value from old skillable_path/path_tier fields.
+
+    Used only for backward compatibility with cached analyses that were stored
+    before the field rename.  New analyses always have orchestration_method.
+    """
+    sp = prod.get("skillable_path", "")
+    pt = prod.get("path_tier", "")
+    mapping = {
+        "B": "Hyper-V",
+        "A1": "Azure Cloud Slice",
+        "A1-AWS": "AWS Cloud Slice",
+        "A2": "Custom API",
+        "C": "Simulation",
+    }
+    base = mapping.get(sp, sp or "Unknown")
+    return f"{base}: {pt}" if pt else base
+
+
 def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
     products = []
     for p in data.get("products", []):
@@ -384,18 +403,15 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
             for c in p.get("contacts", [])
         ]
         cp_raw = p.get("consumption_potential", {})
-        _valid_paths = {"A1", "A1-AWS", "A2", "B", "C", "Unknown"}
-        _path = {"A": "A1"}.get(p.get("skillable_path", ""), p.get("skillable_path", "Unknown"))
-        if _path not in _valid_paths:
-            _path = "Unknown"
+        # Accept orchestration_method from new analyses; fall back to legacy fields for cached data
+        _orchestration_method = p.get("orchestration_method") or _legacy_path(p)
         product = Product(
             name=p.get("name", "Unknown"),
             product_url=p.get("product_url", ""),
             category=p.get("category", ""),
             description=p.get("description", ""),
             deployment_model=p.get("deployment_model", "unknown"),
-            skillable_path=_path,
-            path_tier=p.get("path_tier", "Unknown"),
+            orchestration_method=_orchestration_method,
             skillable_mechanism=p.get("skillable_mechanism", ""),
             fabric=p.get("fabric", ""),
             user_personas=p.get("user_personas", []),
@@ -417,7 +433,7 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
                 market_readiness=_parse_dimension(
                     scores.get("market_readiness") or scores.get("market_fit", {})
                 ),
-                path=_path,
+                orchestration_method=_orchestration_method,
             ),
             owning_org=owning_org,
             contacts=contacts,

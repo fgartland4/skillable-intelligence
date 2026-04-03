@@ -222,10 +222,10 @@
                 </table>
             </div>
 
-            {% if product.skillable_path or product.deployment_model %}
+            {% if (product.orchestration_method or product.skillable_path) or product.deployment_model %}
             <div class="meta-row">
-                {% if product.skillable_path %}
-                <span class="meta-chip"><span>Path:</span> {{ product.skillable_path }}</span>
+                {% if product.orchestration_method or product.skillable_path %}
+                <span class="meta-chip"><span>Method:</span> {{ product.orchestration_method or product.skillable_path }}</span>
                 {% endif %}
                 {% if product.deployment_model %}
                 <span class="meta-chip"><span>Deploy:</span> {{ product.deployment_model }}</span>

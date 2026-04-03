@@ -501,9 +501,10 @@
 {% for product in data.products %}
     {% set cp = product.get('consumption_potential', {}) or {} %}
     {% if cp and cp.get('annual_hours_high', 0) > 0 %}
-        {% if product.skillable_path == 'C' %}{% set r_lo = 5.0 %}{% set r_hi = 5.0 %}
+        {% set _om_d = product.orchestration_method or product.skillable_path or '' %}
+        {% if 'Sim' in _om_d or _om_d == 'C' %}{% set r_lo = 5.0 %}{% set r_hi = 5.0 %}
         {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set r_lo = cp.get('vm_rate_estimate') %}{% set r_hi = cp.get('vm_rate_estimate') %}
-        {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
+        {% elif 'Azure' in _om_d or 'AWS' in _om_d or _om_d in ['A', 'A1', 'A1-AWS', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
         {% else %}{% set r_lo = 12.0 %}{% set r_hi = 15.0 %}{% endif %}
         {% set ns.total_low  = ns.total_low  + cp.get('annual_hours_low', 0) %}
         {% set ns.total_high = ns.total_high + cp.get('annual_hours_high', 0) %}
@@ -831,10 +832,10 @@
                     {% set br_hi = cp_br.get('annual_hours_high', 0) %}
                     {% if br_hi > 0 %}
                     {% set ns_any_acv.found = true %}
-                    {% set br_sp = p.skillable_path or '' %}
-                    {% if br_sp == 'C' %}{% set br_rlo = 5.0 %}{% set br_rhi = 5.0 %}
+                    {% set br_sp = p.orchestration_method or p.skillable_path or '' %}
+                    {% if 'Sim' in br_sp or br_sp == 'C' %}{% set br_rlo = 5.0 %}{% set br_rhi = 5.0 %}
                     {% elif cp_br.get('vm_rate_estimate', 0) > 0 %}{% set br_rlo = cp_br.get('vm_rate_estimate') %}{% set br_rhi = cp_br.get('vm_rate_estimate') %}
-                    {% elif br_sp in ['A','A1','A2'] %}{% set br_rlo = 10.5 %}{% set br_rhi = 10.5 %}
+                    {% elif 'Azure' in br_sp or 'AWS' in br_sp or br_sp in ['A','A1','A1-AWS','A2'] %}{% set br_rlo = 10.5 %}{% set br_rhi = 10.5 %}
                     {% else %}{% set br_rlo = 12.0 %}{% set br_rhi = 15.0 %}{% endif %}
                     {% set br_acv_lo = (cp_br.get('annual_hours_low', 0) * br_rlo) | int %}
                     {% set br_acv_hi = (br_hi * br_rhi) | int %}
@@ -882,11 +883,11 @@
                 {# Step 2 — lead product conversation hook #}
                 {% if top_p and top_verdict in ('strong', 'pursue') %}
                 <li>Lead with <strong>{{ top_p.name }}</strong>
-                    {% set sp = top_p.skillable_path or '' %}
+                    {% set sp = top_p.orchestration_method or top_p.skillable_path or '' %}
                     {% if 'Azure' in sp %}— position as an Azure cloud lab environment
                     {% elif 'AWS' in sp %}— position as an AWS cloud lab environment
-                    {% elif 'VM' in sp or sp == 'B' %}— position as a virtual machine-based lab program
-                    {% elif 'Sim' in sp %}— position as a simulation-based experience
+                    {% elif 'Hyper-V' in sp or 'ESX' in sp or 'VM' in sp or sp == 'B' %}— position as a virtual machine-based lab program
+                    {% elif 'Sim' in sp or sp == 'C' %}— position as a simulation-based experience
                     {% endif %}.
                 </li>
                 {% endif %}
@@ -934,21 +935,22 @@
     {% else %}{% set p_verdict = 'pass' %}{% set p_verdict_label = 'Pass' %}{% endif %}
 
     {# Readable delivery path #}
-    {% set sp = product.skillable_path or '' %}
-    {% if sp == 'A1-AWS' or ('AWS' in sp and sp != 'A1') %}{% set path_label = 'AWS Cloud Slice' %}
+    {% set sp = product.orchestration_method or product.skillable_path or '' %}
+    {% if sp == 'A1-AWS' or ('AWS' in sp and 'A1' not in sp) %}{% set path_label = 'AWS Cloud Slice' %}
     {% elif 'Azure' in sp or (sp in ['A','A1','A2'] and 'AWS' not in sp) %}{% set path_label = 'Azure Cloud Slice' %}
-    {% elif 'AWS' in sp or sp == 'AW' %}{% set path_label = 'AWS Cloud Slice' %}
-    {% elif 'VM' in sp or sp == 'B' or sp == 'Standard VM' %}{% set path_label = 'Standard VM' %}
-    {% elif 'Custom' in sp or 'BYOC' in sp or 'API' in sp or sp == 'C' %}{% set path_label = 'Custom API / BYOC' %}
+    {% elif 'AWS' in sp %}{% set path_label = 'AWS Cloud Slice' %}
+    {% elif 'Hyper-V' in sp or 'ESX' in sp or 'VM' in sp or sp == 'B' %}{% set path_label = 'Standard VM' %}
+    {% elif 'Container' in sp %}{% set path_label = 'Container' %}
+    {% elif 'Custom' in sp or 'BYOC' in sp or 'API' in sp %}{% set path_label = 'Custom API / BYOC' %}
     {% elif 'Credential' in sp or sp == 'CP' %}{% set path_label = 'Credential Pool' %}
-    {% elif 'Sim' in sp or sp == 'SIM' %}{% set path_label = 'Simulation' %}
+    {% elif 'Sim' in sp or sp == 'C' or sp == 'SIM' %}{% set path_label = 'Simulation' %}
     {% else %}{% set path_label = sp if sp else 'TBD' %}{% endif %}
 
     {# Rates for this product #}
     {% set cp_prod = product.get('consumption_potential', {}) or {} %}
-    {% if sp == 'C' %}{% set p_rlo = 5.0 %}{% set p_rhi = 5.0 %}
+    {% if 'Sim' in sp or sp == 'C' %}{% set p_rlo = 5.0 %}{% set p_rhi = 5.0 %}
     {% elif cp_prod.get('vm_rate_estimate', 0) > 0 %}{% set p_rlo = cp_prod.get('vm_rate_estimate') %}{% set p_rhi = cp_prod.get('vm_rate_estimate') %}
-    {% elif sp in ['A','A1','A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
+    {% elif 'Azure' in sp or 'AWS' in sp or sp in ['A','A1','A1-AWS','A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
     {% else %}{% set p_rlo = 12.0 %}{% set p_rhi = 15.0 %}{% endif %}
 
     <details class="product-details" id="product-{{ loop.index }}">
@@ -1019,9 +1021,9 @@
                     </div>
                 </div>
                 {# Delivery path #}
-                {% if product.skillable_path or product.skillable_mechanism %}
+                {% if (product.orchestration_method or product.skillable_path) or product.skillable_mechanism %}
                 <div class="pd-path-inline" style="margin-top:8px;">
-                    {% if product.skillable_path %}<span class="pd-path-badge">{{ path_label }}</span>{% endif %}
+                    {% if product.orchestration_method or product.skillable_path %}<span class="pd-path-badge">{{ path_label }}</span>{% endif %}
                     {% if product.skillable_mechanism %}<span class="pd-mechanism-text">{{ product.skillable_mechanism }}</span>{% endif %}
                 </div>
                 {% endif %}
