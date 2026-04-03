@@ -500,7 +500,7 @@
     function zeroPad(n) { return String(n).padStart(2, '0'); }
 
     function updateState() {
-        const cbs = Array.from(form.querySelectorAll('.product-cb'));
+        const cbs = Array.from(document.querySelectorAll('.product-cb'));
         const checked = cbs.filter(cb => cb.checked);
         const n = checked.length;
 
@@ -520,7 +520,7 @@
         }
 
         /* Dim / undim unchecked cards when at limit */
-        const cards = form.querySelectorAll('.product-card');
+        const cards = document.querySelectorAll('.product-card');
         cards.forEach(card => {
             const cb = card.querySelector('.product-cb');
             if (n >= MAX_SEL && !cb.checked) {
@@ -550,7 +550,7 @@
     }
 
     /* Checkbox sync with styled card */
-    form.addEventListener('change', function(e) {
+    document.addEventListener('change', function(e) {
         if (!e.target.classList.contains('product-cb')) return;
         const card = e.target.closest('.product-card');
         if (e.target.checked) {
@@ -562,7 +562,7 @@
     });
 
     /* Prevent unchecking beyond limit via direct click */
-    form.addEventListener('click', function(e) {
+    document.addEventListener('click', function(e) {
         const card = e.target.closest('.product-card');
         if (!card) return;
         const cb = card.querySelector('.product-cb');
