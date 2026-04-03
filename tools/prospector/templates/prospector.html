@@ -27,9 +27,15 @@
         }
         .nav img { height: 28px; }
         .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
-        .nav-tool { font-size: 0.875rem; color: #6b9e88; }
-        .nav-sep { color: #1e3329; margin: 0 10px; }
-        .nav-tool-active { color: #a8d5c2; font-weight: 600; }
+        .nav-tools { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+        .nav-tool {
+            font-size: 0.82rem; font-weight: 600; color: #6b9e88;
+            padding: 7px 14px; border-radius: 8px;
+            text-decoration: none; transition: color 0.15s, background 0.15s;
+            letter-spacing: 0.01em;
+        }
+        .nav-tool:hover { color: #e8f5f0; background: rgba(255,255,255,0.04); text-decoration: none; }
+        .nav-tool.active { color: #24ED9B; background: rgba(36,237,155,0.08); }
         .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
         .back { display: inline-block; margin-bottom: 32px; color: #6b9e88; font-size: 0.85rem; }
         .back:hover { color: #24ED9B; text-decoration: none; }
@@ -104,16 +110,16 @@
     <nav class="nav">
         <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
         <div class="nav-divider"></div>
-        <a href="/inspector/" class="nav-tool">Inspector</a>
-        <span class="nav-sep">·</span>
-        <span class="nav-tool nav-tool-active">Prospector</span>
+        <div class="nav-tools">
+            <a href="/prospector" class="nav-tool active">Prospector</a>
+            <a href="/inspector" class="nav-tool">Inspector</a>
+            <a href="/designer" class="nav-tool">Designer</a>
+        </div>
     </nav>
 
     <div class="container">
-        <a href="/" class="back">&larr; Home</a>
-
-        <h1>Ideal Customer Prospector</h1>
-        <p class="subtitle">Upload a list of companies to score each one for product labability and lab maturity. Results are ranked and exportable to Excel.</p>
+        <h1>Prospector</h1>
+        <p class="subtitle">Score a list of companies for labability fit, or find lookalike companies based on your best customers. Results are ranked and exportable to Excel.</p>
 
         {% if competitor_candidate_count and competitor_candidate_count > 0 %}
         <div id="competitor-callout" style="display:flex;align-items:center;gap:12px;background:rgba(36,237,155,0.06);border:1px solid rgba(36,237,155,0.22);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:0.84rem;color:#a8d5c2;">
@@ -123,13 +129,10 @@
         </div>
         {% endif %}
 
-        <div class="info-box">
-            <strong>How it works:</strong> For each company, the engine discovers their top product and scores it — labability signals, lab maturity, and recommended Skillable path. Results are ranked by Overall Opportunity Score with a direct link to run a full Inspector analysis on any company.
-        </div>
-
         <div class="mode-tabs">
             <button class="mode-tab active" onclick="switchMode('csv', this)">&#8679; Upload CSV</button>
             <button class="mode-tab" onclick="switchMode('paste', this)">&#9998; Paste List</button>
+            <button class="mode-tab" onclick="switchMode('lookalikes', this)">&#10070; Find Lookalikes</button>
         </div>
 
         <div class="form-card">
@@ -154,6 +157,18 @@
                     {% if poor_fit_count %}
                     <div class="pf-notice">{{ poor_fit_count }} previously flagged poor-fit {{ 'company' if poor_fit_count == 1 else 'companies' }} will be skipped automatically.</div>
                     {% endif %}
+                </form>
+            </div>
+
+            <div id="panel-lookalikes" class="mode-panel">
+                <form method="POST" action="/prospector/lookalikes">
+                    <label class="field-label" for="anchor_companies">Anchor Companies</label>
+                    <textarea id="anchor_companies" name="anchor_companies"
+                        placeholder="Enter your best customers or strongest labability fits — one per line. The engine will find similar companies."></textarea>
+                    <div class="field-hint">One company per line. Use companies you've already run through Inspector for best results.</div>
+                    <div class="submit-row">
+                        <button type="submit" class="btn-primary">Find Lookalikes &rarr;</button>
+                    </div>
                 </form>
             </div>
 
