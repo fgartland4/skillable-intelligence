@@ -136,3 +136,36 @@ Three tools under one Flask backend:
 
 Repo: `fgartland4/skillable-intelligence` on GitHub
 Deployed on Render → target: `intelligence.skillable.com`
+
+---
+
+## Tool Status & What's Next
+
+### Intelligence (shared backend)
+- `intelligence.py` built with six operations: discover, score, refresh, expand, qualify, lookup
+- Inspector + Prospector routes are thin callers into Intelligence layer
+- **Next:** Collaborative lab / break-fix / simulated attack detection; Consumption Potential scorer + UI; Render deployment
+
+### Inspector
+- Two-stage flow live: Caseboard → Dossier
+- Page naming confirmed: "Seller Action Plan" (Stage 1) · "Seller & SE Action Plan" (Stage 2)
+- **Next:** Redesign Stage 1 (overall fit score, ranked products, competitor list, delivery path signal); Consumption Potential UI; two-zone dossier layout (seller summary top / SE technical detail expandable)
+- **Open decisions:** Diff/Refresh buttons; Inspector → Designer handoff timing; HubSpot field mapping with RevOps
+
+### Prospector
+- Batch scoring live; routes use intelligence.qualify()
+- **Next:** 2nd ABM contact column; Academic institution support; ZoomInfo CSV column mapping; UX redesign after RevOps/Marketing conversations
+- **Open decisions:** HubSpot integration threshold; ICP Discovery mode (roadmap, not now)
+
+### Designer
+- Full light-mode visual overhaul complete
+- backend checklist + Phase 1 prompts synced
+- `instructional_design_guide.md` created in `backend/prompts/`
+- **Next:** Inject ID guide into Phase 1/2/3 system prompts; re-add Scenario Seeds to Lab Blueprint; Phase 4 UX detail (BOM + Studio export); CSS color correction to confirmed brand palette
+- **Open decisions:** Export ZIP format; AI persona name ("Neo" — not yet confirmed); Inspector → Designer handoff pre-fill level; Standards Library API route
+
+### Shared — Pending Across All Tools
+- Consumption Potential model exists in `models.py` — scorer + UI incomplete
+- `backend/standards/skill_frameworks/` is empty — NICE NCWF, DoD DCWF files not yet sourced
+- Auth not yet implemented — revisit when platform goes beyond internal Skillable use
+- SQLite → Azure SQL migration path planned but not urgent yet
