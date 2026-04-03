@@ -601,14 +601,14 @@ details[open] .chevron { transform: rotate(180deg); }
         <div>
             <div class="next-section-title lead">What to Lead With</div>
             <ul class="next-list">
-                {%- for rec in lead_recs %}<li>{{ rec | bold_labels | safe }}</li>{% endfor -%}
+                {%- for rec in lead_recs %}<li>{{ rec | rec_bullet | safe }}</li>{% endfor -%}
                 {%- if not lead_recs %}<li class="text-muted">Review strengths in dimension boxes above.</li>{% endif -%}
             </ul>
         </div>
         <div>
             <div class="next-section-title risks">Prepare for These Risks</div>
             <ul class="next-list">
-                {%- for rec in risk_recs %}<li>{{ rec | bold_labels | safe }}</li>{% endfor -%}
+                {%- for rec in risk_recs %}<li>{{ rec | rec_bullet | safe }}</li>{% endfor -%}
                 {%- if not risk_recs %}<li class="text-muted">No significant risks flagged.</li>{% endif -%}
             </ul>
         </div>

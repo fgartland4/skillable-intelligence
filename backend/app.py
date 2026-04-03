@@ -130,6 +130,42 @@ def bold_labels(text):
     return Markup(_apply_bold(str(text)))
 
 
+@app.template_filter('rec_bullet')
+def rec_bullet(text: str, max_desc: int = 120) -> Markup:
+    """Distil a recommendation string to a short Next Steps bullet.
+
+    Input:  '**Label | Risk:** Long paragraph of explanation...'
+    Output: '<strong>Label</strong> — first sentence, max 120 chars…'
+
+    Strips the qualifier suffix (| Risk / | Blocker / | Strength) from the label
+    so bullets read cleanly without the scoring vocabulary leaking into seller copy.
+    """
+    s = str(text).strip()
+    m = _re.match(r'\*\*(.+?)\*\*:?\s*(.*)', s, _re.DOTALL)
+    if not m:
+        # No bold label — truncate plain text
+        return Markup(_escape(s[:max_desc] + ('…' if len(s) > max_desc else '')))
+
+    label = m.group(1).strip().rstrip(':')
+    # Strip qualifier suffix (| Risk, | Blocker, | Strength, | Opportunity, — Risk, etc.)
+    label = _re.sub(r'\s*[\|—–]\s*(Risk|Blocker|Strength|Caution|Opportunity)$', '', label, flags=_re.IGNORECASE)
+
+    desc = m.group(2).strip()
+    # Take first sentence only (split on '. ' or ' — ')
+    for sep in ['. ', ' — ', ' – ', '\n']:
+        idx = desc.find(sep)
+        if idx != -1 and idx < max_desc:
+            desc = desc[:idx]
+            break
+    if len(desc) > max_desc:
+        desc = desc[:max_desc].rstrip() + '…'
+
+    label_html = _apply_bold(f'**{label}:**')
+    desc_html = str(_escape(desc)) if desc else ''
+    result = label_html + (f' {desc_html}' if desc_html else '')
+    return Markup(result)
+
+
 @app.template_filter('linkify')
 def linkify(text):
     """Convert [label](url) markdown links to <a> HTML, then apply bold with warning colors."""
