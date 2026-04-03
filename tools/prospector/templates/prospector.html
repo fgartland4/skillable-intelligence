@@ -51,9 +51,12 @@
         .mode-tab.active { background: #0d1a14; color: #a8d5c2; }
         .mode-tab:hover:not(.active) { color: #6b9e88; }
 
-        .form-card { background: #0d1a14; border: 1px solid #1e3329; border-radius: 16px; padding: 28px; min-height: 360px; }
-        .mode-panel { display: none; height: 100%; }
+        .form-card { background: #0d1a14; border: 1px solid #1e3329; border-radius: 16px; padding: 28px; min-height: 400px; display: flex; flex-direction: column; }
+        .mode-panel { display: none; flex: 1; }
         .mode-panel.active { display: flex; flex-direction: column; }
+        .mode-panel form { display: flex; flex-direction: column; flex: 1; }
+        .panel-footer { margin-top: auto; padding-top: 22px; text-align: center; }
+        .btn-primary:disabled { background: #1e3329; color: #3d6655; cursor: not-allowed; opacity: 1; }
         .field-label {
             display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.1em; color: #3d6655; margin-bottom: 10px;
@@ -146,9 +149,9 @@
                         <div class="drop-hint">First column = Company Name. Header row is skipped automatically.</div>
                         <div class="drop-selected" id="file-selected-label"></div>
                     </div>
-                    <div class="field-hint" style="margin-top:10px;">Works with ZoomInfo exports, ABM lists, or any CSV where the first column is the company name.</div>
-                    <div style="text-align:center; margin-top:22px;">
-                        <button type="submit" class="btn-primary">Score &rarr;</button>
+                    <div class="field-hint" style="margin-top:10px; text-align:center;">Works with ZoomInfo exports, ABM lists, or any CSV where the first column is the company name.</div>
+                    <div class="panel-footer">
+                        <button type="submit" class="btn-primary" id="btn-csv" disabled>Score &rarr;</button>
                         <div style="margin-top:14px;">
                             <label style="display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none;">
                                 <input type="checkbox" id="force-refresh-csv" name="force_refresh" value="1" style="width:14px; height:14px; accent-color:#24ED9B; cursor:pointer;">
@@ -167,9 +170,9 @@
                     <label class="field-label" for="anchor_companies">Anchor Companies</label>
                     <textarea id="anchor_companies" name="anchor_companies"
                         placeholder="Enter your best customers or strongest labability fits — one per line. The engine will find similar companies."></textarea>
-                    <div class="field-hint">One company per line. Use companies you've already run through Inspector for best results.</div>
-                    <div style="text-align:center; margin-top:22px;">
-                        <button type="submit" class="btn-primary">Find &rarr;</button>
+                    <div class="field-hint" style="text-align:center;">One company per line. Use companies you've already run through Inspector for best results.</div>
+                    <div class="panel-footer">
+                        <button type="submit" class="btn-primary" id="btn-lookalikes" disabled>Find &rarr;</button>
                     </div>
                 </form>
             </div>
@@ -178,10 +181,10 @@
                 <form method="POST" action="/prospector/run">
                     <label class="field-label" for="companies">Company Names</label>
                     <textarea id="companies" name="companies"
-                        placeholder="Paste or type a list of companies, then press Run Prospector"></textarea>
-                    <div class="field-hint">One company per line (or comma-separated). Limit to 25 companies per batch for best results.</div>
-                    <div style="text-align:center; margin-top:22px;">
-                        <button type="submit" class="btn-primary">Score &rarr;</button>
+                        placeholder="Paste or type company names, one per line"></textarea>
+                    <div class="field-hint" style="text-align:center;">One company per line (or comma-separated). Limit to 25 companies per batch for best results.</div>
+                    <div class="panel-footer">
+                        <button type="submit" class="btn-primary" id="btn-paste" disabled>Score &rarr;</button>
                         <div style="margin-top:14px;">
                             <label style="display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none;">
                                 <input type="checkbox" id="force-refresh-paste" name="force_refresh" value="1" style="width:14px; height:14px; accent-color:#24ED9B; cursor:pointer;">
@@ -204,6 +207,17 @@
             btn.classList.add('active');
             document.getElementById('panel-' + mode).classList.add('active');
         }
+        // Enable/disable buttons based on input
+        document.getElementById('csv-input').addEventListener('change', function() {
+            document.getElementById('btn-csv').disabled = !this.files.length;
+        });
+        document.getElementById('companies').addEventListener('input', function() {
+            document.getElementById('btn-paste').disabled = !this.value.trim();
+        });
+        document.getElementById('anchor_companies').addEventListener('input', function() {
+            document.getElementById('btn-lookalikes').disabled = !this.value.trim();
+        });
+
         function fileSelected(input) {
             const label = document.getElementById('file-selected-label');
             if (input.files.length) {
