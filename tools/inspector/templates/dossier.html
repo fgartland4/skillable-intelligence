@@ -52,8 +52,6 @@ a:hover { text-decoration: underline; }
 
 /* ── Hero ─────────────────────────────────────────────────────── */
 .hero {
-    display: grid; grid-template-columns: 1fr auto;
-    gap: 32px; align-items: start;
     padding: 24px 0 28px;
     border-bottom: 1px solid #1e3329;
     margin-bottom: 24px;
@@ -62,6 +60,9 @@ a:hover { text-decoration: underline; }
     font-size: 1.5rem; font-weight: 700; color: #e8f5f0; margin-bottom: 4px;
 }
 .hero-description { font-size: 0.85rem; color: #6b9e88; margin-bottom: 20px; }
+.hero-boxes {
+    display: flex; gap: 16px; align-items: stretch; margin-top: 20px;
+}
 
 .hero-score-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; }
 .hero-score {
@@ -83,7 +84,7 @@ a:hover { text-decoration: underline; }
 .verdict-label.pass       { color: #e05252; background: rgba(224,82,82,0.08); border: 1px solid rgba(224,82,82,0.3); }
 
 /* ── Hero dimension badges ─────────────────────────────────────── */
-.hero-badges { display: flex; flex-direction: column; gap: 6px; }
+.hero-badges { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
     font-size: 0.82rem; font-weight: 500;
@@ -98,8 +99,17 @@ a:hover { text-decoration: underline; }
     letter-spacing: 0.08em; margin-right: 2px; white-space: nowrap;
 }
 
-/* ── ACV ──────────────────────────────────────────────────────── */
-.hero-acv { text-align: right; }
+/* ── Hero boxes (side by side) ────────────────────────────────── */
+.hero-score-box {
+    flex: 1 1 auto;
+    background: #0c1f19; border: 1px solid #1e3329; border-radius: 12px;
+    padding: 20px 24px;
+}
+.hero-acv {
+    flex: 0 0 260px;
+    background: #0c1f19; border: 1px solid #1e3329; border-radius: 12px;
+    padding: 20px 24px; text-align: right;
+}
 .acv-eyebrow {
     font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
     color: #4a7060; text-transform: uppercase; margin-bottom: 6px;
@@ -123,7 +133,7 @@ a:hover { text-decoration: underline; }
     font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
     color: #4a7060; text-transform: uppercase; margin-bottom: 12px;
 }
-.dim-badges { display: flex; flex-direction: column; gap: 5px; }
+.dim-badges { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
 .dim-badge {
     display: inline-flex; align-items: center; gap: 8px;
     font-size: 0.8rem; padding: 4px 10px; border-radius: 5px;
@@ -469,59 +479,59 @@ details[open] .chevron { transform: rotate(180deg); }
 {%- set hb_mr = hero_badge(mr_evs) -%}
 
 <div class="hero">
-    <div>
-        <div class="hero-company-name">
-            {{ data.get('company_name', '') }}
-            {%- set org_type = data.get('organization_type', 'software_company') | default('software_company') -%}
-            <span class="org-badge {{ org_type }}">{{ org_type | replace('_', ' ') | title }}</span>
-        </div>
-        {%- if data.get('company_description') %}
-        <div class="hero-description">{{ data.get('company_description') }}</div>
-        {%- endif %}
-
-        <div class="hero-score-row">
-            <span class="hero-score {{ v_cls }}">{{ composite }}</span>
-            <span class="verdict-label {{ v_cls }}">{{ v }}</span>
-        </div>
-
-        <div class="hero-badges">
-            {%- if hb_pl -%}
-            <span class="hero-badge {{ badge_color_class(hb_pl.qualifier) }}">
-                <span class="dim-label">Labability</span>
-                {{ badge_emoji(hb_pl.qualifier) }} {{ hb_pl.name }}
-            </span>
-            {%- endif -%}
-            {%- if hb_iv -%}
-            <span class="hero-badge {{ badge_color_class(hb_iv.qualifier) }}">
-                <span class="dim-label">Instructional</span>
-                {{ badge_emoji(hb_iv.qualifier) }} {{ hb_iv.name }}
-            </span>
-            {%- endif -%}
-            {%- if hb_or -%}
-            <span class="hero-badge {{ badge_color_class(hb_or.qualifier) }}">
-                <span class="dim-label">Org Readiness</span>
-                {{ badge_emoji(hb_or.qualifier) }} {{ hb_or.name }}
-            </span>
-            {%- endif -%}
-            {%- if hb_mr -%}
-            <span class="hero-badge {{ badge_color_class(hb_mr.qualifier) }}">
-                <span class="dim-label">Market</span>
-                {{ badge_emoji(hb_mr.qualifier) }} {{ hb_mr.name }}
-            </span>
-            {%- endif -%}
-        </div>
-    </div><!-- hero-left -->
-
-    <div class="hero-acv">
-        <div class="acv-eyebrow">Estimated Annual Contract Value</div>
-        {%- if acv.low or acv.high %}
-        <div class="acv-value">${{ "{:,.0f}".format(acv.low) }} – ${{ "{:,.0f}".format(acv.high) }}</div>
-        <div class="acv-sub">Est. based on {{ acv.count }} of {{ products | length }} products</div>
-        {%- else %}
-        <div class="acv-value" style="color:#2e4d40;">—</div>
-        <div class="acv-sub">No consumption data</div>
-        {%- endif %}
+    <div class="hero-company-name">
+        {{ data.get('company_name', '') }}
+        {%- set org_type = data.get('organization_type', 'software_company') | default('software_company') -%}
+        <span class="org-badge {{ org_type }}">{{ org_type | replace('_', ' ') | title }}</span>
     </div>
+    {%- if data.get('company_description') %}
+    <div class="hero-description">{{ data.get('company_description') }}</div>
+    {%- endif %}
+
+    <div class="hero-boxes">
+        <div class="hero-score-box">
+            <div class="hero-score-row">
+                <span class="hero-score {{ v_cls }}">{{ composite }}</span>
+                <span class="verdict-label {{ v_cls }}">{{ v }}</span>
+            </div>
+            <div class="hero-badges">
+                {%- if hb_pl -%}
+                <span class="hero-badge {{ badge_color_class(hb_pl.qualifier) }}">
+                    <span class="dim-label">Labability</span>
+                    {{ badge_emoji(hb_pl.qualifier) }} {{ hb_pl.name }}
+                </span>
+                {%- endif -%}
+                {%- if hb_iv -%}
+                <span class="hero-badge {{ badge_color_class(hb_iv.qualifier) }}">
+                    <span class="dim-label">Instructional</span>
+                    {{ badge_emoji(hb_iv.qualifier) }} {{ hb_iv.name }}
+                </span>
+                {%- endif -%}
+                {%- if hb_or -%}
+                <span class="hero-badge {{ badge_color_class(hb_or.qualifier) }}">
+                    <span class="dim-label">Org Readiness</span>
+                    {{ badge_emoji(hb_or.qualifier) }} {{ hb_or.name }}
+                </span>
+                {%- endif -%}
+                {%- if hb_mr -%}
+                <span class="hero-badge {{ badge_color_class(hb_mr.qualifier) }}">
+                    <span class="dim-label">Market</span>
+                    {{ badge_emoji(hb_mr.qualifier) }} {{ hb_mr.name }}
+                </span>
+                {%- endif -%}
+            </div>
+        </div><!-- hero-score-box -->
+
+        <div class="hero-acv">
+            <div class="acv-eyebrow">Estimated Annual Contract Value</div>
+            {%- if acv.low or acv.high %}
+            <div class="acv-value">${{ "{:,.0f}".format(acv.low) }} – ${{ "{:,.0f}".format(acv.high) }}</div>
+            <div class="acv-sub">Est. based on {{ acv.count }} of {{ products | length }} products</div>
+            {%- else %}
+            <div class="acv-sub" style="margin-top:8px;">No consumption data yet —<br>re-run analysis to generate.</div>
+            {%- endif %}
+        </div>
+    </div><!-- hero-boxes -->
 </div><!-- hero -->
 
 {# ─────────────────────────────────────────────────────────────── #}
