@@ -74,9 +74,9 @@ PHASE_PROMPTS = {
 
         "When items become clear, append a JSON block at the END of your response (after your message):\n"
         "```json\n"
-        "{\"checklist_updates\": {\"program_objectives\": {\"state\": \"yellow\", \"items\": [\"Support partner pre-sales enablement\"]}}}\n"
+        "{\"checklist_updates\": {\"program_objectives\": {\"state\": \"amber\", \"items\": [\"Support partner pre-sales enablement\"]}}}\n"
         "```\n"
-        "Use state 'yellow' for partial, 'green' when confident. Always use 'items' (array), not 'value'. "
+        "Use state 'amber' for partial, 'green' when confident. Always use 'items' (array), not 'value'. "
         "Merge incrementally — only include keys that changed. De-duplicate silently."
     ),
     2: (

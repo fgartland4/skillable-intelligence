@@ -4,6 +4,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 from datetime import datetime, timezone
 
+from constants import (
+    MULTIPLIER_FULL, MULTIPLIER_DATACENTER, MULTIPLIER_REDUCED, MULTIPLIER_LOW,
+    MULTIPLIER_VALUES, DATACENTER_PREFIXES,
+)
+
 
 @dataclass
 class Evidence:
@@ -52,19 +57,18 @@ def compute_labability_total(tech: int, other: int, orchestration_method: str = 
     enforces this gate. Thresholds scaled proportionally from legacy 0-25 → 0-40 range.
 
     """
-    _datacenter_prefixes = ("Hyper-V", "ESX", "Container", "Azure VM", "AWS VM")
-    if tech >= 32:
-        multiplier = 1.0
-    elif tech >= 24 and any(orchestration_method.startswith(m) for m in _datacenter_prefixes):
+    if tech >= MULTIPLIER_FULL:
+        multiplier = MULTIPLIER_VALUES["full"]
+    elif tech >= MULTIPLIER_DATACENTER and any(orchestration_method.startswith(m) for m in DATACENTER_PREFIXES):
         # Datacenter/VM path: the VM image IS the lab — no cloud APIs needed.
-        # Any viable VM/datacenter product with tech ≥ 24 gets full 1.0x multiplier.
-        multiplier = 1.0
-    elif tech >= 19:
-        multiplier = 0.75
-    elif tech >= 10:
-        multiplier = 0.40
+        # Any viable VM/datacenter product with tech >= MULTIPLIER_DATACENTER gets full 1.0x.
+        multiplier = MULTIPLIER_VALUES["datacenter"]
+    elif tech >= MULTIPLIER_REDUCED:
+        multiplier = MULTIPLIER_VALUES["cloud_reduced"]
+    elif tech >= MULTIPLIER_LOW:
+        multiplier = MULTIPLIER_VALUES["low"]
     else:
-        multiplier = 0.15
+        multiplier = MULTIPLIER_VALUES["minimal"]
     return min(100, tech + round(other * multiplier))
 
 

@@ -11,6 +11,13 @@ import uuid
 
 from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
 
+from constants import (
+    PATH_LABABLE_THRESHOLD, PATH_SIMULATION_THRESHOLD,
+    SCORE_COLOR_HIGH, SCORE_COLOR_MID,
+    EXCEL_GREEN_HI, EXCEL_AMBER, EXCEL_RED_SOFT,
+    EXCEL_BG_HEADER, EXCEL_BG_ROW, EXCEL_TEXT_WHITE, EXCEL_TEXT_MUTED, EXCEL_GREEN_MID,
+    COMPANY_TIMEOUT_SECS, MAX_PROSPECTOR_WORKERS,
+)
 from core import _push, _sse_stream, _attach_scores, _fmt_ondemand, _fmt_cert, _cancelled_jobs
 from intelligence import qualify as intel_qualify
 from storage import (
@@ -34,10 +41,11 @@ prospector = Blueprint("prospector", __name__, url_prefix="/prospector")
 
 
 def _derive_orchestration_method(lab_score: int) -> str:
-    """Map a lab score to the three Prospector path labels (software companies)."""
-    if lab_score >= 50:
+    """Map a lab score to the three Prospector path labels (software companies).
+    Thresholds from constants.py."""
+    if lab_score >= PATH_LABABLE_THRESHOLD:
         return "Labable"
-    if lab_score >= 20:
+    if lab_score >= PATH_SIMULATION_THRESHOLD:
         return "Simulations"
     return "Do Not Pursue"
 
@@ -292,15 +300,15 @@ def prospector_export(job_id: str):
     ws = wb.active
     ws.title = "Prospector Results"
 
-    # Color palette
-    green_dark  = "FF0D1A14"
-    green_hi    = "FF24ED9B"
-    green_mid   = "FF6b9e88"
-    amber       = "FFF59E0B"
-    red_soft    = "FFF87171"
-    white       = "FFE8F5F0"
-    muted       = "FF3d6655"
-    bg_header   = "FF06100C"
+    # Color palette — from constants.py
+    green_dark  = EXCEL_BG_ROW
+    green_hi    = EXCEL_GREEN_HI
+    green_mid   = EXCEL_GREEN_MID
+    amber       = EXCEL_AMBER
+    red_soft    = EXCEL_RED_SOFT
+    white       = EXCEL_TEXT_WHITE
+    muted       = EXCEL_TEXT_MUTED
+    bg_header   = EXCEL_BG_HEADER
 
     header_font  = Font(bold=True, color=green_hi, size=9)
     default_font = Font(color=white, size=9)
@@ -345,7 +353,7 @@ def prospector_export(job_id: str):
         aid   = row.get("analysis_id", "")
 
         def score_color(s):
-            return green_hi if s >= 70 else (amber if s >= 40 else red_soft)
+            return green_hi if s >= SCORE_COLOR_HIGH else (amber if s >= SCORE_COLOR_MID else red_soft)
 
         values = [
             row.get("rank", i - 1),           # 1  #

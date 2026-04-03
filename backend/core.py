@@ -4,6 +4,10 @@ import logging
 import threading
 import time
 
+from constants import (
+    VERDICT_STRONG_FIT, VERDICT_PURSUE, VERDICT_MONITOR,
+    TIER_HIGHLY_LIKELY, TIER_LIKELY, TIER_LESS_LIKELY,
+)
 from models import compute_product_score
 
 log = logging.getLogger(__name__)
@@ -124,12 +128,13 @@ _CEILING_FLAGS = {"bare_metal_required", "no_api_automation", "saas_only", "mult
 
 
 def _verdict(score: int) -> str:
-    """Canonical verdict label from composite score. Single source of truth."""
-    if score >= 70:
+    """Canonical verdict label from composite score. Single source of truth.
+    Thresholds defined in constants.py."""
+    if score >= VERDICT_STRONG_FIT:
         return "Strong Fit"
-    if score >= 45:
+    if score >= VERDICT_PURSUE:
         return "Pursue"
-    if score >= 20:
+    if score >= VERDICT_MONITOR:
         return "Monitor"
     return "Pass"
 
@@ -226,12 +231,12 @@ def _labable_tier(product: dict) -> str:
     score = product.get("_total_score", 0)
     flags = set(product.get("poor_match_flags", []) or [])
     if flags & _CEILING_FLAGS:
-        return "less_likely" if score >= 20 else "not_likely"
-    if score >= 70:
+        return "less_likely" if score >= TIER_LESS_LIKELY else "not_likely"
+    if score >= TIER_HIGHLY_LIKELY:
         return "highly_likely"
-    if score >= 45:
+    if score >= TIER_LIKELY:
         return "likely"
-    if score >= 20:
+    if score >= TIER_LESS_LIKELY:
         return "less_likely"
     return "not_likely"
 

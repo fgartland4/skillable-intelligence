@@ -39,6 +39,7 @@ SKIP_PATHS = [
     "scripts/validate-badge-names.py",  # skip this file itself
     "CLAUDE.md",                         # locked vocab table lists legacy terms intentionally
     "docs/Badging-Framework-Core.md",    # "Never this" column lists legacy terms intentionally
+    "dossier.html",                      # contains badge name keywords for evidence matching (valid usage)
     ".git/",
     "__pycache__/",
     "node_modules/",

@@ -12,10 +12,16 @@ from flask import Flask, render_template
 from markupsafe import Markup, escape as _escape
 from storage import list_analyses
 
+from config import validate_startup
+from constants import SCORE_COLOR_HIGH, SCORE_COLOR_MID
 from core import _verdict, _parse_hero_badge, _badge_subsection
 from routes.inspector_routes import inspector
 from routes.prospector_routes import prospector
 from routes.designer_routes import designer
+
+# Validate required config, files, and directories at startup — fail fast
+# with a clear message rather than cryptic errors minutes into an analysis.
+validate_startup()
 
 # ---------------------------------------------------------------------------
 # App setup — multi-tool template loader
@@ -192,6 +198,111 @@ def link_product_name(text, name, url):
 
 
 # ---------------------------------------------------------------------------
+# Evidence parsing filters — replaces fragile Jinja2 string parsing
+#
+# These filters extract badge names, qualifiers, colors, and subsection
+# groupings from evidence claim strings.  The claim format is:
+#   **Badge Name | Qualifier:** Description text — source.
+# where Qualifier is one of: Blocker, Risk, Caution, Strength, Opportunity
+# ---------------------------------------------------------------------------
+
+_BADGE_RE = _re.compile(r'\*\*(.+?)\*\*')
+
+
+def _parse_badge_from_claim(claim: str) -> dict | None:
+    """Parse a badge name and qualifier from an evidence claim string.
+
+    Returns {"name": str, "qualifier": str} or None if no badge found.
+    Qualifier is lowercased: blocker, risk, caution, strength, opportunity.
+    """
+    m = _BADGE_RE.match(claim)
+    if not m:
+        return None
+    label = m.group(1).rstrip(":")
+    if " | " in label:
+        name, qualifier = label.rsplit(" | ", 1)
+    else:
+        name, qualifier = label, "strength"
+    return {"name": name.strip(), "qualifier": qualifier.strip().lower()}
+
+
+def _badge_color(qualifier: str) -> str:
+    """Map a qualifier to a CSS color class: green, amber, or red."""
+    if qualifier == "blocker":
+        return "red"
+    if qualifier in ("risk", "caution"):
+        return "amber"
+    return "green"
+
+
+def _badge_emoji(qualifier: str) -> str:
+    """Map a qualifier to its display emoji."""
+    if qualifier == "blocker":
+        return "\U0001f6ab"   # 🚫
+    if qualifier in ("risk", "caution"):
+        return "\u26a0\ufe0f"  # ⚠️
+    return "\u2705"            # ✅
+
+
+def _get_claim(ev) -> str:
+    """Extract claim text from an evidence item (dict or object)."""
+    if isinstance(ev, dict):
+        return ev.get("claim", "")
+    return getattr(ev, "claim", "")
+
+
+@app.template_filter('parse_badges')
+def parse_badges_filter(ev_list):
+    """Parse an evidence list into grouped badge dicts sorted by color.
+
+    Returns: {"green": [{"name", "qualifier"}], "amber": [...], "red": [...]}
+    Used by dossier template to render dimension badge chips.
+    """
+    groups = {"green": [], "amber": [], "red": []}
+    seen = set()
+    for ev in (ev_list or []):
+        badge = _parse_badge_from_claim(_get_claim(ev))
+        if badge and badge["name"] not in seen:
+            seen.add(badge["name"])
+            color = _badge_color(badge["qualifier"])
+            groups[color].append(badge)
+    return groups
+
+
+@app.template_filter('group_labability')
+def group_labability_filter(ev_list):
+    """Group Product Labability evidence by subsection.
+
+    Returns: {"provisioning": [...], "licensing": [...], "scoring": [...],
+              "teardown": [...], "other": [...]}
+    Each value is a list of the original evidence items (dicts or objects).
+    Used by dossier template to render the SE drill-down grouped view.
+    """
+    groups = {"provisioning": [], "licensing": [], "scoring": [], "teardown": [], "other": []}
+    for ev in (ev_list or []):
+        claim = _get_claim(ev)
+        badge = _parse_badge_from_claim(claim)
+        if badge:
+            section = _badge_subsection(badge["name"])
+            groups.get(section, groups["other"]).append(ev)
+        else:
+            groups["other"].append(ev)
+    return groups
+
+
+@app.template_filter('badge_color')
+def badge_color_filter(qualifier):
+    """Map a qualifier string to a CSS color class."""
+    return _badge_color(str(qualifier).lower())
+
+
+@app.template_filter('badge_emoji_filter')
+def badge_emoji_filter_fn(qualifier):
+    """Map a qualifier string to its display emoji."""
+    return _badge_emoji(str(qualifier).lower())
+
+
+# ---------------------------------------------------------------------------
 # Platform landing page
 # ---------------------------------------------------------------------------
 
@@ -209,6 +320,8 @@ app.jinja_env.globals.update(
     verdict=_verdict,
     hero_badge=_parse_hero_badge,
     badge_subsection=_badge_subsection,
+    SCORE_COLOR_HIGH=SCORE_COLOR_HIGH,
+    SCORE_COLOR_MID=SCORE_COLOR_MID,
 )
 
 
@@ -222,6 +335,4 @@ app.register_blueprint(designer)
 
 
 if __name__ == "__main__":
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        log.warning("ANTHROPIC_API_KEY not set — set it in .env or environment")
     app.run(debug=True, port=5000)

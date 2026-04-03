@@ -245,7 +245,7 @@ def _build_product_context(name: str, all_results: dict, page_contents: dict) ->
         for r in all_results.get(key, []):
             lines.append(f"- **{r.get('title', '')}** ({r.get('url', '')}): {r.get('snippet', '')}")
 
-    # API lifecycle signals — Gate 1 SaaS path evidence
+    # API lifecycle signals — SaaS path evidence (Product Labability)
     # Surfaces DELETE/teardown endpoints, provision/configure coverage, auth model
     api_lifecycle_keys = [
         f"openapi_{name}", f"api_lifecycle_{name}", f"sandbox_{name}", f"api_auth_{name}",
@@ -299,8 +299,9 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
     company_context = _build_company_context(company_name, discovery_data)
     benchmarks_text = _build_benchmarks_text()
 
-    # Fire one call per product in parallel
-    with ThreadPoolExecutor(max_workers=len(selected)) as executor:
+    # Fire one call per product in parallel — cap at 6 workers to avoid
+    # overwhelming the Anthropic API with concurrent requests.
+    with ThreadPoolExecutor(max_workers=min(len(selected), 6)) as executor:
         product_futures = {
             executor.submit(
                 _score_single_product,

@@ -33,6 +33,9 @@ Always confirm before deleting `.docx`, published content, or anything used to c
 ### 5. Proactively recommend — but ask before doing.
 If a better path exists, flag it. Don't just execute what's asked without surfacing a better option. But don't act on it until Frank agrees.
 
+### 6. Be a collaborator, not just an executor.
+Frank wants suggestions and recommendations on application health and UX — not just task completion. Surface ideas for improvements, flag risks, and propose better approaches. But always validate together before moving. The goal is collaborative momentum, not speed.
+
 ---
 
 ## UX North Star
@@ -164,8 +167,18 @@ Deployed on Render → target: `intelligence.skillable.com`
 - **Next:** Inject ID guide into Phase 1/2/3 system prompts; re-add Scenario Seeds to Lab Blueprint; Phase 4 UX detail (BOM + Studio export); CSS color correction to confirmed brand palette
 - **Open decisions:** Export ZIP format; AI persona name ("Neo" — not yet confirmed); Inspector → Designer handoff pre-fill level; Standards Library API route
 
+### Shared — Infrastructure & Hardening
+- `backend/constants.py` — single source of truth for score thresholds, verdict labels, color palette, multiplier breakpoints, concurrency limits, cache TTL. All Python modules reference this instead of hardcoding values.
+- `backend/config.py` — `validate_startup()` runs at app init; checks API key, benchmarks.json, prompt files. Fails fast with clear messages.
+- `backend/storage.py` — atomic writes (temp file + `os.replace()`), threading lock on read-modify-write operations, in-memory company-name index for fast lookups.
+- `tools/shared/templates/_theme.html` — shared CSS theme (brand palette, score colors, org badges, verdict labels). Include in templates to eliminate color duplication.
+- Dossier evidence parsing — badge extraction, color classification, and subsection grouping moved from Jinja2 macros to Python filters (`parse_badges`, `group_labability`, `badge_color`, `badge_emoji_filter` in app.py).
+- Scorer thread pool capped at 6 workers (was unbounded).
+
 ### Shared — Pending Across All Tools
 - Consumption Potential model exists in `models.py` — scorer + UI incomplete
 - `backend/standards/skill_frameworks/` is empty — NICE NCWF, DoD DCWF files not yet sourced
 - Auth not yet implemented — revisit when platform goes beyond internal Skillable use
 - SQLite → Azure SQL migration path planned but not urgent yet
+- Migrate remaining templates to use `_theme.html` shared CSS (incremental, not urgent)
+- Standardize route error handling (consistent JSON/HTML responses)

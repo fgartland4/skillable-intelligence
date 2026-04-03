@@ -568,7 +568,7 @@
             flex-shrink: 0;
             transition: all 0.2s;
         }
-        .checklist-dot.yellow { border-color: var(--color-warning); background: var(--color-warning); }
+        .checklist-dot.amber { border-color: var(--color-warning); background: var(--color-warning); }
         .checklist-dot.green  { border-color: var(--color-primary); background: var(--color-primary); }
         .checklist-item-name {
             font-size: 12px;
@@ -2394,7 +2394,7 @@ function getBlueprintItems(key) {
 
 function setBlueprintItems(key, items) {
     state.checklist = state.checklist || {};
-    const dotState = items.length >= 2 ? 'green' : (items.length === 1 ? 'yellow' : 'gray');
+    const dotState = items.length >= 2 ? 'green' : (items.length === 1 ? 'amber' : 'gray');
     state.checklist[key] = { state: dotState, items: [...items], value: items[0] || '' };
     renderChecklist();
     scheduleSave();
@@ -2581,7 +2581,7 @@ function renderChecklist() {
         // ── Standard bullet item ──────────────────────────────────────────────
         } else {
             const items    = getBlueprintItems(def.key);
-            const dotClass = items.length >= 2 ? 'green' : (items.length === 1 ? 'yellow' : '');
+            const dotClass = items.length >= 2 ? 'green' : (items.length === 1 ? 'amber' : '');
             if (items.length >= 1) filledCount++;
 
             const bulletsHtml = items.map((txt, idx) => `
@@ -2699,10 +2699,10 @@ function setupBlueprintDropzone(container, cfg) {
 function updateNavDots() {
     const cl = state.checklist || {};
     const greenCount = Object.values(cl).filter(v => v.state === 'green').length;
-    const yellowCount = Object.values(cl).filter(v => v.state === 'yellow').length;
+    const amberCount = Object.values(cl).filter(v => v.state === 'amber').length;
     const dot1 = document.getElementById('nav-dot-1');
     if (greenCount >= 5) dot1.className = 'nav-progress-dot complete';
-    else if (greenCount + yellowCount > 0) dot1.className = 'nav-progress-dot partial';
+    else if (greenCount + amberCount > 0) dot1.className = 'nav-progress-dot partial';
     else dot1.className = 'nav-progress-dot';
 
     const hasSeries = (state.outline?.series?.length || 0) > 0;
@@ -2733,7 +2733,7 @@ function applyChecklistUpdates(updates) {
                     if (ni.trim() && !merged.some(ei => ei.toLowerCase() === ni.trim().toLowerCase()))
                         merged.push(ni.trim());
                 });
-                const dotState = merged.length >= 2 ? 'green' : 'yellow';
+                const dotState = merged.length >= 2 ? 'green' : 'amber';
                 state.checklist[key] = { state: dotState, items: merged, value: merged[0] || '' };
                 expandedChecklistKeys.add(key); // auto-expand when AI adds content
             } else if (val.state) {
@@ -2744,7 +2744,7 @@ function applyChecklistUpdates(updates) {
             const existing = getBlueprintItems(key);
             if (!existing.some(ei => ei.toLowerCase() === val.trim().toLowerCase())) {
                 const merged   = [...existing, val.trim()];
-                const dotState = merged.length >= 2 ? 'green' : 'yellow';
+                const dotState = merged.length >= 2 ? 'green' : 'amber';
                 state.checklist[key] = { state: dotState, items: merged, value: merged[0] };
                 expandedChecklistKeys.add(key); // auto-expand when AI adds content
             }
@@ -3227,17 +3227,17 @@ function runDemoMode() {
 
         await _demoTypeBubble(area, 'Parsing learning objectives…');
         await _demoDelay(500);
-        _demoChecklistSet('program_objectives', ['Enable partner SEs to deliver Hexelo Sentinel pre-sales POCs independently'], 'yellow');
+        _demoChecklistSet('program_objectives', ['Enable partner SEs to deliver Hexelo Sentinel pre-sales POCs independently'], 'amber');
         await _demoDelay(900);
 
         await _demoTypeBubble(area, 'Organizing. Identifying audience signals…');
         await _demoDelay(400);
-        _demoChecklistSet('target_audience', ['Partner sales engineers and pre-sales consultants'], 'yellow');
+        _demoChecklistSet('target_audience', ['Partner sales engineers and pre-sales consultants'], 'amber');
         await _demoDelay(700);
 
         await _demoTypeBubble(area, 'Mapping primary product…');
         await _demoDelay(400);
-        _demoChecklistSet('primary_product', ['Hexelo Sentinel'], 'yellow');
+        _demoChecklistSet('primary_product', ['Hexelo Sentinel'], 'amber');
 
         // Fake Inspector lookup — Sentinel is already in the dossier
         await _demoDelay(600);
@@ -3275,7 +3275,7 @@ function runDemoMode() {
 
         await _demoTypeBubble(area, 'Organizing success criteria…');
         await _demoDelay(400);
-        _demoChecklistSet('success_criteria', ['Partners complete a live Sentinel POC end-to-end within the lab environment'], 'yellow');
+        _demoChecklistSet('success_criteria', ['Partners complete a live Sentinel POC end-to-end within the lab environment'], 'amber');
         await _demoDelay(800);
 
         _demoChecklistSet('success_criteria', [
