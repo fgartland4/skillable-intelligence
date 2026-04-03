@@ -101,7 +101,7 @@
     <div class="container">
         <div class="search-card">
             <form method="POST" action="/inspector/discover" id="analyzeForm">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:8px;">
                     <div class="form-group" style="margin-bottom:0">
                         <label for="company_name">Organization</label>
                         <input type="text" id="company_name" name="company_name"
@@ -113,7 +113,9 @@
                             placeholder="Who makes this anyway?">
                     </div>
                 </div>
-
+                <div style="text-align:center; margin-bottom:20px;">
+                    <span style="font-size:0.75rem; color:#3d6655;">If the company has a large product portfolio, please be specific in the product field.</span>
+                </div>
                 <div style="text-align:center;">
                     <button type="submit" class="btn" id="submitBtn" disabled>
                         <span>Research</span>
