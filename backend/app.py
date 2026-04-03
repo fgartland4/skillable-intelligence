@@ -12,6 +12,7 @@ from flask import Flask, render_template
 from markupsafe import Markup, escape as _escape
 from storage import list_analyses
 
+from core import _verdict, _parse_hero_badge, _badge_subsection
 from routes.inspector_routes import inspector
 from routes.prospector_routes import prospector
 from routes.designer_routes import designer
@@ -162,6 +163,17 @@ def link_product_name(text, name, url):
 def platform_home():
     recent = list_analyses()
     return render_template("home.html", recent=recent, platform_mode=True)
+
+
+# ---------------------------------------------------------------------------
+# Jinja2 globals — available in all templates
+# ---------------------------------------------------------------------------
+
+app.jinja_env.globals.update(
+    verdict=_verdict,
+    hero_badge=_parse_hero_badge,
+    badge_subsection=_badge_subsection,
+)
 
 
 # ---------------------------------------------------------------------------

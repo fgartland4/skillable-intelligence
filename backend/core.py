@@ -91,6 +91,78 @@ def _sse_stream(job_id: str, poll_interval: float = 0.3):
 _CEILING_FLAGS = {"bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only"}
 
 
+def _verdict(score: int) -> str:
+    """Canonical verdict label from composite score. Single source of truth."""
+    if score >= 70:
+        return "Strong Fit"
+    if score >= 45:
+        return "Pursue"
+    if score >= 20:
+        return "Monitor"
+    return "Pass"
+
+
+# Badge name → subsection within Product Labability (for dossier SE drill-down grouping)
+_BADGE_SUBSECTION: dict[str, str] = {
+    # Provisioning (1.1)
+    "Runs in Hyper-V": "provisioning", "Runs in Azure": "provisioning",
+    "Runs in AWS": "provisioning", "Requires GCP": "provisioning",
+    "Runs in Containers": "provisioning", "ESX Required": "provisioning",
+    "Provisioning APIs": "provisioning", "Lifecycle APIs": "provisioning",
+    "Learner Isolation": "provisioning", "Bare Metal Required": "provisioning",
+    "No Deployment Method": "provisioning", "Potential IaC Friction": "provisioning",
+    "Full Tenant Required": "provisioning",
+    # Licensing & Accounts (1.2)
+    "AuthN/AuthZ APIs": "licensing", "Credential Pool": "licensing",
+    "Account Recycling": "licensing", "Supports NFR Accounts": "licensing",
+    "NFR License Path": "licensing", "High License Cost": "licensing",
+    "Tenant Provisioning Lag": "licensing", "Provisioning Rate Limits": "licensing",
+    "Anti-Automation Controls": "licensing", "MFA Required": "licensing",
+    "Credit Card Required": "licensing",
+    # Scoring (1.3)
+    "Scoring APIs": "scoring", "Script Scorable": "scoring",
+    # Teardown (1.4)
+    "Teardown APIs": "teardown",
+}
+
+
+def _badge_subsection(badge_name: str) -> str:
+    """Map a badge name to its Product Labability subsection key."""
+    for known, section in _BADGE_SUBSECTION.items():
+        if known.lower() in badge_name.lower():
+            return section
+    return "provisioning"  # default
+
+
+def _parse_hero_badge(evidence_list: list) -> dict | None:
+    """Extract the single most consequential badge from an evidence list.
+
+    Priority: Blocker (0) > Risk/Caution (1) > Strength/Opportunity (3).
+    Returns {name, qualifier} or None if no parseable evidence.
+    """
+    import re
+    _priority = {"blocker": 0, "risk": 1, "caution": 1, "strength": 3, "opportunity": 3}
+    best: dict | None = None
+    best_pri = 99
+    for ev in (evidence_list or []):
+        claim = ev.get("claim", "") if isinstance(ev, dict) else getattr(ev, "claim", "")
+        m = re.match(r'\*\*(.+?)\*\*', claim)
+        if not m:
+            continue
+        label = m.group(1).rstrip(":")
+        if " | " in label:
+            name, qualifier = label.rsplit(" | ", 1)
+        else:
+            name, qualifier = label, "strength"
+        name = name.strip()
+        qualifier = qualifier.strip().lower()
+        pri = _priority.get(qualifier, 99)
+        if pri < best_pri:
+            best_pri = pri
+            best = {"name": name, "qualifier": qualifier}
+    return best
+
+
 def _labable_tier(product: dict) -> str:
     """Canonical tier derivation from a scored product dict.
 

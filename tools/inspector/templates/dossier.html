@@ -1,1244 +1,867 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/static/img/favicon.png">
-    <title>{{ data.company_name }} — Seller &amp; SE Action Plan</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        button { font-family: inherit; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #06100c;
-            background-image:
-                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
-            background-size: 48px 48px;
-            color: #e8f5f0; min-height: 100vh;
-        }
-        a { color: #24ED9B; text-decoration: none; }
-        a:hover { text-decoration: underline; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/static/img/favicon.png">
+<title>{{ data.company_name }} — Dossier · Skillable Intelligence</title>
+<style>
+/* ── Reset & base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #060f0b; color: #c8ddd6; font-size: 0.9rem; line-height: 1.5;
+}
+a { color: #24ED9B; text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-        /* Nav */
-        .nav {
-            display: flex; align-items: center; padding: 16px 32px;
-            border-bottom: 1px solid #1e3329;
-            background: rgba(6,16,12,0.92); backdrop-filter: blur(8px);
-            position: sticky; top: 0; z-index: 10;
-        }
-        .nav img { height: 28px; }
-        .nav-divider { width: 1px; height: 20px; background: #1e3329; margin: 0 16px; }
+/* ── Layout shell ─────────────────────────────────────────────── */
+.page-wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 80px; }
 
-        .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
-        .back { display: inline-block; color: #6b9e88; font-size: 0.85rem; }
-        .back:hover { color: #24ED9B; text-decoration: none; }
+/* ── Page header ──────────────────────────────────────────────── */
+.page-header {
+    padding: 20px 0 16px;
+    border-bottom: 1px solid #1e3329;
+    margin-bottom: 32px;
+}
+.page-header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px;
+}
+.back-link { font-size: 0.82rem; color: #6b9e88; }
+.back-link:hover { color: #24ED9B; }
+.page-meta { font-size: 0.78rem; color: #4a7060; }
+.page-eyebrow {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+    color: #24ED9B; text-transform: uppercase; margin-top: 2px;
+}
 
-        .cache-banner {
-            display: flex; align-items: center; gap: 12px;
-            background: rgba(36,237,155,0.04); border: 1px solid rgba(36,237,155,0.12);
-            border-radius: 8px; padding: 9px 16px; margin-bottom: 24px;
-            font-size: 0.78rem; color: #3d6655;
-        }
-        .cache-banner .cache-date { color: #6b9e88; }
-        .cache-banner form { margin: 0; }
-        .cache-banner button {
-            background: none; border: 1px solid #1e3329; color: #6b9e88;
-            padding: 4px 12px; border-radius: 6px; font-size: 0.75rem;
-            cursor: pointer; transition: all 0.15s;
-        }
-        .cache-banner button:hover { border-color: rgba(36,237,155,0.4); color: #24ED9B; }
+/* ── Org badge ─────────────────────────────────────────────────── */
+.org-badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px; vertical-align: middle;
+    margin-left: 8px; text-transform: uppercase; letter-spacing: 0.06em;
+    border: 1px solid;
+}
+.org-badge.software_company       { color: #7dd8b8; border-color: #1e4035; background: rgba(29,74,59,0.35); }
+.org-badge.training_organization  { color: #a78bfa; border-color: #3b2c6e; background: rgba(59,44,110,0.35); }
+.org-badge.academic_institution   { color: #93c5fd; border-color: #1e3a5f; background: rgba(30,58,95,0.35); }
+.org-badge.systems_integrator     { color: #fdba74; border-color: #5c3a1e; background: rgba(92,58,30,0.35); }
+.org-badge.technology_distributor { color: #6ee7b7; border-color: #1a4535; background: rgba(26,69,53,0.35); }
+.org-badge.professional_services  { color: #cbd5e1; border-color: #334155; background: rgba(51,65,85,0.35); }
 
-        /* Org type badges */
-        .org-badge {
-            display: inline-block; font-size: 0.62rem; padding: 4px 10px;
-            border-radius: 20px; vertical-align: middle; font-weight: 700;
-            letter-spacing: 0.08em; text-transform: uppercase; margin-left: 12px;
-        }
-        .org-software    { background: rgba(112,0,255,0.12); color: #a78bfa; border: 1px solid rgba(112,0,255,0.25); }
-        .org-training    { background: rgba(245,158,11,0.1);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
-        .org-academic    { background: rgba(139,92,246,0.1);  color: #c4b5fd; border: 1px solid rgba(139,92,246,0.25); }
-        .org-integrator  { background: rgba(20,184,166,0.1);  color: #2dd4bf; border: 1px solid rgba(20,184,166,0.25); }
-        .org-distributor { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
-        .org-services    { background: rgba(148,163,184,0.08);color: #94a3b8; border: 1px solid rgba(148,163,184,0.15); }
+/* ── Hero ─────────────────────────────────────────────────────── */
+.hero {
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 32px; align-items: start;
+    padding: 24px 0 28px;
+    border-bottom: 1px solid #1e3329;
+    margin-bottom: 24px;
+}
+.hero-company-name {
+    font-size: 1.5rem; font-weight: 700; color: #e8f5f0; margin-bottom: 4px;
+}
+.hero-description { font-size: 0.85rem; color: #6b9e88; margin-bottom: 20px; }
 
-        /* Verdict badges */
-        .verdict-badge {
-            display: inline-block; font-size: 0.62rem; padding: 4px 12px;
-            border-radius: 20px; font-weight: 800; letter-spacing: 0.08em;
-            text-transform: uppercase; vertical-align: middle; flex-shrink: 0;
-        }
-        .verdict-strong  { background: rgba(36,237,155,0.15); color: #24ED9B; border: 1px solid rgba(36,237,155,0.35); }
-        .verdict-pursue  { background: rgba(36,237,155,0.07); color: #6b9e88; border: 1px solid rgba(36,237,155,0.18); }
-        .verdict-monitor { background: rgba(245,158,11,0.1);  color: #f59e0b; border: 1px solid rgba(245,158,11,0.28); }
-        .verdict-pass    { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+.hero-score-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+.hero-score {
+    font-size: 3rem; font-weight: 800; line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.hero-score.strong-fit { color: #24ED9B; }
+.hero-score.pursue     { color: #7dd8b8; }
+.hero-score.monitor    { color: #f59e0b; }
+.hero-score.pass       { color: #e05252; }
 
-        /* Score color helpers */
-        .score-high { color: #24ED9B; }
-        .score-mid  { color: #f59e0b; }
-        .score-low  { color: #f87171; }
+.verdict-label {
+    font-size: 1rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 6px;
+}
+.verdict-label.strong-fit { color: #24ED9B; background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.3); }
+.verdict-label.pursue     { color: #7dd8b8; background: rgba(125,216,184,0.08); border: 1px solid rgba(125,216,184,0.25); }
+.verdict-label.monitor    { color: #f59e0b; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); }
+.verdict-label.pass       { color: #e05252; background: rgba(224,82,82,0.08); border: 1px solid rgba(224,82,82,0.3); }
 
-        /* ======================================
-           ZONE 1 - Seller Summary Card
-        ====================================== */
-        .seller-zone {
-            background: linear-gradient(135deg, #0d1a14 0%, #0f2019 100%);
-            border: 1px solid rgba(36,237,155,0.28);
-            border-radius: 18px; padding: 32px 36px;
-            margin-bottom: 32px;
-            box-shadow: 0 0 60px rgba(36,237,155,0.08);
-        }
-        .seller-header {
-            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-            margin-bottom: 6px;
-        }
-        .seller-company-name {
-            font-size: 2rem; font-weight: 800; color: #e8f5f0;
-            letter-spacing: -0.02em; line-height: 1.15;
-        }
-        .seller-desc {
-            font-size: 0.83rem; color: #6b9e88; margin-bottom: 22px;
-            line-height: 1.6; max-width: 820px;
-        }
-        /* Zone 1 hero row — Verdict + ACV dominate */
-        .seller-hero {
-            display: flex; align-items: center; gap: 24px;
-            margin-bottom: 20px; flex-wrap: wrap;
-        }
-        .seller-hero-verdict {
-            display: flex; flex-direction: column; gap: 4px;
-        }
-        .seller-hero-verdict .verdict-badge {
-            font-size: 0.75rem; padding: 5px 14px;
-        }
-        .seller-acv-hero {
-            display: flex; flex-direction: column;
-            border-left: 1px solid #1e3329; padding-left: 24px;
-        }
-        .seller-acv-label {
-            font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 3px;
-        }
-        .seller-acv-value {
-            font-size: 1.9rem; font-weight: 900; color: #24ED9B;
-            letter-spacing: -0.03em; line-height: 1;
-        }
-        .seller-acv-note { font-size: 0.65rem; color: #fb923c; margin-top: 2px; }
-        .seller-hero-blockers {
-            display: flex; flex-direction: column; gap: 8px;
-            border-left: 2px solid rgba(248,113,113,0.4); padding-left: 20px;
-        }
-        .hero-blocker-badge {
-            font-size: 0.84rem; font-weight: 700; color: #f87171;
-            background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.3);
-            border-radius: 8px; padding: 8px 14px; line-height: 1.3;
-        }
-        .seller-hero-good {
-            display: flex; flex-direction: column; gap: 8px;
-            border-left: 2px solid rgba(36,237,155,0.4); padding-left: 20px;
-        }
-        .hero-good-badge {
-            font-size: 0.84rem; font-weight: 700; color: #24ED9B;
-            background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.3);
-            border-radius: 8px; padding: 8px 14px; line-height: 1.3;
-        }
+/* ── Hero dimension badges ─────────────────────────────────────── */
+.hero-badges { display: flex; flex-direction: column; gap: 6px; }
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.82rem; font-weight: 500;
+    padding: 5px 12px; border-radius: 6px;
+    border: 1px solid;
+}
+.hero-badge.green  { color: #24ED9B; border-color: rgba(36,237,155,0.25); background: rgba(36,237,155,0.06); }
+.hero-badge.yellow { color: #f59e0b; border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.06); }
+.hero-badge.red    { color: #e05252; border-color: rgba(224,82,82,0.25); background: rgba(224,82,82,0.06); }
+.hero-badge .dim-label {
+    font-size: 0.65rem; color: #4a7060; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-right: 2px; white-space: nowrap;
+}
 
-        /* Zone 1 detail grid — 2×2 */
-        .seller-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px; margin-bottom: 20px;
-        }
-        .seller-cell {
-            background: rgba(6,16,12,0.6); border: 1px solid #1e3329;
-            border-radius: 10px; padding: 13px 15px;
-            min-width: 0; overflow: hidden;
-        }
-        .seller-cell-full { grid-column: 1 / -1; }
-        .seller-cell-label {
-            font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 6px;
-        }
-        .seller-cell-value {
-            font-size: 0.84rem; color: #a8d5c2; line-height: 1.5; font-weight: 500;
-        }
-        .seller-cell-value strong { color: #e8f5f0; font-weight: 700; }
-        .seller-cell-value a { color: #a8d5c2; border-bottom: 1px solid rgba(168,213,194,0.3); }
-        .seller-cell-value a:hover { color: #24ED9B; border-bottom-color: #24ED9B; text-decoration: none; }
-        .seller-risk { border-color: rgba(248,113,113,0.25); }
-        .seller-risk .seller-cell-label { color: #f87171; }
-        .seller-risk .seller-cell-value { color: #f87171; font-weight: 600; }
+/* ── ACV ──────────────────────────────────────────────────────── */
+.hero-acv { text-align: right; }
+.acv-eyebrow {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+    color: #4a7060; text-transform: uppercase; margin-bottom: 6px;
+}
+.acv-value {
+    font-size: 1.75rem; font-weight: 700; color: #e8f5f0;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.acv-sub { font-size: 0.75rem; color: #4a7060; margin-top: 4px; }
 
-        /* Labability badges (Product Labability cell) */
-        .lab-bdg {
-            display: inline-flex; align-items: center;
-            font-size: 0.65rem; padding: 3px 9px; border-radius: 6px;
-            font-weight: 700; letter-spacing: 0.05em; margin: 2px 2px 0 0; white-space: nowrap;
-        }
-        .lab-bdg-hl { background: rgba(36,237,155,0.12); color: #24ED9B;  border: 1px solid rgba(36,237,155,0.3); }
-        .lab-bdg-l  { background: rgba(36,237,155,0.06); color: #6b9e88;  border: 1px solid rgba(36,237,155,0.18); }
-        .lab-bdg-ll { background: rgba(245,158,11,0.1);  color: #f59e0b;  border: 1px solid rgba(245,158,11,0.25); }
-        .lab-bdg-nl { background: rgba(248,113,113,0.1); color: #f87171;  border: 1px solid rgba(248,113,113,0.25); }
-        .lab-bdg-path { background: rgba(99,102,241,0.1);  color: #a78bfa; border: 1px solid rgba(99,102,241,0.2); }
-        .lab-bdg-dep  { background: rgba(148,163,184,0.07); color: #64748b; border: 1px solid rgba(148,163,184,0.15); }
+/* ── Four dimension boxes ─────────────────────────────────────── */
+.dim-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 12px; margin-bottom: 24px;
+}
+.dim-box {
+    background: #0c1f19; border: 1px solid #1e3329; border-radius: 10px;
+    padding: 16px 18px;
+}
+.dim-box-title {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+    color: #4a7060; text-transform: uppercase; margin-bottom: 12px;
+}
+.dim-badges { display: flex; flex-direction: column; gap: 5px; }
+.dim-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.8rem; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid; width: fit-content;
+}
+.dim-badge.green  { color: #24ED9B; border-color: rgba(36,237,155,0.2); background: rgba(36,237,155,0.05); }
+.dim-badge.yellow { color: #f59e0b; border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.05); }
+.dim-badge.red    { color: #e05252; border-color: rgba(224,82,82,0.2); background: rgba(224,82,82,0.05); }
+.dim-empty { font-size: 0.8rem; color: #2e4d40; font-style: italic; }
 
-        /* Contact rows — truncate to prevent LinkedIn icon wrap */
-        .contact-name-row { display: flex; align-items: center; gap: 3px; min-width: 0; color: #e8f5f0; text-decoration: none; font-size: 0.82rem; }
-        .contact-name-row:hover { color: #24ED9B; text-decoration: none; }
-        .contact-name-row strong { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; font-weight: 600; }
-        .contact-title-row { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 100%; color: #6b9e88; font-size: 0.72rem; margin-top: 2px; }
-        .contact-2nd { margin-top: 8px; padding-top: 8px; border-top: 1px solid #1e3329; }
+/* ── Next Steps ───────────────────────────────────────────────── */
+.next-steps {
+    background: #0c1f19; border: 1px solid #1e3329; border-radius: 10px;
+    padding: 20px 24px; margin-bottom: 32px;
+}
+.next-steps-title {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+    color: #4a7060; text-transform: uppercase; margin-bottom: 18px;
+}
+.next-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.next-section-title {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 10px;
+}
+.next-section-title.lead  { color: #24ED9B; }
+.next-section-title.risks { color: #f59e0b; }
+.next-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.next-list li { font-size: 0.85rem; color: #b8cfc8; padding-left: 14px; position: relative; }
+.next-list li::before { content: "•"; position: absolute; left: 0; color: #4a7060; }
 
-        /* Next Steps — inside Zone 1, standard body text */
-        .next-steps-block {
-            border-top: 1px solid #1e3329; padding-top: 16px; margin-top: 4px;
-        }
-        .next-steps-block-label {
-            font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.1em; color: #3d6655; margin-bottom: 10px;
-        }
-        .next-steps-list {
-            list-style: none; margin: 0; padding: 0;
-            display: flex; flex-direction: column; gap: 6px;
-        }
-        .next-steps-list li {
-            font-size: 0.84rem; color: #c8e8d8; line-height: 1.5;
-        }
-        .next-steps-list li strong { color: #e8f5f0; font-weight: 700; }
-        .next-steps-list li a { color: #e8f5f0; }
-        .next-steps-list .step-risk { color: #f87171; }
+/* ── Products section ─────────────────────────────────────────── */
+.products-header {
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
+    color: #4a7060; text-transform: uppercase;
+    border-bottom: 1px solid #1e3329; padding-bottom: 10px; margin-bottom: 16px;
+}
+.product-item {
+    border: 1px solid #1e3329; border-radius: 10px;
+    margin-bottom: 12px; overflow: hidden;
+}
+.product-item.highly_likely { border-left: 3px solid #24ED9B; }
+.product-item.likely        { border-left: 3px solid #7dd8b8; }
+.product-item.less_likely   { border-left: 3px solid #f59e0b; }
+.product-item.not_likely    { border-left: 3px solid #e05252; }
 
-        /* ======================================
-           ZONE 2 - SE/SC Technical Detail
-        ====================================== */
-        .zone2-heading {
-            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
-            text-transform: uppercase; color: #3d6655; margin-bottom: 18px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .zone2-heading::after {
-            content: ''; flex: 1; height: 1px; background: #1e3329;
-        }
+details summary { list-style: none; cursor: pointer; }
+details summary::-webkit-details-marker { display: none; }
 
-        /* Product expand/collapse cards */
-        .product-details {
-            background: #0d1a14; border: 1px solid #1e3329;
-            border-radius: 14px; margin-bottom: 14px;
-            overflow: hidden; transition: border-color 0.2s;
-        }
-        .product-details[open] { border-color: #2a4a3a; }
-        .product-details > summary {
-            display: flex; align-items: center; gap: 14px;
-            padding: 20px 26px; cursor: pointer;
-            list-style: none; user-select: none;
-            transition: background 0.15s;
-        }
-        .product-details > summary::-webkit-details-marker { display: none; }
-        .product-details > summary:hover { background: rgba(255,255,255,0.02); }
-        .product-details[open] > summary { border-bottom: 1px solid #1e3329; }
+.product-summary {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; background: #0c1f19;
+    transition: background 0.15s;
+}
+.product-summary:hover { background: #0f261e; }
 
-        .pd-name { flex: 1; min-width: 0; }
-        .pd-product-name { font-size: 1.05rem; font-weight: 800; color: #e8f5f0; letter-spacing: -0.01em; }
-        .pd-category {
-            display: inline-block; font-size: 0.62rem; padding: 2px 8px;
-            border-radius: 4px; background: #122019; color: #6b9e88;
-            margin-top: 4px; font-weight: 500;
-        }
-        .pd-score {
-            font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
-            flex-shrink: 0; min-width: 50px; text-align: right;
-        }
-        .pd-path-badge {
-            display: inline-block; font-size: 0.65rem; padding: 3px 10px;
-            border-radius: 6px; font-weight: 600;
-            background: rgba(36,237,155,0.07); color: #6b9e88;
-            border: 1px solid rgba(36,237,155,0.14); white-space: nowrap; flex-shrink: 0;
-        }
-        .pd-toggle-arrow { font-size: 0.75rem; color: #3d6655; flex-shrink: 0; }
+.product-score-pill {
+    font-size: 1.05rem; font-weight: 800; min-width: 36px; text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.product-score-pill.highly_likely { color: #24ED9B; }
+.product-score-pill.likely        { color: #7dd8b8; }
+.product-score-pill.less_likely   { color: #f59e0b; }
+.product-score-pill.not_likely    { color: #e05252; }
 
-        /* Card body */
-        .pd-body { padding: 26px 26px 30px; }
+.product-name-text { font-weight: 600; color: #e8f5f0; font-size: 0.95rem; flex: 1; }
+.product-cat-badge {
+    font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+    color: #a78bfa; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2);
+}
+.product-highlight-badge {
+    font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 4px;
+    color: #24ED9B; background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.2);
+}
+.product-verdict-badge {
+    font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+}
+.product-verdict-badge.strong-fit { color: #24ED9B; background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.25); }
+.product-verdict-badge.pursue     { color: #7dd8b8; background: rgba(125,216,184,0.08); border: 1px solid rgba(125,216,184,0.2); }
+.product-verdict-badge.monitor    { color: #f59e0b; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+.product-verdict-badge.pass       { color: #e05252; background: rgba(224,82,82,0.08); border: 1px solid rgba(224,82,82,0.2); }
+.product-path-label { font-size: 0.78rem; color: #6b9e88; white-space: nowrap; }
+.chevron { font-size: 0.8rem; color: #4a7060; margin-left: 4px; transition: transform 0.2s; }
+details[open] .chevron { transform: rotate(180deg); }
 
-        /* Section blocks */
-        .pd-section { margin-bottom: 26px; }
-        .pd-section:last-child { margin-bottom: 0; }
-        .pd-section-title {
-            font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.1em; color: #3d6655;
-            margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
-        }
-        .pd-section-title::after { content: ''; flex: 1; height: 1px; background: #122019; }
-        .pd-score-row {
-            display: flex; align-items: center; gap: 16px; margin-bottom: 10px;
-        }
-        .pd-dim-score {
-            font-size: 1.6rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
-            flex-shrink: 0;
-        }
-        .pd-dim-max { font-size: 0.7rem; color: #3d6655; font-weight: 600; margin-left: 2px; }
-        .bar-track { height: 5px; background: #1e3329; border-radius: 3px; overflow: hidden; flex: 1; }
-        .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
-        @keyframes bar-enter { from { width: 0; } }
-        .bar-fill { animation: bar-enter 0.7s ease-out; }
-        .bar-green  { background: #24ED9B; }
-        .bar-amber  { background: #f59e0b; }
-        .bar-red    { background: #f87171; }
+/* ── Product detail body ──────────────────────────────────────── */
+.product-body { padding: 0 18px 20px; background: #060f0b; }
 
-        .pd-summary { font-size: 0.82rem; color: #6b9e88; line-height: 1.6; margin-bottom: 10px; }
-        .pd-framing-note {
-            font-size: 0.7rem; color: #3d6655; font-style: italic;
-            margin-bottom: 8px; line-height: 1.5;
-        }
+/* Poor match flags */
+.flags-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 0 10px; }
+.flag-badge {
+    font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 4px;
+    color: #e05252; background: rgba(224,82,82,0.08); border: 1px solid rgba(224,82,82,0.25);
+}
 
-        /* Bullets */
-        .pd-bullets {
-            margin: 0; padding-left: 18px;
-            display: flex; flex-direction: column; gap: 7px;
-        }
-        .pd-bullets li { font-size: 0.81rem; color: #6b9e88; line-height: 1.55; }
-        .pd-bullets li strong { color: #a8d5c2; font-weight: 600; }
-        .pd-bullets li a { color: #a8d5c2; border-bottom: 1px solid rgba(168,213,194,0.3); text-decoration: none; }
-        .pd-bullets li a:hover { border-bottom-color: #a8d5c2; }
+/* Consumption table */
+.consumption-block { margin-bottom: 24px; }
+.section-label {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
+    color: #4a7060; text-transform: uppercase;
+    border-bottom: 1px solid #1e3329; padding-bottom: 6px; margin-bottom: 12px;
+    margin-top: 16px;
+}
+.consumption-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.consumption-table th {
+    text-align: left; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
+    color: #4a7060; text-transform: uppercase;
+    padding: 0 10px 8px 0; border-bottom: 1px solid #1a2e26;
+}
+.consumption-table td {
+    padding: 7px 10px 7px 0; border-bottom: 1px solid #0f1f18;
+    color: #b8cfc8; vertical-align: top;
+}
+.consumption-table tr:last-child td { border-bottom: none; }
+.motion-label { color: #e8f5f0; font-weight: 500; }
+.consumption-total-row td { color: #e8f5f0; font-weight: 600; padding-top: 10px; border-top: 1px solid #1e3329 !important; }
+.acv-range { color: #24ED9B; font-weight: 600; }
+.methodology-note { font-size: 0.75rem; color: #4a7060; font-style: italic; margin-top: 8px; }
 
-        /* Sub-label inside a pd-section */
-        .pd-item-label {
-            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #3d6655;
-        }
-        .pd-item-label.green  { color: #24ED9B; }
-        .pd-item-label.red    { color: #f87171; }
-        .pd-item-label.purple { color: #a78bfa; }
-        /* Score inline in section title */
-        .pd-section-title-score {
-            font-size: 0.75rem; font-weight: 800; letter-spacing: 0.02em; flex-shrink: 0;
-        }
-        /* Score summary one-liner */
-        .pd-score-summary { font-size: 0.78rem; font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
-        /* Delivery path + mechanism inline row */
-        .pd-path-inline { display: inline-flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-        .pd-mechanism-text { font-size: 0.78rem; color: #6b9e88; line-height: 1.5; }
-        /* Sub-section spacing inside a pd-section */
-        .pd-sub { margin-top: 14px; }
+/* Dimension sections in product body */
+.dim-section { margin-bottom: 20px; border-top: 1px solid #0f1f18; padding-top: 16px; }
+.dim-section-header {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 8px;
+}
+.dim-section-title {
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
+    color: #7dd8b8; text-transform: uppercase;
+}
+.dim-section-score {
+    font-size: 0.8rem; font-weight: 700; color: #e8f5f0;
+    font-variant-numeric: tabular-nums;
+}
+.dim-section-max { color: #2e4d40; font-weight: 400; }
+.dim-summary { font-size: 0.83rem; color: #8cb8a8; margin-bottom: 10px; }
 
-        /* Lab highlight badge (dossier product card header) */
-        .lab-highlight-badge { display: inline-block; padding: 2px 8px; background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.3); color: #24ED9B; border-radius: 3px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; margin-left: 8px; }
+/* Sub-dimension grouping */
+.subdim-block { margin-bottom: 12px; }
+.subdim-title {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em;
+    color: #4a7060; text-transform: uppercase;
+    margin-bottom: 6px; padding-top: 8px;
+}
 
-        /* Poor match flags */
-        .poor-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-        .flag-badge {
-            display: inline-block; padding: 3px 10px; border-radius: 6px;
-            font-size: 0.7rem; font-weight: 600;
-            background: rgba(248,113,113,0.08); color: #f87171;
-            border: 1px solid rgba(248,113,113,0.2);
-        }
+/* Evidence bullets */
+.evidence-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-bottom: 4px; }
+.evidence-list li { font-size: 0.83rem; color: #b8cfc8; padding-left: 16px; position: relative; }
+.evidence-list li::before { content: "•"; position: absolute; left: 0; color: #2e4d40; }
+.ev-source { font-size: 0.73rem; color: #4a7060; margin-left: 6px; }
 
-        /* Lab concept chips */
-        .lab-concepts-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px;
-        }
-        .lab-concept {
-            background: rgba(112,0,255,0.08); color: #a78bfa;
-            border: 1px solid rgba(112,0,255,0.15);
-            padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; line-height: 1.4;
-        }
+/* Potential Labs grid */
+.labs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.lab-card {
+    background: #0c1f19; border: 1px solid #1e3329; border-radius: 8px; padding: 12px 14px;
+}
+.lab-card-name { font-size: 0.85rem; font-weight: 600; color: #e8f5f0; margin-bottom: 4px; }
+.lab-card-desc { font-size: 0.78rem; color: #6b9e88; line-height: 1.4; }
 
-        /* Consumption grid */
-        .l2-cons-grid {
-            display: grid;
-            grid-template-columns: 1fr 130px 68px 104px 130px;
-            width: 100%; margin-bottom: 8px;
-        }
-        .l2-cons-gh {
-            font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: #3d6655;
-            padding: 4px 6px 7px; border-bottom: 1px solid #1e3329;
-            text-align: right; white-space: nowrap;
-        }
-        .l2-cons-gh:first-child { text-align: left; }
-        .l2-cons-gc {
-            font-size: 0.78rem; padding: 6px 6px;
-            border-bottom: 1px solid #0d1a14;
-            color: #a8d5c2; font-weight: 500;
-            text-align: right; white-space: nowrap;
-            display: flex; align-items: center; justify-content: flex-end;
-        }
-        .l2-cons-gc.lbl { color: #6b9e88; font-weight: 400; text-align: left; white-space: normal; justify-content: flex-start; }
-        .l2-cons-gc.dim { color: #6b9e88; font-weight: 400; }
-        .l2-cons-total {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            padding: 10px 0 0; margin-top: 6px; border-top: 1px solid #1e3329;
-        }
-        .l2-cons-total-label { font-size: 0.72rem; color: #6b9e88; font-weight: 600; }
-        .l2-cons-acv { font-size: 1.1rem; font-weight: 800; color: #24ED9B; letter-spacing: -0.01em; }
-        .l2-cons-hrs { font-size: 0.65rem; color: #3d6655; margin-top: 2px; text-align: right; }
-        .consumption-methodology {
-            font-size: 0.68rem; color: #2a4a3a; font-style: italic;
-            line-height: 1.5; border-top: 1px solid #122019; padding-top: 10px; margin-top: 4px;
-        }
-        .consumption-methodology::before { content: "i "; color: #3d6655; }
+/* Recommendations */
+.rec-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.rec-list li { font-size: 0.83rem; color: #b8cfc8; padding-left: 16px; position: relative; }
+.rec-list li::before { content: "→"; position: absolute; left: 0; color: #4a7060; }
 
-        /* Contacts */
-        .contact-row {
-            display: flex; align-items: flex-start; gap: 10px;
-            padding: 9px 12px; background: #06100c; border: 1px solid #1e3329;
-            border-radius: 8px; margin-bottom: 5px;
-        }
-        .contact-row.alumni { border-color: rgba(251,191,36,0.25); background: #0d100a; }
-        .contact-row-main { flex: 1; min-width: 0; }
-        .contact-name { font-weight: 600; color: #e8f5f0; font-size: 0.875rem; line-height: 1.2; }
-        .contact-name a { color: #e8f5f0; }
-        .contact-name a:hover { color: #24ED9B; }
-        .contact-title { font-size: 0.78rem; color: #6b9e88; margin-top: 2px; line-height: 1.3; }
-        .contact-relevance { font-size: 0.72rem; color: #3d6655; margin-top: 5px; line-height: 1.35; }
-        .contact-relevance.alumni { color: #a68a3a; }
-        .contact-alumni-badge {
-            display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.07em;
-            text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-bottom: 4px;
-            background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);
-        }
-
-
-        /* Designer CTA */
-        .designer-cta {
-            margin-top: 28px; text-align: center; padding: 24px 20px;
-            background: rgba(36,237,155,0.04); border: 1px solid rgba(36,237,155,0.12);
-            border-radius: 12px;
-        }
-        .designer-cta-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: #3d6655; font-weight: 700; margin-bottom: 10px; }
-        .designer-cta a {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.3);
-            color: #24ED9B; padding: 10px 24px; border-radius: 8px;
-            font-size: 0.875rem; font-weight: 700; text-decoration: none; transition: background 0.15s;
-        }
-        .designer-cta a:hover { background: rgba(36,237,155,0.18); text-decoration: none; }
-        .designer-cta-note { color: #3d6655; font-size: 0.72rem; margin-top: 8px; }
-
-        /* Competitor modal */
-        .comp-modal-backdrop {
-            display: none; position: fixed; inset: 0; z-index: 100;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
-            align-items: flex-start; justify-content: center; padding-top: 80px;
-        }
-        .comp-modal-backdrop.open { display: flex; }
-        .comp-modal {
-            background: #0d1a14; border: 1px solid rgba(36,237,155,0.25);
-            border-radius: 14px; padding: 28px 28px 24px; width: 520px; max-width: 95vw;
-            max-height: 70vh; display: flex; flex-direction: column;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-        }
-        .comp-modal-title {
-            font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.12em; color: #24ED9B; margin-bottom: 16px;
-        }
-        .comp-modal-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-        .comp-modal-row {
-            display: flex; align-items: center; gap: 10px;
-            background: rgba(6,16,12,0.8); border: 1px solid #1e3329;
-            border-radius: 8px; padding: 9px 12px;
-        }
-        .comp-modal-name { flex: 1; font-size: 0.84rem; color: #e8f5f0; font-weight: 600; }
-        .comp-modal-product { font-size: 0.72rem; color: #3d6655; }
-        .comp-modal-btn {
-            background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.25);
-            color: #24ED9B; padding: 5px 12px; border-radius: 6px;
-            font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap;
-            font-family: inherit; transition: background 0.15s;
-        }
-        .comp-modal-btn:hover { background: rgba(36,237,155,0.16); }
-        .comp-modal-close {
-            margin-top: 16px; text-align: right;
-        }
-        .comp-modal-close button {
-            background: none; border: 1px solid #1e3329; color: #3d6655;
-            padding: 5px 14px; border-radius: 6px; font-size: 0.72rem;
-            cursor: pointer; font-family: inherit; transition: all 0.15s;
-        }
-        .comp-modal-close button:hover { border-color: rgba(36,237,155,0.3); color: #6b9e88; }
-        .comp-link {
-            background: none; border: none; cursor: pointer; padding: 0;
-            color: #24ED9B; font-size: inherit; font-family: inherit;
-            text-decoration: underline dotted rgba(36,237,155,0.4);
-        }
-        .comp-link:hover { color: #a8f0d0; }
-
-        /* Breadcrumbs */
-        .breadcrumbs { padding:7px 28px; border-bottom:1px solid #1e3329; background:rgba(6,16,12,0.8); font-size:0.7rem; color:#6b9e88; display:flex; align-items:center; gap:6px; }
-        .breadcrumbs a { color:#4a7a65; }
-        .breadcrumbs a:hover { color:#24ED9B; }
-        .bc-sep { color:#2a4a3a; }
-        .bc-current { color:#e8f5f0; font-weight:600; }
-        .nav-tool { font-size:0.82rem; color:#6b9e88; font-weight:600; }
-        .nav-sp { flex:1; }
-        /* Company signal badges (for dossier summary cells) */
-        .co-sig-bdg { display:inline-block; font-size:0.65rem; font-weight:600; padding:3px 9px; border-radius:6px; white-space:nowrap; }
-        .co-sig-green { background:rgba(36,237,155,0.1);   color:#24ED9B; border:1px solid rgba(36,237,155,0.22); }
-        .co-sig-teal  { background:rgba(20,184,166,0.1);   color:#2dd4bf; border:1px solid rgba(20,184,166,0.22); }
-        .co-sig-amber { background:rgba(251,146,60,0.1);   color:#fb923c; border:1px solid rgba(251,146,60,0.22); }
-        .co-sig-red   { background:rgba(248,113,113,0.08); color:#f87171; border:1px solid rgba(248,113,113,0.2); }
-        /* Choose Different Products button */
-        .btn-choose-products { font-size:0.78rem; color:#6b9e88; text-decoration:none; background:rgba(36,237,155,0.07); border:1px solid rgba(36,237,155,0.2); padding:5px 12px; border-radius:7px; white-space:nowrap; transition:color 0.15s, border-color 0.15s; display:inline-block; }
-        .btn-choose-products:hover { color:#24ED9B; border-color:rgba(36,237,155,0.4); text-decoration:none; }
-
-        @media (max-width: 768px) {
-            .seller-grid { grid-template-columns: 1fr 1fr; }
-            .product-details > summary { padding: 16px 18px; gap: 10px; }
-            .pd-body { padding: 18px 18px 22px; }
-        }
-        @media (max-width: 520px) {
-            .seller-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+/* ── Utilities ────────────────────────────────────────────────── */
+.text-muted { color: #4a7060; }
+.rec-link { color: #24ED9B; font-size: 0.78rem; }
+</style>
 </head>
 <body>
 
-{# =========================================
-   Pre-compute rollup values
-   ========================================= #}
-{% set ns = namespace(
-    acv_low=0.0, acv_high=0.0, total_low=0, total_high=0, has_cp=false, cp_count=0
-) %}
-{% for product in data.products %}
-    {% set cp = product.get('consumption_potential', {}) or {} %}
-    {% if cp and cp.get('annual_hours_high', 0) > 0 %}
-        {% set _om_d = product.orchestration_method or product.skillable_path or '' %}
-        {% if 'Sim' in _om_d or _om_d == 'C' %}{% set r_lo = 5.0 %}{% set r_hi = 5.0 %}
-        {% elif cp.get('vm_rate_estimate', 0) > 0 %}{% set r_lo = cp.get('vm_rate_estimate') %}{% set r_hi = cp.get('vm_rate_estimate') %}
-        {% elif 'Azure' in _om_d or 'AWS' in _om_d or _om_d in ['A', 'A1', 'A1-AWS', 'A2'] %}{% set r_lo = 10.5 %}{% set r_hi = 10.5 %}
-        {% else %}{% set r_lo = 12.0 %}{% set r_hi = 15.0 %}{% endif %}
-        {% set ns.total_low  = ns.total_low  + cp.get('annual_hours_low', 0) %}
-        {% set ns.total_high = ns.total_high + cp.get('annual_hours_high', 0) %}
-        {% set ns.acv_low    = ns.acv_low  + cp.get('annual_hours_low', 0) * r_lo %}
-        {% set ns.acv_high   = ns.acv_high + cp.get('annual_hours_high', 0) * r_hi %}
-        {% set ns.has_cp = true %}
-        {% set ns.cp_count   = ns.cp_count + 1 %}
-    {% endif %}
-{% endfor %}
+{% with active_tool = 'inspector' %}{% include '_nav.html' %}{% endwith %}
 
-{# Top product and verdict #}
-{% set top_p = data.products[0] if data.products else none %}
-{% set top_score = top_p._total_score if top_p else 0 %}
-{% if top_score >= 70 %}{% set top_verdict = 'strong' %}{% set top_verdict_label = 'Strong Fit' %}
-{% elif top_score >= 50 %}{% set top_verdict = 'pursue' %}{% set top_verdict_label = 'Pursue' %}
-{% elif top_score >= 30 %}{% set top_verdict = 'monitor' %}{% set top_verdict_label = 'Monitor' %}
-{% else %}{% set top_verdict = 'pass' %}{% set top_verdict_label = 'Pass' %}{% endif %}
+<div class="page-wrap">
 
-{# LinkedIn icon SVG #}
-{% set li_svg %}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" style="display:inline-block;vertical-align:-2px;margin-left:4px;fill:#0a66c2;"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>{% endset %}
-
-<nav class="nav">
-    <a href="/" title="Skillable Intelligence">
-        <img src="{{ url_for('static', filename='img/skillable-logo-white.svg') }}" alt="Skillable">
-    </a>
-    <div class="nav-divider"></div>
-    <span class="nav-tool">Dossier</span>
-    <div class="nav-sp"></div>
-</nav>
-
-<div class="breadcrumbs">
-    <a href="/">Start</a>
-    <span class="bc-sep">/</span>
-    <a href="/inspector/">Inspector</a>
-    <span class="bc-sep">/</span>
-    <span class="bc-current">{{ data.company_name }}</span>
-</div>
-
-<div class="container">
-
-    {# Top nav row #}
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap;">
-        {% if data.discovery_id %}
-        <a href="/inspector/caseboard/{{ data.discovery_id }}" class="btn-choose-products">&larr; Choose Different Products</a>
-        {% else %}
-        <a href="/inspector/" class="btn-choose-products">&larr; New Search</a>
-        {% endif %}
-        <span style="font-size:0.72rem;color:#3d6655;white-space:nowrap;">
-            Analyzed {{ data.analyzed_at[:10] if data.analyzed_at else '' }}
-            &middot; {{ data.products|length }}
-            {% set ot = data.organization_type %}
-            {% if ot in ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}program{% else %}product{% endif %}{{ 's' if data.products|length != 1 else '' }} scored
-            {% if competitors_logged and competitors_logged > 0 %}
-            &middot; <button class="comp-link" onclick="document.getElementById('compModal').classList.add('open')">{{ competitors_logged }} competitor{{ 's' if competitors_logged != 1 else '' }} logged</button>
-            {% endif %}
+<!-- ── Page header ──────────────────────────────────────────────── -->
+<div class="page-header">
+    <div class="page-header-top">
+        <a class="back-link" href="{{ url_for('inspector.caseboard', discovery_id=data.get('discovery_id', '')) if data.get('discovery_id') else url_for('inspector.home') }}">← Back to Caseboard</a>
+        <span class="page-meta">
+            Analyzed {{ (data.get('analyzed_at') or '')[:10] }}
+            · {{ (data.get('products') or []) | length }} scored
+            {% if from_cache %} · from cache{% endif %}
         </span>
     </div>
+    <div class="page-eyebrow">Dossier · Seller &amp; SE Action Plan</div>
+</div>
 
-    {% if from_cache %}
-    {% set cached_date = data.analyzed_at[:10] if data.analyzed_at else '' %}
-    <div class="cache-banner">
-        <span>&#128274; Cached result</span>
-        {% if cached_date %}<span class="cache-date">{{ cached_date }}</span>{% endif %}
-        <form method="POST" action="/inspector/discover">
-            <input type="hidden" name="company_name" value="{{ data.company_name }}">
-            <input type="hidden" name="force_refresh" value="1">
-            <button type="submit">&#8635; Re-run fresh</button>
-        </form>
+{# ─────────────────────────────────────────────────────────────── #}
+{#  MACROS                                                         #}
+{# ─────────────────────────────────────────────────────────────── #}
+
+{% macro badge_color_class(qualifier) -%}
+    {%- if qualifier == 'blocker' %}red
+    {%- elif qualifier in ('risk', 'caution') %}yellow
+    {%- else %}green{%- endif -%}
+{%- endmacro %}
+
+{% macro badge_emoji(qualifier) -%}
+    {%- if qualifier == 'blocker' %}🚫
+    {%- elif qualifier in ('risk', 'caution') %}⚠️
+    {%- else %}✅{%- endif -%}
+{%- endmacro %}
+
+{# Render all badges from evidence list — green first, yellow second, red last #}
+{% macro render_dim_badges(ev_list) %}
+    {%- set ns = namespace(green=[], yellow=[], red=[]) -%}
+    {%- for ev in (ev_list or []) -%}
+        {%- set claim = ev.get('claim', '') if ev is mapping else ev.claim -%}
+        {%- if claim.startswith('**') -%}
+            {%- set inner = claim[2:] -%}
+            {%- set ei = inner.find('**') -%}
+            {%- if ei != -1 -%}
+                {%- set lbl = inner[:ei].rstrip(':') -%}
+                {%- if ' | ' in lbl -%}
+                    {%- set bname = lbl.rsplit(' | ', 1)[0].strip() -%}
+                    {%- set bqual = lbl.rsplit(' | ', 1)[1].strip().lower() -%}
+                {%- else -%}
+                    {%- set bname = lbl.strip() -%}
+                    {%- set bqual = 'strength' -%}
+                {%- endif -%}
+                {%- if bqual == 'blocker' -%}
+                    {%- set _ = ns.red.append({'n': bname, 'q': bqual}) -%}
+                {%- elif bqual in ('caution', 'risk') -%}
+                    {%- set _ = ns.yellow.append({'n': bname, 'q': bqual}) -%}
+                {%- else -%}
+                    {%- set _ = ns.green.append({'n': bname, 'q': bqual}) -%}
+                {%- endif -%}
+            {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- if not ns.green and not ns.yellow and not ns.red -%}
+        <span class="dim-empty">No signals found</span>
+    {%- else -%}
+        {%- for b in ns.green %}<span class="dim-badge green">✅ {{ b.n }}</span>{% endfor -%}
+        {%- for b in ns.yellow %}<span class="dim-badge yellow">⚠️ {{ b.n }}</span>{% endfor -%}
+        {%- for b in ns.red %}<span class="dim-badge red">🚫 {{ b.n }}</span>{% endfor -%}
+    {%- endif %}
+{% endmacro %}
+
+{# Render a single evidence bullet with optional source link #}
+{% macro render_ev(ev) %}
+    {%- set claim = ev.get('claim', '') if ev is mapping else ev.claim -%}
+    {%- set src_url = ev.get('source_url') if ev is mapping else ev.source_url -%}
+    {%- set src_title = ev.get('source_title') if ev is mapping else ev.source_title -%}
+    <li>
+        {{ claim | bold_labels | safe }}
+        {%- if src_url %} <a class="ev-source" href="{{ src_url }}" target="_blank">{{ src_title or 'source' }}</a>{% endif %}
+    </li>
+{% endmacro %}
+
+{# Render Product Labability evidence grouped by subsection #}
+{% macro render_labability(ev_list) %}
+    {%- set ns2 = namespace(prov=[], lic=[], score=[], tear=[], other=[]) -%}
+    {%- for ev in (ev_list or []) -%}
+        {%- set claim = ev.get('claim', '') if ev is mapping else ev.claim -%}
+        {%- if claim.startswith('**') -%}
+            {%- set inner2 = claim[2:] -%}
+            {%- set ei2 = inner2.find('**') -%}
+            {%- if ei2 != -1 -%}
+                {%- set lbl2 = inner2[:ei2].rstrip(':') -%}
+                {%- set bname2 = lbl2.rsplit(' | ', 1)[0].strip() if ' | ' in lbl2 else lbl2.strip() -%}
+                {%- set sec = badge_subsection(bname2) -%}
+                {%- if sec == 'licensing' -%}{%- set _ = ns2.lic.append(ev) -%}
+                {%- elif sec == 'scoring' -%}{%- set _ = ns2.score.append(ev) -%}
+                {%- elif sec == 'teardown' -%}{%- set _ = ns2.tear.append(ev) -%}
+                {%- else -%}{%- set _ = ns2.prov.append(ev) -%}
+                {%- endif -%}
+            {%- else -%}
+                {%- set _ = ns2.other.append(ev) -%}
+            {%- endif -%}
+        {%- else -%}
+            {%- set _ = ns2.other.append(ev) -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- if ns2.prov %}
+    <div class="subdim-block">
+        <div class="subdim-title">Provisioning</div>
+        <ul class="evidence-list">{% for ev in ns2.prov %}{{ render_ev(ev) }}{% endfor %}</ul>
     </div>
-    {% endif %}
+    {%- endif -%}
+    {%- if ns2.lic %}
+    <div class="subdim-block">
+        <div class="subdim-title">Licensing &amp; Accounts</div>
+        <ul class="evidence-list">{% for ev in ns2.lic %}{{ render_ev(ev) }}{% endfor %}</ul>
+    </div>
+    {%- endif -%}
+    {%- if ns2.score %}
+    <div class="subdim-block">
+        <div class="subdim-title">Scoring</div>
+        <ul class="evidence-list">{% for ev in ns2.score %}{{ render_ev(ev) }}{% endfor %}</ul>
+    </div>
+    {%- endif -%}
+    {%- if ns2.tear %}
+    <div class="subdim-block">
+        <div class="subdim-title">Teardown</div>
+        <ul class="evidence-list">{% for ev in ns2.tear %}{{ render_ev(ev) }}{% endfor %}</ul>
+    </div>
+    {%- endif -%}
+    {%- if ns2.other %}
+    <ul class="evidence-list">{% for ev in ns2.other %}{{ render_ev(ev) }}{% endfor %}</ul>
+    {%- endif %}
+{% endmacro %}
 
-    {# Page title #}
-    <div style="font-size:0.58rem;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#24ED9B;margin-bottom:28px;">Dossier &nbsp;&middot;&nbsp; Seller &amp; SE Action Plan</div>
+{# ─────────────────────────────────────────────────────────────── #}
+{#  ACV ROLLUP                                                     #}
+{# ─────────────────────────────────────────────────────────────── #}
+{%- set acv = namespace(low=0, high=0, count=0) -%}
+{%- for p in (data.get('products') or []) -%}
+    {%- set cp = (p.get('consumption_potential') or {}) if p is mapping else (p.consumption_potential or {}) -%}
+    {%- set h_low  = cp.get('annual_hours_low', 0)  if cp is mapping else cp.annual_hours_low  -%}
+    {%- set h_high = cp.get('annual_hours_high', 0) if cp is mapping else cp.annual_hours_high -%}
+    {%- set rate   = cp.get('vm_rate_estimate', 0)  if cp is mapping else cp.vm_rate_estimate  -%}
+    {%- if (h_low or h_high) and rate -%}
+        {%- set acv.low   = acv.low   + (h_low  | float * rate | float) -%}
+        {%- set acv.high  = acv.high  + (h_high | float * rate | float) -%}
+        {%- set acv.count = acv.count + 1 -%}
+    {%- endif -%}
+{%- endfor -%}
 
-    {# ===========================================
-       ZONE 1: SELLER SUMMARY
-       =========================================== #}
-    <div class="seller-zone">
+{# ─────────────────────────────────────────────────────────────── #}
+{#  HERO                                                           #}
+{# ─────────────────────────────────────────────────────────────── #}
+{%- set products   = data.get('products') or [] -%}
+{%- set top        = products[0] if products else {} -%}
+{%- set composite  = data.get('_composite_score', 0) -%}
+{%- set v          = verdict(composite) -%}
+{%- set v_cls      = v.lower().replace(' ', '-') -%}
 
-        {# Company name + org badge #}
-        <div class="seller-header">
-            <span class="seller-company-name">{{ data.company_name }}</span>
-            {% set ot = data.organization_type %}
-            {% if ot == 'software_company' %}<span class="org-badge org-software">Software Company</span>
-            {% elif ot == 'training_organization' %}<span class="org-badge org-training">Training Organization</span>
-            {% elif ot == 'academic_institution' %}<span class="org-badge org-academic">Academic Institution</span>
-            {% elif ot == 'systems_integrator' %}<span class="org-badge org-integrator">Systems Integrator</span>
-            {% elif ot == 'technology_distributor' %}<span class="org-badge org-distributor">Technology Distributor</span>
-            {% elif ot == 'professional_services' %}<span class="org-badge org-services">Professional Services</span>
-            {% elif ot %}<span class="org-badge org-services">{{ ot|replace('_',' ')|title }}</span>
-            {% endif %}
+{%- set top_scores = (top.get('labability_score') or {}) if top is mapping else (top.labability_score or {}) -%}
+{%- set _pl  = (top_scores.get('product_labability')      or {}) if top_scores is mapping else (top_scores.product_labability      or {}) -%}
+{%- set _iv  = (top_scores.get('instructional_value')     or {}) if top_scores is mapping else (top_scores.instructional_value     or {}) -%}
+{%- set _or  = (top_scores.get('organizational_readiness') or {}) if top_scores is mapping else (top_scores.organizational_readiness or {}) -%}
+{%- set _mr  = (top_scores.get('market_readiness')        or {}) if top_scores is mapping else (top_scores.market_readiness        or {}) -%}
+
+{%- set pl_evs = (_pl.get('evidence') or []) if _pl is mapping else (_pl.evidence or []) -%}
+{%- set iv_evs = (_iv.get('evidence') or []) if _iv is mapping else (_iv.evidence or []) -%}
+{%- set or_evs = (_or.get('evidence') or []) if _or is mapping else (_or.evidence or []) -%}
+{%- set mr_evs = (_mr.get('evidence') or []) if _mr is mapping else (_mr.evidence or []) -%}
+
+{%- set hb_pl = hero_badge(pl_evs) -%}
+{%- set hb_iv = hero_badge(iv_evs) -%}
+{%- set hb_or = hero_badge(or_evs) -%}
+{%- set hb_mr = hero_badge(mr_evs) -%}
+
+<div class="hero">
+    <div>
+        <div class="hero-company-name">
+            {{ data.get('company_name', '') }}
+            {%- set org_type = data.get('organization_type', 'software_company') | default('software_company') -%}
+            <span class="org-badge {{ org_type }}">{{ org_type | replace('_', ' ') | title }}</span>
+        </div>
+        {%- if data.get('company_description') %}
+        <div class="hero-description">{{ data.get('company_description') }}</div>
+        {%- endif %}
+
+        <div class="hero-score-row">
+            <span class="hero-score {{ v_cls }}">{{ composite }}</span>
+            <span class="verdict-label {{ v_cls }}">{{ v }}</span>
         </div>
 
-        {% if data.company_description %}
-        <p class="seller-desc">{{ data.company_description }}</p>
-        {% endif %}
-
-        {# HERO ROW — Verdict + ACV + root-cause signals (bad) or positive signals (good) #}
-        {% set ns_hero = namespace(bad=[], good=[]) %}
-        {# Prioritise root-cause technical blockers — NOT the deployment model label #}
-        {% for p in data.products %}
-            {% for flag in (p.poor_match_flags or []) %}
-                {% set fl = flag | lower %}
-                {% if fl == 'no_api_automation' and 'No Automation APIs' not in ns_hero.bad and ns_hero.bad | length < 2 %}
-                    {% set ns_hero.bad = ns_hero.bad + ['No Automation APIs'] %}
-                {% elif fl == 'no_scoring_api' and 'No Scoring API' not in ns_hero.bad and ns_hero.bad | length < 2 %}
-                    {% set ns_hero.bad = ns_hero.bad + ['No Scoring API'] %}
-                {% elif fl == 'multi_tenant_only' and 'Multi-Tenant Only' not in ns_hero.bad and ns_hero.bad | length < 2 %}
-                    {% set ns_hero.bad = ns_hero.bad + ['Multi-Tenant Only'] %}
-                {% elif fl == 'bare_metal_required' and 'Bare Metal Required' not in ns_hero.bad and ns_hero.bad | length < 2 %}
-                    {% set ns_hero.bad = ns_hero.bad + ['Bare Metal Required'] %}
-                {% elif fl == 'consumer_product' and 'Consumer Product' not in ns_hero.bad and ns_hero.bad | length < 2 %}
-                    {% set ns_hero.bad = ns_hero.bad + ['Consumer Product'] %}
-                {% endif %}
-            {% endfor %}
-            {# Fallback: not_likely product with no specific API/tech flag surfaced yet #}
-            {% if p.likely_labable == 'not_likely' and ns_hero.bad | length == 0 %}
-                {% set ns_hero.bad = ns_hero.bad + ['SaaS-Only: No Install Path'] %}
-            {% endif %}
-        {% endfor %}
-        {# Positive signals for strong / pursue when no critical blockers dominate #}
-        {% if top_verdict in ('strong', 'pursue') %}
-            {% if top_p and top_p.likely_labable == 'highly_likely' %}
-                {% set ns_hero.good = ns_hero.good + ['Highly Labable'] %}
-            {% endif %}
-            {% if pr %}
-                {% set _pp_s  = (pr.get('partner_program', {}) or {}).get('score', 0) %}
-                {% set _tom_s = (pr.get('training_org_maturity', {}) or {}).get('score', 0) %}
-                {% if _pp_s >= 12 and ns_hero.good | length < 2 %}{% set ns_hero.good = ns_hero.good + ['ATP Program'] %}
-                {% elif _tom_s >= 20 and ns_hero.good | length < 2 %}{% set ns_hero.good = ns_hero.good + ['Training Org'] %}{% endif %}
-            {% endif %}
-        {% endif %}
-
-        <div class="seller-hero">
-            <div class="seller-hero-verdict">
-                <span class="verdict-badge verdict-{{ top_verdict }}">{{ top_verdict_label }}</span>
-            </div>
-            {% if ns.has_cp and ns.acv_high > 0 %}
-            <div class="seller-acv-hero">
-                <div class="seller-acv-label">Estimated Annual Value</div>
-                <div class="seller-acv-value">${{ "{:,}".format(ns.acv_low | int) }}&ndash;${{ "{:,}".format(ns.acv_high | int) }}</div>
-                <div class="seller-acv-note">estimated ACV based on {{ ns.cp_count }} of {{ data.products|length }} products</div>
-            </div>
-            {% endif %}
-            {% if ns_hero.bad %}
-            <div class="seller-hero-blockers">
-                {% for b in ns_hero.bad %}<div class="hero-blocker-badge">&#9888; {{ b }}</div>{% endfor %}
-            </div>
-            {% elif ns_hero.good %}
-            <div class="seller-hero-good">
-                {% for g in ns_hero.good %}<div class="hero-good-badge">&#10003; {{ g }}</div>{% endfor %}
-            </div>
-            {% endif %}
+        <div class="hero-badges">
+            {%- if hb_pl -%}
+            <span class="hero-badge {{ badge_color_class(hb_pl.qualifier) }}">
+                <span class="dim-label">Labability</span>
+                {{ badge_emoji(hb_pl.qualifier) }} {{ hb_pl.name }}
+            </span>
+            {%- endif -%}
+            {%- if hb_iv -%}
+            <span class="hero-badge {{ badge_color_class(hb_iv.qualifier) }}">
+                <span class="dim-label">Instructional</span>
+                {{ badge_emoji(hb_iv.qualifier) }} {{ hb_iv.name }}
+            </span>
+            {%- endif -%}
+            {%- if hb_or -%}
+            <span class="hero-badge {{ badge_color_class(hb_or.qualifier) }}">
+                <span class="dim-label">Org Readiness</span>
+                {{ badge_emoji(hb_or.qualifier) }} {{ hb_or.name }}
+            </span>
+            {%- endif -%}
+            {%- if hb_mr -%}
+            <span class="hero-badge {{ badge_color_class(hb_mr.qualifier) }}">
+                <span class="dim-label">Market</span>
+                {{ badge_emoji(hb_mr.qualifier) }} {{ hb_mr.name }}
+            </span>
+            {%- endif -%}
         </div>
+    </div><!-- hero-left -->
 
-        {# ── Pre-compute contacts (dedup, DMs first) and key risk ── #}
-        {% set ns_c = namespace(dms=[], others=[], seen=[]) %}
-        {% for p in data.products %}
-            {% for c in p.contacts %}
-                {% if c.name not in ns_c.seen %}
-                    {% set ns_c.seen = ns_c.seen + [c.name] %}
-                    {% if c.contact_type == 'decision_maker' or c.role_type == 'decision_maker' %}
-                        {% set ns_c.dms = ns_c.dms + [c] %}
-                    {% else %}
-                        {% set ns_c.others = ns_c.others + [c] %}
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-        {% endfor %}
-        {% set all_contacts = ns_c.dms + ns_c.others %}
-        {# Keep ns_c.top_contact for Next Steps block compatibility #}
-        {% set ns_c = namespace(top_contact=(all_contacts[0] if all_contacts else none)) %}
+    <div class="hero-acv">
+        <div class="acv-eyebrow">Estimated Annual Contract Value</div>
+        {%- if acv.low or acv.high %}
+        <div class="acv-value">${{ "{:,.0f}".format(acv.low) }} – ${{ "{:,.0f}".format(acv.high) }}</div>
+        <div class="acv-sub">Est. based on {{ acv.count }} of {{ products | length }} products</div>
+        {%- else %}
+        <div class="acv-value" style="color:#2e4d40;">—</div>
+        <div class="acv-sub">No consumption data</div>
+        {%- endif %}
+    </div>
+</div><!-- hero -->
 
-        {% set ns_r = namespace(first_flag=none) %}
-        {% for p in data.products %}
-            {% if ns_r.first_flag is none and p.poor_match_flags %}
-                {% set ns_r.first_flag = p.poor_match_flags[0] | flag_label %}
-            {% endif %}
-        {% endfor %}
+{# ─────────────────────────────────────────────────────────────── #}
+{#  FOUR DIMENSION BOXES                                           #}
+{# ─────────────────────────────────────────────────────────────── #}
+<div class="dim-grid">
+    <div class="dim-box">
+        <div class="dim-box-title">Product Labability</div>
+        <div class="dim-badges">{{ render_dim_badges(pl_evs) }}</div>
+    </div>
+    <div class="dim-box">
+        <div class="dim-box-title">Instructional Value</div>
+        <div class="dim-badges">{{ render_dim_badges(iv_evs) }}</div>
+    </div>
+    <div class="dim-box">
+        <div class="dim-box-title">Organizational Readiness</div>
+        <div class="dim-badges">{{ render_dim_badges(or_evs) }}</div>
+    </div>
+    <div class="dim-box">
+        <div class="dim-box-title">Market Readiness</div>
+        <div class="dim-badges">{{ render_dim_badges(mr_evs) }}</div>
+    </div>
+</div><!-- dim-grid -->
 
-        {# Pre-compute champion insight from top product's recommendation bullets #}
-        {% set ns_champ = namespace(text=none) %}
-        {% if top_p and top_p.recommendation %}
-            {% for bullet in top_p.recommendation %}
-                {% set bl = bullet | lower %}
-                {% if ns_champ.text is none and ('help your champion' in bl or 'essential technical' in bl) %}
-                    {% set stripped = bullet | replace('**Help your champion find:**', '') | replace('**Essential technical question:**', '') | replace('Help your champion find:', '') | trim %}
-                    {% set ns_champ.text = stripped %}
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-
-        {# Info grid — 2×2 #}
-        {% set ns_flags2 = namespace(bad=[]) %}
-        {% for p in data.products %}
-            {% for flag in (p.poor_match_flags or []) %}
-                {% if flag not in ns_flags2.bad %}{% set ns_flags2.bad = ns_flags2.bad + [flag] %}{% endif %}
-            {% endfor %}
-        {% endfor %}
-        <div class="seller-grid">
-
-            {# TL: Composite Score + 40/30/20/10 breakdown #}
-            {% if top_p %}
-            {% set tp_tech = top_p.labability_score.product_labability.score | default(0) %}
-            {% set tp_wf   = top_p.labability_score.instructional_value.score | default(0) %}
-            {% set tp_te   = top_p.labability_score.organizational_readiness.score | default(0) %}
-            {% set tp_mf   = top_p.labability_score.market_readiness.score | default(0) %}
-            {% endif %}
-            <div class="seller-cell">
-                <div class="seller-cell-label">Composite Score</div>
-                <div style="display:flex;align-items:center;gap:18px;margin-top:8px;">
-                    {# Big score number #}
-                    <div style="flex-shrink:0;line-height:1;">
-                        <span style="font-size:3.4rem;font-weight:900;letter-spacing:-0.04em;color:{% if top_score>=70 %}#24ED9B{% elif top_score>=45 %}#6b9e88{% elif top_score>=20 %}#fb923c{% else %}#f87171{% endif %};">{{ top_score }}</span>
-                        <span style="font-size:0.72rem;color:#3d6655;font-weight:600;vertical-align:top;margin-top:8px;display:inline-block;">/100</span>
-                    </div>
-                    {# 4-dimension breakdown to the right #}
-                    {% if top_p %}
-                    <div style="flex:1;display:flex;flex-direction:column;gap:6px;border-left:1px solid #1e3329;padding-left:16px;">
-                        {% for dim_label, dim_score, dim_max in [
-                            ('Product Labability', tp_tech, 40),
-                            ('Instructional Value', tp_wf, 30),
-                            ('Org Readiness', tp_te, 20),
-                            ('Market Readiness', tp_mf, 10)
-                        ] %}
-                        {% set dim_pct = dim_score / dim_max %}
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span style="font-size:0.7rem;color:#6b9e88;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ dim_label }}</span>
-                            <span style="font-size:0.9rem;font-weight:900;flex-shrink:0;color:{% if dim_pct>=0.7 %}#24ED9B{% elif dim_pct>=0.45 %}#6b9e88{% elif dim_pct>=0.25 %}#fb923c{% else %}#f87171{% endif %};">{{ dim_score }}</span>
-                            <span style="font-size:0.6rem;color:#3d6655;flex-shrink:0;min-width:22px;">/{{ dim_max }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            {# TR: Product Labability — all products #}
-            <div class="seller-cell">
-                <div class="seller-cell-label">Product Labability</div>
-                <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
-                    {% for p in data.products %}
-                    {% set ps = p._total_score or 0 %}
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        {% if p.likely_labable == 'highly_likely' %}<span class="lab-bdg lab-bdg-hl" style="min-width:74px;justify-content:center;">Highly Likely</span>
-                        {% elif p.likely_labable == 'likely' %}<span class="lab-bdg lab-bdg-l" style="min-width:74px;justify-content:center;">Likely</span>
-                        {% elif p.likely_labable == 'less_likely' %}<span class="lab-bdg lab-bdg-ll" style="min-width:74px;justify-content:center;">Less Likely</span>
-                        {% else %}<span class="lab-bdg lab-bdg-nl" style="min-width:74px;justify-content:center;">Not Likely</span>{% endif %}
-                        <span style="font-size:0.78rem;color:#a8d5c2;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</span>
-                        <span style="font-size:0.9rem;font-weight:900;flex-shrink:0;color:{% if ps>=70 %}#24ED9B{% elif ps>=45 %}#6b9e88{% elif ps>=20 %}#fb923c{% else %}#f87171{% endif %};">{{ ps }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            {# BL: Company Profile + Signals #}
-            <div class="seller-cell">
-                <div class="seller-cell-label">Company Profile &amp; Signals</div>
-                <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
-                    {# Good signals #}
-                    {% set ns_good = namespace(items=[]) %}
-                    {% if pr %}
-                        {% set tom = pr.get('training_org_maturity', {}) or {} %}
-                        {% set pp2 = pr.get('partner_program', {}) or {} %}
-                        {% set cs2 = pr.get('customer_success', {}) or {} %}
-                        {% set tr2 = pr.get('tech_readiness', {}) or {} %}
-                        {% if tom.get('score', 0) >= 20 %}{% set ns_good.items = ns_good.items + ['Training Org'] %}{% endif %}
-                        {% if pp2.get('score', 0) >= 12 %}{% set ns_good.items = ns_good.items + ['ATP Program'] %}{% endif %}
-                        {% if cs2.get('score', 0) >= 18 %}{% set ns_good.items = ns_good.items + ['Customer Success'] %}{% endif %}
-                        {% if tr2.get('score', 0) >= 5 %}{% set ns_good.items = ns_good.items + ['Lab-Ready Tech'] %}{% endif %}
-                    {% endif %}
-                    {% if ns_good.items %}
-                    <div>
-                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#24ED9B;margin-bottom:5px;">Positive Signals</div>
-                        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                            {% for item in ns_good.items %}<span class="lab-bdg lab-bdg-hl">{{ item }}</span>{% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                    {# Blockers — explicit labels to ensure correct capitalisation #}
-                    {% if ns_flags2.bad %}
-                    <div>
-                        <div style="font-size:0.52rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#f87171;margin-bottom:5px;">Blockers</div>
-                        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                            {% for flag in ns_flags2.bad[:6] %}
-                            {% set fl = flag | lower %}
-                            {% if fl == 'saas_only' %}{% set flbl = 'SaaS-Only' %}
-                            {% elif fl == 'no_api_automation' %}{% set flbl = 'No Automation APIs' %}
-                            {% elif fl == 'no_scoring_api' %}{% set flbl = 'No Scoring API' %}
-                            {% elif fl == 'multi_tenant_only' %}{% set flbl = 'Multi-Tenant Only' %}
-                            {% elif fl == 'bare_metal_required' %}{% set flbl = 'Bare Metal Required' %}
-                            {% elif fl == 'credit_card_required' %}{% set flbl = 'Credit Card Required' %}
-                            {% elif fl == 'pii_required' %}{% set flbl = 'PII Required' %}
-                            {% elif fl == 'consumer_product' %}{% set flbl = 'Consumer Product' %}
-                            {% elif fl == 'no_install_option' %}{% set flbl = 'No Install Option' %}
-                            {% else %}{% set flbl = flag | replace('_',' ') | title %}{% endif %}
-                            <span class="flag-badge">{{ flbl }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% else %}
-                    <div style="font-size:0.72rem;color:#3d6655;font-style:italic;">No blockers detected</div>
-                    {% endif %}
-                    {# SaaS risk #}
-                    {% set ns_s2 = namespace(saas=0) %}
-                    {% for p in data.products %}
-                        {% if p.deployment_model in ['saas-only','saas_only'] or 'saas_only' in (p.poor_match_flags or []) %}{% set ns_s2.saas = ns_s2.saas + 1 %}{% endif %}
-                    {% endfor %}
-                    {% if ns_s2.saas > 0 %}
-                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                        {% if ns_s2.saas == data.products|length %}<span class="co-sig-bdg co-sig-red">All SaaS-Only</span>
-                        {% else %}<span class="co-sig-bdg co-sig-amber">{{ ns_s2.saas }} SaaS-Only</span>{% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            {# BR: Per-product ACV estimates #}
-            <div class="seller-cell">
-                <div class="seller-cell-label">Consumption Potential</div>
-                <div style="display:flex;flex-direction:column;gap:7px;margin-top:8px;">
-                    {% set ns_any_acv = namespace(found=false) %}
-                    {% for p in data.products %}
-                    {% set cp_br = p.get('consumption_potential', {}) or {} %}
-                    {% set br_hi = cp_br.get('annual_hours_high', 0) %}
-                    {% if br_hi > 0 %}
-                    {% set ns_any_acv.found = true %}
-                    {% set br_sp = p.orchestration_method or p.skillable_path or '' %}
-                    {% if 'Sim' in br_sp or br_sp == 'C' %}{% set br_rlo = 5.0 %}{% set br_rhi = 5.0 %}
-                    {% elif cp_br.get('vm_rate_estimate', 0) > 0 %}{% set br_rlo = cp_br.get('vm_rate_estimate') %}{% set br_rhi = cp_br.get('vm_rate_estimate') %}
-                    {% elif 'Azure' in br_sp or 'AWS' in br_sp or br_sp in ['A','A1','A1-AWS','A2'] %}{% set br_rlo = 10.5 %}{% set br_rhi = 10.5 %}
-                    {% else %}{% set br_rlo = 12.0 %}{% set br_rhi = 15.0 %}{% endif %}
-                    {% set br_acv_lo = (cp_br.get('annual_hours_low', 0) * br_rlo) | int %}
-                    {% set br_acv_hi = (br_hi * br_rhi) | int %}
-                    <div style="display:flex;align-items:baseline;gap:6px;">
-                        <span style="font-size:0.75rem;color:#6b9e88;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.name }}</span>
-                        <span style="font-size:0.82rem;font-weight:800;color:#24ED9B;flex-shrink:0;white-space:nowrap;">${{ "{:,}".format(br_acv_lo) }}&ndash;${{ "{:,}".format(br_acv_hi) }}</span>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                    {% if not ns_any_acv.found %}
-                    <span style="font-size:0.75rem;color:#3d6655;font-style:italic;">No consumption models available</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            {# Full-width: Key Risk (when present) #}
-            {% if ns_r.first_flag %}
-            <div class="seller-cell seller-risk seller-cell-full">
-                <div class="seller-cell-label">&#9888; Key Risk</div>
-                <div class="seller-cell-value">{{ ns_r.first_flag }}</div>
-            </div>
-            {% endif %}
-
-        </div>{# /seller-grid #}
-
-        {# NEXT STEPS — prominent, data-driven, inside Zone 1 #}
-        <div class="next-steps-block">
-            <div class="next-steps-block-label">Next Steps</div>
-            <ul class="next-steps-list">
-                {# Step 1 — lead action + champion insight #}
-                {% if top_verdict == 'strong' %}
-                <li>Schedule a <strong>technical deep dive</strong> with your SE — this account is ready to move.
-                    {% if ns_champ.text %}<span style="display:block;margin-top:5px;font-size:0.8rem;color:#6b9e88;line-height:1.55;">{{ ns_champ.text | truncate(220) }}</span>{% endif %}
-                </li>
-                {% elif top_verdict == 'pursue' %}
-                <li>Run a <strong>targeted discovery call</strong> to validate delivery path and confirm program scope.
-                    {% if ns_champ.text %}<span style="display:block;margin-top:5px;font-size:0.8rem;color:#6b9e88;line-height:1.55;">{{ ns_champ.text | truncate(220) }}</span>{% endif %}
-                </li>
-                {% elif top_verdict == 'monitor' %}
-                <li><strong>Flag in CRM</strong> and set a follow-up trigger — revisit when product or org capability matures.</li>
-                {% else %}
-                <li><strong>Do not invest SE time</strong> — log disqualifier and route to ICP refinement.</li>
-                {% endif %}
-
-                {# Step 2 — lead product conversation hook #}
-                {% if top_p and top_verdict in ('strong', 'pursue') %}
-                <li>Lead with <strong>{{ top_p.name }}</strong>
-                    {% set sp = top_p.orchestration_method or top_p.skillable_path or '' %}
-                    {% if 'Azure' in sp %}— position as an Azure cloud lab environment
-                    {% elif 'AWS' in sp %}— position as an AWS cloud lab environment
-                    {% elif 'Hyper-V' in sp or 'ESX' in sp or 'VM' in sp or sp == 'B' %}— position as a virtual machine-based lab program
-                    {% elif 'Sim' in sp or sp == 'C' %}— position as a simulation-based experience
-                    {% endif %}.
-                </li>
-                {% endif %}
-
-                {# Step 3 — top contact: name is the link, LinkedIn icon inline #}
-                {% if ns_c.top_contact and top_verdict in ('strong', 'pursue') %}
-                <li>Engage
-                    {% if ns_c.top_contact.linkedin_url %}<a href="{{ ns_c.top_contact.linkedin_url }}" target="_blank" style="color:#e8f5f0;font-weight:700;">{{ ns_c.top_contact.name }}{{ li_svg }}</a>{% else %}<strong>{{ ns_c.top_contact.name }}</strong>{% endif %}
-                    {% if ns_c.top_contact.title %} ({{ ns_c.top_contact.title }}){% endif %}.
-                </li>
-                {% endif %}
-
-                {# Step 4 — key risk to address #}
-                {% if ns_r.first_flag %}
-                <li class="step-risk">Address <strong>{{ ns_r.first_flag }}</strong> in discovery — confirm whether this is a blocker or a workaround exists.</li>
-                {% endif %}
+{# ─────────────────────────────────────────────────────────────── #}
+{#  NEXT STEPS                                                     #}
+{# ─────────────────────────────────────────────────────────────── #}
+{%- set top_recs = (top.get('recommendation') or []) if top is mapping else (top.recommendation or []) -%}
+{%- if top_recs -%}
+{%- set lead_recs = [] -%}
+{%- set risk_recs = [] -%}
+{%- for rec in top_recs -%}
+    {%- if '| Risk' in rec or '| Blocker' in rec or '— Risk' in rec or '— Blocker' in rec -%}
+        {%- set _ = risk_recs.append(rec) -%}
+    {%- else -%}
+        {%- set _ = lead_recs.append(rec) -%}
+    {%- endif -%}
+{%- endfor -%}
+<div class="next-steps">
+    <div class="next-steps-title">Next Steps</div>
+    <div class="next-col">
+        <div>
+            <div class="next-section-title lead">What to Lead With</div>
+            <ul class="next-list">
+                {%- for rec in lead_recs %}<li>{{ rec | bold_labels | safe }}</li>{% endfor -%}
+                {%- if not lead_recs %}<li class="text-muted">Review strengths in dimension boxes above.</li>{% endif -%}
             </ul>
         </div>
-
-    </div>{# /seller-zone #}
-
-
-    {# ===========================================
-       ZONE 2: PRODUCT CARDS
-       =========================================== #}
-    <div class="zone2-heading">Products</div>
-
-    {% for product in data.products %}
-    {# ── Per-product score shortcuts ── #}
-    {% set sc_tech = product.labability_score.product_labability.score | default(0) %}
-    {% set sc_wf   = product.labability_score.instructional_value.score | default(0) %}
-    {% set sc_te   = product.labability_score.organizational_readiness.score | default(0) %}
-    {% set sc_mf   = product.labability_score.market_readiness.score | default(0) %}
-    {% set sc_g2   = sc_wf + sc_te %}
-    {% set tech_dim = product.labability_score.product_labability %}
-    {% set wf_dim   = product.labability_score.instructional_value %}
-    {% set te_dim   = product.labability_score.organizational_readiness %}
-    {% set mf_dim   = product.labability_score.market_readiness %}
-    {% set prod_score = product._total_score %}
-
-    {# Verdict #}
-    {% if prod_score >= 70 %}{% set p_verdict = 'strong' %}{% set p_verdict_label = 'Strong Fit' %}
-    {% elif prod_score >= 50 %}{% set p_verdict = 'pursue' %}{% set p_verdict_label = 'Pursue' %}
-    {% elif prod_score >= 30 %}{% set p_verdict = 'monitor' %}{% set p_verdict_label = 'Monitor' %}
-    {% else %}{% set p_verdict = 'pass' %}{% set p_verdict_label = 'Pass' %}{% endif %}
-
-    {# Readable delivery path #}
-    {% set sp = product.orchestration_method or product.skillable_path or '' %}
-    {% if sp == 'A1-AWS' or ('AWS' in sp and 'A1' not in sp) %}{% set path_label = 'AWS Cloud Slice' %}
-    {% elif 'Azure' in sp or (sp in ['A','A1','A2'] and 'AWS' not in sp) %}{% set path_label = 'Azure Cloud Slice' %}
-    {% elif 'AWS' in sp %}{% set path_label = 'AWS Cloud Slice' %}
-    {% elif 'Hyper-V' in sp or 'ESX' in sp or 'VM' in sp or sp == 'B' %}{% set path_label = 'Standard VM' %}
-    {% elif 'Container' in sp %}{% set path_label = 'Container' %}
-    {% elif 'Custom' in sp or 'BYOC' in sp or 'API' in sp %}{% set path_label = 'Custom API / BYOC' %}
-    {% elif 'Credential' in sp or sp == 'CP' %}{% set path_label = 'Credential Pool' %}
-    {% elif 'Sim' in sp or sp == 'C' or sp == 'SIM' %}{% set path_label = 'Simulation' %}
-    {% else %}{% set path_label = sp if sp else 'TBD' %}{% endif %}
-
-    {# Rates for this product #}
-    {% set cp_prod = product.get('consumption_potential', {}) or {} %}
-    {% if 'Sim' in sp or sp == 'C' %}{% set p_rlo = 5.0 %}{% set p_rhi = 5.0 %}
-    {% elif cp_prod.get('vm_rate_estimate', 0) > 0 %}{% set p_rlo = cp_prod.get('vm_rate_estimate') %}{% set p_rhi = cp_prod.get('vm_rate_estimate') %}
-    {% elif 'Azure' in sp or 'AWS' in sp or sp in ['A','A1','A1-AWS','A2'] %}{% set p_rlo = 10.5 %}{% set p_rhi = 10.5 %}
-    {% else %}{% set p_rlo = 12.0 %}{% set p_rhi = 15.0 %}{% endif %}
-
-    <details class="product-details" id="product-{{ loop.index }}">
-        <summary>
-            <div class="pd-name">
-                <div class="pd-product-name">{{ product.name }}{% if product.lab_highlight %}<span class="lab-highlight-badge">{{ product.lab_highlight }}</span>{% endif %}</div>
-                {% if product.category %}<span class="pd-category">{{ product.category }}</span>{% endif %}
-            </div>
-            <span class="verdict-badge verdict-{{ p_verdict }}">{{ p_verdict_label }}</span>
-            <span class="pd-path-badge">{{ path_label }}</span>
-            <span class="pd-score {% if prod_score >= 65 %}score-high{% elif prod_score >= 35 %}score-mid{% else %}score-low{% endif %}">{{ prod_score }}</span>
-            <span class="pd-toggle-arrow">&#9662;</span>
-        </summary>
-
-        <div class="pd-body">
-
-            {# ── 1: Consumption Estimate ── #}
-            <div class="pd-section">
-                <div class="pd-section-title">Consumption Estimate</div>
-                {% set cp5 = product.get('consumption_potential', {}) or {} %}
-                {% set cp5_hrs = cp5.get('annual_hours_high', 0) %}
-                {% if cp5_hrs > 0 %}
-                {% if cp5.get('motions') %}
-                <div class="l2-cons-grid">
-                    <div class="l2-cons-gh">Motion</div>
-                    <div class="l2-cons-gh">Est. Population</div>
-                    <div class="l2-cons-gh">Adoption</div>
-                    <div class="l2-cons-gh">Hrs / Person</div>
-                    <div class="l2-cons-gh">Est. Hours</div>
-                    {% for m in cp5.get('motions', []) %}
-                    {% set mh_low  = (m.get('population_low',0)*m.get('hours_low',0)*m.get('adoption_pct',0))|int %}
-                    {% set mh_high = (m.get('population_high',0)*m.get('hours_high',0)*m.get('adoption_pct',0))|int %}
-                    {% if mh_high > 0 %}
-                    <div class="l2-cons-gc lbl">{{ m.get('label','') }}</div>
-                    <div class="l2-cons-gc dim">{{ "{:,}".format(m.get('population_low',0)) }}{% if m.get('population_low',0) != m.get('population_high',0) %}&ndash;{{ "{:,}".format(m.get('population_high',0)) }}{% endif %}</div>
-                    <div class="l2-cons-gc dim">{{ (m.get('adoption_pct',0)*100)|round|int }}%</div>
-                    <div class="l2-cons-gc dim">{{ m.get('hours_low',0) }}{% if m.get('hours_low',0) != m.get('hours_high',0) %}&ndash;{{ m.get('hours_high',0) }}{% endif %} hrs</div>
-                    <div class="l2-cons-gc">{{ "{:,}".format(mh_low) }}&ndash;{{ "{:,}".format(mh_high) }} hrs</div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-                {% endif %}
-                <div class="l2-cons-total">
-                    <span class="l2-cons-total-label">Annual Potential</span>
-                    <div style="text-align:right;">
-                        <div class="l2-cons-acv">${{ "{:,}".format((cp5.get('annual_hours_low',0)*p_rlo)|int) }} &ndash; ${{ "{:,}".format((cp5_hrs*p_rhi)|int) }}</div>
-                        <div class="l2-cons-hrs">{{ "{:,}".format(cp5.get('annual_hours_low',0)) }}&ndash;{{ "{:,}".format(cp5_hrs) }} lab hrs/yr</div>
-                    </div>
-                </div>
-                {% if cp5.get('methodology_note') %}
-                <div class="consumption-methodology">{{ cp5.get('methodology_note') }}</div>
-                {% endif %}
-                {% else %}
-                <p style="font-size:0.78rem;color:#3d6655;font-style:italic;">Consumption potential is modeled for products with a clear lab delivery pathway.</p>
-                {% endif %}
-            </div>
-
-            {# ── 2: Product Labability ── #}
-            <div class="pd-section">
-                <div class="pd-section-title">
-                    Product Labability
-                    <span class="pd-section-title-score {% if sc_tech >= 29 %}score-high{% elif sc_tech >= 16 %}score-mid{% else %}score-low{% endif %}">{{ sc_tech }}/40</span>
-                </div>
-                <div class="pd-score-row">
-                    <span class="pd-dim-score {% if sc_tech >= 29 %}score-high{% elif sc_tech >= 16 %}score-mid{% else %}score-low{% endif %}">{{ sc_tech }}<span class="pd-dim-max"> / 40</span></span>
-                    <div class="bar-track">
-                        <div class="bar-fill {% if sc_tech >= 29 %}bar-green{% elif sc_tech >= 16 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ ((sc_tech/40)*100)|round|int }}%;"></div>
-                    </div>
-                </div>
-                {# Delivery path #}
-                {% if (product.orchestration_method or product.skillable_path) or product.skillable_mechanism %}
-                <div class="pd-path-inline" style="margin-top:8px;">
-                    {% if product.orchestration_method or product.skillable_path %}<span class="pd-path-badge">{{ path_label }}</span>{% endif %}
-                    {% if product.skillable_mechanism %}<span class="pd-mechanism-text">{{ product.skillable_mechanism }}</span>{% endif %}
-                </div>
-                {% endif %}
-                {# Score summary one-liner #}
-                <p class="pd-score-summary {% if sc_tech >= 29 %}score-high{% elif sc_tech >= 16 %}score-mid{% else %}score-low{% endif %}" style="margin-top:8px;">
-                    {% if sc_tech >= 29 %}Strong technical fit — ready to build
-                    {% elif sc_tech >= 16 %}Moderate fit — verify deployment details
-                    {% else %}Significant barriers — requires investigation{% endif %}
-                </p>
-                {# Good Points #}
-                {% if tech_dim.evidence %}
-                <div class="pd-sub">
-                    <div class="pd-item-label green">Good Points</div>
-                    <ul class="pd-bullets" style="margin-top:6px;">
-                        {% for ev in tech_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                {# Scoring #}
-                {% if product.scoring_approach %}
-                <div class="pd-sub">
-                    <div class="pd-item-label">Scoring</div>
-                    <ul class="pd-bullets" style="margin-top:6px;">
-                        {% for b in product.scoring_approach %}<li>{{ b }}</li>{% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                {# Delivery rationale #}
-                {% if product.delivery_path_rationale %}
-                <div class="pd-sub">
-                    <div class="pd-item-label">Delivery Rationale</div>
-                    <ul class="pd-bullets" style="margin-top:6px;">
-                        {% for b in product.delivery_path_rationale %}<li>{{ b }}</li>{% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                {# Blockers #}
-                {% if product.poor_match_flags %}
-                <div class="pd-sub">
-                    <div class="pd-item-label red">Blockers</div>
-                    <div class="poor-flags">
-                        {% for label in product.poor_match_flags | flag_labels %}<span class="flag-badge">&#9888; {{ label }}</span>{% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {# Recommendations — delivery path + blocker bullets only; drop champion/similar/program fit #}
-                {% if product.recommendation %}
-                {% set ns_lr = namespace(has=false) %}
-                {% for bullet in product.recommendation %}{% set bl = bullet|lower %}
-                {% if 'help your champion' not in bl and 'essential technical' not in bl and 'similar products' not in bl and 'program fit' not in bl %}{% set ns_lr.has = true %}{% endif %}
-                {% endfor %}
-                {% if ns_lr.has %}
-                <div class="pd-sub">
-                    <div class="pd-item-label">Recommendations</div>
-                    <ul class="pd-bullets" style="margin-top:6px;">
-                    {% for bullet in product.recommendation %}{% set bl = bullet|lower %}
-                    {% if 'help your champion' not in bl and 'essential technical' not in bl and 'similar products' not in bl and 'program fit' not in bl %}
-                    <li>{{ bullet | linkify }}</li>
-                    {% endif %}{% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                {% endif %}
-                {# Custom notes #}
-                {% if product.custom_label %}
-                <div class="pd-sub">
-                    <ul class="pd-bullets" style="margin-top:6px;">
-                        {% for b in product.custom_label %}<li>{{ b }}</li>{% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-            </div>
-
-            {# ── 3: Likely Instructional Value & Impact ── #}
-            <div class="pd-section">
-                <div class="pd-section-title">
-                    Likely Instructional Value &amp; Impact
-                    <span class="pd-section-title-score {% if sc_g2 >= 36 %}score-high{% elif sc_g2 >= 20 %}score-mid{% else %}score-low{% endif %}">{{ sc_g2 }}/50</span>
-                </div>
-                <div class="pd-score-row">
-                    <span class="pd-dim-score {% if sc_g2 >= 36 %}score-high{% elif sc_g2 >= 20 %}score-mid{% else %}score-low{% endif %}">{{ sc_g2 }}<span class="pd-dim-max"> / 50</span></span>
-                    <div class="bar-track">
-                        <div class="bar-fill {% if sc_g2 >= 36 %}bar-green{% elif sc_g2 >= 20 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ ((sc_g2/50)*100)|round|int }}%;"></div>
-                    </div>
-                </div>
-                {# Evidence bullets only — no prose summaries #}
-                {% set g2_evs = [] %}
-                {% if wf_dim.evidence %}{% set g2_evs = g2_evs + wf_dim.evidence %}{% endif %}
-                {% if te_dim.evidence %}{% set g2_evs = g2_evs + te_dim.evidence %}{% endif %}
-                {% if g2_evs %}
-                <ul class="pd-bullets" style="margin-top:10px;">
-                    {% for ev in g2_evs %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                </ul>
-                {% endif %}
-                {# Program fit bullets #}
-                {% if product.recommendation %}
-                {% set ns_pf = namespace(has=false) %}
-                {% for bullet in product.recommendation %}{% if 'program fit' in (bullet|lower) %}{% set ns_pf.has = true %}{% endif %}{% endfor %}
-                {% if ns_pf.has %}
-                <div class="pd-sub">
-                    <div class="pd-item-label">Recommendations</div>
-                    <ul class="pd-bullets" style="margin-top:6px;">
-                    {% for bullet in product.recommendation %}{% if 'program fit' in (bullet|lower) %}<li>{{ bullet | linkify }}</li>{% endif %}{% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                {% endif %}
-                {# Potential Labs #}
-                {% if product.lab_concepts %}
-                <div class="pd-sub">
-                    <div class="pd-item-label purple">Potential Labs</div>
-                    <div class="lab-concepts-grid" style="margin-top:8px;">
-                        {% for concept in product.lab_concepts %}<div class="lab-concept">{{ concept }}</div>{% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-
-            {# ── 4: Organization Readiness ── #}
-            <div class="pd-section">
-                <div class="pd-section-title">Organization Readiness</div>
-                {# mf_dim evidence bullets #}
-                {% if mf_dim.evidence %}
-                <ul class="pd-bullets">
-                    {% for ev in mf_dim.evidence %}<li>{{ ev.claim | bold_labels }}</li>{% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-
-            {# ── 5: Contacts ── #}
-            {% if product.contacts %}
-            <div class="pd-section">
-                <div class="pd-section-title">Contacts</div>
-                {% set dms  = product.contacts | selectattr('contact_type', 'equalto', 'decision_maker') | list %}
-                {% set infs = product.contacts | rejectattr('contact_type', 'equalto', 'decision_maker') | list %}
-                {% if not dms and not infs %}
-                    {% set dms  = product.contacts | selectattr('role_type', 'equalto', 'decision_maker') | list %}
-                    {% set infs = product.contacts | rejectattr('role_type', 'equalto', 'decision_maker') | list %}
-                {% endif %}
-                {% macro render_contact(c) %}
-                {% set is_alum = '[SKILLABLE ALUMNI]' in (c.relevance or c.relevance_note or '') %}
-                <div class="contact-row {{ 'alumni' if is_alum else '' }}">
-                    <div class="contact-row-main">
-                        {% if is_alum %}<div class="contact-alumni-badge">&#9733; Skillable Alumni</div>{% endif %}
-                        <div class="contact-name">
-                            {% if c.linkedin_url %}<a href="{{ c.linkedin_url }}" target="_blank">{{ c.name }}{{ li_svg }}</a>{% else %}{{ c.name }}{% endif %}
-                        </div>
-                        <div class="contact-title">{{ c.title }}</div>
-                        {% set crel = (c.relevance or c.relevance_note or '')|replace('[SKILLABLE ALUMNI]','')|trim %}
-                        {% if crel %}<div class="contact-relevance {{ 'alumni' if is_alum else '' }}">{{ crel }}</div>{% endif %}
-                    </div>
-                </div>
-                {% endmacro %}
-                {% if dms %}
-                <div style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#a78bfa;margin-bottom:6px;margin-top:4px;">Decision Makers</div>
-                {% for c in dms %}{{ render_contact(c) }}{% endfor %}
-                {% endif %}
-                {% if infs %}
-                <div style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#24ED9B;margin-bottom:6px;margin-top:12px;">Influencers</div>
-                {% for c in infs %}{{ render_contact(c) }}{% endfor %}
-                {% endif %}
-            </div>
-            {% endif %}
-
-        </div>{# /pd-body #}
-    </details>
-    {% endfor %}
-
-
-</div>{# /container #}
-
-<script>
-// Update toggle arrows on open/close
-document.querySelectorAll('.product-details').forEach(function(det) {
-    var arrow = det.querySelector('.pd-toggle-arrow');
-    if (!arrow) return;
-    arrow.innerHTML = det.open ? '&#9652;' : '&#9662;';
-    det.addEventListener('toggle', function() {
-        arrow.innerHTML = det.open ? '&#9652;' : '&#9662;';
-    });
-});
-
-// Competitor modal
-document.getElementById('compModal').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
-});
-</script>
-
-{# Competitor modal — lists all competitors discovered during scoring #}
-{% if competitor_list %}
-<div class="comp-modal-backdrop" id="compModal">
-    <div class="comp-modal">
-        <div class="comp-modal-title">{{ competitor_list | length }} Competitor{{ 's' if competitor_list | length != 1 else '' }} Logged — {{ data.company_name }}</div>
-        <div class="comp-modal-list">
-            {% for c in competitor_list %}
-            <div class="comp-modal-row">
-                <div>
-                    <div class="comp-modal-name">{{ c.company_name }}</div>
-                    {% if c.discovered_from_product %}
-                    <div class="comp-modal-product">via {{ c.discovered_from_product }}</div>
-                    {% endif %}
-                </div>
-                <form method="POST" action="/inspector/discover" style="margin:0;">
-                    <input type="hidden" name="company_name" value="{{ c.company_name }}">
-                    <button type="submit" class="comp-modal-btn">Run Caseboard →</button>
-                </form>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="comp-modal-close">
-            <button onclick="document.getElementById('compModal').classList.remove('open')">Close</button>
+        <div>
+            <div class="next-section-title risks">Prepare for These Risks</div>
+            <ul class="next-list">
+                {%- for rec in risk_recs %}<li>{{ rec | bold_labels | safe }}</li>{% endfor -%}
+                {%- if not risk_recs %}<li class="text-muted">No significant risks flagged.</li>{% endif -%}
+            </ul>
         </div>
     </div>
 </div>
-{% endif %}
+{%- endif -%}
 
+{# ─────────────────────────────────────────────────────────────── #}
+{#  PRODUCTS                                                       #}
+{# ─────────────────────────────────────────────────────────────── #}
+<div class="products-header">Products</div>
+
+{%- for p in products -%}
+{%- set pname      = p.get('name', '')                     if p is mapping else p.name -%}
+{%- set ptier      = p.get('likely_labable', 'not_likely') if p is mapping else p.likely_labable -%}
+{%- set pscore     = p.get('_total_score', 0)              if p is mapping else p._total_score -%}
+{%- set pverdict   = verdict(pscore) -%}
+{%- set pv_cls     = pverdict.lower().replace(' ', '-') -%}
+{%- set pcat       = p.get('category', '')                 if p is mapping else p.category -%}
+{%- set ppath      = p.get('orchestration_method', '')     if p is mapping else p.orchestration_method -%}
+{%- set phighlight = p.get('lab_highlight', '')            if p is mapping else p.lab_highlight -%}
+{%- set pflags     = p.get('poor_match_flags') or []       if p is mapping else (p.poor_match_flags or []) -%}
+{%- set precs      = p.get('recommendation') or []         if p is mapping else (p.recommendation or []) -%}
+{%- set plabs      = p.get('lab_concepts') or []           if p is mapping else (p.lab_concepts or []) -%}
+{%- set pcp        = p.get('consumption_potential') or {}  if p is mapping else (p.consumption_potential or {}) -%}
+{%- set pscores    = p.get('labability_score') or {}       if p is mapping else (p.labability_score or {}) -%}
+
+{%- set pp_pl  = (pscores.get('product_labability')      or {}) if pscores is mapping else (pscores.product_labability      or {}) -%}
+{%- set pp_iv  = (pscores.get('instructional_value')     or {}) if pscores is mapping else (pscores.instructional_value     or {}) -%}
+{%- set pp_or  = (pscores.get('organizational_readiness') or {}) if pscores is mapping else (pscores.organizational_readiness or {}) -%}
+{%- set pp_mr  = (pscores.get('market_readiness')        or {}) if pscores is mapping else (pscores.market_readiness        or {}) -%}
+
+{%- set pp_pl_score = (pp_pl.get('score', 0) if pp_pl is mapping else pp_pl.score) | default(0) -%}
+{%- set pp_iv_score = (pp_iv.get('score', 0) if pp_iv is mapping else pp_iv.score) | default(0) -%}
+{%- set pp_or_score = (pp_or.get('score', 0) if pp_or is mapping else pp_or.score) | default(0) -%}
+{%- set pp_mr_score = (pp_mr.get('score', 0) if pp_mr is mapping else pp_mr.score) | default(0) -%}
+{%- set pp_pl_sum   = (pp_pl.get('summary', '') if pp_pl is mapping else pp_pl.summary) | default('') -%}
+{%- set pp_iv_sum   = (pp_iv.get('summary', '') if pp_iv is mapping else pp_iv.summary) | default('') -%}
+{%- set pp_or_sum   = (pp_or.get('summary', '') if pp_or is mapping else pp_or.summary) | default('') -%}
+{%- set pp_mr_sum   = (pp_mr.get('summary', '') if pp_mr is mapping else pp_mr.summary) | default('') -%}
+{%- set pp_pl_evs   = (pp_pl.get('evidence') or [] if pp_pl is mapping else pp_pl.evidence or []) -%}
+{%- set pp_iv_evs   = (pp_iv.get('evidence') or [] if pp_iv is mapping else pp_iv.evidence or []) -%}
+{%- set pp_or_evs   = (pp_or.get('evidence') or [] if pp_or is mapping else pp_or.evidence or []) -%}
+{%- set pp_mr_evs   = (pp_mr.get('evidence') or [] if pp_mr is mapping else pp_mr.evidence or []) -%}
+
+<div class="product-item {{ ptier }}">
+<details>
+<summary class="product-summary">
+    <span class="product-score-pill {{ ptier }}">{{ pscore }}</span>
+    <span class="product-name-text">{{ pname }}</span>
+    {%- if pcat %}<span class="product-cat-badge">{{ pcat }}</span>{% endif -%}
+    {%- if phighlight %}<span class="product-highlight-badge">{{ phighlight }}</span>{% endif -%}
+    <span class="product-verdict-badge {{ pv_cls }}">{{ pverdict }}</span>
+    {%- if ppath %}<span class="product-path-label">{{ ppath }}</span>{% endif -%}
+    <span class="chevron">▾</span>
+</summary>
+
+<div class="product-body">
+
+    {# Poor match flags #}
+    {%- if pflags %}
+    <div class="flags-row">
+        {%- for flag in pflags -%}
+        <span class="flag-badge">🚫 {{ flag | flag_label }}</span>
+        {%- endfor %}
+    </div>
+    {%- endif %}
+
+    {# Consumption Estimate #}
+    {%- set cp_motions = (pcp.get('motions') or []) if pcp is mapping else (pcp.motions or []) -%}
+    {%- set cp_h_low   = (pcp.get('annual_hours_low', 0)  if pcp is mapping else pcp.annual_hours_low)  | default(0) | float -%}
+    {%- set cp_h_high  = (pcp.get('annual_hours_high', 0) if pcp is mapping else pcp.annual_hours_high) | default(0) | float -%}
+    {%- set cp_rate    = (pcp.get('vm_rate_estimate', 0)  if pcp is mapping else pcp.vm_rate_estimate)  | default(0) | float -%}
+    {%- set cp_meth    = (pcp.get('methodology_note', '') if pcp is mapping else pcp.methodology_note)  | default('') -%}
+    {%- if cp_motions %}
+    <div class="consumption-block">
+        <div class="section-label">Consumption Estimate</div>
+        <table class="consumption-table">
+            <thead>
+                <tr>
+                    <th>Motion</th><th>Population</th><th>Adoption</th>
+                    <th>Hrs / Learner</th><th>Est. Hours / Yr</th>
+                </tr>
+            </thead>
+            <tbody>
+                {%- for m in cp_motions -%}
+                {%- set ml     = (m.get('label', '')          if m is mapping else m.label)          | default('') -%}
+                {%- set mpl    = (m.get('population_low', 0)  if m is mapping else m.population_low)  | default(0) | float -%}
+                {%- set mph    = (m.get('population_high', 0) if m is mapping else m.population_high) | default(0) | float -%}
+                {%- set madopt = (m.get('adoption_pct', 0)    if m is mapping else m.adoption_pct)    | default(0) | float -%}
+                {%- set mhl    = (m.get('hours_low', 0)       if m is mapping else m.hours_low)       | default(0) | float -%}
+                {%- set mhh    = (m.get('hours_high', 0)      if m is mapping else m.hours_high)      | default(0) | float -%}
+                <tr>
+                    <td class="motion-label">{{ ml }}</td>
+                    <td>{{ "{:,.0f}".format(mpl) }}–{{ "{:,.0f}".format(mph) }}</td>
+                    <td>{{ (madopt * 100) | round | int }}%</td>
+                    <td>{{ mhl | int }}–{{ mhh | int }}h</td>
+                    <td>{{ "{:,.0f}".format(mpl * madopt * mhl) }}–{{ "{:,.0f}".format(mph * madopt * mhh) }}</td>
+                </tr>
+                {%- endfor %}
+                {%- if cp_h_low or cp_h_high %}
+                <tr class="consumption-total-row">
+                    <td colspan="4">Annual Potential</td>
+                    <td class="acv-range">
+                        ${{ "{:,.0f}".format(cp_h_low * cp_rate) }} – ${{ "{:,.0f}".format(cp_h_high * cp_rate) }}
+                    </td>
+                </tr>
+                {%- endif %}
+            </tbody>
+        </table>
+        {%- if cp_meth %}<div class="methodology-note">{{ cp_meth }}</div>{% endif %}
+    </div>
+    {%- endif %}
+
+    {# ── Product Labability ─────────────────────────────────── #}
+    <div class="dim-section">
+        <div class="dim-section-header">
+            <span class="dim-section-title">Product Labability</span>
+            <span class="dim-section-score">{{ pp_pl_score }} <span class="dim-section-max">/ 40</span></span>
+        </div>
+        {%- if ppath %}<div class="dim-summary" style="color:#4a7060;font-size:0.8rem;margin-bottom:6px;">{{ ppath }}</div>{% endif -%}
+        {%- if pp_pl_sum %}<div class="dim-summary">{{ pp_pl_sum }}</div>{% endif -%}
+        {%- if pp_pl_evs %}{{ render_labability(pp_pl_evs) }}{% endif %}
+        {# Labability recommendations: Delivery Path, Scoring Approach #}
+        {%- set lab_recs = [] -%}
+        {%- for rec in precs -%}
+            {%- if 'Delivery Path' in rec or 'Scoring Approach' in rec or 'Scoring Bot' in rec -%}
+                {%- set _ = lab_recs.append(rec) -%}
+            {%- endif -%}
+        {%- endfor -%}
+        {%- if lab_recs %}
+        <div class="subdim-block">
+            <div class="subdim-title">Recommendations</div>
+            <ul class="rec-list">{%- for r in lab_recs %}<li>{{ r | bold_labels | safe }}</li>{% endfor -%}</ul>
+        </div>
+        {%- endif %}
+    </div>
+
+    {# ── Instructional Value ────────────────────────────────── #}
+    <div class="dim-section">
+        <div class="dim-section-header">
+            <span class="dim-section-title">Instructional Value</span>
+            <span class="dim-section-score">{{ pp_iv_score }} <span class="dim-section-max">/ 30</span></span>
+        </div>
+        {%- if pp_iv_sum %}<div class="dim-summary">{{ pp_iv_sum }}</div>{% endif %}
+        {%- if pp_iv_evs -%}
+            {%- set dtm_kw = ['Product Breadth', 'Workflow Complexity', 'Configuration Complexity', 'Not Lab Appropriate'] -%}
+            {%- set mm_kw  = ['Adoption', 'TTV', 'High-Stakes', 'Certification Program'] -%}
+            {%- set dtm_evs2 = [] -%}{%- set mm_evs2 = [] -%}{%- set oth_iv = [] -%}
+            {%- for ev in pp_iv_evs -%}
+                {%- set cl = (ev.get('claim','') if ev is mapping else ev.claim) -%}
+                {%- set m2 = false -%}
+                {%- for kw in dtm_kw -%}{%- if kw in cl and not m2 -%}{%- set m2 = true -%}{%- set _ = dtm_evs2.append(ev) -%}{%- endif -%}{%- endfor -%}
+                {%- if not m2 -%}
+                    {%- for kw in mm_kw -%}{%- if kw in cl and not m2 -%}{%- set m2 = true -%}{%- set _ = mm_evs2.append(ev) -%}{%- endif -%}{%- endfor -%}
+                {%- endif -%}
+                {%- if not m2 -%}{%- set _ = oth_iv.append(ev) -%}{%- endif -%}
+            {%- endfor -%}
+            {%- if dtm_evs2 %}
+            <div class="subdim-block">
+                <div class="subdim-title">Difficult to Master</div>
+                <ul class="evidence-list">{%- for ev in dtm_evs2 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+            </div>
+            {%- endif -%}
+            {%- if mm_evs2 %}
+            <div class="subdim-block">
+                <div class="subdim-title">Mastery Matters</div>
+                <ul class="evidence-list">{%- for ev in mm_evs2 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+            </div>
+            {%- endif -%}
+            {%- if oth_iv %}
+            <ul class="evidence-list">{%- for ev in oth_iv %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+            {%- endif -%}
+        {%- endif %}
+
+        {# Potential Labs #}
+        {%- if plabs %}
+        <div class="subdim-block">
+            <div class="subdim-title">Potential Labs</div>
+            <div class="labs-grid">
+                {%- for lab in plabs -%}
+                {%- if lab is string %}
+                <div class="lab-card"><div class="lab-card-name">{{ lab }}</div></div>
+                {%- else -%}
+                {%- set lname = lab.get('name', '') if lab is mapping else lab.name -%}
+                {%- set ldesc = lab.get('description', '') if lab is mapping else lab.description -%}
+                <div class="lab-card">
+                    <div class="lab-card-name">{{ lname }}</div>
+                    {%- if ldesc %}<div class="lab-card-desc">{{ ldesc }}</div>{% endif %}
+                </div>
+                {%- endif -%}
+                {%- endfor %}
+            </div>
+        </div>
+        {%- endif %}
+
+        {# IV recommendations #}
+        {%- set iv_recs = [] -%}
+        {%- for rec in precs -%}
+            {%- if 'Program Fit' in rec or 'Lab Format' in rec or 'Scenario' in rec -%}
+                {%- set _ = iv_recs.append(rec) -%}
+            {%- endif -%}
+        {%- endfor -%}
+        {%- if iv_recs %}
+        <div class="subdim-block">
+            <div class="subdim-title">Recommendations</div>
+            <ul class="rec-list">{%- for r in iv_recs %}<li>{{ r | bold_labels | safe }}</li>{% endfor -%}</ul>
+        </div>
+        {%- endif %}
+    </div>
+
+    {# ── Organizational Readiness ───────────────────────────── #}
+    <div class="dim-section">
+        <div class="dim-section-header">
+            <span class="dim-section-title">Organizational Readiness</span>
+            <span class="dim-section-score">{{ pp_or_score }} <span class="dim-section-max">/ 20</span></span>
+        </div>
+        {%- if pp_or_sum %}<div class="dim-summary">{{ pp_or_sum }}</div>{% endif %}
+        {%- if pp_or_evs -%}
+            {%- set cd_kw2 = ['Content Dept', 'Content Team', 'Dedicated Content', 'Outsourced', 'Authoring'] -%}
+            {%- set de_kw2 = ['ATP', 'Learning Program', 'ILT', 'vILT', 'On-Demand', 'LMS', 'LXP',
+                               'Skillable', 'Instruqt', 'CloudShare', 'Skytap', 'DIY',
+                               'Immersive', 'Hack The Box', 'TryHackMe', 'GoDeploy', 'Vocareum', 'Appsembler'] -%}
+            {%- set cd_evs3 = [] -%}{%- set de_evs3 = [] -%}{%- set oth_or = [] -%}
+            {%- for ev in pp_or_evs -%}
+                {%- set cl2 = (ev.get('claim','') if ev is mapping else ev.claim) -%}
+                {%- set m3 = false -%}
+                {%- for kw in cd_kw2 -%}{%- if kw in cl2 and not m3 -%}{%- set m3 = true -%}{%- set _ = cd_evs3.append(ev) -%}{%- endif -%}{%- endfor -%}
+                {%- if not m3 -%}
+                    {%- for kw in de_kw2 -%}{%- if kw in cl2 and not m3 -%}{%- set m3 = true -%}{%- set _ = de_evs3.append(ev) -%}{%- endif -%}{%- endfor -%}
+                {%- endif -%}
+                {%- if not m3 -%}{%- set _ = oth_or.append(ev) -%}{%- endif -%}
+            {%- endfor -%}
+            {%- if cd_evs3 %}
+            <div class="subdim-block">
+                <div class="subdim-title">Content Development</div>
+                <ul class="evidence-list">{%- for ev in cd_evs3 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+            </div>
+            {%- endif -%}
+            {%- if de_evs3 %}
+            <div class="subdim-block">
+                <div class="subdim-title">Content Delivery Ecosystem</div>
+                <ul class="evidence-list">{%- for ev in de_evs3 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+            </div>
+            {%- endif -%}
+            {%- if oth_or %}
+            <ul class="evidence-list">{%- for ev in oth_or %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+            {%- endif -%}
+        {%- endif %}
+    </div>
+
+    {# ── Market Readiness ──────────────────────────────────── #}
+    <div class="dim-section">
+        <div class="dim-section-header">
+            <span class="dim-section-title">Market Readiness</span>
+            <span class="dim-section-score">{{ pp_mr_score }} <span class="dim-section-max">/ 10</span></span>
+        </div>
+        {%- if pp_mr_sum %}<div class="dim-summary">{{ pp_mr_sum }}</div>{% endif %}
+        {%- if pp_mr_evs %}
+        <div class="subdim-block">
+            <div class="subdim-title">Product Popularity</div>
+            <ul class="evidence-list">{%- for ev in pp_mr_evs %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+        </div>
+        {%- endif %}
+    </div>
+
+    {# Any remaining recommendations not already categorised #}
+    {%- set shown_kw2 = ['Delivery Path', 'Scoring Approach', 'Scoring Bot', 'Program Fit', 'Lab Format', 'Scenario'] -%}
+    {%- set other_recs2 = [] -%}
+    {%- for rec in precs -%}
+        {%- set used2 = false -%}
+        {%- for kw in shown_kw2 -%}{%- if kw in rec -%}{%- set used2 = true -%}{%- endif -%}{%- endfor -%}
+        {%- if not used2 -%}{%- set _ = other_recs2.append(rec) -%}{%- endif -%}
+    {%- endfor -%}
+    {%- if other_recs2 %}
+    <div class="dim-section">
+        <div class="dim-section-header">
+            <span class="dim-section-title" style="color:#6b9e88;">Additional Notes</span>
+        </div>
+        <ul class="rec-list">{%- for r in other_recs2 %}<li>{{ r | bold_labels | safe }}</li>{% endfor -%}</ul>
+    </div>
+    {%- endif %}
+
+</div><!-- product-body -->
+</details>
+</div><!-- product-item -->
+{%- endfor %}
+
+</div><!-- page-wrap -->
 </body>
 </html>
