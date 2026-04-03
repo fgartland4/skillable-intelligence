@@ -420,12 +420,6 @@ def api_analyze():
         return jsonify({"error": str(exc)}), 500
 
 
-# Legacy redirect — old marketing batch URL now lives at /prospector
-@inspector.route("/marketing")
-def marketing():
-    return redirect(url_for("prospector.prospector_home"), 301)
-
-
 # Top Blockers
 
 @inspector.route("/blockers")

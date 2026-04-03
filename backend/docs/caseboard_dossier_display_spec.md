@@ -176,134 +176,347 @@ Current parsing: evidence `claim` strings are passed through a Jinja2 filter tha
 
 ## 4. ASCII Wireframes
 
-### 4.1 Caseboard Layout
+### 4.1 Caseboard Layout (Revised)
+
+**Design decisions:**
+- Company Indicators box removed — moved to Dossier
+- Training & Certification products removed from left tier list — shown in right panel
+- Competitive Landscape moved from left column to right panel
+- Product cards compact — name + category badge + tier badge only, no description
+- Empty tiers (0 products) grayed out
+- No sticky footer — Run Dossier button lives in header next to company name
+- Selection counter: "4 of 7 products selected" in orange; when limit reached, changes to "6 of 6 — uncheck one to swap" + uncheckable cards dim
+- Research time estimate displayed alongside selection counter — updates live as user selects/deselects products (see Est. Research Time logic below)
+- Right panel label: "AT A GLANCE" (not "Product Labability")
+- Breadcrumbs removed — navigation handled by shared nav, "← Search Different Company" link, and browser back
+
+### Est. Research Time — Display Logic
+
+**Label format:** `Est. Research Time: XX min, XX sec` — always zero-padded to two digits in both positions so the label width never changes and the layout does not shift as the user selects products.
+
+**Displayed:** In the header area alongside the selection counter, updates in real time via JS as the user selects/deselects products. No page reload needed.
+
+**Cache state:** Determined at Caseboard render time. Flask checks the score cache for every product in the discovery list before rendering. Each product card is tagged with a `data-cached="true|false"` attribute. JS reads these attributes to compute the estimate — no additional server calls needed.
+
+**Time constants (approximate — tune based on observed actuals):**
+
+| Product state | Estimated contribution |
+|---|---|
+| Cached (score already exists, <45 days) | 2 seconds |
+| Uncached (needs research + scoring) | 35 seconds |
+
+**Calculation:**
+```
+total_seconds = sum(2 for each cached selected product) +
+                sum(35 for each uncached selected product)
+display = "Est. Research Time: X min, XX sec"
+```
+
+**Example:**
+- 3 cached selected → Est. Research Time: 00 min, 06 sec
+- 2 cached + 1 uncached selected → Est. Research Time: 00 min, 39 sec
+- 1 cached + 3 uncached selected → Est. Research Time: 01 min, 47 sec
+
+**Important:** Do not promise "instant" or "<10 seconds" even for all-cached selections. Cached products still require a DB read and page render — show the honest estimate. Consistency of the label matters more than precision.
+
+**Future improvement:** Track actual per-product scoring times in storage. Use a rolling average of recent actuals to replace the 35s constant with a data-driven estimate per product type or category.
 
 ```
 +------------------------------------------------------------------+
-| [Skillable logo]  Inspector  /  [company]          [nav back]   |
-+------------------------------------------------------------------+
-| Start / Inspector / [Company Name]  (breadcrumb)                 |
+| [Nav — Prospector | Inspector* | Designer]                       |
 +------------------------------------------------------------------+
 |                                                                  |
-|  [← Search Different Company]                                    |
-|  INSPECTOR CASEBOARD                                             |
-|  [Company Name]  [Org Type Badge]         [Run Dossier →]       |
-|  [company description]                    [View Previous →]      |
-|                                           [N selected status]   |
-+------------------------------------------------------------------+
-|  COMPANY INDICATORS BOX                                          |
-|  +---------------------------+  +---------------------------+   |
-|  |  [Partner Program] [Trng]  |  |  ORG READINESS           |   |
-|  |  [Training & Cert]         |  |  [=====●         ]       |   |
-|  |  [N SaaS-Only] [No API]   |  |  Nascent Emerging Est. M  |   |
-|  +---------------------------+  +---------------------------+   |
-|  PRODUCTS DISCOVERED: N  |  TRAINING PROGRAMS: N  |  LAB COMP  |
+|  ← Search Different Company                                      |
+|                                                                  |
+|  [Company Name]  [Org Badge]    [Run Dossier →]                 |
+|  [company description —         [View Previous →]               |
+|   two or more lines]            4 of 7 products selected        |
+|                                 Est. Research Time: 00 min, 39s |
+|                                                                  |
 +------------------------------------------------------------------+
 |                                              |                   |
-|  [form#scoreForm]                            |  INTEL PANEL     |
-|                                              |  (sticky right)  |
-|  HIGHLY LIKELY ─────────────────────────    |  +-------------+ |
-|  ┌──────────────────────────────────────┐   |  | Tier Summary| |
-|  │ ✓  [Product Name]                    │   |  | ● HL:  N    | |
-|  │     [Category] [Deploy] [highly lkly]│   |  | ● L:   N    | |
-|  │     product description text...      │   |  | ● LL:  N    | |
-|  └──────────────────────────────────────┘   |  | ● NL:  N    | |
-|  ┌──────────────────────────────────────┐   |  +-------------+ |
-|  │ ✓  [Product Name]  ...               │   |                  |
-|  └──────────────────────────────────────┘   |  +-------------+ |
-|                                              |  | Contacts    | |
-|  LIKELY ────────────────────────────────    |  | Name        | |
-|  ┌──────────────────────────────────────┐   |  | Title       | |
-|  │ ✓  [Product Name]  ...               │   |  | LinkedIn    | |
-|  └──────────────────────────────────────┘   |  +-------------+ |
-|                                              |                  |
-|  LESS LIKELY ───────────────────────────    |                  |
-|  [dimmed cards, uncheckable]                 |                  |
-|                                              |                  |
-|  NOT LIKELY ────────────────────────────    |                  |
-|  [more dimmed cards]                         |                  |
-|                                              |                  |
-|  TRAINING & CERT ───────────────────────    |                  |
-|  [non-selectable cards]                      |                  |
-|                                              |                  |
+|  HIGHLY LIKELY ─────────────────────────    |  AT A GLANCE     |
+|  ┌──────────────────────────────────────┐   |  ● Highly Likely N|
+|  │ ✓  [Product Name]  [Category] [HL]  │   |  ● Likely        N|
+|  └──────────────────────────────────────┘   |  ● Less Likely   N|
+|  ┌──────────────────────────────────────┐   |  ● Not Likely    N|
+|  │ ✓  [Product Name]  [Category] [HL]  │   |  ──────────────── |
+|  └──────────────────────────────────────┘   |  Total           N|
+|                                              |                   |
+|  LIKELY ────────────────────────────────    |  TRAINING &      |
+|  [compact cards...]                          |  CERTIFICATION   |
+|                                              |  ● Trellix Edu.. |
+|  LESS LIKELY  [grayed if 0 products]        |  ● Trellix Cert..|
+|                                              |                   |
+|  NOT LIKELY   [grayed if 0 products]        |  COMPETITIVE     |
+|                                              |  LANDSCAPE       |
+|                                              |  CrowdStrike —   |
+|                                              |  Falcon Platform |
+|                                              |  Microsoft —     |
+|                                              |  Defender/Sentin.|
+|                                              |                   |
++------------------------------------------------------------------+
+```
+
+### 4.1a Family Picker (Modal — triggers when >15 products discovered)
+
+**Design decisions:**
+- Lightbox/modal overlay on top of Home screen (no separate page)
+- Simple radio list — one family selection, then Continue
+- Optimized for 3–8 families (most common case); supports ~20 with internal scroll (overflow-y: auto on modal body, fixed header + footer)
+- No family descriptions, no example products — just name + count
+- Claude groups products into families during the discovery phase (see research_storage_improvement_plan.md § Family Grouping)
+
+**Trigger logic:**
+- `len(discovery.products) > 15` → Family Picker modal shown before navigating to Caseboard
+- `len(discovery.products) <= 15` → navigate directly to Caseboard (no modal)
+- Threshold is evaluated in the `/inspector/discover` route after `discover()` returns
+
+**Data flow:**
+```
+POST /inspector/discover
+  → discover() returns discovery dict with discovery.products (full list)
+  → if len(products) > 15:
+        discovery.product_families = [{ name, product_count, product_keys }]
+        render home.html with modal visible + families data
+  → else:
+        redirect to /inspector/caseboard/<discovery_id>
+
+User selects family → POST /inspector/caseboard/<discovery_id>?family=<family_name>
+  → load_discovery(discovery_id)
+  → filter discovery.products to only products in selected family
+  → render caseboard.html with filtered product set
+```
+
+**Family data structure** (set by Claude during discovery, stored on discovery dict):
+```json
+"product_families": [
+  { "name": "Cloud Infrastructure (OCI)", "product_count": 42, "product_keys": ["Oracle Compute", "Object Storage", ...] },
+  { "name": "Database & Data Platform",   "product_count": 31, "product_keys": ["Oracle Database 23ai", ...] }
+]
+```
+
+**Selection counter state machine (Caseboard — max 6 products):**
+
+| State | Counter display | Card behavior |
+|---|---|---|
+| 0 selected | "0 of N products selected" (gray) | All selectable |
+| 1–5 selected | "N of N products selected" (orange) | All selectable |
+| 6 selected (limit) | "6 of 6 — uncheck one to swap" (orange) | Unselected cards dim, click does nothing |
+| Back to <6 | Returns to normal "N of N products selected" | All cards selectable again |
+
+Run Dossier button: disabled when 0 selected, enabled at 1+.
+
+**Real-world validation — Oracle:**
+Oracle has ~258 discoverable products that cleanly group into 7 families:
+1. Cloud Infrastructure (OCI)
+2. Database & Data Platform
+3. Cloud ERP & Finance
+4. Human Capital Management
+5. Supply Chain & Manufacturing (SCM)
+6. Customer Experience (CX)
+7. Industry, Specialized & Legacy ← known catch-all (NetSuite, Oracle Health, PeopleSoft, JD Edwards, E-Business Suite, 13+ industry verticals)
+
+Families 1–6 are crisp with clear boundaries. Family 7 is a deliberate catch-all; disambiguation happens at the Caseboard level. Three genuinely ambiguous products (Autonomous Database, Oracle Analytics Cloud, Oracle Middleware/Java) — Claude should resolve by primary use case, not secondary bundle.
+
+```
++------------------------------------------------------------------+
+|  [Home screen dimmed behind]                                     |
+|  ┌────────────────────────────────────────────┐                 |
+|  │  Oracle — 258 products found               │                 |
+|  │  Select a product family to continue       │                 |
+|  │  ─────────────────────────────────────     │                 |
+|  │  [scrollable if >8 families]               │                 |
+|  │  ○ Cloud Infrastructure (OCI)  42 products │                 |
+|  │  ○ Database & Data Platform    31 products │                 |
+|  │  ○ Cloud ERP & Finance         28 products │                 |
+|  │  ○ Human Capital Management    19 products │                 |
+|  │  ○ Supply Chain & Mfg (SCM)    22 products │                 |
+|  │  ○ Customer Experience (CX)    18 products │                 |
+|  │  ○ Industry, Specialized &     98 products │                 |
+|  │    Legacy                                  │                 |
+|  │  ─────────────────────────────────────     │                 |
+|  │              [Continue →]                  │                 |
+|  └────────────────────────────────────────────┘                 |
++------------------------------------------------------------------+
+```
 +------------------------------------------------------------------+
 |  [sticky footer]  N/6 selected  [hint text]  [Run Dossier →]   |
 +------------------------------------------------------------------+
 ```
 
-### 4.2 Dossier Layout
+### 4.2 Dossier Layout (Revised)
+
+**Design decisions:**
+- No box around the hero — open layout, two columns
+- Hero left: composite score + verdict + ONE most consequential badge from each dimension (any color — most important signal wins, not most positive)
+- Hero right: Estimated Annual Contract Value (right-aligned) + "Est. based on N of N products"
+- Four dimension boxes below hero — each shows ALL badges for that dimension in color order (✅ first, ⚠️ second, 🚫 last)
+- Dimension boxes are the "more context below" — hero badge click-through jumps to corresponding dimension box
+- Next Steps: full-width below the four boxes — two sections: WHAT TO LEAD WITH + PREPARE FOR THESE RISKS
+- Products section: per-product collapsible rows below Next Steps — SE/SC depth
+- Progress bars removed — dimension score number is sufficient
+- Good Points / Risks sections removed from product card — covered by Zone 1 dimension boxes
+- Contacts removed from product card
+- Delivery path shown as plain label (specific canonical method name) not a colored badge
+- Potential Labs moved inside Instructional Value section of product card
+- Potential Labs: 2-column grid, two lines per card, compelling action-oriented names
+
+**Hero badge selection logic:**
+The single badge shown per dimension in the hero is the most consequential signal — not necessarily the most positive. A 🚫 blocker surfaces in the hero over a ✅ strength. Priority: 🚫 blockers first, then ⚠️ cautions, then ✅ strengths. Within each color, pick the badge with the highest scoring impact.
+
+**Delivery path label:**
+Nine canonical methods only — Hyper-V, ESX, Container, Azure VM, AWS VM, Azure Cloud Slice, AWS Cloud Slice, Custom API/BYOC, Simulation. "Standard VM" is retired. Shown as plain text label on collapsed product row and inside Product Labability section. Not a colored badge.
+
+**Next Steps structure:**
+Two named sections within Next Steps:
+1. WHAT TO LEAD WITH — most compelling strengths ranked and framed in seller language; conversation anchors, not feature bullets
+2. PREPARE FOR THESE RISKS — specific prep for each blocker/caution; what it means in a customer conversation, what question it triggers, how SE should be ready to answer
+
+**Product card — dimension section structure:**
+Each dimension shows: score (e.g. 36 /40) → delivery path line (Product Labability only) → summary sentence → component subsections → each component has its own header and evidence bullets in **Bold Label | Qualifier:** format → RECOMMENDATIONS subsection at end of dimension
+
+**Potential Labs — placement and format:**
+Lives inside Instructional Value, after Mastery Matters component. Two-column grid. Each card: line 1 = compelling action-oriented name, line 2 = two-line scenario description (punchy, present tense, stakes clear). Max two lines total per card.
 
 ```
 +------------------------------------------------------------------+
-| [Skillable logo]  [nav]                                          |
+| [Nav — Prospector | Inspector* | Designer]                       |
 +------------------------------------------------------------------+
-| ← Back to caseboard                                              |
+| ← Back to Caseboard    Analyzed 2026-04-03 · 4 scored           |
+| DOSSIER · SELLER & SE ACTION PLAN                                |
 +------------------------------------------------------------------+
-|  [cache banner: "Analysis from [date]" | Re-run button]          |
+|                                                                  |
+|  [Company Name]  [Org Badge]                                     |
+|  [company description]                                           |
+|                                                                  |
+|  93  STRONG FIT                    ESTIMATED ANNUAL CONTRACT     |
+|      [Top Labability badge  ✅]               VALUE             |
+|      [Top Instructional badge ✅]    $166,752 – $412,248        |
+|      [Top Org Readiness badge ⚠️]                               |
+|      [Top Market badge      ✅]   Est. based on 4 of 10 products|
+|                                                                  |
 +------------------------------------------------------------------+
+|  PRODUCT LABABILITY    |  INSTRUCTIONAL VALUE                    |
+|  [Lifecycle APIs   ✅] |  [Workflow Complexity   ✅]            |
+|  [Learner Isolation✅] |  [Certification Program ✅]            |
+|  [Long Provisioning⚠️] |  [High-Stakes Skills    ✅]            |
+|  [Anti-Automation  🚫] |  [Adoption & TTV Risk   ⚠️]            |
++------------------------------------------------------------------+
+|  ORGANIZATIONAL READINESS |  MARKET READINESS                    |
+|  [Dedicated Content ✅]   |  [↑ Growing        ✅]              |
+|  [ATP Program       ✅]   |  [Global           ✅]              |
+|  [Instruqt          ⚠️]   |  [~2M Annual Users ✅]              |
+|  [LMS / LXP         ✅]   |  [Strategic GSIs   ✅]              |
++------------------------------------------------------------------+
+|  NEXT STEPS                                                      |
 |                                                                  |
-|  ZONE 1 — SELLER SUMMARY  (highlighted card)                    |
-|  +------------------------------------------------------------+  |
-|  |  [Company Name]  [Org Badge]                               |  |
-|  |  company description                                        |  |
-|  |                                                             |  |
-|  |  [VERDICT BADGE]  |  $XXX,XXX ACV range  |  [BLOCKERS]    |  |
-|  |                   |  Estimated annual     |  [red badges]  |  |
-|  |                                                             |  |
-|  |  +------------------+  +------------------+               |  |
-|  |  | PRODUCT LABABILITY|  | CONTACTS         |              |  |
-|  |  | [Product] [badge] |  | [Name]           |              |  |
-|  |  | [Product] [badge] |  | [Title]          |              |  |
-|  |  +------------------+  | [LinkedIn]        |              |  |
-|  |  +------------------+  +------------------+               |  |
-|  |  | DELIVERY PATH    |  | TOP PRODUCT       |              |  |
-|  |  | [text]           |  | [Name] [score]    |              |  |
-|  |  +------------------+  +------------------+               |  |
-|  |                                                             |  |
-|  |  NEXT STEPS                                                |  |
-|  |  • [Delivery Path]: text                                   |  |
-|  |  • [Scoring Approach]: text                                |  |
-|  |  • [Program Fit]: text                                     |  |
-|  +------------------------------------------------------------+  |
+|  WHAT TO LEAD WITH                                               |
+|  • Certification is your opener — five active role-based certs  |
+|    via Certiverse map directly to Skillable's PBT format.       |
+|  • Expansion, not displacement — active Skillable customer.     |
+|  • Clean VM story — MSI install, full CLI scoring surface.      |
 |                                                                  |
-|  SE / SC TECHNICAL DETAIL ─────────────────────────────────    |
+|  PREPARE FOR THESE RISKS                                         |
+|  • Long Provisioning — confirm with SE whether NFR/Community    |
+|    Edition can be pre-activated in Hyper-V image before first   |
+|    meeting. Pre-instancing may be required.                      |
+|  • Studio Web dependency — don't promise single VM covers all   |
+|    three products unless SE confirms hybrid approach.            |
++------------------------------------------------------------------+
+|  PRODUCTS ───────────────────────────────────────────────────   |
 |                                                                  |
-|  ▶ [Product Name]  [Category]  [Orchestration Path]  [88]      |
-|    (collapsed by default)                                        |
-|                                                                  |
-|  ▼ [Product Name]  [Category]  [Orchestration Path]  [72]      |
-|    (expanded)                                                    |
-|    +----------------------------------------------------------+  |
-|    | PRODUCT LABABILITY  32/40  ══════════════░░             |  |
-|    | summary text...                                          |  |
-|    | • **Windows Install:** ...                               |  |
-|    | • **REST API | Strength:** ...                           |  |
-|    |                                                          |  |
-|    | INSTRUCTIONAL VALUE  24/30  ══════════░░░░              |  |
-|    | summary text...                                          |  |
-|    | • **Workflow Depth:** ...                                |  |
-|    |                                                          |  |
-|    | ORGANIZATIONAL READINESS  15/20  ══════░░░░             |  |
-|    | • **Training Org:** ...                                  |  |
-|    |                                                          |  |
-|    | MARKET READINESS  8/10  ══════════░░                    |  |
-|    | • **Category Fit | Strength:** ...                       |  |
-|    |                                                          |  |
-|    | POOR MATCH FLAGS                                         |  |
-|    | [flag badge] [flag badge]                                |  |
-|    |                                                          |  |
-|    | LAB CONCEPTS                                             |  |
-|    | [concept chip] [concept chip]                            |  |
-|    | [concept chip] [concept chip]                            |  |
-|    |                                                          |  |
-|    | CONSUMPTION POTENTIAL                                    |  |
-|    | Motion          | Pop Range | Hrs | Adopt | Annual Hrs  |  |
-|    | [motion label]  | N–N       | N   | N%    | N–N hrs     |  |
-|    | TOTAL                               N–N hrs / $N–N ACV  |  |
-|    |                                                          |  |
-|    | CONTACTS  /  OWNING ORG                                  |  |
-|    | [contact name + title + linkedin]                        |  |
-|    +----------------------------------------------------------+  |
+|  [Product]  [Lab Highlight]           [STRONG FIT]  Hyper-V  93▼|
+|  Category                                                        |
+|  +----------------------------------------------------------+   |
+|  | CONSUMPTION ESTIMATE                                     |   |
+|  | MOTION         | POP    | ADOPT | HRS  | EST. HOURS      |   |
+|  | Cust Onboard.  | 8K-12K |  3%   | 2-4h | 480–1,440      |   |
+|  | Channel Enabmt | 500-800|  8%   | 3-5h | 120–320         |   |
+|  | Annual Potential                      $33,264–$92,040    |   |
+|  | [methodology note — italic gray]                          |   |
+|  |                                                           |   |
+|  | PRODUCT LABABILITY  36 /40                                |   |
+|  | Hyper-V · Skillable Datacenter                           |   |
+|  | Strong technical fit — ready to build                    |   |
+|  |                                                           |   |
+|  |   PROVISIONING                                           |   |
+|  |   • Runs in Hyper-V | Strength: ...                     |   |
+|  |   • Windows MSI Install | Strength: ...                 |   |
+|  |   • Learner Isolation | Strength: ...                   |   |
+|  |                                                           |   |
+|  |   LICENSING & ACCOUNTS                                   |   |
+|  |   • NFR License Path | Strength: ...                    |   |
+|  |   • Anti-Automation Controls | Caution: ...             |   |
+|  |                                                           |   |
+|  |   SCORING                                                |   |
+|  |   • Script Scorable | Strength: ...                     |   |
+|  |   • Scoring APIs | Strength: ...                        |   |
+|  |                                                           |   |
+|  |   TEARDOWN                                               |   |
+|  |   • Teardown APIs | Strength: ...                       |   |
+|  |                                                           |   |
+|  |   RECOMMENDATIONS                                        |   |
+|  |   • Delivery Path: Hyper-V — [what + why]               |   |
+|  |   • Scoring Approach: uipathcli — [what + why]          |   |
+|  |                                                           |   |
+|  | INSTRUCTIONAL VALUE  28 /30                               |   |
+|  |                                                           |   |
+|  |   DIFFICULT TO MASTER                                    |   |
+|  |   • Workflow Complexity | Strength: ...                  |   |
+|  |   • Configuration Complexity | Strength: ...            |   |
+|  |                                                           |   |
+|  |   MASTERY MATTERS                                        |   |
+|  |   • Certification Program | Strength: ...               |   |
+|  |   • High-Stakes Skills | Strength: ...                  |   |
+|  |                                                           |   |
+|  |   POTENTIAL LABS                                         |   |
+|  |   +──────────────────────┐ ┌──────────────────────+     |   |
+|  |   │ Break the Bot        │ │ Zero to Orchestrator  │     |   |
+|  |   │ Debug a failing job  │ │ Deploy and run your   │     |   |
+|  |   │ before it hits prod  │ │ first attended robot  │     |   |
+|  |   +──────────────────────┘ └──────────────────────+     |   |
+|  |                                                           |   |
+|  |   RECOMMENDATIONS                                        |   |
+|  |   • Program Fit: [what + why]                            |   |
+|  |                                                           |   |
+|  | ORGANIZATIONAL READINESS  19 /20                          |   |
+|  |                                                           |   |
+|  |   CONTENT DEVELOPMENT                                    |   |
+|  |   • Dedicated Content Dept | Strength: ...              |   |
+|  |                                                           |   |
+|  |   CONTENT DELIVERY ECOSYSTEM                             |   |
+|  |   • ATP / Learning Program | Strength: ...              |   |
+|  |   • Instruqt | Caution: ...                             |   |
+|  |                                                           |   |
+|  | MARKET READINESS  10 /10                                  |   |
+|  |                                                           |   |
+|  |   PRODUCT POPULARITY                                     |   |
+|  |   • ↑ Growing | Strength: ...                           |   |
+|  |   • Global | Strength: ...                              |   |
+|  +----------------------------------------------------------+   |
++------------------------------------------------------------------+
+```
+|  | • **Scoring Approach:** [what + why]                     |   |
+|  |                                                           |   |
+|  | INSTRUCTIONAL VALUE  28/30                                |   |
+|  | 28 /30  ███████████████████░░░                           |   |
+|  | • **Workflow Depth | Strength:** ...                     |   |
+|  | • **Certification Program | Strength:** ...              |   |
+|  |                                                           |   |
+|  | ORGANIZATIONAL READINESS  19/20                           |   |
+|  | • **Dedicated Content Dept | Strength:** ...             |   |
+|  | • **Instruqt | Caution:** ...                            |   |
+|  |                                                           |   |
+|  | MARKET READINESS  10/10                                   |   |
+|  | • **↑ Growing | Strength:** ...                          |   |
+|  |                                                           |   |
+|  | POTENTIAL LABS                                            |   |
+|  | +--------------------+  +--------------------+           |   |
+|  | | Build REFramework  |  | Use Autopilot in   |           |   |
+|  | | automation — conf..|  | Studio Web to gen..|           |   |
+|  | +--------------------+  +--------------------+           |   |
+|  +----------------------------------------------------------+   |
 |                                                                  |
 +------------------------------------------------------------------+
 ```

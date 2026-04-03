@@ -247,6 +247,124 @@ The `_research_cache` key on discovery records is set only in some code paths. I
 
 ---
 
+## 7. Navigation and Cache Usability — Required Logic Improvements
+
+### 7.1 Problem: Discovery Cache Skips Caseboard
+
+**Current behavior:** When a company has been run before and is in cache, the route bypasses Caseboard and navigates directly to the most recent Dossier.
+
+**Required behavior:** Cache state must never skip Caseboard. Discovery cache is used to populate the Caseboard fast — but the user always lands on Caseboard first and makes a fresh product selection. This is intentional: the user may want to explore different products than last time.
+
+**Rule:** `/inspector/discover` always redirects to `/inspector/caseboard/<discovery_id>`. Never to `/inspector/results/<analysis_id>`. The existing analysis is surfaced on the Caseboard via the "View Previous →" button.
+
+### 7.2 Problem: Per-Product Scoring Should Be Additive
+
+**Current behavior:** Scoring re-runs all selected products every time.
+
+**Required behavior:** Per-product scores are cached individually. When the user selects products on the Caseboard:
+- Products with a cached score → served instantly from cache (no re-score)
+- Products without a cached score → researched and scored, then added to cache
+
+Over multiple sessions with different product selections, the cache grows. Six products scored across two sessions → all six cached. The user never waits for a product they've already scored.
+
+**Cache invalidation rules (per product):**
+| Condition | Action |
+|---|---|
+| Cached score <45 days old | Serve from cache |
+| Cached score ≥45 days old | Re-score automatically |
+| User checked "Refresh Cache" | Re-score all selected products regardless of age |
+| Product never scored before | Score and cache |
+
+**Note:** "Refresh Cache" re-scores ALL selected products, not just stale ones. It is a deliberate full refresh, not a selective one.
+
+### 7.3 Problem: Back Button Loses Caseboard State
+
+**Required behavior:** Dossier → Back must return to the same Caseboard in the same state. Caseboard is always re-renderable from the cached discovery record — no re-discovery needed. The back navigation should be a standard browser back or an explicit `← Back to Caseboard` link pointing to `/inspector/caseboard/<discovery_id>`.
+
+Dossier is also cached — if the user returns to Caseboard and re-selects the same products, the existing Dossier should be served immediately (no re-score), subject to the same 45-day / Refresh Cache rules above.
+
+### 7.4 Mental Model for Implementation
+
+```
+Home → POST /inspector/discover
+  → if cached discovery (<45 days, no refresh): load from cache
+  → else: run discovery, cache result
+  → ALWAYS redirect to /inspector/caseboard/<discovery_id>
+
+Caseboard → user selects products → POST /inspector/score
+  → for each selected product:
+      if cached score exists and <45 days and not force_refresh:
+          load from cache
+      else:
+          research + score, write to cache
+  → redirect to /inspector/results/<analysis_id>
+
+Dossier → "← Back to Caseboard" link → GET /inspector/caseboard/<discovery_id>
+  → load from cache (always available) → render Caseboard
+  → user re-selects same products → existing analysis served from cache
+```
+
+---
+
+## 8. Family Grouping — Large Company Discovery Logic
+
+### 7.1 Trigger Condition
+
+When `discover_products_with_claude()` returns a product list with more than 15 products, the discovery response must also include a `product_families` field. The Flask route checks `len(discovery.products) > 15` and shows the Family Picker modal if true.
+
+### 7.2 What Claude Must Return
+
+The discovery prompt must instruct Claude to group products into families whenever the total product count exceeds 15. The `product_families` field must be part of the structured JSON response:
+
+```json
+"product_families": [
+  {
+    "name": "Cloud Infrastructure (OCI)",
+    "product_count": 42,
+    "product_keys": ["Oracle Compute", "Oracle Object Storage", "Oracle Networking", ...]
+  },
+  {
+    "name": "Database & Data Platform",
+    "product_count": 31,
+    "product_keys": ["Oracle Database 23ai", "MySQL", "Oracle NoSQL", ...]
+  }
+]
+```
+
+`product_keys` must exactly match the `name` field of products in the `products` list — this is the join key used to filter the Caseboard.
+
+### 7.3 Prompt Instructions for Family Grouping
+
+Add to `discover_products_with_claude()` prompt when product count is anticipated to be large (include for all companies — Claude skips if ≤15 products and returns `product_families: []`):
+
+```
+If you discover more than 15 products, group them into product families.
+Rules:
+- Use the company's own published product pillar/family names where they exist (e.g., Oracle uses Fusion ERP, OCI, etc.)
+- Target 3–8 families. Never more than 12.
+- Every product must belong to exactly one family. Resolve ambiguity by primary use case, not secondary bundling.
+- product_keys values must exactly match the name field of products in the products list.
+- If 15 or fewer products, return product_families as an empty list [].
+```
+
+### 7.4 Ambiguity Resolution Rules
+
+When a product could belong to multiple families, use this priority order:
+1. The family the company's own sales/marketing motion assigns it to
+2. The primary technical function of the product (not a bundled secondary capability)
+3. The most specific family over the most general (e.g., "Database & Data Platform" over "Cloud Infrastructure" for Autonomous Database)
+
+**Known ambiguous Oracle products and their resolved families:**
+- Autonomous Database → Database & Data Platform (primary function is database; OCI is the delivery mechanism)
+- Oracle Analytics Cloud → assign to the Fusion pillar it is most often bundled with, or create a standalone Analytics family if count justifies it
+- Oracle Middleware / Java / Integration Cloud → Industry, Specialized & Legacy (platform technology, not a primary Fusion pillar)
+
+### 7.5 Storage
+
+`product_families` is stored on the discovery record alongside `products`. It is never re-computed after initial discovery — it is part of the discovery cache. A force-refresh re-runs discovery and regenerates families.
+
+---
+
 ## 6. Priority Order for Implementation
 
 1. **SaaS-specific research queries** — Phase 2 of SaaS isolation gate; highest impact on score accuracy for SaaS products.
@@ -257,3 +375,4 @@ The `_research_cache` key on discovery records is set only in some code paths. I
 6. **Company Record as first-class storage entity** — enables two-stage flow architecture; higher effort, required for Stage 1 Company Report feature.
 7. **Code-side penalty validation** — validates Claude's penalty application; moderate effort, improves reliability.
 8. **Research cache storage formalization** — quality improvement; low-medium effort.
+
