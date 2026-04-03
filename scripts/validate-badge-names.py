@@ -37,6 +37,8 @@ SCAN_EXTENSIONS = {".md", ".txt", ".py", ".html", ".js"}
 # Files/paths to skip
 SKIP_PATHS = [
     "scripts/validate-badge-names.py",  # skip this file itself
+    "CLAUDE.md",                         # locked vocab table lists legacy terms intentionally
+    "docs/Badging-Framework-Core.md",    # "Never this" column lists legacy terms intentionally
     ".git/",
     "__pycache__/",
     "node_modules/",
@@ -94,7 +96,7 @@ def main():
         print(f"  {filepath}:")
         for line_num, term, line in violations:
             print(f"    Line {line_num}: matched '{term}'")
-            print(f"    → {line[:120]}")
+            print(f"    > {line[:120]}")
         print()
 
     print("Fix the vocabulary above before committing.")
