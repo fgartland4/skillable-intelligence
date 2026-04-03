@@ -151,10 +151,11 @@
     <div class="container">
 
         {% set scores = product.labability_score or {} %}
-        {% set tech = scores.get('technical_orchestrability', {}) if scores is mapping else {} %}
-        {% set workflow = scores.get('workflow_complexity', {}) if scores is mapping else {} %}
-        {% set training = scores.get('training_ecosystem', {}) if scores is mapping else {} %}
-        {% set market = scores.get('market_fit', {}) if scores is mapping else {} %}
+        {# Accept both new field names and legacy names for backward compat with cached analyses #}
+        {% set tech = (scores.get('product_labability') or scores.get('technical_orchestrability') or {}) if scores is mapping else {} %}
+        {% set workflow = (scores.get('instructional_value') or scores.get('workflow_complexity') or {}) if scores is mapping else {} %}
+        {% set training = (scores.get('organizational_readiness') or scores.get('training_ecosystem') or {}) if scores is mapping else {} %}
+        {% set market = (scores.get('market_readiness') or scores.get('market_fit') or {}) if scores is mapping else {} %}
         {% set total = product._total_score or 0 %}
 
         {% set likely = product.likely_labable or '' %}
@@ -196,10 +197,10 @@
                     </thead>
                     <tbody>
                         {% set dims = [
-                            ('Technical Complexity', tech, 35),
-                            ('Market Fit', market, 35),
-                            ('Delivery Complexity', workflow, 20),
-                            ('Commercial Signal', training, 10),
+                            ('Product Labability', tech, 40),
+                            ('Instructional Value', workflow, 30),
+                            ('Org Readiness', training, 20),
+                            ('Market Readiness', market, 10),
                         ] %}
                         {% for dim_name, dim, mx in dims %}
                         {% set s = dim.score if dim and dim is mapping else 0 %}

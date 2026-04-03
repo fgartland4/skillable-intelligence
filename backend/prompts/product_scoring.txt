@@ -149,9 +149,9 @@ Bare labels with no suffix (e.g., `**Install Base:**`) are only acceptable for t
 
 ⚠️ **URL PLACEMENT RULE:** Never embed URLs directly in `claim` text — not as raw URLs and not as markdown links `[label](url)`. All source citations belong in the structured `source_url` and `source_title` fields of the evidence object. A claim like `**Windows Install:** Silent installer confirmed at [deployment guide](https://...)` is wrong — move the URL to `source_url`. Claims with embedded URLs will not render correctly.
 
-**Technical Orchestrability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we build it?"
+**Product Labability (0-40)** — from Steps 1-3. This is 40% of the total score — the most heavily weighted dimension. "Can we orchestrate this product?"
 
-The `technical_orchestrability` evidence bullets are solutioning guidance — written for whoever at Skillable will be doing the solutioning (SE, TSM, Solution Architect) who needs to understand why this product is or is not labable, and how to approach building it.
+The `product_labability` evidence bullets are solutioning guidance — written for whoever at Skillable will be doing the solutioning (SE, TSM, Solution Architect) who needs to understand why this product is or is not labable, and how to approach building it.
 
 **Tell the technical labability story in 3–6 bullets following the natural lab lifecycle arc:**
 
@@ -174,17 +174,23 @@ Example labels by phase:
 - Score: `**REST API:**` · `**PowerShell Module:**` · `**CLI Surface:**` · `**Config File State:**` · `**GUI Only | Risk:**` · `**No Scoring Surface | Blocker:**`
 - Teardown: `**Auto Teardown:**` (cloud/VM) · `**Deprovision API:**` · `**No DELETE Endpoint | Risk:**`
 
-**Workflow Complexity (0-30):** This is 30% of the total score. "Do the customer's end users genuinely need hands-on practice with this product?" — does this product justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? High scores belong to products with deep DTDS depth — admins who design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures each represent a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it — there is no skill accumulation that demands structured lab sequences.
+**Instructional Value (0-30):** This is 30% of the total score. "Does this product need labs?" — does it justify a *multi-lab training program*, or is it a single-scenario product that needs at most one lab? Two components drive this score:
+
+**2.1 Difficult to Master** — Is the product genuinely complex enough that proficiency requires repeated, hands-on practice? High scores belong to products where admins design topologies, tailor configurations, deploy into production, support incidents, and troubleshoot failures — each a distinct lab series. Consumer-grade or simple SaaS products score near zero because the product is learned in minutes by using it; no skill accumulation demands structured lab sequences.
+
+**2.2 Mastery Matters** — Does it make a real difference when someone truly masters this product? High-stakes skills, adoption & TTV risks, and certification programs are the strongest signals. If misconfiguring this product causes data loss, a security breach, compliance failure, or expensive downtime — mastery matters. If the product is forgiving by design (undo/redo, no real consequences), mastery matters less.
 
 Before scoring, answer these two questions explicitly in the dimension summary:
-1. **Do end users NEED hands-on?** State whether using this product requires repeated, practiced skill — or whether it's the kind of product someone learns adequately from documentation, videos, or observation alone. Be direct: "Yes — this product requires hands-on practice because..." or "No — the product is simple enough that..."
-2. **What is the real depth of skill required?** Name the specific job tasks that a trained user must be able to perform independently — not the feature list, but the actual work: configure a policy, recover from a failure, deploy across environments, troubleshoot a topology. Products where these tasks are varied and complex score high. Products where there is effectively one task (e.g., "click through a wizard") score near zero.
+1. **Difficult to Master:** State whether using this product requires repeated, practiced skill — or whether it's the kind of product someone learns adequately from documentation, videos, or observation alone. Name the specific job tasks that a trained user must perform independently: configure a policy, recover from a failure, deploy across environments, troubleshoot a topology. Products where these tasks are varied and complex score high.
+2. **Mastery Matters:** State whether hands-on practice produces measurable job impact. Will a learner who completes a lab be demonstrably better at their job — faster, more accurate, more independent? What happens if they get it wrong? Certification programs are a strong signal here — if a vendor has invested in certifying proficiency, the market has confirmed mastery matters.
 
-Scoring signals (sum; cap 25):
+Scoring signals (sum; cap 30):
+
+*Difficult to Master signals:*
 - AI-embedded features requiring iterative hands-on practice (Copilot integration, AI-powered workflows, generative AI capabilities): +6 — cannot be learned by watching; each feature needs its own practice loop
-- DTDS depth — each phase that represents a genuine, distinct user activity for this product:
+- Workflow depth — each phase that represents a genuine, distinct user activity for this product:
   - Design (architecture planning, topology/schema decisions, capacity modeling): +5
-  - Tailor (policy creation, configuration, customization to environment): +5
+  - Configure (policy creation, configuration, customization to environment): +5
   - Deploy (installation, provisioning, release pipeline, migrations): +5
   - Support (monitoring, alerting, incident response, lifecycle management): +5
   - Troubleshoot (diagnosing failures in realistic broken states): +5
@@ -192,19 +198,26 @@ Scoring signals (sum; cap 25):
 - Multi-component topology: lab environment requires multiple VMs or services (creates complexity that separates into distinct labs): +2
 - Integration complexity: connecting to external systems is a primary, not incidental, workflow: +1
 
-Evidence bullets tell the story of why this product does or doesn't justify a multi-lab program. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal. Cover what's relevant — don't force all four labels if fewer tell the story cleanly.
+*Mastery Matters signals (additive, already within the cap 30):*
+- High-stakes skills (misconfiguration causes data loss, security breach, compliance failure, or significant downtime): +3
+- Adoption & TTV risks (product is complex enough that poor adoption or slow time-to-value is a documented risk): +2
+- Certification program (vendor has invested in certifying proficiency — confirms market has validated mastery matters): +2
+
+Evidence bullets tell the story of why this product does or doesn't justify a multi-lab program. Write 2–4 bullets in the order that best explains the score. Each bullet begins with a **2–4 word bold label:** that names the specific signal. Cover what's relevant — don't force all labels if fewer tell the story cleanly.
 
 Signals worth naming (use these labels or choose better ones for the product):
 - `**Training Scope:**` how many distinct learning programs this product naturally warrants and why
-- `**Workflow Depth:**` which of the 5 workflow phases (design, configure, deploy, support, troubleshoot) are primary activities — be specific about what each looks like in practice for this product; do NOT use the acronym DTDS in the label or bullet
+- `**Workflow Depth:**` which workflow phases (design, configure, deploy, support, troubleshoot) are primary activities — be specific about what each looks like in practice for this product
 - `**Hands-On AI Features:**` name the specific AI features and why iterative practice is essential (not just a demo or observation)
 - `**Role Breadth:**` how distinct personas create separate program demand (don't repeat personas already listed — focus on the demand implication)
+- `**High-Stakes Skills:**` what goes wrong if the learner gets it wrong — and why that makes mastery matter
+- `**Certification Program:**` credential name, type, and exam delivery partner (Pearson VUE, Certiport, PSI, Certiverse, or unconfirmed — flag if unconfirmed)
 
-**Training & Enablement Maturity (0-20):** This is 20% of the total score. "Will learners be meaningfully more capable and career-ready after completing labs with this product?" — score the organization's delivery infrastructure AND the impact potential for the learner.
+**Organizational Readiness (0-20):** This is 20% of the total score. "Does this organization have the resources to create and deliver labs?" — score the organization's content development capabilities and delivery ecosystem.
 
 Before scoring, answer these two questions explicitly in the dimension summary:
-1. **Does structured hands-on practice produce measurable job impact?** State whether a learner who completes a lab with this product will be demonstrably better at their job — able to perform tasks faster, more accurately, or independently that they couldn't before. Products where hands-on practice directly builds job-critical skills (e.g., configuring a security policy, recovering from a data loss event, managing a cloud topology) score high. Products where the "skill" is navigating a menu or clicking through a UI score low.
-2. **Does the organization have the infrastructure to deliver labs at scale?** State what delivery vehicles exist: ATP network, certification program, events, channel, internal L&D. An organization with no delivery infrastructure scores low regardless of how complex the product is — labs with nowhere to go don't create impact.
+1. **Can they build it?** Does the organization have a dedicated content team, instructional designers, or a content development function? A company with no training org scores low regardless of how complex the product is.
+2. **Can they deliver it?** What delivery vehicles exist: ATP network, certification program, events, channel, on-demand catalog? An organization with infrastructure scores high — labs with nowhere to go don't create revenue or impact.
 
 Score the highest applicable combination:
 - ATP/Learning Partner program (channel credentials, technical seller enablement): +8
@@ -226,7 +239,7 @@ Signals worth naming (use these labels or choose better ones):
 - `**Existing Labs:**` any CloudShare, Instruqt, Appsembler, or Skillable labs found — confirms demand and migration opportunity
 - `**Gap:**` / `**Missing:**` / `**Limited:**` — use when the score reflects something absent, not just what exists
 
-**Market & Strategic Fit (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Strategically aligned?" — is Skillable the right platform for this product's market?
+**Market Readiness (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Is the world interested?" — is this product in a market where hands-on skill development is valued and growing?
 Category prior (highest applicable): Cybersecurity: +4 | Cloud Infrastructure: +4 | Networking/SDN: +4 | DevOps: +3 | Data Protection: +3 | Infrastructure/Virtualization: +3 | Data & Analytics: +3 | Data Science & Engineering: +3 | Application Development: +3 | Collaboration: +2 | ERP/CRM: +2 | Healthcare IT: +2 | Legal Tech: +2 | FinTech: +2 | Content Management: +2 | Industrial/OT: +2 | Simple SaaS: +0 | Consumer: +0
 AI additive: Builds/Trains/Deploys AI (CREATE AI): +3 | AI-embedded features with market demand (INCORPORATE AI): +1
 Other: Large/growing install base: +2 | Growing category: +1 | Limited competitor labs: +1. Cap 10.
@@ -371,7 +384,7 @@ Use ONLY these labels for the standard bullets:
 
 - **[Custom Label]:** OPTIONAL — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `| Risk` or `| Blocker` suffix if the insight signals a problem.
 
-  ⚠️ **NO DUPLICATION RULE — STRICTLY ENFORCED:** A custom label bullet MUST NOT repeat or restate a topic already covered in the Technical Orchestrability, Workflow Complexity, Training Ecosystem, or Market Fit evidence bullets above. If a risk (e.g. MFA enforcement, license activation, provisioning latency) was already surfaced as an evidence bullet, do NOT create a separate custom bullet for it — instead, reference it in one clause within the relevant standard bullet (Scoring Approach, Delivery Path). Violations of this rule produce a cluttered, redundant report. When in doubt, omit the custom bullet.
+  ⚠️ **NO DUPLICATION RULE — STRICTLY ENFORCED:** A custom label bullet MUST NOT repeat or restate a topic already covered in the Product Labability, Instructional Value, Organizational Readiness, or Market Readiness evidence bullets above. If a risk (e.g. MFA enforcement, license activation, provisioning latency) was already surfaced as an evidence bullet, do NOT create a separate custom bullet for it — instead, reference it in one clause within the relevant standard bullet (Scoring Approach, Delivery Path). Violations of this rule produce a cluttered, redundant report. When in doubt, omit the custom bullet.
 
   Good examples of what belongs here (topics that rarely appear as evidence bullets):
   - `**Pre-Instancing Required | Risk:**` — provisioning latency is so high that Pre-Instancing (Skillable support-only feature) is required for acceptable learner experience; must be scoped with Cloud Infra before committing
@@ -504,10 +517,10 @@ Return ONLY valid JSON — a single product object:
     "api_scoring_potential": "Full|Partial|Minimal|None",
     "recommendation": ["Bullet 1", "Bullet 2", "Bullet 3", "Bullet 4"], // 3–5 items
     "scores": {
-      "technical_orchestrability": {"score": 0, "summary": "...", "evidence": [{"claim": "...", "source_url": "...", "source_title": "..."}]},
-      "workflow_complexity": {"score": 0, "summary": "...", "evidence": []},
-      "training_ecosystem": {"score": 0, "summary": "...", "evidence": []},
-      "market_fit": {"score": 0, "summary": "...", "evidence": []}
+      "product_labability": {"score": 0, "summary": "...", "evidence": [{"claim": "...", "source_url": "...", "source_title": "..."}]},
+      "instructional_value": {"score": 0, "summary": "...", "evidence": []},
+      "organizational_readiness": {"score": 0, "summary": "...", "evidence": []},
+      "market_readiness": {"score": 0, "summary": "...", "evidence": []}
     },
     "owning_org": {"name": "Specific org name", "type": "department|subsidiary|business_unit", "description": "..."},
     "contacts": [{"name": "Name or 'Unknown - search for [title]'", "title": "...", "role_type": "decision_maker|influencer", "linkedin_url": "...", "relevance": "..."}],

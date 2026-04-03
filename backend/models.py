@@ -1,4 +1,4 @@
-"""Data models for the Labability Intelligence Engine."""
+"""Data models for the Skillable Intelligence platform."""
 
 from dataclasses import dataclass, field
 from typing import Optional
@@ -22,11 +22,14 @@ class DimensionScore:
 def compute_product_score(p: dict) -> int:
     """Compute the labability total from a product dict loaded from JSON storage."""
     scores = p.get("labability_score") or {}
-    tech = scores.get("technical_orchestrability", {}).get("score", 0)
+    # Accept both new field names and legacy names for backward compat with cached analyses
+    tech = (
+        scores.get("product_labability", {}) or scores.get("technical_orchestrability", {})
+    ).get("score", 0)
     other = sum(
         s.get("score", 0)
         for k, s in scores.items()
-        if k != "technical_orchestrability" and isinstance(s, dict)
+        if k not in ("product_labability", "technical_orchestrability") and isinstance(s, dict)
     )
     return compute_labability_total(tech, other, p.get("skillable_path", ""))
 
@@ -34,14 +37,20 @@ def compute_product_score(p: dict) -> int:
 def compute_labability_total(tech: int, other: int, path: str = "") -> int:
     """Single source of truth for the labability total score with multiplier logic.
 
-    Scoring weights: Technical Orchestrability 40%, Workflow Complexity 30%,
-    Training & Enablement Maturity 20%, Market & Strategic Fit 10%.
+    Composite scoring model (40/30/20/10):
+      Product Labability      40%  (0–40)  — Can we orchestrate this product?
+      Instructional Value     30%  (0–30)  — Does this product need labs?
+      Organizational Readiness 20% (0–20)  — Do they have resources to create and deliver labs?
+      Market Readiness        10%  (0–10)  — Is the world interested?
 
-    tech  — technical_orchestrability score (0-40)
-    other — sum of workflow_complexity (0-30) + training_ecosystem (0-20) + market_fit (0-10) = 0-60
+    tech  — product_labability score (0-40)
+    other — sum of instructional_value (0-30) + organizational_readiness (0-20) + market_readiness (0-10) = 0-60
     path  — skillable_path string ("A1", "A2", "B", "C", "Unknown")
 
-    Multiplier thresholds scaled proportionally from legacy 0-25 → 0-40 range.
+    Multiplier: Product Labability gates the composite. A product that cannot be
+    orchestrated gets no credit for how strong the other dimensions are — the multiplier
+    enforces this gate. Thresholds scaled proportionally from legacy 0-25 → 0-40 range.
+
     """
     if tech >= 32:
         multiplier = 1.0
@@ -60,19 +69,19 @@ def compute_labability_total(tech: int, other: int, path: str = "") -> int:
 
 @dataclass
 class ProductLababilityScore:
-    technical_orchestrability: DimensionScore = field(default_factory=DimensionScore)
-    workflow_complexity: DimensionScore = field(default_factory=DimensionScore)
-    training_ecosystem: DimensionScore = field(default_factory=DimensionScore)
-    market_fit: DimensionScore = field(default_factory=DimensionScore)
+    product_labability: DimensionScore = field(default_factory=DimensionScore)       # 40% — Can we orchestrate this product?
+    instructional_value: DimensionScore = field(default_factory=DimensionScore)       # 30% — Does this product need labs?
+    organizational_readiness: DimensionScore = field(default_factory=DimensionScore)  # 20% — Do they have resources to build and deliver?
+    market_readiness: DimensionScore = field(default_factory=DimensionScore)          # 10% — Is the world interested?
     path: str = ""  # mirrors Product.skillable_path for correct multiplier in .total
 
     @property
     def total(self) -> int:
-        tech = self.technical_orchestrability.score
+        tech = self.product_labability.score
         other = (
-            self.workflow_complexity.score
-            + self.training_ecosystem.score
-            + self.market_fit.score
+            self.instructional_value.score
+            + self.organizational_readiness.score
+            + self.market_readiness.score
         )
         return compute_labability_total(tech, other, self.path)
 

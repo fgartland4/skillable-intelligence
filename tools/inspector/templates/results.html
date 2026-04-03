@@ -880,19 +880,20 @@
             </div>
 
             {# ── Variables ── #}
-            {% set _sc1h = product.labability_score.technical_orchestrability.score | default(0) %}
-            {% set _sc2h = product.labability_score.workflow_complexity.score | default(0) %}
-            {% set _sc3h = product.labability_score.training_ecosystem.score | default(0) %}
-            {% set _sc4h = product.labability_score.market_fit.score | default(0) %}
+            {# Accept both new field names and legacy names for backward compat with cached analyses #}
+            {% set _sc1h = (product.labability_score.product_labability.score | default(product.labability_score.technical_orchestrability.score | default(0))) %}
+            {% set _sc2h = (product.labability_score.instructional_value.score | default(product.labability_score.workflow_complexity.score | default(0))) %}
+            {% set _sc3h = (product.labability_score.organizational_readiness.score | default(product.labability_score.training_ecosystem.score | default(0))) %}
+            {% set _sc4h = (product.labability_score.market_readiness.score | default(product.labability_score.market_fit.score | default(0))) %}
             {% set _cph = product.get('consumption_potential', {}) %}
             {% if product.skillable_path == 'C' %}{% set _rate_h = 5.0 %}
             {% elif _cph.get('vm_rate_estimate', 0) > 0 %}{% set _rate_h = _cph.get('vm_rate_estimate') %}
             {% elif product.skillable_path in ['A', 'A1', 'A2'] %}{% set _rate_h = 10.5 %}
             {% else %}{% set _rate_h = 12.0 %}{% endif %}
-            {% set tech_dim = product.labability_score.technical_orchestrability %}
-            {% set wf_dim = product.labability_score.workflow_complexity %}
-            {% set te_dim = product.labability_score.training_ecosystem %}
-            {% set mf_dim = product.labability_score.market_fit %}
+            {% set tech_dim = product.labability_score.product_labability or product.labability_score.technical_orchestrability %}
+            {% set wf_dim = product.labability_score.instructional_value or product.labability_score.workflow_complexity %}
+            {% set te_dim = product.labability_score.organizational_readiness or product.labability_score.training_ecosystem %}
+            {% set mf_dim = product.labability_score.market_readiness or product.labability_score.market_fit %}
 
             {# ── Description first ── #}
             {% if product.description %}

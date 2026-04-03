@@ -428,10 +428,19 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
             api_scoring_potential=p.get("api_scoring_potential", ""),
             recommendation=p.get("recommendation") if isinstance(p.get("recommendation"), list) else ([p["recommendation"]] if p.get("recommendation") else []),
             labability_score=ProductLababilityScore(
-                technical_orchestrability=_parse_dimension(scores.get("technical_orchestrability", {})),
-                workflow_complexity=_parse_dimension(scores.get("workflow_complexity", {})),
-                training_ecosystem=_parse_dimension(scores.get("training_ecosystem", {})),
-                market_fit=_parse_dimension(scores.get("market_fit", {})),
+                # Accept both new and legacy key names for backward compat with cached analyses
+                product_labability=_parse_dimension(
+                    scores.get("product_labability") or scores.get("technical_orchestrability", {})
+                ),
+                instructional_value=_parse_dimension(
+                    scores.get("instructional_value") or scores.get("workflow_complexity", {})
+                ),
+                organizational_readiness=_parse_dimension(
+                    scores.get("organizational_readiness") or scores.get("training_ecosystem", {})
+                ),
+                market_readiness=_parse_dimension(
+                    scores.get("market_readiness") or scores.get("market_fit", {})
+                ),
                 path=_path,
             ),
             owning_org=owning_org,

@@ -86,18 +86,27 @@ def _apply_bold(text: str) -> str:
 
 @app.template_filter('flag_label')
 def flag_label_filter(flag):
-    """Map poor_match_flag keys to display-friendly labels with correct capitalisation."""
+    """Map poor_match_flag keys to display-friendly badge names (locked vocabulary).
+
+    Badge name = what displays in the UI. Color is determined by context (red for all poor_match_flags).
+    One badge name per concept — aligned with reference_badge_pattern.md.
+    """
     labels = {
-        'bare_metal_required':      'Bare Metal Orchestration',
-        'no_api_automation':        'Limited API Provisioning',
-        'no_scoring_api':           'No APIs for Scoring',
-        'credit_card_required':     'Credit Card and/or PII Required',
-        'pii_required':             'Credit Card and/or PII Required',
-        'broken_learner_experience':'Credit Card and/or PII Required',  # legacy cached results
-        'consumer_product':         'Consumer Product',
-        'saas_only':                'SaaS Only — No Learner Isolation',
-        'multi_tenant_only':        'Shared Tenant — No Per-Learner Isolation',
-        'no_provisioning_api':      'No Provisioning API',
+        # 1.1 Provisioning — blockers
+        'bare_metal_required':       'Bare Metal Required',
+        'no_api_automation':         'Provisioning APIs',        # red: no viable automation
+        'no_provisioning_api':       'Provisioning APIs',        # red: alias
+        'saas_only':                 'No Learner Isolation',     # red: no per-learner environment
+        'multi_tenant_only':         'No Learner Isolation',     # red: shared tenant only
+        # 1.2 Licensing & Accounts — blockers
+        'credit_card_required':      'Credit Card Required',
+        'pii_required':              'PII Required',
+        # 1.3 Scoring — blockers
+        'no_scoring_api':            'Scoring APIs',             # red: no scoring surface
+        # Consumer / not appropriate
+        'consumer_product':          'Not Lab Appropriate',
+        # Legacy — map to closest current badge
+        'broken_learner_experience': 'No Learner Isolation',     # legacy cached results
     }
     return labels.get(flag, flag.replace('_', ' ').title())
 

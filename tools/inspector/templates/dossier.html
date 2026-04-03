@@ -708,10 +708,10 @@
 
             {# TL: Composite Score + 40/30/20/10 breakdown #}
             {% if top_p %}
-            {% set tp_tech = top_p.labability_score.technical_orchestrability.score | default(0) %}
-            {% set tp_wf   = top_p.labability_score.workflow_complexity.score | default(0) %}
-            {% set tp_te   = top_p.labability_score.training_ecosystem.score | default(0) %}
-            {% set tp_mf   = top_p.labability_score.market_fit.score | default(0) %}
+            {% set tp_tech = top_p.labability_score.product_labability.score | default(0) %}
+            {% set tp_wf   = top_p.labability_score.instructional_value.score | default(0) %}
+            {% set tp_te   = top_p.labability_score.organizational_readiness.score | default(0) %}
+            {% set tp_mf   = top_p.labability_score.market_readiness.score | default(0) %}
             {% endif %}
             <div class="seller-cell">
                 <div class="seller-cell-label">Composite Score</div>
@@ -726,9 +726,9 @@
                     <div style="flex:1;display:flex;flex-direction:column;gap:6px;border-left:1px solid #1e3329;padding-left:16px;">
                         {% for dim_label, dim_score, dim_max in [
                             ('Product Labability', tp_tech, 40),
-                            ('Workflow Complexity', tp_wf, 30),
-                            ('Training Ecosystem', tp_te, 20),
-                            ('Market Fit', tp_mf, 10)
+                            ('Instructional Value', tp_wf, 30),
+                            ('Org Readiness', tp_te, 20),
+                            ('Market Readiness', tp_mf, 10)
                         ] %}
                         {% set dim_pct = dim_score / dim_max %}
                         <div style="display:flex;align-items:center;gap:6px;">
@@ -917,15 +917,15 @@
 
     {% for product in data.products %}
     {# ── Per-product score shortcuts ── #}
-    {% set sc_tech = product.labability_score.technical_orchestrability.score | default(0) %}
-    {% set sc_wf   = product.labability_score.workflow_complexity.score | default(0) %}
-    {% set sc_te   = product.labability_score.training_ecosystem.score | default(0) %}
-    {% set sc_mf   = product.labability_score.market_fit.score | default(0) %}
+    {% set sc_tech = product.labability_score.product_labability.score | default(0) %}
+    {% set sc_wf   = product.labability_score.instructional_value.score | default(0) %}
+    {% set sc_te   = product.labability_score.organizational_readiness.score | default(0) %}
+    {% set sc_mf   = product.labability_score.market_readiness.score | default(0) %}
     {% set sc_g2   = sc_wf + sc_te %}
-    {% set tech_dim = product.labability_score.technical_orchestrability %}
-    {% set wf_dim   = product.labability_score.workflow_complexity %}
-    {% set te_dim   = product.labability_score.training_ecosystem %}
-    {% set mf_dim   = product.labability_score.market_fit %}
+    {% set tech_dim = product.labability_score.product_labability %}
+    {% set wf_dim   = product.labability_score.instructional_value %}
+    {% set te_dim   = product.labability_score.organizational_readiness %}
+    {% set mf_dim   = product.labability_score.market_readiness %}
     {% set prod_score = product._total_score %}
 
     {# Verdict #}
