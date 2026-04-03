@@ -112,7 +112,7 @@
         </div>
         <div class="eyebrow">Scoring</div>
         <div class="company-name">{{ company_name }}</div>
-        <div class="product-count">Researching Product Labability &amp; Lab Maturity Signals for <strong>{{ product_count }}</strong> product{{ 's' if product_count != 1 else '' }}…</div>
+        <div class="product-count">Researching product labability for <strong>{{ product_count }}</strong> product{{ 's' if product_count != 1 else '' }}…</div>
 
         <div class="steps">
             <div class="step" id="step-tech">
@@ -154,9 +154,10 @@
             </div>
         </div>
 
-        <!-- Progress track — visually anchors the steps above -->
-        <div class="mark-progress">
-            <div class="mark-track"><div class="mark-fill" id="mark-fill"></div></div>
+        <!-- Progress track -->
+        <div style="text-align:center; margin-top:8px;">
+            <div class="mark-track" style="margin-bottom:10px;"><div class="mark-fill" id="mark-fill"></div></div>
+            <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-bottom:16px;">research and scoring has been running for <strong>0:00</strong></div>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="28.5 -0.5 21.5 38.5" width="32" height="54">
                 <path id="mark-i" class="mark-el mark-active"
                     fill-rule="evenodd" clip-rule="evenodd"
@@ -172,7 +173,6 @@
                     d="M45.8683 0L33.957 13.3398L32.3133 11.8098L29.9446 14.4504L33.9397 18.3333L48.2779 2.34634L45.8683 0Z" fill="#1e3329"/>
             </svg>
         </div>
-        <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-top:6px;margin-bottom:12px;">research and scoring has been running for <strong>0:00</strong></div>
 
         <div class="status" id="status"></div>
     </div>
@@ -295,7 +295,7 @@
                     litMark('mark-check', '#24ED9B');
                     document.getElementById("status").textContent = "Complete — loading results...";
                     window.location.href = "/inspector/dossier/" + msg.slice(5);
-                }, 600);
+                }, 3500);
             } else if (msg.startsWith("error:")) {
                 source.close();
                 document.getElementById("status").textContent = "Error: " + msg.slice(6);

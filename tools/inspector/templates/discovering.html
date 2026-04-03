@@ -53,6 +53,13 @@
             0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
             40% { transform: scale(1); opacity: 1; }
         }
+        /* Progress mark */
+        .mark-track { width: 100%; height: 3px; background: #122019; border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+        .mark-fill { height: 100%; width: 0%; background: #24ED9B; border-radius: 2px; transition: width 1.2s ease; }
+        .mark-el { transition: fill 0.45s ease; }
+        @keyframes mark-pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+        .mark-active { animation: mark-pulse 1.2s ease-in-out infinite; }
+
         .error-state { display: none; margin-top: 24px; }
         .error-msg {
             color: #f87171; font-size: 0.9rem; line-height: 1.6;
@@ -81,7 +88,26 @@
             <div class="dot"></div>
             <div class="dot"></div>
         </div>
-        <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-top:16px;">research and scoring has been running for <strong>0:00</strong></div>
+        <!-- Progress mark -->
+        <div style="text-align:center; margin-top:28px;">
+            <div class="mark-track"><div class="mark-fill" id="mark-fill"></div></div>
+            <div id="timer" style="font-size:0.85rem;color:#3d6655;margin-bottom:16px;">research and scoring has been running for <strong>0:00</strong></div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="28.5 -0.5 21.5 38.5" width="28" height="48">
+                <path id="mark-i" class="mark-el mark-active"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M31.8203 36.3587H35.4225V22.8284H31.8203V36.3587Z" fill="#e8f5f0"/>
+                <path id="mark-l1" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M38.511 36.3587H42.118V17.5439H38.511V36.3587Z" fill="#1e3329"/>
+                <path id="mark-l2" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M45.2032 36.3586H48.8134V10.2878H45.2032V36.3586Z" fill="#1e3329"/>
+                <path id="mark-check" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M45.8683 0L33.957 13.3398L32.3133 11.8098L29.9446 14.4504L33.9397 18.3333L48.2779 2.34634L45.8683 0Z" fill="#1e3329"/>
+            </svg>
+        </div>
+
         <div class="error-state" id="error-state">
             <div class="error-msg" id="error-msg"></div>
             <a href="/inspector/" class="btn-back">&larr; New Search</a>
@@ -114,6 +140,15 @@
             document.getElementById("error-msg").textContent = "Something went wrong. Please try again.";
             document.getElementById("error-state").style.display = "block";
         };
+
+        // Animate progress bar and mark during discovery
+        let fillPct = 0;
+        const fillInterval = setInterval(() => {
+            fillPct = Math.min(fillPct + 0.4, 85);
+            document.getElementById('mark-fill').style.width = fillPct + '%';
+            if (fillPct > 30) { document.getElementById('mark-i').setAttribute('fill','#e8f5f0'); document.getElementById('mark-i').classList.remove('mark-active'); }
+            if (fillPct > 55) { document.getElementById('mark-l1').setAttribute('fill','#e8f5f0'); }
+        }, 300);
 
         const _t0 = Date.now();
         setInterval(() => {
