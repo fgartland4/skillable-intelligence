@@ -455,7 +455,6 @@ def _build_qualify_row(data: dict, discovery: dict | None = None,
     products = data.get("products") or []
     top_product = products[0] if products else {}
     lab_score = top_product.get("_total_score", 0)
-    pr_total = data["_pr_total"]
     composite = data["_composite_score"]
     org_type = data.get("organization_type", "software_company")
 
@@ -495,7 +494,6 @@ def _build_qualify_row(data: dict, discovery: dict | None = None,
         "company_url":  data.get("company_url", ""),
         "top_product":  top_product.get("name", ""),
         "lab_score":    lab_score,
-        "lab_maturity_score": pr_total,
         "composite_score":    composite,
         "skillable_path":     skillable_path,
         "top_contact_name":    dm.get("name", "")         if dm  else "",
@@ -526,7 +524,7 @@ def _academic_no_fit_row(company_name: str, discovery: dict) -> dict:
     return {
         "company_name": discovery.get("company_name", company_name),
         "company_url":  discovery.get("company_url", ""),
-        "top_product": "", "lab_score": 0, "lab_maturity_score": 0,
+        "top_product": "", "lab_score": 0,
         "composite_score": 0, "skillable_path": "Not a Fit",
         "top_contact_name": "", "top_contact_title": "", "top_contact_linkedin": "",
         "second_contact_name": "", "second_contact_title": "", "second_contact_linkedin": "",

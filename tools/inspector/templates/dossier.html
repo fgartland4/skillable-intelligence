@@ -697,7 +697,6 @@
         {% endif %}
 
         {# Info grid — 2×2 #}
-        {% set pr = data.lab_maturity or data.partnership_readiness or {} %}
         {% set ns_flags2 = namespace(bad=[]) %}
         {% for p in data.products %}
             {% for flag in (p.poor_match_flags or []) %}
@@ -1143,32 +1142,7 @@
 
             {# ── 4: Organization Readiness ── #}
             <div class="pd-section">
-                {% set lm_total = data._pr_total | default(0) %}
-                <div class="pd-section-title">
-                    Organization Readiness
-                    {% if lm_total > 0 %}<span class="pd-section-title-score {% if lm_total >= 70 %}score-high{% elif lm_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ lm_total }}/100</span>{% endif %}
-                </div>
-                {% if lm_total > 0 %}
-                <div class="pd-score-row">
-                    <span class="pd-dim-score {% if lm_total >= 70 %}score-high{% elif lm_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ lm_total }}<span class="pd-dim-max"> / 100</span></span>
-                    <div class="bar-track">
-                        <div class="bar-fill {% if lm_total >= 70 %}bar-green{% elif lm_total >= 40 %}bar-amber{% else %}bar-red{% endif %}" style="width:{{ lm_total }}%;"></div>
-                    </div>
-                </div>
-                {% endif %}
-                {# Signal badges #}
-                {% if pr %}
-                {% set tom = pr.get('training_org_maturity', {}) or {} %}
-                {% set pp2 = pr.get('partner_program', {}) or {} %}
-                {% set tr2 = pr.get('tech_readiness', {}) or {} %}
-                {% set cs2 = pr.get('customer_success', {}) or {} %}
-                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:10px;">
-                    {% if tom.get('score', 0) >= 15 %}<span class="co-sig-bdg co-sig-green">Training Org</span>{% endif %}
-                    {% if pp2.get('score', 0) >= 10 %}<span class="co-sig-bdg co-sig-green">Partner Program</span>{% endif %}
-                    {% if tr2.get('score', 0) >= 5 %}<span class="co-sig-bdg co-sig-teal">Lab-Ready Tech</span>{% endif %}
-                    {% if cs2.get('score', 0) >= 15 %}<span class="co-sig-bdg co-sig-teal">Customer Success</span>{% endif %}
-                </div>
-                {% endif %}
+                <div class="pd-section-title">Organization Readiness</div>
                 {# mf_dim evidence bullets #}
                 {% if mf_dim.evidence %}
                 <ul class="pd-bullets">

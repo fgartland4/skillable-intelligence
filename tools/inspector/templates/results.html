@@ -678,24 +678,14 @@
 
         <!-- Top blocks: Opportunity Score + Consumption Summary side by side -->
         <div class="top-blocks">
-        {% set weights = data._composite_weights or "65% Product / 35% Lab Maturity" %}
-        {% set prod_weight = "65%" if "65% Product" in weights else "35%" %}
-        {% set part_weight = "35%" if "35% Lab Maturity" in weights else "65%" %}
-        {% set pw_int = prod_weight | replace('%','') | int %}
-        {% set prw_int = part_weight | replace('%','') | int %}
         {% set top = data.products[0]._total_score if data.products else 0 %}
-        {% set raw_composite = ((top * pw_int / 100) + (data._pr_total * prw_int / 100)) | round | int %}
-        {% set gate_threshold = 20 if data.organization_type in ['training_organization','systems_integrator','technology_distributor','professional_services'] else 30 %}
-        {% set channel_orgs = ['training_organization','systems_integrator','technology_distributor','professional_services','academic_institution'] %}
-        {% set is_channel = data.organization_type in channel_orgs %}
-        {% set org_label = data.organization_type | replace('_', ' ') | title %}
         {% set cs = data._composite_score %}
 
         <div class="composite-card">
             <div class="card-label">Overall Opportunity Score</div>
             <div class="composite-body">
 
-                <!-- Hero: composite score -->
+                <!-- Hero: composite score (= top product 40/30/20/10 score) -->
                 <div class="composite-hero">
                     <div class="value {% if cs >= 70 %}score-high{% elif cs >= 40 %}score-mid{% else %}score-low{% endif %}">
                         {{ cs }}
@@ -707,46 +697,19 @@
 
                 <div class="composite-divider"></div>
 
-                <!-- Inputs: top product + partnership stacked -->
+                <!-- Top product driving the score -->
                 <div class="composite-inputs">
                     <div class="composite-input">
                         <div class="input-right">
                             <span class="input-score {% if top >= 70 %}score-high{% elif top >= 40 %}score-mid{% else %}score-low{% endif %}">{{ top }}</span>
-                            <span class="input-weight">× {{ prod_weight }}</span>
                         </div>
                         <div class="input-left">
                             <div class="input-label">Top Product Labability</div>
                             <div class="input-sublabel">{{ data.products[0].name if data.products else '—' }}</div>
                         </div>
                     </div>
-                    <div class="composite-input-sep"></div>
-                    <div class="composite-input">
-                        <div class="input-right">
-                            <span class="input-score {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}</span>
-                            <span class="input-weight">× {{ part_weight }}</span>
-                        </div>
-                        <div class="input-left">
-                            <div class="input-label">Lab Maturity Signals</div>
-                            <div class="input-sublabel">
-                                {% set pr = data._pr_total %}
-                                {% if pr >= 75 %}Mature, well-established partner ecosystem
-                                {% elif pr >= 60 %}Strong training org with real scale
-                                {% elif pr >= 45 %}Growing program, solid foundation
-                                {% elif pr >= 30 %}Early-stage, promising signals present
-                                {% else %}Limited lab maturity signals
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
-            </div>
-
-            <!-- Equation explanation -->
-            <div class="composite-equation">
-                <div>{% if is_channel %}As a <span class="eq-math">{{ org_label }}</span>, lab maturity carries more weight.{% else %}As a <span class="eq-math">{{ org_label }}</span>, product labability carries more weight.{% endif %}</div>
-                <div><span class="eq-math">{{ top }}</span> (product) &times; {{ prod_weight }} + <span class="eq-math">{{ data._pr_total }}</span> (lab maturity) &times; {{ part_weight }} =
-                {% if data._composite_gated %}<span class="eq-math">{{ raw_composite }}</span> raw, <span class="eq-cap">capped at {{ cs }}</span> &mdash; labability needs to reach {{ gate_threshold }}{% else %}<span class="eq-math">{{ cs }}</span>{% endif %}</div>
             </div>
         </div>
 
@@ -1102,57 +1065,6 @@
 
         </div>
         {% endfor %}
-
-        <!-- Lab Maturity Signals -->
-        {% set pr = data.lab_maturity or data.partnership_readiness %}
-        <div class="product-card" style="margin-top:36px;">
-            <div class="product-header">
-                <div>
-                    <div class="product-name">Lab Maturity Signals</div>
-                    <div class="product-category">{{ data._composite_weights }} weighting applied to Overall Opportunity Score</div>
-                </div>
-                <div class="total-score">
-                    <div class="score-num {% if data._pr_total >= 70 %}score-high{% elif data._pr_total >= 40 %}score-mid{% else %}score-low{% endif %}">{{ data._pr_total }}</div>
-                </div>
-            </div>
-
-            {% macro pr_bullets(dim) %}
-            <ul class="pr-bullets">
-                {% if dim.evidence %}
-                    {% for ev in dim.evidence %}
-                    <li>{{ ev.claim | linkify }}</li>
-                    {% endfor %}
-                {% elif dim.summary %}
-                    {% for sentence in dim.summary.split('. ') %}
-                    {% if sentence.strip() %}<li>{{ sentence.strip().rstrip('.') }}</li>{% endif %}
-                    {% endfor %}
-                {% endif %}
-            </ul>
-            {% endmacro %}
-
-            {% macro pr_dim_details(label, dim, mx) %}
-            {% set pct = ((dim.score / mx) * 100) | round | int %}
-            {% set tier = 'score-high' if pct >= 72 else ('score-mid' if pct >= 40 else 'score-low') %}
-            <details class="dim-section dim-section-lm">
-                <summary>
-                    <span class="dim-sec-dot dim-sec-dot-lm"></span>
-                    <span class="dim-sec-name">{{ label }}</span>
-                    <span class="dim-sec-score {{ tier }}">{{ dim.score }}<span style="font-size:0.65rem;font-weight:500;color:#3d6655;margin-left:4px;">/ {{ mx }}</span></span>
-                </summary>
-                <div class="dim-sec-content">
-                    {{ pr_bullets(dim) }}
-                </div>
-            </details>
-            {% endmacro %}
-
-            {% if pr.organizational_dna and (pr.organizational_dna.summary or pr.organizational_dna.evidence) %}
-            {{ pr_dim_details("Organizational DNA", pr.organizational_dna, 10) }}
-            {% endif %}
-            {{ pr_dim_details("Training Org Maturity", pr.training_org_maturity, 35) }}
-            {{ pr_dim_details("Partner Program", pr.partner_program, 27) }}
-            {{ pr_dim_details("Customer Success", pr.customer_success, 35) }}
-            {{ pr_dim_details("Tech & Integration Readiness", pr.tech_readiness, 10) }}
-        </div>
 
         <!-- Customer Consumption Rollup -->
         {% if ns.has_cp and data.products|length > 0 %}

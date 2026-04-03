@@ -9,7 +9,7 @@ import anthropic
 log = logging.getLogger(__name__)
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from models import (
-    CompanyAnalysis, Product, ProductLababilityScore, LabMaturityScore,
+    CompanyAnalysis, Product, ProductLababilityScore,
     DimensionScore, Evidence, Contact, OrgUnit,
     ConsumptionMotion, ConsumptionPotential,
 )
@@ -35,16 +35,12 @@ with open(__DISCOVERY_PROMPT_PATH, "r", encoding="utf-8") as _f:
     DISCOVERY_PROMPT = _f.read()
 
 # ---------------------------------------------------------------------------
-# Focused prompts for parallel scoring (product + partnership run simultaneously)
+# Product scoring prompt
 # ---------------------------------------------------------------------------
 
 __PRODUCT_SCORING_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "product_scoring.txt")
 with open(__PRODUCT_SCORING_PROMPT_PATH, "r", encoding="utf-8") as _f:
     PRODUCT_SCORING_PROMPT = _f.read()
-
-__LAB_MATURITY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "lab_maturity.txt")
-with open(__LAB_MATURITY_PROMPT_PATH, "r", encoding="utf-8") as _f:
-    LAB_MATURITY_PROMPT = _f.read()
 
 
 def _call_claude(system_prompt: str, user_content: str, max_tokens: int = 4000) -> dict:
@@ -254,20 +250,8 @@ def _score_single_product(company_name: str, product: dict, product_context: str
     return data
 
 
-def _score_lab_maturity(company_name: str, company_context: str) -> dict:
-    """Score lab maturity via Claude. Returns the raw lab_maturity dict."""
-    user_content = f"# Lab Maturity Assessment for: {company_name}\n\n{company_context}"
-    data = _call_claude(LAB_MATURITY_PROMPT, user_content, max_tokens=4500)
-    if "lab_maturity" in data:
-        return data["lab_maturity"]
-    pr_keys = {"training_org_maturity", "partner_program", "customer_success", "organizational_dna", "tech_readiness"}
-    if any(k in data for k in pr_keys):
-        return data
-    return {}
-
-
 def score_selected_products(research: dict) -> CompanyAnalysis:
-    """Phase 2: Parallel scoring — one Claude call per product + one for partnership readiness."""
+    """Phase 2: Parallel scoring — one Claude call per product."""
     company_name = research["company_name"]
     selected = research["selected_products"]
     all_results = research.get("search_results", {})
@@ -277,8 +261,8 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
     company_context = _build_company_context(company_name, discovery_data)
     benchmarks_text = _build_benchmarks_text()
 
-    # Fire all calls in parallel
-    with ThreadPoolExecutor(max_workers=len(selected) + 1) as executor:
+    # Fire one call per product in parallel
+    with ThreadPoolExecutor(max_workers=len(selected)) as executor:
         product_futures = {
             executor.submit(
                 _score_single_product,
@@ -288,7 +272,6 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
             ): p["name"]
             for p in selected
         }
-        partnership_future = executor.submit(_score_lab_maturity, company_name, company_context)
 
         # Collect product results — 5-minute per-call timeout so a hung Claude call can't block forever
         product_results = {}
@@ -298,12 +281,6 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
                 product_results[name] = future.result()
             except Exception as e:
                 product_results[name] = {"_error": str(e)}
-
-        try:
-            partnership_data = partnership_future.result()
-        except Exception as pe:
-            log.exception("Lab maturity scoring failed: %s", pe)
-            partnership_data = {}
 
     # Log any product scoring failures and skip them — don't let errors produce "Unknown" products
     failed = {name: r for name, r in product_results.items() if "_error" in r}
@@ -332,7 +309,6 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
         "company_url": first.get("company_url", ""),
         "organization_type": first.get("organization_type", "software_company"),
         "products": products_list,
-        "lab_maturity": partnership_data,
     }
     return _parse_response_to_models(company_name, data)
 
@@ -450,18 +426,10 @@ def _parse_response_to_models(company_name: str, data: dict) -> CompanyAnalysis:
         )
         products.append(product)
 
-    pr = data.get("lab_maturity", {})
     return CompanyAnalysis(
         company_name=company_name,
         company_url=data.get("company_url"),
         company_description=data.get("company_description", ""),
         organization_type=data.get("organization_type", "software_company"),
         products=products,
-        lab_maturity=LabMaturityScore(
-            training_org_maturity=_parse_dimension(pr.get("training_org_maturity", {})),
-            partner_program=_parse_dimension(pr.get("partner_program", {})),
-            customer_success=_parse_dimension(pr.get("customer_success", {})),
-            organizational_dna=_parse_dimension(pr.get("organizational_dna", {})),
-            tech_readiness=_parse_dimension(pr.get("tech_readiness", {})),
-        ),
     )

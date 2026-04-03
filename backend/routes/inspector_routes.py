@@ -11,7 +11,7 @@ import uuid
 
 from flask import Blueprint, render_template, request, redirect, url_for, Response, stream_with_context, jsonify
 
-from core import _push, _sse_stream, _attach_scores, _compute_composite
+from core import _push, _sse_stream, _attach_scores
 from researcher import resolve_company_from_product
 from intelligence import (
     discover as intel_discover,
@@ -286,17 +286,6 @@ def product_detail(analysis_id: str, product_idx: int):
     return render_template("product_detail.html", data=data, product=product, product_idx=product_idx, analysis_id=analysis_id)
 
 
-# Lab Maturity Signals detail page
-
-@inspector.route("/results/<analysis_id>/lab-maturity")
-def lab_maturity_detail(analysis_id: str):
-    data = load_analysis(analysis_id)
-    if not data:
-        return "Analysis not found", 404
-    _attach_scores(data)
-    return render_template("lab_maturity_detail.html", data=data, analysis_id=analysis_id)
-
-
 # CSV export
 
 @inspector.route("/export/<analysis_id>")
@@ -307,24 +296,18 @@ def export(analysis_id: str):
 
     _attach_scores(data)
     products = data.get("products") or []
-    pr_total = data["_pr_total"]
 
     output = io.StringIO()
-    fieldnames = ["company_name", "product_name", "labability_score", "lab_maturity_score",
-                  "composite_score", "skillable_path", "org_type"]
+    fieldnames = ["company_name", "product_name", "composite_score", "skillable_path", "org_type"]
     writer = csv.DictWriter(output, fieldnames=fieldnames)
     _csv_defaults = {f: "" for f in fieldnames}
     writer.writeheader()
     org_type = data.get("organization_type", "software_company")
     for p in products:
-        lab = p.get("_total_score", 0)
-        composite, _, _ = _compute_composite(lab, pr_total, org_type)
         writer.writerow({**_csv_defaults,
                          "company_name": data.get("company_name", ""),
                          "product_name": p.get("name", ""),
-                         "labability_score": lab,
-                         "lab_maturity_score": pr_total,
-                         "composite_score": composite,
+                         "composite_score": p.get("_total_score", 0),
                          "skillable_path": p.get("skillable_path", ""),
                          "org_type": org_type})
 

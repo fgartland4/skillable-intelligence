@@ -163,7 +163,6 @@
                         <th>Top Product</th>
                         <th class="num">Lab Score</th>
                         <th class="num">Method</th>
-                        <th class="num">Lab Maturity</th>
                         <th class="num">Composite</th>
                         <th class="num" title="Authorized Training Partner program">ATP</th>
                         <th class="num">Channel</th>
@@ -198,13 +197,6 @@
                             {%- else -%}—{%- endif -%}
                         </td>
                         <td class="num">{{ row.skillable_path or '—' }}</td>
-                        <td class="num">
-                            {%- set lm = row.lab_maturity_score or 0 -%}
-                            {%- if lm >= 70 -%}<span class="score-high">{{ lm }}</span>
-                            {%- elif lm >= 40 -%}<span class="score-mid">{{ lm }}</span>
-                            {%- elif lm -%}<span class="score-low">{{ lm }}</span>
-                            {%- else -%}—{%- endif -%}
-                        </td>
                         <td class="num">
                             {%- set cs = row.composite_score or 0 -%}
                             {%- if cs >= 70 -%}<span class="score-high">{{ cs }}</span>

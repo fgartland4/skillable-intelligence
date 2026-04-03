@@ -86,48 +86,22 @@ def _sse_stream(job_id: str, poll_interval: float = 0.3):
 # Composite score helper (single source of truth)
 # ---------------------------------------------------------------------------
 
-_CHANNEL_ORGS = {"training_organization", "systems_integrator", "technology_distributor", "professional_services", "academic_institution"}
-
-
-def _compute_composite(top_lab: int, pr_score: int, org_type: str) -> tuple[int, bool, str]:
-    """Return (composite_score, is_gated, weights_label).
-
-    Company-level composite used in Prospector. Blends top product labability score
-    with organizational readiness score. Weights differ by org type:
-    - Software companies: Product Labability gates (65% product / 35% org readiness)
-    - Channel orgs (training, GSI, distributor, etc.): Org Readiness gates (35% product / 65% org readiness)
-    """
-    if org_type in _CHANNEL_ORGS:
-        raw = round(top_lab * 0.35 + pr_score * 0.65)
-        gate_threshold, gate_cap = 20, 30
-        weights = "35% Product Labability / 65% Org Readiness"
-    else:
-        raw = round(top_lab * 0.65 + pr_score * 0.35)
-        gate_threshold, gate_cap = 30, 25
-        weights = "65% Product Labability / 35% Org Readiness"
-
-    if top_lab < gate_threshold:
-        return min(raw, gate_cap), True, weights
-    return min(100, raw), False, weights
-
-
-# Raw max for org readiness scores = 35+27+35+10+10 = 117; divide to normalize to 0-100
-_PR_NORMALIZATION = 1.17
-
-
 def _attach_scores(data: dict) -> None:
-    """Score products, sort by score, and set _pr_total/_composite_* on data in place.
+    """Score products, sort by score, and set _composite_score on data in place.
 
     Single source of truth for all score computation across Inspector and Prospector.
     Safe to call on any analysis dict loaded from JSON storage.
+
+    Composite score = top product score. The 40/30/20/10 model already incorporates
+    all four dimensions (Product Labability, Instructional Value, Organizational
+    Readiness, Market Readiness) — no separate company-level score needed.
     """
     products = data.get("products") or []
     for p in products:
         p["_total_score"] = compute_product_score(p)
-        # Mirror of intelligence._labable_tier — update both if thresholds change.
         _score = p.get("_total_score", 0)
         _flags = set(p.get("poor_match_flags", []) or [])
-        # Ceiling flags: fundamental delivery constraints that cap Product Labability score
+        # Ceiling flags: fundamental delivery constraints that cap the score
         # regardless of raw score. Any of these present → less_likely or not_likely.
         _CEILING = {"bare_metal_required", "no_api_automation", "saas_only", "multi_tenant_only"}
         if _flags & _CEILING:
@@ -143,18 +117,9 @@ def _attach_scores(data: dict) -> None:
     products.sort(key=lambda p: p.get("_total_score", 0), reverse=True)
     data["products"] = products
 
-    # Org readiness score — always stored under "lab_maturity" key; "partnership_readiness" is legacy
-    pr = data.get("lab_maturity") or data.get("partnership_readiness") or {}
-    pr_raw = sum(s.get("score", 0) for s in pr.values() if isinstance(s, dict))
-    pr_total = min(100, round(pr_raw / _PR_NORMALIZATION))
-    data["_pr_total"] = pr_total
-
-    org_type = data.get("organization_type", "software_company")
-    top_lab = products[0].get("_total_score", 0) if products else 0
-    composite, gated, weights = _compute_composite(top_lab, pr_total, org_type)
-    data["_composite_score"] = composite
-    data["_composite_gated"] = gated
-    data["_composite_weights"] = weights or "65% Product / 35% Lab Maturity"
+    top_score = products[0].get("_total_score", 0) if products else 0
+    data["_composite_score"] = top_score
+    data["_composite_gated"] = top_score < 30
 
 
 def _fmt_ondemand(val) -> str:
