@@ -246,28 +246,32 @@
         .modal-overlay.visible { display: flex; }
         .modal-box {
             background: #0d1a14; border: 1px solid #1e3329;
-            border-radius: 14px; padding: 0; width: 460px; max-width: 95vw;
+            border-radius: 14px; padding: 0; width: 640px; max-width: 95vw;
             box-shadow: 0 24px 80px rgba(0,0,0,0.5);
         }
         .modal-header {
-            padding: 20px 24px 14px;
+            padding: 18px 24px 12px;
             border-bottom: 1px solid #1e3329;
         }
-        .modal-company { font-size: 1rem; font-weight: 700; color: #e8f5f0; }
-        .modal-count { font-size: 0.78rem; color: #3d6655; margin-top: 3px; }
-        .modal-prompt { font-size: 0.8rem; color: #6b9e88; margin-top: 6px; }
+        .modal-company { font-size: 0.95rem; font-weight: 700; color: #e8f5f0; }
+        .modal-count { font-size: 0.72rem; color: #3d6655; margin-top: 2px; }
+        .modal-prompt { font-size: 0.75rem; color: #6b9e88; margin-top: 4px; }
         .modal-body {
-            padding: 14px 0; max-height: 360px; overflow-y: auto;
+            padding: 8px 0; max-height: 400px; overflow-y: auto;
+            scrollbar-width: thin; scrollbar-color: #1e3329 #0d1a14;
         }
+        .modal-body::-webkit-scrollbar { width: 6px; }
+        .modal-body::-webkit-scrollbar-track { background: #0d1a14; }
+        .modal-body::-webkit-scrollbar-thumb { background: #1e3329; border-radius: 3px; }
         .family-radio {
-            display: flex; align-items: center; gap: 12px;
-            padding: 9px 24px; cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 24px; cursor: pointer;
             transition: background 0.12s;
         }
         .family-radio:hover { background: rgba(36,237,155,0.04); }
         .family-radio input[type=radio] { accent-color: #24ED9B; width: 14px; height: 14px; flex-shrink: 0; }
-        .family-name { flex: 1; font-size: 0.86rem; color: #e8f5f0; font-weight: 500; }
-        .family-count { font-size: 0.75rem; color: #3d6655; white-space: nowrap; }
+        .family-name { flex: 1; font-size: 0.8rem; color: #e8f5f0; font-weight: 500; }
+        .family-count { font-size: 0.7rem; color: #3d6655; white-space: nowrap; }
         .modal-footer {
             padding: 14px 24px 20px;
             border-top: 1px solid #1e3329; text-align: right;
