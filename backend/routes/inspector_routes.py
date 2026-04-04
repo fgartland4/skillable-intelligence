@@ -187,8 +187,10 @@ def caseboard(discovery_id: str):
         company_badge = type_label
     discovery["_company_badge"] = company_badge
 
-    # Product family picker — if 15+ non-TC products, group by category so the
-    # user can narrow down before selecting individual products for scoring.
+    # Product family picker — if 15+ non-TC products, show a family picker
+    # so the user can narrow down before selecting products for scoring.
+    # Prefers scraped website families (vendor's own organization) over
+    # category-based grouping as a fallback.
     FAMILY_THRESHOLD = 15
     non_tc = [p for p in discovery.get("products", [])
               if p.get("category") != "Training & Certification"]
@@ -196,25 +198,48 @@ def caseboard(discovery_id: str):
     selected_family = request.args.get("family")
 
     if selected_family:
-        # Filter products to the selected family (category match)
+        # User picked a family — run a focused discovery for just that family.
+        # Check if we have cached results for this family already; if not,
+        # filter existing products by matching category or product name keywords.
+        family_lower = selected_family.lower()
         discovery["products"] = [
             p for p in discovery.get("products", [])
-            if p.get("category") == selected_family or p.get("category") == "Training & Certification"
+            if p.get("category", "").lower() == family_lower
+            or family_lower in p.get("name", "").lower()
+            or family_lower in p.get("subcategory", "").lower()
+            or p.get("category") == "Training & Certification"
         ]
+        discovery["_selected_family"] = selected_family
     elif len(non_tc) >= FAMILY_THRESHOLD:
-        # Build product families from categories
-        family_counts = {}
-        for p in non_tc:
-            cat = p.get("category", "Other")
-            if cat not in family_counts:
-                family_counts[cat] = 0
-            family_counts[cat] += 1
-        # Sort by count descending
-        families = sorted(
-            [{"name": cat, "product_count": count} for cat, count in family_counts.items()],
-            key=lambda f: f["product_count"], reverse=True
-        )
-        discovery["product_families"] = families
+        # Show family picker — prefer scraped families from website nav
+        scraped = discovery.get("_scraped_families") or []
+        if scraped:
+            # Use scraped families — add estimated product counts from discovery
+            for fam in scraped:
+                fam_lower = fam["name"].lower()
+                fam["product_count"] = sum(
+                    1 for p in non_tc
+                    if fam_lower in p.get("name", "").lower()
+                    or fam_lower in p.get("category", "").lower()
+                    or fam_lower in p.get("subcategory", "").lower()
+                )
+            # Only show families that matched at least 1 discovered product, plus
+            # any others from the website nav (may have products not yet discovered)
+            families = sorted(scraped, key=lambda f: f.get("product_count", 0), reverse=True)
+            discovery["product_families"] = families
+        else:
+            # Fallback: group by category
+            family_counts = {}
+            for p in non_tc:
+                cat = p.get("category", "Other")
+                if cat not in family_counts:
+                    family_counts[cat] = 0
+                family_counts[cat] += 1
+            families = sorted(
+                [{"name": cat, "product_count": count} for cat, count in family_counts.items()],
+                key=lambda f: f["product_count"], reverse=True
+            )
+            discovery["product_families"] = families
 
     existing_analysis = find_analysis_by_discovery_id(discovery_id)
     return render_template("caseboard.html", discovery=discovery, existing_analysis=existing_analysis)

@@ -12,7 +12,7 @@ Six named operations
         Cached for CACHE_TTL_DAYS; force_refresh bypasses the cache.
 
     score(company_name, products, discovery_id, force_refresh=False)
-        Deep per-product scoring + lab maturity. Returns (analysis_id, data dict).
+        Deep per-product scoring + organizational readiness. Returns (analysis_id, data dict).
         Runs discrepancy detection after scoring: if deep scores disagree with
         discovery-tier likely_labable classifications, the discovery record is
         patched and the discrepancy is logged.
@@ -114,7 +114,20 @@ def discover(company_name: str, known_products: list[str] | None = None,
             return cached
 
     log.info("Intelligence.discover: running research for %s", company_name)
-    findings = discover_products(company_name, known_products)
+
+    # Run product family scraping in parallel with web research — the homepage
+    # nav scrape is fast (~2s) and runs concurrently with the 12 search queries.
+    from concurrent.futures import ThreadPoolExecutor
+    from researcher import scrape_product_families
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        family_future = pool.submit(scrape_product_families, company_name)
+        findings = discover_products(company_name, known_products)
+        scraped_families = []
+        try:
+            scraped_families = family_future.result(timeout=10)
+        except Exception as e:
+            log.warning("Product family scrape failed for %s: %s", company_name, e)
+
     discovery = discover_products_with_claude(findings)
 
     # Preserve all raw research signals alongside the Claude output
@@ -126,6 +139,11 @@ def discover(company_name: str, known_products: list[str] | None = None,
     discovery["discovery_id"] = _new_id()
     discovery["created_at"] = _now_iso()
     discovery["known_products"] = known_products or []
+
+    # Attach scraped product families for the family picker (large portfolios)
+    if scraped_families:
+        discovery["_scraped_families"] = scraped_families
+
     save_discovery(discovery["discovery_id"], discovery)
 
     log.info("Intelligence.discover: saved discovery %s for %s",
@@ -141,7 +159,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
           discovery_data: dict | None = None,
           research_cache: dict | None = None,
           force_refresh: bool = False) -> tuple[str, dict]:
-    """Deep per-product scoring + lab maturity.
+    """Deep per-product scoring + organizational readiness.
 
     Returns (analysis_id, data_dict).
 

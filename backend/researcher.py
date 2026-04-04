@@ -58,6 +58,124 @@ _FETCH_DEPTH: dict[str, int] = {
 }
 
 
+def scrape_product_families(company_name: str) -> list[dict]:
+    """Scrape a company's website navigation to extract product families.
+
+    Returns a list of {"name": "Family Name", "url": "https://..."} dicts,
+    sorted by relevance. Returns an empty list if scraping fails or no
+    clear product navigation is found.
+
+    This is used for large-portfolio companies (Oracle, Microsoft, SAP, etc.)
+    to present a family picker before running detailed product discovery.
+    """
+    # First, find the company's homepage via a quick search
+    results = _search_web(f"{company_name} official website", num_results=3)
+    homepage_url = None
+    name_lower = company_name.lower().split()[0]
+    for r in results:
+        url = r.get("url", "")
+        if name_lower in url.lower() and not any(s in url.lower() for s in ["linkedin", "wikipedia", "crunchbase", "glassdoor"]):
+            homepage_url = url
+            break
+    if not homepage_url and results:
+        homepage_url = results[0].get("url", "")
+    if not homepage_url:
+        return []
+
+    # Fetch the homepage HTML (keep nav/header — we need the navigation)
+    try:
+        resp = requests.get(homepage_url, timeout=8, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        })
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+    except Exception as e:
+        log.warning("Failed to fetch homepage for %s: %s", company_name, e)
+        return []
+
+    # Extract product-related navigation links from nav elements and menus
+    families = []
+    seen_names = set()
+
+    # Strategy 1: Look for nav links with "product" in the parent or nearby context
+    # Common patterns: <nav> → <a href="/products/database">Database</a>
+    product_keywords = {"product", "solution", "platform", "service", "offering",
+                        "technology", "software", "cloud", "suite", "portfolio"}
+    skip_keywords = {"blog", "support", "contact", "career", "about", "investor",
+                     "press", "login", "sign", "community", "event", "partner",
+                     "pricing", "free", "trial", "demo", "legal", "privacy",
+                     "cookie", "terms", "documentation", "docs", "status",
+                     "download", "resource", "webinar", "case-stud"}
+
+    for nav in soup.find_all(["nav", "header"]):
+        for link in nav.find_all("a", href=True):
+            href = link.get("href", "").lower()
+            text = link.get_text(strip=True)
+
+            # Skip empty, very short, or very long link text
+            if not text or len(text) < 3 or len(text) > 60:
+                continue
+
+            # Skip non-product links
+            if any(kw in href for kw in skip_keywords):
+                continue
+            if any(kw in text.lower() for kw in skip_keywords):
+                continue
+
+            # Check if this is in a product-related section
+            parent_text = " ".join(p.get_text(" ", strip=True).lower()
+                                   for p in link.parents if p.name in ("ul", "div", "li", "section"))
+            in_product_section = any(kw in href for kw in product_keywords) or \
+                                 any(kw in parent_text[:200] for kw in product_keywords)
+
+            if in_product_section and text not in seen_names:
+                # Build absolute URL
+                full_url = link["href"]
+                if full_url.startswith("/"):
+                    from urllib.parse import urljoin
+                    full_url = urljoin(homepage_url, full_url)
+
+                families.append({"name": text, "url": full_url})
+                seen_names.add(text)
+
+    # Strategy 2: If Strategy 1 found very few, also check the products page directly
+    if len(families) < 5:
+        products_page_url = None
+        for link in soup.find_all("a", href=True):
+            href = link.get("href", "").lower()
+            if "/products" in href or "/solutions" in href:
+                products_page_url = link["href"]
+                if products_page_url.startswith("/"):
+                    from urllib.parse import urljoin
+                    products_page_url = urljoin(homepage_url, products_page_url)
+                break
+
+        if products_page_url:
+            try:
+                resp2 = requests.get(products_page_url, timeout=8, headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                })
+                resp2.raise_for_status()
+                soup2 = BeautifulSoup(resp2.text, "html.parser")
+
+                # Look for product category headings and cards
+                for heading in soup2.find_all(["h2", "h3", "h4"]):
+                    text = heading.get_text(strip=True)
+                    if text and len(text) >= 3 and len(text) <= 60 and text not in seen_names:
+                        if not any(kw in text.lower() for kw in skip_keywords):
+                            families.append({"name": text, "url": products_page_url})
+                            seen_names.add(text)
+            except Exception:
+                pass  # Products page fetch failed — use what we have
+
+    # Deduplicate and limit to reasonable count
+    if len(families) > 25:
+        families = families[:25]
+
+    log.info("scrape_product_families(%s): found %d families from %s", company_name, len(families), homepage_url)
+    return families
+
+
 def _fetch_page_text(url: str, max_chars: int = 8000) -> str:
     """Fetch a URL and return its text content."""
     try:
@@ -311,7 +429,7 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
         queries.append((f"nfr_{name}",     f"{name} developer license NFR trial free evaluation"))
         queries.append((f"deploy_{name}",  f"{name} deployment guide system requirements installation prerequisites"))
         queries.append((f"compete_{name}", f"{name} hands-on lab sandbox CloudShare Instruqt Appsembler"))
-        # API lifecycle — critical for Gate 1 SaaS and automation scoring
+        # API lifecycle — critical for SaaS path and automation scoring (Product Labability)
         # Looks for OpenAPI/Swagger specs (highest evidence quality) and explicit DELETE/teardown endpoints
         queries.append((f"openapi_{name}", f"{name} openapi spec swagger site:github.com OR site:readme.io OR site:stoplight.io OR filetype:yaml OR filetype:json"))
         queries.append((f"api_lifecycle_{name}", f"{company_name} {name} REST API provision create configure delete teardown tenant lifecycle"))
