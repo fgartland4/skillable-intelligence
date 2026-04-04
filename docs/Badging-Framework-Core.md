@@ -33,12 +33,12 @@ Displayed in the page header, immediately right of the company name. Replaces th
 
 All labels display in uppercase, matching the existing org badge style (small font, letter-spaced, all-caps).
 
-**For software companies:** Format is **{CATEGORY} · SOFTWARE** — the product category provides the meaningful context.
+**For software companies:** Format is **{CATEGORY} SOFTWARE** — the product category provides the meaningful context, separated by a single space (no dot or separator).
 
 | Rule | Display | Example |
 |---|---|---|
 | Products span 3+ distinct top-level categories | **ENTERPRISE SOFTWARE** | Microsoft → ENTERPRISE SOFTWARE |
-| Products span 1–2 categories | **{CATEGORY} · SOFTWARE** | Trellix → CYBERSECURITY · SOFTWARE |
+| Products span 1–2 categories | **{CATEGORY} SOFTWARE** | Trellix → CYBERSECURITY SOFTWARE |
 
 **For all other company types:** Display the company type alone — the category is implied by the type and doesn't add value.
 

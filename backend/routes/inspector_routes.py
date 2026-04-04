@@ -179,7 +179,7 @@ def caseboard(discovery_id: str):
         if len(categories) >= 3:
             company_badge = "Enterprise Software"
         elif categories:
-            company_badge = " · ".join(sorted(categories)) + " · Software"
+            company_badge = ", ".join(sorted(categories)) + " Software"
         else:
             company_badge = "Software"
     else:
