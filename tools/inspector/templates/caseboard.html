@@ -143,6 +143,8 @@
             user-select: none;
         }
         .product-card:hover { background: #0f2018; border-color: rgba(36,237,155,0.22); }
+        .product-card.comp-card { cursor: default; padding: 10px 14px; }
+        .product-card.comp-card:hover { background: #0d1a14; border-color: #1e3329; }
         .product-card.card-checked { border-color: rgba(36,237,155,0.45); background: rgba(36,237,155,0.04); }
         .product-card.card-dimmed { opacity: 0.38; pointer-events: none; }
 
@@ -401,7 +403,7 @@
                 </div>
                 <div class="tier-cards">
                     {% for c in discovery.competitive_landscape %}
-                    <div class="product-card" style="cursor: default; padding: 10px 14px;">
+                    <div class="product-card comp-card">
                         <span class="card-name">
                             <span class="comp-name">{{ c.name }}</span>
                             {% if c.product %}<span class="comp-product"> — {{ c.product }}</span>{% endif %}
