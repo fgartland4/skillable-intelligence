@@ -311,8 +311,11 @@
 
 <div class="page">
 
-    {# ── Back link ── #}
+    {# ── Back links ── #}
     <a href="/inspector" class="btn-back">← Back to Company Search</a>
+    {% if request.args.get('family') %}
+    <a href="/inspector/caseboard/{{ discovery.discovery_id }}" class="btn-back" style="margin-left: 8px;">← Change Product Family</a>
+    {% endif %}
 
     {# ── Header ── #}
     <div class="header">
@@ -452,7 +455,7 @@
             {# Training & Certification #}
             {%- set partnership = discovery.get('partnership_signals') or {} -%}
             {%- set cert_name = partnership.get('cert_program', '') -%}
-            {%- set cert_is_named = cert_name and cert_name not in (-1, '-1', 'true', 'True', '1') -%}
+            {%- set cert_is_named = cert_name and cert_name is string and cert_name not in ('-1', 'true', 'True', '1', 'false', 'False') and not cert_name.isdigit() -%}
             {% if tc_prods or cert_is_named %}
             <div class="panel-box panel-box-tc">
                 <div class="panel-label panel-label-tc">Training &amp; Certification</div>
