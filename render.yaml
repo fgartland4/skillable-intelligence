@@ -3,7 +3,7 @@ services:
     name: skillable-intelligence
     runtime: python
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0:$PORT
+    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false
