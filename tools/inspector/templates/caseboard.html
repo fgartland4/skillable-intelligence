@@ -597,6 +597,12 @@
     }
 
     updateState();
+
+    // Restore button/checkbox state on bfcache (browser back)
+    window.addEventListener('pageshow', function() {
+        btn.innerHTML = 'Run Dossier \u2192';
+        updateState();
+    });
 })();
 </script>
 

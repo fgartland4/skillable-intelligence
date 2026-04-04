@@ -209,6 +209,16 @@
             dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); });
         }
 
+        // Restore button states on bfcache (browser back)
+        window.addEventListener('pageshow', function() {
+            const csvInput = document.getElementById('csv-input');
+            const pasteInput = document.getElementById('companies');
+            const anchorInput = document.getElementById('anchor_companies');
+            document.getElementById('btn-csv').disabled = !(csvInput && csvInput.files.length);
+            document.getElementById('btn-paste').disabled = !(pasteInput && pasteInput.value.trim());
+            document.getElementById('btn-lookalikes').disabled = !(anchorInput && anchorInput.value.trim());
+        });
+
         function prefillCompetitors() {
             fetch('/prospector/competitor-candidates')
                 .then(r => r.json())
