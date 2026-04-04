@@ -74,7 +74,7 @@ Displayed as a badge on each product row. Indicates how the vendor delivers the 
 |---|---|---|---|
 | `self-hosted` | **Installable** | Green (muted) | Has a downloadable installer, container image, or VM image that runs on customer-managed infrastructure — on-prem servers, VMs, or containers |
 | `hybrid` | **Hybrid** | Green (muted) | Available both as an installable product and as a cloud/SaaS service — multiple delivery paths possible |
-| `cloud` | **Cloud-Native** | Neutral/dim | Deployed on cloud infrastructure the customer controls (Azure, AWS, GCP subscriptions) — not vendor-hosted SaaS, but not a traditional installer either |
+| `cloud` | **Cloud-Native** | Green (muted) | Deployed on cloud infrastructure the customer controls (Azure, AWS, GCP subscriptions) — maps to Skillable Cloud Slice delivery path |
 | `saas-only` | **SaaS-Only** | Amber | Vendor-managed only — no installer, no container image, no VM image. Customer accesses via browser; vendor controls all infrastructure. Learner isolation and API questions ahead. |
 
 ---

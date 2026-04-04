@@ -181,7 +181,6 @@
             letter-spacing: 0.06em; text-transform: uppercase;
         }
         .badge-deploy-green { background: rgba(36,237,155,0.08); color: #6dd9a8; border: 1px solid rgba(36,237,155,0.18); }
-        .badge-deploy-dim   { background: rgba(148,163,184,0.06); color: #4a7060; border: 1px solid rgba(148,163,184,0.15); }
         .badge-deploy-amber { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
 
         .tier-empty-hint {
@@ -388,7 +387,7 @@
                         {% elif p.deployment_model == 'hybrid' %}
                         <span class="badge-deploy badge-deploy-green">Hybrid</span>
                         {% elif p.deployment_model == 'cloud' %}
-                        <span class="badge-deploy badge-deploy-dim">Cloud-Native</span>
+                        <span class="badge-deploy badge-deploy-green">Cloud-Native</span>
                         {% elif p.deployment_model == 'saas-only' %}
                         <span class="badge-deploy badge-deploy-amber">SaaS-Only</span>
                         {% endif %}
