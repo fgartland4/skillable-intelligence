@@ -21,9 +21,8 @@ a:hover { text-decoration: underline; }
 
 /* ── Page header ──────────────────────────────────────────────── */
 .page-header {
-    padding: 20px 0 16px;
-    border-bottom: 1px solid #1e3329;
-    margin-bottom: 32px;
+    padding: 20px 0 4px;
+    margin-bottom: 4px;
 }
 .page-header-top {
     display: flex; align-items: center; justify-content: space-between;
@@ -41,9 +40,8 @@ a:hover { text-decoration: underline; }
 
 /* ── Hero ─────────────────────────────────────────────────────── */
 .hero {
-    padding: 24px 0 28px;
-    border-bottom: 1px solid #1e3329;
-    margin-bottom: 24px;
+    padding: 24px 0 12px;
+    margin-bottom: 8px;
 }
 .hero-company-name {
     font-size: 2rem; font-weight: 800; color: #e8f5f0; margin-bottom: 4px;
@@ -52,6 +50,7 @@ a:hover { text-decoration: underline; }
 .hero-description { font-size: 0.85rem; color: #6b9e88; margin-bottom: 22px; line-height: 1.6; }
 .hero-row {
     display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    justify-content: space-between;
 }
 .hero-score-area { display: flex; flex-direction: column; gap: 4px; }
 .hero-score {
@@ -68,8 +67,7 @@ a:hover { text-decoration: underline; }
 
 /* ── ACV — large green, separated by vertical line ───────────── */
 .hero-acv {
-    display: flex; flex-direction: column;
-    border-left: 1px solid #1e3329; padding-left: 24px;
+    display: flex; flex-direction: column; text-align: right;
 }
 .acv-eyebrow {
     font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
@@ -89,33 +87,33 @@ a:hover { text-decoration: underline; }
 }
 .dim-box {
     background: #0c1f19; border: 1px solid #1e3329; border-radius: 10px;
-    padding: 18px 20px;
+    padding: 14px 18px;
 }
 .dim-box-header {
     display: flex; align-items: baseline; justify-content: space-between;
-    margin-bottom: 14px; border-bottom: 1px solid #1a2e26; padding-bottom: 10px;
+    margin-bottom: 8px; border-bottom: 1px solid #1a2e26; padding-bottom: 6px;
 }
 .dim-box-title {
     font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em;
     color: #6b9e88; text-transform: uppercase;
 }
 .dim-box-score {
-    font-size: 1.1rem; font-weight: 900; color: #e8f5f0;
+    font-size: 1.4rem; font-weight: 900; color: #24ED9B;
     font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
 }
-.dim-box-max { font-size: 0.8rem; color: #2e4d40; font-weight: 400; }
+.dim-box-max { font-size: 0.85rem; color: #6b9e88; font-weight: 600; }
 /* ── Subsection rows inside dimension boxes ──────────────────── */
 .dim-subsection {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    gap: 12px; padding: 6px 0;
+    display: flex; align-items: center;
+    gap: 12px; padding: 5px 0;
 }
 .dim-subsection + .dim-subsection { border-top: 1px solid #0f1f18; }
 .dim-subsection-label {
-    font-size: 0.68rem; font-weight: 600; color: #4a7060;
-    white-space: nowrap; min-width: 110px; padding-top: 2px;
+    font-size: 0.74rem; font-weight: 700; color: #a78bfa;
+    white-space: nowrap; width: 160px; flex-shrink: 0;
 }
 .dim-subsection-badges {
-    display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; flex: 1;
+    display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start; flex: 1;
 }
 .dim-no-signal { font-size: 0.72rem; color: #2e4d40; font-style: italic; }
 /* ── dim-badge — from _theme.html ─────────────────────────────── */
@@ -168,8 +166,8 @@ details summary::-webkit-details-marker { display: none; }
 .product-summary:hover { background: #0f261e; }
 
 .product-score-pill {
-    font-size: 1.05rem; font-weight: 800; min-width: 36px; text-align: center;
-    font-variant-numeric: tabular-nums;
+    font-size: 1.4rem; font-weight: 900; min-width: 44px; text-align: center;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
 }
 .product-score-pill.highly_likely { color: #24ED9B; }
 .product-score-pill.likely        { color: #7dd8b8; }
@@ -178,15 +176,15 @@ details summary::-webkit-details-marker { display: none; }
 
 .product-name-text { font-weight: 600; color: #e8f5f0; font-size: 0.95rem; flex: 1; }
 .product-cat-badge {
-    font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 600; padding: 5px 10px; border-radius: 4px;
     color: #a78bfa; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2);
 }
 .product-highlight-badge {
-    font-size: 0.72rem; font-weight: 600; padding: 3px 10px; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 600; padding: 5px 10px; border-radius: 4px;
     color: #24ED9B; background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.2);
 }
 .product-verdict-badge {
-    font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 700; padding: 5px 10px; border-radius: 4px;
     text-transform: uppercase; letter-spacing: 0.04em;
 }
 .product-verdict-badge.strong-fit { color: #24ED9B; background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.25); }
@@ -232,9 +230,9 @@ details[open] .chevron { transform: rotate(180deg); }
 .methodology-note { font-size: 0.75rem; color: #4a7060; font-style: italic; margin-top: 8px; }
 
 /* Dimension sections in product body */
-.dim-section { margin-bottom: 20px; border-top: 1px solid #0f1f18; padding-top: 16px; }
+.dim-section { margin-bottom: 24px; border-top: 2px solid #1e3329; padding-top: 20px; }
 .dim-section-header {
-    display: flex; align-items: baseline; gap: 10px;
+    display: flex; align-items: baseline; justify-content: space-between;
     margin-bottom: 8px;
 }
 .dim-section-title {
@@ -242,10 +240,10 @@ details[open] .chevron { transform: rotate(180deg); }
     color: #7dd8b8; text-transform: uppercase;
 }
 .dim-section-score {
-    font-size: 0.8rem; font-weight: 700; color: #e8f5f0;
-    font-variant-numeric: tabular-nums;
+    font-size: 1.2rem; font-weight: 900; color: #24ED9B;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
 }
-.dim-section-max { color: #2e4d40; font-weight: 400; }
+.dim-section-max { font-size: 0.8rem; color: #6b9e88; font-weight: 600; }
 .dim-summary { font-size: 0.83rem; color: #8cb8a8; margin-bottom: 10px; }
 
 /* Sub-dimension grouping */
@@ -267,7 +265,7 @@ details[open] .chevron { transform: rotate(180deg); }
 .lab-card {
     background: #0c1f19; border: 1px solid #1e3329; border-radius: 8px; padding: 12px 14px;
 }
-.lab-card-name { font-size: 0.85rem; font-weight: 600; color: #e8f5f0; margin-bottom: 4px; }
+.lab-card-name { font-size: 0.85rem; font-weight: 600; color: #a78bfa; margin-bottom: 4px; }
 .lab-card-desc { font-size: 0.78rem; color: #6b9e88; line-height: 1.4; }
 
 /* Recommendations */
@@ -289,7 +287,7 @@ details[open] .chevron { transform: rotate(180deg); }
 <!-- ── Page header ──────────────────────────────────────────────── -->
 <div class="page-header">
     <div class="page-header-top">
-        <a class="back-link" href="{{ url_for('inspector.caseboard', discovery_id=data.get('discovery_id', '')) if data.get('discovery_id') else url_for('inspector.home') }}">← Back to Caseboard</a>
+        <a class="back-link" href="{{ url_for('inspector.caseboard', discovery_id=data.get('discovery_id', '')) if data.get('discovery_id') else url_for('inspector.home') }}">← Back to Product Selection</a>
         <span class="page-meta">
             Analyzed {{ (data.get('analyzed_at') or '')[:10] }}
             · {{ (data.get('products') or []) | length }} scored
@@ -314,9 +312,9 @@ details[open] .chevron { transform: rotate(180deg); }
     {%- if not badges.green and not badges.amber and not badges.red -%}
         <span class="dim-empty">No signals found</span>
     {%- else -%}
-        {%- for b in badges.green %}<span class="dim-badge green">✅ {{ b.name }}</span>{% endfor -%}
-        {%- for b in badges.amber %}<span class="dim-badge amber">⚠️ {{ b.name }}</span>{% endfor -%}
-        {%- for b in badges.red %}<span class="dim-badge red">🚫 {{ b.name }}</span>{% endfor -%}
+        {%- for b in badges.green %}<span class="dim-badge green">{{ b.name }}</span>{% endfor -%}
+        {%- for b in badges.amber %}<span class="dim-badge amber">{{ b.name }}</span>{% endfor -%}
+        {%- for b in badges.red %}<span class="dim-badge red">{{ b.name }}</span>{% endfor -%}
     {%- endif %}
 {% endmacro %}
 
@@ -337,29 +335,29 @@ details[open] .chevron { transform: rotate(180deg); }
     {%- if groups.provisioning %}
     <div class="subdim-block">
         <div class="subdim-title">Provisioning</div>
-        <ul class="evidence-list">{% for ev in groups.provisioning %}{{ render_ev(ev) }}{% endfor %}</ul>
+        <ul class="evidence-list">{% for ev in groups.provisioning | dedup_evidence %}{{ render_ev(ev) }}{% endfor %}</ul>
     </div>
     {%- endif -%}
     {%- if groups.licensing %}
     <div class="subdim-block">
         <div class="subdim-title">Licensing &amp; Accounts</div>
-        <ul class="evidence-list">{% for ev in groups.licensing %}{{ render_ev(ev) }}{% endfor %}</ul>
+        <ul class="evidence-list">{% for ev in groups.licensing | dedup_evidence %}{{ render_ev(ev) }}{% endfor %}</ul>
     </div>
     {%- endif -%}
     {%- if groups.scoring %}
     <div class="subdim-block">
         <div class="subdim-title">Scoring</div>
-        <ul class="evidence-list">{% for ev in groups.scoring %}{{ render_ev(ev) }}{% endfor %}</ul>
+        <ul class="evidence-list">{% for ev in groups.scoring | dedup_evidence %}{{ render_ev(ev) }}{% endfor %}</ul>
     </div>
     {%- endif -%}
     {%- if groups.teardown %}
     <div class="subdim-block">
         <div class="subdim-title">Teardown</div>
-        <ul class="evidence-list">{% for ev in groups.teardown %}{{ render_ev(ev) }}{% endfor %}</ul>
+        <ul class="evidence-list">{% for ev in groups.teardown | dedup_evidence %}{{ render_ev(ev) }}{% endfor %}</ul>
     </div>
     {%- endif -%}
     {%- if groups.other %}
-    <ul class="evidence-list">{% for ev in groups.other %}{{ render_ev(ev) }}{% endfor %}</ul>
+    <ul class="evidence-list">{% for ev in groups.other | dedup_evidence %}{{ render_ev(ev) }}{% endfor %}</ul>
     {%- endif %}
 {% endmacro %}
 
@@ -441,14 +439,19 @@ details[open] .chevron { transform: rotate(180deg); }
 {%- set _mr_sc = (_mr.get('score', 0) if _mr is mapping else _mr.score) | default(0) -%}
 
 {# Helper: render badges for a subsection's evidence list #}
-{% macro subsection_badges(ev_list) %}
+{% macro subsection_badges(ev_list, default_badge='') %}
     {%- set badges = ev_list | parse_badges -%}
-    {%- if badges.green or badges.amber or badges.red -%}
-        {%- for b in badges.green %}<span class="dim-badge green">✅ {{ b.name }}</span>{% endfor -%}
-        {%- for b in badges.amber %}<span class="dim-badge amber">⚠️ {{ b.name }}</span>{% endfor -%}
-        {%- for b in badges.red %}<span class="dim-badge red">🚫 {{ b.name }}</span>{% endfor -%}
-    {%- else -%}
-        <span class="dim-no-signal">—</span>
+    {%- set all_badges = [] -%}
+    {%- for b in badges.red %}{%- set _ = all_badges.append(b) -%}{% endfor -%}
+    {%- for b in badges.amber %}{%- set _ = all_badges.append(b) -%}{% endfor -%}
+    {%- for b in badges.green %}{%- set _ = all_badges.append(b) -%}{% endfor -%}
+    {%- if all_badges -%}
+        {%- for b in all_badges[:2] -%}
+            {%- set color = b.qualifier | badge_color -%}
+            <span class="dim-badge {{ color }}">{{ b.name }}</span>
+        {%- endfor -%}
+    {%- elif default_badge -%}
+        <span class="dim-badge amber">{{ default_badge }}</span>
     {%- endif %}
 {% endmacro %}
 
@@ -462,19 +465,19 @@ details[open] .chevron { transform: rotate(180deg); }
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Provisioning</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.provisioning) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.provisioning, 'Provisioning APIs') }}</div>
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Licensing &amp; Accounts</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.licensing) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.licensing, 'Supports NFR Accounts') }}</div>
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Scoring</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.scoring) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.scoring, 'Scoring APIs') }}</div>
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Teardown</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.teardown) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.teardown, 'Teardown APIs') }}</div>
         </div>
     </div>
 
@@ -487,11 +490,11 @@ details[open] .chevron { transform: rotate(180deg); }
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Difficult to Master</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(iv_groups.difficult_to_master) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(iv_groups.difficult_to_master, 'Workflow Complexity') }}</div>
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Mastery Matters</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(iv_groups.mastery_matters) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(iv_groups.mastery_matters, 'High-Stakes Skills') }}</div>
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Lab Format Opportunities</span>
@@ -508,65 +511,27 @@ details[open] .chevron { transform: rotate(180deg); }
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Content Development</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(or_groups.content_development) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(or_groups.content_development, 'Dedicated Content Dept') }}</div>
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Content Delivery</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(or_groups.content_delivery) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(or_groups.content_delivery, 'LMS / LXP') }}</div>
         </div>
     </div>
 
-    {# ── Market Readiness (10%) ───────────────────────────────────── #}
+    {# ── Market Fit (10%) ───────────────────────────────────── #}
     {%- set mr_groups = mr_evs | group_market_readiness -%}
     <div class="dim-box">
         <div class="dim-box-header">
-            <div class="dim-box-title">Market Readiness</div>
+            <div class="dim-box-title">Market Fit</div>
             <div class="dim-box-score">{{ _mr_sc }}<span class="dim-box-max"> / 10</span></div>
         </div>
         <div class="dim-subsection">
             <span class="dim-subsection-label">Product Popularity</span>
-            <div class="dim-subsection-badges">{{ subsection_badges(mr_groups.product_popularity) }}</div>
+            <div class="dim-subsection-badges">{{ subsection_badges(mr_groups.product_popularity, 'Growth Trajectory') }}</div>
         </div>
     </div>
 </div><!-- dim-grid -->
-
-{# ─────────────────────────────────────────────────────────────── #}
-{#  NEXT STEPS                                                     #}
-{# ─────────────────────────────────────────────────────────────── #}
-{%- set top_recs = (top.get('recommendation') or []) if top is mapping else (top.recommendation or []) -%}
-{%- if top_recs -%}
-{%- set lead_recs = [] -%}
-{%- set risk_recs = [] -%}
-{%- for rec in top_recs -%}
-    {%- set _rl = rec.lower() -%}
-    {%- if ('| risk' in _rl or '| blocker' in _rl or '— risk' in _rl or '— blocker' in _rl
-            or _rl.startswith('**blocker') or _rl.startswith('**risk')
-            or '**help your champion' in _rl) -%}
-        {%- set _ = risk_recs.append(rec) -%}
-    {%- else -%}
-        {%- set _ = lead_recs.append(rec) -%}
-    {%- endif -%}
-{%- endfor -%}
-<div class="next-steps">
-    <div class="next-steps-title">Next Steps</div>
-    <div class="next-col">
-        <div>
-            <div class="next-section-title lead">What to Lead With</div>
-            <ul class="next-list">
-                {%- for rec in lead_recs %}<li>{{ rec | rec_bullet | safe }}</li>{% endfor -%}
-                {%- if not lead_recs %}<li class="text-muted">Review strengths in dimension boxes above.</li>{% endif -%}
-            </ul>
-        </div>
-        <div>
-            <div class="next-section-title risks">Prepare for These Risks</div>
-            <ul class="next-list">
-                {%- for rec in risk_recs %}<li>{{ rec | rec_bullet | safe }}</li>{% endfor -%}
-                {%- if not risk_recs %}<li class="text-muted">No significant risks flagged.</li>{% endif -%}
-            </ul>
-        </div>
-    </div>
-</div>
-{%- endif -%}
 
 {# ─────────────────────────────────────────────────────────────── #}
 {#  PRODUCTS                                                       #}
@@ -609,16 +574,30 @@ details[open] .chevron { transform: rotate(180deg); }
 <div class="product-item {{ ptier }}">
 <details>
 <summary class="product-summary">
-    <span class="product-score-pill {{ ptier }}">{{ pscore }}</span>
     <span class="product-name-text">{{ pname }}</span>
-    {%- if pcat %}<span class="product-cat-badge">{{ pcat }}</span>{% endif -%}
+    {%- set psubcat = p.get('subcategory', '') if p is mapping else (p.subcategory or '') -%}
+    {%- if psubcat %}<span class="product-cat-badge">{{ psubcat }}</span>{% endif -%}
     {%- if phighlight %}<span class="product-highlight-badge">{{ phighlight }}</span>{% endif -%}
     <span class="product-verdict-badge {{ pv_cls }}">{{ pverdict }}</span>
-    {%- if ppath %}<span class="product-path-label">{{ ppath }}</span>{% endif -%}
+    <span class="product-score-pill {{ ptier }}">{{ pscore }}</span>
     <span class="chevron">▾</span>
 </summary>
 
 <div class="product-body">
+
+    {# ── "Help your champion" callout — top of product detail ── #}
+    {%- set champion_recs = [] -%}
+    {%- for rec in precs -%}
+        {%- if 'Help your champion' in rec or 'Help Your Champion' in rec or 'help your champion' in rec -%}
+            {%- set _ = champion_recs.append(rec) -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- if champion_recs %}
+    <div style="background:rgba(245,158,11,0.06); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:12px 16px; margin-top:10px; margin-bottom:16px;">
+        <div style="font-size:0.62rem; font-weight:700; letter-spacing:0.1em; color:#f59e0b; text-transform:uppercase; margin-bottom:6px;">Essential Technical Resource</div>
+        <div style="font-size:0.83rem; color:#e8f5f0; line-height:1.55;">{{ champion_recs[0] | bold_labels | safe }}</div>
+    </div>
+    {%- endif %}
 
     {# Poor match flags #}
     {%- if pflags %}
@@ -675,69 +654,59 @@ details[open] .chevron { transform: rotate(180deg); }
     </div>
     {%- endif %}
 
+    {# ── Pre-sort recommendations for inline placement ────── #}
+    {%- set delivery_rec = '' -%}
+    {%- set scoring_rec = '' -%}
+    {%- for rec in precs -%}
+        {%- if 'Delivery Path' in rec and not delivery_rec -%}{%- set delivery_rec = rec -%}{%- endif -%}
+        {%- if ('Scoring Approach' in rec or 'Scoring Bot' in rec) and not scoring_rec -%}{%- set scoring_rec = rec -%}{%- endif -%}
+    {%- endfor -%}
+
     {# ── Product Labability ─────────────────────────────────── #}
     <div class="dim-section">
         <div class="dim-section-header">
-            <span class="dim-section-title">Product Labability</span>
+            <span class="dim-section-title">Product Labability <span style="font-weight:400; color:#4a7060; font-style:italic; letter-spacing:0;">· Can we orchestrate this product?</span></span>
             <span class="dim-section-score">{{ pp_pl_score }} <span class="dim-section-max">/ 40</span></span>
         </div>
-        {%- if ppath %}<div class="dim-summary" style="color:#4a7060;font-size:0.8rem;margin-bottom:6px;">{{ ppath }}</div>{% endif -%}
-        {%- if pp_pl_sum %}<div class="dim-summary">{{ pp_pl_sum }}</div>{% endif -%}
         {%- if pp_pl_evs %}{{ render_labability(pp_pl_evs) }}{% endif %}
-        {# Labability recommendations: Delivery Path, Scoring Approach #}
-        {%- set lab_recs = [] -%}
-        {%- for rec in precs -%}
-            {%- if 'Delivery Path' in rec or 'Scoring Approach' in rec or 'Scoring Bot' in rec
-                    or 'Help your champion' in rec or 'Help Your Champion' in rec -%}
-                {%- set _ = lab_recs.append(rec) -%}
-            {%- endif -%}
-        {%- endfor -%}
-        {%- if lab_recs %}
+        {%- if delivery_rec %}
         <div class="subdim-block">
-            <div class="subdim-title">Recommendations</div>
-            <ul class="rec-list">{%- for r in lab_recs %}<li>{{ r | bold_labels | safe }}</li>{% endfor -%}</ul>
+            <div class="subdim-title">Delivery Path</div>
+            <ul class="rec-list"><li>{{ delivery_rec | bold_labels | safe }}</li></ul>
+        </div>
+        {%- endif %}
+        {%- if scoring_rec %}
+        <div class="subdim-block">
+            <div class="subdim-title">Scoring Approach</div>
+            <ul class="rec-list"><li>{{ scoring_rec | bold_labels | safe }}</li></ul>
         </div>
         {%- endif %}
     </div>
 
     {# ── Instructional Value ────────────────────────────────── #}
+    {%- set pp_iv_groups = pp_iv_evs | group_instructional_value -%}
     <div class="dim-section">
         <div class="dim-section-header">
-            <span class="dim-section-title">Instructional Value</span>
+            <span class="dim-section-title">Instructional Value <span style="font-weight:400; color:#4a7060; font-style:italic; letter-spacing:0;">· Does this product need labs?</span></span>
             <span class="dim-section-score">{{ pp_iv_score }} <span class="dim-section-max">/ 30</span></span>
         </div>
-        {%- if pp_iv_sum %}<div class="dim-summary">{{ pp_iv_sum }}</div>{% endif %}
-        {%- if pp_iv_evs -%}
-            {%- set dtm_kw = ['Product Breadth', 'Workflow Complexity', 'Configuration Complexity', 'Not Lab Appropriate',
-                               'Workflow Depth', 'Integration Complexity', 'Hands-On AI', 'Role Breadth',
-                               'Multi-component', 'Multi-VM', 'Training Scope'] -%}
-            {%- set mm_kw  = ['Adoption', 'TTV', 'High-Stakes', 'Certification Program',
-                               'Existing ILT', 'ILT Course', 'Hands-On Event', 'Customer Impact'] -%}
-            {%- set dtm_evs2 = [] -%}{%- set mm_evs2 = [] -%}{%- set oth_iv = [] -%}
-            {%- for ev in pp_iv_evs -%}
-                {%- set cl = (ev.get('claim','') if ev is mapping else ev.claim) -%}
-                {%- set m2 = false -%}
-                {%- for kw in dtm_kw -%}{%- if kw in cl and not m2 -%}{%- set m2 = true -%}{%- set _ = dtm_evs2.append(ev) -%}{%- endif -%}{%- endfor -%}
-                {%- if not m2 -%}
-                    {%- for kw in mm_kw -%}{%- if kw in cl and not m2 -%}{%- set m2 = true -%}{%- set _ = mm_evs2.append(ev) -%}{%- endif -%}{%- endfor -%}
-                {%- endif -%}
-                {%- if not m2 -%}{%- set _ = oth_iv.append(ev) -%}{%- endif -%}
-            {%- endfor -%}
-            {%- if dtm_evs2 %}
-            <div class="subdim-block">
-                <div class="subdim-title">Difficult to Master</div>
-                <ul class="evidence-list">{%- for ev in dtm_evs2 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
-            </div>
-            {%- endif -%}
-            {%- if mm_evs2 %}
-            <div class="subdim-block">
-                <div class="subdim-title">Mastery Matters</div>
-                <ul class="evidence-list">{%- for ev in mm_evs2 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
-            </div>
-            {%- endif -%}
-            {%- if oth_iv %}
-            <ul class="evidence-list">{%- for ev in oth_iv %}{{ render_ev(ev) }}{%- endfor -%}</ul>
-            {%- endif -%}
+        {%- if pp_iv_groups.difficult_to_master %}
+        <div class="subdim-block">
+            <div class="subdim-title">Difficult to Master</div>
+            <ul class="evidence-list">{%- for ev in pp_iv_groups.difficult_to_master | dedup_evidence %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+        </div>
+        {%- endif -%}
+        {%- if pp_iv_groups.mastery_matters %}
+        <div class="subdim-block">
+            <div class="subdim-title">Mastery Matters</div>
+            <ul class="evidence-list">{%- for ev in pp_iv_groups.mastery_matters | dedup_evidence %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+        </div>
+        {%- endif -%}
+        {%- if pp_iv_groups.lab_format %}
+        <div class="subdim-block">
+            <div class="subdim-title">Lab Format Opportunities</div>
+            <ul class="evidence-list">{%- for ev in pp_iv_groups.lab_format | dedup_evidence %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+        </div>
         {%- endif %}
 
         {# Potential Labs #}
@@ -761,97 +730,43 @@ details[open] .chevron { transform: rotate(180deg); }
         </div>
         {%- endif %}
 
-        {# IV recommendations #}
-        {%- set iv_recs = [] -%}
-        {%- for rec in precs -%}
-            {%- if 'Program Fit' in rec or 'Lab Format' in rec or 'Scenario' in rec -%}
-                {%- set _ = iv_recs.append(rec) -%}
-            {%- endif -%}
-        {%- endfor -%}
-        {%- if iv_recs %}
-        <div class="subdim-block">
-            <div class="subdim-title">Recommendations</div>
-            <ul class="rec-list">{%- for r in iv_recs %}<li>{{ r | bold_labels | safe }}</li>{% endfor -%}</ul>
-        </div>
-        {%- endif %}
     </div>
 
     {# ── Organizational Readiness ───────────────────────────── #}
+    {%- set pp_or_groups = pp_or_evs | group_org_readiness -%}
     <div class="dim-section">
         <div class="dim-section-header">
-            <span class="dim-section-title">Organizational Readiness</span>
+            <span class="dim-section-title">Organizational Readiness <span style="font-weight:400; color:#4a7060; font-style:italic; letter-spacing:0;">· Do they have resources to create and deliver labs?</span></span>
             <span class="dim-section-score">{{ pp_or_score }} <span class="dim-section-max">/ 20</span></span>
         </div>
-        {%- if pp_or_sum %}<div class="dim-summary">{{ pp_or_sum }}</div>{% endif %}
-        {%- if pp_or_evs -%}
-            {%- set cd_kw2 = ['Content Dept', 'Content Team', 'Dedicated Content', 'Outsourced', 'Authoring',
-                               'Training Org', 'Training Team', 'Education Services', 'Content Dev',
-                               'Learning Team', 'Curriculum'] -%}
-            {%- set de_kw2 = ['ATP', 'Learning Program', 'ILT', 'vILT', 'On-Demand', 'LMS', 'LXP',
-                               'Skillable', 'Instruqt', 'CloudShare', 'Skytap', 'DIY',
-                               'Immersive', 'Hack The Box', 'TryHackMe', 'GoDeploy', 'Vocareum', 'Appsembler',
-                               'Partner Network', 'Partner Program', 'Channel Partner', 'Certification',
-                               'Gray Market', 'Reseller', 'Training Partner'] -%}
-            {%- set cd_evs3 = [] -%}{%- set de_evs3 = [] -%}{%- set oth_or = [] -%}
-            {%- for ev in pp_or_evs -%}
-                {%- set cl2 = (ev.get('claim','') if ev is mapping else ev.claim) -%}
-                {%- set m3 = false -%}
-                {%- for kw in cd_kw2 -%}{%- if kw in cl2 and not m3 -%}{%- set m3 = true -%}{%- set _ = cd_evs3.append(ev) -%}{%- endif -%}{%- endfor -%}
-                {%- if not m3 -%}
-                    {%- for kw in de_kw2 -%}{%- if kw in cl2 and not m3 -%}{%- set m3 = true -%}{%- set _ = de_evs3.append(ev) -%}{%- endif -%}{%- endfor -%}
-                {%- endif -%}
-                {%- if not m3 -%}{%- set _ = oth_or.append(ev) -%}{%- endif -%}
-            {%- endfor -%}
-            {%- if cd_evs3 %}
-            <div class="subdim-block">
-                <div class="subdim-title">Content Development</div>
-                <ul class="evidence-list">{%- for ev in cd_evs3 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
-            </div>
-            {%- endif -%}
-            {%- if de_evs3 %}
-            <div class="subdim-block">
-                <div class="subdim-title">Content Delivery Ecosystem</div>
-                <ul class="evidence-list">{%- for ev in de_evs3 %}{{ render_ev(ev) }}{%- endfor -%}</ul>
-            </div>
-            {%- endif -%}
-            {%- if oth_or %}
-            <ul class="evidence-list">{%- for ev in oth_or %}{{ render_ev(ev) }}{%- endfor -%}</ul>
-            {%- endif -%}
+        {%- if pp_or_groups.content_development %}
+        <div class="subdim-block">
+            <div class="subdim-title">Content Development</div>
+            <ul class="evidence-list">{%- for ev in pp_or_groups.content_development | dedup_evidence %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+        </div>
+        {%- endif -%}
+        {%- if pp_or_groups.content_delivery %}
+        <div class="subdim-block">
+            <div class="subdim-title">Content Delivery Ecosystem</div>
+            <ul class="evidence-list">{%- for ev in pp_or_groups.content_delivery | dedup_evidence %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+        </div>
         {%- endif %}
     </div>
 
-    {# ── Market Readiness ──────────────────────────────────── #}
+    {# ── Market Fit ──────────────────────────────────── #}
     <div class="dim-section">
         <div class="dim-section-header">
-            <span class="dim-section-title">Market Readiness</span>
+            <span class="dim-section-title">Market Fit <span style="font-weight:400; color:#4a7060; font-style:italic; letter-spacing:0;">· Is the world interested?</span></span>
             <span class="dim-section-score">{{ pp_mr_score }} <span class="dim-section-max">/ 10</span></span>
         </div>
-        {%- if pp_mr_sum %}<div class="dim-summary">{{ pp_mr_sum }}</div>{% endif %}
         {%- if pp_mr_evs %}
         <div class="subdim-block">
             <div class="subdim-title">Product Popularity</div>
-            <ul class="evidence-list">{%- for ev in pp_mr_evs %}{{ render_ev(ev) }}{%- endfor -%}</ul>
+            <ul class="evidence-list">{%- for ev in pp_mr_evs | dedup_evidence %}{{ render_ev(ev) }}{%- endfor -%}</ul>
         </div>
         {%- endif %}
     </div>
 
-    {# Any remaining recommendations not already categorised #}
-    {%- set shown_kw2 = ['Delivery Path', 'Scoring Approach', 'Scoring Bot', 'Program Fit', 'Lab Format', 'Scenario',
-                          'Help your champion', 'Help Your Champion'] -%}
-    {%- set other_recs2 = [] -%}
-    {%- for rec in precs -%}
-        {%- set used2 = false -%}
-        {%- for kw in shown_kw2 -%}{%- if kw in rec -%}{%- set used2 = true -%}{%- endif -%}{%- endfor -%}
-        {%- if not used2 -%}{%- set _ = other_recs2.append(rec) -%}{%- endif -%}
-    {%- endfor -%}
-    {%- if other_recs2 %}
-    <div class="dim-section">
-        <div class="dim-section-header">
-            <span class="dim-section-title" style="color:#6b9e88;">Additional Notes</span>
-        </div>
-        <ul class="rec-list">{%- for r in other_recs2 %}<li>{{ r | bold_labels | safe }}</li>{% endfor -%}</ul>
-    </div>
-    {%- endif %}
 
 </div><!-- product-body -->
 </details>

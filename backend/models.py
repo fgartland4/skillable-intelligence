@@ -46,7 +46,7 @@ def compute_labability_total(tech: int, other: int, orchestration_method: str = 
       Product Labability      40%  (0–40)  — Can we orchestrate this product?
       Instructional Value     30%  (0–30)  — Does this product need labs?
       Organizational Readiness 20% (0–20)  — Do they have resources to create and deliver labs?
-      Market Readiness        10%  (0–10)  — Is the world interested?
+      Market Fit        10%  (0–10)  — Is the world interested?
 
     tech                 — product_labability score (0-40)
     other                — sum of instructional_value (0-30) + organizational_readiness (0-20) + market_readiness (0-10) = 0-60

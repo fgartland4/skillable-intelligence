@@ -255,7 +255,7 @@ def _or_subsection(badge_name: str) -> str:
     return "content_delivery"  # default
 
 
-# Badge name → subsection within Market Readiness (Dimension 4)
+# Badge name → subsection within Market Fit (Dimension 4)
 _MR_SUBSECTION: dict[str, str] = {
     # 4.1 Product Popularity
     "Growth Trajectory": "product_popularity", "Geographic Reach": "product_popularity",
@@ -267,7 +267,7 @@ _MR_SUBSECTION: dict[str, str] = {
 
 
 def _mr_subsection(badge_name: str) -> str:
-    """Map a badge name to its Market Readiness subsection key."""
+    """Map a badge name to its Market Fit subsection key."""
     for known, section in _MR_SUBSECTION.items():
         if known.lower() in badge_name.lower():
             return section
@@ -332,7 +332,7 @@ def _attach_scores(data: dict) -> None:
 
     Composite score = top product score. The 40/30/20/10 model already incorporates
     all four dimensions (Product Labability, Instructional Value, Organizational
-    Readiness, Market Readiness) — no separate company-level score needed.
+    Readiness, Market Fit) — no separate company-level score needed.
     """
     products = data.get("products") or []
     for p in products:

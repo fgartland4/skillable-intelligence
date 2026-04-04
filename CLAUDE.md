@@ -66,7 +66,7 @@ Read `docs/Badging-Framework-Core.md` before touching any badge name, color, or 
 | Product Labability | Technical Orchestrability |
 | Instructional Value | Workflow Complexity / Product Complexity (as dimension) |
 | Organizational Readiness | Training Ecosystem / Lab Maturity |
-| Market Readiness | Market Fit / Strategic Fit |
+| Market Fit | Market Fit / Strategic Fit |
 | Amber | Yellow (for badge color) |
 | Azure Cloud Slice | Path A1 |
 | Custom API / BYOC | Path A2 |

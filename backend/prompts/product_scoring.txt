@@ -217,7 +217,7 @@ These are the only badge names that exist in the Skillable Intelligence system. 
 `ATP / Learning Program` · `ILT / vILT Offerings` · `On-Demand Catalog` · `Gray Market Offering` · `LMS / LXP`
 Lab platform badges (use exact platform name): `Skillable` · `Instruqt` · `CloudShare` · `Kyndryl / Skytap` · `GoDeploy` · `Vocareum` · `Appsembler` · `ReadyTech` · `DIY` · `ACI Learning` · `Immersive Labs` · `Hack The Box` · `TryHackMe`
 
-**Market Readiness — Product Popularity:**
+**Market Fit — Product Popularity:**
 `Growth Trajectory` (suffix: ↑ Growing / → Stable / ↓ Declining) · `Geographic Reach` (suffix: Global / NAMER & EMEA / Primarily NAMER / etc.) · `Annual Users` (prefix with ~NM) · `Key Customers`
 
 **When a signal doesn't match any canonical name exactly:** use the closest name from the mandatory list above. Do not create new labels. The canonical list is complete — every signal you will encounter has a match.
@@ -361,7 +361,7 @@ Signals worth naming — use these EXACT canonical label names (from the locked 
 - `**Gray Market Offering | Risk:**` third-party unofficial courses in market — signals demand exists but also competing content
 - Lab platform badges — use exact platform name as the label: `**Instruqt | Risk:**` / `**CloudShare | Risk:**` / `**Skillable | Strength:**` / `**Kyndryl / Skytap | Risk:**` etc.
 
-**Market Readiness (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Is the world interested?" — is this product in a market where hands-on skill development is valued and growing?
+**Market Fit (0-10):** This is 10% of the total score — a strategic amplifier and tiebreaker, not a labability gate. "Is the world interested?" — is this product in a market where hands-on skill development is valued and growing?
 Category prior — score the highest applicable category, then add 50% of the next highest applicable (round to nearest whole number). "Applicable" means the product genuinely and primarily operates in that category — not loosely adjacent to it. Apply at most two categories:
 
 High demand (+5): Cybersecurity · Cloud Infrastructure · Networking/SDN · Data Science & Engineering · Data & Analytics · DevOps
@@ -519,7 +519,7 @@ Use ONLY these labels for the standard bullets:
 
 - **[Custom Label]:** OPTIONAL — use 1–2 additional bullets to capture uniquely important context about this specific product that doesn't fit cleanly into Delivery Path, Scoring Approach, or Essential Technical Resource. This might be a critical license dependency, a tenant isolation nuance, a key provisioning quirk, a must-know integration requirement, or a distinctive architecture detail. Choose a label that precisely names the topic. Use the `| Risk` or `| Blocker` suffix if the insight signals a problem.
 
-  ⚠️ **NO DUPLICATION RULE — STRICTLY ENFORCED:** A custom label bullet MUST NOT repeat or restate a topic already covered in the Product Labability, Instructional Value, Organizational Readiness, or Market Readiness evidence bullets above. If a risk (e.g. MFA enforcement, license activation, provisioning latency) was already surfaced as an evidence bullet, do NOT create a separate custom bullet for it — instead, reference it in one clause within the relevant standard bullet (Scoring Approach, Delivery Path). Violations of this rule produce a cluttered, redundant report. When in doubt, omit the custom bullet.
+  ⚠️ **NO DUPLICATION RULE — STRICTLY ENFORCED:** A custom label bullet MUST NOT repeat or restate a topic already covered in the Product Labability, Instructional Value, Organizational Readiness, or Market Fit evidence bullets above. If a risk (e.g. MFA enforcement, license activation, provisioning latency) was already surfaced as an evidence bullet, do NOT create a separate custom bullet for it — instead, reference it in one clause within the relevant standard bullet (Scoring Approach, Delivery Path). Violations of this rule produce a cluttered, redundant report. When in doubt, omit the custom bullet.
 
   Good examples of what belongs here (topics that rarely appear as evidence bullets):
   - `**Pre-Instancing Required | Risk:**` — provisioning latency is so high that Pre-Instancing (Skillable support-only feature) is required for acceptable learner experience; must be scoped with Cloud Infra before committing

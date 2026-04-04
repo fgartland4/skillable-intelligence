@@ -225,7 +225,7 @@ Each scoring dimension maps directly to one of the three qualification gates —
 | **Product Labability** | Product Labability | Can Skillable's automation platform provision, configure, score, and tear down a lab for this product without manual intervention? |
 | **Instructional Value** | Instructional Value | Are there enough meaningful, repeatable technical tasks to justify a multi-lab program — things that require a real environment to learn, not a video or walkthrough? |
 | **Organizational Readiness** | Instructional Value | Is there demonstrated demand for hands-on training on this product? Do the customer's end users — customers, partners, sellers, employees — need to learn it, and will hands-on practice make them meaningfully more capable and confident? |
-| **Market Readiness** | Instructional Value | Does this align with the verticals and skill areas where Skillable has proven lab program ROI? |
+| **Market Fit** | Instructional Value | Does this align with the verticals and skill areas where Skillable has proven lab program ROI? |
 | **Organizational Readiness** | Organizational Readiness | Does this company have the organizational infrastructure — content team skills, program leadership, technical readiness — to build and scale a lab program? |
 
 ### 5.2 Skillable Path — The Core Qualification Decision

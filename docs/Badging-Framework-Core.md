@@ -19,7 +19,7 @@ This document is the single source of truth for badge names, color logic, and di
 | **Product Labability** | 40% | Can we orchestrate this product? |
 | **Instructional Value** | 30% | Does this product need labs? |
 | **Organizational Readiness** | 20% | Do they have resources to create and deliver labs? |
-| **Market Readiness** | 10% | Is the world interested? |
+| **Market Fit** | 10% | Is the world interested? |
 
 ---
 
@@ -208,7 +208,7 @@ These badges surface when research detects signals for specialized lab formats b
 
 ---
 
-## Dimension 4 — Market Readiness (10%)
+## Dimension 4 — Market Fit (10%)
 *"Is the world interested?"*
 
 ### 4.1 Product Popularity
@@ -251,7 +251,7 @@ These badges surface when research detects signals for specialized lab formats b
 | Product Labability | Technical Orchestrability |
 | Instructional Value | Workflow Complexity / Product Complexity |
 | Organizational Readiness | Training Ecosystem / Lab Maturity |
-| Market Readiness | Market Fit / Strategic Fit |
+| Market Fit | Market Readiness / Strategic Fit |
 | Difficult to Master | Product Depth / Hands-On Necessity |
 | Mastery Matters | Stakes / Consequence of Error / Business Impact |
 | Provisioning | Gate 1 |

@@ -12,7 +12,7 @@ This document defines how each dimension is scored. For canonical badge names, c
 | **Product Labability** | 40% | We can orchestrate this product |
 | **Instructional Value** | 30% | This product needs labs |
 | **Organizational Readiness** | 20% | They have resources to create and deliver labs |
-| **Market Readiness** | 10% | The world is interested |
+| **Market Fit** | 10% | The world is interested |
 
 ### Technical Fit Multiplier (applied by the system after scoring)
 
@@ -163,7 +163,7 @@ SIEM, EDR, identity protection, threat detection, network security, incident res
 
 ---
 
-## Dimension 4 — Market Readiness (10%)
+## Dimension 4 — Market Fit (10%)
 *"The world is interested"*
 
 *See Badging-Framework-Core for canonical badge names.*
@@ -213,7 +213,7 @@ Evidence bullets only — no badges. Content: named GSIs, MSP/VAR network scale,
 
 ## Roadmap
 
-- **Certification as Market Readiness signal** — currently only in 2.2 Mastery Matters. If certification volume data becomes researchable, consider adding to 4.1 as a demand signal.
+- **Certification as Market Fit signal** — currently only in 2.2 Mastery Matters. If certification volume data becomes researchable, consider adding to 4.1 as a demand signal.
 - **Role-Based Paths** — removed from scoring; pick up in Designer as a program architecture signal.
 - **Dedicated SMEs** — removed from scoring; pick up in Designer as a program execution signal.
 - **Consumption Potential model** (pending) — per-product table + customer rollup in dossier UI.

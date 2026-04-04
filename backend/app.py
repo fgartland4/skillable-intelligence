@@ -331,21 +331,40 @@ def group_org_readiness_filter(ev_list):
 
 @app.template_filter('group_market_readiness')
 def group_market_readiness_filter(ev_list):
-    """Group Market Readiness evidence by subsection.
+    """Group Market Fit evidence by subsection.
 
     Returns: {"product_popularity": [...], "other": [...]}
+    Only includes badges that belong to Dimension 4 (Market Fit).
+    Badges from other dimensions (e.g. Hands-On AI Features) are excluded.
     """
-    from core import _mr_subsection
+    from core import _MR_SUBSECTION
+    _allowed = {k.lower() for k in _MR_SUBSECTION}
     groups = {"product_popularity": [], "other": []}
     for ev in (ev_list or []):
         claim = _get_claim(ev)
         badge = _parse_badge_from_claim(claim)
         if badge:
-            section = _mr_subsection(badge["name"])
-            groups.get(section, groups["other"]).append(ev)
+            # Only include badges that actually belong to Market Fit
+            if any(allowed in badge["name"].lower() for allowed in _allowed):
+                groups["product_popularity"].append(ev)
         else:
             groups["other"].append(ev)
     return groups
+
+
+@app.template_filter('dedup_evidence')
+def dedup_evidence_filter(ev_list):
+    """Deduplicate evidence by badge name — keep first occurrence only."""
+    seen = set()
+    result = []
+    for ev in (ev_list or []):
+        claim = _get_claim(ev)
+        badge = _parse_badge_from_claim(claim)
+        key = badge["name"] if badge else claim[:60]
+        if key not in seen:
+            seen.add(key)
+            result.append(ev)
+    return result
 
 
 @app.template_filter('badge_color')

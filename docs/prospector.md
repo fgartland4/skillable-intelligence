@@ -97,7 +97,7 @@ For each company, Prospector runs six steps:
 
 1. **Discovery** — The same 12 parallel web searches Inspector uses, covering deployment model, training programs, certifications, partner programs, API ecosystem, pricing, existing labs, and gray market activity
 2. **Product selection** — Automatic selection of the single highest-labability product from discovery output
-3. **Lightweight scoring** — Product Labability scored from discovery-level evidence only (no Phase 2 deep research). Uses the same scoring prompt and model as Inspector, but with shallower inputs. Product Labability scores tend to be conservative — this dimension benefits most from deep research that discovery doesn't surface. Instructional Value, Organizational Readiness, and Market Readiness are less affected.
+3. **Lightweight scoring** — Product Labability scored from discovery-level evidence only (no Phase 2 deep research). Uses the same scoring prompt and model as Inspector, but with shallower inputs. Product Labability scores tend to be conservative — this dimension benefits most from deep research that discovery doesn't surface. Instructional Value, Organizational Readiness, and Market Fit are less affected.
 4. **Composite scoring** — Same formula, weights, and gating rules as Inspector (40/30/20/10)
 5. **Contact extraction** — Top 2 contacts per company. Software companies: prioritizes decision makers (VP Training, Director of Learning), then influencers. Academic institutions: prioritizes faculty, curriculum, dean, or registrar titles.
 6. **Results assembly** — Row built, sorted into the ranked results table

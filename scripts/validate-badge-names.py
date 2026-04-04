@@ -16,7 +16,7 @@ LEGACY_TERMS = [
     "Product Complexity",           # as a dimension name
     "Training Ecosystem",
     "Lab Maturity",
-    "Market Fit",
+    "Market Readiness",             # renamed to Market Fit
     "Strategic Fit",
     "Path A1",
     "Path A2",
@@ -38,6 +38,9 @@ SKIP_PATHS = [
     "scripts/validate-badge-names.py",  # skip this file itself
     "CLAUDE.md",                         # locked vocab table lists legacy terms intentionally
     "docs/Badging-Framework-Core.md",    # "Never this" column lists legacy terms intentionally
+    "backend/prompts/product_scoring.txt",  # scoring prompt references path names in context
+    "docs/Scoring-Framework-Core.md",       # references legacy terms in explanatory context
+    "docs/intelligence-platform.md",        # references legacy terms in explanatory context
     ".git/",
     "__pycache__/",
     "node_modules/",
