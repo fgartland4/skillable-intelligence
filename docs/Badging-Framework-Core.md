@@ -23,12 +23,68 @@ This document is the single source of truth for badge names, color logic, and di
 
 ---
 
+## Discovery-Stage Badges
+
+These badges appear on the Caseboard — after discovery research, before the full scoring run. They are not scoring badges; they give the SE early context about the company and its products before selecting what to score.
+
+### Company Classification
+
+Displayed in the page header, immediately right of the company name. Replaces the standalone org-type badge.
+
+All labels display in uppercase, matching the existing org badge style (small font, letter-spaced, all-caps).
+
+**For software companies:** Format is **{CATEGORY} · SOFTWARE** — the product category provides the meaningful context.
+
+| Rule | Display | Example |
+|---|---|---|
+| Products span 3+ distinct top-level categories | **ENTERPRISE SOFTWARE** | Microsoft → ENTERPRISE SOFTWARE |
+| Products span 1–2 categories | **{CATEGORY} · SOFTWARE** | Trellix → CYBERSECURITY · SOFTWARE |
+
+**For all other company types:** Display the company type alone — the category is implied by the type and doesn't add value.
+
+| Data value | Display | Example |
+|---|---|---|
+| `training_organization` | **TRAINING ORG** | EC-Council → TRAINING ORG |
+| `academic_institution` | **ACADEMIC** | GCU → ACADEMIC |
+| `systems_integrator` | **SYSTEMS INTEGRATOR** | Wipro → SYSTEMS INTEGRATOR |
+| `technology_distributor` | **TECH DISTRIBUTOR** | TD Synnex → TECH DISTRIBUTOR |
+| `professional_services` | **PROFESSIONAL SERVICES** | Accenture → PROFESSIONAL SERVICES |
+
+### Product Subcategory
+
+Displayed as a badge on each product row, replacing the top-level category badge. Provides a more specific classification so the SE can see the portfolio shape at a glance. Displays in uppercase to match all other badge styling.
+
+Examples by top-level category:
+
+| Top-Level Category | Subcategory examples |
+|---|---|
+| Cybersecurity | Endpoint Protection, Detection & Response, Data Protection, Network Security, Email Security, Threat Intelligence, SIEM/SOAR, Identity & Access |
+| Cloud Infrastructure | Compute, Networking, Storage, Containers & Kubernetes, Serverless, Database, Identity & Access |
+| Data Protection | Backup & Recovery, Disaster Recovery, Data Management, Archive & Compliance |
+| DevOps | CI/CD, Infrastructure as Code, Monitoring & Observability, Configuration Management |
+| ERP/CRM | Financial Management, HR & HCM, Supply Chain, Sales & Marketing, Customer Service |
+
+Subcategories are AI-generated during discovery and may vary. The list above is representative, not exhaustive. The discovery prompt instructs Claude to use concise, industry-standard subcategory names.
+
+### Deployment Model
+
+Displayed as a badge on each product row. Indicates how the vendor delivers the product — an early signal about what Skillable delivery path to expect.
+
+| Data Value | Display Label | Color | Description |
+|---|---|---|---|
+| `self-hosted` | **Installable** | Green (muted) | Has a downloadable installer, container image, or VM image that runs on customer-managed infrastructure — on-prem servers, VMs, or containers |
+| `hybrid` | **Hybrid** | Green (muted) | Available both as an installable product and as a cloud/SaaS service — multiple delivery paths possible |
+| `cloud` | **Cloud-Native** | Neutral/dim | Deployed on cloud infrastructure the customer controls (Azure, AWS, GCP subscriptions) — not vendor-hosted SaaS, but not a traditional installer either |
+| `saas-only` | **SaaS-Only** | Amber | Vendor-managed only — no installer, no container image, no VM image. Customer accesses via browser; vendor controls all infrastructure. Learner isolation and API questions ahead. |
+
+---
+
 ## Dimension 1 — Product Labability (40%)
 *"Can we orchestrate this product?"*
 
 ### 1.1 Provisioning
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `Runs in Hyper-V` | ✅⚠️ | Clean VM install confirmed; Skillable datacenter path | Installs but with complexity (large image, GPU, multi-step) | — |
 | `Runs in Azure` | ✅⚠️ | Supported Azure service; Cloud Slice path confirmed | Azure path works but with friction (IaC gaps, non-standard services) | — |
@@ -47,7 +103,7 @@ This document is the single source of truth for badge names, color logic, and di
 
 ### 1.2 Licensing & Accounts
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `AuthN/AuthZ APIs` | ✅⚠️🚫 | Bulk account creation and role assignment fully programmable | API exists but limited (create-only, no bulk, no recycle) | No authentication API; manual account creation only |
 | `Credential Pool` | ✅⚠️🚫 | Credential pool confirmed viable; accounts recyclable between learners | Pool possible but limited (small supply, slow reset, partial state cleanup) | No recyclable credential mechanism; fresh accounts required every time |
@@ -62,14 +118,14 @@ This document is the single source of truth for badge names, color logic, and di
 
 ### 1.3 Scoring
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `Scoring APIs` | ✅⚠️🚫 | REST API or SDK surface confirmed; lab tasks can be validated programmatically | API exists but limited coverage (some tasks scorable, others GUI-only) | No programmatic scoring surface; GUI-only interface |
 | `Script Scorable` | ✅⚠️🚫 | PowerShell, CLI, or config file state can be queried to validate learner work | Scripting surface exists but partial — covers some tasks, not all | No scriptable interface for scoring; AI Vision is the only option |
 
 ### 1.4 Teardown
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `Lifecycle APIs` | ✅ | Full provision → configure → score → teardown API coverage confirmed *(also in 1.1; omit for Hyper-V/VM — snapshot revert is automatic)* | — | — |
 | `Full Tenant Required` | ⚠️ | — | Full tenant provisioning required; teardown must explicitly deprovision the tenant *(also in 1.1)* | — |
@@ -82,7 +138,7 @@ This document is the single source of truth for badge names, color logic, and di
 
 ### 2.1 Difficult to Master
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `Product Breadth & Depth` | ✅⚠️ | Many distinct workflows and role-specific scenarios; large program opportunity | Limited workflows; one or two lab series at most | — |
 | `Workflow Complexity` | ✅⚠️ | Multiple distinct workflow phases (design, configure, deploy, support, troubleshoot) each requiring hands-on practice | Some workflow depth but phases are similar or shallow | — |
@@ -92,7 +148,7 @@ This document is the single source of truth for badge names, color logic, and di
 
 ### 2.2 Mastery Matters
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `High-Stakes Skills` | ✅ | Misconfiguration causes data loss, security breach, compliance failure, or significant downtime | — | — |
 | `Adoption & TTV Risks` | ⚠️ | — | Poor adoption or slow time-to-value is a documented risk for this product's users | — |
@@ -115,7 +171,7 @@ These badges surface when research detects signals for specialized lab formats b
 
 ### 3.1 Content Development Capabilities
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `Dedicated Content Dept` | ✅ | Named training org, content leadership titles, job postings for Lab Author / ID / TW — actively building content capability | — | — |
 | `Outsourced Content Creation` | ⚠️ | — | Catalog exists but authoring is outsourced to third-party agencies or freelancers — signals Skillable PS required, not just platform | — |
@@ -142,7 +198,7 @@ These badges surface when research detects signals for specialized lab formats b
 
 **Delivery ecosystem badges:**
 
-| Badge | Possible Colors | ✅ Green when… | ⚠️ Yellow when… | 🚫 Red when… |
+| Badge | Possible Colors | ✅ Green when… | ⚠️ Amber when… | 🚫 Red when… |
 |---|---|---|---|---|
 | `ATP / Learning Program` | ✅ | Authorized Training Partner or Learning Partner network confirmed; channel credentials and hands-on lab mandates | — | — |
 | `ILT / vILT Offerings` | ✅ | Confirmed instructor-led courses — signals curriculum infrastructure and hands-on training culture | — | — |
@@ -159,8 +215,8 @@ These badges surface when research detects signals for specialized lab formats b
 
 | Badge | Possible Colors | ✅ / ⚠️ when… |
 |---|---|---|
-| `Growth Trajectory` | ✅⚠️ | Suffix required: ↑ Growing / → Stable / ↓ Declining. Green = growing category; Yellow = stable or declining |
-| `Geographic Reach` | ✅⚠️ | Suffix: Global / NAMER & EMEA / Primarily NAMER / etc. Green = broad global presence; Yellow = narrow geographic reach |
+| `Growth Trajectory` | ✅⚠️ | Suffix required: ↑ Growing / → Stable / ↓ Declining. Green = growing category; Amber = stable or declining |
+| `Geographic Reach` | ✅⚠️ | Suffix: Global / NAMER & EMEA / Primarily NAMER / etc. Green = broad global presence; Amber = narrow geographic reach |
 | `Annual Users` | ✅ | Prefix with ~NM in the claim (e.g., "~2M annual users") — large install base is a Strength |
 | `Key Customers` | ✅ | Notable enterprise or government customers that validate strategic alignment with Skillable's market |
 

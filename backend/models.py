@@ -132,7 +132,7 @@ class Product:
     name: str
     category: str
     description: str = ""
-    deployment_model: str = ""          # "self-hosted", "cloud", "hybrid", "SaaS-only"
+    deployment_model: str = ""          # "self-hosted" (Installable), "cloud" (Cloud-Native), "hybrid", "saas-only" (SaaS-Only)
     orchestration_method: str = ""      # e.g. "Hyper-V: Standard", "Azure Cloud Slice: Full Lifecycle API", "Simulation"
     skillable_mechanism: str = ""       # "Skillable Datacenter", "Cloud Slice - Azure/AWS", etc.
     fabric: str = ""                    # "Hyper-V", "ESX", "Docker", "Azure Cloud Slice", "AWS Cloud Slice", "Custom API", "Simulation", "Unclear"

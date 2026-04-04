@@ -57,8 +57,8 @@
             letter-spacing: -0.02em; line-height: 1.2;
         }
         .header-desc {
-            color: #6b9e88; margin-top: 8px; font-size: 0.84rem;
-            line-height: 1.6; max-width: 640px;
+            color: #6b9e88; margin-top: 6px; font-size: 0.84rem;
+            line-height: 1.55;
         }
 
         /* ── Header right: actions + counter ── */
@@ -172,16 +172,15 @@
             border: 1px solid rgba(139,92,246,0.22); letter-spacing: 0.04em;
         }
 
-        /* Tier indicator badges on cards */
-        .badge-tier {
+        /* Deployment model badges on product cards */
+        .badge-deploy {
             display: inline-block; font-size: 0.58rem; font-weight: 800;
-            padding: 2px 6px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
+            padding: 2px 7px; border-radius: 4px; white-space: nowrap; flex-shrink: 0;
             letter-spacing: 0.06em; text-transform: uppercase;
         }
-        .btier-hl { background: rgba(36,237,155,0.1);  color: #24ED9B; border: 1px solid rgba(36,237,155,0.25); }
-        .btier-l  { background: rgba(109,217,168,0.1); color: #6dd9a8; border: 1px solid rgba(109,217,168,0.25); }
-        .btier-ll { background: rgba(251,146,60,0.1);  color: #fb923c; border: 1px solid rgba(251,146,60,0.25); }
-        .btier-nl { background: rgba(248,113,113,0.08);color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+        .badge-deploy-green { background: rgba(36,237,155,0.08); color: #6dd9a8; border: 1px solid rgba(36,237,155,0.18); }
+        .badge-deploy-dim   { background: rgba(148,163,184,0.06); color: #4a7060; border: 1px solid rgba(148,163,184,0.15); }
+        .badge-deploy-amber { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
 
         .tier-empty-hint {
             font-size: 0.73rem; color: #1e3329; font-style: italic; padding-left: 4px;
@@ -199,24 +198,24 @@
             text-transform: uppercase; color: #3d6655; margin-bottom: 10px;
         }
 
-        /* AT A GLANCE tier dots */
-        .glance-rows { display: flex; flex-direction: column; gap: 5px; }
+        /* Tier summary (right panel) — matches left-column tier header style */
+        .glance-rows { display: flex; flex-direction: column; gap: 6px; }
         .glance-row {
             display: flex; align-items: center; gap: 8px;
-            font-size: 0.78rem;
         }
-        .glance-dot {
-            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        .glance-tier-name {
+            flex: 1; font-size: 0.62rem; font-weight: 800;
+            letter-spacing: 0.1em; text-transform: uppercase;
         }
-        .gdot-hl { background: #24ED9B; }
-        .gdot-l  { background: #6dd9a8; }
-        .gdot-ll { background: #fb923c; }
-        .gdot-nl { background: #f87171; }
-        .glance-tier-name { flex: 1; color: #6b9e88; }
-        .glance-count { font-weight: 700; color: #e8f5f0; }
+        .glance-tier-name.t-hl { color: #24ED9B; }
+        .glance-tier-name.t-l  { color: #6dd9a8; }
+        .glance-tier-name.t-ll { color: #fb923c; }
+        .glance-tier-name.t-nl { color: #f87171; }
+        .glance-count { font-size: 0.72rem; font-weight: 700; color: #e8f5f0; }
+        .glance-row.glance-muted { opacity: 0.3; }
         .glance-divider { border: none; border-top: 1px solid #1e3329; margin: 8px 0; }
-        .glance-total { font-size: 0.78rem; color: #3d6655; }
-        .glance-total-count { font-weight: 700; color: #6b9e88; }
+        .glance-total { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #3d6655; }
+        .glance-total-count { font-size: 0.72rem; font-weight: 700; color: #6b9e88; }
 
         /* Training & Certification panel */
         .panel-box-tc { border-color: rgba(139,92,246,0.25); }
@@ -234,6 +233,7 @@
         .comp-item { font-size: 0.78rem; color: #6b9e88; line-height: 1.4; }
         .comp-name { font-weight: 600; color: #94a3b8; }
         .comp-product { color: #3d6655; font-size: 0.73rem; }
+        .comp-context { color: #3d6655; font-size: 0.7rem; margin-top: 2px; line-height: 1.4; }
 
         /* Family picker modal */
         .modal-overlay {
@@ -310,14 +310,14 @@
 <div class="page">
 
     {# ── Back link ── #}
-    <a href="/inspector" class="btn-back">← Search Different Company</a>
+    <a href="/inspector" class="btn-back">← Back to Company Search</a>
 
     {# ── Header ── #}
     <div class="header">
         <div class="header-left">
             <h1 class="company-title">
                 {{ discovery.company_name }}
-                <span class="org-badge {{ org_info[1] }}">{{ org_info[0] }}</span>
+                <span class="org-badge {{ org_info[1] }}">{{ discovery._company_badge or org_info[0] }}</span>
             </h1>
             {% if discovery.company_description %}
             <p class="header-desc">{{ discovery.company_description }}</p>
@@ -338,7 +338,6 @@
                     {% endif %}
                 </div>
                 <div class="sel-status" id="selStatus">0 of {{ non_tc_prods | length }} products selected</div>
-                <div class="time-estimate" id="timeEstimate">Est. Research Time: — min, — sec</div>
             </form>
         </div>
     </div>
@@ -359,7 +358,6 @@
                 <div class="tier-hdr">
                     <span class="tier-lbl t-{{ tier_cls }}">{{ tier_label }}</span>
                     <span class="tier-rule" style="color: {% if tier_cls == 'hl' %}#24ED9B{% elif tier_cls == 'l' %}#6dd9a8{% elif tier_cls == 'll' %}#fb923c{% else %}#f87171{% endif %}"></span>
-                    <span class="tier-count">{{ tier_prods | length }}</span>
                 </div>
 
                 {% if tier_prods %}
@@ -373,10 +371,18 @@
                             <span class="cb-tick">✓</span>
                         </div>
                         <span class="card-name">{{ p.name }}</span>
-                        {% if p.category %}
-                        <span class="badge-cat">{{ p.category }}</span>
+                        {% if p.deployment_model == 'self-hosted' %}
+                        <span class="badge-deploy badge-deploy-green">Installable</span>
+                        {% elif p.deployment_model == 'hybrid' %}
+                        <span class="badge-deploy badge-deploy-green">Hybrid</span>
+                        {% elif p.deployment_model == 'cloud' %}
+                        <span class="badge-deploy badge-deploy-dim">Cloud-Native</span>
+                        {% elif p.deployment_model == 'saas-only' %}
+                        <span class="badge-deploy badge-deploy-amber">SaaS-Only</span>
                         {% endif %}
-                        <span class="badge-tier btier-{{ tier_cls }}">{{ tier_abbr }}</span>
+                        {% if p.subcategory or p.category %}
+                        <span class="badge-cat">{{ p.subcategory or p.category }}</span>
+                        {% endif %}
                     </label>
                     {% endfor %}
                 </div>
@@ -385,38 +391,57 @@
                 {% endif %}
             </div>
             {% endfor %}
+
+            {# Competitive Landscape — same card style as products, no checkboxes #}
+            {% if discovery.competitive_landscape %}
+            <div class="tier-section" style="margin-top: 12px;">
+                <div class="tier-hdr">
+                    <span class="tier-lbl" style="color: #94a3b8;">COMPETITIVE LANDSCAPE</span>
+                    <span class="tier-rule" style="color: #94a3b8;"></span>
+                </div>
+                <div class="tier-cards">
+                    {% for c in discovery.competitive_landscape %}
+                    <div class="product-card" style="cursor: default; padding: 10px 14px;">
+                        <span class="card-name">
+                            <span class="comp-name">{{ c.name }}</span>
+                            {% if c.product %}<span class="comp-product"> — {{ c.product }}</span>{% endif %}
+                        </span>
+                        {% if c.category %}
+                        <span class="badge-cat" style="opacity: 0.6;">{{ c.category }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
-        {# ── Right: AT A GLANCE + T&C + Competitive ── #}
+        {# ── Right: At a Glance + T&C ── #}
         <div class="right-col">
 
-            {# AT A GLANCE #}
+            {# At a Glance — tier summary #}
             <div class="panel-box">
-                <div class="panel-label">AT A GLANCE</div>
+                <div class="panel-label">At a Glance</div>
                 <div class="glance-rows">
-                    <div class="glance-row">
-                        <span class="glance-dot gdot-hl"></span>
-                        <span class="glance-tier-name">Highly Likely</span>
+                    <div class="glance-row {% if hl_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-hl">Highly Likely</span>
                         <span class="glance-count">{{ hl_prods | length }}</span>
                     </div>
-                    <div class="glance-row">
-                        <span class="glance-dot gdot-l"></span>
-                        <span class="glance-tier-name">Likely</span>
+                    <div class="glance-row {% if l_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-l">Likely</span>
                         <span class="glance-count">{{ l_prods | length }}</span>
                     </div>
-                    <div class="glance-row">
-                        <span class="glance-dot gdot-ll"></span>
-                        <span class="glance-tier-name">Less Likely</span>
+                    <div class="glance-row {% if ll_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-ll">Less Likely</span>
                         <span class="glance-count">{{ ll_prods | length }}</span>
                     </div>
-                    <div class="glance-row">
-                        <span class="glance-dot gdot-nl"></span>
-                        <span class="glance-tier-name">Not Likely</span>
+                    <div class="glance-row {% if nl_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-nl">Not Likely</span>
                         <span class="glance-count">{{ nl_prods | length }}</span>
                     </div>
                     <hr class="glance-divider">
                     <div class="glance-row">
-                        <span class="glance-total" style="flex:1">Total products</span>
+                        <span class="glance-total" style="flex:1">Total Products</span>
                         <span class="glance-total-count">{{ non_tc_prods | length }}</span>
                     </div>
                 </div>
@@ -434,24 +459,7 @@
             </div>
             {% endif %}
 
-            {# Competitive Landscape #}
-            {% if discovery.competitive_landscape %}
-            <div class="panel-box">
-                <div class="panel-label">Competitive Landscape</div>
-                <ul class="comp-list">
-                    {% for c in discovery.competitive_landscape %}
-                    <li class="comp-item">
-                        {% if c is mapping %}
-                            <span class="comp-name">{{ c.name }}</span>
-                            {% if c.product %}<span class="comp-product"> — {{ c.product }}</span>{% endif %}
-                        {% else %}
-                            <span class="comp-name">{{ c }}</span>
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
+            {# Competitive Landscape moved to left column #}
 
         </div>
     </div>
@@ -492,7 +500,6 @@
     const form    = document.getElementById('dossierForm');
     const btn     = document.getElementById('dossierBtn');
     const status  = document.getElementById('selStatus');
-    const timeEl  = document.getElementById('timeEstimate');
     const TOTAL   = {{ non_tc_prods | length }};
 
     const CACHED_SECS   = 2;
@@ -508,12 +515,22 @@
         /* Update button */
         btn.disabled = n === 0;
 
-        /* Update status label */
+        /* Est. research time */
+        let totalSecs = 0;
+        checked.forEach(cb => {
+            const card = cb.closest('.product-card');
+            const cached = card.dataset.cached === 'true';
+            totalSecs += cached ? CACHED_SECS : UNCACHED_SECS;
+        });
+
+        /* Update status label — includes inline research time */
         status.classList.remove('has-selection', 'at-limit');
         if (n === 0) {
             status.textContent = `0 of ${TOTAL} products selected`;
         } else if (n < MAX_SEL) {
-            status.textContent = `${n} of ${TOTAL} products selected`;
+            const mins = Math.floor(totalSecs / 60);
+            const secs = totalSecs % 60;
+            status.textContent = `${n} of ${TOTAL} selected · Est. ${zeroPad(mins)}:${zeroPad(secs)}`;
             status.classList.add('has-selection');
         } else {
             status.textContent = `${MAX_SEL} of ${MAX_SEL} — uncheck one to swap`;
@@ -532,22 +549,6 @@
                 cb.disabled = false;
             }
         });
-
-        /* Est. research time */
-        let totalSecs = 0;
-        checked.forEach(cb => {
-            const card = cb.closest('.product-card');
-            const cached = card.dataset.cached === 'true';
-            totalSecs += cached ? CACHED_SECS : UNCACHED_SECS;
-        });
-
-        if (n === 0) {
-            timeEl.textContent = 'Est. Research Time: — min, — sec';
-        } else {
-            const mins = Math.floor(totalSecs / 60);
-            const secs = totalSecs % 60;
-            timeEl.textContent = `Est. Research Time: ${zeroPad(mins)} min, ${zeroPad(secs)} sec`;
-        }
     }
 
     /* Checkbox sync with styled card */

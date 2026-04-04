@@ -142,16 +142,49 @@ def caseboard(discovery_id: str):
         p["cached"] = bool(cached_score and _cache_is_fresh(cached_score.get("scored_at", "")))
 
     # Extract competitive_landscape from discovery for the right panel.
-    # Source: partnership_signals.existing_lab_partner from Claude discovery response.
-    partnership = discovery.get("partnership_signals") or {}
-    existing_partner = partnership.get("existing_lab_partner")
-    if isinstance(existing_partner, list):
-        competitive_landscape = [{"name": c} for c in existing_partner if c]
-    elif isinstance(existing_partner, str) and existing_partner.strip():
-        competitive_landscape = [{"name": existing_partner.strip()}]
-    else:
-        competitive_landscape = []
+    # Source: competitive_products from Claude discovery response (competitor vendors,
+    # not lab platform partners). Each entry has: competitor_name, product_name,
+    # category, competitive_context.
+    raw_competitors = discovery.get("competitive_products") or []
+    competitive_landscape = []
+    for c in raw_competitors:
+        if isinstance(c, dict):
+            competitive_landscape.append({
+                "name": c.get("competitor_name", ""),
+                "product": c.get("product_name", ""),
+                "category": c.get("category", ""),
+                "context": c.get("competitive_context", ""),
+            })
+        elif isinstance(c, str) and c.strip():
+            competitive_landscape.append({"name": c.strip()})
     discovery["competitive_landscape"] = competitive_landscape
+
+    # Compute company classification badge: {CATEGORY} · {TYPE} for software companies,
+    # just {TYPE} for everything else. Per Badging-Framework-Core.md Discovery-Stage Badges.
+    org_type = discovery.get("organization_type", "software_company")
+    org_type_labels = {
+        "software_company": "Software",
+        "training_organization": "Training Org",
+        "academic_institution": "Academic",
+        "systems_integrator": "Systems Integrator",
+        "technology_distributor": "Tech Distributor",
+        "professional_services": "Professional Services",
+    }
+    type_label = org_type_labels.get(org_type, "Organization")
+
+    if org_type == "software_company":
+        # Count distinct top-level categories across all non-TC products
+        categories = {p.get("category", "") for p in discovery.get("products", [])
+                      if p.get("category") and p.get("category") != "Training & Certification"}
+        if len(categories) >= 3:
+            company_badge = "Enterprise Software"
+        elif categories:
+            company_badge = " · ".join(sorted(categories)) + " · Software"
+        else:
+            company_badge = "Software"
+    else:
+        company_badge = type_label
+    discovery["_company_badge"] = company_badge
 
     existing_analysis = find_analysis_by_discovery_id(discovery_id)
     return render_template("caseboard.html", discovery=discovery, existing_analysis=existing_analysis)

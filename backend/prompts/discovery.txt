@@ -45,17 +45,18 @@ Treat each major vendor line or technology area as a "product" to score.
 For each item, identify:
 - name: Product, program, or platform name
 - category: One of: Cloud Infrastructure, Cybersecurity, Data Protection, Networking, DevOps, Application Development, Data & Analytics, Data Science & Engineering, Collaboration, ERP/CRM, Healthcare IT, Industrial/OT, Content Management, Legal Tech, FinTech, AI/ML Platform, Academic Program, Training & Certification, Technology Platform, Other
+- subcategory: A concise, industry-standard subcategory within the top-level category. Use 2-3 words maximum. Examples: Cybersecurity → "Endpoint Protection", "Detection & Response", "Data Protection", "Network Security", "Email Security", "Threat Intelligence", "SIEM/SOAR", "Identity & Access". Cloud Infrastructure → "Compute", "Networking", "Containers & Kubernetes", "Database". ERP/CRM → "Financial Management", "HR & HCM", "Supply Chain". Choose the most specific applicable subcategory. Every product must have one.
 - description: One sentence describing what it does or covers
 - deployment_model: "self-hosted", "cloud", "hybrid", or "saas-only"
-  - "self-hosted": installs on customer-managed machines (Windows/Linux servers, VMs). Examples: Windows Server, SQL Server, Active Directory, VMware vSphere, Splunk Enterprise, any software with an installer.
-  - "hybrid": available BOTH as self-hosted AND as a cloud/SaaS service. Examples: SQL Server (on-prem + Azure SQL), Exchange Server (on-prem + Exchange Online), SharePoint (on-prem + Online).
-  - "cloud": runs on cloud infrastructure the customer controls (Azure VMs, EC2, AKS) — not a managed SaaS, but not a traditional installer either. Examples: Azure Kubernetes Service, cloud-native services.
-  - "saas-only": vendor-managed ONLY — no self-hosted, no installer, no Docker image, no Azure/AWS marketplace VM path. Customer cannot run it on their own infrastructure under any circumstances. Examples: Salesforce, Workday, pure SaaS tools.
-  ⚠️ DO NOT mark a product "saas-only" just because the vendor also offers a cloud version. If it can be installed on a VM or server, use "self-hosted" or "hybrid". Many Microsoft products (Windows Server, SQL Server, Exchange Server) are self-hosted or hybrid — NOT saas-only.
+  - "self-hosted" (displayed as "Installable"): has a downloadable installer, container image, or VM image that runs on customer-managed infrastructure — on-prem servers, VMs, or containers. Examples: Windows Server, SQL Server, Active Directory, VMware vSphere, Splunk Enterprise, Docker-based tools.
+  - "hybrid": available BOTH as an installable product AND as a cloud/SaaS service. Examples: SQL Server (on-prem + Azure SQL), Exchange Server (on-prem + Exchange Online), SharePoint (on-prem + Online).
+  - "cloud" (displayed as "Cloud-Native"): deployed on cloud infrastructure the customer controls (Azure VMs, EC2, AKS, GKE) — not vendor-hosted SaaS, but not a traditional on-prem installer either. The customer manages the cloud subscription. Examples: Azure Kubernetes Service, self-managed cloud services.
+  - "saas-only" (displayed as "SaaS-Only"): vendor-managed ONLY — no installer, no container image, no VM image, no Azure/AWS marketplace path. Customer accesses via browser; vendor controls all infrastructure. Examples: Salesforce, Workday, HubSpot, pure SaaS tools.
+  DO NOT mark a product "saas-only" just because the vendor also offers a cloud version. If it can be installed on a VM, server, or container, use "self-hosted" or "hybrid". Many Microsoft products (Windows Server, SQL Server, Exchange Server) are self-hosted or hybrid — NOT saas-only.
 - likely_labable: one of "highly_likely" | "likely" | "less_likely" | "not_likely"
   - "highly_likely": Installs in VM/container (any Windows or Linux software), OR native Azure/AWS IaaS/PaaS service — AND has meaningful admin workflows or technical depth. This is the default for any installable enterprise software.
   - "likely": Technically viable but with caveats — e.g., cloud-hosted with some API access, hybrid deployment, or installable but very limited interaction surface. Worth scoring.
-  - "less_likely": SaaS-only on vendor's own cloud with limited API access, OR unclear deployment model, OR technically viable but weak training ecosystem or consumer-leaning.
+  - "less_likely": SaaS-only on vendor's own cloud with limited API access, OR unclear deployment model, OR technically viable but weak organizational readiness or consumer-leaning.
   - "not_likely": Pure SaaS-only with no self-hosted option and no Azure/AWS native path, consumer app, locked APIs, or non-technical program. Training & Certification entries for software companies are always "not_likely".
 - priority: integer starting at 1. Rank ALL products across the entire list by their value as a hands-on lab opportunity — weighting two factors equally: (1) market reach and install base (how many people use or need to learn this product), and (2) technical labability signals (installable, has APIs, complex workflows, strong training demand). The ideal priority 1 product is both widely deployed AND highly amenable to labs. Do not rank within tiers — rank across the entire portfolio. No two products should share the same priority number.
 
@@ -71,6 +72,7 @@ Return ONLY valid JSON:
     {
       "name": "Product or Program Name",
       "category": "Category",
+      "subcategory": "Specific subcategory",
       "description": "One sentence",
       "deployment_model": "self-hosted|cloud|hybrid|saas-only",
       "likely_labable": "highly_likely",

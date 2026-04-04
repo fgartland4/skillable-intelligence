@@ -229,7 +229,8 @@
                 <span class="meta-chip"><span>Method:</span> {{ product.orchestration_method or product.skillable_path }}</span>
                 {% endif %}
                 {% if product.deployment_model %}
-                <span class="meta-chip"><span>Deploy:</span> {{ product.deployment_model }}</span>
+                {%- set deploy_labels = {'self-hosted': 'Installable', 'hybrid': 'Hybrid', 'cloud': 'Cloud-Native', 'saas-only': 'SaaS-Only'} -%}
+                <span class="meta-chip"><span>Deploy:</span> {{ deploy_labels.get(product.deployment_model, product.deployment_model) }}</span>
                 {% endif %}
                 {% if product.skillable_mechanism %}
                 <span class="meta-chip"><span>Mechanism:</span> {{ product.skillable_mechanism }}</span>
