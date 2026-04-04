@@ -84,6 +84,7 @@ Return ONLY valid JSON:
       "competitor_name": "Competitor Company Name",
       "product_name": "Their Product Name",
       "category": "Category",
+      "subcategory": "Specific subcategory",
       "competitive_context": "One sentence on how this competes with the target company's products"
     }
   ],

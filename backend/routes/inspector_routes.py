@@ -153,6 +153,7 @@ def caseboard(discovery_id: str):
                 "name": c.get("competitor_name", ""),
                 "product": c.get("product_name", ""),
                 "category": c.get("category", ""),
+                "subcategory": c.get("subcategory", ""),
                 "context": c.get("competitive_context", ""),
             })
         elif isinstance(c, str) and c.strip():

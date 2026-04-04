@@ -408,8 +408,8 @@
                             <span class="comp-name">{{ c.name }}</span>
                             {% if c.product %}<span class="comp-product"> — {{ c.product }}</span>{% endif %}
                         </span>
-                        {% if c.category %}
-                        <span class="badge-cat" style="opacity: 0.6;">{{ c.category }}</span>
+                        {% if c.subcategory or c.category %}
+                        <span class="badge-cat" style="opacity: 0.6;">{{ c.subcategory or c.category }}</span>
                         {% endif %}
                     </div>
                     {% endfor %}
