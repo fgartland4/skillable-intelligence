@@ -461,8 +461,8 @@
                     <li>{{ p.name }}</li>
                     {% endfor %}
                     {%- if cert_is_named -%}
-                        {%- set cert_already_listed = tc_prods | map(attribute='name') | select('search', cert_name) | list | length > 0 -%}
-                        {%- if not cert_already_listed %}
+                        {%- set cert_names_lower = tc_prods | map(attribute='name') | map('lower') | list -%}
+                        {%- if cert_name | lower not in cert_names_lower %}
                     <li>{{ cert_name }}</li>
                         {%- endif -%}
                     {%- endif %}
