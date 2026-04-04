@@ -373,6 +373,9 @@
                             <span class="cb-tick">✓</span>
                         </div>
                         <span class="card-name">{{ p.name }}</span>
+                        {% if p.subcategory or p.category %}
+                        <span class="badge-cat">{{ p.subcategory or p.category }}</span>
+                        {% endif %}
                         {% if p.deployment_model == 'self-hosted' %}
                         <span class="badge-deploy badge-deploy-green">Installable</span>
                         {% elif p.deployment_model == 'hybrid' %}
@@ -381,9 +384,6 @@
                         <span class="badge-deploy badge-deploy-dim">Cloud-Native</span>
                         {% elif p.deployment_model == 'saas-only' %}
                         <span class="badge-deploy badge-deploy-amber">SaaS-Only</span>
-                        {% endif %}
-                        {% if p.subcategory or p.category %}
-                        <span class="badge-cat">{{ p.subcategory or p.category }}</span>
                         {% endif %}
                     </label>
                     {% endfor %}
