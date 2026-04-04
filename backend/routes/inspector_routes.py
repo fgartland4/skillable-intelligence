@@ -187,6 +187,35 @@ def caseboard(discovery_id: str):
         company_badge = type_label
     discovery["_company_badge"] = company_badge
 
+    # Product family picker — if 15+ non-TC products, group by category so the
+    # user can narrow down before selecting individual products for scoring.
+    FAMILY_THRESHOLD = 15
+    non_tc = [p for p in discovery.get("products", [])
+              if p.get("category") != "Training & Certification"]
+
+    selected_family = request.args.get("family")
+
+    if selected_family:
+        # Filter products to the selected family (category match)
+        discovery["products"] = [
+            p for p in discovery.get("products", [])
+            if p.get("category") == selected_family or p.get("category") == "Training & Certification"
+        ]
+    elif len(non_tc) >= FAMILY_THRESHOLD:
+        # Build product families from categories
+        family_counts = {}
+        for p in non_tc:
+            cat = p.get("category", "Other")
+            if cat not in family_counts:
+                family_counts[cat] = 0
+            family_counts[cat] += 1
+        # Sort by count descending
+        families = sorted(
+            [{"name": cat, "product_count": count} for cat, count in family_counts.items()],
+            key=lambda f: f["product_count"], reverse=True
+        )
+        discovery["product_families"] = families
+
     existing_analysis = find_analysis_by_discovery_id(discovery_id)
     return render_template("caseboard.html", discovery=discovery, existing_analysis=existing_analysis)
 
