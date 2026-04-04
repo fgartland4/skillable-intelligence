@@ -187,11 +187,12 @@ def caseboard(discovery_id: str):
         company_badge = type_label
     discovery["_company_badge"] = company_badge
 
-    # Product family picker — if 15+ non-TC products, show a family picker
-    # so the user can narrow down before selecting products for scoring.
-    # Prefers scraped website families (vendor's own organization) over
-    # category-based grouping as a fallback.
-    FAMILY_THRESHOLD = 15
+    # Product family picker — if many non-TC products AND multiple families,
+    # show a family picker so the user can narrow down before selecting
+    # products for scoring.  Skip the picker when there's only one family
+    # (nothing useful to choose).  Prefers scraped website families
+    # (vendor's own organization) over category-based grouping as a fallback.
+    FAMILY_THRESHOLD = 30
     non_tc = [p for p in discovery.get("products", [])
               if p.get("category") != "Training & Certification"]
 
@@ -224,7 +225,8 @@ def caseboard(discovery_id: str):
             # Only show families that matched at least 1 discovered product, plus
             # any others from the website nav (may have products not yet discovered)
             families = sorted(scraped, key=lambda f: f.get("product_count", 0), reverse=True)
-            discovery["product_families"] = families
+            if len(families) > 1:
+                discovery["product_families"] = families
         else:
             # Fallback: group by category
             family_counts = {}
@@ -237,7 +239,8 @@ def caseboard(discovery_id: str):
                 [{"name": cat, "product_count": count} for cat, count in family_counts.items()],
                 key=lambda f: f["product_count"], reverse=True
             )
-            discovery["product_families"] = families
+            if len(families) > 1:
+                discovery["product_families"] = families
 
     existing_analysis = find_analysis_by_discovery_id(discovery_id)
     return render_template("caseboard.html", discovery=discovery, existing_analysis=existing_analysis)
