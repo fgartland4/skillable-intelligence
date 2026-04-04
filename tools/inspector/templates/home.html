@@ -133,6 +133,7 @@
         const prodInput = document.getElementById('product_name');
         function checkReady() {
             btn.disabled = !(orgInput.value.trim() || prodInput.value.trim());
+            btn.innerHTML = '<span>Research</span><span>&#8594;</span>';
         }
         orgInput.addEventListener('input', checkReady);
         prodInput.addEventListener('input', checkReady);
