@@ -306,6 +306,14 @@ def badge_emoji_filter_fn(qualifier):
 # Platform landing page
 # ---------------------------------------------------------------------------
 
+@app.route("/debug-key")
+def debug_key():
+    """TEMPORARY — remove after Render deploy is verified."""
+    from config import ANTHROPIC_API_KEY
+    k = ANTHROPIC_API_KEY
+    return f"len={len(k)} first8=[{k[:8]}] last6=[{k[-6:]}]"
+
+
 @app.route("/")
 def platform_home():
     recent = list_analyses()
