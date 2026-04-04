@@ -191,6 +191,89 @@ def _badge_subsection(badge_name: str) -> str:
     return "provisioning"  # default
 
 
+# Badge name → subsection within Instructional Value (Dimension 2)
+_IV_SUBSECTION: dict[str, str] = {
+    # 2.1 Difficult to Master
+    "Product Breadth": "difficult_to_master", "Product Breadth & Depth": "difficult_to_master",
+    "Workflow Complexity": "difficult_to_master", "Configuration Complexity": "difficult_to_master",
+    "Hands-On AI Features": "difficult_to_master", "Hands-On AI": "difficult_to_master",
+    "Not Lab Appropriate": "difficult_to_master",
+    "Workflow Depth": "difficult_to_master", "Integration Complexity": "difficult_to_master",
+    "Role Breadth": "difficult_to_master", "Multi-component": "difficult_to_master",
+    "Multi-VM": "difficult_to_master", "Training Scope": "difficult_to_master",
+    # 2.2 Mastery Matters
+    "High-Stakes Skills": "mastery_matters", "High-Stakes": "mastery_matters",
+    "Adoption & TTV Risks": "mastery_matters", "Adoption": "mastery_matters",
+    "TTV": "mastery_matters", "Certification Program": "mastery_matters",
+    "Customer Impact": "mastery_matters",
+    # 2.3 Lab Format Opportunities
+    "Collaborative Lab Opportunity": "lab_format", "Collaborative Lab": "lab_format",
+    "Break/Fix Opportunity": "lab_format", "Break/Fix": "lab_format",
+    "Simulated Attack Opportunity": "lab_format", "Simulated Attack": "lab_format",
+    "Cyber Range": "lab_format",
+}
+
+
+def _iv_subsection(badge_name: str) -> str:
+    """Map a badge name to its Instructional Value subsection key."""
+    for known, section in _IV_SUBSECTION.items():
+        if known.lower() in badge_name.lower():
+            return section
+    return "difficult_to_master"  # default
+
+
+# Badge name → subsection within Organizational Readiness (Dimension 3)
+_OR_SUBSECTION: dict[str, str] = {
+    # 3.1 Content Development Capabilities
+    "Dedicated Content Dept": "content_development", "Dedicated Content": "content_development",
+    "Outsourced Content Creation": "content_development", "Outsourced Content": "content_development",
+    "Content Team": "content_development",
+    # 3.2 Content Delivery Ecosystem — platform badges
+    "Skillable": "content_delivery", "Instruqt": "content_delivery",
+    "CloudShare": "content_delivery", "Kyndryl": "content_delivery", "Skytap": "content_delivery",
+    "GoDeploy": "content_delivery", "Vocareum": "content_delivery",
+    "Appsembler": "content_delivery", "ReadyTech": "content_delivery",
+    "DIY": "content_delivery", "ACI Learning": "content_delivery",
+    "Immersive Labs": "content_delivery", "Hack The Box": "content_delivery",
+    "TryHackMe": "content_delivery",
+    # 3.2 Content Delivery Ecosystem — delivery badges
+    "ATP / Learning Program": "content_delivery", "ATP": "content_delivery",
+    "Learning Program": "content_delivery", "Learning Partner": "content_delivery",
+    "ILT / vILT Offerings": "content_delivery", "ILT": "content_delivery",
+    "vILT": "content_delivery", "On-Demand Catalog": "content_delivery",
+    "On-Demand": "content_delivery", "Gray Market Offering": "content_delivery",
+    "Gray Market": "content_delivery", "LMS / LXP": "content_delivery",
+    "LMS": "content_delivery", "LXP": "content_delivery",
+}
+
+
+def _or_subsection(badge_name: str) -> str:
+    """Map a badge name to its Organizational Readiness subsection key."""
+    for known, section in _OR_SUBSECTION.items():
+        if known.lower() in badge_name.lower():
+            return section
+    return "content_delivery"  # default
+
+
+# Badge name → subsection within Market Readiness (Dimension 4)
+_MR_SUBSECTION: dict[str, str] = {
+    # 4.1 Product Popularity
+    "Growth Trajectory": "product_popularity", "Geographic Reach": "product_popularity",
+    "Annual Users": "product_popularity", "Key Customers": "product_popularity",
+    "Install Base": "product_popularity", "Market Share": "product_popularity",
+    "Growing": "product_popularity", "Stable": "product_popularity",
+    "Declining": "product_popularity",
+}
+
+
+def _mr_subsection(badge_name: str) -> str:
+    """Map a badge name to its Market Readiness subsection key."""
+    for known, section in _MR_SUBSECTION.items():
+        if known.lower() in badge_name.lower():
+            return section
+    return "product_popularity"  # default
+
+
 def _parse_hero_badge(evidence_list: list) -> dict | None:
     """Extract the single most consequential badge from an evidence list.
 

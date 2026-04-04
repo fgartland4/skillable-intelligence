@@ -435,9 +435,16 @@ def dossier(analysis_id: str):
     ]
     competitors_logged = len(competitor_list)
 
+    # Load discovery record to get the total discovered product count
+    # (may be larger than scored products shown in the dossier)
+    discovery_id = data.get("discovery_id", "")
+    discovery = load_discovery(discovery_id) if discovery_id else None
+    total_discovered = len((discovery or {}).get("products", [])) if discovery else len(data.get("products", []))
+
     return render_template("dossier.html", data=data, from_cache=from_cache,
                            competitors_logged=competitors_logged,
-                           competitor_list=competitor_list)
+                           competitor_list=competitor_list,
+                           total_discovered=total_discovered)
 
 
 # Product detail page

@@ -290,6 +290,64 @@ def group_labability_filter(ev_list):
     return groups
 
 
+@app.template_filter('group_instructional_value')
+def group_instructional_value_filter(ev_list):
+    """Group Instructional Value evidence by subsection.
+
+    Returns: {"difficult_to_master": [...], "mastery_matters": [...],
+              "lab_format": [...], "other": [...]}
+    """
+    from core import _iv_subsection
+    groups = {"difficult_to_master": [], "mastery_matters": [], "lab_format": [], "other": []}
+    for ev in (ev_list or []):
+        claim = _get_claim(ev)
+        badge = _parse_badge_from_claim(claim)
+        if badge:
+            section = _iv_subsection(badge["name"])
+            groups.get(section, groups["other"]).append(ev)
+        else:
+            groups["other"].append(ev)
+    return groups
+
+
+@app.template_filter('group_org_readiness')
+def group_org_readiness_filter(ev_list):
+    """Group Organizational Readiness evidence by subsection.
+
+    Returns: {"content_development": [...], "content_delivery": [...], "other": [...]}
+    """
+    from core import _or_subsection
+    groups = {"content_development": [], "content_delivery": [], "other": []}
+    for ev in (ev_list or []):
+        claim = _get_claim(ev)
+        badge = _parse_badge_from_claim(claim)
+        if badge:
+            section = _or_subsection(badge["name"])
+            groups.get(section, groups["other"]).append(ev)
+        else:
+            groups["other"].append(ev)
+    return groups
+
+
+@app.template_filter('group_market_readiness')
+def group_market_readiness_filter(ev_list):
+    """Group Market Readiness evidence by subsection.
+
+    Returns: {"product_popularity": [...], "other": [...]}
+    """
+    from core import _mr_subsection
+    groups = {"product_popularity": [], "other": []}
+    for ev in (ev_list or []):
+        claim = _get_claim(ev)
+        badge = _parse_badge_from_claim(claim)
+        if badge:
+            section = _mr_subsection(badge["name"])
+            groups.get(section, groups["other"]).append(ev)
+        else:
+            groups["other"].append(ev)
+    return groups
+
+
 @app.template_filter('badge_color')
 def badge_color_filter(qualifier):
     """Map a qualifier string to a CSS color class."""

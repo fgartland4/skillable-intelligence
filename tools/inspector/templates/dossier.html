@@ -46,50 +46,41 @@ a:hover { text-decoration: underline; }
     margin-bottom: 24px;
 }
 .hero-company-name {
-    font-size: 1.5rem; font-weight: 700; color: #e8f5f0; margin-bottom: 4px;
+    font-size: 2rem; font-weight: 800; color: #e8f5f0; margin-bottom: 4px;
+    letter-spacing: -0.02em;
 }
-.hero-description { font-size: 0.85rem; color: #6b9e88; margin-bottom: 20px; }
-.hero-boxes {
-    display: flex; gap: 16px; align-items: stretch; margin-top: 20px;
+.hero-description { font-size: 0.85rem; color: #6b9e88; margin-bottom: 22px; line-height: 1.6; }
+.hero-row {
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
 }
-
-.hero-score-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+.hero-score-area { display: flex; flex-direction: column; gap: 4px; }
 .hero-score {
-    font-size: 3rem; font-weight: 800; line-height: 1;
-    font-variant-numeric: tabular-nums;
+    font-size: 3.2rem; font-weight: 900; line-height: 1;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.03em;
 }
 .hero-score.strong-fit { color: #24ED9B; }
 .hero-score.pursue     { color: #7dd8b8; }
 .hero-score.monitor    { color: #f59e0b; }
 .hero-score.pass       { color: #e05252; }
+.hero-score-max { font-size: 1.2rem; font-weight: 400; color: #2e4d40; }
 
-/* ── verdict-label, hero-badge — from _theme.html ────────────── */
-.hero-badges { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.hero-badge .dim-label {
-    font-size: 0.65rem; color: #4a7060; text-transform: uppercase;
-    letter-spacing: 0.08em; margin-right: 2px; white-space: nowrap;
-}
+/* ── verdict-label — from _theme.html ────────────────────────── */
 
-/* ── Hero boxes (side by side) ────────────────────────────────── */
-.hero-score-box {
-    flex: 1 1 0;
-    background: #0c1f19; border: 1px solid #1e3329; border-radius: 12px;
-    padding: 20px 24px;
-}
+/* ── ACV — large green, separated by vertical line ───────────── */
 .hero-acv {
-    flex: 1 1 0;
-    background: #0c1f19; border: 1px solid #1e3329; border-radius: 12px;
-    padding: 20px 24px; text-align: right;
+    display: flex; flex-direction: column;
+    border-left: 1px solid #1e3329; padding-left: 24px;
 }
 .acv-eyebrow {
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
-    color: #4a7060; text-transform: uppercase; margin-bottom: 6px;
+    font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
+    color: #3d6655; text-transform: uppercase; margin-bottom: 3px;
 }
 .acv-value {
-    font-size: 1.75rem; font-weight: 700; color: #e8f5f0;
+    font-size: 1.9rem; font-weight: 900; color: #24ED9B;
     font-variant-numeric: tabular-nums; white-space: nowrap;
+    letter-spacing: -0.03em; line-height: 1;
 }
-.acv-sub { font-size: 0.75rem; color: #4a7060; margin-top: 4px; }
+.acv-sub { font-size: 0.72rem; color: #f59e0b; margin-top: 4px; }
 
 /* ── Four dimension boxes ─────────────────────────────────────── */
 .dim-grid {
@@ -98,21 +89,35 @@ a:hover { text-decoration: underline; }
 }
 .dim-box {
     background: #0c1f19; border: 1px solid #1e3329; border-radius: 10px;
-    padding: 16px 18px;
+    padding: 18px 20px;
 }
 .dim-box-header {
     display: flex; align-items: baseline; justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 14px; border-bottom: 1px solid #1a2e26; padding-bottom: 10px;
 }
 .dim-box-title {
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em;
-    color: #4a7060; text-transform: uppercase;
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em;
+    color: #6b9e88; text-transform: uppercase;
 }
 .dim-box-score {
-    font-size: 0.78rem; font-weight: 700; color: #e8f5f0;
-    font-variant-numeric: tabular-nums;
+    font-size: 1.1rem; font-weight: 900; color: #e8f5f0;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
 }
-.dim-box-max { color: #2e4d40; font-weight: 400; }
+.dim-box-max { font-size: 0.8rem; color: #2e4d40; font-weight: 400; }
+/* ── Subsection rows inside dimension boxes ──────────────────── */
+.dim-subsection {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; padding: 6px 0;
+}
+.dim-subsection + .dim-subsection { border-top: 1px solid #0f1f18; }
+.dim-subsection-label {
+    font-size: 0.68rem; font-weight: 600; color: #4a7060;
+    white-space: nowrap; min-width: 110px; padding-top: 2px;
+}
+.dim-subsection-badges {
+    display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; flex: 1;
+}
+.dim-no-signal { font-size: 0.72rem; color: #2e4d40; font-style: italic; }
 /* ── dim-badge — from _theme.html ─────────────────────────────── */
 .dim-badges { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
 .dim-empty { font-size: 0.8rem; color: #2e4d40; font-style: italic; }
@@ -409,87 +414,119 @@ details[open] .chevron { transform: rotate(180deg); }
     <div class="hero-description">{{ data.get('company_description') }}</div>
     {%- endif %}
 
-    <div class="hero-boxes">
-        <div class="hero-score-box">
-            <div class="hero-score-row">
-                <span class="hero-score {{ v_cls }}">{{ composite }}<span style="font-size:1.2rem;font-weight:400;color:#2e4d40;"> / 100</span></span>
-                <span class="verdict-label {{ v_cls }}">{{ v }}</span>
-            </div>
-            <div class="hero-badges">
-                {%- if hb_pl -%}
-                <span class="hero-badge {{ hb_pl.qualifier | badge_color }}">
-                    <span class="dim-label">Labability</span>
-                    {{ hb_pl.qualifier | badge_emoji_filter }} {{ hb_pl.name }}
-                </span>
-                {%- endif -%}
-                {%- if hb_iv -%}
-                <span class="hero-badge {{ hb_iv.qualifier | badge_color }}">
-                    <span class="dim-label">Instructional</span>
-                    {{ hb_iv.qualifier | badge_emoji_filter }} {{ hb_iv.name }}
-                </span>
-                {%- endif -%}
-                {%- if hb_or -%}
-                <span class="hero-badge {{ hb_or.qualifier | badge_color }}">
-                    <span class="dim-label">Org Readiness</span>
-                    {{ hb_or.qualifier | badge_emoji_filter }} {{ hb_or.name }}
-                </span>
-                {%- endif -%}
-                {%- if hb_mr -%}
-                <span class="hero-badge {{ hb_mr.qualifier | badge_color }}">
-                    <span class="dim-label">Market</span>
-                    {{ hb_mr.qualifier | badge_emoji_filter }} {{ hb_mr.name }}
-                </span>
-                {%- endif -%}
-            </div>
-        </div><!-- hero-score-box -->
+    <div class="hero-row">
+        <div class="hero-score-area">
+            <span class="hero-score {{ v_cls }}">{{ composite }}<span class="hero-score-max"> / 100</span></span>
+            <span class="verdict-label {{ v_cls }}">{{ v }}</span>
+        </div>
 
         <div class="hero-acv">
             <div class="acv-eyebrow">Estimated Annual Contract Value</div>
             {%- if acv.low or acv.high %}
             <div class="acv-value">${{ "{:,.0f}".format(acv.low) }} – ${{ "{:,.0f}".format(acv.high) }}</div>
-            <div class="acv-sub">Est. based on {{ acv.count }} of {{ products | length }} products</div>
+            <div class="acv-sub">Estimate based on {{ acv.count }} of {{ total_discovered | default(products | length) }} products</div>
             {%- else %}
-            <div class="acv-sub" style="margin-top:8px;">No consumption data yet —<br>re-run analysis to generate.</div>
+            <div class="acv-sub" style="color:#4a7060;">No consumption data yet — re-run analysis to generate.</div>
             {%- endif %}
         </div>
-    </div><!-- hero-boxes -->
+    </div>
 </div><!-- hero -->
 
 {# ─────────────────────────────────────────────────────────────── #}
-{#  FOUR DIMENSION BOXES                                           #}
+{#  FOUR DIMENSION BOXES — subsection-grouped badges               #}
 {# ─────────────────────────────────────────────────────────────── #}
 {%- set _pl_sc = (_pl.get('score', 0) if _pl is mapping else _pl.score) | default(0) -%}
 {%- set _iv_sc = (_iv.get('score', 0) if _iv is mapping else _iv.score) | default(0) -%}
 {%- set _or_sc = (_or.get('score', 0) if _or is mapping else _or.score) | default(0) -%}
 {%- set _mr_sc = (_mr.get('score', 0) if _mr is mapping else _mr.score) | default(0) -%}
+
+{# Helper: render badges for a subsection's evidence list #}
+{% macro subsection_badges(ev_list) %}
+    {%- set badges = ev_list | parse_badges -%}
+    {%- if badges.green or badges.amber or badges.red -%}
+        {%- for b in badges.green %}<span class="dim-badge green">✅ {{ b.name }}</span>{% endfor -%}
+        {%- for b in badges.amber %}<span class="dim-badge amber">⚠️ {{ b.name }}</span>{% endfor -%}
+        {%- for b in badges.red %}<span class="dim-badge red">🚫 {{ b.name }}</span>{% endfor -%}
+    {%- else -%}
+        <span class="dim-no-signal">—</span>
+    {%- endif %}
+{% endmacro %}
+
+{# ── Product Labability (40%) ─────────────────────────────────── #}
+{%- set pl_groups = pl_evs | group_labability -%}
 <div class="dim-grid">
     <div class="dim-box">
         <div class="dim-box-header">
             <div class="dim-box-title">Product Labability</div>
             <div class="dim-box-score">{{ _pl_sc }}<span class="dim-box-max"> / 40</span></div>
         </div>
-        <div class="dim-badges">{{ render_dim_badges(pl_evs) }}</div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Provisioning</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.provisioning) }}</div>
+        </div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Licensing &amp; Accounts</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.licensing) }}</div>
+        </div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Scoring</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.scoring) }}</div>
+        </div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Teardown</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(pl_groups.teardown) }}</div>
+        </div>
     </div>
+
+    {# ── Instructional Value (30%) ────────────────────────────────── #}
+    {%- set iv_groups = iv_evs | group_instructional_value -%}
     <div class="dim-box">
         <div class="dim-box-header">
             <div class="dim-box-title">Instructional Value</div>
             <div class="dim-box-score">{{ _iv_sc }}<span class="dim-box-max"> / 30</span></div>
         </div>
-        <div class="dim-badges">{{ render_dim_badges(iv_evs) }}</div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Difficult to Master</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(iv_groups.difficult_to_master) }}</div>
+        </div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Mastery Matters</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(iv_groups.mastery_matters) }}</div>
+        </div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Lab Format Opportunities</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(iv_groups.lab_format) }}</div>
+        </div>
     </div>
+
+    {# ── Organizational Readiness (20%) ───────────────────────────── #}
+    {%- set or_groups = or_evs | group_org_readiness -%}
     <div class="dim-box">
         <div class="dim-box-header">
             <div class="dim-box-title">Organizational Readiness</div>
             <div class="dim-box-score">{{ _or_sc }}<span class="dim-box-max"> / 20</span></div>
         </div>
-        <div class="dim-badges">{{ render_dim_badges(or_evs) }}</div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Content Development</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(or_groups.content_development) }}</div>
+        </div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Content Delivery</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(or_groups.content_delivery) }}</div>
+        </div>
     </div>
+
+    {# ── Market Readiness (10%) ───────────────────────────────────── #}
+    {%- set mr_groups = mr_evs | group_market_readiness -%}
     <div class="dim-box">
         <div class="dim-box-header">
             <div class="dim-box-title">Market Readiness</div>
             <div class="dim-box-score">{{ _mr_sc }}<span class="dim-box-max"> / 10</span></div>
         </div>
-        <div class="dim-badges">{{ render_dim_badges(mr_evs) }}</div>
+        <div class="dim-subsection">
+            <span class="dim-subsection-label">Product Popularity</span>
+            <div class="dim-subsection-badges">{{ subsection_badges(mr_groups.product_popularity) }}</div>
+        </div>
     </div>
 </div><!-- dim-grid -->
 
