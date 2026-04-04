@@ -313,7 +313,7 @@
 
     {# ── Back links ── #}
     <a href="/inspector" class="btn-back">← Back to Company Search</a>
-    {% if request.args.get('family') %}
+    {% if request.args.getlist('family') %}
     <a href="/inspector/caseboard/{{ discovery.discovery_id }}" class="btn-back" style="margin-left: 8px;">← Change Product Family</a>
     {% endif %}
 
@@ -483,16 +483,21 @@
 {% if show_family_picker %}
 <div class="modal-overlay visible" id="familyModal">
     <div class="modal-box">
-        <div class="modal-header">
-            <div class="modal-company">{{ discovery.company_name }}</div>
-            <div class="modal-count">{{ discovery.products | length }} products discovered</div>
-            <div class="modal-prompt">Select a product family to continue</div>
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div class="modal-company">{{ discovery.company_name }}</div>
+                <div class="modal-count">{{ discovery.products | length }} products discovered</div>
+                <div class="modal-prompt">Select up to 4 product families</div>
+            </div>
+            <button onclick="document.getElementById('familyModal').classList.remove('visible')"
+                    style="background:none; border:none; color:#6b9e88; font-size:1.4rem; cursor:pointer; padding:0 4px; line-height:1;"
+                    title="Close">&times;</button>
         </div>
         <form method="GET" action="/inspector/caseboard/{{ discovery.discovery_id }}" id="familyForm">
             <div class="modal-body">
                 {% for family in discovery.product_families %}
                 <label class="family-radio">
-                    <input type="radio" name="family" value="{{ family.name }}" required>
+                    <input type="checkbox" name="family" value="{{ family.name }}" class="family-cb">
                     <span class="family-name">{{ family.name }}</span>
                     <span class="family-count">{{ family.product_count }} products</span>
                 </label>
@@ -588,15 +593,26 @@
         }
     });
 
-    /* Family picker enable/disable Continue */
+    /* Family picker — checkboxes with max 4 limit */
     const familyContinueBtn = document.getElementById('familyContinueBtn');
     if (familyContinueBtn) {
-        const familyRadios = document.querySelectorAll('input[name="family"]');
-        familyRadios.forEach(r => {
-            r.addEventListener('change', () => {
-                familyContinueBtn.disabled = false;
+        const MAX_FAMILIES = 4;
+        const familyCbs = document.querySelectorAll('.family-cb');
+        function updateFamilyState() {
+            const checked = Array.from(familyCbs).filter(cb => cb.checked);
+            familyContinueBtn.disabled = checked.length === 0;
+            familyCbs.forEach(cb => {
+                const label = cb.closest('.family-radio');
+                if (checked.length >= MAX_FAMILIES && !cb.checked) {
+                    cb.disabled = true;
+                    if (label) label.style.opacity = '0.35';
+                } else {
+                    cb.disabled = false;
+                    if (label) label.style.opacity = '1';
+                }
             });
-        });
+        }
+        familyCbs.forEach(cb => cb.addEventListener('change', updateFamilyState));
     }
 
     updateState();

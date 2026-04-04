@@ -195,21 +195,19 @@ def caseboard(discovery_id: str):
     non_tc = [p for p in discovery.get("products", [])
               if p.get("category") != "Training & Certification"]
 
-    selected_family = request.args.get("family")
+    selected_families = request.args.getlist("family")
 
-    if selected_family:
-        # User picked a family — run a focused discovery for just that family.
-        # Check if we have cached results for this family already; if not,
-        # filter existing products by matching category or product name keywords.
-        family_lower = selected_family.lower()
+    if selected_families:
+        # User picked one or more families — filter products to matches.
+        families_lower = {f.lower() for f in selected_families}
         discovery["products"] = [
             p for p in discovery.get("products", [])
-            if p.get("category", "").lower() == family_lower
-            or family_lower in p.get("name", "").lower()
-            or family_lower in p.get("subcategory", "").lower()
+            if p.get("category", "").lower() in families_lower
+            or any(fl in p.get("name", "").lower() for fl in families_lower)
+            or any(fl in p.get("subcategory", "").lower() for fl in families_lower)
             or p.get("category") == "Training & Certification"
         ]
-        discovery["_selected_family"] = selected_family
+        discovery["_selected_families"] = selected_families
     elif len(non_tc) >= FAMILY_THRESHOLD:
         # Show family picker — prefer scraped families from website nav
         scraped = discovery.get("_scraped_families") or []
