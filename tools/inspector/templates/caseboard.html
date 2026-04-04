@@ -450,13 +450,22 @@
             </div>
 
             {# Training & Certification #}
-            {% if tc_prods %}
+            {%- set partnership = discovery.get('partnership_signals') or {} -%}
+            {%- set cert_name = partnership.get('cert_program', '') -%}
+            {%- set cert_is_named = cert_name and cert_name not in (-1, '-1', 'true', 'True', '1') -%}
+            {% if tc_prods or cert_is_named %}
             <div class="panel-box panel-box-tc">
                 <div class="panel-label panel-label-tc">Training &amp; Certification</div>
                 <ul class="tc-list">
                     {% for p in tc_prods %}
                     <li>{{ p.name }}</li>
                     {% endfor %}
+                    {%- if cert_is_named -%}
+                        {%- set cert_already_listed = tc_prods | map(attribute='name') | select('search', cert_name) | list | length > 0 -%}
+                        {%- if not cert_already_listed %}
+                    <li>{{ cert_name }}</li>
+                        {%- endif -%}
+                    {%- endif %}
                 </ul>
             </div>
             {% endif %}
