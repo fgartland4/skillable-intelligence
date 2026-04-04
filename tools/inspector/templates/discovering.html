@@ -73,10 +73,19 @@
             cursor: pointer; text-decoration: none; transition: background 0.15s;
         }
         .btn-back:hover { background: rgba(36,237,155,0.15); }
+        .cancel-btn {
+            position: absolute; top: 16px; right: 20px;
+            background: none; border: none; color: #3d6655;
+            font-size: 1.4rem; cursor: pointer; text-decoration: none;
+            line-height: 1; padding: 4px;
+            transition: color 0.15s;
+        }
+        .cancel-btn:hover { color: #6b9e88; }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="card" style="position: relative;">
+        <a href="/inspector" class="cancel-btn" title="Cancel and go back">&times;</a>
         <div class="logo">
             <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
         </div>

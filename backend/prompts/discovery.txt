@@ -60,6 +60,8 @@ For each item, identify:
   - "not_likely": Pure SaaS-only with no self-hosted option and no Azure/AWS native path, consumer app, locked APIs, or non-technical program. Training & Certification entries for software companies are always "not_likely".
 - priority: integer starting at 1. Rank ALL products across the entire list by their value as a hands-on lab opportunity — weighting two factors equally: (1) market reach and install base (how many people use or need to learn this product), and (2) technical labability signals (installable, has APIs, complex workflows, strong training demand). The ideal priority 1 product is both widely deployed AND highly amenable to labs. Do not rank within tiers — rank across the entire portfolio. No two products should share the same priority number.
 
+⚠️ PRODUCT COUNT — Be thorough. For large enterprise software companies (Oracle, Microsoft, IBM, SAP, Cisco, etc.), aim for 40-60 products covering all major product families. Do not artificially limit the list — if the company has 50 distinct products with meaningful technical depth, list all 50. Smaller companies with fewer products should still list everything that has hands-on potential.
+
 ⚠️ OWNERSHIP CHECK — Before adding any product to the products list, confirm it is currently owned and sold by the TARGET COMPANY. If it is owned by a different company — even if it competes in the same space, was historically related, or is commonly mentioned alongside the target's products — it belongs in competitive_products, NOT in products. Examples: Documentum is owned by OpenText, not Hyland. SharePoint is owned by Microsoft. Do not add products to the products list if you are not certain the target company owns them today.
 
 Return ONLY valid JSON:

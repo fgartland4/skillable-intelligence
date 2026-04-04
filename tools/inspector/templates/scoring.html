@@ -103,10 +103,19 @@
         }
 
         .status { color: #3d6655; font-size: 0.8rem; min-height: 20px; }
+        .cancel-btn {
+            position: absolute; top: 16px; right: 20px;
+            background: none; border: none; color: #3d6655;
+            font-size: 1.4rem; cursor: pointer; text-decoration: none;
+            line-height: 1; padding: 4px;
+            transition: color 0.15s;
+        }
+        .cancel-btn:hover { color: #6b9e88; }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="card" style="position: relative;">
+        <a href="/inspector" class="cancel-btn" title="Cancel and go back">&times;</a>
         <div class="logo">
             <img src="https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg" alt="Skillable" onerror="this.style.display='none'">
         </div>
@@ -223,10 +232,10 @@
         const claudeHints = [
             "Evaluating technical deployment signals…",
             "Calibrating against known Skillable benchmarks…",
-            "Assessing training ecosystem maturity…",
-            "Scoring workflow complexity & pedagogical value…",
-            "Evaluating lab maturity signals…",
-            "Mapping market fit & strategic alignment…",
+            "Assessing organizational readiness…",
+            "Scoring instructional value & pedagogical depth…",
+            "Evaluating product labability signals…",
+            "Mapping market readiness & strategic alignment…",
             "Identifying key contacts & organizational structure…",
             "Generating recommendations…",
         ];

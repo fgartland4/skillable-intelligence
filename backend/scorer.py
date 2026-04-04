@@ -121,7 +121,7 @@ def discover_products_with_claude(findings: dict) -> dict:
             lines.append(f"\n### {key}:")
             lines.append(content[:2000])
 
-    return _call_claude(DISCOVERY_PROMPT, "\n".join(lines), max_tokens=5000)
+    return _call_claude(DISCOVERY_PROMPT, "\n".join(lines), max_tokens=8000)
 
 
 def _build_benchmarks_text() -> str:
