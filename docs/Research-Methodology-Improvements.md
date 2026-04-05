@@ -4,6 +4,61 @@ Items identified during the Platform Foundation conversations that should be add
 
 ---
 
+## Prompt Generation System — Implementation Requirements
+
+### Overview
+Replace the static product_scoring.txt with a three-layer prompt generation system: Configuration + Template = Generated Prompt at runtime. See Platform-Foundation.md for the full architecture description.
+
+### Build Sequence
+
+| Step | What | Details |
+|---|---|---|
+| **1. Design the config schema** | Define the structure that holds everything | JSON or Python dataclass. Must be validatable — weights add to 100, all badges have color criteria, no orphan references. |
+| **2. Populate the config** | Transfer everything from Badging-and-Scoring-Reference.md into the config | Every pillar, dimension, badge, scoring signal, penalty, threshold, category prior, lab type, canonical list. |
+| **3. Write config validation** | Automated checks that run on load | Weights sum correctly per pillar. All badges have at least one color defined. Locked vocabulary has no conflicts. Canonical lists are complete. |
+| **4. Write the prompt template** | The AI instruction structure with placeholders | Reasoning sequence, evidence standards, output format, badge principles. References config variables with {placeholder} syntax. |
+| **5. Build the generator** | Code that merges config + template at runtime | Reads config, validates it, injects into template, returns the complete prompt string. Never writes a static file. |
+| **6. Write tests** | Validate the system end-to-end | Config validation tests. Template rendering tests. Regression tests against known company data (Trellix, CompTIA). |
+| **7. Run against real data** | Score Trellix, CompTIA, Microsoft with new system | Compare results to old scoring. Validate that Fit Scores, verdicts, and badges feel right. Adjust config values based on results. |
+
+### Config File Location
+`backend/scoring-config.json` (or `backend/scoring_config.py` if Python dataclass is preferred for type safety)
+
+### Template File Location
+`backend/prompts/scoring-template.md`
+
+### Generator Location
+`backend/prompt_generator.py` — single function: `generate_scoring_prompt() -> str`
+
+### What This Replaces
+`backend/prompts/product_scoring.txt` — will be deleted after the new system is validated. During transition, both can coexist with a feature flag.
+
+### Future: Admin GUI
+When AuthN/AuthZ is implemented, add a web interface for editing the config:
+- View/edit all config values
+- Validation on save
+- Change history with timestamps and user attribution
+- Admin-only access
+- Changes take effect on next scoring run
+
+---
+
+## Core Principle: Define Once, Reference Everywhere
+
+All Pillar names, dimension names, weights, thresholds, badge names, and vocabulary must be defined in a single configuration layer (likely a config file or constants module) and referenced by every consumer — code, AI prompts, UX templates, documentation generation. Nothing hard-coded. If a name or weight changes, one edit propagates everywhere. This is a core architectural requirement for the refactor.
+
+**What lives in the config layer:**
+- Pillar names and weights (Product Labability 40%, Instructional Value 30%, Customer Fit 30%)
+- Dimension names and weights within each Pillar
+- Badge names and color criteria
+- Score thresholds (80/65/45/25) and verdict labels
+- Canonical lists (lab platforms, LMS partners, organization types)
+- Locked vocabulary (use this, not that)
+- ACV rate tables
+- Consumption motion labels and adoption ceilings
+
+---
+
 ## Core Principle: Confidence Coding
 
 Confidence coding (confirmed / indicated / inferred) must be core logic in the codebase, not just a display convention. Every finding the AI produces must carry a confidence level as a stored field. This confidence level:

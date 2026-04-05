@@ -77,6 +77,10 @@ Every interaction makes the data sharper. No update loses prior knowledge. The p
 
 The framework shapes how we **gather**, how we **store**, how we **judge**, and how we **present**. One model, end to end. The same Pillar/Dimension/Requirement structure runs through every layer — research, storage, scoring, display. No translation step. No reorganizing after the fact.
 
+### The Define-Once Principle
+
+All Pillar names, dimension names, weights, thresholds, badge names, and vocabulary are defined **once** in a configuration layer and referenced everywhere — code, prompts, UX templates, documentation. Nothing is hard-coded. If a name or weight changes, it changes in one place and propagates through the entire system. No find-and-replace across files. No drift. This is how Self-Evident Design (GP4) works at the code level.
+
 ---
 
 ## The Center of Everything: Products
@@ -475,6 +479,71 @@ Designer will eventually be a standalone application with its own authentication
 
 ---
 
+## Prompt Generation System
+
+The AI scoring prompt is not a static text file. It is **generated at runtime** from a configuration layer and a template. This eliminates fragility, prevents drift, and ensures every scoring run reflects the current state of the framework.
+
+### Three Layers
+
+| Layer | What it is | How it works |
+|---|---|---|
+| **Configuration** | All variables that define the scoring model — pillar names, dimension names, weights, badge definitions, scoring signals, penalties, thresholds, vocabulary, lab type menus, category priors, ACV rates | A single structured file (JSON or Python). The one place anything changes. Validated on load — missing or invalid data throws errors before the AI ever sees it. |
+| **Template** | The prompt structure — instructions for the AI with placeholders that pull from the configuration | A template file that defines how to instruct the AI. Rarely changes unless the fundamental approach changes. Contains the reasoning framework, the evidence standards, the output format — with {variable} references to the config. |
+| **Generated Prompt** | Configuration injected into template at runtime — this is what the AI actually receives | Built in memory at the moment of scoring. Never saved as a static file. Always current. Always consistent with the config. |
+
+### What Lives in the Configuration
+
+Everything that could change without changing the approach:
+
+| Category | Examples |
+|---|---|
+| **Pillar structure** | Names, weights, UX questions (Product Labability 40%, Instructional Value 30%, Customer Fit 30%) |
+| **Dimension structure** | Names, weights within each Pillar, questions |
+| **Badge definitions** | Names, color criteria (green/gray/amber/red), scoring signals, point values |
+| **Penalties** | Names, deduction values, which dimension they apply to |
+| **Thresholds** | Score ranges for verdict grid (80/65/45/25), ACV tier boundaries |
+| **Verdict labels** | The 10 verdict names and their definitions |
+| **Category priors** | Product categories and their demand ratings |
+| **Lab type menu** | The 12 lab versatility types with likely product mappings |
+| **Canonical lists** | Lab platform providers, LMS partners, organization types, locked vocabulary |
+| **ACV rates** | Delivery path rate tables, consumption motion labels, adoption ceilings |
+| **Confidence rules** | When to use confirmed vs. indicated vs. inferred |
+
+### What Lives in the Template
+
+The things that define *how* the AI thinks, not *what* it evaluates:
+
+- The reasoning sequence (research -> assess -> score -> recommend)
+- Evidence standards (clear, concise, complete; confidence language)
+- Output format (JSON structure, field names, required sections)
+- Badge naming principles (name the solution, not the problem)
+- The four-step assessment chain: assess the finding, recommend the solution, judge confidence, show the work
+
+### Why This Architecture Matters
+
+| Problem with static prompts | How the generation system solves it |
+|---|---|
+| Changing a weight means editing a 700-line text file | Change one number in the config |
+| Adding a badge means updating multiple sections | Add it once in the config, template picks it up |
+| Badge names in the prompt can drift from badge names in the code | Both read from the same config — impossible to drift |
+| No validation — a typo silently breaks scoring | Config validates on load — errors caught before the AI runs |
+| Testing requires reading the whole prompt | Test the config independently — do weights add to 100? Are all badges defined? |
+| Updating vocabulary means find-and-replace | Vocabulary is in the config — one change propagates everywhere |
+
+### Config Administration (Future)
+
+When AuthN/AuthZ is implemented, the configuration layer will have an admin-only GUI:
+
+- View and edit all configuration values through a clean interface
+- Validation runs automatically on save — prevents invalid configurations
+- Change history with timestamps and user attribution — full auditability
+- Role-restricted — only platform administrators can access
+- Changes take effect on the next scoring run — no deployment needed
+
+This means a product leader or scoring analyst can adjust a weight, add a competitor, or tune a penalty without touching code, prompts, or templates. The platform stays resilient and trustworthy because the configuration layer is the single source of truth.
+
+---
+
 ## Data Architecture: Three Domains
 
 The codebase must cleanly separate three data domains. Architect for authorization now, implement it later. When roles and permissions are added, it should be a configuration layer on top of an already-clean architecture, not a retrofit.
@@ -512,9 +581,9 @@ Two authoritative documents:
 | **Platform-Foundation.md** | Strategic authority — Guiding Principles, Pillars, Dimensions, people, motivation, architecture, ACV model | Everyone |
 | **Badging-and-Scoring-Reference.md** | Operational detail — specific badge names, color criteria, point values, weights, signals, penalties, thresholds. Also serves as the in-app explainability layer (GP3). | Developers, AI prompts, in-app help |
 
-The Badging and Scoring Reference references the Foundation for structure and vocabulary. It never redefines what the Foundation owns. The AI scoring prompt (product_scoring.txt) will be generated fresh from these two documents.
+The Badging and Scoring Reference references the Foundation for structure and vocabulary. It never redefines what the Foundation owns.
 
-Define once, reference everywhere.
+The AI scoring prompt is no longer a static document. It is generated at runtime by the Prompt Generation System from the scoring configuration and template. The configuration is populated from the Badging and Scoring Reference. Define once, reference everywhere.
 
 ---
 
