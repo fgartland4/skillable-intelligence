@@ -41,6 +41,8 @@ SKIP_PATHS = [
     "backend/prompts/product_scoring.txt",  # scoring prompt references path names in context
     "docs/Scoring-Framework-Core.md",       # references legacy terms in explanatory context
     "docs/intelligence-platform.md",        # references legacy terms in explanatory context
+    "backend/scoring_config.py",            # locked vocabulary table lists legacy terms intentionally
+    "backend/prompts/scoring_template.md",  # prompt template references path names and vocabulary in context
     ".git/",
     "__pycache__/",
     "node_modules/",
