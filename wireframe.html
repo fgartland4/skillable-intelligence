@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dossier Wireframe — Trellix</title>
+<script>
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.product-selector.open').forEach(function(sel) {
+    if (!sel.contains(e.target)) sel.classList.remove('open');
+  });
+});
+
+// Badge hover evidence modal
+let hoverTimer = null;
+document.addEventListener('mouseover', function(e) {
+  const badge = e.target.closest('.badge[data-evidence]');
+  if (!badge) return;
+  hoverTimer = setTimeout(function() {
+    const existing = document.querySelector('.evidence-modal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.className = 'evidence-modal';
+    modal.innerHTML = badge.getAttribute('data-evidence');
+    const rect = badge.getBoundingClientRect();
+    modal.style.left = rect.left + 'px';
+    modal.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    document.body.appendChild(modal);
+  }, 1500);
+});
+document.addEventListener('mouseout', function(e) {
+  const badge = e.target.closest('.badge[data-evidence]');
+  if (badge) {
+    clearTimeout(hoverTimer);
+    setTimeout(function() {
+      const modal = document.querySelector('.evidence-modal');
+      if (modal && !modal.matches(':hover')) modal.remove();
+    }, 300);
+  }
+});
+document.addEventListener('mouseleave', function(e) {
+  if (e.target.classList && e.target.classList.contains('evidence-modal')) {
+    e.target.remove();
+  }
+}, true);
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a1a14; color: #e0e0e0; font-family: 'Segoe UI', Calibri, sans-serif; padding: 20px 40px; min-width: 900px; }
+
+.header { padding-bottom: 14px; margin-bottom: 16px; }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.company-title { display: flex; align-items: flex-end; gap: 12px; }
+.company-name { font-size: 1.8rem; font-weight: 700; color: #fff; line-height: 1; }
+.company-badge { font-size: 0.6rem; letter-spacing: 2px; padding: 3px 10px; border: 1px solid #3a2a5a; color: #a78bfa; background: #1a1428; border-radius: 3px; margin-bottom: 2px; }
+.header-right { text-align: right; }
+.header-cache { font-size: 0.7rem; color: #999; line-height: 1.6; white-space: nowrap; }
+.header-cache a { color: #999; text-decoration: none; border-bottom: 1px dotted #666; }
+.header-cache a:hover { color: #1cc87a; border-bottom-color: #1cc87a; }
+.header-nav { margin-top: 10px; font-size: 0.7rem; line-height: 1.6; }
+.header-nav a { color: #1cc87a; text-decoration: none; }
+.header-nav a:hover { text-decoration: underline; }
+.company-desc { color: #999; font-size: 0.82rem; margin-top: 8px; max-width: 60%; line-height: 1.5; }
+
+.hero { display: flex; align-items: flex-start; justify-content: center; gap: 0; padding: 16px 0 20px 0; margin-bottom: 16px; }
+.hero-verdict { min-width: 220px; text-align: center; margin-left: 40px; padding-top: 0; }
+.hero-center { text-align: center; flex: 1; padding-top: 0; }
+.hero-acv { min-width: 260px; text-align: center; margin-right: 60px; padding-top: 0; }
+
+.product-selector { position: relative; display: block; cursor: pointer; margin-bottom: 8px; margin-top: 0; }
+.product-selector-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 1; }
+.product-selector-arrow { display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #24ED98; margin-left: 6px; vertical-align: 5px; transition: transform 0.2s; }
+.product-selector:hover .product-selector-label { color: #24ED98; }
+.product-dropdown { display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; background: #0d2219; border: 1px solid #1a5a3a; border-radius: 6px; min-width: 560px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden; }
+.product-selector.open .product-dropdown { display: block; }
+.product-selector.open .product-selector-arrow { transform: rotate(180deg); }
+.product-option { display: flex; align-items: center; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; gap: 10px; }
+.product-option:last-child { border-bottom: none; }
+.product-option:hover { background: #163a28; }
+.product-option.active { background: #1a4a30; }
+.product-option-name { font-size: 0.75rem; color: #ccc; width: 260px; min-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.product-option.active .product-option-name { color: #24ED98; }
+.product-option-score { font-size: 0.8rem; font-weight: 700; color: #24ED98; width: 32px; min-width: 32px; text-align: right; }
+
+.verdict-badge-large { display: inline-block; font-size: 1.1rem; font-weight: 700; color: #24ED98; padding: 6px 18px; border: 2px solid #1a5a3a; background: #0d2a1c; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.verdict-sub { font-size: 0.7rem; color: #777; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+.fit-score-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; margin-top: 0; line-height: 1; }
+.fit-score-num { font-size: 4.5rem; font-weight: 900; color: #24ED98; line-height: 1; }
+.fit-score-num span { font-size: 1.4rem; color: #444; font-weight: 400; }
+
+.hero-acv-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; margin-top: 0; line-height: 1; }
+.hero-acv-num { font-size: 2.2rem; font-weight: 800; color: #24ED98; line-height: 1; }
+.hero-acv-detail { font-size: 0.75rem; color: #888; margin-top: 6px; line-height: 1.5; }
+.hero-acv-detail strong { color: #1cc87a; font-weight: 600; }
+
+.section-row { display: flex; gap: 16px; margin-bottom: 6px; }
+.section-label { font-size: 0.6rem; letter-spacing: 2px; color: #999; text-transform: uppercase; }
+
+.pillars { display: flex; gap: 16px; margin-bottom: 0; }
+.product-side { flex: 7; display: flex; gap: 16px; }
+.org-side { flex: 3; }
+
+.pillar-card { background: #0d2219; border: 1px solid #1a3a2a; border-radius: 8px; padding: 8px 18px 12px 18px; flex: 1; }
+.pillar-card-org { background: #121a16; border: 1px solid #25352a; border-radius: 8px; padding: 8px 18px 12px 18px; flex: 1; }
+
+.pillar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px; flex-wrap: nowrap; }
+.pillar-header > div:first-child { white-space: nowrap; }
+.pillar-name { font-size: 0.75rem; letter-spacing: 1px; color: #a78bfa; text-transform: uppercase; font-weight: 600; white-space: nowrap; }
+.pillar-name-org { font-size: 0.75rem; letter-spacing: 1px; color: #c4a7fa; text-transform: uppercase; font-weight: 600; }
+.pillar-score { font-size: 1.5rem; font-weight: 800; color: #24ED98; }
+.pillar-score span { font-size: 0.75rem; color: #555; font-weight: 400; }
+.pillar-weight { font-size: 0.7rem; color: #999; margin-top: 1px; }
+.pillar-icons { display: inline-flex; gap: 4px; align-items: center; margin-left: 6px; }
+
+.dimension { margin-bottom: 16px; }
+.dimension:last-child { margin-bottom: 0; }
+.dim-row { display: flex; align-items: center; gap: 12px; }
+.dim-name { font-size: 0.6rem; color: #bbb; min-width: 90px; text-align: right; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.5px; }
+.dim-content { flex: 1; }
+.dim-bar-row { display: flex; align-items: center; gap: 8px; }
+.dim-bar-bg { flex: 1; height: 12px; background: #162a20; border-radius: 3px; overflow: hidden; }
+.dim-bar { height: 100%; border-radius: 3px; }
+.dim-score { font-size: 0.65rem; color: #888; min-width: 32px; text-align: right; }
+.dim-badges { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+
+.bar-green { background: linear-gradient(90deg, #136945, #24ED98); }
+.bar-light-amber { background: linear-gradient(90deg, #6a5a1b, #d4a017); }
+
+.badge { font-size: 0.55rem; padding: 2px 7px; border-radius: 3px; font-weight: 500; cursor: default; transition: opacity 0.15s; line-height: 1.4; display: inline-block; vertical-align: middle; }
+.badge[data-evidence] { cursor: help; }
+.badge[data-evidence]:hover { opacity: 0.85; }
+.badge-green { background: #0d3d25; color: #24ED98; border: 1px solid #1a5a3a; }
+.badge-amber { background: #3d2a0d; color: #f59e0b; border: 1px solid #5a4a1a; }
+.badge-red { background: #3d1515; color: #ff8a80; border: 1px solid #6a2a2a; }
+.badge-gray { background: #1e2420; color: #999; border: 1px solid #3a3a3a; }
+.badge-purple { background: #1a1428; color: #a78bfa; border: 1px solid #3a2a5a; white-space: nowrap; }
+
+.info-icon { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #666; color: #666; font-size: 0.5rem; font-weight: 600; text-align: center; line-height: 1; cursor: pointer; vertical-align: middle; }
+.info-icon:hover { border-color: #24ED98; color: #24ED98; }
+
+.doc-icon { display: inline-block; cursor: pointer; vertical-align: middle; margin-left: 3px; transition: opacity 0.15s; }
+.doc-icon:hover svg path, .doc-icon:hover svg line { stroke: #24ED98; }
+
+.pdf-icon { display: inline-block; cursor: pointer; vertical-align: middle; width: 14px; height: 14px; opacity: 0.5; transition: opacity 0.15s; }
+.pdf-icon:hover { opacity: 1; }
+.pdf-icon svg { width: 14px; height: 14px; }
+
+/* Evidence hover modal */
+.evidence-modal { position: absolute; z-index: 200; background: #0d2a1c; border: 1px solid #1a5a3a; border-radius: 6px; padding: 14px 18px; max-width: 420px; min-width: 300px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); font-size: 0.72rem; color: #ccc; line-height: 1.6; }
+.evidence-modal .ev-title { font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase; color: #a78bfa; margin-bottom: 8px; font-weight: 600; }
+.evidence-modal .ev-bullet { padding-left: 10px; border-left: 2px solid #1a5a3a; margin-bottom: 6px; }
+.evidence-modal .ev-bullet strong { color: #24ED98; }
+.evidence-modal .ev-bullet em { color: #f59e0b; font-style: normal; }
+.evidence-modal .ev-source { font-size: 0.6rem; color: #666; margin-top: 4px; }
+.evidence-modal .ev-confidence { font-size: 0.55rem; color: #555; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Briefcase */
+.briefcase { display: flex; gap: 16px; margin-top: 8px; margin-bottom: 24px; }
+.briefcase-product { flex: 7; display: flex; gap: 16px; }
+.briefcase-org { flex: 3; }
+.briefcase-card { background: #0a1810; border: 1px solid #1a3a2a; border-top: 2px solid #a78bfa; border-radius: 0 0 8px 8px; padding: 12px 18px; flex: 1; }
+.briefcase-card-org { background: #0f1612; border: 1px solid #25352a; border-top: 2px solid #c4a7fa; border-radius: 0 0 8px 8px; padding: 12px 18px; flex: 1; }
+.briefcase-title { font-size: 0.65rem; letter-spacing: 1.5px; color: #a78bfa; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.briefcase-title-org { font-size: 0.65rem; letter-spacing: 1.5px; color: #c4a7fa; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.briefcase-item { font-size: 0.72rem; color: #ccc; line-height: 1.5; margin-bottom: 6px; padding-left: 10px; border-left: 2px solid #1a3a2a; }
+.briefcase-item strong { color: #24ED98; font-weight: 600; }
+.briefcase-item em { color: #f59e0b; font-style: normal; }
+
+/* Product list at bottom */
+.products-section { margin-top: 8px; }
+.products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.products-title { font-size: 0.75rem; letter-spacing: 2px; color: #999; text-transform: uppercase; }
+.products-export { display: flex; gap: 8px; align-items: center; }
+.export-btn { font-size: 0.7rem; color: #1cc87a; background: none; border: 1px solid #1a5a3a; padding: 5px 14px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
+.export-btn:hover { background: #0d2a1c; border-color: #24ED98; color: #24ED98; }
+
+.product-table { border-collapse: collapse; }
+.product-table tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
+.product-table tr:last-child { border-bottom: none; }
+.product-table tr:hover { background: #0d2a1c; }
+.pt-name { font-size: 0.75rem; color: #ccc; padding: 8px 16px 8px 0; }
+.pt-sub { padding: 8px 12px 8px 0; }
+.pt-score { font-size: 0.9rem; font-weight: 700; color: #24ED98; padding: 8px 12px 8px 0; text-align: right; }
+.pt-doc { padding: 8px 0 8px 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="company-title">
+        <span class="company-name">Trellix</span>
+        <span class="company-badge">CYBERSECURITY SOFTWARE</span>
+      </div>
+      <div class="company-desc">Trellix is a cybersecurity company offering a GenAI-powered extended detection and response (XDR) platform with a broad suite of endpoint, network, data, and email security products for enterprise security operations. Formed from the merger of McAfee Enterprise and FireEye, Trellix serves large enterprises and government organizations globally.</div>
+    </div>
+    <div class="header-right">
+      <div class="header-cache">
+        10 products analyzed · <a href="#" title="Refresh cache">April 5, 2026</a>
+      </div>
+      <div class="header-nav">
+        <a href="#">← Back to Product Selection</a><br>
+        <a href="#">← Search Another Company</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-verdict">
+    <div class="product-selector" onclick="this.classList.toggle('open')">
+      <span class="product-selector-label">Trellix XDR Platform</span>
+      <span class="product-selector-arrow"></span>
+      <div class="product-dropdown">
+        <div class="product-option active"><span class="product-option-name">Trellix XDR Platform</span><span class="product-option-score">86</span><span class="badge badge-purple">Detection & Response</span></div>
+        <div class="product-option"><span class="product-option-name">Trellix Endpoint Security (ENS)</span><span class="product-option-score">82</span><span class="badge badge-purple">Endpoint Protection</span></div>
+        <div class="product-option"><span class="product-option-name">Trellix ePolicy Orchestrator (ePO)</span><span class="product-option-score">79</span><span class="badge badge-purple">Security Mgmt</span></div>
+        <div class="product-option"><span class="product-option-name">Trellix Network Detection and Response (NDR)</span><span class="product-option-score">77</span><span class="badge badge-purple">Network Security</span></div>
+        <div class="product-option"><span class="product-option-name">Trellix Data Loss Prevention (DLP)</span><span class="product-option-score">75</span><span class="badge badge-purple">Data Protection</span></div>
+        <div class="product-option"><span class="product-option-name">Trellix Email Security</span><span class="product-option-score">68</span><span class="badge badge-purple">Email Security</span></div>
+      </div>
+    </div>
+    <div class="verdict-badge-large">Prime Target</div>
+    <div class="verdict-sub">High Fit · High ACV</div>
+  </div>
+
+  <div class="hero-center">
+    <div class="fit-score-label">Fit Score</div>
+    <div class="fit-score-num">86<span> / 100</span></div>
+  </div>
+
+  <div class="hero-acv">
+    <div class="hero-acv-label">ACV Potential</div>
+    <div class="hero-acv-num">$350k – $520k</div>
+    <div class="hero-acv-detail">
+      Across 20 products (2 scored, 18 category-based)<br>
+      Scored products: <strong>$100k – $250k</strong>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION LABELS -->
+<div class="section-row">
+  <div style="flex: 7;"><span class="section-label">Product · <strong>70%</strong> of Fit Score</span></div>
+  <div style="flex: 3;"><span class="section-label">Organization · <strong>30%</strong> of Fit Score</span></div>
+</div>
+
+<!-- THREE PILLARS -->
+<div class="pillars">
+  <div class="product-side">
+    <!-- Pillar 1 -->
+    <div class="pillar-card">
+      <div class="pillar-header">
+        <div>
+          <span class="pillar-name">Product Labability</span><span class="pillar-icons"><span class="info-icon">?</span><span class="doc-icon" title="Export Product Labability report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></span>
+          <div class="pillar-weight">40% of Fit Score</div>
+        </div>
+        <div class="pillar-score">85<span>/100</span></div>
+      </div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Provisioning</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 91%;"></div></div><span class="dim-score">32/35</span></div><div class="dim-badges"><span class="badge badge-green" data-evidence="<div class='ev-title'>Provisioning</div><div class='ev-bullet'><strong>Runs in Hyper-V | Strength:</strong> Trellix ePO and ENS install cleanly on Windows Server VMs. Deployment guide confirms silent install with CLI parameters. Skillable datacenter path <strong>confirmed</strong>.</div><div class='ev-source'>Source: Trellix ePO Deployment Guide</div><div class='ev-confidence'>Confidence: Confirmed</div>">Runs in Hyper-V</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Lab<br>Access</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 80%;"></div></div><span class="dim-score">20/25</span></div><div class="dim-badges"><span class="badge badge-green" data-evidence="<div class='ev-title'>Lab Access</div><div class='ev-bullet'><strong>NFR Accounts Available | Strength:</strong> Trellix Xtend Partner Program provides NFR licenses for authorized partners. Dev/eval accounts available without credit card for lab authoring.</div><div class='ev-source'>Source: Trellix Partner Portal</div><div class='ev-confidence'>Confidence: Confirmed</div>">NFR Accounts Available</span><span class="badge badge-red" data-evidence="<div class='ev-title'>Lab Access</div><div class='ev-bullet'><em>MFA Required | Risk:</em> MFA required on admin accounts blocks automated task scoring. MCQ fallback is the only scoring path for admin-level tasks unless MFA can be disabled for lab accounts.</div><div class='ev-source'>Source: Trellix Security Documentation</div><div class='ev-confidence'>Confidence: Confirmed</div>">MFA Required</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Scoring</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 87%;"></div></div><span class="dim-score">13/15</span></div><div class="dim-badges"><span class="badge badge-green" data-evidence="<div class='ev-title'>Scoring</div><div class='ev-bullet'><strong>API Scorable | Strength:</strong> REST API <strong>confirmed</strong> for policy management, agent status, and threat event queries. Full CRUD operations on endpoint policies enable programmatic validation of learner configurations.</div><div class='ev-source'>Source: Trellix API Documentation</div><div class='ev-confidence'>Confidence: Confirmed</div>">API Scorable</span><span class="badge badge-green" data-evidence="<div class='ev-title'>Scoring</div><div class='ev-bullet'><strong>Script Scorable | Strength:</strong> PowerShell and CLI access to agent configuration state, policy assignments, and service status. Config files queryable for validation.</div><div class='ev-source'>Source: Trellix Admin Guide</div><div class='ev-confidence'>Confidence: Indicated</div>">Script Scorable</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Teardown</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 80%;"></div></div><span class="dim-score">20/25</span></div><div class="dim-badges"><span class="badge badge-green" data-evidence="<div class='ev-title'>Teardown</div><div class='ev-bullet'><strong>Teardown APIs | Strength:</strong> DELETE endpoints <strong>confirmed</strong> for agent deregistration, policy cleanup, and tenant deprovisioning. Clean teardown programmable via REST API.</div><div class='ev-source'>Source: Trellix API Reference</div><div class='ev-confidence'>Confidence: Confirmed</div>">Teardown APIs</span></div></div></div></div>
+    </div>
+
+    <!-- Pillar 2 -->
+    <div class="pillar-card">
+      <div class="pillar-header">
+        <div>
+          <span class="pillar-name">Instructional Value</span><span class="pillar-icons"><span class="info-icon">?</span><span class="doc-icon" title="Export Instructional Value report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></span>
+          <div class="pillar-weight">30% of Fit Score</div>
+        </div>
+        <div class="pillar-score">88<span>/100</span></div>
+      </div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Product<br>Complexity</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 88%;"></div></div><span class="dim-score">35/40</span></div><div class="dim-badges"><span class="badge badge-green" data-evidence="<div class='ev-title'>Product Complexity</div><div class='ev-bullet'><strong>Deep Configuration | Strength:</strong> XDR platform supports up to 1,000 integrations for data ingestion and SOAR response actions. Detection rule tuning, playbook authoring, and policy configuration are multi-step, decision-heavy workflows.</div><div class='ev-source'>Source: Trellix XDR Integrations</div><div class='ev-confidence'>Confidence: Confirmed</div>">Deep Configuration</span><span class="badge badge-green" data-evidence="<div class='ev-title'>Product Complexity</div><div class='ev-bullet'><strong>AI Practice Required | Strength:</strong> GenAI analyzes 100% of alerts and provides investigation summaries. Requires iterative hands-on practice to tune, validate, and act on effectively.</div><div class='ev-source'>Source: Trellix GenAI Features</div><div class='ev-confidence'>Confidence: Confirmed</div>">AI Practice Required</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Mastery<br>Stakes</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 84%;"></div></div><span class="dim-score">21/25</span></div><div class="dim-badges"><span class="badge badge-green" data-evidence="<div class='ev-title'>Mastery Stakes</div><div class='ev-bullet'><strong>High-Stakes Skills | Strength:</strong> Misconfiguring XDR detection policies can result in missed threat detections, alert fatigue, or automated actions that disrupt legitimate business processes.</div><div class='ev-source'>Source: Trellix Education Services</div><div class='ev-confidence'>Confidence: Confirmed</div>">High-Stakes Skills</span><span class="badge badge-green">Steep Learning Curve</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Lab<br>Versatility</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 67%;"></div></div><span class="dim-score">10/15</span></div><div class="dim-badges"><span class="badge badge-green">Simulated Attack</span><span class="badge badge-green">Break/Fix</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Market<br>Demand</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 90%;"></div></div><span class="dim-score">18/20</span></div><div class="dim-badges"><span class="badge badge-green">High-Demand Category</span><span class="badge badge-green">Global</span></div></div></div></div>
+    </div>
+  </div>
+
+  <!-- Org side -->
+  <div class="org-side">
+    <div class="pillar-card-org">
+      <div class="pillar-header">
+        <div>
+          <span class="pillar-name-org">Customer Fit</span>
+          <span class="info-icon">?</span>
+          <div class="pillar-weight">30% of Fit Score</div>
+        </div>
+        <div class="pillar-score">72<span>/100</span></div>
+      </div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Training<br>Commitment</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 72%;"></div></div><span class="dim-score">18/25</span></div><div class="dim-badges"><span class="badge badge-green">Customer Enablement</span><span class="badge badge-green">Training Culture</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Organizational<br>DNA</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-light-amber" style="width: 56%;"></div></div><span class="dim-score">14/25</span></div><div class="dim-badges"><span class="badge badge-gray">Mixed Approach</span><span class="badge badge-amber">Complex Organization</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Delivery<br>Capacity</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 73%;"></div></div><span class="dim-score">22/30</span></div><div class="dim-badges"><span class="badge badge-green">ATP / Learning Partners</span><span class="badge badge-gray">NetExam (Internal)</span></div></div></div></div>
+      <div class="dimension"><div class="dim-row"><span class="dim-name">Build<br>Capacity</span><div class="dim-content"><div class="dim-bar-row"><div class="dim-bar-bg"><div class="dim-bar bar-green" style="width: 70%;"></div></div><span class="dim-score">14/20</span></div><div class="dim-badges"><span class="badge badge-green">Content Dev Team</span></div></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SELLER BRIEFCASE -->
+<div class="briefcase">
+  <div class="briefcase-product">
+    <div class="briefcase-card">
+      <div class="briefcase-title">Key Technical Questions <span class="info-icon">?</span></div>
+      <div class="briefcase-item"><strong>Find:</strong> Someone in Implementation Engineering or Field Solutions — the team that builds enterprise deployment runbooks, not general support.</div>
+      <div class="briefcase-item"><strong>Ask:</strong> "Can your on-premises ePO/ESM installer run silently on a Windows Server VM in a fully network-isolated environment? What does offline license activation look like?"</div>
+      <div class="briefcase-item"><em>Why this matters:</em> The answer unblocks the entire lab build. If silent install works in isolation, Hyper-V path is confirmed.</div>
+    </div>
+    <div class="briefcase-card">
+      <div class="briefcase-title">Conversation Starters <span class="info-icon">?</span></div>
+      <div class="briefcase-item"><strong>XDR complexity:</strong> Their platform has 5 distinct hands-on workflow phases — that's a full curriculum, not just one lab.</div>
+      <div class="briefcase-item"><strong>Stakes are real:</strong> Misconfiguring XDR detection policies in a live SOC means missed threats or alert fatigue. Practice in a safe environment prevents that.</div>
+      <div class="briefcase-item"><strong>Lab types:</strong> Simulated Attack and Break/Fix scenarios — SOC analysts diagnosing real threat patterns.</div>
+    </div>
+  </div>
+  <div class="briefcase-org">
+    <div class="briefcase-card-org">
+      <div class="briefcase-title-org">Account Intelligence <span class="info-icon">?</span></div>
+      <div class="briefcase-item"><strong>Training leader:</strong> Nandini Sridhar leads Education and Enablement — 20+ years experience. Decision maker.</div>
+      <div class="briefcase-item"><em>Org complexity:</em> McAfee/FireEye merger means multiple legacy training cultures. Expect competing priorities.</div>
+      <div class="briefcase-item"><strong>LMS signal:</strong> Using NetExam for internal training — not a Skillable partner. Integration opportunity.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCT LIST -->
+<div class="products-section">
+  <div class="products-header">
+    <span class="products-title">Scored Products (6 of 20)</span>
+    <button class="export-btn">Export Full Report (Word)</button>
+  </div>
+  <table class="product-table">
+    <tr class="product-row"><td class="pt-name">Trellix XDR Platform</td><td class="pt-sub"><span class="badge badge-purple">Detection & Response</span></td><td class="pt-score">86</td><td class="pt-doc"><span class="doc-icon" title="Export report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></td></tr>
+    <tr class="product-row"><td class="pt-name">Trellix Endpoint Security (ENS)</td><td class="pt-sub"><span class="badge badge-purple">Endpoint Protection</span></td><td class="pt-score">82</td><td class="pt-doc"><span class="doc-icon" title="Export report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></td></tr>
+    <tr class="product-row"><td class="pt-name">Trellix ePolicy Orchestrator (ePO)</td><td class="pt-sub"><span class="badge badge-purple">Security Mgmt</span></td><td class="pt-score">79</td><td class="pt-doc"><span class="doc-icon" title="Export report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></td></tr>
+    <tr class="product-row"><td class="pt-name">Trellix Network Detection and Response</td><td class="pt-sub"><span class="badge badge-purple">Network Security</span></td><td class="pt-score">77</td><td class="pt-doc"><span class="doc-icon" title="Export report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></td></tr>
+    <tr class="product-row"><td class="pt-name">Trellix Data Loss Prevention (DLP)</td><td class="pt-sub"><span class="badge badge-purple">Data Protection</span></td><td class="pt-score">75</td><td class="pt-doc"><span class="doc-icon" title="Export report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></td></tr>
+    <tr class="product-row"><td class="pt-name">Trellix Email Security</td><td class="pt-sub"><span class="badge badge-purple">Email Security</span></td><td class="pt-score">68</td><td class="pt-doc"><span class="doc-icon" title="Export report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></td></tr>
+  </table>
+</div>
+
+</body>
+</html>

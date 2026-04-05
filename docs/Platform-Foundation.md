@@ -77,6 +77,10 @@ Every interaction makes the data sharper. No update loses prior knowledge. The p
 
 The framework shapes how we **gather**, how we **store**, how we **judge**, and how we **present**. One model, end to end. The same Pillar/Dimension/Requirement structure runs through every layer — research, storage, scoring, display. No translation step. No reorganizing after the fact.
 
+### Accessibility: WCAG AA Compliance
+
+All UX elements must meet WCAG AA contrast standards (4.5:1 for normal text, 3.0:1 for large text). This is a build standard and a QA checkpoint — every color combination is validated before shipping. Accessibility is not optional.
+
 ### The Define-Once Principle
 
 All Pillar names, dimension names, weights, thresholds, badge names, and vocabulary are defined **once** in a configuration layer and referenced everywhere — code, prompts, UX templates, documentation. Nothing is hard-coded. If a name or weight changes, it changes in one place and propagates through the entire system. No find-and-replace across files. No drift. This is how Self-Evident Design (GP4) works at the code level.
