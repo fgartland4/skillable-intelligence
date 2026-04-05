@@ -4,6 +4,18 @@ Items identified during the Platform Foundation conversations that should be add
 
 ---
 
+## Core Principle: Confidence Coding
+
+Confidence coding (confirmed / indicated / inferred) must be core logic in the codebase, not just a display convention. Every finding the AI produces must carry a confidence level as a stored field. This confidence level:
+- Influences badge color assignment (confirmed evidence can support green; inferred evidence may cap at amber)
+- Is stored in the data model alongside the finding itself
+- Surfaces in evidence language when displayed
+- Is available to downstream consumers (HubSpot ICP Context, Designer, etc.)
+
+This is not optional. It is how the platform achieves GP3 (Explainably Trustworthy) at the code level.
+
+---
+
 ## Lab Platform Detection
 
 ### Product-level compete query is incomplete
@@ -28,6 +40,65 @@ Items identified during the Platform Foundation conversations that should be add
 **Issue:** The company-level and product-level research queries maintain separate, inconsistent lists of competitors. The company-level query has the full set; the product-level query has only three. This guarantees drift.
 **Principle:** One canonical list of all lab platform providers (Skillable + all competitors + DIY), maintained in a single location (likely constants.py or a config file), referenced by both company-level and product-level research queries, by the discovery extraction prompt, and by the badging framework. When a new competitor is identified, add it once, and it propagates everywhere.
 **Applies to GP4 (Self-Evident Design) and GP5 (Intelligence compounds).**
+
+---
+
+## Product Complexity Detection
+
+### Consumer Grade and Simple UX detection
+**Context:** Consumer Grade and Simple UX are red/amber badges within the Product Complexity dimension (Instructional Value pillar). The AI needs strong detection logic to determine when a product is too simple for labs.
+**Signals to research:**
+- Is the product marketed to consumers or professionals?
+- Does the product have configuration, administration, or deployment workflows?
+- Is there documentation depth beyond getting-started guides?
+- Does the product have multiple user roles with distinct workflows?
+- Are there certification programs or formal training (strong counter-signal — if someone certifies on it, it's not simple)?
+- Is there a consequence of error, or is everything undo-able?
+**Confidence:** If research clearly confirms consumer/simple (e.g., mobile-only app, drag-and-drop builder with no admin layer), badge is red. If inferred from limited signals, badge is amber. The evidence confidence language (confirmed/indicated/inferred) applies here.
+
+---
+
+## Lab Versatility Detection
+
+### Product-type to lab-type mapping must be in the code
+**Context:** Lab Versatility badges are selected by the AI based on what fits the specific product — not dumped by category. The mapping of product types to likely lab types must be encoded in the research logic so the AI knows what to look for.
+**Mapping (encode in research prompts and/or constants):**
+
+| Badge | Likely product types |
+|---|---|
+| Red vs Blue | Cybersecurity — EDR, SIEM, network security |
+| Simulated Attack | Cybersecurity — any defensive product |
+| Incident Response | Infrastructure, security, cloud, databases |
+| Break/Fix | Broad — any product with complex failure modes |
+| Team Handoff | DevOps pipelines, data engineering, SDLC |
+| Bug Bounty | Development platforms, data, security |
+| Cyber Range | Network security, SOC operations |
+| Performance Tuning | Databases, infrastructure, cloud, data platforms |
+| Migration Lab | Enterprise software, cloud, infrastructure |
+| Architecture Challenge | Cloud, infrastructure, networking, data |
+| Compliance Audit | Healthcare, finance, security, any regulated |
+| Disaster Recovery | Infrastructure, cloud, data protection, databases |
+
+**Rules:**
+- AI picks at most 1-2 badges per product based on specific product research, not category
+- Most simple products get none — that's correct
+- The same intelligence feeds Designer for program recommendations
+- Lab concepts in the product card provide the specific detail; badges provide the headline
+
+---
+
+## In-App Documentation Linking
+
+### Documentation as the explainability layer
+**Principle:** The Badging and Scoring Reference documentation serves double duty — it's both the developer/AI reference AND the in-app help system. Each section of the UX links to the corresponding section of the documentation.
+**Implementation:**
+- Each major section in the Badging and Scoring Reference needs an anchor tag the UX can link to
+- Documentation must be written clearly enough for a seller to understand, not just developers
+- Section-level linking, not badge-level — one click shows the whole section for that part of the UX
+- Examples: clicking "how does this work?" on Product Labability shows the full Product Labability section. Clicking on ACV shows the ACV calculation section.
+- When documentation is updated, in-app help updates automatically — same source
+- Keep it digestible — each section should be a standalone explainer
+- Don't clutter the UX with icons everywhere — strategic placement at section level only
 
 ---
 

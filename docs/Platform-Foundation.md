@@ -46,6 +46,7 @@ Every judgment the platform makes must be traceable, from conclusion back to evi
 - Judgments must distinguish between fact and AI-informed assumption
 - Documents produced by the platform are evidence trails, not just summaries
 - Progressive disclosure is the trust mechanism — give the conclusion, then let people pull on the thread until they believe it
+- The documentation IS the in-app explainability layer. At each section of the UX, users can click to see the actual framework documentation that explains how that section works. One source of truth, one click, digestible. When the documentation updates, the in-app help updates automatically — because it's the same content.
 
 ### GP4: Self-Evident Design
 
@@ -53,7 +54,7 @@ The platform's intent, logic, and structure must be evident at every layer — f
 
 | Layer | What self-evidence looks like |
 |---|---|
-| **Variable and field names** | Named after the concepts they represent — `customer_motivation`, `delivery_capacity`, `orchestration_method` — not generic labels |
+| **Variable and field names** | Named after the concepts they represent — `training_commitment`, `delivery_capacity`, `organizational_dna` — not generic labels |
 | **Component and module names** | You can tell what a module does and why it exists from its name |
 | **Data models** | Pillars, dimensions, and requirements are explicit in the schema, not buried in unstructured text |
 | **API surface** | Naming is clear and intentional |
@@ -97,7 +98,7 @@ This model is **variable-driven, not hard-coded**. Every label, category, descri
 
 ### Product-Market Fit = Product Labability
 
-Product Labability determines product-market fit. It asks one fundamental question: **can Skillable deliver a complete lab lifecycle for this product?** The answer is measured across four dimensions: Orchestration Method, Lab Access, Scoring, and Teardown (detailed in Pillar 1 of the Scoring Framework).
+Product Labability determines product-market fit. It asks one fundamental question: **can Skillable deliver a complete lab lifecycle for this product?** The answer is measured across four dimensions: Provisioning, Lab Access, Scoring, and Teardown (detailed in Pillar 1 of the Scoring Framework).
 
 If a product cannot pass these dimensions, it does not matter how big the company is, how much they spend on training, or how many employees they have. Skillable cannot help them.
 
@@ -227,7 +228,7 @@ The entire platform is one continuous progressive disclosure path — one intell
 
 | Layer | What you see | Who starts here |
 |---|---|---|
-| **HubSpot card** | Fit confirmation, key badges, "worth pursuing" confidence, ACV signal | Marketing, Sellers, CSMs |
+| **HubSpot card** | Fit confirmation, key badges, "worth pursuing" confidence, ACV signal, HubSpot ICP Context | Marketing, Sellers, CSMs |
 | **Inspector Caseboard** | All products for a company — scores, badges at a glance, Fit Score + ACV Potential | SEs, TSMs (or anyone who clicked deeper) |
 | **Dossier top sections** | Overall assessment, key findings, organizational context | Anyone exploring a company |
 | **Product cards (Dossier)** | Technical detail — labability dimensions, features, orchestration specifics | SEs, TSMs digging into a specific product |
@@ -243,23 +244,42 @@ Nobody is forced to see more than they need. Nobody is locked out of going deepe
 
 The scoring framework follows a clear hierarchy:
 
-- **Fit Score** — the composite, made up of four Pillars
-  - **Pillars** — the four weighted components of the Fit Score
-    - **Dimensions** — the specific areas measured within each Pillar
+- **Fit Score** — the composite, made up of three Pillars
+  - **Pillars** — the three weighted components of the Fit Score
+    - **Dimensions** — the specific areas measured within each Pillar (four per Pillar)
       - **Requirements** — the most granular level; what the AI researches and evaluates. These surface as badges in the UX.
+
+### The 70/30 Split
+
+The Fit Score is 70% about the product and 30% about the organization. The product is the center of everything — it dominates the score. The organization matters because it determines whether the opportunity will actually happen — but the product truth comes first.
+
+| Level | Pillars | Combined weight |
+|---|---|---|
+| **Product** | Product Labability + Instructional Value | 70% |
+| **Organization** | Customer Fit | 30% |
+
+### Three Pillars
+
+| Pillar | Weight | Level | UX Question |
+|---|---|---|---|
+| **Product Labability** | 40% | Product | How labable is this product? |
+| **Instructional Value** | 30% | Product | Does this product have instructional value for hands-on training? |
+| **Customer Fit** | 30% | Organization | Is this organization a good match for Skillable? |
+
+Each Pillar scores out of 100 internally, then gets weighted. A Product Labability score of 85/100 contributes 85 x 0.40 = 34 points to the Fit Score. This makes scores intuitive — 85 out of 100 is clearly strong.
 
 ### Badge System
 
-Badges are variable-driven visual indicators that surface requirements in the UX. Each badge has a name and a color.
+Badges are variable-driven visual indicators that surface requirements in the UX. Each badge has a name and a color. Fewer badges with more context is better than many badges with less context. The detail lives in the evidence bullets when you drill deeper.
 
 **Four badge colors:**
 
-| Color | Meaning | When to use |
+| Color | Meaning | Qualifier label |
 |---|---|---|
-| **Green** | Strength / Opportunity | This is good — go forward |
-| **Gray** | Neutral / Context | Worth knowing, not good or bad — just information |
-| **Amber** | Risk / Caution | Dig deeper — there's something to figure out |
-| **Red** | Blocker | This is a problem that must be solved |
+| **Green** | Strength / Opportunity | `| Strength:` or `| Opportunity:` |
+| **Gray** | Neutral / Context | `| Context:` |
+| **Amber** | Risk / Caution | `| Risk:` |
+| **Red** | Blocker | `| Blocker:` |
 
 **Evidence confidence language:**
 
@@ -271,149 +291,142 @@ Confidence is communicated through language in the evidence text, not through ad
 | **Indicated** | "VM deployment **indicated** — installation guide references Windows Server" | Strong indirect evidence, multiple signals |
 | **Inferred** | "Troubleshooting lab potential **inferred** from category norms" | AI-informed assumption based on patterns or limited signals |
 
-For high-risk areas (contacts, consumption estimates), rationale must be explicit: "Estimated based on..." or "Contact identified from LinkedIn search results — may be out of date."
-
-The badge color and the evidence language work together. The badge tells you the assessment. The evidence tells you the basis for that assessment. Together they give the reader everything they need to decide how much weight to put on a finding.
+Confidence coding is core logic in the codebase — every finding carries a confidence level as a stored field. It influences badge color assignment, surfaces in evidence language, and is available to downstream consumers. The badge color tells you the assessment. The evidence language tells you the basis. Together they're complete.
 
 **Badge naming principles:**
 
-- When the recommendation is clear, the badge should name the **solution**, not the problem — show the answer, not the question (e.g., "NFR Accounts Available" rather than "Account Creation")
-- When the finding is a spectrum, a single badge name with variable color works (e.g., "Learner Isolation" — green, amber, or red)
-- Some badges are variable-driven: the badge text itself changes based on what's found (e.g., the specific LMS name, the specific competitor platform)
-- If something is green and unremarkable, it doesn't need to surface at all — only show what matters
-- All four colors should be available for most badges — let the AI assess based on research
+- Name the **solution**, not the problem, when the recommendation is clear
+- Use variable-driven badge text when the specific finding IS the answer (e.g., LMS name, competitor name, user count, region)
+- If something is green and unremarkable, don't surface — only show what matters
+- No dimension should need more than three to five badges to tell its story — if more are needed, detail belongs in evidence bullets
 
-**Evidence bullet standard:** Clear, concise, and complete. Every bullet must be all three. No filler. No vague language. Specific details, specific sources, specific reasoning. The AI assesses the finding, recommends the solution, judges its own confidence, and shows its work.
+**Evidence bullet standard:** Clear, concise, and complete. Every bullet must be all three. No filler. No vague language. Specific details, specific sources, specific reasoning.
+
+### Badge Display by Tool
+
+| Tool | What appears |
+|---|---|
+| **Prospector** | Color + HubSpot ICP Context (synthesis note — 1-2 sentences, why this score) |
+| **Inspector Caseboard** | Color + badge name (no rationale) |
+| **Inspector Dossier hero** | Color + badge name; click-through to evidence |
+| **Inspector Dossier drill-down** | Full evidence bullet with source and rationale |
+| **Designer** | Green signals become program design inputs; badges not shown |
+
+**HubSpot Integration** (data sent, not UX controlled): Fields sent from Prospector and Inspector — Fit Score, ACV Potential, HubSpot ICP Context, key badges, product list, contacts. HubSpot ICP Context is regenerated from best current intelligence every time data is sent (GP5).
 
 ### Two Hero Metrics
 
-The platform presents two primary metrics that together tell the full story:
-
 | Metric | What it answers | How it's determined |
 |---|---|---|
-| **Fit Score** | Should we pursue this? How strong is the opportunity? | Composite of four Pillars |
-| **ACV Potential** | How big is this if we win? | Calculated from consumption motions: population x adoption x hours x rate |
+| **Fit Score** | Should we pursue this? | Composite of three Pillars |
+| **ACV Potential** | How big is this if we win? | Calculated: population x adoption x hours x rate |
 
-These are the two hero elements in the UX — visible at the top of every dossier and caseboard entry. They are separate outputs, not one composite. The Fit Score is a qualitative assessment. ACV Potential is a calculated business metric. Together they drive prioritization:
+These are the two hero elements in the UX — visible at the top of every dossier and caseboard entry. Separate outputs, not one composite. The Fit Score is a qualitative assessment. ACV Potential is a calculated business metric.
 
-| Fit Score | ACV Potential | What it means |
-|---|---|---|
-| **High** | **High** | Best opportunity — strong fit, big prize. Prioritize aggressively. |
-| **High** | **Low** | Great fit but small opportunity. Worth pursuing, don't over-invest. |
-| **Medium** | **High** | Gaps exist but massive potential. Worth solving the gaps. |
-| **Medium** | **Low** | Moderate fit, small opportunity. Lower priority. |
-| **Low** | **High** | Can't deliver today, but opportunity is huge. Watch list. |
-| **Low** | **Low** | Not a fit, not worth it. Move on. |
+### Verdict Grid
 
-### Four Pillars
+The verdict combines Fit Score and ACV Potential into a single action-oriented label. It tells the seller what the opportunity looks like and what action makes sense — without predicting customer behavior or dictating effort.
 
-The Fit Score is a composite of four Pillars — two product-level, two organization-level:
+**Score color spectrum:**
 
-| Pillar | Weight | Level | UX Question |
-|---|---|---|---|
-| **Product Labability** | 40% | Product | How labable is this product? |
-| **Product Demand** | 25% | Product | Does this product need hands-on training? |
-| **Customer Motivation** | 20% | Organization | Why would they invest in hands-on training? |
-| **Organizational Readiness** | 15% | Organization | Can they build and deliver labs? |
+| Score range | Color |
+|---|---|
+| >=80 | Dark Green |
+| 65-79 | Green |
+| 45-64 | Light Amber |
+| 25-44 | Amber |
+| <25 | Red |
+
+**Verdict grid:**
+
+| Score | High ACV | Medium ACV | Low ACV |
+|:---:|:---:|:---:|:---:|
+| **>=80** | Prime Target | Strong Prospect | Good Fit |
+| | Dark Green | Dark Green | Dark Green |
+| **65-79** | High Potential | Worth Pursuing | Solid Prospect |
+| | Green | Green | Green |
+| **45-64** | High Potential | Worth Pursuing | Solid Prospect |
+| | Light Amber | Light Amber | Light Amber |
+| **25-44** | Assess First | Keep Watch | Deprioritize |
+| | Amber | Amber | Amber |
+| **<25** | Keep Watch | Poor Fit | Poor Fit |
+| | Red | Red | Red |
+
+**Verdict definitions:**
+
+| Verdict | What it communicates |
+|---|---|
+| **Prime Target** | Best possible combination. Build a strategy, align the team. |
+| **Strong Prospect** | Great fit, meaningful opportunity. Pursue with confidence. |
+| **Good Fit** | The fit is real. Worth your time. |
+| **High Potential** | Gaps to work through but significant upside justifies the investment. |
+| **Worth Pursuing** | Good fundamentals all around. Give it attention. |
+| **Solid Prospect** | Decent fit, modest opportunity. Steady. |
+| **Assess First** | Low fit today, but the opportunity is big. Do the homework before deciding. |
+| **Keep Watch** | Not ready today. Opportunity is big enough to stay close and revisit when conditions change. |
+| **Deprioritize** | Low fit, small opportunity. Focus elsewhere. |
+| **Poor Fit** | Products don't align. Be honest about it. |
 
 ---
 
 ### Pillar 1: Product Labability (40%)
 *How labable is this product?*
 
-The gatekeeper. If this fails, nothing else matters. Measures whether Skillable can deliver a complete lab lifecycle for this product.
+The gatekeeper. If this fails, nothing else matters. Measures whether Skillable can deliver a complete lab lifecycle for this product. 70% of the Fit Score is about the product — and this Pillar is the foundation of that.
 
-**Orchestration Method determines difficulty for everything else.** When a product runs in Skillable's infrastructure (VM, container, Cloud Slice), the other dimensions are largely within Skillable's control. When a product runs in the vendor's own cloud, every dimension depends on the vendor's APIs and policies — significantly more risk.
-
-| Dimension | Question | Key badges |
+| Dimension | Weight | Question |
 |---|---|---|
-| **Orchestration Method** | How do we get this product into Skillable? | Azure Cloud Slice, AWS Cloud Slice, Hyper-V, Container, Custom API / BYOC, Simulation |
-| **Lab Access** | Can we get people in with their own identity, reliably, at scale? | Variable badges that name the solution (NFR Accounts Available, Account Recycling, Credential Pool, etc.), Learner Isolation, Anti-Automation Controls |
-| **Scoring** | Can we assess what they did, and how granularly? | API Scorable, Script Scorable, Simulation Scorable, AI Vision Scorable, MCQ Scorable |
-| **Teardown** | Can we clean it up when it's over? | Teardown APIs, Orphan Risk. For VM/container labs, teardown is automatic — badges only surface when there's a finding. |
+| **Provisioning** | 35 | How do we get this product into Skillable? |
+| **Lab Access** | 25 | Can we get people in with their own identity, reliably, at scale? |
+| **Scoring** | 15 | Can we assess what they did, and how granularly? |
+| **Teardown** | 25 | Can we clean it up when it's over? |
+
+**Provisioning determines difficulty for everything else.** When a product runs in Skillable's infrastructure (VM, container, Cloud Slice), the other dimensions are largely within Skillable's control. When a product runs in the vendor's own cloud, every dimension depends on the vendor's APIs and policies — significantly more risk.
 
 ---
 
-### Pillar 2: Product Demand (25%)
-*Does this product need hands-on training?*
+### Pillar 2: Instructional Value (30%)
+*Does this product have instructional value for hands-on training?*
 
 The commercial case. Measures whether this product genuinely warrants hands-on lab experiences.
 
-| Dimension | Question | Key badges |
+| Dimension | Weight | Question |
 |---|---|---|
-| **Product Complexity** | Is this product hard enough to require hands-on practice? | Product Breadth & Depth, Workflow Complexity, Configuration Complexity, Hands-On AI Features, Not Lab Appropriate (disqualifier) |
-| **Mastery Stakes** | How much does competence matter? | High-Stakes Skills, Adoption & TTV Risks, Certification Program |
-| **Lab Versatility** | What kinds of hands-on experiences can we build? | Collaborative Lab Opportunity, Break/Fix Opportunity, Simulated Attack Opportunity |
-| **Market Demand** | Does the broader market validate the need? | Growth Trajectory, Geographic Reach, Annual Users, Key Customers |
-
-**Market Demand includes strong category-level priors.** Certain product categories inherently carry high market demand:
-
-- **Highest demand:** Cybersecurity, Cloud Infrastructure, Networking/SDN, Data Science & Engineering, Data & Analytics, DevOps
-- **Moderate demand:** Data Protection, Infrastructure/Virtualization, App Development, ERP/CRM, Healthcare IT, FinTech, Collaboration, Content Management, Legal Tech, Industrial/OT
-- **Low demand:** Simple SaaS, Consumer
+| **Product Complexity** | 40 | Is this product hard enough to require hands-on practice? |
+| **Mastery Stakes** | 25 | How much does competence matter? |
+| **Lab Versatility** | 15 | What kinds of hands-on experiences can we build? |
+| **Market Demand** | 20 | Does the broader market validate the need? |
 
 **AI as a market demand signal has two distinct forms:**
 
-| Signal | What it means | Example |
-|---|---|---|
-| **Learning AI-embedded features** | The product has AI features users need to learn — hands-on practice with AI-powered capabilities | Learning Trellix's GenAI-powered threat investigation |
-| **Creating AI** | The product IS an AI platform — labs teach people to build, train, deploy AI models | Building models in SageMaker or Azure ML |
+| Signal | What it means |
+|---|---|
+| **Learning AI-embedded features** | The product has AI features users need to learn — hands-on practice with AI-powered capabilities |
+| **Creating AI** | The product IS an AI platform — labs teach people to build, train, deploy AI models |
 
-Both are strong demand signals. Learning AI features is about using a tool. Creating AI is about building the tool.
+**Lab Versatility** connects directly to Designer. The lab type signals identified here (Red vs Blue, Break/Fix, Simulated Attack, Team Handoff, etc.) feed into Designer as starting points for program recommendations. In Inspector, they provide conversational competence for sellers — specific, product-relevant talking points about what kinds of hands-on experiences are possible.
 
 ---
 
-### Pillar 3: Customer Motivation (20%)
-*Why would they invest in hands-on training?*
+### Pillar 3: Customer Fit (30%)
+*Is this organization a good match for Skillable?*
 
-Why the organization would invest. Scored based on the presence and strength of three motivations. Multiple motivations present = stronger score. Motivation also serves as a **framing variable** that shapes how all recommendations and rationale are communicated — it's not just a number, it's a conversation shaper.
+Everything about the organization in one Pillar. Combines training commitment, organizational character, delivery capacity, and build capability. 30% of the Fit Score — meaningful but never overriding the product truth.
 
-**Key distinction from Pillar 2:** Product Demand measures the **product** (is it complex? are the stakes high?). Customer Motivation measures the **organization's response** (have they invested because of that complexity and those stakes?). The badges in Pillar 3 are observable evidence of organizational commitment, not product-level signals.
-
-| Dimension | Question | Key badges (evidence of commitment) |
+| Dimension | Weight | Question |
 |---|---|---|
-| **Product Adoption** | Are they investing to drive usage, reduce churn, accelerate time-to-value? | Customer Enablement, Customer Success, Channel Enablement |
-| **Skill Development** | Are they investing to build competence, certify people, advance careers? | Certification Program, Training Catalog, ATP / Learning Partner Program |
-| **Compliance & Risk** | Are they investing because the cost of incompetence is unacceptable? | Regulated Industry, Compliance Training Program, Audit Requirements |
+| **Training Commitment** | 25 | Have they invested in training? What's the evidence? |
+| **Organizational DNA** | 25 | Are they the kind of company that partners and builds training programs? |
+| **Delivery Capacity** | 30 | Can they get labs to learners at scale? |
+| **Build Capacity** | 20 | Can they create the labs? |
 
-The underlying business problems — adoption & TTV risk, churn & retention risk, regulatory exposure — are the **rationale** that explains why these programs exist. They surface in the evidence detail when someone drills deeper, not as badges themselves.
+**Training Commitment** badges are evidence of organizational commitment across three motivation categories (product adoption, skill development, compliance & risk). The three motivations also serve as a **framing variable** that shapes how recommendations are communicated — not just a score, a conversation shaper.
 
----
+**Organizational DNA** is the character of the organization — do they partner or build in-house? Are they easy or hard to do business with? Badges are variable-driven: Partner Ecosystem, Build vs Buy, Integration Maturity, Ease of Engagement.
 
-### Pillar 4: Organizational Readiness (15%)
-*Can they build and deliver labs?*
+**Delivery Capacity** is weighted highest within Customer Fit because having labs = cost, delivering labs = value. Without delivery channels, labs never reach learners and there is no business impact.
 
-Whether the organization can execute. Weighted lower because Skillable Professional Services or partners can fill the build gap. Two dimensions, with delivery weighted higher.
-
-**Delivery Capacity** (higher weight) — can they get labs to learners at scale?
-
-| Badge | What it tells us |
-|---|---|
-| **ATP / Learning Partner Program** | Scaled delivery through partners — broad reach |
-| **{LMS Platform Name}** (variable) | Delivery infrastructure confirmed — badge shows the specific platform (Docebo, Cornerstone, Moodle, etc.). Skillable partners (Docebo, Cornerstone) are green. |
-| **ILT / vILT Offerings** | Instructor-led delivery channel established |
-| **On-Demand Catalog** | Self-paced delivery — scales without instructors |
-| **Certification Delivery** | Proctored exam infrastructure — high-stakes delivery channel |
-| **Events & Conferences** | Direct delivery channel — labs at events |
-| **Customer Onboarding Infrastructure** | Structured path to deliver labs to new customers |
-
-**Lab Platform Detection** — a special signal within Delivery Capacity. Confirms they already have lab delivery infrastructure and identifies migration or expansion opportunities:
-
-| Badge | Color | What it tells us |
-|---|---|---|
-| **Skillable** | Green | Existing customer — expansion opportunity |
-| **{Competitor Name}** (variable) | Amber | Competitor in use — migration opportunity (Instruqt, CloudShare, Kyndryl/Skytap, GoDeploy, Vocareum, Appsembler, ReadyTech, Immersive Labs, Hack The Box, TryHackMe, ACI Learning) |
-| **DIY Labs** | Amber | Home-built — they've invested in labs but likely hitting limitations |
-
-**Build Capacity** (lower weight) — can they create the labs?
-
-| Badge | What it tells us |
-|---|---|
-| **Content Dev Team** | They have the people — Lab Authors, IDs, Tech Writers |
-| **Existing Labs** | They've built hands-on experiences before |
-| **Content Outsourcing** | They use third parties — ProServ opportunity for Skillable |
-
-When Build Capacity is low but Delivery Capacity is strong, the platform surfaces: **Professional Services Opportunity** — they need help building but they'll deliver at scale.
+**Build Capacity** is weighted lowest because Skillable Professional Services or partners can fill this gap. Low Build Capacity + strong Delivery Capacity = **Professional Services Opportunity**.
 
 ---
 
@@ -470,7 +483,7 @@ The codebase must cleanly separate three data domains. Architect for authorizati
 |---|---|---|
 | **Product data** | What products are, how they work, labability assessments, orchestration details | Open — anyone can see, including customers in Designer |
 | **Program data** | Lab series, outlines, activities, instructions — created in Designer | Scoped — only your own programs |
-| **Company intelligence** | Fit scores, badges, buying signals, organizational readiness, contacts, ACV estimates | Internal-only — Skillable roles only |
+| **Company intelligence** | Fit scores, badges, buying signals, customer fit data, contacts, ACV estimates | Internal-only — Skillable roles only |
 
 No mixing these domains in the same database tables, API responses, or service calls in ways that would be hard to untangle later. The separation must be architectural, not just a permissions layer.
 
@@ -478,29 +491,35 @@ No mixing these domains in the same database tables, API responses, or service c
 
 ## Open Decisions
 
-Items not yet fully resolved. These will be addressed as the foundation matures.
-
 | Item | Status |
 |---|---|
-| **Motivation and Org Readiness relationship** | Keep separate, present together. Revisit during rubric development. |
 | **Product Labability as UX structure** | The model must be right first. Display will follow. |
 | **Legacy variable names** | Principle set (GP4) — addressed during code refactor. |
 | **Cache versioning** | Principle set (GP5) — implementation TBD. |
 | **Product Lookalikes** | Confirmed as core Prospector concept — implementation TBD. |
 | **UX interpretation tags** | Concept agreed — tag taxonomy TBD. |
 | **Lab Access dimension naming** | Working name — will be refined as requirements are finalized. |
+| **Scoring point values** | Dimension weights set. Detailed point values for badges need calibration against real data. |
 
 ---
 
 ## Document Strategy
 
-Two authoritative documents, not four:
+Two authoritative documents:
 
 | Document | What it owns | Audience |
 |---|---|---|
 | **Platform-Foundation.md** | Strategic authority — Guiding Principles, Pillars, Dimensions, people, motivation, architecture, ACV model | Everyone |
-| **Badging-and-Scoring-Reference.md** | Operational detail — specific badge names, color criteria, point values, weights, signals, penalties, thresholds | Developers, AI prompts |
+| **Badging-and-Scoring-Reference.md** | Operational detail — specific badge names, color criteria, point values, weights, signals, penalties, thresholds. Also serves as the in-app explainability layer (GP3). | Developers, AI prompts, in-app help |
 
 The Badging and Scoring Reference references the Foundation for structure and vocabulary. It never redefines what the Foundation owns. The AI scoring prompt (product_scoring.txt) will be generated fresh from these two documents.
 
 Define once, reference everywhere.
+
+---
+
+## Supporting Documents
+
+| Document | Purpose |
+|---|---|
+| **Research-Methodology-Improvements.md** | Living list of detection logic, research improvements, and implementation details for the refactor |
