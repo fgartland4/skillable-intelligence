@@ -2,6 +2,8 @@
 
 Items identified during the Platform Foundation conversations that should be addressed when refactoring the research and detection logic. These are implementation improvements, not foundation-level decisions.
 
+This document reflects best current thinking. As thinking evolves, this document evolves with it — fully synthesized, never appended.
+
 ---
 
 ## Prompt Generation System — Implementation Requirements
@@ -33,6 +35,29 @@ Replace the static product_scoring.txt with a three-layer prompt generation syst
 ### What This Replaces
 `backend/prompts/product_scoring.txt` — will be deleted after the new system is validated. During transition, both can coexist with a feature flag.
 
+### What Lives in the Configuration
+
+Everything variable-driven, including:
+
+| Category | Examples |
+|---|---|
+| **Pillar structure** | Names, weights (Product Labability 40%, Instructional Value 30%, Customer Fit 30%), UX questions |
+| **Dimension structure** | Names, weights within each Pillar (e.g., Provisioning 35, Lab Access 25, Scoring 15, Teardown 25) |
+| **Badge definitions** | Names, color criteria (green/gray/amber/red), scoring signals, point values, evidence requirements |
+| **Penalties** | Names, deduction values, which dimension they apply to |
+| **Thresholds** | Score ranges for verdict grid (80/65/45/25), ACV tier boundaries |
+| **Verdict labels** | The 10 verdict names and definitions |
+| **Category priors** | Product categories and their demand ratings |
+| **Lab type menu** | The 12 lab versatility types with likely product mappings |
+| **Canonical lists** | Lab platform providers, LMS partners, organization types, locked vocabulary |
+| **ACV rates** | Delivery path rate tables, consumption motion labels, adoption ceilings |
+| **Confidence rules** | When to use confirmed vs. indicated vs. inferred |
+| **Reasoning sequence** | Step-by-step order the AI follows when scoring. Can add, reorder, or remove steps. |
+| **Evidence standards** | Writing rules for evidence bullets — labels, qualifiers, length limits, uniqueness rules |
+| **Delivery pattern signals** | Specific patterns (ADO, GitHub, vSphere, identity lifecycle, etc.) and their guidance |
+| **Skillable capabilities** | Datacenter support, Cloud Slice modes, supported services, scoring methods |
+| **Contact guidance** | Rules for identifying decision makers and influencers |
+
 ### Future: Admin GUI
 When AuthN/AuthZ is implemented, add a web interface for editing the config:
 - View/edit all config values
@@ -47,16 +72,6 @@ When AuthN/AuthZ is implemented, add a web interface for editing the config:
 
 All Pillar names, dimension names, weights, thresholds, badge names, and vocabulary must be defined in a single configuration layer (likely a config file or constants module) and referenced by every consumer — code, AI prompts, UX templates, documentation generation. Nothing hard-coded. If a name or weight changes, one edit propagates everywhere. This is a core architectural requirement for the refactor.
 
-**What lives in the config layer:**
-- Pillar names and weights (Product Labability 40%, Instructional Value 30%, Customer Fit 30%)
-- Dimension names and weights within each Pillar
-- Badge names and color criteria
-- Score thresholds (80/65/45/25) and verdict labels
-- Canonical lists (lab platforms, LMS partners, organization types)
-- Locked vocabulary (use this, not that)
-- ACV rate tables
-- Consumption motion labels and adoption ceilings
-
 ---
 
 ## Core Principle: Confidence Coding
@@ -65,9 +80,23 @@ Confidence coding (confirmed / indicated / inferred) must be core logic in the c
 - Influences badge color assignment (confirmed evidence can support green; inferred evidence may cap at amber)
 - Is stored in the data model alongside the finding itself
 - Surfaces in evidence language when displayed
+- Powers the badge hover evidence modal (1.5s delay, shows bullets + source + confidence)
 - Is available to downstream consumers (HubSpot ICP Context, Designer, etc.)
 
 This is not optional. It is how the platform achieves GP3 (Explainably Trustworthy) at the code level.
+
+---
+
+## Badge Evidence Hover Implementation
+
+Every badge must carry an evidence payload. No badge renders without evidence. The hover interaction:
+
+1. User hovers over a badge
+2. After 1.5 second delay, a modal appears
+3. Modal displays: evidence bullets, source, confidence level (confirmed/indicated/inferred)
+4. Modal dismisses on mouseout
+
+This requires the data model to store evidence alongside every badge. The scoring prompt must instruct the AI to produce evidence for every badge it assigns. Badges without evidence are invalid and should be caught during validation.
 
 ---
 
@@ -142,6 +171,15 @@ This is not optional. It is how the platform achieves GP3 (Explainably Trustwort
 
 ---
 
+## WCAG AA Accessibility Check
+
+### Automated contrast ratio validation
+**Requirement:** All text/background color combinations must pass WCAG AA (4.5:1 normal text, 3.0:1 large text). Run contrast checks as part of QA before any UX deployment.
+**Implementation:** Build a script or integrate into the build process that validates all CSS color pairs against WCAG AA thresholds. Flag any combination below 4.5:1 for normal text or 3.0:1 for large text.
+**When Designer becomes customer-facing:** Consider a formal WCAG audit and compliance statement.
+
+---
+
 ## In-App Documentation Linking
 
 ### Documentation as the explainability layer
@@ -150,10 +188,11 @@ This is not optional. It is how the platform achieves GP3 (Explainably Trustwort
 - Each major section in the Badging and Scoring Reference needs an anchor tag the UX can link to
 - Documentation must be written clearly enough for a seller to understand, not just developers
 - Section-level linking, not badge-level — one click shows the whole section for that part of the UX
-- Examples: clicking "how does this work?" on Product Labability shows the full Product Labability section. Clicking on ACV shows the ACV calculation section.
+- Pillar card headers have two icons: info icon (?) and doc icon (document SVG) — same size, muted color, green on hover
+- Seller Briefcase sections each have an info icon linking to relevant framework documentation
 - When documentation is updated, in-app help updates automatically — same source
 - Keep it digestible — each section should be a standalone explainer
-- Don't clutter the UX with icons everywhere — strategic placement at section level only
+- Strategic placement at section level only — don't clutter the UX
 
 ---
 
@@ -161,4 +200,24 @@ This is not optional. It is how the platform achieves GP3 (Explainably Trustwort
 
 ### Surface the specific LMS platform name
 **Current:** The badging framework has a generic "LMS / LXP" badge.
-**Improvement:** Badge should display the specific platform name (Docebo, Cornerstone, Moodle, etc.) — same variable-driven principle as lab platform badges. Docebo and Cornerstone are Skillable partners and should be green.
+**Improvement:** Badge should display the specific platform name (Docebo, Cornerstone, Moodle, etc.) — same variable-driven principle as lab platform badges. Docebo and Cornerstone are Skillable partners and should be green. Skillable TMS is green — our own platform.
+
+---
+
+## UX Implementation Notes
+
+### Dimension Name Display
+All dimension names render in ALL CAPS in the UX (e.g., PROVISIONING, LAB ACCESS, PRODUCT COMPLEXITY). This is a display convention — the data model uses normal casing.
+
+### Score Bar Styling
+Score bars within Pillar cards use a gradient green/amber fill based on the dimension score. WCAG AA compliant.
+
+### Cache and Navigation
+- Cache date shown as a hoverable link with "Refresh cache" tooltip
+- Two navigation links: "Back to Product Selection" and "Search Another Company"
+
+### Export
+Word export (not PDF) — sellers can customize the document for their conversations.
+
+### Product Selector Dropdown
+In the hero section, the product selector shows: product name (left-aligned, truncated at ~40 chars), score, and purple subcategory badge.

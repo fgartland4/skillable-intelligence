@@ -32,6 +32,20 @@ Each Pillar scores out of 100 internally, then gets weighted. A Product Lababili
 | **Amber** | Risk / Caution | `| Risk:` |
 | **Red** | Blocker | `| Blocker:` |
 
+### Purple Classification Badges
+
+Purple is used for classification, not scoring. Product subcategory badges and company classification badges all render in purple. This provides a consistent visual signal that a badge is categorizing, not assessing.
+
+### Badge Evidence on Hover
+
+Every badge MUST carry an evidence payload — no badge renders without evidence. Hovering over any badge for 1.5 seconds triggers a modal displaying:
+
+- Evidence bullets (specific findings)
+- Source (where the evidence came from)
+- Confidence level (confirmed, indicated, or inferred)
+
+This is the primary mechanism for GP3 (Explainably Trustworthy) at the badge level.
+
 ### Evidence Format
 
 `**[Badge Name] | [Qualifier]:** [Specific finding] — [source title]. [What it means for lab delivery.]`
@@ -64,7 +78,7 @@ For high-risk areas (contacts, consumption estimates): rationale must be explici
 |---|---|
 | **Prospector** | Color + HubSpot ICP Context (1-2 sentence synthesis — why this score) |
 | **Inspector Caseboard** | Color + badge name (no rationale) |
-| **Inspector Dossier hero** | Color + badge name; click-through to evidence |
+| **Inspector Dossier hero** | Color + badge name; hover for evidence (1.5s delay modal) |
 | **Inspector Dossier drill-down** | Full evidence bullet with source and rationale |
 | **Designer** | Green signals become program design inputs; badges not shown |
 
@@ -79,6 +93,8 @@ For high-risk areas (contacts, consumption estimates): rationale must be explici
 | **Fit Score** | Should we pursue this? | Composite of three Pillars |
 | **ACV Potential** | How big is this if we win? | Calculated: population x adoption x hours x rate |
 
+ACV values use lowercase k for thousands and uppercase M for millions (e.g., 250k, 1.2M).
+
 ### Verdict Grid
 
 The verdict combines Fit Score and ACV Potential into a single action-oriented label. It tells the seller what the opportunity looks like and what action makes sense — without predicting customer behavior or dictating effort.
@@ -92,6 +108,8 @@ The verdict combines Fit Score and ACV Potential into a single action-oriented l
 | 45-64 | Light Amber |
 | 25-44 | Amber |
 | <25 | Red |
+
+**ACV tiers:** High, Medium, Low.
 
 **Verdict grid:**
 
@@ -131,7 +149,7 @@ These appear on the Caseboard after discovery research, before the full scoring 
 
 ### Company Classification
 
-Displayed in the page header, right of company name. All labels uppercase.
+Displayed as a **purple badge** in the page header, right of company name. All labels uppercase. Purple signals classification, not assessment.
 
 **Software companies:** Format is `{CATEGORY} SOFTWARE`
 
@@ -154,7 +172,7 @@ Displayed in the page header, right of company name. All labels uppercase.
 
 ### Product Subcategory
 
-Displayed as a badge on each product row. AI-generated during discovery.
+Displayed as a **purple badge** on each product row — consistent color for all classification badges. AI-generated during discovery.
 
 | Top-Level Category | Subcategory examples |
 |---|---|
@@ -183,10 +201,10 @@ The gatekeeper. If this fails, nothing else matters. Provisioning determines dif
 
 | Dimension | Weight | Question |
 |---|---|---|
-| Provisioning | 35 | How do we get this product into Skillable? |
-| Lab Access | 25 | Can we get people in with their own identity, reliably, at scale? |
-| Scoring | 15 | Can we assess what they did, and how granularly? |
-| Teardown | 25 | Can we clean it up when it's over? |
+| PROVISIONING | 35 | How do we get this product into Skillable? |
+| LAB ACCESS | 25 | Can we get people in with their own identity, reliably, at scale? |
+| SCORING | 15 | Can we assess what they did, and how granularly? |
+| TEARDOWN | 25 | Can we clean it up when it's over? |
 
 ### 1.1 Provisioning (35 pts)
 
@@ -329,10 +347,10 @@ The commercial case. Measures whether this product genuinely warrants hands-on l
 
 | Dimension | Weight | Question |
 |---|---|---|
-| Product Complexity | 40 | Is this product hard enough to require hands-on practice? |
-| Mastery Stakes | 25 | How much does competence matter? |
-| Lab Versatility | 15 | What kinds of hands-on experiences can we build? |
-| Market Demand | 20 | Does the broader market validate the need? |
+| PRODUCT COMPLEXITY | 40 | Is this product hard enough to require hands-on practice? |
+| MASTERY STAKES | 25 | How much does competence matter? |
+| LAB VERSATILITY | 15 | What kinds of hands-on experiences can we build? |
+| MARKET DEMAND | 20 | Does the broader market validate the need? |
 
 ### 2.1 Product Complexity (40 pts)
 
@@ -482,10 +500,10 @@ Everything about the organization in one Pillar. Combines training commitment, o
 
 | Dimension | Weight | Question |
 |---|---|---|
-| Training Commitment | 25 | Have they invested in training? What's the evidence? |
-| Organizational DNA | 25 | Are they the kind of company that partners and builds training? |
-| Delivery Capacity | 30 | Can they get labs to learners at scale? |
-| Build Capacity | 20 | Can they create the labs? |
+| TRAINING COMMITMENT | 25 | Have they invested in training? What's the evidence? |
+| ORGANIZATIONAL DNA | 25 | Are they the kind of company that partners and builds training? |
+| DELIVERY CAPACITY | 30 | Can they get labs to learners at scale? |
+| BUILD CAPACITY | 20 | Can they create the labs? |
 
 ### 3.1 Training Commitment (25 pts)
 
@@ -557,6 +575,8 @@ Weighted highest within Customer Fit. Having labs = cost. Delivering labs = valu
 | **{Lab Platform Name}** | Green = Skillable (expansion). Amber = competitor (migration). DIY noted in evidence. |
 | **Gray Market Offering** | Amber = third-party training exists — conversation starter. |
 
+Skillable TMS is green — our own platform.
+
 ---
 
 ### 3.4 Build Capacity (20 pts)
@@ -580,6 +600,8 @@ Calculated, not scored. Estimated annual contract value if the customer standard
 
 **ACV = Population x Adoption Rate x Hours per Learner x Rate**
 
+ACV values use lowercase k for thousands and uppercase M for millions (e.g., 250k, 1.2M).
+
 ### Rate by Delivery Path
 
 | Path | Rate |
@@ -602,6 +624,18 @@ Calculated, not scored. Estimated annual contract value if the customer standard
 | Events & Conferences | 0.30-0.70 |
 
 Never exceed 0.80 (Events only). Never exceed 0.20 for all other motions.
+
+---
+
+## Seller Briefcase
+
+Below the three Pillar cards, each Pillar contributes a briefcase section — 2-3 sharp, actionable bullets that arm the seller for conversations. Each section has an info icon linking to the relevant framework documentation.
+
+| Section | Under which Pillar | What it gives the seller |
+|---|---|---|
+| **Key Technical Questions** | Product Labability | Who to find at the customer, what department, and the specific technical questions that unblock the lab build. Includes a verbatim question the champion can send. |
+| **Conversation Starters** | Instructional Value | Product-specific talking points about why hands-on training matters. Makes the seller credible without being technical. |
+| **Account Intelligence** | Customer Fit | Organizational signals — training leadership, org complexity, LMS platform, competitive signals, news. Shows the seller has done their homework. |
 
 ---
 
@@ -631,6 +665,7 @@ Never exceed 0.80 (Events only). Never exceed 0.20 for all other motions.
 | DIY Labs | DIY |
 | Green / Gray / Amber / Red | Pass / Partial / Fail / Yellow |
 | Blocker | Red (in badge context) |
+| HubSpot ICP Context | Notes / Generic notes field |
 
 ---
 
