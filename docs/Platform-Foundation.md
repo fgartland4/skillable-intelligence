@@ -624,6 +624,26 @@ The codebase must cleanly separate three data domains. Architect for authorizati
 
 No mixing these domains in the same database tables, API responses, or service calls in ways that would be hard to untangle later. The separation must be architectural, not just a permissions layer.
 
+### RBAC Roles (Tentative)
+
+Every data field, API endpoint, and UX element must be permission-aware from the start. When RBAC is implemented, assigning and revoking access should be straightforward — flipping switches, not retrofitting. This is GP1 (right data to the right people) applied to security.
+
+| Role | Tools | Data access |
+|---|---|---|
+| **Skillable Admin** | All | Full platform access |
+| **Skillable Prospector Admin** | Prospector | Company intelligence, product data, contacts, ACV |
+| **Skillable CRM Integration Admin** | HubSpot integration config | Company intelligence sent to HubSpot, field mappings |
+| **Skillable Seller (SAD/AE/CSM)** | Inspector (via HubSpot + dossier) | Company intelligence (read), product data, seller briefcase |
+| **Skillable Solution Consultant (SE/TSM)** | Inspector (full depth) | Company intelligence (read), product data, full evidence detail |
+| **Skillable Designer Admin** | Designer (all programs) | Product data, all Skillable programs |
+| **Skillable Instructional Designer** | Designer | Product data, assigned programs |
+| **Skillable SME** | Designer | Product data, assigned programs |
+| **Customer Designer Admin** | Designer (own programs only) | Product data (open), own programs only. Never company intelligence. |
+| **Customer Instructional Designer** | Designer (own programs only) | Product data (open), assigned programs only |
+| **Customer SME** | Designer (own programs only) | Product data (open), assigned programs only |
+
+The hard wall between Skillable and Customer roles: customers see product data and their own programs. They never see company intelligence, other customers' programs, or any Prospector/Inspector data. This is enforced architecturally, not just by permission checks.
+
 ---
 
 ## Open Decisions
