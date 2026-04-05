@@ -62,11 +62,11 @@ body { background: #0a1a14; color: #e0e0e0; font-family: 'Segoe UI', Calibri, sa
 .company-desc { color: #999; font-size: 0.82rem; margin-top: 8px; max-width: 60%; line-height: 1.5; }
 
 .hero { display: flex; align-items: flex-start; justify-content: center; gap: 0; padding: 16px 0 20px 0; margin-bottom: 16px; }
-.hero-verdict { min-width: 220px; text-align: center; margin-left: 40px; padding-top: 0; }
-.hero-center { text-align: center; flex: 1; padding-top: 0; }
-.hero-acv { min-width: 260px; text-align: center; margin-right: 60px; padding-top: 0; }
+.hero-verdict { min-width: 220px; text-align: center; margin-left: 40px; }
+.hero-center { text-align: center; flex: 1; }
+.hero-acv { min-width: 260px; text-align: center; margin-right: 60px; }
 
-.product-selector { position: relative; display: block; cursor: pointer; margin-bottom: 8px; margin-top: 0; }
+.product-selector { position: relative; display: block; cursor: pointer; margin-bottom: 8px; }
 .product-selector-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 1; }
 .product-selector-arrow { display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #24ED98; margin-left: 6px; vertical-align: 5px; transition: transform 0.2s; }
 .product-selector:hover .product-selector-label { color: #24ED98; }
@@ -84,11 +84,11 @@ body { background: #0a1a14; color: #e0e0e0; font-family: 'Segoe UI', Calibri, sa
 .verdict-badge-large { display: inline-block; font-size: 1.1rem; font-weight: 700; color: #24ED98; padding: 6px 18px; border: 2px solid #1a5a3a; background: #0d2a1c; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; }
 .verdict-sub { font-size: 0.7rem; color: #777; margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
 
-.fit-score-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; margin-top: 0; line-height: 1; }
+.fit-score-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; line-height: 1; }
 .fit-score-num { font-size: 4.5rem; font-weight: 900; color: #24ED98; line-height: 1; }
 .fit-score-num span { font-size: 1.4rem; color: #444; font-weight: 400; }
 
-.hero-acv-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; margin-top: 0; line-height: 1; }
+.hero-acv-label { font-size: 0.9rem; letter-spacing: 3px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 6px; line-height: 1; }
 .hero-acv-num { font-size: 2.2rem; font-weight: 800; color: #24ED98; line-height: 1; }
 .hero-acv-detail { font-size: 0.75rem; color: #888; margin-top: 6px; line-height: 1.5; }
 .hero-acv-detail strong { color: #1cc87a; font-weight: 600; }
@@ -127,7 +127,7 @@ body { background: #0a1a14; color: #e0e0e0; font-family: 'Segoe UI', Calibri, sa
 .bar-light-amber { background: linear-gradient(90deg, #6a5a1b, #d4a017); }
 
 .badge { font-size: 0.55rem; padding: 2px 7px; border-radius: 3px; font-weight: 500; cursor: default; transition: opacity 0.15s; line-height: 1.4; display: inline-block; vertical-align: middle; }
-.badge[data-evidence] { cursor: help; }
+.badge[data-evidence] { cursor: pointer; }
 .badge[data-evidence]:hover { opacity: 0.85; }
 .badge-green { background: #0d3d25; color: #24ED98; border: 1px solid #1a5a3a; }
 .badge-amber { background: #3d2a0d; color: #f59e0b; border: 1px solid #5a4a1a; }
@@ -140,10 +140,6 @@ body { background: #0a1a14; color: #e0e0e0; font-family: 'Segoe UI', Calibri, sa
 
 .doc-icon { display: inline-block; cursor: pointer; vertical-align: middle; margin-left: 3px; transition: opacity 0.15s; }
 .doc-icon:hover svg path, .doc-icon:hover svg line { stroke: #24ED98; }
-
-.pdf-icon { display: inline-block; cursor: pointer; vertical-align: middle; width: 14px; height: 14px; opacity: 0.5; transition: opacity 0.15s; }
-.pdf-icon:hover { opacity: 1; }
-.pdf-icon svg { width: 14px; height: 14px; }
 
 /* Evidence hover modal */
 .evidence-modal { position: absolute; z-index: 200; background: #0d2a1c; border: 1px solid #1a5a3a; border-radius: 6px; padding: 14px 18px; max-width: 420px; min-width: 300px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); font-size: 0.72rem; color: #ccc; line-height: 1.6; }
@@ -168,12 +164,8 @@ body { background: #0a1a14; color: #e0e0e0; font-family: 'Segoe UI', Calibri, sa
 
 /* Product list at bottom */
 .products-section { margin-top: 8px; }
-.products-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.products-header { margin-bottom: 12px; }
 .products-title { font-size: 0.75rem; letter-spacing: 2px; color: #999; text-transform: uppercase; }
-.products-export { display: flex; gap: 8px; align-items: center; }
-.export-btn { font-size: 0.7rem; color: #1cc87a; background: none; border: 1px solid #1a5a3a; padding: 5px 14px; border-radius: 4px; cursor: pointer; transition: all 0.15s; }
-.export-btn:hover { background: #0d2a1c; border-color: #24ED98; color: #24ED98; }
-
 .product-table { border-collapse: collapse; }
 .product-table tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
 .product-table tr:last-child { border-bottom: none; }
@@ -331,7 +323,6 @@ body { background: #0a1a14; color: #e0e0e0; font-family: 'Segoe UI', Calibri, sa
 <div class="products-section">
   <div class="products-header">
     <span class="products-title">Scored Products (6 of 20)</span>
-    <button class="export-btn">Export Full Report (Word)</button>
   </div>
   <table class="product-table">
     <tr class="product-row"><td class="pt-name">Trellix XDR Platform</td><td class="pt-sub"><span class="badge badge-purple">Detection & Response</span></td><td class="pt-score">86</td><td class="pt-doc"><span class="doc-icon" title="Export report (Word)"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="#666" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="#666" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="#666" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#666" stroke-width="0.8"/></svg></span></td></tr>
