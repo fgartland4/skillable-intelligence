@@ -1987,6 +1987,58 @@ COMPETITOR_PROFILES: tuple[CompetitorProfile, ...] = (
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# SELLER BRIEFCASE
+#
+# Below each Pillar in the dossier, a briefcase section provides 2-3 sharp,
+# actionable bullets that arm the seller for conversations.  This is
+# conversational competence (GP2) delivered in practical form.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class BriefcaseSection:
+    """A seller briefcase section tied to a Pillar."""
+    pillar_name: str
+    section_title: str
+    description: str
+    instructions: str
+
+SELLER_BRIEFCASE: tuple[BriefcaseSection, ...] = (
+    BriefcaseSection(
+        pillar_name="Product Labability",
+        section_title="Key Technical Questions",
+        description="The 2-3 questions that unblock the lab build — who to ask, "
+                    "what to ask, what department.",
+        instructions="Identify the specific technical blocker for this product's lab build. "
+                     "Name the department or role at the customer most likely to have the answer. "
+                     "Write a verbatim question the champion can send in Slack or email. "
+                     "Explain why this question matters — what it unblocks if answered.",
+    ),
+    BriefcaseSection(
+        pillar_name="Instructional Value",
+        section_title="Conversation Starters",
+        description="Product-specific talking points about why hands-on training matters "
+                    "for this product. Makes the seller credible without being technical.",
+        instructions="Generate 2-3 talking points that a non-technical seller can use in a "
+                     "meeting. Each should reference a specific aspect of this product — "
+                     "its complexity, the stakes of getting it wrong, or the types of labs "
+                     "that would be valuable. Frame each as why hands-on matters for THIS "
+                     "product, not generically.",
+    ),
+    BriefcaseSection(
+        pillar_name="Customer Fit",
+        section_title="Account Intelligence",
+        description="Organizational signals — training leadership, org complexity, "
+                    "LMS platform, competitive signals, news.",
+        instructions="Surface the most important organizational context a seller should "
+                     "know before a meeting. Include: key contacts and their relevance, "
+                     "organizational complexity or dynamics (mergers, growth, restructuring), "
+                     "training infrastructure signals (LMS, competitors, DIY labs), and any "
+                     "signal that affects how to approach the account.",
+    ),
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # AUTO-VALIDATE ON IMPORT
 #
 # The configuration validates itself when the module loads.  If any check
