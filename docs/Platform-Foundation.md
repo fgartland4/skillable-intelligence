@@ -508,16 +508,17 @@ Everything that could change without changing the approach:
 | **Canonical lists** | Lab platform providers, LMS partners, organization types, locked vocabulary |
 | **ACV rates** | Delivery path rate tables, consumption motion labels, adoption ceilings |
 | **Confidence rules** | When to use confirmed vs. indicated vs. inferred |
+| **Reasoning sequence** | The step-by-step order the AI follows when scoring (Steps 0-8). Can add, reorder, or remove steps as the platform evolves. |
+| **Evidence standards** | Writing rules for evidence bullets — labels, qualifiers, length limits, uniqueness rules. Configurable as writing quality evolves. |
+| **Delivery pattern signals** | Specific patterns (ADO, GitHub, vSphere, identity lifecycle, etc.) and their guidance. New patterns added as Skillable supports them. |
+| **Skillable capabilities** | What Skillable can do — datacenter fabrics, Cloud Slice modes, supported services, scoring methods. Updated as features ship. |
+| **Contact guidance** | Rules for identifying decision makers and influencers. Sharpened over time as we learn what works. |
 
 ### What Lives in the Template
 
-The things that define *how* the AI thinks, not *what* it evaluates:
+The template is a structural skeleton — it arranges config-driven sections into a complete prompt. It contains almost no hard-coded content. The only thing hard-coded is the assembly structure itself: put section A here, then section B here.
 
-- The reasoning sequence (research -> assess -> score -> recommend)
-- Evidence standards (clear, concise, complete; confidence language)
-- Output format (JSON structure, field names, required sections)
-- Badge naming principles (name the solution, not the problem)
-- The four-step assessment chain: assess the finding, recommend the solution, judge confidence, show the work
+Everything else — reasoning steps, evidence standards, delivery patterns, Skillable capabilities, contact guidance, badge naming principles — lives in the config and is injected into the template at runtime.
 
 ### Why This Architecture Matters
 

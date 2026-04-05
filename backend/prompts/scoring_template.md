@@ -8,15 +8,7 @@ You will receive research for ONE product. Score it and produce a single product
 
 ## About Skillable
 
-Skillable orchestrates software in cloud VMs and datacenters so learners practice real workflows in safe, instrumented environments.
-
-- **Skillable Datacenter**: Purpose-built for ephemeral learning and skill validation. Three virtualization fabrics: **Hyper-V** (default), **VMware ESX** (use only when nested virtualization requires a non-Hyper-V hypervisor, or when socket-based licensing is a factor), **Docker** (for genuinely container-native products only). Full support for custom network topologies: private networks, NAT, VPNs, dedicated IP addressing, and network traffic monitoring.
-- **Cloud Slice - Azure**: Provisions isolated Azure environments per learner. Two modes: CSR (resource group) and CSS (subscription-level). ALL Azure services supported after Skillable Security Review. Bicep and ARM JSON templates. Access Control Policies restrict services, SKUs, and regions.
-- **Cloud Slice - AWS**: Provisions a dedicated, isolated AWS account per learner. Supported services: {AWS_SUPPORTED_SERVICES}. Not yet supported: {AWS_UNSUPPORTED_SERVICES}.
-- **Skillable Simulations**: For scenarios where real labs are impractical.
-- Labs include automated scoring via API, PowerShell, CLI, Azure Resource Graph queries, and AI Vision.
-
-**Always prefer Skillable Datacenter (Hyper-V) over cloud VMs when the product doesn't specifically require cloud infrastructure.** Datacenter VMs launch predictably every time, no idle storage costs, no egress charges, no throttling.
+{SKILLABLE_CAPABILITIES}
 
 ---
 
@@ -24,85 +16,13 @@ Skillable orchestrates software in cloud VMs and datacenters so learners practic
 
 {COMPETITOR_PROFILES}
 
-### Skillable's Decisive Advantages
-
-{SKILLABLE_DECISIVE_ADVANTAGES}
-
-When to surface competitive context: if a product requires PBT/certification exams, multi-VM private networking, or if research shows existing competitor labs — flag these in evidence.
-
 ---
 
 ## Reasoning Sequence
 
 Follow this exact sequence. Each step builds on the previous one. Do not skip steps.
 
-### STEP 0 — Bare Metal Hard Stop
-
-Does this product require orchestrating **physical bare metal hardware** — i.e., the customer wants Skillable to provision, reset, or manage actual physical servers, network gear, HSMs, or hardware with no virtualization layer?
-
-If YES: Score Product Labability 0-5, total score 5-15, add `bare_metal_required` to poor_match_flags. Set recommendation to Do Not Pursue.
-
-Important distinction: hardware-locked *licensing* (BIOS GUID-based activation) is NOT a blocker — Skillable can pin BIOS GUIDs in VM profiles. The flag applies only when the *orchestration of physical hardware itself* is the requirement.
-
-### STEP 1 — API Automation Gate
-
-Can provisioning, user account creation, license application, and environment configuration be done programmatically without learner action?
-
-- If NONE feasible: Score Product Labability 0-5, add `no_api_automation` to poor_match_flags
-- If requires credit card to provision: add `credit_card_required`
-- If requires PII: add `pii_required`
-
-**SaaS Isolation Pre-Screen** — apply when the product has no installable or self-hosted option:
-
-1. Does the vendor provide a per-learner sandbox API or isolated tenant provisioning?
-2. Is there any self-hosted, downloadable, or VM-installable version?
-
-If BOTH answers are NO (pure SaaS, no per-learner isolation): Flag `saas_only`, cap Product Labability at {CEILING_FLAGS_SAAS_ONLY_MAX}.
-
-If learners cannot receive isolated instances at all (shared demo tenant only): Additionally flag `multi_tenant_only`, cap Product Labability at {CEILING_FLAGS_MULTI_TENANT_MAX}.
-
-**Critical distinction**: Entra ID SSO does NOT equal per-learner isolation. Entra ID handles authentication — it does not isolate the SaaS application's data state per learner. Evaluate isolation at the application data layer, not the authentication layer.
-
-### STEP 2 — User Persona Filter
-
-List 2-4 personas from: Architect, Administrator, Security Engineer/Analyst, Infrastructure Engineer, Networking Engineer, Data Scientist, Data Engineer, Data Analyst, Business Analyst, Business User, Developer, Software Engineer, Consumer.
-
-All except Consumer are highly labable. Consumer: Score 0-3, add `consumer_product`.
-
-### STEP 3 — Determine Orchestration Method
-
-**Product category quick-reference** — orient your method recommendation before scoring:
-- **Skillable Datacenter (Hyper-V / ESX / Container)**: Enterprise server software, hardware-dependent tools requiring custom network topologies, traditional desktop/productivity apps complex enough for training, data science platforms, IDEs, dev tools — ANY software that installs on Windows or Linux
-- **Skillable Cloud Slice (Azure/AWS)**: Enterprise SaaS platforms, cloud-native IaaS/PaaS services, multi-tenant apps requiring subscription-level admin access or cloud identity
-- **Typically not labable**: Simple browser-based consumer/business apps with no meaningful admin or technical workflows
-
-**Check Hyper-V / ESX / Container FIRST**: Does it run in VMs or containers? The VM or container image IS the lab — no runtime provisioning APIs needed.
-
-**Hyper-V is the default** — lower cost than ESX due to Broadcom's post-acquisition pricing. Always prefer Hyper-V unless nested virtualization (non-Hyper-V hypervisor) or socket-based licensing over 24 vCPUs requires ESX.
-
-**ESX scores 4-5 points lower than equivalent Hyper-V tiers** across all levels, reflecting higher delivery cost.
-
-**Container (Docker)** — appropriate only when ALL FOUR conditions hold: genuinely container-native in production, accessed via web browser, no Windows desktop dependency, no multi-VM network requirements.
-
-**Docker disqualifiers** — check all four before recommending Container path:
-1. Dev-use images are NOT the same as a lab path
-2. Windows GUI requirement disqualifies Docker
-3. Multi-VM network complexity disqualifies Docker
-4. All four container-native conditions must be true
-
-**GPU requirement**: Forces Azure VM or AWS VM path. Apply -5 penalty. GPU instances are NOT available in Skillable datacenters.
-
-#### Provisioning Scoring Tiers
-
-{PROVISIONING_SCORING_TIERS}
-
-**Simulation**: A provisioning method — not a fallback or lesser choice. Correct when: cost-prohibitive, time-impractical, or all real paths blocked. Score range: 8-16. Does not rescue the score.
-
-**No Deployment Method**: Applies ONLY when the product cannot be provisioned or simulated in any software environment. In almost all cases, Simulation is viable.
-
-### STEP 4 — Score All Dimensions
-
-Score each dimension using the signals, badges, and penalties defined below.
+{REASONING_SEQUENCE}
 
 ---
 
@@ -125,15 +45,11 @@ Score each dimension using the signals, badges, and penalties defined below.
 
 ## Evidence Standards
 
+{EVIDENCE_STANDARDS}
+
 ### Badge Colors
 
 {BADGE_COLORS}
-
-### Evidence Format
-
-`**[Badge Name] | [Qualifier]:** [Specific finding] — [source title]. [What it means for lab delivery.]`
-
-Badge order within each dimension: Strengths/Opportunities first, then Context, then Risks, then Blockers.
 
 ### Evidence Confidence Language
 
@@ -141,34 +57,9 @@ Badge order within each dimension: Strengths/Opportunities first, then Context, 
 
 For high-risk areas (contacts, consumption estimates): rationale must be explicit ("Estimated based on..." or "Contact identified from LinkedIn search results — may be out of date").
 
-### Evidence Label Rules
-
-Every evidence `claim` bullet MUST start with a **2-3 word bold label** followed by a colon: `**Label:** finding.` No exceptions.
-
-**Label clarity**: Labels must make sense to someone who has never read the product docs. Never use vendor-specific acronyms, internal terms, or jargon. Write descriptively.
-
-**Directional label rule**: Every evidence bullet must convey whether the signal is positive or negative for labability:
-- `**Label | Strength:**` — positive signal (renders green)
-- `**Label | Opportunity:**` — positive signal with upside framing (renders green)
-- `**Label | Context:**` — truly neutral contextual fact (renders gray)
-- `**Label | Risk:**` — concern with a viable path forward (renders amber)
-- `**Label | Blocker:**` — hard stop (renders red)
-
-**URL placement**: Never embed URLs in `claim` text. All source citations belong in the structured `source_url` and `source_title` fields of the evidence object.
-
 ### Badge Naming Principles
 
-- Name the **solution**, not the problem, when the recommendation is clear
-- Use variable-driven badge text when the specific finding IS the answer (LMS name, competitor name, user count, region)
-- If green and unremarkable, don't surface — only show what matters
-- No dimension should need more than 3-5 badges — detail belongs in evidence bullets
-- Keep badge text short — clear and concise above all
-
-### Evidence Quantity Rules
-
-- MAXIMUM 5 evidence items per dimension. Fewer is better — 2-3 sharp items is the norm
-- Evidence MUST be unique across all dimensions — do not reword or repeat the same fact
-- Lab concepts: 2-6 items max, covering the range of learning phases and personas
+{BADGE_NAMING_PRINCIPLES}
 
 ---
 
@@ -193,11 +84,13 @@ Each bullet MUST use a canonical badge label from the locked vocabulary, followe
 
 Do NOT use Skillable platform terms in evidence claims (LCA, Life Cycle Action, Pre-Build, Cloud Slice, Scoring Bot, AI Vision, ABA, PBT — those belong in Scoring Approach and Delivery Path bullets).
 
+### Provisioning Scoring Tiers
+
+{PROVISIONING_SCORING_TIERS}
+
 ### Provisioning Penalties
 
 {PROVISIONING_PENALTIES}
-
-Add each triggered penalty to `poor_match_flags`.
 
 ### Ceiling Flags
 
@@ -227,7 +120,7 @@ Before scoring, answer:
 
 Frame complexity positively: A deeply complex product justifies a curriculum, not just one lab. High module count + deep features + high interoperability = large program opportunity.
 
-**Consumer Grade / Simple UX disqualifier**: Products where errors have no meaningful consequence score LOW regardless of feature count. If getting it wrong doesn't matter, the learner needs a tutorial, not a lab.
+**Consumer Grade / Simple UX disqualifier**: Products where errors have no meaningful consequence score LOW regardless of feature count.
 
 ### Lab Versatility Menu
 
@@ -269,7 +162,7 @@ The character of the organization — do they partner or build in-house? Are the
 
 Weighted highest within {PILLAR_3_NAME} because having labs = cost, delivering labs = value. Without delivery channels, labs never reach learners.
 
-LMS partner detection: {SKILLABLE_PARTNER_LMS_LIST} are Skillable partners — flag explicitly as strong integration positives. LMS integration priority: {LMS_INTEGRATION_PRIORITY}.
+LMS partner detection: {SKILLABLE_PARTNER_LMS_LIST} are Skillable partners — flag as strong integration positives.
 
 Lab platform detection: Use the canonical lab platform list: {CANONICAL_LAB_PLATFORMS}
 
@@ -281,50 +174,27 @@ Weighted lowest because Skillable Professional Services or partners fill this ga
 
 ---
 
-## STEP 5 — Technical Fit Multiplier
+## Technical Fit Multiplier
 
-Applied automatically by the system after Product Labability scoring:
+Applied automatically after Product Labability scoring:
 
 {TECHNICAL_FIT_MULTIPLIER}
 
 ---
 
-## STEP 6 — Labability Intelligence Signals
+## Intelligence Signals
 
 When you see any of these signals in research, note them explicitly in evidence or summary:
 
-- **Microsoft 365 End User apps**: Skillable provides automated M365 tenant provisioning via Azure Cloud Slice. Three tiers: Base (E3), Full (E5), Full+AI (E7 coming soon). Note this for any M365 End User product.
-- **Entra ID / Azure SSO support**: Major advantage for Azure Cloud Slice — Skillable provisions an Entra ID tenant with every Azure subscription. Zero credential management, clean per-learner isolation.
-- **Azure Marketplace / AWS Marketplace listing**: Confirms cloud-native deployment; directly compatible with Skillable Cloud Slice.
-- **Bicep or ARM templates**: Lab authors can reuse directly in Azure Cloud Slice. Dramatically reduces build effort.
-- **Docker Hub image or public container registry**: VM/container fabric ready. Skillable supports private registries (Docker Hub private repos, Azure Container Registry).
-- **CloudFormation templates**: Native AWS deployment format.
-- **Terraform files**: Skillable supports Terraform via Docker container Life Cycle Action. Valid but slower than native ARM.
-- **Ansible, Helm, Kubernetes manifests**: Confirms container/cloud-native architecture.
-- **NFR / Developer / Trial license**: Confirms Skillable can obtain a license for lab authoring without a commercial agreement.
-- **Existing LMS / LXP / delivery infrastructure**: Note it — determines how Skillable labs get embedded. {SKILLABLE_PARTNER_LMS_LIST} are tight Skillable LMS partners.
-- **Existing competitor labs**: {CANONICAL_LAB_PLATFORMS} — confirms demand; potential migration opportunity.
-- **Existing Skillable labs found**: Active or past Skillable engagement signal.
-- **Deployment guide, system requirements, installation docs**: Confirms VM install viability.
-- **xAPI / Tin Can API requirement**: Skillable does not currently support xAPI. Flag in Blockers.
-- **AWS service dependency check**: Verify core services are on Skillable's supported list.
-- **Exam Delivery Provider integration**: {EXAM_DELIVERY_PROVIDERS} are confirmed Skillable integrations. Flag unconfirmed EDPs in Blockers.
-- **Flagship event / annual conference**: High-priority consumption signal. Note event name, approximate scale, and cadence.
+{INTELLIGENCE_SIGNALS}
 
 ### Specific Delivery Pattern Signals
 
-- **Azure DevOps**: Cloud Slice provisioning available; ~85% launch <2 min, 15% take 5-15 min. Pre-Instancing mitigates. Self-paced only.
-- **GitHub**: Inverse of ADO — ~85% slow (5-15+ min), 15% instant. Pre-Instancing required. Self-paced only.
-- **VMware vSphere / ESXi management**: Shared licensed ESX server with application-layer isolation. Risks: Broadcom licensing compliance (~$5K/server); collaborative-only delivery.
-- **Identity lifecycle management products** (Quest Active Roles, One Identity): Pre-provisioned credential pool of real Entra tenants. Risks: recycling completeness; per-tenant license cost.
-- **Virtual appliance / OVA format**: OVA Import to ESX fabric. Constraints: hardware version <=19, single VM only, ESX format required.
-- **Hardware-fingerprinted licensing**: Skillable can pin Custom UUID. If product ALSO requires Public IP, only one concurrent launch is viable.
-- **Conditional Access Policy / Zero Trust MFA training**: Requires Hyper-V VM + Entra P1 license, not Cloud Slice.
-- **Complex pre-sales evaluation products**: Pre-sales POC motion is likely highest-priority use case. 7x higher expansion revenue from hands-on POC (Tanium data).
+{DELIVERY_PATTERNS}
 
 ---
 
-## STEP 7 — Generate Product Recommendation (3-5 bullets)
+## Generate Recommendations (3-5 bullets)
 
 Never reference path codes (A1, A2, B, C) — use orchestration method names (Hyper-V, ESX, Container, Azure Cloud Slice, AWS Cloud Slice, Custom API, Simulation).
 
@@ -340,23 +210,16 @@ Each bullet MUST start with `**Label:** rest of sentence.`
 
 ### Required Bullets
 
-- **Delivery Path:** ONE bullet per product — the single recommended fabric/mechanism and the specific reason it's the right choice. Be decisive. When recommending ESX, state the specific reason. When recommending Hyper-V where ESX also works, add: "ESX is also available at higher cost if the customer prefers VMware." Always state the Broadcom cost rationale when it applies.
+- **Delivery Path:** ONE bullet per product — the single recommended fabric/mechanism and the specific reason it's the right choice.
+- **Scoring Approach:** Assess whether and how learner performance can be validated. 2-3 sentences max.
+- **Help your champion find:** The specific technical question that blocks/unblocks the lab build, the team most likely to own the answer, and a verbatim question the champion can send.
 
-- **Scoring Approach:** Assess whether and how learner performance can be validated. Reason through: (1) What scoring surface does the product expose? (2) What scoring format fits? (ABA for learning, PBT for certification, Activity Group Scoring for task-based reporting, Scaled Scoring for certification vendors) (3) What is the scoring complexity? State what CAN be scored and how, then flag limitations. 2-3 sentences max.
+### Optional Bullets
 
-- **Help your champion find:** Combine the technical question and champion navigation into one bullet. (1) The specific technical question that blocks/unblocks the lab build. (2) The team at this vendor most likely to own the answer. (3) A verbatim question the champion can send in a text or Slack.
-
-### Optional Bullets (include when applicable)
-
-- **Program Fit:** Which standard program types these labs serve and the business outcome. Include when 2+ program types apply. Standard types: Customer Training & Enablement, Channel & Technical Seller Enablement, Employee Training & Enablement, Customer & Partner Events.
-
-- **Similar Products Already in Skillable:** ONE sentence naming another product FROM THE SAME COMPANY already live in Skillable. ONLY include when the company appears in the scoring calibration benchmarks. Do NOT invent or infer.
-
-- **Blockers:** Include whenever a real Skillable platform gap exists — AWS service not supported, GPU not available, no isolation mechanism, no NFR license. Be specific. Omit if no Skillable-side gaps.
-
-- **[Custom Label]:** 1-2 additional bullets for uniquely important context. MUST NOT duplicate topics already covered in evidence bullets. Good: Pre-Instancing Required, License Model, Tenant Isolation, Docker Image, Bicep Templates.
-
-**No duplication rule**: Custom label bullets MUST NOT repeat or restate topics already in evidence.
+- **Program Fit:** Which standard program types these labs serve and the business outcome.
+- **Similar Products Already in Skillable:** ONE sentence naming another product FROM THE SAME COMPANY already live in Skillable. ONLY include when confirmed in benchmarks.
+- **Blockers:** Include whenever a real Skillable platform gap exists.
+- **[Custom Label]:** 1-2 additional bullets for uniquely important context. MUST NOT duplicate topics already covered in evidence.
 
 **Embed training URLs as markdown links** wherever relevant and available from research.
 
@@ -364,7 +227,7 @@ Total: 3-5 bullets. Fewer sharp bullets beats more diluted ones.
 
 ---
 
-## STEP 8 — Consumption Potential
+## Consumption Potential
 
 Estimate annual lab consumption potential for this product if the customer standardized on Skillable for all training and enablement motions.
 
@@ -377,15 +240,13 @@ Estimate annual lab consumption potential for this product if the customer stand
 **CONSERVATIVE BY DEFAULT.** These estimates will be seen by sellers, executives, and customers. An estimate that proves accurate builds trust. An estimate that proves inflated destroys it. When any input is uncertain, use the lower end.
 
 For each motion:
-- `population_low` / `population_high`: the actively engaged subset who would realistically participate — NOT the total addressable market. Keep ranges tight (high no more than 1.5x low).
-- `hours_low` / `hours_high`: hands-on lab hours only — not total learning time. Typical ratio 20-40% of total course time. Keep ratio <=1.5x. Events: 1-3 hours typical.
-- `adoption_pct`: realistic fraction who would actually complete a structured lab in a given year.
+- `population_low` / `population_high`: the actively engaged subset — NOT the total addressable market. Keep ranges tight (high no more than 1.5x low).
+- `hours_low` / `hours_high`: hands-on lab hours only — not total learning time. Typical ratio 20-40% of total course time. Events: 1-3 hours typical.
+- `adoption_pct`: realistic fraction who would complete a structured lab in a given year.
 
-### Adoption Ceilings (hard caps)
+### Adoption Ceilings
 
 {ADOPTION_CEILINGS}
-
-Never exceed {ADOPTION_CEILING_EVENTS} under any circumstances (Events only). Never exceed {ADOPTION_CEILING_NON_EVENTS} for all other motions. If you're near the ceiling, your population is too broad — narrow it.
 
 ### Rate Tables
 
@@ -399,33 +260,9 @@ Override the category prior only when research signals explicitly contradict it.
 
 ---
 
-## Contact Selection Guidance
+## Contact Selection
 
-Contacts are company-level, not product-level. Target people who own external technical training, partner enablement, or certification.
-
-**Decision makers** (C-suite, VP, "Head of" equivalent):
-- CLO / Chief Education Officer / Chief Enablement Officer
-- EVP / SVP / VP of Training / Partner Enablement / Technical Enablement / Customer Education
-- Head of Customer Education / Head of Global Enablement / Head of Certification
-- GM of Academy or University
-- Senior Director of Training (only if they clearly run the function end-to-end)
-
-Key test: does this person OWN the function and have authority to sign a vendor agreement?
-
-**NOT decision makers**: Directors and Managers of Training (unless they run the whole function), Instructors, Trainers, Specialists, individual contributors, SEs.
-
-**Influencers** (Director level or above ONLY):
-- Director of Training / Partner Enablement / Customer Education / Certification
-- Senior Director (when a VP exists above them)
-- Solutions Engineering Director
-
-**NOT influencers**: Managers, Specialists, Coordinators, IDs, anyone below Director level.
-
-**Alumni signal**: If a contact previously worked at a known Skillable customer in a training/education/enablement role, flag this explicitly — highest-priority warm outreach.
-
-**EXCLUDE L&D roles entirely** — Learning & Development owns internal employee training, not external technical lab content.
-
-If no qualifying person can be identified, use "Unknown - search for [title]" — do NOT name a lower-level person to fill the slot.
+{CONTACT_GUIDANCE}
 
 ---
 
@@ -434,44 +271,7 @@ If no qualifying person can be identified, use "Unknown - search for [title]" �
 Return ONLY valid JSON — a single product object:
 
 ```json
-{
-  "company_description": "Brief company description",
-  "company_url": "URL",
-  "organization_type": "{ORGANIZATION_TYPE_VALUES}",
-  "product": {
-    "name": "Product Name",
-    "product_url": "https://vendor.com/product-page",
-    "category": "Category",
-    "description": "1-2 sentence description for a Skillable seller or SE who has never heard of this product",
-    "deployment_model": "{DEPLOYMENT_MODEL_VALUES}",
-    "orchestration_method": "{ORCHESTRATION_METHOD_VALUES}",
-    "skillable_mechanism": "Skillable Datacenter|Cloud Slice - Azure/AWS|Cloud Slice - Vendor Cloud|Skillable Simulation|Unclear",
-    "fabric": "Hyper-V|ESX|Docker|Azure Cloud Slice|AWS Cloud Slice|Custom API|Simulation|Unclear",
-    "user_personas": ["Administrator", "Developer"],
-    "lab_highlight": "3-5 word badge phrase answering WHY this product is a great lab candidate",
-    "poor_match_flags": [],
-    "api_scoring_potential": "Full|Partial|Minimal|None",
-    "recommendation": ["Bullet 1", "Bullet 2", "Bullet 3"],
-    "scores": {
-      "{PILLAR_1_KEY}": {"score": 0, "summary": "...", "evidence": [{"claim": "...", "source_url": "...", "source_title": "..."}]},
-      "{PILLAR_2_KEY}": {"score": 0, "summary": "...", "evidence": []},
-      "{PILLAR_3_KEY}": {"score": 0, "summary": "...", "evidence": []},
-      "market_demand": {"score": 0, "summary": "...", "evidence": []}
-    },
-    "owning_org": {"name": "Specific org name", "type": "department|subsidiary|business_unit", "description": "..."},
-    "contacts": [{"name": "...", "title": "...", "role_type": "decision_maker|influencer", "linkedin_url": "...", "relevance": "..."}],
-    "lab_concepts": ["Specific lab idea 1", "Specific lab idea 2"],
-    "consumption_potential": {
-      "motions": [
-        {"label": "{MOTION_LABELS}", "population_low": 0, "population_high": 0, "hours_low": 0, "hours_high": 0, "adoption_pct": 0.0, "rationale": "..."}
-      ],
-      "annual_hours_low": 0,
-      "annual_hours_high": 0,
-      "vm_rate_estimate": 0,
-      "methodology_note": "..."
-    }
-  }
-}
+{OUTPUT_JSON_TEMPLATE}
 ```
 
 ### Locked Vocabulary

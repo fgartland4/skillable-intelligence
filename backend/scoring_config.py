@@ -1748,6 +1748,245 @@ def is_confirmed_edp(edp_name: str) -> bool:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# REASONING SEQUENCE
+#
+# The step-by-step order the AI follows when scoring a product.  Each step
+# builds on the previous one.  Steps can be added, reordered, or removed
+# as the platform evolves.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class ReasoningStep:
+    """A single step in the AI's scoring reasoning sequence."""
+    number: int
+    name: str
+    instruction: str
+    skip_condition: str = ""  # When to skip this step (empty = never skip)
+
+REASONING_SEQUENCE: tuple[ReasoningStep, ...] = (
+    ReasoningStep(0, "Bare Metal Hard Stop",
+        "Does this product require orchestrating physical bare metal hardware — actual physical "
+        "servers, network gear, HSMs, or hardware with no virtualization layer? If YES: Score "
+        "Product Labability 0-5, total score 5-15, add bare_metal_required. Set recommendation "
+        "to Do Not Pursue. Important: hardware-locked licensing (BIOS GUID-based activation) is "
+        "NOT a blocker — Skillable can pin BIOS GUIDs in VM profiles."),
+    ReasoningStep(1, "API Automation Gate",
+        "Can provisioning, user account creation, license application, and environment configuration "
+        "be done programmatically without learner action? If NONE feasible: Score Product Labability "
+        "0-5, add no_api_automation. SaaS Isolation Pre-Screen: if pure SaaS with no per-learner "
+        "sandbox API and no self-hosted option, flag saas_only. If shared demo tenant only, additionally "
+        "flag multi_tenant_only. Critical: Entra ID SSO does NOT equal per-learner isolation."),
+    ReasoningStep(2, "User Persona Filter",
+        "List 2-4 personas from: Architect, Administrator, Security Engineer/Analyst, Infrastructure "
+        "Engineer, Networking Engineer, Data Scientist, Data Engineer, Data Analyst, Business Analyst, "
+        "Business User, Developer, Software Engineer, Consumer. All except Consumer are highly labable. "
+        "Consumer: Score 0-3, add consumer_product."),
+    ReasoningStep(3, "Determine Orchestration Method",
+        "Check Hyper-V/ESX/Container FIRST — does it run in VMs or containers? The VM or container "
+        "image IS the lab. Hyper-V is the default — prefer over ESX due to Broadcom pricing. ESX only "
+        "when nested virtualization or socket licensing requires it. Container only when ALL FOUR "
+        "conditions hold. Then check Cloud Slice (Azure/AWS). Then Custom API. Simulation is the "
+        "correct method when real provisioning is cost-prohibitive, time-impractical, or all paths blocked."),
+    ReasoningStep(4, "Score All Dimensions",
+        "Score each dimension within each pillar using the signals, badges, and penalties defined "
+        "in the configuration. Each pillar scores out of 100 internally."),
+    ReasoningStep(5, "Technical Fit Multiplier",
+        "Applied automatically after Product Labability scoring. Adjusts how much weight downstream "
+        "pillars carry based on the strength of the technical foundation."),
+    ReasoningStep(6, "Intelligence Signals",
+        "Flag special signals found in research: M365 tenant provisioning, Entra ID SSO, marketplace "
+        "listings, IaC templates, NFR licenses, existing competitor labs, existing Skillable labs, "
+        "deployment guides, xAPI requirements, exam delivery provider integrations, flagship events."),
+    ReasoningStep(7, "Generate Recommendations",
+        "3-5 bullets. Lead with WHY, not HOW. Required: Delivery Path, Scoring Approach, Help your "
+        "champion find. Optional: Program Fit, Similar Products, Blockers. Every bullet must state WHY."),
+    ReasoningStep(8, "Consumption Potential",
+        "Estimate annual lab consumption across six motions. CONSERVATIVE BY DEFAULT — an estimate that "
+        "proves accurate builds trust; an estimate that proves inflated destroys it."),
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EVIDENCE STANDARDS
+#
+# Writing rules for how the AI produces evidence bullets.  Configurable as
+# writing quality expectations evolve.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class EvidenceStandard:
+    """A single evidence writing rule."""
+    rule: str
+    description: str
+
+EVIDENCE_STANDARDS: tuple[EvidenceStandard, ...] = (
+    EvidenceStandard("Bold label required",
+        "Every evidence claim bullet MUST start with a 2-3 word bold label followed by a colon."),
+    EvidenceStandard("Label clarity",
+        "Labels must make sense to someone who has never read the product docs. No vendor-specific "
+        "acronyms, internal terms, or jargon."),
+    EvidenceStandard("Directional qualifier",
+        "Every bullet must convey whether the signal is positive or negative: Strength (green), "
+        "Opportunity (green), Context (gray), Risk (amber), Blocker (red)."),
+    EvidenceStandard("URL placement",
+        "Never embed URLs in claim text. Source citations belong in structured source_url and "
+        "source_title fields."),
+    EvidenceStandard("Maximum per dimension",
+        "MAXIMUM 5 evidence items per dimension. Fewer is better — 2-3 sharp items is the norm."),
+    EvidenceStandard("Uniqueness",
+        "Evidence MUST be unique across all dimensions — do not reword or repeat the same fact."),
+    EvidenceStandard("Lab concepts limit",
+        "Lab concepts: 2-6 items max, covering the range of learning phases and personas."),
+    EvidenceStandard("Clear, concise, complete",
+        "Every bullet must be all three. No filler. No vague language. Specific details, specific "
+        "sources, specific reasoning."),
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DELIVERY PATTERN SIGNALS
+#
+# Specific technology patterns and their guidance for the AI.  New patterns
+# added as Skillable supports new delivery methods.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class DeliveryPattern:
+    """A specific delivery pattern the AI should recognize and apply."""
+    name: str
+    guidance: str
+
+DELIVERY_PATTERNS: tuple[DeliveryPattern, ...] = (
+    DeliveryPattern("Azure DevOps (ADO)",
+        "Cloud Slice provisioning available. ~85% launches <2 min, 15% take 5-15 min due to "
+        "Microsoft provisioning queue. Pre-Instancing mitigates. Self-paced only."),
+    DeliveryPattern("GitHub",
+        "Cloud Slice provisioning available. Inverse of ADO — ~85% slow (5-15+ min), 15% instant. "
+        "Pre-Instancing required. Self-paced only."),
+    DeliveryPattern("VMware vSphere / ESXi management",
+        "Shared licensed ESX server with application-layer isolation. Risks: Broadcom licensing "
+        "compliance (~$5K/server); collaborative-only delivery."),
+    DeliveryPattern("Identity lifecycle management",
+        "Products like Quest Active Roles, One Identity. Pre-provisioned credential pool of real "
+        "Entra tenants. Risks: recycling completeness; per-tenant license cost."),
+    DeliveryPattern("Virtual appliance / OVA format",
+        "OVA Import to ESX fabric. Constraints: hardware version <=19, single VM only, ESX format required."),
+    DeliveryPattern("Hardware-fingerprinted licensing",
+        "Skillable can pin Custom UUID. If product ALSO requires Public IP, only one concurrent "
+        "launch is viable."),
+    DeliveryPattern("Conditional Access / Zero Trust MFA",
+        "Requires Hyper-V VM + Entra P1 license, not Cloud Slice."),
+    DeliveryPattern("Complex pre-sales evaluation",
+        "Pre-sales POC motion is likely highest-priority use case. 7x higher expansion revenue "
+        "from hands-on POC (Tanium data)."),
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SKILLABLE CAPABILITIES
+#
+# What Skillable can do — updated as features ship.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class SkillableCapability:
+    """A Skillable platform capability the AI should reference."""
+    name: str
+    description: str
+
+SKILLABLE_CAPABILITIES: tuple[SkillableCapability, ...] = (
+    SkillableCapability("Skillable Datacenter",
+        "Purpose-built for ephemeral learning and skill validation. Three virtualization fabrics: "
+        "Hyper-V (default), VMware ESX (use only for nested virt or socket licensing), Docker "
+        "(container-native only). Full custom network topologies: private networks, NAT, VPNs, "
+        "dedicated IP addressing, network traffic monitoring."),
+    SkillableCapability("Cloud Slice - Azure",
+        "Provisions isolated Azure environments per learner. Two modes: CSR (resource group) and "
+        "CSS (subscription-level). ALL Azure services supported after Security Review. Bicep and "
+        "ARM JSON templates. Access Control Policies restrict services, SKUs, and regions."),
+    SkillableCapability("Cloud Slice - AWS",
+        "Provisions a dedicated, isolated AWS account per learner. Supported services list maintained "
+        "separately. Not yet supported services flagged explicitly."),
+    SkillableCapability("Skillable Simulations",
+        "For scenarios where real labs are impractical. AI Vision compute and platform overhead apply."),
+    SkillableCapability("Automated Scoring",
+        "Labs include automated scoring via API, PowerShell, CLI, Azure Resource Graph queries, and "
+        "AI Vision."),
+    SkillableCapability("Hyper-V Preference",
+        "Always prefer Skillable Datacenter (Hyper-V) over cloud VMs when the product doesn't "
+        "specifically require cloud infrastructure. Datacenter VMs launch predictably, no idle "
+        "storage costs, no egress charges, no throttling."),
+    SkillableCapability("M365 Tenant Provisioning",
+        "Automated M365 tenant provisioning via Azure Cloud Slice. Three tiers: Base (E3), "
+        "Full (E5), Full+AI (E7 coming soon)."),
+    SkillableCapability("BIOS GUID Pinning",
+        "Skillable can pin Custom UUID in VM profiles — handles hardware-fingerprinted licensing."),
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONTACT GUIDANCE
+#
+# Rules for identifying decision makers and influencers.  Sharpened over
+# time as we learn what works.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+CONTACT_GUIDANCE = {
+    "decision_maker_titles": (
+        "CLO", "Chief Education Officer", "Chief Enablement Officer",
+        "EVP of Training", "SVP of Training", "VP of Training",
+        "VP of Partner Enablement", "VP of Technical Enablement",
+        "VP of Customer Education", "Head of Customer Education",
+        "Head of Global Enablement", "Head of Certification",
+        "GM of Academy", "GM of University",
+        "Senior Director of Training (only if they run the function end-to-end)",
+    ),
+    "decision_maker_test": "Does this person OWN the function and have authority to sign a vendor agreement?",
+    "not_decision_makers": (
+        "Directors and Managers of Training (unless running whole function)",
+        "Instructors", "Trainers", "Specialists", "Individual contributors", "SEs",
+    ),
+    "influencer_titles": (
+        "Director of Training", "Director of Partner Enablement",
+        "Director of Customer Education", "Director of Certification",
+        "Senior Director (when VP exists above)", "Solutions Engineering Director",
+    ),
+    "influencer_minimum_level": "Director",
+    "not_influencers": "Managers, Specialists, Coordinators, IDs, anyone below Director level",
+    "exclude_entirely": "L&D roles — Learning & Development owns internal employee training, not external technical lab content",
+    "alumni_signal": "If contact previously worked at a known Skillable customer in training/education/enablement, flag as highest-priority warm outreach",
+    "unknown_fallback": "If no qualifying person found, use 'Unknown - search for [title]' — do NOT name a lower-level person to fill the slot",
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COMPETITOR PROFILES
+#
+# How Skillable positions against competitors when detected in research.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class CompetitorProfile:
+    """Competitive positioning against a specific lab platform."""
+    name: str
+    skillable_advantage: str
+
+COMPETITOR_PROFILES: tuple[CompetitorProfile, ...] = (
+    CompetitorProfile("CloudShare",
+        "Cannot support complex multi-VM environments connected by private networks. "
+        "Thin enterprise software depth. Skillable offers real multi-VM networking with "
+        "private VLANs, isolated network segments, custom IP, NAT, VPNs, and traffic monitoring."),
+    CompetitorProfile("Instruqt",
+        "Cannot go deep into Windows Server, legacy enterprise, or multi-component stacks. "
+        "Skillable runs any Windows or Linux software in datacenter VMs with full network control."),
+    CompetitorProfile("General",
+        "When to surface competitive context: if a product requires PBT/certification exams, "
+        "multi-VM private networking, or if research shows existing competitor labs — flag "
+        "Skillable advantages in evidence."),
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # AUTO-VALIDATE ON IMPORT
 #
 # The configuration validates itself when the module loads.  If any check
