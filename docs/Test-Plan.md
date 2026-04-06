@@ -200,6 +200,49 @@ This document reflects best current thinking. As thinking evolves, this document
 
 ---
 
+## Category 10: Anti-Hardcoding (Pre-Release Strict Mode)
+
+**File:** `backend/tests/test_no_hardcoding.py`
+
+**Guiding Principles:** Define-Once Principle, GP4 (Self-Evident Design)
+
+**Purpose:** Catch hardcoded values that should reference `scoring_config.py` or `_theme_new.html`. The principle is "no magic values in business logic" — colors, thresholds, badge names, dimension names, rate values, etc. all live in one canonical place. These tests are the safety net for moments when humans (or Claude) forget to reference the config and inline the value instead.
+
+| Test | What it validates |
+|---|---|
+| No hex colors in active templates outside `:root` blocks of theme files | Templates must use `var(--sk-...)` exclusively. Theme files are the single source of truth for color literals. Excludes `_legacy_*` files. |
+| No inline `style="color: #..."` or `style="background: #..."` attributes in markup | Inline hardcoded colors bypass the theme system entirely. Forces all colors through CSS variables. |
+| No Python dict literals with color-name keys outside `scoring_config.py` | A dict like `{"green": ..., "amber": ..., "red": ...}` in `scoring_math.py` or `app_new.py` is almost always a duplicate of `BADGE_COLOR_POINTS` or `BADGE_COLOR_DISPLAY_PRIORITY`. Excludes test files. |
+| No string literals in business-logic code that exactly match exported `scoring_config.py` constants | If `"Standard VM (1-3 VMs)"` appears as a literal anywhere outside `scoring_config.py`, it should reference `cfg.DEFAULT_RATE_TIER_NAME` instead. |
+| No magic numbers in `scoring_math.py` or `app_new.py` normalizers | Any int/float literal other than `0`, `1`, `-1`, `100` should be a named config constant or carry a `# magic-allowed: <reason>` annotation. |
+
+### ⚠ False-Positive Watch — Pre-Release Strict Mode
+
+**Heads-up: this category is intentionally aggressive** during pre-release. We chose strictness because:
+
+- The codebase is small and false positives are cheap to fix (annotation or refactor takes seconds).
+- Pre-release is the cheapest moment to enforce a "no hardcoding" standard before external users start touching anything.
+- Constraints are easier to relax than to add — once external users see the system, tightening gets harder.
+
+**Expect false positives.** Watch for these patterns and decide whether to relax the rule or keep it:
+
+1. **Test fixtures** that intentionally create color dicts to verify color logic — should be excluded by the `tests/` path filter, but verify before relaxing.
+2. **Innocent string matches** — e.g., the string `"low"` happens to match the ACV tier name AND a color name AND probably other things. The cross-file constant scan may flag it incorrectly. Use the annotation system or narrow the scan.
+3. **Magic numbers that genuinely should NOT be config** — array indices, format string positions, well-known constants like HTTP status codes. The test allows `0`, `1`, `-1`, `100` by default; everything else needs annotation or refactor.
+4. **Designer + Prospector legacy templates** — currently included in scope deliberately to pressure the §6 migration. If migration is delayed and the failing test becomes annoying, scope it out via path filter (don't relax the rule for them in the long run).
+5. **Annotation creep** — if `# magic-allowed: <reason>` annotations start accumulating without good reasons, the test signal degrades. Periodically audit annotations to remove stale ones.
+
+**Decision protocol when a false positive bites:**
+
+- **Real signal, fix it:** refactor to reference config. This is the desired outcome.
+- **Genuinely non-applicable:** add `# magic-allowed: <reason>` with a clear rationale.
+- **Pattern is too broad:** narrow the test rule itself, not the codebase. Document the narrowing in this section so we know what we relaxed and why.
+- **Test is adding more friction than value:** disable the specific test (not the whole category) with a `pytest.skip` and a note here. Only as a last resort.
+
+**Goal:** keep this category strict through first external release. After that, revisit and decide which rules graduate to "permanently strict" and which relax to "warning only."
+
+---
+
 ## GP Traceability Matrix
 
 | Category | GP1 | GP2 | GP3 | GP4 | GP5 | Define-Once | End-to-End |
@@ -213,3 +256,4 @@ This document reflects best current thinking. As thinking evolves, this document
 | 7. Locked Vocabulary | | | | X | | | |
 | 8. Intelligence Compounds | | | | | X | | |
 | 9. UX Consistency | X | | | X | | | |
+| 10. Anti-Hardcoding | | | | X | | X | |
