@@ -373,7 +373,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 /* Five fixed columns. Use Case takes the slack via auto width on the
    first col group; the four number columns are pinned narrow. */
 .acv-table col.acv-col-motion { width: auto; }
-.acv-table col.acv-col-aud    { width: 64px; }
+.acv-table col.acv-col-aud    { width: 88px; }   /* widened so audience values never wrap */
 .acv-table col.acv-col-adopt  { width: 36px; }
 .acv-table col.acv-col-hrs    { width: 38px; }
 .acv-table col.acv-col-yr     { width: 70px; }
@@ -384,7 +384,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     letter-spacing: 0.5px; border-bottom: 1px solid var(--sk-border-card-org);
     white-space: nowrap;
 }
-.acv-table thead th.acv-num { text-align: right; }
+.acv-table thead th.acv-num    { text-align: right; }
+.acv-table thead th.acv-center { text-align: center; }
 .acv-table tbody td {
     padding: 5px 3px;
     color: var(--sk-text-body);
@@ -394,7 +395,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.acv-table tbody td.acv-num { text-align: right; }
+.acv-table tbody td.acv-num    { text-align: right; }
+.acv-table tbody td.acv-center { text-align: center; }
 .acv-table .acv-motion {
     font-weight: 500; color: var(--sk-text);
     /* Truncate long motion names with an ellipsis; full name in title tooltip */
@@ -412,6 +414,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .acv-methodology {
     font-size: 0.62rem; color: var(--sk-text-muted);
     font-style: italic; margin-top: 8px; line-height: 1.4;
+    text-align: right;
 }
 .acv-empty {
     font-size: 0.7rem; color: var(--sk-text-muted);
@@ -707,8 +710,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
         <thead>
           <tr>
             <th>Use Case</th>
-            <th class="acv-num">Audience</th>
-            <th class="acv-num">Adopt</th>
+            <th class="acv-center">Audience</th>
+            <th class="acv-center">Adopt</th>
             <th class="acv-num">Hrs</th>
             <th class="acv-num">Hrs / Yr</th>
           </tr>
@@ -717,8 +720,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
           {% for m in acv.motions %}
           <tr>
             <td class="acv-motion" title="{{ m.label }}">{{ m.label }}</td>
-            <td class="acv-num">{{ "{:,.0f}".format(m.population_low or 0) }}–{{ "{:,.0f}".format(m.population_high or 0) }}</td>
-            <td class="acv-num">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
+            <td class="acv-center">{{ "{:,.0f}".format(m.population_low or 0) }}–{{ "{:,.0f}".format(m.population_high or 0) }}</td>
+            <td class="acv-center">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
             <td class="acv-num">{{ (m.hours_low or 0) | int }}–{{ (m.hours_high or 0) | int }}</td>
             <td class="acv-num">{{ "{:,.0f}".format(m.hrs_low or 0) }}–{{ "{:,.0f}".format(m.hrs_high or 0) }}</td>
           </tr>
