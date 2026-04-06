@@ -426,12 +426,14 @@ def _normalize_badges_for_scoring(p: dict) -> None:
     same-named badges, color promotion) live in
     _normalize_badges_for_display() and run AFTER the math.
     """
+    import scoring_config as cfg
+
     fs = p.get("fit_score")
     if not isinstance(fs, dict):
         return
 
     flags = set(p.get("poor_match_flags") or [])
-    needs_isolation_badge = bool({"saas_only", "multi_tenant_only"} & flags)
+    needs_isolation_badge = bool(cfg.ISOLATION_BLOCKING_CEILING_FLAGS & flags)
 
     for pillar_key, pillar_dict in fs.items():
         if not isinstance(pillar_dict, dict):
@@ -481,37 +483,41 @@ def _normalize_badges_for_scoring(p: dict) -> None:
 
             dim_dict["badges"] = new_badges
 
-            # Bug 2 enforcement: ensure No Learner Isolation badge exists in
-            # the Lab Access dimension when the deployment model demands it.
-            # This is a real signal the math should see, not a display tweak.
-            if needs_isolation_badge:
-                dim_name_lower = dim_dict.get("name", "").lower()
-                if "lab access" in dim_name_lower:
-                    has_isolation = any(
-                        ("isolation" in (b.get("name", "") or "").lower()
-                         or "learner" in (b.get("name", "") or "").lower())
-                        for b in dim_dict["badges"] if isinstance(b, dict)
+            # Bug 2 enforcement: ensure the synthetic No Learner Isolation
+            # badge exists in the Lab Access dimension when the deployment
+            # model demands it. This is a real signal the math should see,
+            # not a display tweak. All metadata reads from cfg.SYNTHETIC_BADGES
+            # — Define-Once for the badge name, color, qualifier, and claim.
+            if needs_isolation_badge and dim_dict.get("name") == cfg.LAB_ACCESS_DIMENSION_NAME:
+                synth = cfg.SYNTHETIC_BADGES["no_learner_isolation"]
+                synth_name_lower = synth["name"].lower()
+                already_present = any(
+                    (b.get("name", "") or "").strip().lower() == synth_name_lower
+                    for b in dim_dict["badges"] if isinstance(b, dict)
+                )
+                if not already_present:
+                    # Pick the friendly flag label. Priority order is the
+                    # insertion order of synth["flag_labels"] in scoring_config
+                    # (dicts preserve order in Python 3.7+) — the first entry
+                    # listed there is the most specific case and wins when
+                    # multiple flags are set on the same product.
+                    flag_labels = synth["flag_labels"]
+                    chosen_flag = next(
+                        (f for f in flag_labels.keys() if f in flags),
+                        "",
                     )
-                    if not has_isolation:
-                        flag_label = ("multi-tenant SaaS"
-                                      if "multi_tenant_only" in flags
-                                      else "SaaS-only")
-                        dim_dict["badges"].append({
-                            "name": "No Learner Isolation",
-                            "color": "red",
-                            "qualifier": "Blocker",
-                            "evidence": [{
-                                "claim": (f"This product is {flag_label} with no "
-                                          "per-learner sandbox or tenant "
-                                          "provisioning mechanism — there is no "
-                                          "path to isolate learner activity, "
-                                          "which is the foundational requirement "
-                                          "for hands-on labs."),
-                                "confidence_level": "indicated",
-                                "source_url": "",
-                                "source_title": "Derived from product deployment model",
-                            }],
-                        })
+                    flag_label_text = flag_labels.get(chosen_flag, "")
+                    dim_dict["badges"].append({
+                        "name": synth["name"],
+                        "color": synth["color"],
+                        "qualifier": synth["qualifier"],
+                        "evidence": [{
+                            "claim": synth["claim_template"].format(flag_label=flag_label_text),
+                            "confidence_level": synth["confidence_level"],
+                            "source_url": "",
+                            "source_title": synth["source_title"],
+                        }],
+                    })
 
 
 def _normalize_badges_for_display(p: dict) -> None:
@@ -549,11 +555,17 @@ def _normalize_badges_for_display(p: dict) -> None:
     pre-merge badge list, so dropping the count or changing colors here
     has zero effect on scores.
     """
+    import scoring_config as cfg
+
     fs = p.get("fit_score")
     if not isinstance(fs, dict):
         return
 
-    color_priority = {"red": 4, "amber": 3, "green": 2, "gray": 1, "": 0}
+    # Read display severity ranking from config (Define-Once). Separate from
+    # BADGE_COLOR_POINTS which is the scoring concept — these two dicts are
+    # deliberately distinct per the 2026-04-06 decision-log principle that
+    # visual changes must never affect scoring.
+    color_priority = cfg.BADGE_COLOR_DISPLAY_PRIORITY
 
     for pillar_key, pillar_dict in fs.items():
         if not isinstance(pillar_dict, dict):

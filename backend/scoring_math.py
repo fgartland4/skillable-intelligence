@@ -141,7 +141,11 @@ def compute_dimension_score(dim_key: str,
     # rather than penalize for AI inconsistency. The visual layer (Phase 2
     # display normalizer) is free to display the worst color so risks are
     # still visible to the user.
-    color_score = {"green": 6, "gray": 2, "amber": 0, "red": -3, "": -1}
+    #
+    # Reads cfg.BADGE_COLOR_POINTS (Define-Once — same source the color
+    # fallback below uses) so any future tweak to color scoring values
+    # automatically updates the dedupe ranking too.
+    fallback = cfg.BADGE_UNKNOWN_COLOR_SCORE_FALLBACK
     best_by_name: dict[str, tuple[str, str]] = {}  # name_lower -> (raw_name, color)
     for badge in badges:
         if not badge:
@@ -156,7 +160,9 @@ def compute_dimension_score(dim_key: str,
             continue
         name_lower = raw_name.strip().lower()
         existing = best_by_name.get(name_lower)
-        if existing is None or color_score.get(color, -2) > color_score.get(existing[1], -2):
+        new_score = cfg.BADGE_COLOR_POINTS.get(color, fallback)
+        existing_score = cfg.BADGE_COLOR_POINTS.get(existing[1], fallback) if existing else fallback
+        if existing is None or new_score > existing_score:
             best_by_name[name_lower] = (raw_name, color)
 
     for name_lower, (raw_name, color) in best_by_name.items():
@@ -471,22 +477,22 @@ def _resolve_acv_tier(acv_high_dollars: float) -> str:
 def _resolve_rate(orchestration_method: str) -> tuple[str, float]:
     """Map a product's orchestration method to (tier_name, $/hour).
 
-    Falls back to Standard VM (1-3 VMs) at VM_MID_RATE when the orchestration
-    method is empty, unknown, or doesn't map to any known tier — that's the
-    everyday-admin-lab default and is conservatively neither cheap nor pricey.
+    Falls back to cfg.DEFAULT_RATE_TIER_NAME at cfg.VM_MID_RATE when the
+    orchestration method is empty, unknown, or doesn't map to any known
+    tier — the everyday-admin-lab default, conservatively neither cheap
+    nor pricey.
 
-    Reads RateTier.delivery_path and RateTier.rate_low — see scoring_config
-    dataclass on line 170.
+    Reads RateTier.delivery_path and RateTier.rate_low (single-value model
+    — rate_low == rate_high per Frank's locked rates).
     """
     key = (orchestration_method or "").strip().lower()
-    tier_name = cfg.ORCHESTRATION_TO_RATE_TIER.get(key, "Standard VM (1-3 VMs)")
+    tier_name = cfg.ORCHESTRATION_TO_RATE_TIER.get(key, cfg.DEFAULT_RATE_TIER_NAME)
     for tier in cfg.RATE_TABLES:
         if tier.delivery_path == tier_name:
-            # Single-value model — rate_low == rate_high per Frank's locked rates
             return tier_name, float(tier.rate_low)
     # Should not happen — RATE_TABLES is the source of truth and the mapping
     # only points at delivery_path values that exist in it. Final safety net.
-    return "Standard VM (1-3 VMs)", float(cfg.VM_MID_RATE)
+    return cfg.DEFAULT_RATE_TIER_NAME, float(cfg.VM_MID_RATE)
 
 
 def compute_acv_potential(product: dict) -> dict:

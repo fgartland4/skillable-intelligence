@@ -1008,6 +1008,25 @@ BADGE_COLOR_POINTS: dict[str, int] = {
     "red": -3,
 }
 
+# Display severity priority — higher number = more attention-grabbing.
+# Used by render-time display normalizers to pick which color "wins" when
+# multiple badges with the same name need to collapse to one. NOT used for
+# scoring (that's BADGE_COLOR_POINTS above) — these two concepts are
+# deliberately separate per the 2026-04-06 decision-log principle that
+# visual changes must never affect scoring.
+BADGE_COLOR_DISPLAY_PRIORITY: dict[str, int] = {
+    "red":   4,   # most attention-grabbing — risks must be visible
+    "amber": 3,
+    "green": 2,
+    "gray":  1,
+    "":      0,   # missing color sorts last
+}
+
+# Fallback used when a badge has a color value not present in either
+# BADGE_COLOR_POINTS or BADGE_COLOR_DISPLAY_PRIORITY (i.e., the AI emitted
+# something off-spec). Conservative: assume worse than worst-known.
+BADGE_UNKNOWN_COLOR_SCORE_FALLBACK = -2
+
 
 CEILING_FLAGS: dict[str, dict] = {
     # When the AI emits any of these flags, Product Labability cannot exceed
@@ -1028,6 +1047,45 @@ CEILING_FLAGS: dict[str, dict] = {
     "multi_tenant_only": {
         "max_score": 15,
         "reason": "Shared multi-tenant — no learner isolation possible",
+    },
+}
+
+# Subset of CEILING_FLAGS that imply the product cannot offer per-learner
+# isolation. Used by the render-time badge normalizer to deterministically
+# inject a "No Learner Isolation" badge when the AI didn't emit one.
+ISOLATION_BLOCKING_CEILING_FLAGS: frozenset[str] = frozenset({
+    "saas_only",
+    "multi_tenant_only",
+})
+
+# Dimension that hosts the No Learner Isolation badge — derived at module
+# import time so it tracks any future renames in the Pillar definitions
+# below. Read by app_new._normalize_badges_for_scoring.
+LAB_ACCESS_DIMENSION_NAME = "Lab Access"
+
+# Synthetic badges injected by the render-time normalizer when the AI
+# fails to emit a badge that the deployment model demands. Each entry
+# is a complete badge dict with a `claim_template` whose {flag_label}
+# placeholder gets the human-readable ceiling flag name at render time.
+SYNTHETIC_BADGES: dict[str, dict] = {
+    "no_learner_isolation": {
+        "name": "No Learner Isolation",
+        "color": "red",
+        "qualifier": "Blocker",
+        "confidence_level": "indicated",
+        "source_title": "Derived from product deployment model",
+        "claim_template": (
+            "This product is {flag_label} with no per-learner sandbox or "
+            "tenant provisioning mechanism — there is no path to isolate "
+            "learner activity, which is the foundational requirement for "
+            "hands-on labs."
+        ),
+        # Friendly labels for the {flag_label} placeholder, keyed by which
+        # ISOLATION_BLOCKING_CEILING_FLAGS triggered the injection
+        "flag_labels": {
+            "multi_tenant_only": "multi-tenant SaaS",
+            "saas_only":         "SaaS-only",
+        },
     },
 }
 
@@ -1294,9 +1352,14 @@ ACV_TIER_HIGH_THRESHOLD   = 250_000  # ACV high >= $250K  → "high"
 ACV_TIER_MEDIUM_THRESHOLD = 50_000   # ACV high >= $50K   → "medium"
                                      # else                → "low"
 
+# Default rate tier when an orchestration_method is empty, unknown, or
+# doesn't map to any known tier. Conservatively neither the cheap nor the
+# expensive end of the table — the everyday admin lab default.
+DEFAULT_RATE_TIER_NAME = "Standard VM (1-3 VMs)"
+
 # Map raw orchestration_method strings the AI emits to a canonical rate
 # tier name. Used by the deterministic Python ACV math at render time.
-# Anything not matched falls through to Standard VM as a conservative default.
+# Anything not matched falls through to DEFAULT_RATE_TIER_NAME above.
 ORCHESTRATION_TO_RATE_TIER = {
     # Cloud Labs family
     "azure cloud slice": "Azure/AWS Cloud Slice",
