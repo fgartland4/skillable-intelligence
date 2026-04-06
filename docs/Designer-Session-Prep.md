@@ -27,7 +27,7 @@ The Platform Foundation describes an 8-phase pipeline:
 | **7. Bill of materials** | Complete environment spec | Stub only — designer_engine.py is a placeholder |
 | **8. Export package** | Lab series, profiles, instructions, scripts — zipped for Studio | Not implemented |
 
-The designer.md documentation describes a 4-phase model (not 8) that consolidates the pipeline:
+The pre-Foundation requirements document describes a 4-phase model (not 8) that consolidates the pipeline:
 
 | Phase | Name | What it covers |
 |---|---|---|
@@ -36,7 +36,7 @@ The designer.md documentation describes a 4-phase model (not 8) that consolidate
 | **Phase 3** | Draft Instructions & Scoring Recommendations | Parallel draft generation, editable instructions |
 | **Phase 4** | Package & Export | BOM generation, Studio export ZIP |
 
-**Key observation:** The 8-phase pipeline in Platform-Foundation.md is a logical breakdown. The 4-phase model in designer.md is the UX breakdown. These are not in conflict — Phases 2-4 of the logical model (outline, labs, activities) are all executed within Phase 2 of the UX model. Phase 5 (scoring) is embedded in Phase 3. Phases 7-8 map to Phase 4. This mapping should be made explicit in the Foundation session.
+**Key observation:** The 8-phase pipeline in Platform-Foundation.md is a logical breakdown. The 4-phase UX model is the user-facing breakdown. These are not in conflict — Phases 2-4 of the logical model (outline, labs, activities) are all executed within Phase 2 of the UX model. Phase 5 (scoring) is embedded in Phase 3. Phases 7-8 map to Phase 4. The mapping is now documented in the "Phase Structure and Transitions" section above.
 
 ### Current UX Layout and Flow
 
@@ -96,27 +96,231 @@ The current designer.html implements a three-pane layout:
 
 ### Decisions Already Made About Designer
 
-From reference_designer_decisions.md and the decision log:
+From reference_designer_decisions.md, the decision log, and the pre-Foundation requirements document.
 
-**Phase structure:** 4 phases — Collaborate & Design, Generate Outline, Draft Instructions, Package & Export.
+#### Phase Structure and Transitions
 
-**Phase transition buttons:** Generate Outline (1->2), Generate Draft Instructions (2->3), Generate Lab Package (3->4), Export Lab Package (4->done), Build Another Program (done->new).
+4 UX phases, mapping to the 8-phase logical pipeline in Platform-Foundation.md:
 
-**AI persona:** No confirmed name. Four character references define personality: R2D2 (technically brilliant), Jeeves (anticipates needs), Sergeant Hulka (decisive, organized), Neo (cool under pressure). "Neo" is a tone reference, not a name.
+| UX Phase | Name | Logical Phases Covered |
+|---|---|---|
+| **Phase 1** | Requirements & Intent | 1. Intake |
+| **Phase 2** | Program Architecture | 2. Program Outline, 3. Lab Breakdown, 4. Activity Design |
+| **Phase 3** | Draft Instructions & Scoring Recommendations | 5. Scoring Recommendations, 6. Draft Instructions |
+| **Phase 4** | Package & Export | 7. Bill of Materials, 8. Export Package |
 
-**Skill frameworks:** Curated catalog with Primary (single-select radio) + Additional (multi-select checkbox). Frameworks: NICE NCWF, DoD DCWF, DoD 8570/8140, SFIA, ITIL 4, LinkedIn Skill Framework, Custom upload. Certification frameworks removed from downloadable picklist. Framework taxonomy files not yet stored in backend.
+Phase transition buttons: Generate Outline (1->2), Generate Draft Instructions (2->3), Generate Lab Package (3->4), Export Lab Package (4->done), Build Another Program (done->new).
 
-**Preferences:** Five groups confirmed — Organization Identity, Learning Design Standards, Scenario & Lab Type Defaults, Environment & Delivery Defaults, Contacts & Roles. First-run onboarding guided setup. Two-level hierarchy: global defaults + per-program overrides.
+Phase fluidity: no hard walls between phases. Users move freely. The Phase 2 AI conversation handles Phase 1 refinements directly without requiring navigation back.
 
-**Phase 1 specifics:** AI speaks first always. Inspector-seeded programs get assumption-based opening. Checklist has 7 items (docs say 7, code has 6 — Scenario Seeds removed from code). In-place checklist editing. Generate Outline button with progressive readiness status.
+#### AI Persona
 
-**Phase 2 specifics:** Outline generates on arrival. Three levels: Series, Labs, Activities. Activities are mandatory. Skill mapping mode as distinct focus within Phase 2. Gap detection in both directions. Auto-save everything.
+No confirmed name. Four character references define personality: R2D2 (technically brilliant), Jeeves (anticipates needs), Sergeant Hulka (decisive, organized), Neo (cool under pressure). "Neo" is a tone reference, not a name — remove "You are Neo" from Phase 2 prompt.
 
-**Phase 3 specifics:** Parallel generation, progressive display. Pulsing dot while generating. First lab auto-selects. Fully editable instructions. Three draft reminders at different touchpoints.
+The AI speaks first always. When seeded from Inspector, it opens by naming what it knows and stating an assumption. When cold-starting, it opens with a short direct question. The tone is confident, measured, present — a trusted advisor who earns trust by knowing things, not performing eagerness.
 
-**Phase 4 specifics:** BOM is AI-generated from full program context. Cloud Slice ownership question before BOM generation. Studio Export Package as ZIP. Loading language uses invented words. Export format to be validated with SEs.
+#### Phase 1 — Requirements & Intent (Detailed Spec)
 
-**General principles:** Designer is self-service by design. Phase 3 output is draft scaffolding. Activities are first-class. Topic emerges in Phase 1 even when seeded. Organizational readiness calibrates scaffolding prescriptiveness.
+**Three-pane layout:** Left = navigation + Preferences access. Middle = content upload, URL input, AI conversation. Right = Lab Blueprint checklist (live progress tracker and thought provoker).
+
+**Content input — zero friction:** Drag-and-drop files (PDF, DOCX, PPTX, XLSX, CSV), URL input (any web page, Google Docs/Sheets parsed as documents), direct text input, image upload (whiteboards, napkin drawings, network diagrams). For every upload, the AI immediately shows a card: what it extracted, which checklist items it updated, and a clarifying question.
+
+**The Lab Blueprint checklist tracks seven requirements:**
+
+1. Program Objectives — business outcome + hands-on skill outcomes
+2. Target Audience — role, experience level, technical background
+3. Primary Product(s) & Topic(s) — software/platform/subject
+4. Difficulty & Duration — difficulty level + target seat time per lab (defaults from Preferences)
+5. Success Criteria — completion rate, cert pass rate, demonstrated performance
+6. Scenario Seeds — real-world situations labs should simulate
+7. Skill Framework & Competency Mapping — optional, appears lower in checklist, AI surfaces conversationally at the right moment
+
+**Checklist item states:** Gray (nothing captured), yellow (partially filled — AI found or inferred something, confidence still building), green (confirmed — enough to proceed). Progression is continuous, not a single pass. Every upload, question, and URL processed adds context. Items shift in real time.
+
+**In-place checklist editing:** Click any value, type correction, click away or Enter to save. Edits update AI context immediately.
+
+**Generate Outline readiness progression:**
+
+| Checklist state | Status message | Button |
+|---|---|---|
+| Early — major gaps | "I need more to work with." | Disabled |
+| Building — some gaps remain | "More context sharpens this." | Disabled |
+| Sufficient — usable but improvable | "I can build something. More context improves it." | **Active** |
+| Strong — ready | "Ready when you are." | **Active** |
+
+Button becomes active at the "sufficient" stage. Permanent note below: "You can return to refine this anytime."
+
+**Intelligence informs but never restricts direction.** Even when seeded from Inspector, the actual subject is confirmed through Phase 1 conversation. A Tanium customer might build networking fundamentals. The AI follows the program owner's direction completely.
+
+**When the program owner is stuck, the AI suggests** — based on product modules/workflows, complexity signals, common patterns for the product category, or natural prerequisite topics. Suggestions are starting points the owner can take, modify, or reject.
+
+**The checklist is a thought provoker, not just a progress tracker.** Each item signals a dimension of program design that matters — many of which first-time program owners have never considered. Items carry enough context to explain why they matter.
+
+**Code conflict:** Code has 6 checklist items (Scenario Seeds removed). Docs say 7. Scenario Seeds should be re-added per spec.
+
+#### Phase 2 — Program Architecture (Detailed Spec)
+
+**Three-pane layout:** Left = navigation. Middle = outline (fully live-editable inline). Right = AI conversation driving outline changes.
+
+Middle and right panes work together: direct inline editing in middle (rename, reorder, add/delete) OR AI-directed structural changes in right ("merge labs 4 and 5," "make this two series"). Both change the same outline. A "Refactor Outline" button triggers significant AI restructuring.
+
+**Outline structure:** Series > Labs > Activities. Labs are 45-75 minutes, 3-8 activities each. Activities are discrete tasks — the unit of progress tracking and scoring. Activities are not optional. Well-formed names and short descriptions at every level.
+
+**Default expand/collapse on arrival:** Single series = open showing all labs, activities collapsed. Multiple series = first expanded, others collapsed. Expand All / Collapse All controls available.
+
+**Edit retention on Phase 1 return:** If user navigates back to Phase 1 and makes changes, outline regenerates on return to Phase 2. AI-aware regeneration passes the current edited outline as a scaffold the AI must respect, alongside updated Phase 1 context. User's structural choices (renamed labs, added activities, reordered items) are preserved. No versioning, no merge UI, no lock icons.
+
+**Skill Mapping Mode — a distinct focus within Phase 2:**
+
+- Outlining and skill mapping run in parallel, not in strict sequence. While the outline is being built, the AI quietly proposes skill tags in the background.
+- The outline stays clean — mapping doesn't clutter the outlining experience. Progress visible in checklist: "Skill Mapping — 14 of 22 activities tagged."
+- User can flip into Skill Mapping Mode at any point to review AI proposals. Proposed mappings are waiting — not starting from scratch.
+- Review is structured for an instructional designer: full framework visible alongside outline, mappings editable individually, ability to approve the complete map as a whole.
+- **Skill mapping review prompt on outline approval:** If framework is configured and AI has proposed tags but user hasn't opened Skill Mapping Mode, clicking to approve triggers: "The AI has proposed skill tags for 22 activities — want to review them before moving to Phase 3?" Not a blocker — a reminder. Suppressed if user has opened the mode even briefly.
+- **Tagging granularity:** Activity-level is the recommendation, not the rule. Some frameworks or content teams need lab-level tagging. Designer recommends activity-level but doesn't enforce.
+- **Multiple frameworks simultaneously:** A program can map to more than one framework at once (e.g., NICE and DCWF in parallel). AI handles dual-framework mapping automatically.
+- **Gap detection both directions:** Activities that map to no framework skill (scope gaps) and framework skills with no activity coverage (curriculum gaps). Surfaces as reviewable findings without forcing changes.
+- **Governance split:** Executives/program owners own the decision (which framework, whether mapping is required). Instructional designers own the approach (which activity maps to which skill, how to handle gaps). AI bridges both.
+- Mappings travel with the program — stored on program record, included in Phase 3 context, exported in Phase 4 package.
+
+#### Phase 3 — Draft Instructions & Scoring Recommendations (Detailed Spec)
+
+**Three-pane layout:** Left = navigation. Middle = outline (same series/lab structure as Phase 2, click a lab to load instructions). Right = draft instructions for selected lab, rendered at actual Skillable Studio instruction width.
+
+**Parallel progressive generation:** All lab generation calls kick off in parallel when user clicks Generate Draft Instructions. Phase 3 opens immediately. Labs populate as they complete. Typical: 15-30 seconds for a full program.
+
+**Pulsing dot while generating:** Small pulsing dot (Skillable green) appears left of lab name in outline. Lab name muted and not clickable until done. When ready, dot resolves and name becomes fully active.
+
+**First lab auto-selects** — its draft instructions appear in right pane automatically. User is already reading before clicking anything. Can then click any ready lab in any order.
+
+**Middle pane outline editing:** Click any lab or series name to edit in place. Drag handle on left of each lab row for reorder within a series.
+
+**Right pane — fully editable:** Click anywhere and type. No edit mode toggle, no separate form. Edits auto-saved.
+
+**Three draft reminders:**
+1. Persistent pill above right pane instructions: "Draft - Finalized in Skillable Studio" (muted, always visible)
+2. AI's opening message when Phase 3 loads: acknowledges what it built and where work goes next
+3. Brief note at Phase 4 export moment before package downloads
+
+**Phase 3 output is draft scaffolding** — not finished content. A head start for the SME or tech writer doing final authoring in Skillable Studio.
+
+**Open question:** Phase 3 AI conversation capability (refinement) vs. direct-edit only — TBD.
+
+#### Phase 4 — Package & Export (Detailed Spec)
+
+Phase 4 is a review-and-export experience — not a design or conversation experience. The hard work is done.
+
+**Three-pane layout:** Left = navigation. Middle = program summary + environment template BOMs (one per template, collapsible if multiple). Right = export actions and status.
+
+**BOM is AI-generated** from full program context: every lab, activity, scoring recommendation, and delivery path decision from Phases 1-3, combined with Skillable platform documentation (provisioning patterns, lifecycle actions, credential pools, cloud slice config, OVA import, scripting conventions). Goal is an enormous head start, not perfection.
+
+**BOM categories per environment template:**
+
+| Category | Contents |
+|---|---|
+| **Cloud Slice / API Package** *(listed first — all other decisions depend on this)* | Subscription type (Azure/AWS/Custom), API endpoints, auth mechanism, OAuth scopes, permissions, provisioning sequence, pre-instancing, ownership model |
+| Virtual Machines | OS, version, CPU/RAM, disk, snapshot strategy |
+| Containers & IDEs | Container images, IDE config, port mappings |
+| Software & Tools | Applications, versions, licenses, installation order, config notes |
+| Accounts & Credentials | User/service accounts, credential pool setup, permissions |
+| Data & Files | Dummy data files, placement paths, seeding scripts |
+| Networking & Permissions | VNet/subnet, firewall, DNS, inter-VM connectivity, collaborative lab network |
+| **Lifecycle Action (LCA) Scripts** *(Lab Profile > Lifecycle Actions in Studio)* | Environment automation — startup, teardown, reset, fault injection. Run without learner interaction. |
+| **Scoring Scripts** *(attached to Activities in Studio)* | Per-activity validation scripts. Stubs from Phase 3 scoring recommendations. Pass threshold and scoring format (ABA/PBT/Activity Group) per activity. |
+| Studio Configuration | Variables, replacement tokens, credential pool IDs, subscription pool IDs, collaborative lab settings |
+
+**LCAs vs. Scoring Scripts distinction:** Both are PowerShell/Bash scripts but serve entirely different purposes and live in different places in Studio. LCAs automate the environment (Lab Profile). Scoring Scripts validate learner work (Activities). This distinction is critical for lab developers.
+
+**Environment templates — one per VM/cloud configuration type:** A single program can span multiple templates. Single template = flat comprehensive list. Multiple templates = each collapsible independently.
+
+**Program summary panel (above BOM):** Total series / labs / activities, skill framework coverage summary, delivery path confirmed, environment template count and names, export readiness status.
+
+**Cloud Slice ownership question:** Prompted before BOM generation: "Will you use Skillable-managed or customer-provided subscriptions?" Affects BOM, lifecycle scripts, and Studio configuration. The one design decision that cannot be resolved before Phase 4.
+
+**Loading language:** BOM generation is the heaviest AI lift. Loading states use invented words from the VocabularyPack — a deliberate UX decision, not placeholders.
+
+**Export package (ZIP):** data.json (imports into Studio creating series, profiles, instructions, activities), bom.pdf (or structured format TBD), generated script files organized by environment template, skill mapping export at activity level.
+
+**Phase 4 actions:** Export Lab Package (downloads ZIP), Build Another Program (returns to fresh Phase 1).
+
+**Delivery path respect:** Designer builds for the confirmed delivery path. If recommended path differs from customer preference, Designer proceeds with customer's choice and surfaces a clear, non-intrusive note about the alternative. Designer is an advisor, not a gatekeeper.
+
+**Export format pending SE validation.** Exact data.json structure, BOM document format, and script packaging conventions need validation with SEs before Phase 4 build.
+
+#### Preferences (Detailed Spec)
+
+**Two-level hierarchy:** Global defaults (organization level, apply to every new program) + per-program overrides (override any global default for a specific program without changing the global standard).
+
+**Setup vs. Preferences distinction:** System Setup (AI provider, API key, model config) is Admin-configured once during onboarding, lives in separate Admin section. Preferences (program standards) are used regularly, organized into five groups.
+
+**First-run onboarding:** AI connection configured by Skillable before customer logs in. First thing new user sees is Preferences guided setup — walk-through of five groups establishing the organization's content DNA. If Inspector analysis exists, Preferences can be pre-populated with smart defaults.
+
+**The five preference groups:**
+
+**1. Content Standards** (Program owner) — structural and naming defaults:
+- Target Lab Duration (15-30 / 30-45 / **45-75** / 75-90 / 90-120 / 120+ min)
+- Activities per Lab (1-2 / **3-5** / 6-10 / Unlimited)
+- Default Difficulty (Beginner / **Intermediate** / Advanced / Expert)
+- Lab Naming Formula (text field with variables)
+- Activity Naming Convention (text field with variables)
+- Lab Series Naming Convention (text field)
+- Lab Pass Threshold (% of activities required)
+
+**2. Learning Design Standards** (ID / Program owner) — pedagogical defaults:
+- Writing Style Guide (Microsoft / Google / Apple / Red Hat / Custom URL)
+- Certification Alignment (free text / None)
+- Default Skill Framework(s) (picklist + custom upload)
+- Hint Usage Policy (Always / On request / Never)
+- Knowledge Block Usage (Yes / No)
+- SME Handoff Format (Inline AI comments / Clean draft only)
+
+**3. Scenario & Lab Type Defaults** (PS / Program owner) — advanced scenario types:
+- Break/Fix Scenarios (Yes / No / AI-recommended)
+- Collaborative Lab Scenarios (Yes / No / AI-recommended)
+- Simulated Attack Scenarios (Yes / No / AI-recommended)
+
+**4. Brand & Identity** (Program owner / Marketing):
+- Logo upload, Brand URL, Brand colors + fonts
+
+**5. Reference Materials** (Anyone) — always-on AI context:
+- Documentation Site URL, Knowledge Base URL, Reference file uploads
+
+**Environment and software do not belong in Preferences.** Delivery path, VM configuration, software requirements, and scoring approach are program-specific decisions that emerge from the design process and are captured in the Phase 4 BOM.
+
+**Conflict note:** reference_designer_decisions.md lists 5 groups (Organization Identity, Learning Design Standards, Scenario & Lab Type Defaults, Environment & Delivery Defaults, Contacts & Roles). The detailed spec above lists 5 different groups (Content Standards, Learning Design Standards, Scenario & Lab Type Defaults, Brand & Identity, Reference Materials). The Foundation session needs to reconcile and lock the definitive 5.
+
+**Skill framework catalog detail:** Curated catalog grouped by domain (Cybersecurity, Cloud & DevOps, Networking, Software Engineering, IT Operations, Data & AI, Cross-Domain). Includes public frameworks and vendor certification catalogs (Microsoft, CompTIA, AWS, Cisco). Custom uploads (JSON, CSV, plain text) appear under "Your Frameworks." LinkedIn Skill Framework included for HR/L&D teams with LinkedIn Learning-anchored strategies. Soft skills and power skills frameworks explicitly excluded — only hands-on technical skills that map to keyboard-level tasks. Certification frameworks use hyper-simplified UX: user picks the cert name, AI maps to domain objectives behind the scenes.
+
+#### VocabularyPack
+
+When Designer starts a new program, Intelligence generates a VocabularyPack for the customer — approximately 60% Skillable domain vocabulary blended with 40% of the company's specific product and domain language from Intelligence.
+
+**Contents:**
+- **Manufactured Words** — invented portmanteaus, gerunds, suffixes blending Skillable and product vocabulary (not real words). Appear in program name suggestions and personality moments.
+- **Program Name Seeds** — 4-6 program name concepts using manufactured vocabulary and real product terms.
+- **Lab Series Labels** — 4-6 series naming patterns the program owner can adopt or adapt.
+- **Skill Level Labels** — replaces generic Beginner/Intermediate/Advanced with invented alternatives (e.g., "Pre-Skillified / Getting Skillified / Fully Skillified"; a security product might produce "Threat-Curious / Actively Securifying / Fully Threat-Hardened").
+- **Action Verb Palette** — strong domain-specific verbs for titles drawn from what the product actually does.
+- **Loading States** — the most visible expression in the UI. Instead of "Thinking...", Designer shows randomly selected invented gerunds from the pack.
+
+Generated once at program creation, saved with the program, consistent throughout the design session.
+
+**Open question for Foundation session:** The loading language is charming internally. Is it appropriate for the customer-facing version?
+
+#### Intelligence Flow Into Designer
+
+Intelligence is the fuel that powers everything Designer produces — not a starting point it builds from. Without Intelligence, Designer produces generic scaffolding. With it, Designer produces architecture specific to this product, this audience, and this delivery path.
+
+The three Pillars inform Designer throughout:
+- **Product Labability** — determines environment architecture, delivery path, provisioning pattern. Surfaces in Preferences defaults and BOM.
+- **Instructional Value** — determines program scope, lab complexity, scenario types, seat time. High complexity generates multi-series curricula; low complexity generates focused single-series programs.
+- **Customer Fit** — determines how prescriptive Designer's scaffolding needs to be. Mature teams get a framework; early-stage teams get detailed guidance.
+
+Lab scenario type flags from Inspector (break/fix, simulated attack, collaborative lab patterns) carry into Phase 2 outline recommendations.
+
+Designer program records link back to source Inspector analysis via inspector_analysis_id. If the analysis is updated after a program is created, a "Source analysis updated" indicator appears.
+
+**General principles:** Designer is self-service by design — no Skillable involvement required. Phase 3 output is draft scaffolding. Activities are first-class. Topic emerges in Phase 1 even when seeded. Organizational readiness calibrates scaffolding prescriptiveness. The parallel workstream insight (program design and environment build happen simultaneously) is the critical design rationale.
 
 ### What the Instructional Design Guide Covers
 
@@ -150,11 +354,11 @@ From reference_designer_decisions.md and the decision log:
 
 | Area | Current Designer State | Foundation Decision | Conflict |
 |---|---|---|---|
-| **Checklist items** | Code has 6 items (Scenario Seeds removed) | designer.md spec says 7 items including Scenario Seeds | Scenario Seeds should be re-added per designer.md |
+| **Checklist items** | Code has 6 items (Scenario Seeds removed) | Spec says 7 items including Scenario Seeds | Scenario Seeds should be re-added per spec |
 | **Phase prompt — "Neo" name** | Phase 2 prompt starts with "You are Neo" | AI persona has no confirmed name; "Neo" is a tone reference only | Remove "Neo" as a name from the Phase 2 prompt |
 | **Pillar vocabulary** | designer_engine.py references "Gate scores" and "labability_score.total" | Foundation uses Pillar/Dimension vocabulary, not Gates | Needs vocabulary alignment |
-| **Pipeline naming** | Foundation doc uses 8-phase pipeline; designer.md uses 4-phase UX model | Both are valid but the relationship is not documented | Should be explicitly mapped |
-| **Preferences groups** | reference_designer_decisions.md lists 5 groups; designer.md lists 5 different groups | The two lists don't match exactly | Need to reconcile and lock the definitive 5 |
+| **Pipeline naming** | Foundation doc uses 8-phase pipeline; UX uses 4-phase model | Both are valid — mapping now documented in Decisions Already Made section | Resolved in this document |
+| **Preferences groups** | reference_designer_decisions.md lists 5 groups; detailed spec lists 5 different groups | The two lists don't match exactly | Need to reconcile and lock the definitive 5 |
 | **User bubble color** | designer.html uses `#00D082` gradient for user chat bubbles | Brand palette has `#24ED98` as accent green | Should use brand palette color |
 | **Data domain enforcement** | product-intel route queries Inspector analysis cache | Foundation says "no path from Designer to company intelligence data" | Need to verify product-intel doesn't leak company intelligence fields |
 
@@ -164,15 +368,15 @@ From reference_designer_decisions.md and the decision log:
 
 ### Personas from the Foundation Doc
 
-| Persona | Role | Current in Designer? |
-|---|---|---|
-| **Enablement / Training Program Owners** | Strategy — which audiences, what outcomes, how many labs | Yes — primary Phase 1 user |
-| **Instructional Designers** | Learning experience design — sequencing, objectives, assessment | Yes — Phases 1-3 |
-| **SMEs (Subject Matter Experts)** | Product accuracy — what's worth teaching, what's realistic | Yes — Phases 2-3 review |
-| **Tech Writers** | Lab content — instructions, steps, guidance | Implied — Phase 3 consumers |
-| **Product Engineers** | Technical feasibility — what can be done, how it works | Not addressed in current design |
-| **Skillable Professional Services** | All of the above, on behalf of customers | Yes — primary internal user |
-| **Contracted Lab Developers** | Downstream consumers — build from Designer's output in Studio | Not a Designer user — consumer of output |
+| Persona | Role | Phase engagement | Current in Designer? |
+|---|---|---|---|
+| **Program Owners** | Strategy — goals, audience, scope, program decisions | Primary Phase 1-2 user; reviews Phase 3-4 | Yes — primary audience |
+| **Instructional Designers** | Learning experience — sequencing, objectives, assessment, skill mapping | Phases 1-3: contribute JTA, audience defs, competency frameworks in P1; refine outline in P2; review drafts + scoring in P3 | Yes |
+| **SMEs (Subject Matter Experts)** | Product accuracy — realistic workflows, technical validation | Phases 2-3: validate lab scenarios and activities in P2; review and tech-edit draft instructions in P3 | Yes |
+| **Tech Writers** | Lab content — instructions, steps, guidance | Phase 3 consumers | Implied |
+| **Product Engineers** | Technical feasibility — what can be done, how it works | Not addressed | Not addressed |
+| **Skillable Learning Consultants / Professional Services** | All of the above, on behalf of customers. Arrive with Inspector analysis, deep product knowledge, platform expertise | All phases — use Designer to accelerate scoping engagements | Yes — primary internal user |
+| **Contracted Lab Developers** | Downstream consumers — build from Designer's output in Studio. Import package, receive BOM and scripts, begin technical build | Not a Designer user — consumer of Phase 4 output | Consumer only |
 
 ### Questions to Explore
 
@@ -197,9 +401,13 @@ From reference_designer_decisions.md and the decision log:
 
 ## Section 3: Purpose — Why Does Designer Exist?
 
-### Current Purpose Statement (from designer.md)
+### Current Purpose Statement
 
-Designer exists to solve the adoption problem: customers who don't know how to design a lab program won't build one. The parallel workstream insight is that program design and environment build are independent workstreams that should happen simultaneously. Designer also builds discipline — making good decisions the default.
+Designer exists to solve the adoption problem: customers who don't know how to design a lab program won't build one. Without a guided design process, the default pattern is predictable — everyone waits for the technical team to get software working in the platform, timelines compress, energy dissipates, and a few labs get built to justify the contract without the structure that makes scoring, progression, or growth possible.
+
+The parallel workstream insight is that program design and environment build are independent workstreams that should happen simultaneously. While the technical team gets software working in Skillable, the program owner and ID can be in Designer defining objectives, building the outline, and approving program structure. When the environment is ready, the program design is already done.
+
+Designer also builds discipline — making good decisions the default. The checklist surfaces what's missing. The outline enforces the series-lab-activity hierarchy that makes scoring possible. Draft instructions include guidance on validating each activity. The BOM surfaces platform features at exactly the moment they're relevant. A content team that goes through Designer once comes out with a better mental model for labs.
 
 ### Questions to Explore
 
@@ -342,9 +550,9 @@ Designer exists to solve the adoption problem: customers who don't know how to d
 **Current output:** ZIP with data.json, bom.pdf, generated scripts, skill mapping export
 
 **Questions:**
-- The BOM specification in designer.md is extremely detailed (Cloud Slice packages, PowerShell scripts, Bicep templates, CloudFormation templates, LCA scripts, scoring scripts, credential pool config). How much of this can the AI realistically generate? What's the quality bar — accurate stubs or production-ready scripts?
+- The BOM specification is extremely detailed (Cloud Slice packages, PowerShell scripts, Bicep templates, CloudFormation templates, LCA scripts, scoring scripts, credential pool config — see Phase 4 Detailed Spec above). How much of this can the AI realistically generate? What's the quality bar — accurate stubs or production-ready scripts?
 - How does the SA Build Notes content from designer_engine.py get injected into Phase 4? These notes are critical for accurate BOM generation.
-- What's the Studio import format? designer.md says "the legacy Designer export code is the current best reference." Has this been located and analyzed?
+- What's the Studio import format? The legacy Designer export code is noted as the current best reference. Has this been located and analyzed?
 - Environment templates — one per VM/cloud configuration type. How does the AI determine how many templates a program needs? What signals from Phases 1-2 inform this?
 - The data.json format needs SE validation before Phase 4 is built. Is this validation a prerequisite for the Foundation session, or can the Foundation session define what the format should contain and leave the exact structure for later?
 
@@ -400,7 +608,7 @@ The Foundation defines three data domains:
 - When seeded from Inspector, Designer loads: company_name, company_description, organization_type, top_products (with labability scores), orchestration_method, fabric, consumption_potential, contacts.
 
 **Questions:**
-- The seeding data includes contacts (decision makers and influencers). Are contacts "company intelligence" or "product data"? The Foundation says contacts are internal-only, but designer.md says contacts are loaded for "stakeholder context."
+- The seeding data includes contacts (decision makers and influencers). Are contacts "company intelligence" or "product data"? The Foundation says contacts are internal-only, but the pre-Foundation spec says contacts are loaded for "stakeholder context."
 - consumption_potential is derived from ACV calculation — is this company intelligence?
 - How does tenant awareness work for customer programs? When a customer uses Designer, they should see only their own programs — not other customers' programs or Skillable's internal programs.
 - Should Designer have its own data store separate from Inspector's analysis cache, or does it read from the shared Intelligence layer?
@@ -422,8 +630,8 @@ The Foundation defines three data domains:
 | Instructional design guide injection into Phase 1/2/3 prompts | CLAUDE.md next steps | Not implemented |
 | CSS color correction to confirmed brand palette | CLAUDE.md next steps | Partially done — user bubble gradient still uses #00D082 |
 | Skill framework taxonomy files | reference_designer_decisions.md | backend/standards/skill_frameworks/ is empty |
-| Phase 4 BOM generation quality bar | designer.md | Not specified — stubs vs production-ready |
-| Cloud Slice ownership question timing | designer.md | Phase 4 only, but affects BOM significantly |
+| Phase 4 BOM generation quality bar | Pre-Foundation spec | Not specified — stubs vs production-ready |
+| Cloud Slice ownership question timing | Pre-Foundation spec | Phase 4 only, but affects BOM significantly |
 
 ### New Questions Raised by Foundation Decisions
 
