@@ -476,7 +476,43 @@ def _normalize_product_badges(p: dict) -> None:
                     # Mixed or no labels — leave the badge alone
                     new_badges.append(b)
 
-            dim_dict["badges"] = new_badges
+            # ── Merge same-named badges within this dimension ──
+            # The splitter above can produce multiple badges with the same
+            # name when the AI emitted two separate parent badges whose
+            # evidence items happen to share the same embedded label
+            # (e.g., two evidence items both prefixed "**Runs in Hyper-V |
+            # ...**"). Without merging, the user sees the same badge name
+            # twice with different colors. Combine them: one badge per
+            # unique name, evidence lists merged, color = the most
+            # attention-grabbing of the group so risks aren't hidden by
+            # an adjacent positive signal.
+            color_priority = {"red": 4, "amber": 3, "green": 2, "gray": 1, "": 0}
+            merged_by_name: dict[str, dict] = {}
+            ordered_names: list[str] = []
+            for b in new_badges:
+                if not isinstance(b, dict):
+                    continue
+                name = (b.get("name") or "").strip()
+                if not name:
+                    continue
+                if name not in merged_by_name:
+                    merged_by_name[name] = {
+                        "name": name,
+                        "color": b.get("color", ""),
+                        "qualifier": b.get("qualifier", ""),
+                        "evidence": list(b.get("evidence") or []),
+                    }
+                    ordered_names.append(name)
+                else:
+                    existing = merged_by_name[name]
+                    # Promote color to the worst (highest-priority) of the two
+                    if color_priority.get(b.get("color", ""), 0) > color_priority.get(existing["color"], 0):
+                        existing["color"] = b.get("color", "")
+                        # Use the qualifier of the worst-color badge so the
+                        # qualifier line in the modal matches the badge color
+                        existing["qualifier"] = b.get("qualifier", "")
+                    existing["evidence"].extend(b.get("evidence") or [])
+            dim_dict["badges"] = [merged_by_name[n] for n in ordered_names]
 
             # Bug 2 enforcement: ensure No Learner Isolation badge exists in
             # the Lab Access dimension when the deployment model demands it
