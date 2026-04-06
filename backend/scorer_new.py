@@ -278,7 +278,7 @@ def _score_single_product(company_name: str, product: dict, product_context: str
         company_context,
         benchmarks_text,
     ])
-    return _call_claude(SCORING_PROMPT, user_content, max_tokens=7500)
+    return _call_claude(SCORING_PROMPT, user_content, max_tokens=16000)
 
 
 def score_selected_products(research: dict) -> CompanyAnalysis:

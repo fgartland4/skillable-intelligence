@@ -27,6 +27,40 @@ SCORING_TIMEOUT_SECS = 300
 MAX_SEARCH_WORKERS = 12
 MAX_FETCH_WORKERS = 10
 
+# ── Framework version timestamp ──
+# Updated whenever scoring_config.py, knowledge files, or prompt template change.
+# Compared against cached scores to determine if re-scoring is needed.
+import os as _os
+from pathlib import Path as _Path
+
+def _get_framework_last_modified() -> str:
+    """Get the most recent modification time across all framework files.
+
+    If any of these files are newer than a cached score, the score is stale
+    and should be regenerated from cached research.
+    """
+    framework_files = [
+        _Path(__file__).parent / "scoring_config.py",
+        _Path(__file__).parent / "prompts" / "scoring_template.md",
+        _Path(__file__).parent / "prompts" / "discovery_new.txt",
+        _Path(__file__).parent / "knowledge" / "skillable_capabilities.json",
+        _Path(__file__).parent / "knowledge" / "delivery_patterns.json",
+        _Path(__file__).parent / "knowledge" / "competitors.json",
+        _Path(__file__).parent / "knowledge" / "contact_guidance.json",
+        _Path(__file__).parent / "benchmarks_new.json",
+    ]
+    latest = 0
+    for f in framework_files:
+        if f.exists():
+            mtime = _os.path.getmtime(f)
+            if mtime > latest:
+                latest = mtime
+    from datetime import datetime, timezone
+    return datetime.fromtimestamp(latest, tz=timezone.utc).isoformat()
+
+
+FRAMEWORK_LAST_MODIFIED = _get_framework_last_modified()
+
 _BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks_new.json")
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 
