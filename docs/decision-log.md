@@ -4,6 +4,15 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-06 — Score color buckets
+
+### Three visible color buckets, five logical thresholds — intentional
+- **DECIDED:** The score color system has **five logical thresholds** (`dark_green`, `green`, `light_amber`, `amber`, `red` at 80 / 65 / 45 / 25 / 0) defined in `scoring_config.SCORE_THRESHOLDS`. All four score displays — Fit Score, the three Pillar Scores, and the Verdict — read from this single dict via `score_color` filter or `get_verdict()`. They are aligned by construction.
+- **DECIDED:** The **visible color palette is intentionally only three buckets** (high green / mid amber / low red). `dark_green` and `green` both render `var(--sk-score-high)`. `light_amber` and `amber` both render `var(--sk-score-mid)`. This is a deliberate design choice, not a bug. The finer-grained nuance lives in the **verdict label text** ("Prime Target" vs "Worth Pursuing" vs "Solid Prospect"), not in color saturation.
+- **Why:** Five distinct color shades on the same page becomes visual noise. Three clean buckets give an immediate gut read; the verdict label gives the precision when you want it. Future self: do not "fix" this by adding two more colors unless this decision is explicitly revisited.
+
+---
+
 ## Session: 2026-04-06 — Principles surfaced from Bug Hunting
 
 ### Visual changes must NEVER affect scoring
