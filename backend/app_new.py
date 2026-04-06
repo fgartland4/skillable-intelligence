@@ -11,7 +11,9 @@ import logging
 import os
 import threading
 import uuid
+from pathlib import Path
 
+import jinja2
 from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, stream_with_context
 
 from config_new import ANTHROPIC_API_KEY, validate_startup
@@ -34,12 +36,24 @@ log = logging.getLogger(__name__)
 # App initialization
 # ═══════════════════════════════════════════════════════════════════════════════
 
+_TOOLS_DIR = Path(__file__).resolve().parent.parent / "tools"
+_STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
 app = Flask(
     __name__,
-    template_folder=os.path.join(os.path.dirname(__file__), "..", "tools"),
-    static_folder=os.path.join(os.path.dirname(__file__), "..", "static"),
+    static_folder=str(_STATIC_DIR),
+    static_url_path="/static",
+    template_folder=str(_TOOLS_DIR / "inspector" / "templates"),
 )
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-production")
+
+# Search all tool template directories — includes work across tools
+app.jinja_loader = jinja2.ChoiceLoader([
+    jinja2.FileSystemLoader(str(_TOOLS_DIR / "shared" / "templates")),
+    jinja2.FileSystemLoader(str(_TOOLS_DIR / "inspector" / "templates")),
+    jinja2.FileSystemLoader(str(_TOOLS_DIR / "designer" / "templates")),
+    jinja2.FileSystemLoader(str(_TOOLS_DIR / "prospector" / "templates")),
+])
 
 # Validate config, scoring_config, and prompt generation on startup
 validate_startup()
