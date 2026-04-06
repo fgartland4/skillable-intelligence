@@ -137,7 +137,7 @@ def discover(company_name: str, known_products: list[str] | None = None,
 
     # Assign discovery tiers using new labels
     for p in discovery.get("products", []):
-        score = p.get("_discovery_score", 0)
+        score = p.get("discovery_score", 0)
         p["_tier"] = discovery_tier(score)
         p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
 
@@ -317,11 +317,11 @@ def qualify(company_name: str, force_refresh: bool = False) -> dict | None:
     products = disc.get("products", [])
 
     # Find top product by discovery score
-    sorted_prods = sorted(products, key=lambda p: p.get("_discovery_score", 0), reverse=True)
+    sorted_prods = sorted(products, key=lambda p: p.get("discovery_score", 0), reverse=True)
     top = sorted_prods[0]
 
     # Use discovery-level data to build Prospector row
-    fit = top.get("_discovery_score", 0)
+    fit = top.get("discovery_score", 0)
     tier = discovery_tier(fit)
 
     # Contacts

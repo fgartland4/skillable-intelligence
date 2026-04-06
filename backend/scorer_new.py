@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 # Calibration benchmarks
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks.json")
+_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks_new.json")
 with open(_BENCHMARKS_PATH, "r", encoding="utf-8") as _f:
     CUSTOMER_BENCHMARKS = json.load(_f)
 
@@ -40,7 +40,7 @@ with open(_BENCHMARKS_PATH, "r", encoding="utf-8") as _f:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
-_DISCOVERY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "discovery.txt")
+_DISCOVERY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "discovery_new.txt")
 with open(_DISCOVERY_PROMPT_PATH, "r", encoding="utf-8") as _f:
     DISCOVERY_PROMPT = _f.read()
 

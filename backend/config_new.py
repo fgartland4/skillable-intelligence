@@ -4,7 +4,7 @@ Environment variables are read at import time. Startup validation ensures
 the app fails fast with clear messages rather than crashing mid-analysis.
 
 Updated for the Prompt Generation System — validates scoring_config.py
-and scoring_template.md instead of the old static product_scoring.txt.
+and scoring_template.md instead of a static prompt file.
 """
 
 import logging
@@ -27,7 +27,7 @@ SCORING_TIMEOUT_SECS = 300
 MAX_SEARCH_WORKERS = 12
 MAX_FETCH_WORKERS = 10
 
-_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks.json")
+_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks_new.json")
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 
 
@@ -42,10 +42,10 @@ def validate_startup() -> None:
         )
 
     if not os.path.exists(_BENCHMARKS_PATH):
-        errors.append(f"benchmarks.json not found at {_BENCHMARKS_PATH}")
+        errors.append(f"benchmarks_new.json not found at {_BENCHMARKS_PATH}")
 
     # Discovery prompt (still a static file — not part of Prompt Generation System)
-    discovery_path = os.path.join(_PROMPTS_DIR, "discovery.txt")
+    discovery_path = os.path.join(_PROMPTS_DIR, "discovery_new.txt")
     if not os.path.exists(discovery_path):
         errors.append(f"Discovery prompt not found: {discovery_path}")
 

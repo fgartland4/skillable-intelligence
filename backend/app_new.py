@@ -186,7 +186,7 @@ def inspector_product_selection(discovery_id: str):
 
     # Assign discovery tiers
     for p in disc.get("products", []):
-        score_val = p.get("_discovery_score", 0)
+        score_val = p.get("discovery_score", 0)
         p["_tier"] = discovery_tier(score_val)
         p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
 
