@@ -1,184 +1,136 @@
 # Skillable Intelligence — Claude Working Context
 
-This file loads automatically every session. Read it before doing anything else.
+This file loads automatically every session. It points to the authoritative documents — read those, not this summary.
 
 ---
 
-## Who I'm Working With
-
-**Frank Gartland** — friends call him **Franko**. Chief Solutions Officer at Skillable (https://skillable.com). Responsible for helping customers improve how they think about, create, deliver, and communicate their strategy for embedding hands-on lab experiences within skill development and validation journeys.
-
----
-
-## How Frank Wants to Work — Non-Negotiables
-
-### 1. WHY → WHO → WHAT → HOW. Always in this order.
-Never start coding until all four are clear and Frank has confirmed alignment.
-- **WHY:** What problem are we solving?
-- **WHO:** Who are we solving it for?
-- **WHAT:** What exactly will we build or change? Agreed, not assumed.
-- **HOW:** Only after WHY/WHO/WHAT are locked.
-
-**Never just start coding without explicit alignment.**
-
-### 2. Digestible chunks — no walls of text.
-Give information in pieces Frank can read and respond to. Do not write a wall of copy and then start coding. One thing at a time. Wait for a response.
-
-### 3. Confirm before acting.
-When a request is ambiguous, ask one focused clarifying question. Confirm WHAT before starting HOW. Alignment must be explicit — never assumed.
-
-### 4. Never delete Word docs or external-facing files without asking.
-Always confirm before deleting `.docx`, published content, or anything used to communicate with teams.
-
-### 5. Proactively recommend — but ask before doing.
-If a better path exists, flag it. Don't just execute what's asked without surfacing a better option. But don't act on it until Frank agrees.
-
-### 6. Be a collaborator, not just an executor.
-Frank wants suggestions and recommendations on application health and UX — not just task completion. Surface ideas for improvements, flag risks, and propose better approaches. But always validate together before moving. The goal is collaborative momentum, not speed.
-
----
-
-## UX North Star
-
-**Right person · Right information · Right time · Right context.**
-
-Every UI decision — what to show, what to hide, when, and to whom — is evaluated against this principle.
-
----
-
-## The Two Framework Documents — Source of Truth
+## Authoritative Documents — Source of Truth
 
 | Document | Location | What it owns |
 |---|---|---|
-| **Badging-Framework-Core.md** | `docs/Badging-Framework-Core.md` | Every canonical badge name, colors, color criteria, display rules, locked vocabulary |
-| **Scoring-Framework-Core.md** | `docs/Scoring-Framework-Core.md` | All scoring signals, point values, score ranges, penalty deductions, ceiling flags, verdict labels |
+| **Platform-Foundation.md** | `docs/Platform-Foundation.md` | Strategic authority — Guiding Principles, Pillars, Dimensions, people, motivation, architecture, ACV model, UX structure. Where it conflicts with anything else, it wins. |
+| **Badging-and-Scoring-Reference.md** | `docs/Badging-and-Scoring-Reference.md` | Operational detail — badge names, color criteria, scoring signals, point values, penalties, thresholds, locked vocabulary. Also the in-app explainability layer (GP3). |
+| **Test-Plan.md** | `docs/Test-Plan.md` | Test strategy — 9 categories, GP traceability, pytest in `backend/tests/` |
 
-**If it's not in one of these two documents, it doesn't exist.**
+---
 
-Read `docs/Badging-Framework-Core.md` before touching any badge name, color, or scoring vocabulary.
+## The New Architecture — What Matters
+
+Everything built before the Platform Foundation (April 4, 2026) is proof-of-concept. The deliverables that define the new architecture:
+
+| File | What it is |
+|---|---|
+| `docs/Platform-Foundation.md` | Strategic authority |
+| `docs/Badging-and-Scoring-Reference.md` | Operational detail |
+| `docs/Research-Methodology-Improvements.md` | Detection logic improvements |
+| `docs/Designer-Session-Guide.md` | Session methodology for Designer foundation session |
+| `docs/Designer-Session-Prep.md` | Designer session pre-read |
+| `docs/Test-Plan.md` | Test strategy |
+| `backend/scoring_config.py` | Configuration layer — Define-Once single source of truth |
+| `backend/prompt_generator.py` | Template to runtime prompt assembly |
+| `backend/prompts/scoring_template.md` | AI instruction template with placeholders |
+
+Old code files (scorer.py, models.py, constants.py, core.py, app.py, templates, product_scoring.txt) will be rebuilt from these documents.
+
+---
+
+## Prompt Generation System — Three Layers
+
+| Layer | File | What it does |
+|---|---|---|
+| **Configuration** | `backend/scoring_config.py` | All variables — pillar names, weights, badges, signals, penalties, thresholds, vocabulary. The one place anything changes. |
+| **Template** | `backend/prompts/scoring_template.md` | Instruction structure for the AI with `{PLACEHOLDER}` references to config. |
+| **Generated Prompt** | Built in memory by `prompt_generator.py` | Config injected into template at runtime. Never saved as static file. Always current. |
+
+---
+
+## Guiding Principles
+
+- **GP1:** Right Information, Right Time, Right Person, Right Context, Right Way
+- **GP2:** Why → What → How
+- **GP3:** Explainably Trustworthy — every judgment traceable from conclusion to evidence
+- **GP4:** Self-Evident Design — intent evident at every layer, variable names to UX
+- **GP5:** Intelligence Compounds — It Never Resets
+- **End-to-End Principle:** Same Pillar/Dimension/Requirement structure through every layer
+- **Define-Once Principle:** All names, weights, thresholds defined once in config, referenced everywhere
+- **WCAG AA Compliance:** Build standard — all color combinations validated
+
+---
+
+## Scoring Framework
+
+Three Pillars (40/30/30):
+- **Product Labability** (40%) — Provisioning, Lab Access, Scoring, Teardown
+- **Instructional Value** (30%) — Product Complexity, Mastery Stakes, Lab Versatility, Market Demand
+- **Customer Fit** (30%) — Training Commitment, Organizational DNA, Delivery Capacity, Build Capacity
+
+Each Pillar scores out of 100 internally (sum of dimension scores), then weighted to Fit Score.
 
 ---
 
 ## Locked Vocabulary
 
+See `docs/Badging-and-Scoring-Reference.md` "Vocabulary — Locked Terms" for the complete table.
+
+Key terms:
+
 | Use this | Never this |
 |---|---|
+| Fit Score | Composite Score / Lab Score |
 | Product Labability | Technical Orchestrability |
-| Instructional Value | Workflow Complexity / Product Complexity (as dimension) |
-| Organizational Readiness | Training Ecosystem / Lab Maturity |
-| Market Fit | Market Fit / Strategic Fit |
-| Amber | Yellow (for badge color) |
-| Azure Cloud Slice | Path A1 |
-| Custom API / BYOC | Path A2 |
-| Hyper-V / VM | Path B |
-| Simulation | Path C |
+| Instructional Value | Product Demand / Workflow Complexity |
+| Customer Fit | Customer Motivation / Organizational Readiness (as separate pillars) |
+| Product Complexity | Difficult to Master |
+| Mastery Stakes | Mastery Matters / Consequence of Failure |
+| Market Demand | Market Fit / Market Readiness / Strategic Fit |
+| Green / Gray / Amber / Red | Pass / Partial / Fail / Yellow |
+| Installable | Self-hosted (as data value) |
+
+---
+
+## Data Architecture — Three Domains
+
+| Domain | What it contains | Access |
+|---|---|---|
+| **Product data** | What products are, labability assessments, orchestration details | Open — all tools including Designer |
+| **Program data** | Lab series, outlines, activities, instructions (Designer) | Scoped — only your own programs |
+| **Company intelligence** | Fit scores, badges, contacts, ACV estimates | Internal-only — Skillable roles only |
+
+Stored separately from day one. Architectural separation, not just permissions.
+
+---
+
+## Page Names
+
+| Page | Name |
+|---|---|
+| Inspector home | **Inspector** |
+| Product selection | **Product Selection** |
+| Deep dive results | **Full Analysis** |
+
+Discovery tier labels: Seems Promising, Likely, Uncertain, Unlikely
+
+---
+
+## How Frank Wants to Work
+
+1. **WHY → WHO → WHAT → HOW.** Always in this order. Never code without alignment.
+2. **Digestible chunks.** No walls of text. One thing at a time.
+3. **Confirm before acting.** Alignment must be explicit.
+4. **Never delete Word docs** without asking.
+5. **Recommend, then ask.** Surface better paths, but don't act until Frank agrees.
+6. **Be a partner.** Think together. Flag patterns across tools. Collaborative momentum over speed.
 
 ---
 
 ## Decision Log
 
-All decisions made across sessions are recorded in:
-`memory/decision-log.md` (in the Claude project memory folder)
-
-Update it before any session ends. If a decision was made and not logged, log it now.
-
----
-
-## product_scoring.txt — High-Risk File
-
-`backend/prompts/product_scoring.txt` drives badge names and scores in every live Inspector run.
-
-Rules:
-1. The badge list in this file must exactly match `docs/Badging-Framework-Core.md`
-2. Never change a badge name here without updating `Badging-Framework-Core.md` first
-3. Never use old vocabulary anywhere in this file
-4. Verify the badge list matches after any edit
+All decisions: `memory/decision-log.md` (Claude project memory folder). Update before any session ends.
 
 ---
 
 ## Word Document Standards
 
-All generated Word docs use these standards:
-
-**Font:** Calibri 10pt body · Calibri 8pt footer
-
-**Logo:** `C:\Users\Frank.Gartland\OneDrive - Skillable\Sales Enablement\Keep\z-Skillable Logos\Skillable Logo\Default@4x.png` — right-aligned in header, ~1.1" wide. Always use this PNG.
-
-**Footer:** "Page X of Y" — right-aligned, 8pt Calibri, gray (#888888). Use OxmlElement PAGE/NUMPAGES field codes.
-
-**Page setup:** US Letter · 0.85" left/right margins · 0.9" top/bottom · Header/footer distance 0.35"
-
-**Color palette:**
-| Color | Hex | Use |
-|---|---|---|
-| Dark green | `#136945` | Primary — headings, table headers, borders |
-| Deep forest | `#0A3E28` | Darkest brand green |
-| Bright green | `#24ED98` | Accent |
-| Primary purple | `#7000FF` | AI Moment callouts |
-| Body text | `#1A1A1A` | All body copy |
-| Gray labels | `#606060` | Secondary labels |
-| Page number gray | `#888888` | Footer |
-
-**Tables:** Full width (9792 DXA). Dark-green header rows, white bold text. Alternate row shading. Cell margins 50 twips.
-
-**Bullets:** Left indent 400 twips, hanging 160 twips. Bullet run: `\u2022 ` 7pt Calibri `#1A1A1A`.
-
-**Spacing:** Section headings before=120/after=40. Body paragraphs after=60. Bullets after=40. Keep compact — fit as much as possible on page 1.
-
----
-
-## Platform Overview
-
-Three tools under one Flask backend:
-
-| Tool | Route | Persona | Purpose |
-|---|---|---|---|
-| **Inspector** | `/inspector` | SE / AE | Deep product labability analysis → Dossier |
-| **Prospector** | `/prospector` | Marketing / RevOps | Batch company scoring → ranked list |
-| **Designer** | `/designer` | LC / PS | Lab program design wizard |
-
-Repo: `fgartland4/skillable-intelligence` on GitHub
-Deployed on Render → target: `intelligence.skillable.com`
-
----
-
-## Tool Status & What's Next
-
-### Intelligence (shared backend)
-- `intelligence.py` built with six operations: discover, score, refresh, expand, qualify, lookup
-- Inspector + Prospector routes are thin callers into Intelligence layer
-- **Next:** Collaborative lab / break-fix / simulated attack detection; Consumption Potential scorer + UI; Render deployment
-
-### Inspector
-- Two-stage flow live: Caseboard → Dossier
-- Page naming confirmed: "Seller Action Plan" (Stage 1) · "Seller & SE Action Plan" (Stage 2)
-- **Next:** Redesign Stage 1 (overall fit score, ranked products, competitor list, delivery path signal); Consumption Potential UI; two-zone dossier layout (seller summary top / SE technical detail expandable)
-- **Open decisions:** Diff/Refresh buttons; Inspector → Designer handoff timing; HubSpot field mapping with RevOps
-
-### Prospector
-- Batch scoring live; routes use intelligence.qualify()
-- **Next:** 2nd ABM contact column; Academic institution support; ZoomInfo CSV column mapping; UX redesign after RevOps/Marketing conversations
-- **Open decisions:** HubSpot integration threshold; ICP Discovery mode (roadmap, not now)
-
-### Designer
-- Full light-mode visual overhaul complete
-- backend checklist + Phase 1 prompts synced
-- `instructional_design_guide.md` created in `backend/prompts/`
-- **Next:** Inject ID guide into Phase 1/2/3 system prompts; re-add Scenario Seeds to Lab Blueprint; Phase 4 UX detail (BOM + Studio export); CSS color correction to confirmed brand palette
-- **Open decisions:** Export ZIP format; AI persona name ("Neo" — not yet confirmed); Inspector → Designer handoff pre-fill level; Standards Library API route
-
-### Shared — Infrastructure & Hardening
-- `backend/constants.py` — single source of truth for score thresholds, verdict labels, color palette, multiplier breakpoints, concurrency limits, cache TTL. All Python modules reference this instead of hardcoding values.
-- `backend/config.py` — `validate_startup()` runs at app init; checks API key, benchmarks.json, prompt files. Fails fast with clear messages.
-- `backend/storage.py` — atomic writes (temp file + `os.replace()`), threading lock on read-modify-write operations, in-memory company-name index for fast lookups.
-- `tools/shared/templates/_theme.html` — shared CSS theme (brand palette, score colors, org badges, verdict labels). Include in templates to eliminate color duplication.
-- Dossier evidence parsing — badge extraction, color classification, and subsection grouping moved from Jinja2 macros to Python filters (`parse_badges`, `group_labability`, `badge_color`, `badge_emoji_filter` in app.py).
-- Scorer thread pool capped at 6 workers (was unbounded).
-
-### Shared — Pending Across All Tools
-- Consumption Potential model exists in `models.py` — scorer + UI incomplete
-- `backend/standards/skill_frameworks/` is empty — NICE NCWF, DoD DCWF files not yet sourced
-- Auth not yet implemented — revisit when platform goes beyond internal Skillable use
-- SQLite → Azure SQL migration path planned but not urgent yet
-- Migrate remaining templates to use `_theme.html` shared CSS (incremental, not urgent)
-- Standardize route error handling (consistent JSON/HTML responses)
+**Font:** Calibri 10pt body, 8pt footer
+**Logo:** `C:\Users\Frank.Gartland\OneDrive - Skillable\Sales Enablement\Keep\z-Skillable Logos\Skillable Logo\Default@4x.png` — right-aligned, ~1.1" wide
+**Footer:** "Page X of Y" right-aligned, 8pt Calibri gray (#888888)

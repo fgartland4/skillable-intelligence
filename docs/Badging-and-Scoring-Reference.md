@@ -12,10 +12,10 @@ This document reflects best current thinking. As thinking evolves, this document
 
 - **Fit Score** — composite of three Pillars
   - **Pillars** — weighted components (Product Labability 40%, Instructional Value 30%, Customer Fit 30%)
-    - **Dimensions** — four specific areas within each Pillar, each with its own weight out of 100
+    - **Dimensions** — four specific areas within each Pillar. Dimension weights within a Pillar always add up to 100 (e.g., Provisioning 35 + Lab Access 25 + Scoring 15 + Teardown 25 = 100).
       - **Requirements** — what the AI researches and evaluates; surface as badges in the UX
 
-Each Pillar scores out of 100 internally, then gets weighted. A Product Labability score of 85/100 contributes 85 x 0.40 = 34 points to the Fit Score.
+Each Pillar scores out of 100 internally (the sum of its dimension scores), then gets weighted to its share of the Fit Score. A Product Labability score of 85/100 contributes 85 x 0.40 = 34 points to the Fit Score.
 
 **The 70/30 Split:** 70% of the Fit Score is about the product (Product Labability + Instructional Value). 30% is about the organization (Customer Fit). The product is the center of everything.
 
@@ -186,7 +186,7 @@ Displayed as a **purple badge** on each product row — consistent color for all
 
 | Data Value | Display | Color | Description |
 |---|---|---|---|
-| `self-hosted` | **Installable** | Green (muted) | Downloadable installer, container image, or VM image |
+| `installable` | **Installable** | Green (muted) | Downloadable installer, container image, or VM image |
 | `hybrid` | **Hybrid** | Gray | Available as both installable and cloud/SaaS |
 | `cloud` | **Cloud-Native** | Green (muted) | Deployed on customer-controlled cloud infrastructure |
 | `saas-only` | **SaaS-Only** | Amber | Vendor-managed only — learner isolation and API questions ahead |

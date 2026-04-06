@@ -646,6 +646,30 @@ The hard wall between Skillable and Customer roles: customers see product data a
 
 ---
 
+## Estimated Platform Costs
+
+Rough cost estimates per operation. These are approximations based on current API pricing and will be updated with actual measurements once the backend is built and tested against real companies.
+
+| Operation | What it does | AI Calls | Estimated Cost (Sonnet) | Estimated Cost (Opus) |
+|---|---|---|---|---|
+| **Discovery + Scoring** (Prospector / Caseboard) | Find products, score at caseboard depth | 1 discovery + 1 per product | TBD after build | TBD after build |
+| **Full Dossier** (Inspector deep dive) | Deep per-product research + scoring | 1 per product (scoring) + 1 per product (Seller Briefcase) | TBD after build | TBD after build |
+| **Prospector Batch** (e.g., 25 companies) | Discovery + scoring for each company | ~25 discovery + scoring calls | TBD after build | TBD after build |
+
+*To be updated with actual token counts and costs once the backend rebuild is complete and validated against real data.*
+
+---
+
+## Cost-Saving Levers
+
+Operational levers to revisit if platform scale creates cost or performance pressure. None of these are active today — they are options to pull when needed, without compromising the architecture.
+
+| Lever | What it would do | When to consider |
+|---|---|---|
+| **Lighter Prospector research** | Reduce per-company research depth below caseboard level for batch scoring | If Prospector batch sizes regularly exceed 50+ companies and cost or speed becomes a constraint |
+
+---
+
 ## Open Decisions
 
 | Item | Status |

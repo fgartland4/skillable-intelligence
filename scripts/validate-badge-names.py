@@ -4,45 +4,63 @@ validate-badge-names.py
 Pre-commit hook: blocks commits that introduce legacy badge vocabulary.
 Run via: python scripts/validate-badge-names.py
 Or as a git hook: called automatically on git commit.
+
+Updated 2026-04-05 to align with Platform Foundation and Badging-and-Scoring-Reference.md.
+See docs/Badging-and-Scoring-Reference.md "Vocabulary — Locked Terms" for the canonical list.
 """
 
 import subprocess
 import sys
 import re
 
-# Legacy terms that must never appear in committed files
+# Legacy terms that must never appear in committed files.
+# These are the "Not this" column from the locked vocabulary table
+# in Badging-and-Scoring-Reference.md.
 LEGACY_TERMS = [
     "Technical Orchestrability",
-    "Product Complexity",           # as a dimension name
+    "Workflow Complexity",
     "Training Ecosystem",
     "Lab Maturity",
-    "Market Readiness",             # renamed to Market Fit
-    "Strategic Fit",
+    "Training Motivation",
+    "Content Delivery Ecosystem",
+    "Content Development Capabilities",
+    "Dedicated Content Dept",
+    "Outsourced Content Creation",
+    r"\bComposite Score\b",
+    r"\bLab Score\b",
     "Path A1",
     "Path A2",
-    "Path B",
-    "Path C",
-    r"\bYellow\b",                  # badge color (Amber is correct)
-    "Gate 1",                       # legacy gate labels
-    "Gate 2",
-    "Gate 3",
-    "Gate 4",
-    "No Deployment Method.*simulation",  # misuse: using No Deployment when Simulation applies
+    "Path B(?!uild)",              # Path B but not "Path Build"
+    "Path C(?!loud)",              # Path C but not "Path Cloud"
+    r"\bYellow\b",                 # badge color (Amber is correct)
+    r"\bPass\b.*badge",            # Pass as badge color (use Red/Blocker)
+    r"\bPartial\b.*badge",         # Partial as badge color (use Amber)
+    r"\bFail\b.*badge",            # Fail as badge color (use Red)
+    "Difficult to Master",
+    "Mastery Matters",
+    "Consequence of Failure",
+    "Lab Format Opportunities",
+    "Licensing & Accounts",
+    "self-hosted",                 # renamed to installable (GP4)
 ]
 
 # Files to check (only scan these extensions)
 SCAN_EXTENSIONS = {".md", ".txt", ".py", ".html", ".js"}
 
-# Files/paths to skip
+# Files/paths to skip — these legitimately reference legacy terms
+# in "Not this" columns, vocabulary tables, or explanatory context
 SKIP_PATHS = [
-    "scripts/validate-badge-names.py",  # skip this file itself
-    "CLAUDE.md",                         # locked vocab table lists legacy terms intentionally
-    "docs/Badging-Framework-Core.md",    # "Never this" column lists legacy terms intentionally
-    "backend/prompts/product_scoring.txt",  # scoring prompt references path names in context
-    "docs/Scoring-Framework-Core.md",       # references legacy terms in explanatory context
-    "docs/intelligence-platform.md",        # references legacy terms in explanatory context
-    "backend/scoring_config.py",            # locked vocabulary table lists legacy terms intentionally
-    "backend/prompts/scoring_template.md",  # prompt template references path names and vocabulary in context
+    "scripts/validate-badge-names.py",     # this file itself
+    "CLAUDE.md",                            # locked vocab table lists legacy terms
+    "docs/Badging-and-Scoring-Reference.md",  # "Not this" column lists legacy terms
+    "docs/Badging-Framework-Core.md",       # legacy doc — will be deleted
+    "docs/Scoring-Framework-Core.md",       # legacy doc — will be deleted
+    "backend/scoring_config.py",            # locked vocabulary section lists legacy terms
+    "backend/prompts/scoring_template.md",  # template references vocabulary in context
+    "backend/prompts/product_scoring.txt",  # legacy prompt — will be deleted
+    "docs/intelligence-platform.md",        # legacy doc
+    "docs/Designer-Session-Prep.md",        # references legacy terms when identifying conflicts
+    "docs/Test-Plan.md",                    # test descriptions reference legacy terms as examples of what to reject
     ".git/",
     "__pycache__/",
     "node_modules/",
@@ -80,7 +98,7 @@ def check_file(filepath):
 def main():
     staged = get_staged_files()
     if not staged:
-        print("validate-badge-names: no staged files, skipping.")
+        print("validate-badge-names: OK - no staged files, skipping.")
         sys.exit(0)
 
     all_violations = {}
@@ -104,7 +122,7 @@ def main():
         print()
 
     print("Fix the vocabulary above before committing.")
-    print("See docs/Badging-Framework-Core.md for correct terms.\n")
+    print("See docs/Badging-and-Scoring-Reference.md for correct terms.\n")
     sys.exit(1)
 
 if __name__ == "__main__":
