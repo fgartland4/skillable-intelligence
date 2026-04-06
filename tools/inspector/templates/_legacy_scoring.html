@@ -303,7 +303,7 @@
                     setProgress(6);
                     litMark('mark-check', '#24ED9B');
                     document.getElementById("status").textContent = "Complete — loading results...";
-                    window.location.href = "/inspector/dossier/" + msg.slice(5);
+                    window.location.href = "/inspector/analysis/" + msg.slice(5);
                 }, 3500);
             } else if (msg.startsWith("error:")) {
                 source.close();
@@ -333,7 +333,7 @@
                                     litMark('mark-l2', '#e8f5f0');
                                     litMark('mark-check', '#24ED9B');
                                     document.getElementById("status").textContent = "Complete — loading results...";
-                                    window.location.href = '/inspector/dossier/' + d.analysis_id;
+                                    window.location.href = '/inspector/analysis/' + d.analysis_id;
                                 }, 1500);
                             }
                             // Not found yet: keep polling
