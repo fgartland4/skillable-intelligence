@@ -1,0 +1,113 @@
+{
+  "_description": "Competitor profiles — detection domains, positioning, Skillable advantages. Updated as competitive landscape changes.",
+  "_updated": "2026-04-05",
+
+  "competitors": [
+    {
+      "name": "Skillable",
+      "type": "self",
+      "detection_domains": ["labondemand.com", "learnondemandsystems.com", "skillable.com"],
+      "detection_signals": ["Learn on Demand Systems", "LODS", "LOD", "Cloud Slice", "Lifecycle Actions", "LCAs", "IDLX"],
+      "badge_color": "green",
+      "sales_motion": "Existing customer — expansion conversation"
+    },
+    {
+      "name": "Kyndryl / Skytap",
+      "type": "direct_competitor",
+      "detection_domains": ["skytap.com", "kyndryl.com"],
+      "detection_signals": ["Skytap", "Kyndryl Cloud Uplift"],
+      "badge_color": "amber",
+      "skillable_advantage": "PBT (Skytap has none), Cloud Slice, event scale, lower cost predictability.",
+      "pain_points": "Billing unpredictability, no Cloud Slice, scaling limits at events, IBM ownership friction.",
+      "sales_motion": "High-value migration target"
+    },
+    {
+      "name": "CloudShare",
+      "type": "direct_competitor",
+      "detection_domains": ["cloudshare.com"],
+      "detection_signals": ["CloudShare"],
+      "badge_color": "amber",
+      "skillable_advantage": "Complex multi-VM environments connected by private networks. Training at scale.",
+      "pain_points": "Demo/POC platform, not built for training at scale. Cannot support complex multi-VM topologies.",
+      "sales_motion": "Migration for multi-VM topology, networking products, or training-at-scale needs"
+    },
+    {
+      "name": "Instruqt",
+      "type": "direct_competitor",
+      "detection_domains": ["instruqt.com"],
+      "detection_signals": ["Instruqt", "tracks"],
+      "badge_color": "amber",
+      "skillable_advantage": "Windows enterprise software, complex application stacks, VM-depth workflows.",
+      "pain_points": "Developer-focused, browser-native, Docker/cloud-native only. Cannot support Windows VMs or traditional enterprise depth.",
+      "sales_motion": "Migration for Windows VM or enterprise software depth needs"
+    },
+    {
+      "name": "Appsembler",
+      "type": "direct_competitor",
+      "detection_domains": ["appsembler.com"],
+      "detection_signals": ["Appsembler"],
+      "badge_color": "amber"
+    },
+    {
+      "name": "GoDeploy",
+      "type": "direct_competitor",
+      "detection_domains": ["godeploy.com"],
+      "detection_signals": ["GoDeploy"],
+      "badge_color": "amber"
+    },
+    {
+      "name": "Vocareum",
+      "type": "direct_competitor",
+      "detection_domains": ["vocareum.com"],
+      "detection_signals": ["Vocareum"],
+      "badge_color": "amber"
+    },
+    {
+      "name": "ReadyTech",
+      "type": "direct_competitor",
+      "detection_domains": ["readytech.io"],
+      "detection_signals": ["ReadyTech"],
+      "badge_color": "amber"
+    },
+    {
+      "name": "Immersive Labs",
+      "type": "cybersecurity_only",
+      "detection_domains": ["immersivelabs.com"],
+      "detection_signals": ["Immersive Labs"],
+      "badge_color": "amber",
+      "note": "Only flag for cybersecurity products"
+    },
+    {
+      "name": "Hack The Box",
+      "type": "cybersecurity_only",
+      "detection_domains": ["hackthebox.com"],
+      "detection_signals": ["Hack The Box", "HTB"],
+      "badge_color": "amber",
+      "note": "Only flag for cybersecurity products"
+    },
+    {
+      "name": "TryHackMe",
+      "type": "cybersecurity_only",
+      "detection_domains": ["tryhackme.com"],
+      "detection_signals": ["TryHackMe", "THM"],
+      "badge_color": "amber",
+      "note": "Only flag for cybersecurity products"
+    },
+    {
+      "name": "ACI Learning",
+      "type": "content_plus_labs",
+      "detection_domains": ["acilearning.com"],
+      "detection_signals": ["ACI Learning", "ITPro.TV"],
+      "badge_color": "amber",
+      "note": "Content + labs but cannot author"
+    },
+    {
+      "name": "DIY",
+      "type": "self_built",
+      "detection_domains": [],
+      "detection_signals": ["internal lab environment", "we built our own", "lab infrastructure engineer"],
+      "badge_color": "amber",
+      "sales_motion": "Save-the-day — they understand lab value, let us handle infrastructure"
+    }
+  ]
+}

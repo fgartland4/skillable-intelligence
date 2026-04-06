@@ -1,0 +1,42 @@
+{
+  "_description": "Rules for identifying decision makers and influencers. Updated by sales leadership as targeting strategy evolves.",
+  "_updated": "2026-04-05",
+
+  "decision_maker": {
+    "titles": [
+      "CLO", "Chief Education Officer", "Chief Enablement Officer",
+      "EVP of Training", "SVP of Training", "VP of Training",
+      "VP of Partner Enablement", "VP of Technical Enablement",
+      "VP of Customer Education", "Head of Customer Education",
+      "Head of Global Enablement", "Head of Certification",
+      "GM of Academy", "GM of University",
+      "Senior Director of Training (only if they run the function end-to-end)"
+    ],
+    "test": "Does this person OWN the function and have authority to sign a vendor agreement?",
+    "minimum_level": "VP or equivalent"
+  },
+
+  "influencer": {
+    "titles": [
+      "Director of Training", "Director of Partner Enablement",
+      "Director of Customer Education", "Director of Certification",
+      "Senior Director (when VP exists above)", "Solutions Engineering Director"
+    ],
+    "minimum_level": "Director"
+  },
+
+  "exclude": {
+    "not_decision_makers": [
+      "Directors and Managers of Training (unless running whole function)",
+      "Instructors", "Trainers", "Specialists", "Individual contributors", "SEs"
+    ],
+    "not_influencers": "Managers, Specialists, Coordinators, IDs, anyone below Director level",
+    "exclude_entirely": "L&D roles — Learning & Development owns internal employee training, not external technical lab content"
+  },
+
+  "special_signals": {
+    "alumni": "If contact previously worked at a known Skillable customer in training/education/enablement, flag as highest-priority warm outreach"
+  },
+
+  "fallback": "If no qualifying person found, use 'Unknown - search for [title]' — do NOT name a lower-level person to fill the slot"
+}

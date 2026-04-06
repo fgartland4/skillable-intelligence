@@ -41,7 +41,7 @@ log = logging.getLogger(__name__)
 
 from researcher import discover_products, research_products
 from scorer_new import discover_products_with_claude, score_selected_products, generate_briefcase, _call_claude
-from storage import (
+from storage_new import (
     save_analysis, load_analysis,
     save_discovery, load_discovery,
     find_analysis_by_company_name, find_discovery_by_company_name,
@@ -54,7 +54,7 @@ from core_new import (
     detect_lab_platforms, score_products_and_sort,
 )
 from models_new import CompanyAnalysis, Product
-from config import ANTHROPIC_MODEL
+from config_new import ANTHROPIC_MODEL
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Cache TTL — single definition for the whole platform

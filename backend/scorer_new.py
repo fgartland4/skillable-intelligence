@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import anthropic
 
-from config import ANTHROPIC_API_KEY, ANTHROPIC_MODEL
+from config_new import ANTHROPIC_API_KEY, ANTHROPIC_MODEL
 from models_new import (
     ACVPotential, Badge, CompanyAnalysis, ConsumptionMotion, Contact,
     DimensionScore, Evidence, FitScore, OrgUnit, PillarScore, Product,

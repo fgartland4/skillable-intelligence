@@ -548,19 +548,29 @@ Designer will eventually be a standalone application with its own authentication
 
 ## Prompt Generation System
 
-The AI scoring prompt is not a static text file. It is **generated at runtime** from a configuration layer and a template. This eliminates fragility, prevents drift, and ensures every scoring run reflects the current state of the framework.
+The AI scoring prompt is not a static text file. It is **generated at runtime** by combining three distinct inputs: what we know about the company (research), what Skillable can do (platform knowledge), and how to evaluate the fit (scoring framework). This eliminates fragility, prevents drift, and ensures every scoring run reflects the current state of all three.
 
-### Three Layers
+### The Three Inputs to Every Scoring Run
+
+| Input | What it is | Where it lives | Who updates it |
+|---|---|---|---|
+| **Company Research** | What we know about THEM — products, training programs, partner ecosystem, delivery infrastructure, org structure, contacts | `data_new/company_intel/` — gathered by the researcher, stored per company, organized by dimension | Updated automatically every time research runs |
+| **Skillable Knowledge** | What WE can do — platform capabilities, delivery patterns, supported services, competitor positioning, contact guidance | `backend/knowledge/` — JSON files, human-readable, updatable without code changes | Product team, SEs, sales leadership — as the platform evolves |
+| **Scoring Framework** | The RULES — how to evaluate, what to score, what weights to apply, what badges to assign, what evidence standards to enforce | `backend/scoring_config.py` — the single source of truth for all framework variables | Platform architects — when the framework itself changes |
+
+**Research is about them. Knowledge is about us. The framework is how we evaluate the fit between the two.** The Prompt Generation System brings all three together at runtime.
+
+### The Three Layers of Prompt Generation
 
 | Layer | What it is | How it works |
 |---|---|---|
-| **Configuration** | All variables that define the scoring model — pillar names, dimension names, weights, badge definitions, scoring signals, penalties, thresholds, vocabulary, lab type menus, category priors, ACV rates | A single structured file (JSON or Python). The one place anything changes. Validated on load — missing or invalid data throws errors before the AI ever sees it. |
-| **Template** | The prompt structure — instructions for the AI with placeholders that pull from the configuration | A template file that defines how to instruct the AI. Rarely changes unless the fundamental approach changes. Contains the reasoning framework, the evidence standards, the output format — with {variable} references to the config. |
-| **Generated Prompt** | Configuration injected into template at runtime — this is what the AI actually receives | Built in memory at the moment of scoring. Never saved as a static file. Always current. Always consistent with the config. |
+| **Configuration** | All variables that define the scoring model — pillar names, dimension names, weights, badge definitions, scoring signals, penalties, thresholds, vocabulary | A single structured file (Python dataclasses). The one place framework rules change. Validated on load — missing or invalid data throws errors before the AI ever sees it. |
+| **Template** | The prompt structure — instructions for the AI with placeholders that pull from the configuration, knowledge, and research | A template file that defines how to instruct the AI. Rarely changes unless the fundamental approach changes. Contains the reasoning framework, the evidence standards, the output format — with {variable} references. |
+| **Generated Prompt** | Configuration + Skillable Knowledge + Company Research assembled into the template at runtime — this is what the AI actually receives | Built in memory at the moment of scoring. Never saved as a static file. Always current. Always consistent. |
 
-### What Lives in the Configuration
+### What Lives in the Scoring Configuration
 
-Everything that could change without changing the approach:
+The scoring framework — everything about HOW to evaluate:
 
 | Category | Examples |
 |---|---|
@@ -575,17 +585,47 @@ Everything that could change without changing the approach:
 | **Canonical lists** | Lab platform providers, LMS partners, organization types, locked vocabulary |
 | **ACV rates** | Delivery path rate tables, consumption motion labels, adoption ceilings |
 | **Confidence rules** | When to use confirmed vs. indicated vs. inferred |
-| **Reasoning sequence** | The step-by-step order the AI follows when scoring (Steps 0-8). Can add, reorder, or remove steps as the platform evolves. |
-| **Evidence standards** | Writing rules for evidence bullets — labels, qualifiers, length limits, uniqueness rules. Configurable as writing quality evolves. |
-| **Delivery pattern signals** | Specific patterns (ADO, GitHub, vSphere, identity lifecycle, etc.) and their guidance. New patterns added as Skillable supports them. |
-| **Skillable capabilities** | What Skillable can do — datacenter fabrics, Cloud Slice modes, supported services, scoring methods. Updated as features ship. |
-| **Contact guidance** | Rules for identifying decision makers and influencers. Sharpened over time as we learn what works. |
+| **Reasoning sequence** | The step-by-step order the AI follows when scoring |
+| **Evidence standards** | Writing rules for evidence bullets — labels, qualifiers, length limits, uniqueness rules |
+
+### What Lives in Skillable Knowledge
+
+What Skillable can do — stored as structured JSON data files in `backend/knowledge/`, updatable without code changes:
+
+| File | What it contains | Who updates it |
+|---|---|---|
+| **skillable_capabilities.json** | Platform capabilities — datacenter fabrics, Cloud Slice modes (CSR/CSS), supported Azure/AWS services, scoring methods, container support, M365 tenant provisioning, BIOS GUID pinning | Product team as features ship |
+| **delivery_patterns.json** | The delivery patterns with guidance — ADO, GitHub, vSphere, identity lifecycle, OVA import, Custom API, Simulation, and all variations | Product team + SEs |
+| **competitors.json** | Competitor profiles — detection domains, positioning, Skillable advantages | Sales/marketing as landscape changes |
+| **contact_guidance.json** | Decision maker and influencer title rules, exclusions, fallback behavior | Sales leadership |
+
+This separation matters: when Skillable ships a new Cloud Slice feature or adds support for a new Azure service, someone updates the knowledge file. The next scoring run picks it up automatically. No code changes. No redeployment. No risk of breaking the scoring framework.
 
 ### What Lives in the Template
 
-The template is a structural skeleton — it arranges config-driven sections into a complete prompt. It contains almost no hard-coded content. The only thing hard-coded is the assembly structure itself: put section A here, then section B here.
+The template is a structural skeleton — it arranges configuration, knowledge, and research sections into a complete prompt. It contains almost no hard-coded content. The only thing hard-coded is the assembly structure itself: put section A here, then section B here.
 
-Everything else — reasoning steps, evidence standards, delivery patterns, Skillable capabilities, contact guidance, badge naming principles — lives in the config and is injected into the template at runtime.
+### What the Researcher Gathers and Stores
+
+Company research is gathered by the researcher and stored in the company intelligence domain, organized by dimension so the AI receives evidence that's already structured for evaluation:
+
+**Product-level research (per product):**
+- Provisioning signals — installers, marketplace listings, Docker images, API documentation
+- Lab Access signals — auth APIs, SSO, credential management, NFR programs, MFA requirements
+- Scoring signals — API endpoints for state validation, CLI tools, scriptable surfaces
+- Teardown signals — DELETE endpoints, cleanup APIs, resource group scope vs tenant scope
+- Product Complexity signals — documentation breadth, configuration depth, role diversity
+- Mastery Stakes signals — high-stakes scenarios, learning curve evidence, adoption risk
+- Lab Versatility signals — product-type to lab-type mapping
+- Market Demand signals — install base, growth, certification, competitor labs
+
+**Company-level research (per company):**
+- Training Commitment — enablement programs, certification programs, training catalogs, compliance training, training leadership
+- Organizational DNA — partner ecosystem, build-vs-buy signals, API/marketplace maturity, org complexity
+- Delivery Capacity — ATP network, LMS platforms (by name), lab platforms (domain detection), gray market training
+- Build Capacity — content dev team evidence, technical build roles, DIY labs, outsourcing signals
+
+**Domain-based lab platform detection** scans fetched pages for outbound links to known platform domains. A URL link is stronger evidence than a name mention.
 
 ### Why This Architecture Matters
 
@@ -597,18 +637,20 @@ Everything else — reasoning steps, evidence standards, delivery patterns, Skil
 | No validation — a typo silently breaks scoring | Config validates on load — errors caught before the AI runs |
 | Testing requires reading the whole prompt | Test the config independently — do weights add to 100? Are all badges defined? |
 | Updating vocabulary means find-and-replace | Vocabulary is in the config — one change propagates everywhere |
+| Skillable ships a new feature | Update a knowledge JSON file — no code changes needed |
+| Research misses a signal | Improve the researcher — scoring framework stays untouched |
 
-### Config Administration (Future)
+### Config and Knowledge Administration (Future)
 
-When AuthN/AuthZ is implemented, the configuration layer will have an admin-only GUI:
+When AuthN/AuthZ is implemented, both the scoring configuration and the Skillable knowledge files will have admin-only GUI access:
 
-- View and edit all configuration values through a clean interface
+- View and edit all configuration values and knowledge data through a clean interface
 - Validation runs automatically on save — prevents invalid configurations
 - Change history with timestamps and user attribution — full auditability
 - Role-restricted — only platform administrators can access
 - Changes take effect on the next scoring run — no deployment needed
 
-This means a product leader or scoring analyst can adjust a weight, add a competitor, or tune a penalty without touching code, prompts, or templates. The platform stays resilient and trustworthy because the configuration layer is the single source of truth.
+This means a product leader can update Skillable capabilities, a scoring analyst can adjust weights, and a sales leader can update contact guidance — all without touching code, prompts, or templates.
 
 ---
 

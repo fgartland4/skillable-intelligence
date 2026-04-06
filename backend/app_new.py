@@ -24,7 +24,7 @@ from core_new import (
 )
 from intelligence_new import discover, score, qualify, lookup, cache_is_fresh
 from models_new import CompanyAnalysis, Product
-from storage import (
+from storage_new import (
     load_analysis, load_discovery,
     find_discovery_by_company_name, find_analysis_by_discovery_id,
     list_analyses,

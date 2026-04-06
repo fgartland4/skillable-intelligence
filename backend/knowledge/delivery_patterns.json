@@ -1,0 +1,85 @@
+{
+  "_description": "Delivery patterns Skillable supports — updated as new patterns emerge. Each pattern includes recognition signals and guidance for the AI.",
+  "_updated": "2026-04-05",
+
+  "patterns": [
+    {
+      "name": "Standard VM (Hyper-V)",
+      "signals": ["Windows Server installer", "Linux installer", "Silent install documentation", "System requirements page"],
+      "guidance": "Default path. Full control, predictable launch times, no cloud costs. Always prefer over ESX."
+    },
+    {
+      "name": "Standard VM (ESX)",
+      "signals": ["VMware-specific deployment", "Nested virtualization required", "Socket-based licensing >24 vCPUs"],
+      "guidance": "Use only when Hyper-V cannot work. 4-5 points lower scoring. Broadcom licensing adds cost."
+    },
+    {
+      "name": "Container (Docker)",
+      "signals": ["Docker Hub image", "Container deployment guide", "Container-native architecture"],
+      "guidance": "All four conditions must hold: container-native + browser access + no Windows + no multi-VM network."
+    },
+    {
+      "name": "Azure Cloud Slice",
+      "signals": ["Azure service", "Azure Marketplace listing", "ARM/Bicep templates", "Entra ID integration"],
+      "guidance": "Provisions isolated Azure environment per learner. CSR (resource group) or CSS (subscription). ALL services supported after Security Review."
+    },
+    {
+      "name": "AWS Cloud Slice",
+      "signals": ["AWS service", "AWS Marketplace listing", "CloudFormation templates"],
+      "guidance": "Dedicated isolated AWS account per learner. Check supported services list. Permission boundaries for IAM-heavy products."
+    },
+    {
+      "name": "Azure DevOps (ADO)",
+      "signals": ["Azure DevOps", "ADO pipelines", "Azure Repos"],
+      "guidance": "Cloud Slice provisioning. ~85% launches <2 min, 15% take 5-15 min. Pre-Instancing mitigates. Self-paced only."
+    },
+    {
+      "name": "GitHub Cloud Slice",
+      "signals": ["GitHub", "GitHub Actions", "GHAS"],
+      "guidance": "Cloud Slice provisioning. Inverse of ADO — ~85% slow (5-15+ min). Pre-Instancing required. Self-paced only."
+    },
+    {
+      "name": "Credential Pool",
+      "signals": ["Entra ID administration", "Quest Active Roles", "One Identity", "Identity lifecycle management"],
+      "guidance": "Pre-provisioned pool of real Entra tenants. Risks: recycling completeness, per-tenant license cost."
+    },
+    {
+      "name": "SSO Bridge",
+      "signals": ["SSO-dependent SaaS", "Anthropic", "Products requiring federated auth"],
+      "guidance": "SSO bridge for products that require federated authentication. Account ban risk with no recourse."
+    },
+    {
+      "name": "Shared VM Infrastructure (vSphere)",
+      "signals": ["VMware vSphere administration", "ESXi management", "vCenter"],
+      "guidance": "Shared licensed ESX server with application-layer isolation. Broadcom licensing risk. Collaborative-only delivery."
+    },
+    {
+      "name": "OVA Import",
+      "signals": ["OVA download", "OVF format", "Virtual appliance"],
+      "guidance": "Import to ESX fabric. Constraints: hardware version <=19, single VM only, ESX format required."
+    },
+    {
+      "name": "Custom API (BYOC)",
+      "signals": ["Vendor-hosted SaaS with API", "Salesforce", "Full lifecycle API confirmed"],
+      "guidance": "Bring Your Own Cloud — use vendor's API for provisioning. Quality depends entirely on API coverage."
+    },
+    {
+      "name": "Simulation",
+      "signals": ["No real provisioning path", "Cost-prohibitive real environment", "Time-impractical real operations"],
+      "guidance": "For scenarios where real labs are impractical. AI Vision compute + platform overhead. Does not rescue the score — appropriate when all real paths are blocked."
+    }
+  ],
+
+  "security_add_ons": [
+    {
+      "name": "Conditional Access Policy",
+      "requirement": "Hyper-V VM + Entra P1 license. Not available on Cloud Slice.",
+      "signal": "Conditional Access, Zero Trust MFA configuration"
+    },
+    {
+      "name": "Keyboard Selector",
+      "requirement": "Non-English markets requiring language-switch for input.",
+      "signal": "Non-English locale, international deployment"
+    }
+  ]
+}
