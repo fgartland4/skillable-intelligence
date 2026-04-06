@@ -134,26 +134,32 @@ def compute_dimension_score(dim_key: str,
     color_contributions: list[dict] = []
     unknown: list[str] = []
 
-    seen: set[str] = set()  # Don't double-count if AI repeats a badge name
-
+    # Dedupe by name BUT keep the highest-points color version when the same
+    # name appears with multiple colors. The AI sometimes emits two evidence
+    # items under the same embedded label with different colors (one as a
+    # strength, one as a risk). The math should credit the positive signal
+    # rather than penalize for AI inconsistency. The visual layer (Phase 2
+    # display normalizer) is free to display the worst color so risks are
+    # still visible to the user.
+    color_score = {"green": 6, "gray": 2, "amber": 0, "red": -3, "": -1}
+    best_by_name: dict[str, tuple[str, str]] = {}  # name_lower -> (raw_name, color)
     for badge in badges:
         if not badge:
             continue
-        # Accept either bare strings or dicts {"name": ..., "color": ...}
         if isinstance(badge, dict):
             raw_name = badge.get("name", "")
             color = (badge.get("color") or "").strip().lower()
         else:
             raw_name = str(badge)
             color = ""
-
         if not raw_name:
             continue
         name_lower = raw_name.strip().lower()
-        if name_lower in seen:
-            continue
-        seen.add(name_lower)
+        existing = best_by_name.get(name_lower)
+        if existing is None or color_score.get(color, -2) > color_score.get(existing[1], -2):
+            best_by_name[name_lower] = (raw_name, color)
 
+    for name_lower, (raw_name, color) in best_by_name.items():
         if name_lower in signal_lookup:
             signals_matched.append({
                 "name": raw_name.strip(),

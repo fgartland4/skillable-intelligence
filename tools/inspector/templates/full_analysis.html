@@ -308,21 +308,28 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     40% { opacity: 1; transform: scale(1); }
 }
 
-/* Bottom row: three zones — Scored Products (left, mirrors KTQ width),
-   empty middle (room for future), Competitive Products (right, matches the
-   Account Intelligence box width above). Right edge of Competitive aligns
-   with the right edge of Account Intelligence. */
+/* Bottom row mirrors the briefcase row above EXACTLY so every box aligns
+   edge-for-edge with the box above it:
+     - .bottom-row-product : flex 7  (mirrors .briefcase-product)
+         · .products-section   : flex 1  (under KTQ card)
+         · .competitive-section: flex 1  (under Conv Starters card)
+     - .bottom-row-org : flex 3  (mirrors .briefcase-org)
+         · reserved for the ACV by Use Case widget (under Account Intelligence) */
 .bottom-row {
-    display: grid;
-    /* Competitive box narrower; middle gap absorbs the slack so the right
-       edge of Competitive stays anchored to the page's right edge. */
-    grid-template-columns: 35fr 30fr 35fr;
+    display: flex;
     gap: 16px;
     margin-top: 16px;
     align-items: flex-start;
 }
-.bottom-row > .products-section { min-width: 0; margin-top: 0; }
-.bottom-row > .competitive-section { grid-column: 3; min-width: 0; margin-top: 0; }
+.bottom-row-product { flex: 7; display: flex; gap: 16px; min-width: 0; }
+.bottom-row-product > .products-section { flex: 1; min-width: 0; margin-top: 0; }
+.bottom-row-product > .competitive-section { flex: 1; min-width: 0; margin-top: 0; }
+.bottom-row-org { flex: 3; min-width: 0; }
+.acv-widget-placeholder {
+    /* Empty reserved zone for the ACV by Use Case widget. Render nothing
+       visible until the widget lands. */
+    min-height: 1px;
+}
 
 /* Product list at bottom */
 .products-section { margin-top: 8px; }
@@ -541,50 +548,63 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
   {% with selected_product=top %}{% include '_briefcase_section.html' %}{% endwith %}
 </div>
 
-<!-- BOTTOM ROW: Scored Products (left) + Competitive Products (right) -->
+<!-- BOTTOM ROW mirrors briefcase: product zone (KTQ + Conv Starters slots)
+     plus org zone (Account Intelligence slot, reserved for ACV widget) -->
 <div class="bottom-row">
 
-  <!-- SCORED PRODUCTS -->
-  <div class="products-section">
-    <div class="products-header">
-      <span class="products-title">{{ analysis.company_name | upper }} Product Scores ({{ analysis.products | length }} of {{ analysis.total_products_discovered or (analysis.products | length) }})</span>
+  <!-- PRODUCT ZONE: products under KTQ, competitive under Conv Starters -->
+  <div class="bottom-row-product">
+
+    <!-- SCORED PRODUCTS — sits under KTQ -->
+    <div class="products-section">
+      <div class="products-header">
+        <span class="products-title">{{ analysis.company_name | upper }} Product Scores ({{ analysis.products | length }} of {{ analysis.total_products_discovered or (analysis.products | length) }})</span>
+      </div>
+      <table class="product-table">
+        {% for p in analysis.products %}
+        <tr>
+          <td class="pt-name"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span></td>
+          <td class="pt-sub">{% if p.subcategory %}<span class="badge badge-purple">{{ p.subcategory | clean_subcategory }}</span>{% endif %}</td>
+          <td class="pt-score {{ (p.fit_score.total or p.fit_score._total or 0) | score_color }}">{{ p.fit_score.total or p.fit_score._total or 0 }}</td>
+          <td class="pt-doc"><span class="doc-icon" title="Export report (Word)">{{ doc_svg() }}</span></td>
+        </tr>
+        {% endfor %}
+      </table>
     </div>
-    <table class="product-table">
-      {% for p in analysis.products %}
-      <tr>
-        <td class="pt-name"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span></td>
-        <td class="pt-sub">{% if p.subcategory %}<span class="badge badge-purple">{{ p.subcategory | clean_subcategory }}</span>{% endif %}</td>
-        <td class="pt-score {{ (p.fit_score.total or p.fit_score._total or 0) | score_color }}">{{ p.fit_score.total or p.fit_score._total or 0 }}</td>
-        <td class="pt-doc"><span class="doc-icon" title="Export report (Word)">{{ doc_svg() }}</span></td>
-      </tr>
-      {% endfor %}
-    </table>
+
+    <!-- COMPETITIVE PRODUCTS — sits under Conv Starters -->
+    {% if analysis.competitive_products %}
+    <div class="competitive-section">
+      <div class="competitive-header">
+        <span class="competitive-title">{{ analysis.company_name | upper }} Competitive Products ({{ analysis.competitive_products | length }})</span>
+      </div>
+      <div class="competitive-list">
+        {% for c in analysis.competitive_products %}
+        <div class="competitive-row">
+          <div class="competitive-top">
+            <span class="competitive-action">
+              <form action="{{ url_for('inspector_discover') }}" method="POST" target="_blank" class="run-report-form" onclick="event.stopPropagation()">
+                <input type="hidden" name="company_name" value="{{ c.competitor_name }}">
+                <button type="submit" class="run-report-link" title="Run {{ c.competitor_name }}">Run {{ c.competitor_name }} →</button>
+              </form>
+            </span>
+            <span class="competitive-name" title="{{ c.product_name }}">{{ c.product_name | truncate(22, True, '…') }}</span>
+            <span class="competitive-sub">{% if c.subcategory %}<span class="badge badge-purple">{{ c.subcategory | clean_subcategory }}</span>{% endif %}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 
-  <!-- COMPETITIVE PRODUCTS — context for sellers and SEs -->
-  {% if analysis.competitive_products %}
-  <div class="competitive-section">
-    <div class="competitive-header">
-      <span class="competitive-title">{{ analysis.company_name | upper }} Competitive Products ({{ analysis.competitive_products | length }})</span>
-    </div>
-    <div class="competitive-list">
-      {% for c in analysis.competitive_products %}
-      <div class="competitive-row">
-        <div class="competitive-top">
-          <span class="competitive-action">
-            <form action="{{ url_for('inspector_discover') }}" method="POST" target="_blank" class="run-report-form" onclick="event.stopPropagation()">
-              <input type="hidden" name="company_name" value="{{ c.competitor_name }}">
-              <button type="submit" class="run-report-link" title="Run {{ c.competitor_name }}">Run {{ c.competitor_name }} →</button>
-            </form>
-          </span>
-          <span class="competitive-name" title="{{ c.product_name }}">{{ c.product_name | truncate(22, True, '…') }}</span>
-          <span class="competitive-sub">{% if c.subcategory %}<span class="badge badge-purple">{{ c.subcategory | clean_subcategory }}</span>{% endif %}</span>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
+  <!-- ORG ZONE: reserved for the ACV by Use Case widget (next session).
+       Empty placeholder keeps the column width allocated so the product
+       zone above stays the same width as the briefcase product zone. -->
+  <div class="bottom-row-org">
+    <div class="acv-widget-placeholder"></div>
   </div>
-  {% endif %}
 
 </div>
 
