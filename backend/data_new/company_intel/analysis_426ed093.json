@@ -1,0 +1,2077 @@
+{
+  "company_name": "Trellix",
+  "company_url": null,
+  "company_description": "",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Trellix Insights",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Custom API",
+      "user_personas": [
+        "Security Engineer/Analyst",
+        "Administrator",
+        "Architect"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Threat Campaign Triage",
+        "Watchlist Configuration and Alert Tuning",
+        "Intelligence Feed Integration",
+        "Threat-Informed Compliance Assessment",
+        "AI-Assisted Threat Prioritization"
+      ],
+      "poor_match_flags": [
+        "saas_only"
+      ],
+      "recommendation": [
+        "Trellix Insights is SaaS-only with no self-hosted deployment option, making Custom API credential pool the recommended delivery path \u2014 pre-provisioned learner accounts assigned from a pool and reset between sessions via Trellix's admin API. This is the correct path because Insights is a read-write intelligence dashboard where learners configure watchlists and alert rules that can be validated and reset programmatically. If MFA enforcement or licensing constraints block credential pool delivery, Skillable Simulation is the viable fallback \u2014 Trellix's own interactive product tour confirms the interface is navigable in a guided, non-live context, and AI Vision can validate dashboard navigation and intelligence interpretation tasks.",
+        "A hybrid scoring approach is recommended: use Trellix's platform API to validate configuration state (watchlist creation, alert rule setup, feed integration) for objective task scoring, and AI Vision screen validation for dashboard interpretation tasks (identifying the correct threat actor, locating specific IOC data). MCQ knowledge checks serve as the fallback for analytical reasoning tasks where programmatic scoring is not feasible. The scoring depth is moderate \u2014 sufficient for skills validation but not performance-based certification without vendor API confirmation.",
+        "The critical unresolved question is whether Trellix's admin API supports programmatic account provisioning, state reset between learners, and configuration state querying for scoring. The Trellix product team or platform engineering team owns this answer. Your champion should send: 'We want to build hands-on labs for Trellix Insights. Can you confirm: (1) whether we can provision named user accounts via API, (2) whether we can reset watchlist and alert configurations between learner sessions programmatically, and (3) whether the Insights API exposes configuration state (watchlists, alert rules, feed settings) that we can query to validate learner task completion?'",
+        "Trellix Insights labs serve two high-ROI training motions: SOC analyst onboarding (new analysts reaching operational proficiency faster, reducing MTTD) and threat intelligence operationalization (existing analysts extracting more value from a subscription they already own). The adoption risk signal \u2014 threat intelligence platforms are chronically underutilized \u2014 makes labs a direct customer success and renewal argument. Trellix's customer success team is the internal champion most likely to fund this investment, because labs directly address the utilization gap that drives churn.",
+        "Two risks must be resolved before lab authoring begins: (1) Licensing \u2014 enterprise threat intelligence subscriptions are not priced for training cohorts; Trellix must confirm a lab-purpose licensing tier or NFR account access before scale delivery is economically viable. (2) MFA enforcement \u2014 if Trellix cannot disable MFA for lab-purpose accounts, automated scoring falls back to AI Vision and MCQ only, reducing lab authenticity. Both require direct vendor engagement with Trellix's product and licensing teams before Skillable can commit to a build timeline."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 34,
+              "weight": 35,
+              "summary": "Trellix Insights is a SaaS-only threat intelligence portal with no self-hosted deployment option. The viable provisioning path is a credential pool of pre-provisioned learner accounts recycled via Trellix's admin API. No NFR or developer license tier is confirmed, requiring vendor engagement before lab authoring. Initial watchlist and alert configuration is GUI-driven with no confirmed automation path, adding setup friction.",
+              "badges": [
+                {
+                  "name": "Credential Pool",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Provisioning Path | Opportunity:** Trellix Insights is a cloud-hosted SaaS portal with no self-hosted option; the viable lab path is a credential pool of pre-provisioned learner accounts recycled via Trellix's admin API \u2014 a pattern confirmed viable for similar SaaS security dashboards. Lab authors build the starting state once; accounts are reset between learners.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**AI-Powered Intelligence | Opportunity:** Trellix Insights uses AI for threat prioritization, campaign correlation, and attack surface contextualization \u2014 features that require hands-on iterative practice to use effectively and cannot be learned by watching a demo. This strengthens the instructional case for labs even within a SaaS delivery constraint.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Lab License Access | Risk:** No NFR or developer license tier is confirmed for Trellix Insights \u2014 enterprise threat intelligence subscriptions are typically sold per-seat at significant cost. Vendor engagement is required to negotiate lab-purpose account access before authoring can begin, adding pre-build friction.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simulation",
+                  "color": "amber",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Fallback | Opportunity:** Trellix Insights offers an interactive self-guided product tour on its website, confirming the interface is navigable in a guided, non-live context. If credential pool provisioning is blocked by licensing or MFA constraints, AI Vision simulation of the Insights dashboard is a viable fallback for interface-navigation and intelligence-interpretation labs.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage \u2014 'Take a Tour' CTA for Insights"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 25,
+              "weight": 25,
+              "summary": "Credential pool recycling is the most viable access model \u2014 pre-provisioned accounts assigned to learners and reset between sessions. Enterprise SaaS MFA enforcement is a likely risk that must be resolved with Trellix's product team before scale delivery is feasible. High per-seat license cost for an enterprise threat intelligence subscription adds financial friction for large cohorts.",
+              "badges": [
+                {
+                  "name": "Credential Pool",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Account Recycling | Opportunity:** Pre-provisioned learner accounts assigned from a credential pool and reset between sessions is the standard access model for SaaS security dashboards \u2014 viable for Trellix Insights if the admin API supports account state reset. This eliminates per-learner provisioning latency once the pool is established.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "MFA Required",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise MFA Risk | Risk:** Trellix Insights is an enterprise security product where MFA enforcement is standard practice. If MFA cannot be disabled for lab-purpose accounts, automated task scoring falls back to MCQ or AI Vision only \u2014 reducing scoring depth and lab authenticity. Vendor confirmation of MFA bypass for lab accounts is required.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "High License Cost",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Per-Seat Cost Risk | Risk:** Enterprise threat intelligence subscriptions are priced for production security teams, not training cohorts. Without a confirmed NFR or lab-purpose licensing tier, per-learner license cost could make large-cohort delivery economically unviable. This is the primary commercial risk for scaling Insights labs beyond small pilot groups.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 15,
+              "weight": 15,
+              "summary": "Trellix's broader platform API provides partial coverage for validating configuration state \u2014 watchlist creation, alert rule setup, and feed configuration can potentially be queried programmatically. Dashboard interpretation tasks (reading threat reports, identifying IOCs, mapping campaigns) are best scored via AI Vision screen validation or MCQ knowledge checks. A hybrid scoring approach is recommended.",
+              "badges": [
+                {
+                  "name": "API Scorable (partial)",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Platform API Coverage | Opportunity:** Trellix's broader security platform exposes APIs for configuration management and data querying. Watchlist creation, alert rule configuration, and feed integration state can potentially be validated programmatically \u2014 providing partial API scoring coverage for the most common lab tasks.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Vision Scorable",
+                  "color": "amber",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Dashboard Interpretation Scoring | Opportunity:** Core Insights workflows \u2014 reading threat reports, identifying active campaigns, interpreting IOC data \u2014 are visual and analytical rather than configuration-based. AI Vision screen validation is the appropriate scoring method for these tasks, confirming the learner navigated to the correct intelligence view and identified the correct threat actor or campaign.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Fallback | Context:** Threat intelligence analysis involves significant interpretive judgment \u2014 which campaign is most relevant to my industry, which IOCs should I prioritize. MCQ knowledge checks are a reliable fallback for validating analytical reasoning when programmatic scoring of interpretation tasks is not feasible.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Credential pool recycling handles account reuse, but watchlist configurations, saved searches, and alert rules created during a lab session may persist between learners. Partial teardown API coverage is likely \u2014 account state reset is possible but data artifact cleanup requires confirmation. Orphan risk is real for a read-write intelligence dashboard.",
+              "badges": [
+                {
+                  "name": "Teardown APIs (partial)",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Account State Reset | Opportunity:** Credential pool recycling handles account reuse between learners. Trellix's admin API likely supports resetting account-level configurations (watchlists, saved searches, alert rules) to a clean starting state \u2014 the standard teardown pattern for SaaS credential pool labs.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Orphan Risk",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Data Artifact Persistence | Risk:** Watchlists, saved threat searches, alert configurations, and exported intelligence reports created during a lab session may persist in the shared tenant if teardown is incomplete. Incomplete state reset between learners degrades lab experience and could expose one learner's work to the next. Teardown completeness must be validated during lab authoring.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 40,
+              "weight": 40,
+              "summary": "Trellix Insights requires practiced skill to use effectively \u2014 configuring watchlists, interpreting campaign attribution, mapping TTPs to MITRE ATT&CK, and integrating intelligence feeds into SIEM/SOAR workflows are all non-trivial tasks. The product is not wizard-driven, but its primary workflow is intelligence consumption rather than deep system configuration, placing it in the moderate complexity tier. AI-powered threat prioritization and campaign correlation add a layer of interpretive complexity that benefits from hands-on practice.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Watchlist and Alert Configuration | Opportunity:** Trellix Insights requires analysts to configure threat watchlists, set alert thresholds, prioritize intelligence feeds, and map threat campaigns to organizational exposure \u2014 all non-trivial configuration tasks that benefit from hands-on practice in a realistic environment.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**AI-Driven Threat Prioritization | Opportunity:** Insights uses AI to correlate threat campaigns, prioritize alerts, and contextualize the threat landscape \u2014 features that require iterative hands-on practice to interpret and act on effectively. Analysts must learn to trust, validate, and act on AI-generated intelligence recommendations.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Integration Complexity",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**SIEM and SOAR Integration | Opportunity:** Trellix Insights integrates with Trellix Helix (SIEM/SOAR), third-party SIEM platforms, and threat intelligence sharing frameworks \u2014 integration workflows that require hands-on configuration practice and are a primary use case for security architect and senior analyst personas.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Intelligence Consumption Workflow | Context:** The core Insights workflow spans multiple phases \u2014 ingest intelligence feeds, configure watchlists, monitor active campaigns, triage alerts, export actionable IOCs \u2014 but these phases are primarily analytical rather than deeply technical, placing the product in the moderate complexity tier rather than the high-complexity tier of installable security platforms.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 25,
+              "weight": 25,
+              "summary": "Threat intelligence analysis is a high-stakes skill \u2014 misconfigured watchlists or missed campaign signals directly contribute to undetected breaches. The learning curve from novice to proficient threat intelligence analyst is steep, requiring domain expertise in TTPs, threat actor attribution, and MITRE ATT&CK mapping. Adoption risk is well-documented: threat intelligence platforms are among the most underutilized security tools, making hands-on training a direct ROI driver for Trellix's customer success motion.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Breach Prevention Stakes | Strength:** Threat intelligence analysis directly informs incident response prioritization \u2014 analysts who cannot correctly interpret campaign data or configure relevant watchlists leave their organizations exposed to known, active threat actors. Misconfigured or ignored intelligence is a documented contributor to preventable breaches.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Threat Intelligence Expertise Gap | Strength:** Effective use of threat intelligence platforms requires domain expertise in TTPs, threat actor attribution, MITRE ATT&CK mapping, and IOC prioritization \u2014 skills that take months to develop and cannot be acquired by reading documentation or watching demos. Hands-on practice with realistic threat scenarios is the only effective training modality.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Underutilization Risk | Strength:** Threat intelligence platforms are among the most chronically underutilized security tools \u2014 organizations pay for subscriptions but analysts lack the skills to extract actionable intelligence. Labs directly address this adoption gap, making them a strong ROI argument for Trellix's customer success and renewal teams.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 15,
+              "weight": 15,
+              "summary": "Incident Response labs are the strongest fit \u2014 learners receive a simulated threat campaign notification and must use Insights to identify IOCs, assess organizational exposure, and recommend response priorities. Compliance Audit scenarios are also viable \u2014 using threat intelligence to validate security controls against known active threat actors targeting the learner's industry vertical.",
+              "badges": [
+                {
+                  "name": "Incident Response",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Threat Campaign Response Lab | Opportunity:** A high-value lab scenario: learner receives a simulated alert that a known threat actor is actively targeting their industry vertical, then uses Trellix Insights to identify relevant IOCs, assess organizational exposure, and produce a prioritized response recommendation \u2014 directly replicating real SOC analyst workflows.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Threat-Informed Compliance Lab | Opportunity:** Security architects and compliance teams can use Insights to validate that security controls address the specific threat actors and TTPs most relevant to their regulatory environment \u2014 a hands-on scenario that bridges threat intelligence and compliance validation workflows.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/insights/",
+                      "source_title": "Trellix Insights Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 20,
+              "weight": 20,
+              "summary": "Cybersecurity is the highest-demand category for hands-on training. Threat intelligence is a growing sub-market as organizations mature their SOC capabilities. Trellix has 40,000+ customers across the platform, a published certification program, and AI-powered features that require hands-on practice to use effectively. The market demand signal is strong even though Insights-specific competitor labs are not confirmed.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Cybersecurity Training Demand | Strength:** Cybersecurity is the highest-demand category for hands-on training \u2014 the skills gap is well-documented, regulatory pressure is increasing, and threat intelligence is a growing sub-discipline as organizations mature their SOC capabilities beyond reactive alert triage.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Large Customer Base | Strength:** Trellix serves 40,000+ customers across the platform, providing a substantial training population for Insights-specific labs. Even a small fraction of this base represents meaningful lab consumption potential for onboarding and ongoing skills development motions.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Certification Program | Opportunity:** Trellix offers a certification program (Trellix Certified Product Specialist), providing a natural anchor for performance-based testing labs. Certification candidates are the highest-motivation learner cohort and the most likely to complete structured hands-on lab experiences.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI-Powered Product",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**AI Feature Training Demand | Opportunity:** Trellix Insights uses GenAI and predictive AI for threat prioritization and campaign contextualization \u2014 AI features that require hands-on practice to use effectively. AI-powered security tools are a growing training priority as organizations struggle to operationalize AI-assisted threat detection.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 25,
+              "weight": 25,
+              "summary": "Trellix has a dedicated Education Services organization offering product training, security training, ILT, and eLearning. Hands-on lab exercises are explicitly mentioned in their training descriptions. A certification program (Trellix Certified Product Specialist) exists. The training catalog spans multiple product lines and delivery formats, indicating meaningful organizational investment in training as a customer success lever.",
+              "badges": [
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Dedicated Training Organization | Strength:** Trellix maintains a dedicated Education Services organization offering product training, security training, ILT, and eLearning \u2014 with explicit mention of hands-on lab exercises in their training descriptions. This confirms organizational commitment to training as a customer success lever, not just a sales tool.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Published Training Catalog | Strength:** Trellix publishes a training catalog spanning product training and security training tracks, with scheduled ILT offerings and on-demand eLearning. The catalog breadth across multiple product lines indicates a mature training function with ongoing content investment.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Certification Program",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Active Certification | Opportunity:** Trellix offers product specialist certifications, providing a credentialing anchor for hands-on lab investment. Certification programs create recurring lab consumption as candidates prepare for and retake exams.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 25,
+              "weight": 25,
+              "summary": "Trellix operates the Xtend Partner Program \u2014 a structured channel partner ecosystem. The platform is positioned as open and API-rich, with integrations across the security stack. As a post-merger entity (McAfee Enterprise + FireEye), organizational complexity is elevated, but the company has stabilized under Symphony Technology Group and is actively investing in platform consolidation. Mid-to-large enterprise engagement profile.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Xtend Partner Program | Strength:** Trellix operates the Xtend Partner Program \u2014 a structured channel partner ecosystem spanning resellers, MSSPs, and technology partners. A formal partner program creates natural demand for partner technical enablement labs, which is one of the highest-ROI training motions for Skillable.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Integration Maturity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Open Platform Architecture | Strength:** Trellix positions its platform as open and API-rich, with integrations across the security stack. This integration maturity signals that Trellix's product team is accustomed to API-based partnerships \u2014 a positive indicator for the vendor cooperation required to enable credential pool provisioning for labs.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Ease of Engagement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Post-Merger Complexity | Context:** Trellix was formed from the merger of McAfee Enterprise and FireEye under Symphony Technology Group \u2014 a consolidation that created organizational complexity. The company has stabilized and is actively investing in platform unification, but engagement may require navigating a larger-than-typical enterprise structure.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 30,
+              "weight": 30,
+              "summary": "Trellix has authorized training partners through the Xtend program, but the scale of the ATP network for technical training delivery is not confirmed. No specific LMS platform is identified. No confirmed Skillable or competitor lab platform relationship \u2014 this is a greenfield opportunity. Third-party cybersecurity training providers likely offer Trellix-adjacent content, creating a gray market signal.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Channel Training Partners | Opportunity:** Trellix's Xtend Partner Program includes authorized training partners who deliver technical training to customers and channel partners. This ATP network creates a downstream delivery channel for Insights labs beyond Trellix's direct training motion.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Platform Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Greenfield Lab Platform Opportunity | Opportunity:** No confirmed existing lab platform relationship for Trellix \u2014 this is a greenfield opportunity. Trellix's training team mentions hands-on lab exercises in their course descriptions, indicating demand for a lab delivery platform that does not yet appear to be systematically fulfilled.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Gray Market Offering",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Third-Party Training Presence | Context:** Third-party cybersecurity training providers (SANS, EC-Council, Udemy, Pluralsight) likely offer Trellix-adjacent threat intelligence content. This gray market presence confirms learner demand for Trellix-related training and creates a conversation starter for Trellix to reclaim training authority with official, hands-on labs.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 20,
+              "weight": 20,
+              "summary": "Trellix's Education Services team is confirmed with ILT and eLearning production capability. Security training courses with hands-on lab exercises indicate technical build capacity beyond slide-based content. The team appears capable of authoring lab content with Skillable platform support, though the depth of their lab authoring experience is not confirmed.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Education Services Team | Strength:** Trellix's Education Services organization produces ILT and eLearning content across multiple product lines and security training tracks. The team's existing hands-on lab exercise production capability indicates they can author Skillable lab content with platform onboarding support.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Technical Build Team",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Security Training Technical Depth | Opportunity:** Trellix's security training courses (penetration testing, incident response, forensics) require technical lab environment construction \u2014 indicating the team has or can access technical build capability beyond slide-based content production. This reduces the Skillable Professional Services dependency for initial lab builds.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/training/",
+                      "source_title": "Trellix Education Services Page"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 4000,
+            "population_high": 6000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 400,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 4000,
+            "population_high": 6000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 800,
+            "population_high": 1500,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 400,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 1500,
+            "population_high": 3000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.3,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 882,
+        "annual_hours_high": 2398,
+        "rate_per_hour": 0.0,
+        "acv_low": 5292.0,
+        "acv_high": 14391.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Good Fit",
+        "color": "dark_green",
+        "fit_label": "HIGH FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Education Services or VP of Customer Enablement",
+          "title": "VP of Education Services",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/trellix/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Training or Director of Partner Enablement",
+          "title": "Director of Training",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/trellix/people/",
+          "relevance": ""
+        }
+      ]
+    },
+    {
+      "name": "Trellix Security Platform",
+      "category": "Cybersecurity",
+      "subcategory": "XDR / Endpoint, Network, Email & Data Security Platform",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "hybrid",
+      "orchestration_method": "Hyper-V",
+      "user_personas": [
+        "Security Engineer/Analyst",
+        "Administrator",
+        "Infrastructure Engineer",
+        "Architect"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "ePO Policy Deployment and Agent Management",
+        "EDR Threat Detection and Investigation",
+        "DLP Rule Authoring and Validation",
+        "Helix SIEM Alert Triage and Threat Hunting",
+        "Network Detection and Response Configuration",
+        "Security Architecture Design Challenge"
+      ],
+      "poor_match_flags": [],
+      "recommendation": [
+        "Deploy the Trellix Security Platform on Skillable's Hyper-V fabric using a multi-VM topology: a Windows Server VM running ePO (with SQL Server pre-installed), two to three managed endpoint VMs (Windows and Linux), and an attacker node for simulated threat scenarios. This mirrors the Tanium pattern exactly \u2014 agent-based cybersecurity platform, multi-VM private network, ePO REST API for scripted provisioning and scoring. Pre-built VM images with ePO pre-configured eliminate the 35-50 minute setup time and enable sub-5-minute lab launches. Private network segments between VMs enable realistic attack and detection scenarios that require network isolation.",
+        "ePO REST API enables script-based validation of policy configuration, agent deployment status, and detection event generation \u2014 covering the core administrator and SOC analyst workflows. PowerShell scripts can confirm that a learner has correctly applied a protection policy, deployed an agent to a target group, or triggered a detection rule. Helix API adds partial coverage for SOC workflow tasks. For UI-driven Helix investigation workflows, AI Vision provides a fallback scoring path. This combination supports Activity Based Assessment (ABA) across all six lab concepts.",
+        "The critical unresolved question is lab-use licensing: Trellix does not publish an NFR or developer license tier, and enterprise cybersecurity licensing requires a direct vendor conversation before lab authoring can begin. The Trellix Education Services team is the right owner \u2014 they already build and deliver hands-on training, so they understand the need. Ask your champion to send: 'We want to build hands-on labs for Trellix ePO and EDR on our training platform. What license tier or NFR agreement do we need to run Trellix software in isolated lab environments for learner use? Who on the product or licensing team should we engage?'",
+        "Trellix's training program already delivers hands-on lab exercises \u2014 the entry conversation is platform replacement or augmentation, not convincing them that labs matter. The highest-priority motion is SE and presales enablement (the Commvault entry pattern): Trellix SEs need to demo a complex multi-product platform confidently, and hands-on practice in an isolated environment is the only way to build that confidence. From there, the expansion arc follows naturally: customer onboarding labs, partner/MSSP enablement, and eventually Performance Based Testing embedded in Trellix certification exams.",
+        "If Trellix is currently delivering hands-on labs through CloudShare or Instruqt, Skillable has a decisive advantage: neither competitor can support the multi-VM private network topology required for realistic attack-and-detect scenarios. A Trellix lab that includes an attacker VM, managed endpoints, and a network sensor \u2014 all on isolated private VLANs with real network traffic \u2014 is only viable on Skillable's Hyper-V fabric. This is the technical differentiator to lead with in any competitive conversation."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 29,
+              "weight": 35,
+              "summary": "Trellix ePolicy Orchestrator installs on Windows Server in a Hyper-V VM \u2014 the canonical multi-VM cybersecurity lab topology. ePO REST API and PowerShell modules enable scripted provisioning of policies, users, and agent deployments. SQL Server dependency and multi-component setup push provisioning time past 30 minutes without pre-instancing. NFR licensing requires vendor engagement.",
+              "badges": [
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**VM Install Path | Strength:** Trellix ePolicy Orchestrator (ePO) installs on Windows Server \u2014 a clean Hyper-V VM deployment that mirrors the Tanium agent-management pattern. The ePO server VM becomes the lab management hub, with additional VMs serving as managed endpoints and attacker nodes \u2014 confirmed by Trellix product documentation and installation guides.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/epolicy-orchestrator/",
+                      "source_title": "Trellix ePolicy Orchestrator Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Full Lifecycle API",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**REST API Surface | Strength:** Trellix ePO exposes a documented REST API covering policy management, user administration, agent deployment, and event querying \u2014 enabling programmatic provisioning of lab starting states and scripted validation of learner outcomes without manual intervention.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/epolicy-orchestrator/",
+                      "source_title": "Trellix ePolicy Orchestrator Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Setup Complexity | Risk:** ePO requires a SQL Server backend and multi-component installation sequence \u2014 provisioning time for a clean ePO environment with managed endpoints is estimated at 35-50 minutes without pre-instancing. Pre-built VM images with ePO pre-installed mitigate this, but initial image authoring is a meaningful build investment.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/epolicy-orchestrator/",
+                      "source_title": "Trellix ePolicy Orchestrator Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Lab Licensing | Risk:** No publicly documented NFR or developer license tier found for Trellix products. Enterprise cybersecurity licensing typically requires vendor engagement to obtain lab-use rights \u2014 a manageable step given Trellix's active training program, but it must happen before lab authoring begins.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 18,
+              "weight": 25,
+              "summary": "ePO user management APIs support programmatic account creation and credential recycling between learners. No MFA blocker confirmed for lab environments. Enterprise licensing model requires vendor engagement to confirm lab-tier pricing \u2014 a manageable friction point given Trellix's training program maturity.",
+              "badges": [
+                {
+                  "name": "Credential Pool",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**ePO Account Recycling | Strength:** ePO administrator and analyst accounts can be created programmatically via REST API and recycled between learners \u2014 the standard credential pool pattern used by Tanium and Cohesity on the Hyper-V fabric. No per-learner account creation friction at runtime.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/epolicy-orchestrator/",
+                      "source_title": "Trellix ePolicy Orchestrator Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise License Model | Risk:** Trellix products are sold under enterprise agreements \u2014 no self-serve trial or developer tier confirmed. Lab-use licensing requires a direct conversation with Trellix's training or partner team before lab authoring can begin. Trellix Education Services' existing training program makes this a warm conversation, not a cold ask.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 14,
+              "weight": 15,
+              "summary": "ePO REST API exposes policy state, agent status, and detection event data \u2014 enabling script-based validation of learner actions. PowerShell can confirm policy application, agent connectivity, and alert generation. Helix API adds partial coverage for SOC workflow scoring. Rich scoring surface across the platform lifecycle.",
+              "badges": [
+                {
+                  "name": "Script Scorable (strong)",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Policy State Validation | Strength:** ePO REST API exposes policy assignment, agent status, and detection event data \u2014 enabling PowerShell or CLI scripts to confirm that a learner has correctly configured a protection policy, deployed an agent, or triggered a detection rule. This covers the core ePO administration workflow end-to-end.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/epolicy-orchestrator/",
+                      "source_title": "Trellix ePolicy Orchestrator Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "API Scorable (partial)",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Helix API Coverage | Opportunity:** Trellix Helix (SIEM/XDR) exposes API access for querying security events, cases, and investigation workflows \u2014 enabling partial programmatic scoring of SOC analyst lab tasks such as alert triage, threat hunting queries, and case creation. Coverage is partial because some Helix workflows are UI-driven.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/helix/",
+                      "source_title": "Trellix Helix Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Multi-VM Hyper-V environment tears down automatically via snapshot revert. No teardown build task required \u2014 all VMs (ePO server, managed endpoints, attacker nodes) reset to clean state between learners.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Snapshot Revert | Strength:** All VMs in the Trellix lab topology \u2014 ePO management server, managed Windows/Linux endpoints, attacker nodes \u2014 revert to clean state automatically via Hyper-V snapshot. No teardown build task required; the environment is ready for the next learner immediately.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.skillable.com",
+                      "source_title": "Skillable Platform \u2014 Hyper-V Fabric"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 36,
+              "weight": 40,
+              "summary": "Trellix spans six security domains \u2014 endpoint, data, network, email, threat intelligence, and security operations \u2014 each with distinct configuration workflows. ePO policy management alone covers hundreds of configuration options across protection, detection, and response modules. Multi-component topology (ePO + agents + network sensors + SIEM) requires architectural decisions before a single policy is written. Trellix Wise GenAI adds AI-embedded features requiring iterative hands-on practice.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Platform Breadth | Strength:** Trellix spans six security domains \u2014 endpoint, data, network, email, threat intelligence, and security operations \u2014 each with distinct policy frameworks, configuration workflows, and role-based access models. ePO alone manages hundreds of policy options across protection, detection, and response modules, creating a curriculum-scale training opportunity.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Trellix Wise GenAI | Opportunity:** Trellix Wise is the platform's purpose-built GenAI layer \u2014 delivering guided investigations, threat summarization, and predictive detections. AI-powered features embedded in a security operations workflow require iterative hands-on practice to use effectively; they cannot be learned by watching a demo.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Homepage \u2014 Trellix Wise"
+                    }
+                  ]
+                },
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Security Operations Lifecycle | Strength:** Trellix workflows span design (architecture and policy planning), deployment (agent rollout, sensor placement), configuration (policy tuning, DLP rules, IPS signatures), monitoring (dashboard management, alert triage), and response (investigation, containment, remediation) \u2014 five distinct phases each requiring separate lab exercises.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Persona Training Need | Strength:** Trellix requires separate training tracks for ePO administrators (policy management, agent deployment), SOC analysts (alert triage, threat hunting, incident response), security architects (platform design, integration planning), and data security engineers (DLP rule authoring, encryption policy) \u2014 each persona needs a distinct lab program.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 25,
+              "weight": 25,
+              "summary": "Misconfiguration of EDR exclusions, DLP rules, or IPS signatures directly causes security gaps \u2014 breach, data exfiltration, or compliance failure. ePO policy management has a steep learning curve with months required to reach operational competence. Poor platform adoption is a documented risk for complex cybersecurity suites \u2014 customers who don't fully configure the product are paying for protection they don't have.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Security Gap Risk | Strength:** Misconfiguration of EDR exclusions, DLP classification rules, or IPS signatures creates direct security exposure \u2014 undetected malware, data exfiltration, or compliance failure. In a cybersecurity platform, wrong configuration is not a performance issue; it is a breach enabler. Hands-on practice is the only way to build reliable configuration competence.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**ePO Mastery Timeline | Strength:** ePO administration \u2014 policy inheritance, agent deployment trees, exception management, and cross-product integration \u2014 requires months of hands-on practice to reach operational competence. Trellix's own training page acknowledges the need for 'expertly trained staff to configure and manage solutions more efficiently' \u2014 a direct acknowledgment of the learning curve.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Platform Underutilization Risk | Strength:** Trellix Education Services explicitly frames training as maximizing 'benefit and ROI from your solutions' \u2014 a direct signal that poor adoption is a documented concern. Customers who deploy only the endpoint agent while leaving network, data, and email security unconfigured are paying for protection they don't have.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 10,
+              "weight": 15,
+              "summary": "Simulated Attack and Incident Response are the highest-value lab types for Trellix. Learners can respond to a live simulated ransomware campaign using EDR and Helix, or diagnose a production security incident from alert triage through containment. Both lab types require the full multi-VM topology and cannot be replicated in a demo or video.",
+              "badges": [
+                {
+                  "name": "Simulated Attack",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Live Attack Response | Opportunity:** Trellix's EDR, network detection, and Helix SIEM are purpose-built for detecting and responding to active attacks \u2014 making simulated attack labs (ransomware campaign, lateral movement, data exfiltration) the highest-value lab type. Learners use real Trellix tools to detect, investigate, and contain a live simulated threat in an isolated multi-VM environment.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Incident Response",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**SOC Incident Simulation | Opportunity:** Trellix Helix and EDR with Forensics are designed for incident response workflows \u2014 alert triage, forensic investigation, containment, and remediation. Incident response labs place learners in a production-down security scenario and require them to work through the full IR lifecycle using Trellix tools under time pressure.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/helix/",
+                      "source_title": "Trellix Helix Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 20,
+              "weight": 20,
+              "summary": "Cybersecurity is the highest-demand category for hands-on training. Trellix Wise GenAI adds AI-embedded features signal. Large enterprise install base (McAfee Enterprise + FireEye heritage). Active certification program. Competitor labs confirmed across the cybersecurity platform category. Growing category with regulatory tailwinds driving training demand.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Cybersecurity Training Demand | Strength:** Cybersecurity is the highest-demand category for hands-on technical training \u2014 regulatory requirements (CMMC, NIS2, SOC 2), skills shortages, and the consequence of misconfiguration all drive mandatory training investment. Trellix operates at the center of this demand with a platform spanning endpoint, network, data, and email security.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Large Enterprise Install Base | Strength:** Trellix homepage references tens of thousands of customers across the platform \u2014 a heritage from McAfee Enterprise and FireEye, two of the largest enterprise cybersecurity brands. Large install base means a large population of administrators and analysts who need structured training.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI-Powered Product",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Trellix Wise AI Features | Opportunity:** Trellix Wise delivers GenAI-powered guided investigations, threat summarization, and predictive detections embedded in the security operations workflow. AI-powered features in a security context require hands-on practice to use effectively \u2014 learners must practice interpreting AI-generated guidance and acting on it correctly.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Homepage \u2014 Trellix Wise"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 25,
+              "weight": 25,
+              "summary": "Trellix Education Services offers a broad portfolio: public ILT, eLearning, private classroom, and security training with hands-on lab exercises explicitly mentioned. Courses span product training (ePO, EDR, DLP) and security skills (penetration testing, forensics, incident response). Certification program exists. Training is positioned as a core ROI driver for the platform investment.",
+              "badges": [
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Education Services Program | Strength:** Trellix maintains a dedicated Education Services function offering public ILT, eLearning, and private classroom training. The program explicitly frames training as maximizing ROI from the security investment \u2014 a customer enablement motion, not just a revenue line.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Broad Course Portfolio | Strength:** Trellix offers product training (ePO, EDR, DLP, network security) and security skills training (penetration testing, forensics, incident response, application security) \u2014 a two-track catalog covering both platform administration and practitioner skills. Hands-on lab exercises are explicitly mentioned as part of the security training curriculum.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Culture",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Training as ROI Driver | Context:** Trellix positions training as essential to 'gain maximum value from your solutions' \u2014 framing it as a product ROI driver rather than a compliance checkbox. This suggests training investment is tied to customer retention and expansion, not just onboarding.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 25,
+              "weight": 25,
+              "summary": "Trellix positions itself as an open security platform with APIs and third-party integrations as core product value \u2014 strong integration maturity signal. Post-merger organization (McAfee Enterprise + FireEye) is large and complex, creating moderate engagement friction. Enterprise cybersecurity market implies a partner ecosystem, though formal ATP structure not confirmed in research.",
+              "badges": [
+                {
+                  "name": "Integration Maturity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Open Platform Architecture | Strength:** Trellix explicitly markets itself as an 'open security platform' with third-party integrations as a core value proposition. API-first architecture and documented integration ecosystem indicate high integration maturity \u2014 a strong signal for programmatic lab provisioning and scoring.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Ease of Engagement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Post-Merger Organization | Context:** Trellix was formed from the merger of McAfee Enterprise and FireEye in 2022 \u2014 a large, complex organization still integrating two enterprise cybersecurity brands. Engagement may require navigating multiple internal stakeholders, but the training function appears consolidated under Education Services.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise Channel Presence | Context:** Trellix operates in the enterprise cybersecurity market where channel partners and MSSPs are standard delivery vehicles \u2014 a partner ecosystem is strongly implied by the market segment, though formal ATP structure and scale are not confirmed in available research.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com",
+                      "source_title": "Trellix Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 30,
+              "weight": 30,
+              "summary": "Public ILT schedule and eLearning catalog confirmed. Private classroom training available for enterprise customers. No specific LMS platform or ATP network confirmed from research \u2014 delivery infrastructure exists but scale and partner reach are unclear. No existing lab platform identified, making this a greenfield opportunity.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**ILT and eLearning Delivery | Strength:** Trellix delivers training through public instructor-led courses (scheduled offerings), on-demand eLearning, and private classroom engagements. Multiple delivery modalities confirm an active training delivery infrastructure \u2014 not just content that exists on paper.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Greenfield Lab Platform | Opportunity:** No existing lab delivery platform identified in research \u2014 Trellix's hands-on lab exercises are delivered through an unknown or proprietary mechanism. This is a greenfield opportunity: Skillable can become the lab infrastructure for both existing and new hands-on training content.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 20,
+              "weight": 20,
+              "summary": "Education Services team confirmed with internal content development capability. Hands-on lab exercises are already part of the training catalog \u2014 indicating existing lab authoring skills. Security training with interactive demonstrations suggests technical build capacity. Platform for existing labs not identified \u2014 may be DIY or outsourced.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Internal Education Team | Strength:** Trellix Education Services operates as a dedicated internal function with the capability to build and deliver product training and security skills courses. The breadth of the catalog (ILT, eLearning, private classroom, security training) indicates a team with instructional design and content development capacity.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "DIY Labs",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Existing Lab Exercises | Context:** Trellix training already includes 'hands-on lab exercises' and 'interactive demonstrations' \u2014 indicating the team has experience building lab content. The platform used for existing labs is not identified, suggesting either a proprietary setup or outsourced delivery that Skillable could replace or augment.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/education-services/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 2000,
+            "population_high": 3500,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.07,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 5000,
+            "population_high": 8000,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 800,
+            "population_high": 1500,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 400,
+            "population_high": 800,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.12,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 2000,
+            "population_high": 4000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.4,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 1904,
+        "annual_hours_high": 6083,
+        "rate_per_hour": 0.0,
+        "acv_low": 85680.0,
+        "acv_high": 351890.0,
+        "acv_tier": "high",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Prime Target",
+        "color": "dark_green",
+        "fit_label": "HIGH FIT",
+        "acv_label": "HIGH ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Education Services or VP of Customer Education",
+          "title": "VP of Education Services / VP of Customer Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/trellix/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Training or Director of Technical Enablement",
+          "title": "Director of Training / Director of Technical Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/trellix/people/",
+          "relevance": ""
+        }
+      ]
+    },
+    {
+      "name": "Trellix Intelligence as a Service",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Hyper-V",
+      "user_personas": [
+        "Security Engineer/Analyst",
+        "Administrator",
+        "Architect"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Querying Threat Intelligence: IOC Lookup and Enrichment",
+        "Alert Enrichment Workflow: From SIEM Alert to Triage Decision",
+        "Integrating IaaS with a SIEM Platform",
+        "Threat Actor Campaign Investigation",
+        "AI-Powered Threat Scoring Interpretation"
+      ],
+      "poor_match_flags": [
+        "saas_only"
+      ],
+      "recommendation": [
+        "Deploy a Hyper-V analyst workstation VM (Windows with Python/PowerShell tooling pre-installed) as the lab environment, with a credential pool of pre-provisioned IaaS API keys recycled between learners. This is the correct pattern for API-first SaaS security products \u2014 the VM provides the hands-on surface, the IaaS API provides the intelligence data, and no self-hosted deployment is required. This approach avoids the SaaS provisioning bottleneck entirely and delivers fast, predictable lab launches. The critical prerequisite is negotiating a training-use API access arrangement with Trellix before lab authoring begins \u2014 without a confirmed NFR or training SKU, the commercial model for per-learner API access is unresolved.",
+        "Score learner work via Python or PowerShell scripts that validate API query construction and response parsing \u2014 checking that the learner retrieved the correct IOC data, correctly identified the threat actor, or successfully enriched a simulated alert. The IaaS REST API provides a partial scoring surface for read-only intelligence queries. For workflow steps that don't produce queryable server-side state (e.g., documenting a triage decision), AI Vision or structured text validation provides a fallback. This combination covers the full SOC analyst workflow from query to decision.",
+        "The blocking question is whether Trellix will provide API access for training use at a cost that makes per-learner lab delivery commercially viable. The team most likely to own this answer is the Education Services leadership team in combination with the product licensing team. A verbatim question your champion can send: 'We are evaluating hands-on lab delivery for Trellix IaaS training. Can you confirm whether a training-use API access tier or NFR license exists for IaaS, and what the per-learner or per-seat cost model would be for a lab environment where 50-500 learners concurrently query the API during training sessions?'",
+        "The highest-priority entry motion is internal SE and presales enablement \u2014 Trellix sales engineers need to demonstrate IaaS capabilities to enterprise buyers, and hands-on lab practice before customer demos drives measurable win rates. This mirrors the Commvault expansion arc: SE enablement labs built once are then adapted for customer onboarding and partner technical enablement, multiplying the return on the initial lab investment. The certification motion is a natural second phase \u2014 Trellix's existing certification program provides a ready vehicle for performance-based testing on IaaS workflows.",
+        "Trellix IaaS is a premium enterprise product with subscription pricing not designed for training use \u2014 the commercial model for providing API access to hundreds of concurrent learners is unresolved and represents the primary build blocker. Until Trellix confirms a training-use licensing arrangement, lab authoring investment is premature. Recommend qualifying this commercial question before committing Skillable Professional Services resources to lab design."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 25,
+              "weight": 35,
+              "summary": "Trellix IaaS is a cloud-delivered threat intelligence API \u2014 no self-hosted option exists for this specific product. The viable lab path is a Hyper-V analyst workstation VM (Windows or Linux) with pre-provisioned API credentials from a credential pool. Learners query the live IaaS API from within the VM. This is a Hyper-V Standard pattern with a SaaS API dependency. Provisioning friction exists around API key issuance \u2014 no confirmed developer or NFR tier means vendor engagement is required before lab authoring. Provisioning time is fast for the VM itself but API credential setup adds coordination overhead.",
+              "badges": [
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Analyst Workstation Path | Strength:** Trellix IaaS is consumed via REST API, enabling a Hyper-V analyst workstation VM (Windows or Linux) to serve as the lab environment \u2014 learners query the live intelligence API from within the VM, making the VM the hands-on surface without requiring a self-hosted IaaS deployment. \u2014 Trellix product page. This is the correct lab pattern for API-first SaaS security products.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Threat Intelligence"
+                    }
+                  ]
+                },
+                {
+                  "name": "Credential Pool",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**API Key Recycling | Strength:** IaaS delivers intelligence via REST API authenticated with API keys \u2014 a credential pool of pre-provisioned keys can be recycled between learners, enabling concurrent lab delivery without per-learner account creation at runtime. \u2014 Trellix IaaS product documentation (inferred from API-first architecture). Eliminates the most common SaaS provisioning bottleneck for this product type.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Intelligence as a Service"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Training License Availability | Risk:** No confirmed NFR or developer tier for Trellix IaaS specifically \u2014 enterprise threat intelligence subscriptions are priced for production use, and a separate training-use license arrangement must be negotiated with Trellix before lab authoring can begin. \u2014 Trellix Education Services page. Vendor engagement is a prerequisite; this is a build blocker until resolved.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 13,
+              "weight": 25,
+              "summary": "Lab access relies on a credential pool of pre-provisioned IaaS API keys recycled between learners. This is viable but carries cost risk \u2014 enterprise threat intelligence subscriptions are priced for production use, and per-learner API access for training may require a separate licensing arrangement with Trellix. No confirmed NFR or developer tier for IaaS specifically. MFA is not a blocker for API key-based access. The credential pool pattern is well-understood on Skillable but requires upfront vendor negotiation.",
+              "badges": [
+                {
+                  "name": "Credential Pool",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Pre-Provisioned API Keys | Strength:** API key-based authentication for IaaS feeds supports a credential pool pattern \u2014 keys are issued once, loaded into Skillable's credential pool, and recycled between learners without runtime provisioning delays. \u2014 Trellix IaaS architecture (inferred from API-first design). Enables concurrent delivery at scale without per-learner account creation.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Intelligence as a Service"
+                    }
+                  ]
+                },
+                {
+                  "name": "High License Cost",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise Subscription Pricing | Risk:** Trellix IaaS is an enterprise-tier threat intelligence product with subscription pricing not designed for per-learner training use \u2014 the cost of providing API access to hundreds of concurrent learners may be prohibitive without a dedicated training SKU negotiated with Trellix. \u2014 Trellix product page (pricing not published). This is the primary commercial risk for lab delivery at scale.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Intelligence as a Service"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 11,
+              "weight": 15,
+              "summary": "The IaaS REST API provides a partial scoring surface \u2014 learner actions such as retrieving specific IOCs, querying threat actor profiles, or enriching a simulated alert can be validated programmatically via API response inspection. However, IaaS is primarily a data feed product, not a stateful configuration system, so scoring coverage is partial. Script-based validation (PowerShell or Python scripts checking API responses) supplements API scoring. AI Vision or MCQ fallback available for workflow steps that don't produce queryable state.",
+              "badges": [
+                {
+                  "name": "API Scorable (partial)",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**REST API Validation | Opportunity:** The IaaS REST API enables partial programmatic scoring \u2014 learner actions such as retrieving a specific IOC, querying a threat actor profile, or enriching a simulated alert can be validated by inspecting API responses in scoring scripts. \u2014 Trellix IaaS product architecture (inferred from API-first design). Covers the core query and enrichment workflows that are the primary learning objectives.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Intelligence as a Service"
+                    }
+                  ]
+                },
+                {
+                  "name": "Script Scorable (partial)",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Script-Based Validation | Opportunity:** PowerShell or Python scripts running inside the analyst workstation VM can validate that learners correctly constructed API queries, parsed response data, and applied intelligence to simulated alert enrichment tasks \u2014 covering workflow steps that don't produce a queryable server-side state. \u2014 Trellix Education Services hands-on lab model (indicated). Supplements API scoring for end-to-end workflow validation.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Hyper-V VM teardown is automatic via snapshot revert \u2014 no explicit teardown action required. Credential pool recycling handles the API key side. No orphan risk for the VM environment. API-side cleanup (resetting query history or rate limit counters) is not a concern for read-only intelligence feeds.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Snapshot Revert | Strength:** Hyper-V VM teardown is fully automatic via snapshot revert \u2014 no explicit cleanup action required between learners. The read-only nature of IaaS API queries means no server-side state is created that requires cleanup, eliminating orphan risk entirely. \u2014 Skillable Hyper-V fabric architecture. Teardown is never a concern for this lab pattern.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Intelligence as a Service"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 22,
+              "weight": 40,
+              "summary": "Trellix IaaS requires genuine skill to use effectively \u2014 analysts must understand IOC types (IP, domain, hash, URL), confidence scoring, threat actor attribution, STIX/TAXII data formats, and API query construction. Configuration workflows include setting up API authentication, building enrichment rules, and integrating feeds into SIEM/SOAR platforms. AI-powered threat scoring adds a layer of interpretation skill. The product is not wizard-driven \u2014 effective use requires iterative practice with real threat data. Role breadth spans SOC analyst, threat hunter, and security architect, each with distinct workflows.",
+              "badges": [
+                {
+                  "name": "Integration Complexity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**SIEM/SOAR Integration Workflows | Strength:** Trellix IaaS is designed to integrate with SIEM, SOAR, and threat intelligence platforms \u2014 configuring API authentication, feed ingestion, and enrichment rules across these integrations is the primary administrator workflow and requires hands-on practice to execute correctly. \u2014 Trellix platform page. Integration configuration is the highest-complexity, highest-stakes workflow for this product.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Security Platform"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**AI-Powered Threat Scoring | Opportunity:** Trellix IaaS includes AI-powered threat scoring and predictive intelligence features \u2014 interpreting AI-generated confidence scores, understanding model-driven threat actor attribution, and applying AI recommendations to incident response decisions requires iterative hands-on practice that cannot be learned from documentation alone. \u2014 Trellix platform page (GenAI and predictive AI confirmed). Adds a distinct learning objective beyond basic API querying.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Security Platform"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Persona Lab Program | Opportunity:** IaaS serves at least three distinct personas with non-overlapping workflows \u2014 SOC analysts (IOC triage and alert enrichment), threat hunters (proactive campaign research), and security architects (feed integration design) \u2014 each warranting a separate lab track rather than a single course. \u2014 Trellix product page. Role diversity supports a multi-course curriculum, not just a single lab.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Threat Intelligence"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 21,
+              "weight": 25,
+              "summary": "Threat intelligence is high-stakes by definition \u2014 an analyst who cannot effectively query and interpret IOC data may miss indicators of an active campaign targeting their organization. The learning curve is real: understanding confidence scores, false positive rates, threat actor TTPs, and how to correlate intelligence with SIEM alerts requires practice, not just reading. Adoption risk is well-documented in the threat intelligence category \u2014 organizations pay for feeds that analysts don't know how to use, resulting in wasted investment and undetected threats.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Missed Indicators = Undetected Breach | Strength:** An analyst who cannot effectively query and interpret IaaS threat intelligence may miss active campaign indicators targeting their organization \u2014 the direct consequence is an undetected breach or delayed incident response, making this a genuinely high-stakes skill domain. \u2014 Trellix CyberThreat Report (threat landscape context). Hands-on practice is not optional for this skill set.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix CyberThreat Report"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Threat Intelligence Underutilization | Strength:** Threat intelligence tools are widely documented as underutilized \u2014 organizations pay for feeds that analysts don't know how to query effectively, resulting in wasted subscription spend and undetected threats. Hands-on labs directly address this adoption gap by building query and enrichment skills. \u2014 Industry pattern (inferred from threat intelligence category norms). This is a documented commercial problem that labs solve.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**IOC Interpretation Complexity | Strength:** Effective IaaS use requires understanding IOC types, confidence scoring, false positive rates, STIX/TAXII data formats, threat actor TTP mapping, and API query construction \u2014 a multi-stage learning path that cannot be compressed into documentation review or video watching. \u2014 Trellix product architecture (inferred). Justifies a multi-lab curriculum rather than a single introductory course.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Intelligence as a Service"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 10,
+              "weight": 15,
+              "summary": "Two high-value lab types apply: Simulated Attack (learner receives a simulated attack scenario and must query IaaS to identify the threat actor, associated IOCs, and recommended response actions) and Incident Response (a production-style alert fires in a simulated SIEM, learner must enrich it with threat intelligence to determine severity and escalation path). Both are realistic, high-engagement scenarios that cannot be replicated with documentation or video.",
+              "badges": [
+                {
+                  "name": "Simulated Attack",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Attack Campaign Investigation | Opportunity:** A simulated attack scenario delivers a set of suspicious indicators to the learner, who must query IaaS to identify the threat actor, associated TTPs, related IOCs, and recommended defensive actions \u2014 a realistic, high-engagement lab that mirrors actual SOC workflows. \u2014 Trellix IaaS product design (inferred from threat intelligence use cases). This lab type cannot be replicated with documentation or video.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/products/",
+                      "source_title": "Trellix Products \u2014 Intelligence as a Service"
+                    }
+                  ]
+                },
+                {
+                  "name": "Incident Response",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Alert Enrichment Under Pressure | Opportunity:** A production-style SIEM alert fires in the lab environment; the learner must query IaaS to enrich the alert with threat context, determine severity, and make a triage decision \u2014 directly replicating the highest-frequency SOC workflow where intelligence consumption matters most. \u2014 Trellix platform page (SecOps integration confirmed). Maps directly to the SOC analyst persona's daily job task.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Security Platform"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 18,
+              "weight": 20,
+              "summary": "Cybersecurity is the highest-demand category for hands-on training. Threat intelligence as a subcategory is growing rapidly as organizations mature their SOC capabilities beyond basic detection. Trellix has 40,000+ platform customers providing a large potential training population. AI-powered threat scoring is a confirmed product feature driving additional hands-on practice demand. Trellix has an active certification program. No confirmed competitor labs specifically for IaaS, but the broader threat intelligence category has strong training demand signals.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Cybersecurity Training Demand | Strength:** Cybersecurity is the highest-demand category for hands-on training \u2014 threat intelligence is a growing subcategory as organizations mature SOC capabilities beyond basic detection and move toward proactive threat hunting and intelligence-driven response. \u2014 Industry category prior. Demand for hands-on threat intelligence training is structurally strong.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Security Platform"
+                    }
+                  ]
+                },
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**40,000+ Platform Customers | Strength:** Trellix reports 40,000+ customers across its security platform \u2014 a large installed base that represents a substantial potential training population for IaaS-specific labs, particularly for customer onboarding and ongoing skills development motions. \u2014 Trellix homepage. Large install base validates training demand at scale.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI-Powered Product",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**GenAI and Predictive AI Features | Opportunity:** Trellix's platform is explicitly built on GenAI and predictive AI \u2014 IaaS includes AI-powered threat scoring and intelligence contextualization that require hands-on practice to interpret and apply correctly, adding urgency to the training demand beyond traditional threat intelligence skills. \u2014 Trellix platform page. AI features create a new, distinct training need on top of existing intelligence consumption skills.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Security Platform"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 18,
+              "weight": 25,
+              "summary": "Trellix has a dedicated Education Services function with a published training catalog spanning ILT, eLearning, and hands-on lab exercises. The training page explicitly references hands-on lab exercises for security training. Product training covers design, setup, configuration, and management workflows. Security training includes forensics and incident response \u2014 directly relevant to IaaS use cases. Training commitment is genuine but concentrated in the Education Services team rather than permeating the entire organization.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Published ILT and eLearning Catalog | Strength:** Trellix Education Services offers a published training catalog with public ILT courses, eLearning, and private on-site classes \u2014 covering product training (design, setup, configuration, management) and security training (penetration testing, forensics, incident response) with explicit hands-on lab exercises. \u2014 Trellix Education Services page. Confirmed training investment across multiple delivery modalities.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Dedicated Customer Training Program | Strength:** Trellix Education Services explicitly positions training as maximizing ROI from product investment \u2014 a customer enablement framing that aligns directly with the Skillable value proposition of hands-on labs driving product adoption and time-to-value. \u2014 Trellix Education Services page. Training is positioned as a customer success driver, not just a support function.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Culture",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Education Services Team Scope | Context:** Training investment is confirmed but concentrated in the Education Services team \u2014 no evidence of training permeating multiple business units (e.g., separate SE enablement team, partner enablement team, certification team) at the scale seen in Cisco or CompTIA. \u2014 Trellix Education Services page. Training is real but organizational depth is moderate.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 17,
+              "weight": 25,
+              "summary": "Trellix operates an open security platform with documented API integrations across SIEM, SOAR, and TIP ecosystems \u2014 strong integration maturity signal. The partner program includes MSSPs, resellers, and technology partners. As a post-merger entity (McAfee Enterprise + FireEye), Trellix is a large organization that requires navigation but is workable. The open platform architecture and API-first design indicate a build-and-partner DNA rather than a closed ecosystem.",
+              "badges": [
+                {
+                  "name": "Integration Maturity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Open Platform API Architecture | Strength:** Trellix explicitly positions its platform as open and API-driven, with documented integrations across SIEM, SOAR, endpoint, network, and cloud security tools \u2014 strong integration maturity that makes IaaS API-based lab delivery technically straightforward and aligns with Skillable's API-first scoring approach. \u2014 Trellix platform page. Open architecture is a positive signal for lab buildability.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Security Platform"
+                    }
+                  ]
+                },
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**MSSP and Reseller Partner Program | Context:** Trellix operates a partner program including MSSPs, resellers, and technology partners \u2014 a delivery channel that could extend lab reach to partner technical staff, though the formalized ATP training network is not as developed as Cisco or CompTIA at this stage. \u2014 Trellix homepage (partner program inferred from enterprise security company norms). Partner channel exists but training-specific ATP structure is unconfirmed.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/",
+                      "source_title": "Trellix Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 16,
+              "weight": 30,
+              "summary": "Trellix delivers training through public ILT, private on-site classes, and eLearning. A partner program exists with MSSPs and resellers who could serve as training delivery channels. No confirmed ATP network specifically for training delivery at the scale of Cisco or CompTIA. No confirmed Skillable or major competitor lab platform in use \u2014 this is a greenfield opportunity. The Education Services team handles delivery directly.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Confirmed ATP Training Network | Risk:** Trellix delivers training directly through Education Services (public ILT, private on-site, eLearning) \u2014 no confirmed authorized training partner network specifically for lab-based delivery at the scale that would drive high consumption volume. \u2014 Trellix Education Services page. Direct delivery limits scale; partner channel development would significantly expand consumption potential.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Greenfield Lab Platform Opportunity | Opportunity:** No confirmed existing lab platform (Skillable, Instruqt, CloudShare, or other) in use for Trellix training \u2014 this is a greenfield opportunity with no incumbent to displace, and Trellix's existing hands-on lab exercises could be migrated to Skillable infrastructure. \u2014 Trellix Education Services page (no lab platform mentioned). Greenfield entry is lower friction than a competitive displacement.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 16,
+              "weight": 20,
+              "summary": "Trellix Education Services has confirmed content development capability \u2014 ILT courses with hands-on lab exercises are already produced. Security training courses (penetration testing, forensics, incident response) require technical build capability that is confirmed present. The team can build lab content but may need Skillable Professional Services support for the API integration and scoring components specific to IaaS labs.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Education Services Content Production | Strength:** Trellix Education Services produces ILT courses, eLearning, and hands-on lab exercises across product and security training tracks \u2014 confirmed content development capability that can be extended to Skillable-hosted lab authoring without starting from scratch. \u2014 Trellix Education Services page. Existing content team reduces time-to-first-lab.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                },
+                {
+                  "name": "Technical Build Team",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Security Training Technical Depth | Opportunity:** Trellix's security training catalog includes advanced technical courses (penetration testing, forensics, ICS/IoT security) that require technical build capability \u2014 instructors and content developers with hands-on security expertise are confirmed present, reducing the skill gap for IaaS lab authoring. \u2014 Trellix Education Services page. Technical depth in the content team is a positive signal for lab build feasibility.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.trellix.com/support/training/",
+                      "source_title": "Trellix Education Services"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 100,
+            "population_high": 250,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.04,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 500,
+            "population_high": 1500,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 300,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 200,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 500,
+            "population_high": 2000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.3,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 204,
+        "annual_hours_high": 1488,
+        "rate_per_hour": 0.0,
+        "acv_low": 2448.0,
+        "acv_high": 13320.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Solid Prospect",
+        "color": "green",
+        "fit_label": "HIGH FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Education Services or VP of Customer Enablement at Trellix",
+          "title": "VP of Education Services",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/trellix",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Training or Director of Customer Education at Trellix",
+          "title": "Director of Training",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/trellix",
+          "relevance": ""
+        }
+      ]
+    }
+  ],
+  "briefcase": {
+    "key_technical_questions": {
+      "pillar": "Product Labability",
+      "heading": "Key Technical Questions",
+      "bullets": [
+        "Find the VP of Education Services or VP of Customer Education at Trellix (likely under the Customer Success or GTM org) and ask: 'How are you currently delivering hands-on lab experiences for customers learning the Trellix XDR platform \u2014 are trainees working in shared environments, personal sandboxes, or simulated threat scenarios, and how are you measuring skill validation at the end of each course?'",
+        "Engage the Director of Technical Enablement and ask: 'Given that Trellix spans endpoint, network, email, and cloud security in a single platform, how are you replicating realistic multi-vector threat environments for training without exposing production infrastructure \u2014 and is your current lab setup able to run Hyper-V workloads at scale across a hybrid delivery model?'"
+      ]
+    },
+    "conversation_starters": {
+      "pillar": "Instructional Value",
+      "heading": "Conversation Starters",
+      "bullets": [
+        "Trellix's platform complexity is a training liability if customers can't practice in realistic environments \u2014 security buyers don't trust what they haven't touched. Skillable lets Trellix deliver scored, hands-on labs where learners detect and respond to simulated threats across the exact product surfaces they'll use in production, which directly accelerates time-to-value and reduces churn risk.",
+        "With Trellix's AI-powered XDR positioning, the differentiation lives in the workflow \u2014 not the datasheet. Skillable can build lab experiences that walk customers through live alert triage, policy configuration, and cross-vector correlation inside a sandboxed Trellix environment, giving Education Services a repeatable proof point that customers are actually competent, not just certified."
+      ]
+    },
+    "account_intelligence": {
+      "pillar": "Customer Fit",
+      "heading": "Account Intelligence",
+      "bullets": [
+        "Trellix was formed in 2022 from the merger of McAfee Enterprise and FireEye, meaning their Education Services org is still consolidating two legacy training catalogs into a unified curriculum \u2014 this is a high-urgency window to influence how hands-on lab infrastructure gets standardized across the combined portfolio.",
+        "Trellix has publicly invested in their Xtend partner ecosystem and customer success motion, signaling that scalable, repeatable technical enablement is a strategic priority \u2014 a 100/100 customer fit score and 92 overall fit confirm this org has both the complexity and the commercial incentive to invest in lab-based learning at scale.",
+        "Trellix's hybrid deployment model and Hyper-V orchestration requirements align precisely with Skillable's architecture \u2014 meaning there are no infrastructure blockers to a fast proof-of-concept, and the seller can credibly promise a working lab environment within weeks, not quarters."
+      ]
+    }
+  },
+  "analyzed_at": "2026-04-06T05:01:08.430750+00:00",
+  "analysis_id": "426ed093",
+  "discovery_id": "2fb1fe2e",
+  "total_products_discovered": 23
+}

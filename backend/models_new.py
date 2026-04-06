@@ -77,14 +77,24 @@ class PillarScore:
 
     Each Pillar scores out of 100 internally (sum of its dimension scores),
     then gets weighted to its share of the Fit Score.
+
+    `score_override` lets the scoring math layer set the pillar score
+    explicitly — used when ceiling flags cap Product Labability below the
+    raw dimension sum. Dimension scores remain authentic to the badges that
+    matched; the override only affects the pillar-level score and the
+    weighted contribution.
     """
     name: str
     weight: int                    # Percentage of Fit Score (40, 30, or 30)
     dimensions: list[DimensionScore] = field(default_factory=list)
+    score_override: Optional[int] = None  # Set by scoring_math when ceiling enforced
 
     @property
     def score(self) -> int:
-        """Pillar score = sum of dimension scores. Max 100."""
+        """Pillar score. If `score_override` is set (e.g., ceiling applied),
+        use it. Otherwise sum the dimensions, capped at 100."""
+        if self.score_override is not None:
+            return self.score_override
         return min(100, sum(d.score for d in self.dimensions))
 
     @property
@@ -103,6 +113,14 @@ class FitScore:
 
     Product Labability (40%) + Instructional Value (30%) = 70% product
     Customer Fit (30%) = 30% organization
+
+    Math layer audit trail:
+      - `total_override` — set by scoring_math when ceiling flags or the
+        Technical Fit Multiplier change the result from a naive weighted sum.
+      - `pl_score_pre_ceiling` — what Product Labability would have scored
+        without ceiling enforcement.
+      - `technical_fit_multiplier` — the multiplier applied to IV + CF.
+      - `ceilings_applied` — list of flags that capped Product Labability.
     """
     product_labability: PillarScore = field(default_factory=lambda: PillarScore(
         name="Product Labability", weight=40,
@@ -131,6 +149,10 @@ class FitScore:
             DimensionScore(name="Build Capacity", weight=20),
         ]
     ))
+    total_override: Optional[int] = None
+    pl_score_pre_ceiling: Optional[int] = None
+    technical_fit_multiplier: float = 1.0
+    ceilings_applied: list[dict] = field(default_factory=list)
 
     @property
     def pillars(self) -> list[PillarScore]:
@@ -138,7 +160,10 @@ class FitScore:
 
     @property
     def total(self) -> int:
-        """Fit Score = weighted sum of three Pillar scores. 0-100."""
+        """Fit Score. Uses `total_override` if set (e.g., math layer applied
+        ceilings or the Technical Fit Multiplier), otherwise weighted sum."""
+        if self.total_override is not None:
+            return self.total_override
         return round(sum(p.weighted_contribution for p in self.pillars))
 
     @property

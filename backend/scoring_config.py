@@ -981,8 +981,8 @@ TECHNICAL_FIT_MULTIPLIERS: tuple[TechnicalFitMultiplier, ...] = (
     TechnicalFitMultiplier(32, 100, "any", 1.0),
     TechnicalFitMultiplier(24, 31, "datacenter", 1.0),
     TechnicalFitMultiplier(19, 31, "non-datacenter", 0.75),
-    TechnicalFitMultiplier(10, 18, "any", 0.40),
-    TechnicalFitMultiplier(0, 9, "any", 0.15),
+    TechnicalFitMultiplier(10, 18, "any", 0.65),
+    TechnicalFitMultiplier(0, 9, "any", 0.50),
 )
 
 DATACENTER_METHODS = ("Hyper-V", "ESX", "Container", "Azure VM", "AWS VM")
@@ -996,11 +996,39 @@ DATACENTER_METHODS = ("Hyper-V", "ESX", "Container", "Azure VM", "AWS VM")
 # above the cap regardless of other signals.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-CEILING_FLAGS = {
-    "bare_metal_required": {"cap_if_gte_20": "Monitor", "cap_if_lt_20": "Pass"},
-    "no_api_automation": {"cap_if_gte_20": "Monitor", "cap_if_lt_20": "Pass"},
-    "saas_only": {"cap_if_gte_20": "Monitor", "cap_if_lt_20": "Pass", "max_score": 18},
-    "multi_tenant_only": {"cap_if_gte_20": "Monitor", "cap_if_lt_20": "Pass", "max_score": 15},
+BADGE_COLOR_POINTS: dict[str, int] = {
+    # Default points per badge color, applied to dimensions that use the
+    # badge-presence pattern instead of explicit scoring_signals (typically
+    # the Customer Fit pillar and parts of Instructional Value).
+    # Define-Once: every dimension that doesn't define its own signals reads
+    # these values to convert badge color into points.
+    "green": 6,
+    "gray": 2,
+    "amber": 0,
+    "red": -3,
+}
+
+
+CEILING_FLAGS: dict[str, dict] = {
+    # When the AI emits any of these flags, Product Labability cannot exceed
+    # the listed max_score regardless of how the dimension math came out.
+    # The math layer enforces this — the AI cannot bypass it.
+    "bare_metal_required": {
+        "max_score": 5,
+        "reason": "Physical hardware required — no virtualization path",
+    },
+    "no_api_automation": {
+        "max_score": 5,
+        "reason": "No API automation feasible — manual provisioning only",
+    },
+    "saas_only": {
+        "max_score": 18,
+        "reason": "Pure SaaS with no per-learner sandbox API",
+    },
+    "multi_tenant_only": {
+        "max_score": 15,
+        "reason": "Shared multi-tenant — no learner isolation possible",
+    },
 }
 
 

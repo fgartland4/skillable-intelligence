@@ -1,0 +1,651 @@
+{
+  "company_name": "Trellix",
+  "company_description": "Trellix is a cybersecurity company delivering an AI-powered, open security platform spanning endpoint, email, network, data, and cloud security with integrated threat detection and response capabilities.",
+  "company_url": "https://www.trellix.com",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Trellix Security Platform",
+      "category": "Cybersecurity",
+      "subcategory": "Unified Security Platform",
+      "description": "An open, AI-powered security platform that integrates endpoint, email, network, data, and cloud security controls into a single console for correlated detection and response. LEARN AI",
+      "deployment_model": "hybrid",
+      "discovery_score": 82,
+      "priority": 1,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Endpoint Security",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Protection",
+      "description": "A unified endpoint security agent providing attack surface reduction, protection, detection, forensics, and remediation across hybrid environments.",
+      "deployment_model": "hybrid",
+      "discovery_score": 88,
+      "priority": 2,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix EDR with Forensics",
+      "category": "Cybersecurity",
+      "subcategory": "Detection & Response",
+      "description": "Endpoint detection and response solution with integrated forensics capabilities for investigating and remediating advanced threats.",
+      "deployment_model": "hybrid",
+      "discovery_score": 87,
+      "priority": 3,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Endpoint Forensics",
+      "category": "Cybersecurity",
+      "subcategory": "Digital Forensics",
+      "description": "Provides deep forensic investigation capabilities at the endpoint level to analyze and reconstruct security incidents.",
+      "deployment_model": "hybrid",
+      "discovery_score": 85,
+      "priority": 4,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Application and Change Control",
+      "category": "Cybersecurity",
+      "subcategory": "Application Control",
+      "description": "Controls which applications can run on endpoints and monitors unauthorized changes to protect against malware and insider threats.",
+      "deployment_model": "hybrid",
+      "discovery_score": 80,
+      "priority": 5,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Mobile Security",
+      "category": "Cybersecurity",
+      "subcategory": "Mobile Security",
+      "description": "Provides threat detection and protection for mobile devices across iOS and Android platforms.",
+      "deployment_model": "hybrid",
+      "discovery_score": 68,
+      "priority": 6,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix ePolicy Orchestrator (ePO)",
+      "category": "Cybersecurity",
+      "subcategory": "Security Management",
+      "description": "Centralized security management platform for deploying, managing, and reporting on Trellix endpoint and security products across an enterprise.",
+      "deployment_model": "hybrid",
+      "discovery_score": 90,
+      "priority": 7,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Data Loss Prevention",
+      "category": "Data Protection",
+      "subcategory": "DLP",
+      "description": "Monitors and controls data movement across endpoints, networks, and cloud to prevent unauthorized data exfiltration.",
+      "deployment_model": "hybrid",
+      "discovery_score": 85,
+      "priority": 8,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Data Encryption",
+      "category": "Data Protection",
+      "subcategory": "Encryption",
+      "description": "Provides full-disk, file, and removable media encryption to protect sensitive data at rest on endpoints and storage devices.",
+      "deployment_model": "hybrid",
+      "discovery_score": 80,
+      "priority": 9,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Database Security",
+      "category": "Data Protection",
+      "subcategory": "Database Security",
+      "description": "Monitors and protects databases from unauthorized access, SQL injection, and insider threats with real-time activity monitoring.",
+      "deployment_model": "hybrid",
+      "discovery_score": 78,
+      "priority": 10,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Network Security",
+      "category": "Cybersecurity",
+      "subcategory": "Network Detection & Response",
+      "description": "Network detection and response solution that identifies and blocks advanced threats traversing the network using behavioral analysis.",
+      "deployment_model": "hybrid",
+      "discovery_score": 85,
+      "priority": 11,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Network Forensics",
+      "category": "Cybersecurity",
+      "subcategory": "Network Forensics",
+      "description": "Captures and analyzes full network packet data to support forensic investigation of network-based security incidents.",
+      "deployment_model": "hybrid",
+      "discovery_score": 82,
+      "priority": 12,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Intrusion Prevention System",
+      "category": "Cybersecurity",
+      "subcategory": "Intrusion Prevention",
+      "description": "Network-based intrusion prevention system that detects and blocks known and zero-day exploits in real time.",
+      "deployment_model": "hybrid",
+      "discovery_score": 83,
+      "priority": 13,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Insights",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "Provides prioritized threat intelligence and risk scoring to help security teams focus on the most relevant threats to their environment. LEARN AI",
+      "deployment_model": "saas-only",
+      "discovery_score": 55,
+      "priority": 14,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Trellix SecondSight",
+      "category": "Cybersecurity",
+      "subcategory": "Security Posture Management",
+      "description": "Delivers visibility into security posture and risk exposure across the enterprise to support executive and operational decision-making.",
+      "deployment_model": "saas-only",
+      "discovery_score": 50,
+      "priority": 15,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Trellix Threat Intelligence Exchange",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "Enables real-time sharing of threat intelligence between Trellix products and third-party security tools to accelerate threat detection and response.",
+      "deployment_model": "hybrid",
+      "discovery_score": 78,
+      "priority": 16,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Advanced Threat Landscape Analysis System (ATLAS)",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "Aggregates and analyzes global threat telemetry to provide contextual intelligence on the evolving advanced threat landscape.",
+      "deployment_model": "saas-only",
+      "discovery_score": 48,
+      "priority": 17,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Trellix Global Threat Intelligence",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "Cloud-based threat intelligence feed that provides reputation data on files, IPs, URLs, and domains to enhance security product efficacy.",
+      "deployment_model": "saas-only",
+      "discovery_score": 45,
+      "priority": 18,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Trellix Private Global Threat Intelligence",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "An on-premises version of Trellix's global threat intelligence service for organizations with air-gapped or high-privacy requirements.",
+      "deployment_model": "installable",
+      "discovery_score": 72,
+      "priority": 19,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Intelligence as a Service",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Intelligence",
+      "description": "Subscription-based threat intelligence service delivering curated, actionable intelligence reports and feeds to security teams.",
+      "deployment_model": "saas-only",
+      "discovery_score": 40,
+      "priority": 20,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Trellix Email Security",
+      "category": "Cybersecurity",
+      "subcategory": "Email Security",
+      "description": "Protects organizations from phishing, malware, business email compromise, and other email-borne threats using advanced detection techniques.",
+      "deployment_model": "hybrid",
+      "discovery_score": 82,
+      "priority": 21,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Collaboration Security",
+      "category": "Cybersecurity",
+      "subcategory": "Collaboration Security",
+      "description": "Extends threat protection to collaboration platforms such as Microsoft Teams and SharePoint to detect malicious content and links.",
+      "deployment_model": "hybrid",
+      "discovery_score": 70,
+      "priority": 22,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Security Operations Platform (XDR)",
+      "category": "Cybersecurity",
+      "subcategory": "SIEM/SOAR",
+      "description": "Extended detection and response platform that correlates telemetry across endpoint, network, email, and cloud to accelerate threat investigation and response. LEARN AI",
+      "deployment_model": "hybrid",
+      "discovery_score": 88,
+      "priority": 23,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Helix",
+      "category": "Cybersecurity",
+      "subcategory": "SIEM/SOAR",
+      "description": "Cloud-native security operations platform providing SIEM, SOAR, and threat intelligence integration for unified security operations.",
+      "deployment_model": "saas-only",
+      "discovery_score": 65,
+      "priority": 24,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Wise",
+      "category": "AI/ML Platform",
+      "subcategory": "AI Security Operations",
+      "description": "Purpose-built generative and predictive AI engine embedded in the Trellix platform to power detections, guided investigations, and threat summarization. CREATE AI / LEARN AI",
+      "deployment_model": "saas-only",
+      "discovery_score": 60,
+      "priority": 25,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Trellix Cloud Security",
+      "category": "Cloud Infrastructure",
+      "subcategory": "Cloud Security Posture",
+      "description": "Provides visibility and threat protection across multi-cloud environments including AWS, Azure, and Google Cloud.",
+      "deployment_model": "hybrid",
+      "discovery_score": 75,
+      "priority": 26,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Malware Analysis",
+      "category": "Cybersecurity",
+      "subcategory": "Malware Analysis",
+      "description": "Dynamic and static malware analysis sandbox that detonates suspicious files and URLs to identify malicious behavior.",
+      "deployment_model": "hybrid",
+      "discovery_score": 86,
+      "priority": 27,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Trellix Detection as a Service",
+      "category": "Cybersecurity",
+      "subcategory": "Managed Detection",
+      "description": "Cloud-based file and URL detonation service that provides on-demand malware analysis results via API integration.",
+      "deployment_model": "saas-only",
+      "discovery_score": 52,
+      "priority": 28,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Trellix Managed Detection and Response (MDR)",
+      "category": "Cybersecurity",
+      "subcategory": "Managed Security Services",
+      "description": "Fully managed 24/7 threat detection and response service delivered by Trellix security experts on behalf of customers.",
+      "deployment_model": "saas-only",
+      "discovery_score": 35,
+      "priority": 29,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Trellix Education Services",
+      "category": "Training & Certification",
+      "subcategory": "Product Training",
+      "description": "Trellix's official training program offering instructor-led, eLearning, and hands-on lab courses for Trellix product configuration, management, and security best practices.",
+      "deployment_model": "hybrid",
+      "discovery_score": 0,
+      "priority": 30,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "CrowdStrike",
+      "product_name": "Falcon Platform",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Protection",
+      "competitive_context": "CrowdStrike Falcon competes directly with Trellix Endpoint Security and EDR as a cloud-native endpoint protection and XDR platform."
+    },
+    {
+      "competitor_name": "Palo Alto Networks",
+      "product_name": "Cortex XDR",
+      "category": "Cybersecurity",
+      "subcategory": "Detection & Response",
+      "competitive_context": "Cortex XDR competes with Trellix's XDR and endpoint security portfolio for enterprise threat detection and response."
+    },
+    {
+      "competitor_name": "Microsoft",
+      "product_name": "Microsoft Defender",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Protection",
+      "competitive_context": "Microsoft Defender for Endpoint competes with Trellix Endpoint Security across enterprise endpoint protection and EDR."
+    },
+    {
+      "competitor_name": "Broadcom (Symantec)",
+      "product_name": "Symantec Endpoint Security",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Protection",
+      "competitive_context": "Symantec Endpoint Security competes with Trellix across endpoint, DLP, and email security product lines."
+    },
+    {
+      "competitor_name": "Proofpoint",
+      "product_name": "Proofpoint Email Security",
+      "category": "Cybersecurity",
+      "subcategory": "Email Security",
+      "competitive_context": "Proofpoint competes with Trellix Email Security for enterprise email threat protection and anti-phishing."
+    },
+    {
+      "competitor_name": "Forcepoint",
+      "product_name": "Forcepoint DLP",
+      "category": "Data Protection",
+      "subcategory": "DLP",
+      "competitive_context": "Forcepoint DLP competes with Trellix Data Loss Prevention for enterprise data protection and insider threat management."
+    },
+    {
+      "competitor_name": "SentinelOne",
+      "product_name": "Singularity Platform",
+      "category": "Cybersecurity",
+      "subcategory": "Detection & Response",
+      "competitive_context": "SentinelOne Singularity competes with Trellix's endpoint and XDR platform using autonomous AI-driven detection."
+    },
+    {
+      "competitor_name": "Splunk",
+      "product_name": "Splunk SIEM",
+      "category": "Cybersecurity",
+      "subcategory": "SIEM/SOAR",
+      "competitive_context": "Splunk SIEM competes with Trellix Helix for security operations, log management, and threat correlation."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": "Trellix Technology Alliance Program (TAP)",
+    "channel_program": "Trellix Xtend Global Partner Program",
+    "ondemand_library": 1,
+    "cert_program": 0,
+    "existing_lab_partner": [],
+    "ilt_vilt": "Instructor-led and eLearning courses offered through Trellix Education Services",
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "atp_page": "Education Services | Trellix Take a Product Tour Request a Demo Cybersecurity Assessment Contact Us Education Services A broad training portfolio maximizes the benefit and ROI from your solutions. Product Training To gain maximum value from your solutions, you need expertly trained staff to configure and manage your solutions more efficiently, and optimally safeguard your critical data. You also need your staff on-site, doing their job. Now you can have both. We offer a wide range of hands-on product training courses to help you design, set up, configure, and manage your solutions. Our courses help you make the most of your product investment. Browse our public instructor-led courses for scheduled offerings. Browse our selection of eLearning courses, available online at any time. To schedule a private course for your organization or to inquire about a custom course, please contact us . Explore and Register for Training Security Training Get comprehensive and focused in-person classroom training. Held in private classes at your location, our fully immersive training is led by our experienced security instructors and gives you the opportunity to build best practices for implementing a cybersecurity strategy. Gain the skills you need to proactively defend against the latest security threats. Our comprehensive security training from top industry experts helps your IT professionals gain proficiency in best practices to implement your security strategy and better respond to incidents. Our security courses provide training to help security professionals build secure software and applications, assess vulnerabilities to defend against hacker attacks, and gain critical computer forensics skills to better respond to incidents. Taught by network security experts, our security training features interactive demonstrations and hands-on lab exercises. These instructor-led courses are offered in private classrooms only. To schedule please contact us . Courses IT Risk Strategy - Measure and Treat IT Risk Across Your Enterprise. Application Security Training - Courses include: Attacking Web Applications, Attacking Android and iOS, Building Secure Software, Writing Secure Code: Java. Infrastructure Security Training - Courses include: Beginning Assessment & Penetration Testing, Advanced Assessment and Penetration Testing, Attacking Wireless Technologies, Attacking Firmware, Industrial Control Security, Attacking ICS and IoT. Forensics and Incident Response - Courses include: ",
+    "training_page": "Education Services | Trellix Take a Product Tour Request a Demo Cybersecurity Assessment Contact Us Education Services A broad training portfolio maximizes the benefit and ROI from your solutions. Product Training To gain maximum value from your solutions, you need expertly trained staff to configure and manage your solutions more efficiently, and optimally safeguard your critical data. You also need your staff on-site, doing their job. Now you can have both. We offer a wide range of hands-on product training courses to help you design, set up, configure, and manage your solutions. Our courses help you make the most of your product investment. Browse our public instructor-led courses for scheduled offerings. Browse our selection of eLearning courses, available online at any time. To schedule a private course for your organization or to inquire about a custom course, please contact us . Explore and Register for Training Security Training Get comprehensive and focused in-person classroom training. Held in private classes at your location, our fully immersive training is led by our experienced security instructors and gives you the opportunity to build best practices for implementing a cybersecurity strategy. Gain the skills you need to proactively defend against the latest security threats. Our comprehensive security training from top industry experts helps your IT professionals gain proficiency in best practices to implement your security strategy and better respond to incidents. Our security courses provide training to help security professionals build secure software and applications, assess vulnerabilities to defend against hacker attacks, and gain critical computer forensics skills to better respond to incidents. Taught by network security experts, our security training features interactive demonstrations and hands-on lab exercises. These instructor-led courses are offered in private classrooms only. To schedule please contact us . Courses IT Risk Strategy - Measure and Treat IT Risk Across Your Enterprise. Application Security Training - Courses include: Attacking Web Applications, Attacking Android and iOS, Building Secure Software, Writing Secure Code: Java. Infrastructure Security Training - Courses include: Beginning Assessment & Penetration Testing, Advanced Assessment and Penetration Testing, Attacking Wireless Technologies, Attacking Firmware, Industrial Control Security, Attacking ICS and IoT. Forensics and Incident Response - Courses include: ",
+    "company_homepage": "Endpoint, Data, Network, and Email Security Products | Trellix Take a Product Tour Request a Demo Cybersecurity Assessment Contact Us Products Delivering industry-leading device-to-cloud security across multi-cloud and on-premises\u00a0environments Request a Demo Stay updated OTP Validation Please check your email for a one-time-password. The password expires in 10\r\n                minutes. One-Time-Password Please enter OTP. Submit Resend\u00a0OTP Explore our industry leading platform and products with an interactive self-guided tour The Trellix Security Platform Strengthen your security posture and protect your organization with confidence. Reduce risk, cost, complexity, and time to value with one single, open, comprehensive AI-powered platform. Explore the Trellix Security Platform , powered by Trellix\u00a0Wise . Endpoint Security One agent for attack surface reduction, protection, detection, forensics, and remediation across your hybrid environment. Trellix Endpoint Security Trellix EDR with Forensics | Take a Tour Trellix Endpoint Forensics Trellix Application and Change Control Trellix Mobile Security Trellix ePolicy Orchestrator (ePO) | Take a Tour Explore Endpoint Security Products Data Security Protect the data that matters. Trellix Data Loss Prevention Trellix Data Encryption Trellix Database Security Explore Data Security Products | Take a Tour Network Detection and Response Eliminate network security blind spots with Trellix NDR. Trellix Network Security Trellix Network Forensics Trellix Intrusion Prevention System Explore NDR Products | Take a Tour Threat Intelligence Empower your efforts with mission-critical insights on the ever-evolving threat landscape. Trellix Insights | Take a Tour Trellix SecondSight Trellix Threat Intelligence Exchange Trellix Advanced Threat Landscape Analysis System Trellix Global Threat Intelligence Trellix Private Global Threat Intelligence Trellix Intelligence as a Service Explore Threat Intelligence Products Email Security Collaborate confidently with adaptive, automated security for email and collaboration tools. Trellix Email Security Trellix Phishing Simulator Trellix IVX for Collaboration Platforms Trellix IVX for Enterprise Applications Explore Email Security Products | Take a Tour Security Operations Integrated, AI-powered SecOps to accelerate investigation and response. Trellix Helix | Take a Tour Trellix Hyperautomation Trellix Enterprise Security Manager Explore Security Operations Products Endpoint Security Data Secu",
+    "partner_portal_page": "Partners | Trellix Take a Product Tour Request a Demo Cybersecurity Assessment Contact Us Trellix Partners Explore our NEW Xtend Global Partner Program Become a Partner Trellix Partner Portal Xtend Partner Program Our partnership advances your security business with a new approach to security that is fast enough to keep up with dynamic threats and intelligent enough to learn from them. Partnering with Trellix extends your customer relationships by developing trust, applying security expertise, and customizing your security offerings to defend against the biggest cyber threats. Trellix Partner Portal Login OEM & Embedded Alliance Build security directly into your products Deliver robust protection, by embedding into Trellix solutions, to serve customers with the unique advantage of purpose-built security directly into your products. Learn More Partner Delivered Services Best-in-class security services Get the help you need whether it is deploying solutions, hardening your defenses, managing your environment, or transforming your business. Learn More Become a Partner Partner with Trellix to deliver best-in-class, optimized security solutions to your customers. Trellix partners have the inside track on trending security issues, technologies, and products. Become a Partner Security Advisors Provide security expertise delivered through a sophisticated range of efficient cybersecurity services to ensure customers can rise to any security challenge and become cyber-resilient while mitigating risk. Marketplace Partners Deliver emerging, digitally scalable buying motions based on simplicity, flexibility, and minimum time to value. Technology Alliance Program The Technology Alliance Program (TAP) brings together innovative technology partners to deliver scalable, seamless integrations with the Trellix AI-powered security platform. Guided by a customer-first approach, we focus on extending protection, simplifying complex environments, and driving measurable impact where it matters most. Ready to build with Trellix? Submit an integration request to join our Technology Partnership Ecosystem. Stay updated OTP Validation Please check your email for a one-time-password. The password expires in 10\r\n                minutes. One-Time-Password Please enter OTP. Submit Resend\u00a0OTP Search Tips Be concise and specific: Wrong: I want to learn how to migrate to Trellix Endpoint Security Right: Trellix Endpoint Security migration Use quotation marks to find a specific phrase: \u201cmigra",
+    "product_page_1": "Trellix | Revolutionary Threat Detection and Response Take a Product Tour Request a Demo Cybersecurity Assessment Contact Us The Platform CISOs\u00a0Trust Trellix empowers SecOps worldwide with the industry\u2019s broadest and responsibly architected, GenAI-powered security platform. Take a Product Tour Request a Demo Explore Our Platform CyberThreat Report Insights from a global network of experts, sensors, telemetry, and intelligence Read the Report OT Threat Report for Email Security NEW Insights into the latest Operational Technology threat landscape Download the Report On-Demand Webinar Webinar Title Goes Here Link The Mind of the CISO NEW Closing the gap between reaction and readiness: Stay ahead of evolving threats. Get the E-book On-Demand Webinar Threat Trajectories: What 2025 Taught - and What 2026 Will Test Register Now Integrated platform across endpoint, email, network, data, cloud, and security operations + Broadest Security Platform Highest efficacy results across standardized tests for detection and response + Industry Leading Detection and Response Generative and Predictive-AI to power detections, guided investigations, summarization, and threat landscape contextualization + Purpose Built GenAI Resiliency in architecture, management, and operations across on-premises, hybrid, and cloud + Resilient by Design Architecture Trellix Security Platform Build resilience, reduce risk, and protect against the latest cyber threats with industry leading products built on the broadest, AI-powered , open security\u00a0platform . P o w e r o f A I H a r n e s s t h e C l o u d , H y b r i d S e c u r e O n - p r e m , M a n a g e i n O n e P l a c e C o r r e l a t e , A n a l y z e a n d O r c h e s t r a t e P r o t e c t y o u r I n f r a s t r u c t u r e E n v i r o n m e n t s T r e l l i x W i s e S i n g l e C o n s o l e S e c u r i t y C o n t r o l s A p p l i c a t i o n s Platform Environments Cloud On-Prem Hybrid Air-Gapped Partner Managed Trellix Wise Purpose-Built GenAI Operational Intelligence High-Fidelity Targeted ML Guided Response Security Controls Endpoint Network Data Email Cloud 3rd Party Applications Detection & Prioritization Context & Enrichment Platform Wide Correlation Threat Hunting & Forensics Single Console Threat Hunting Dashboarding Case Management Policy & Configuration 00,000 + Customers across the Trellix platform 000 % Recommend the Trellix platform to their peers 0 Hours of SOC time saved for every 100\u00a0alerts < 0 Minutes to triage",
+    "product_page_0": "Endpoint, Data, Network, and Email Security Products | Trellix Take a Product Tour Request a Demo Cybersecurity Assessment Contact Us Products Delivering industry-leading device-to-cloud security across multi-cloud and on-premises\u00a0environments Request a Demo Stay updated OTP Validation Please check your email for a one-time-password. The password expires in 10\r\n                minutes. One-Time-Password Please enter OTP. Submit Resend\u00a0OTP Explore our industry leading platform and products with an interactive self-guided tour The Trellix Security Platform Strengthen your security posture and protect your organization with confidence. Reduce risk, cost, complexity, and time to value with one single, open, comprehensive AI-powered platform. Explore the Trellix Security Platform , powered by Trellix\u00a0Wise . Endpoint Security One agent for attack surface reduction, protection, detection, forensics, and remediation across your hybrid environment. Trellix Endpoint Security Trellix EDR with Forensics | Take a Tour Trellix Endpoint Forensics Trellix Application and Change Control Trellix Mobile Security Trellix ePolicy Orchestrator (ePO) | Take a Tour Explore Endpoint Security Products Data Security Protect the data that matters. Trellix Data Loss Prevention Trellix Data Encryption Trellix Database Security Explore Data Security Products | Take a Tour Network Detection and Response Eliminate network security blind spots with Trellix NDR. Trellix Network Security Trellix Network Forensics Trellix Intrusion Prevention System Explore NDR Products | Take a Tour Threat Intelligence Empower your efforts with mission-critical insights on the ever-evolving threat landscape. Trellix Insights | Take a Tour Trellix SecondSight Trellix Threat Intelligence Exchange Trellix Advanced Threat Landscape Analysis System Trellix Global Threat Intelligence Trellix Private Global Threat Intelligence Trellix Intelligence as a Service Explore Threat Intelligence Products Email Security Collaborate confidently with adaptive, automated security for email and collaboration tools. Trellix Email Security Trellix Phishing Simulator Trellix IVX for Collaboration Platforms Trellix IVX for Enterprise Applications Explore Email Security Products | Take a Tour Security Operations Integrated, AI-powered SecOps to accelerate investigation and response. Trellix Helix | Take a Tour Trellix Hyperautomation Trellix Enterprise Security Manager Explore Security Operations Products Endpoint Security Data Secu"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "9a788b7e",
+  "created_at": "2026-04-06T02:46:48.333472+00:00",
+  "known_products": [],
+  "_lab_platform_detections": [
+    {
+      "platform": "Skillable",
+      "urls": [],
+      "mentions": [
+        "LOD"
+      ],
+      "evidence_type": "mention",
+      "is_skillable": true
+    },
+    {
+      "platform": "TryHackMe",
+      "urls": [],
+      "mentions": [
+        "THM"
+      ],
+      "evidence_type": "mention",
+      "is_skillable": false
+    }
+  ],
+  "_company_badge": "SOFTWARE",
+  "_org_color": "purple",
+  "_scraped_families": [
+    {
+      "name": "Clear",
+      "url": "#"
+    },
+    {
+      "name": "Search Tips",
+      "url": "#"
+    },
+    {
+      "name": "Products",
+      "url": "https://www.trellix.com/products/"
+    },
+    {
+      "name": "Advanced Research Center",
+      "url": "https://www.trellix.com/advanced-research-center/"
+    },
+    {
+      "name": "Newsroom",
+      "url": "https://www.trellix.com/news/"
+    },
+    {
+      "name": "Trellix WiseInvestigate 100% of alerts with GenAI",
+      "url": "https://www.trellix.com/platform/wise/"
+    },
+    {
+      "name": "Endpoint Security",
+      "url": "https://www.trellix.com/platform/endpoint-security/"
+    },
+    {
+      "name": "Data Security",
+      "url": "https://www.trellix.com/platform/data-security/"
+    },
+    {
+      "name": "Network Detection and Response",
+      "url": "https://www.trellix.com/platform/network-detection-and-response/"
+    },
+    {
+      "name": "Threat Intelligence",
+      "url": "https://www.trellix.com/platform/threat-intelligence/"
+    },
+    {
+      "name": "Email Security",
+      "url": "https://www.trellix.com/platform/email-security/"
+    },
+    {
+      "name": "Security Operations",
+      "url": "https://www.trellix.com/platform/secops/"
+    },
+    {
+      "name": "View All Products",
+      "url": "https://www.trellix.com/products/"
+    },
+    {
+      "name": "Operational Technology",
+      "url": "https://www.trellix.com/solutions/operational-technology/"
+    },
+    {
+      "name": "Ransomware Detection and Response",
+      "url": "https://www.trellix.com/solutions/ransomware/"
+    },
+    {
+      "name": "AI and Security Operations",
+      "url": "https://www.trellix.com/solutions/ai-and-security-operations/"
+    },
+    {
+      "name": "Government",
+      "url": "https://www.trellix.com/solutions/public-sector/"
+    },
+    {
+      "name": "Healthcare",
+      "url": "https://www.trellix.com/solutions/healthcare/"
+    },
+    {
+      "name": "Services Overview",
+      "url": "https://www.trellix.com/services/"
+    },
+    {
+      "name": "Professional Services",
+      "url": "https://www.trellix.com/services/professional-services/"
+    },
+    {
+      "name": "Trellix Guardians",
+      "url": "https://www.trellix.com/services/trellix-guardians/"
+    },
+    {
+      "name": "Managed Detection and Response",
+      "url": "https://www.trellix.com/services/mdr/"
+    },
+    {
+      "name": "Trellix Thrive",
+      "url": "https://www.trellix.com/services/thrive/"
+    },
+    {
+      "name": "Education Services",
+      "url": "https://www.trellix.com/services/education-services/"
+    },
+    {
+      "name": "Training Courses",
+      "url": "https://training-catalog.trellix.com/"
+    },
+    {
+      "name": "Partners Overview",
+      "url": "https://www.trellix.com/partners/"
+    },
+    {
+      "name": "OEM & Embedded Alliances",
+      "url": "https://www.trellix.com/partners/oem-alliances/"
+    },
+    {
+      "name": "Partner Delivered Services",
+      "url": "https://www.trellix.com/partners/delivered-services/"
+    },
+    {
+      "name": "Become a Partner",
+      "url": "https://partners.trellix.com/partner/public/en-us/register.html"
+    },
+    {
+      "name": "Search for a Trellix Partner",
+      "url": "https://www.trellix.com/partners/partner-locator/"
+    },
+    {
+      "name": "Amazon Web Services (AWS)",
+      "url": "https://www.trellix.com/partners/aws/"
+    },
+    {
+      "name": "Google Cloud",
+      "url": "https://www.trellix.com/partners/google-cloud/"
+    },
+    {
+      "name": "Telef\u00f3nica Tech",
+      "url": "https://www.trellix.com/partners/telefonica/"
+    },
+    {
+      "name": "Product Tours",
+      "url": "https://www.trellix.com/tours/"
+    },
+    {
+      "name": "Trellix Product Tours",
+      "url": "https://www.trellix.com/tours/"
+    },
+    {
+      "name": "Get Started",
+      "url": "https://www.trellix.com/get-started/"
+    },
+    {
+      "name": "The Trellix Platform Advantage",
+      "url": "https://www.trellix.com/platform/"
+    },
+    {
+      "name": "Trellix Insights",
+      "url": "https://www.trellix.com/advanced-research-center/insights-preview/"
+    },
+    {
+      "name": "Threat Reports",
+      "url": "https://www.trellix.com/advanced-research-center/threat-reports/"
+    },
+    {
+      "name": "Trellix Wise",
+      "url": "https://www.trellix.com/platform/wise/"
+    },
+    {
+      "name": "Security Innovation Alliance",
+      "url": "https://www.trellix.com/partners/security-innovation-alliance/"
+    },
+    {
+      "name": "Resource Library",
+      "url": "https://www.trellix.com/resource-library/"
+    },
+    {
+      "name": "Customer Stories",
+      "url": "https://www.trellix.com/customers/"
+    },
+    {
+      "name": "The Mind of the CISO",
+      "url": "https://www.trellix.com/mind-of-the-ciso/"
+    },
+    {
+      "name": "Security Awareness Topics",
+      "url": "https://www.trellix.com/security-awareness/"
+    },
+    {
+      "name": "Trust Center",
+      "url": "https://www.trellix.com/trust/"
+    },
+    {
+      "name": "Trellix Partner Portal",
+      "url": "https://partners.trellix.com/partner"
+    },
+    {
+      "name": "Trellix Developer Portal",
+      "url": "https://developer.manage.trellix.com/"
+    },
+    {
+      "name": "Trellix Marketplace",
+      "url": "https://marketplace.manage.trellix.com/"
+    }
+  ]
+}

@@ -19,7 +19,7 @@
             color: var(--sk-text); min-height: 100vh;
         }
         a { color: var(--sk-accent); text-decoration: none; }
-        a:hover { color: #1dd88a; }
+        a:hover { color: var(--sk-accent-soft); }
 
         /* ── Page layout ── */
         .page { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
@@ -33,10 +33,14 @@
         }
         .btn-back:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
 
-        /* ── Header ── */
+        /* ── Header ── sticky so Deep Dive button stays visible (sits below shared nav) */
         .header {
             display: flex; align-items: flex-start; justify-content: space-between;
             gap: 20px; margin-bottom: 28px;
+            position: sticky; top: 61px; z-index: 5;
+            background-color: var(--sk-bg);
+            padding: 16px 0 16px;
+            border-bottom: 1px solid var(--sk-border);
         }
         .header-left { flex: 1 1 auto; min-width: 0; max-width: calc(100% - 320px); }
         .company-title {
@@ -59,7 +63,7 @@
             font-weight: 700; cursor: pointer;
             transition: background 0.15s, box-shadow 0.15s;
         }
-        .btn-deep-dive:hover:not(:disabled) { background: #1dd88a; box-shadow: 0 0 20px rgba(36,237,155,0.28); }
+        .btn-deep-dive:hover:not(:disabled) { background: var(--sk-accent-soft); box-shadow: 0 0 20px rgba(36,237,155,0.28); }
         .btn-deep-dive:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
 
         .btn-view-prev {
@@ -114,7 +118,7 @@
             transition: border-color 0.15s, background 0.15s;
             user-select: none;
         }
-        .product-card:hover { background: #0f2018; border-color: rgba(36,237,155,0.22); }
+        .product-card:hover { background: var(--sk-hover-bg); border-color: rgba(36,237,155,0.22); }
         .product-card.card-checked { border-color: rgba(36,237,155,0.45); background: rgba(36,237,155,0.04); }
         .product-card.card-dimmed { opacity: 0.38; pointer-events: none; }
 
@@ -122,7 +126,7 @@
 
         .cb-visual {
             width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0;
-            border: 1.5px solid #2a4a3a; background: transparent;
+            border: 1.5px solid var(--sk-border); background: transparent;
             display: flex; align-items: center; justify-content: center;
             transition: background 0.12s, border-color 0.12s;
         }
@@ -141,10 +145,9 @@
             font-size: 0.73rem; color: var(--sk-border); font-style: italic; padding-left: 4px;
         }
 
-        /* ── Right panel — sticky so Deep Dive button is always visible ── */
+        /* ── Right panel ── */
         .right-col {
             display: flex; flex-direction: column; gap: 12px;
-            position: sticky; top: 80px; align-self: start;
         }
 
         .panel-box {
@@ -183,7 +186,7 @@
         /* Competitive Landscape */
         .comp-card { cursor: default; padding: 10px 14px; }
         .comp-card:hover { background: var(--sk-surface); border-color: var(--sk-border); }
-        .comp-name { font-weight: 600; color: #94a3b8; }
+        .comp-name { font-weight: 600; color: var(--sk-context); }
         .comp-product { color: var(--sk-text-dim); font-size: 0.73rem; }
 
         /* Family picker modal */
@@ -221,7 +224,7 @@
             border: none; border-radius: 9px; font-size: 0.88rem;
             font-weight: 700; cursor: pointer; transition: background 0.15s;
         }
-        .btn-family-continue:hover { background: #1dd88a; }
+        .btn-family-continue:hover { background: var(--sk-accent-soft); }
         .btn-family-continue:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
     </style>
 </head>
@@ -294,7 +297,7 @@
             <div class="tier-section {% if tier_prods | length == 0 %}tier-empty{% endif %}">
                 <div class="tier-hdr">
                     <span class="tier-lbl t-{{ tier_cls }}">{{ tier_label }}</span>
-                    <span class="tier-rule" style="color: {% if tier_cls == 'sp' %}var(--sk-accent){% elif tier_cls == 'l' %}#6dd9a8{% elif tier_cls == 'u' %}var(--sk-score-mid){% else %}var(--sk-score-low-soft){% endif %}"></span>
+                    <span class="tier-rule" style="color: {% if tier_cls == 'sp' %}var(--sk-accent){% elif tier_cls == 'l' %}var(--sk-accent-pale){% elif tier_cls == 'u' %}var(--sk-score-mid){% else %}var(--sk-score-low-soft){% endif %}"></span>
                 </div>
 
                 {% if tier_prods %}
@@ -326,8 +329,8 @@
             {% if discovery.competitive_landscape %}
             <div class="tier-section" style="margin-top: 12px;">
                 <div class="tier-hdr">
-                    <span class="tier-lbl" style="color: #94a3b8;">COMPETITIVE LANDSCAPE</span>
-                    <span class="tier-rule" style="color: #94a3b8;"></span>
+                    <span class="tier-lbl" style="color: var(--sk-context);">COMPETITIVE LANDSCAPE</span>
+                    <span class="tier-rule" style="color: var(--sk-context);"></span>
                 </div>
                 <div class="tier-cards">
                     {% for c in discovery.competitive_landscape %}

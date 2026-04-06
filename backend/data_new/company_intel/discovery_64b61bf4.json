@@ -1,0 +1,314 @@
+{
+  "company_name": "Nasuni",
+  "company_description": "Nasuni is a hybrid cloud file data platform company that unifies storage, protection, and management of enterprise unstructured data, delivering a global file system built on object storage with ransomware protection, multi-site collaboration, and AI-readiness.",
+  "company_url": "https://www.nasuni.com",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Nasuni File Data Platform",
+      "category": "Data Protection",
+      "subcategory": "Cloud File Storage",
+      "description": "A hybrid cloud file data platform providing a single global file system with unlimited scalability, built-in security, ransomware recovery, and fast user access built on object storage.",
+      "deployment_model": "hybrid",
+      "discovery_score": 72,
+      "priority": 1,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Nasuni Ransomware Protection",
+      "category": "Cybersecurity",
+      "subcategory": "Ransomware Defense",
+      "description": "Scans for malicious activity and ransomware signatures at the edge to prevent infiltration and enable rapid recovery from ransomware attacks on file data.",
+      "deployment_model": "hybrid",
+      "discovery_score": 75,
+      "priority": 2,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Nasuni IQ",
+      "category": "Data & Analytics",
+      "subcategory": "Storage Analytics",
+      "description": "Collects usage statistics and system-wide information to enable chargeback reporting, capacity planning, operational forensics, data resource optimization, and AI implementation preparation; LEARN AI embedded analytics.",
+      "deployment_model": "saas-only",
+      "discovery_score": 20,
+      "priority": 3,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Nasuni Multi-Site Collaboration",
+      "category": "Collaboration",
+      "subcategory": "File Collaboration",
+      "description": "Enables organizations to share and co-edit files across multiple global locations with low latency, conflict resolution, and version control as if working side by side.",
+      "deployment_model": "hybrid",
+      "discovery_score": 65,
+      "priority": 4,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Nasuni Customer Education and Certification Hub",
+      "category": "Training & Certification",
+      "subcategory": "Vendor Certification",
+      "description": "Nasuni's named customer education and certification program for training administrators and partners on the Nasuni File Data Platform.",
+      "deployment_model": "saas-only",
+      "discovery_score": 0,
+      "priority": 5,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "NetApp",
+      "product_name": "ONTAP / Cloud Volumes ONTAP",
+      "category": "Data Protection",
+      "subcategory": "Cloud File Storage",
+      "competitive_context": "NetApp ONTAP is a legacy and hybrid NAS platform that Nasuni positions against as a modern cloud-native alternative for enterprise file data."
+    },
+    {
+      "competitor_name": "Panzura",
+      "product_name": "Panzura CloudFS",
+      "category": "Data Protection",
+      "subcategory": "Cloud File Storage",
+      "competitive_context": "Panzura CloudFS is a direct competitor offering a global cloud file system on object storage, competing head-to-head with the Nasuni File Data Platform."
+    },
+    {
+      "competitor_name": "Ctera Networks",
+      "product_name": "CTERA Enterprise File Services Platform",
+      "category": "Data Protection",
+      "subcategory": "Cloud File Storage",
+      "competitive_context": "CTERA provides a hybrid cloud file services platform targeting similar enterprise NAS modernization use cases as Nasuni."
+    },
+    {
+      "competitor_name": "Microsoft",
+      "product_name": "Azure Files / Azure NetApp Files",
+      "category": "Cloud Infrastructure",
+      "subcategory": "Managed File Storage",
+      "competitive_context": "Microsoft's managed file storage services on Azure compete with Nasuni's cloud-native file data platform for enterprise workloads."
+    },
+    {
+      "competitor_name": "Hammerspace",
+      "product_name": "Hammerspace Global Data Environment",
+      "category": "Data Protection",
+      "subcategory": "Cloud File Storage",
+      "competitive_context": "Hammerspace offers a global data orchestration platform for unstructured data, competing with Nasuni in hybrid cloud file management."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": null,
+    "channel_program": "Nasuni Partner Program",
+    "ondemand_library": 0,
+    "cert_program": 1,
+    "existing_lab_partner": [],
+    "ilt_vilt": null,
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "product_page_1": "Hybrid Cloud: Get the most out of your data with Nasuni Search Unstructured data the Nasuni way Cost-optimized Secure by design High-performing AI-ready Cost-optimized Secure by design High-performing AI-ready Get a demo \u201c \u201cWith Nasuni we just saw a great partnership, and the rest was history. It\u2019s consistent and supportive, and always there.\u201d Matthew Rassa Director of IT and Division Manager RMF Engineering \u201c \u201cWith Nasuni we just saw a great partnership, and the rest was history. It\u2019s consistent and supportive, and always there.\u201d Matthew Rassa Director of IT and Division Manager RMF Engineering % of Nasuni users report a reduction in TCO * X faster file sharing between location * % reduction in overall storage footprint * * Verified by UserEvidence Our community Explore Nasuni insights The Nasuni Way Learn more about Nasuni\u2019s innovative approach to unstructured data management in \u201cThe Nasuni Way\u201d blog. Nasuni CEO Sam King on cybersecurity Tune in for Nasuni CEO, Sam King\u2019s take on protecting & managing unstructured data at scale. How five global enterprises transformed cost, security, and performance Read how five global enterprises transformed cost, security, and performance with Nasuni\u2019s next-generation unstructured data management platform. Nasuni\u2019s next-gen NAS and unstructured data management platform Nasuni unifies storage, protection, and management of enterprise file data to deliver cost savings, rapid recovery, high performance, and a data foundation for Al success. Resilient global file system Built on object storage, delivers a single source of truth with unlimited versioning, one-minute recovery points, integrated disaster recovery, and the ability to restore from any outage in minutes. Intelligent edge cache For both on-premises or in the cloud storage, provides quick read/write access to active files and dynamic synchronization across all locations. Ransomware protection Detects and stops known and zero-day attacks at the edge limiting their impact, while guided restores eliminate the recovery detective work. Analytics Delivers data intelligence by monitoring all file system activities and managing data. This supports AI initiatives and optimizes storage costs. Solve your data difficulties in one click Take a tour Flexible cloud operating model Provides a hybrid cloud solution that works with a combination of on-premises, edge, public cloud environment (AWS, Azure, and Google Cloud), or private cloud providers (Pure and Dell). Cost savings R",
+    "partner_portal_page": "Technology partnerships | Nasuni Search Partners Data flows better when infrastructure is tightly integrated within the whole technology ecosystem. Find out how Nasuni builds technology partnerships with leading cloud providers, software and hardware providers, channel partners, and resellers. Cloud partners Deploy Nasuni with one cloud or multi-cloud. Nasuni partners with leading public and private cloud providers, including Microsoft Azure, AWS, and Google Cloud, to let you consolidate file storage while taking advantage of low-cost object storage, infinite scalability, and AI capabilities. Cloud partners Our top partners have demonstrated a high level of commitment to Nasuni, and in turn, are our most trusted solution advisors. Find a reseller Nasuni Partner Program Disrupt a $15 billion market with us. Legacy NAS isn\u2019t built for today\u2019s data volumes or how people access and use data. Our hybrid cloud file data platform sheds legacy NAS constraints to streamline file management while saving customers money. And we\u2019re 100% channel sales-driven, so your opportunity is as big as ours \u2013 and we\u2019re excited to support you in achieving your goals. Partner Program Technology partners Extend the value of your technology ecosystem Nasuni offers native integration with leading storage, data security, collaboration, design applications, and hyperconverged infrastructure applications for all its technology partnerships. Technology partners \u201c Nasuni\u2019s future is fundamentally partner-driven.  We\u2019ve built a truly partner-led model with a marketplace-friendly resale approach that ensures our partners are at the heart of every customer success story. Dave Castignola Chief Revenue Officer, Nasuni Tell us what you need Need to know more about how Nasuni integrates with your tech stack \u2014 or interested in partnering with us? Our technical experts are happy to answer your questions.",
+    "product_page_0": "Nasuni Product Overview: A Modern Approach for Enterprises Search Nasuni products Discover the modern approach to managing file workloads with Nasuni Cost savings Business resilience IT efficiency Nasuni File Data Platform Nasuni customers migrate from legacy file storage or simple cloud storage offerings to the Nasuni File Data Platform, the foundational core for taking enterprise file data to the next level. Nasuni provides a single, global file system that features unlimited scalability, built-in security, ransomware recovery, fast user access to data, and more. Learn more Get control of your data today Demo now Take a tour Nasuni Ransomware Protection No matter the industry, organizations of all sizes are at risk of ransomware attacks on their file data. Nasuni provides a comprehensive solution to protect against these attacks. Ransomware Protection scans for malicious activity and ransomware signatures at the edge, preventing infiltration into the rest of the organization before significant damage can occur. Explore better backup Nasuni IQ Nasuni IQ collects usage statistics and system-wide information to enable chargeback reporting, capacity planning, operational forensics, data resource optimization, preparation for AI implementations, and more. Nasuni IQ dashboards deliver outstanding visibility into how your data is used. Think of Nasuni IQ as X-ray vision for your file data. Learn more Nasuni Multi-Site Collaboration For organizations that need to quickly share files between multiple locations, Nasuni Multi-Site Collaboration addresses latency, file editing conflicts, and version control. This solution takes file collaboration to the next level by allowing people from across the globe to work together as if they were working side by side. Protect your data Have our products piqued your interest? Request a demo",
+    "company_homepage": "Nasuni Product Overview: A Modern Approach for Enterprises Search Nasuni products Discover the modern approach to managing file workloads with Nasuni Cost savings Business resilience IT efficiency Nasuni File Data Platform Nasuni customers migrate from legacy file storage or simple cloud storage offerings to the Nasuni File Data Platform, the foundational core for taking enterprise file data to the next level. Nasuni provides a single, global file system that features unlimited scalability, built-in security, ransomware recovery, fast user access to data, and more. Learn more Get control of your data today Demo now Take a tour Nasuni Ransomware Protection No matter the industry, organizations of all sizes are at risk of ransomware attacks on their file data. Nasuni provides a comprehensive solution to protect against these attacks. Ransomware Protection scans for malicious activity and ransomware signatures at the edge, preventing infiltration into the rest of the organization before significant damage can occur. Explore better backup Nasuni IQ Nasuni IQ collects usage statistics and system-wide information to enable chargeback reporting, capacity planning, operational forensics, data resource optimization, preparation for AI implementations, and more. Nasuni IQ dashboards deliver outstanding visibility into how your data is used. Think of Nasuni IQ as X-ray vision for your file data. Learn more Nasuni Multi-Site Collaboration For organizations that need to quickly share files between multiple locations, Nasuni Multi-Site Collaboration addresses latency, file editing conflicts, and version control. This solution takes file collaboration to the next level by allowing people from across the globe to work together as if they were working side by side. Protect your data Have our products piqued your interest? Request a demo",
+    "atp_page": "{{'feedback.message'|i18n}} {{'feedback.message.link'|i18n}} \u00c3\u0097 \u00d7 Feedback {{feedbackModal.extraMessage|i18n}} \u00d7 {{ 'common.cancel'|i18n }} {{ 'common.continue'|i18n }} \u00d7 {{ 'nav.help'|i18n }} {{ 'common.close'|i18n }} \u00d7 {{ 'common.language' | i18n }} {{ 'common.close'|i18n }} {{ 'common.save'|i18n }}",
+    "training_page": "Customer Education and Certification Hub for Nasuni"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "64b61bf4",
+  "created_at": "2026-04-06T09:44:26.923922+00:00",
+  "known_products": [],
+  "_lab_platform_detections": [
+    {
+      "platform": "Hack The Box",
+      "urls": [],
+      "mentions": [
+        "HTB"
+      ],
+      "evidence_type": "mention",
+      "is_skillable": false
+    }
+  ],
+  "_company_badge": "SOFTWARE",
+  "_org_color": "purple",
+  "_scraped_families": [
+    {
+      "name": "Why Nasuni?",
+      "url": "https://www.nasuni.com/the-nasuni-difference-hybrid-cloud-infrastructure/"
+    },
+    {
+      "name": "The Nasuni difference",
+      "url": "https://www.nasuni.com/the-nasuni-difference-hybrid-cloud-infrastructure/"
+    },
+    {
+      "name": "Products",
+      "url": "https://www.nasuni.com/product/"
+    },
+    {
+      "name": "The Nasuni File Data Platform",
+      "url": "https://www.nasuni.com/product/hybrid-cloud-architecture-platform/"
+    },
+    {
+      "name": "Ransomware Protection",
+      "url": "https://www.nasuni.com/product/ransomware-protection/"
+    },
+    {
+      "name": "Multi-Site Collaboration",
+      "url": "https://www.nasuni.com/product/multi-site-collaboration/"
+    },
+    {
+      "name": "Nasuni IQ",
+      "url": "https://www.nasuni.com/product/nasuni-iq/"
+    },
+    {
+      "name": "Nasuni Data Service",
+      "url": "https://www.nasuni.com/product/nasuni-data-service/"
+    },
+    {
+      "name": "Nasuni Web Access",
+      "url": "https://www.nasuni.com/product/nasuni-web-access/"
+    },
+    {
+      "name": "Cloud migration services",
+      "url": "https://www.nasuni.com/product/cloud-migration-services/"
+    },
+    {
+      "name": "Solutions",
+      "url": "https://www.nasuni.com/solutions/"
+    },
+    {
+      "name": "Use cases",
+      "url": "https://www.nasuni.com/solutions/"
+    },
+    {
+      "name": "Backup and disaster recovery services",
+      "url": "https://www.nasuni.com/solutions/backup-and-disaster-recovery-services/"
+    },
+    {
+      "name": "Data foundation for AI",
+      "url": "https://www.nasuni.com/solutions/data-foundation-for-ai/"
+    },
+    {
+      "name": "Infrastructure modernization",
+      "url": "https://www.nasuni.com/solutions/infrastructure-modernization/"
+    },
+    {
+      "name": "SharePoint Lifecycle Management",
+      "url": "https://www.nasuni.com/solutions/sharepoint-lifecycle-management/"
+    },
+    {
+      "name": "Video surveillance",
+      "url": "https://www.nasuni.com/solutions/video-surveillance/"
+    },
+    {
+      "name": "Industries",
+      "url": "https://www.nasuni.com/industries/"
+    },
+    {
+      "name": "Architecture, engineering, and construction",
+      "url": "https://www.nasuni.com/industries/architecture-engineering-and-construction-cloud-data-services/"
+    },
+    {
+      "name": "Energy, oil, and gas",
+      "url": "https://www.nasuni.com/industries/hybrid-cloud-for-oil-gas/"
+    },
+    {
+      "name": "Financial services",
+      "url": "https://www.nasuni.com/industries/financial-services-hybrid-cloud-strategy/"
+    },
+    {
+      "name": "Healthcare and life sciences",
+      "url": "https://www.nasuni.com/industries/hybrid-cloud-platform-healthcare-and-life-sciences/"
+    },
+    {
+      "name": "Manufacturing",
+      "url": "https://www.nasuni.com/industries/manufacturing-hybrid-cloud-data-services/"
+    },
+    {
+      "name": "Media and advertising",
+      "url": "https://www.nasuni.com/industries/media-and-advertising-hybrid-cloud-services/"
+    },
+    {
+      "name": "Public sector",
+      "url": "https://www.nasuni.com/industries/public-sector-data-infrastructure/"
+    },
+    {
+      "name": "Retail and consumer goods",
+      "url": "https://www.nasuni.com/industries/retail-consumer-goods-hybrid-cloud-storage-services/"
+    },
+    {
+      "name": "Partners",
+      "url": "https://www.nasuni.com/partners/"
+    },
+    {
+      "name": "Strategic cloud partners",
+      "url": "https://www.nasuni.com/partners/alliance-cloud-partners/"
+    },
+    {
+      "name": "Microsoft and Nasuni",
+      "url": "https://www.nasuni.com/partners/alliance-cloud-partners/cloud-partner-microsoft-azure/"
+    },
+    {
+      "name": "AWS and Nasuni",
+      "url": "https://www.nasuni.com/partners/alliance-cloud-partners/cloud-partner-aws/"
+    },
+    {
+      "name": "Google and Nasuni",
+      "url": "https://www.nasuni.com/partners/alliance-cloud-partners/cloud-partner-google-cloud/"
+    },
+    {
+      "name": "Oracle and Nasuni",
+      "url": "https://www.nasuni.com/partners/alliance-cloud-partners/cloud-partner-oracle-cloud/"
+    },
+    {
+      "name": "Reseller partners",
+      "url": "https://www.nasuni.com/partners/nasuni-reseller-partners/"
+    },
+    {
+      "name": "Nasuni Partner Program",
+      "url": "https://www.nasuni.com/partners/nasuni-partner-program/"
+    },
+    {
+      "name": "Technology partners",
+      "url": "https://www.nasuni.com/partners/technology-partners/"
+    },
+    {
+      "name": "Book a demo",
+      "url": "https://www.nasuni.com/book-a-demo/"
+    },
+    {
+      "name": "Take a tour",
+      "url": "https://www.nasuni.com/take-a-tour/"
+    },
+    {
+      "name": "Log in",
+      "url": "https://account.nasuni.com/"
+    },
+    {
+      "name": "Cloud Migration Services",
+      "url": "https://www.nasuni.com/product/cloud-migration-services/"
+    },
+    {
+      "name": "Trust Center",
+      "url": "https://trustcenter.nasuni.com/"
+    },
+    {
+      "name": "Customers",
+      "url": "https://www.nasuni.com/customers/"
+    }
+  ]
+}

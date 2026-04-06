@@ -28,10 +28,10 @@ LEGACY_TERMS = [
     "Outsourced Content Creation",
     r"\bComposite Score\b",
     r"\bLab Score\b",
-    "Path A1",
-    "Path A2",
-    "Path B(?!uild)",              # Path B but not "Path Build"
-    "Path C(?!loud)",              # Path C but not "Path Cloud"
+    r"\bPath A1\b",
+    r"\bPath A2\b",
+    r"\bPath B\b(?!uild)",         # Path B but not "Path Build" — \b prevents matching inside "path b..." words
+    r"\bPath C\b(?!loud)",         # Path C but not "Path Cloud" — \b prevents matching inside "path c..." words
     r"\bYellow\b",                 # badge color (Amber is correct)
     r"\bPass\b.*badge",            # Pass as badge color (use Red/Blocker)
     r"\bPartial\b.*badge",         # Partial as badge color (use Amber)
@@ -61,6 +61,7 @@ SKIP_PATHS = [
     "docs/intelligence-platform.md",        # legacy doc
     "docs/Designer-Session-Prep.md",        # references legacy terms when identifying conflicts
     "docs/Test-Plan.md",                    # test descriptions reference legacy terms as examples of what to reject
+    "docs/decision-log.md",                 # historical record — legitimately references legacy terms in superseded entries
     "backend/tests/",                       # test code legitimately references legacy terms to verify they're NOT used
     ".git/",
     "__pycache__/",

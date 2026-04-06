@@ -172,62 +172,261 @@ def discover(company_name: str, known_products: list[str] | None = None,
 def score(company_name: str, selected_products: list[dict], discovery_id: str,
           discovery_data: dict | None = None,
           research_cache: dict | None = None,
-          force_refresh: bool = False) -> tuple[str, CompanyAnalysis]:
-    """Deep per-product scoring via the Prompt Generation System.
+          force_refresh: bool = False) -> tuple[str, list[str]]:
+    """Deep per-product scoring with cache-and-append semantics.
 
-    Returns (analysis_id, CompanyAnalysis).
+    ARCHITECTURE — One persistent analysis per company (per discovery_id), forever.
+    Each Deep Dive run accumulates products into the same analysis. Stable URL.
 
-    After scoring:
-    1. Assigns verdicts to each product
-    2. Generates Seller Briefcase (separate AI call per product)
-    3. Runs discrepancy detection against discovery tiers
-    4. Logs competitor candidates to Prospector feed
+    LOGIC:
+      1. Look up the existing analysis for this discovery_id.
+      2. For each selected product, check if it's already scored in the existing analysis.
+         - Cached → leave alone
+         - New → score it (parallel Claude calls, only for new products)
+      3. Append newly scored products to the existing analysis.
+      4. Save back to the SAME analysis_id (or create one if first time).
+
+    Returns: (analysis_id, names_of_newly_scored_products)
+      The list of newly scored names is used by the briefcase phase to generate
+      briefcases ONLY for new products (cached ones keep their cached briefcase).
     """
+    from storage_new import find_analysis_by_discovery_id, save_analysis as _save
+
     if not discovery_data:
         discovery_data = load_discovery(discovery_id) or {}
 
-    cache = discovery_data.get("_research_cache", {}) if research_cache is None else research_cache
-    research = {
-        "company_name": company_name,
-        "selected_products": selected_products,
-        "search_results": cache.get("search_results", {}),
-        "page_contents": cache.get("page_contents", {}),
-        "discovery_data": discovery_data,
-    }
+    # Look up existing analysis for this discovery — stable URL principle
+    existing = find_analysis_by_discovery_id(discovery_id)
+    existing_product_names = set()
+    if existing:
+        for p in existing.get("products", []):
+            existing_product_names.add(p.get("name", ""))
+        log.info("Intelligence.score: existing analysis %s has %d products cached",
+                 existing.get("analysis_id"), len(existing_product_names))
 
-    log.info("Intelligence.score: scoring %d products for %s",
-             len(selected_products), company_name)
+    # Split selected products into cached vs new
+    new_to_score = [p for p in selected_products if p.get("name") not in existing_product_names]
+    cached_count = len(selected_products) - len(new_to_score)
+    log.info("Intelligence.score: %d products selected — %d cached, %d new to score",
+             len(selected_products), cached_count, len(new_to_score))
 
-    # Phase 1: Score all products (parallel, one Claude call each)
-    analysis = score_selected_products(research)
-    analysis.discovery_id = discovery_id
-    analysis.total_products_discovered = len(discovery_data.get("products", []))
+    # Fast path: nothing new to score — return the existing analysis as-is
+    if existing and not new_to_score:
+        log.info("Intelligence.score: ALL selected products cached — returning existing analysis %s",
+                 existing.get("analysis_id"))
+        return existing.get("analysis_id"), []
 
-    # Phase 2: Assign verdicts
-    for product in analysis.products:
-        acv_tier = product.acv_potential.acv_tier or "medium"
-        product.verdict = assign_verdict(product.fit_score.total, acv_tier)
+    new_product_names = []
 
-    # Phase 3: Generate Seller Briefcase (separate AI call — better quality)
+    if new_to_score:
+        cache = discovery_data.get("_research_cache", {}) if research_cache is None else research_cache
+        research = {
+            "company_name": company_name,
+            "selected_products": new_to_score,
+            "search_results": cache.get("search_results", {}),
+            "page_contents": cache.get("page_contents", {}),
+            "discovery_data": discovery_data,
+        }
+
+        # Score only the NEW products in parallel
+        new_analysis = score_selected_products(research)
+
+        # Assign verdicts
+        for product in new_analysis.products:
+            acv_tier = product.acv_potential.acv_tier or "medium"
+            product.verdict = assign_verdict(product.fit_score.total, acv_tier)
+
+        # Convert to dicts for merging into the existing analysis
+        from dataclasses import asdict
+        new_product_dicts = [asdict(p) for p in new_analysis.products]
+        new_product_names = [p["name"] for p in new_product_dicts]
+
+    if existing:
+        # Append new products to existing analysis (preserves analysis_id and URL)
+        existing_dict = existing
+        if new_to_score:
+            existing_dict["products"].extend(new_product_dicts)
+            # Re-sort by fit_score total descending
+            existing_dict["products"].sort(
+                key=lambda p: (p.get("fit_score", {}) or {}).get("total", 0)
+                              if isinstance(p.get("fit_score"), dict)
+                              else 0,
+                reverse=True,
+            )
+            existing_dict["total_products_discovered"] = len(discovery_data.get("products", []))
+            _save(existing_dict)
+            log.info("Intelligence.score: appended %d new products to analysis %s",
+                     len(new_product_dicts), existing_dict.get("analysis_id"))
+        return existing_dict.get("analysis_id"), new_product_names
+
+    # First-ever analysis for this discovery — save fresh with all new products
+    new_analysis.discovery_id = discovery_id
+    new_analysis.total_products_discovered = len(discovery_data.get("products", []))
+    score_products_and_sort(new_analysis)
+    new_analysis.briefcase = None  # Briefcase moved to product level
+    analysis_id = save_analysis(new_analysis)
+    log.info("Intelligence.score: created new analysis %s with %d products",
+             analysis_id, len(new_analysis.products))
+    return analysis_id, new_product_names
+
+
+def _build_briefcase_context_from_dict(p_dict: dict, company_context: str) -> str:
+    """Build the per-product context string for briefcase generation, directly from
+    a saved product dict (no Product object reconstruction needed).
+
+    The saved JSON shape has contacts as a list and fit_score as a nested dict.
+    This function extracts what generate_briefcase's prompt needs.
+    """
+    import json
+    fit_score = p_dict.get("fit_score", {}) or {}
+    pl = fit_score.get("product_labability", {}) or {}
+    iv = fit_score.get("instructional_value", {}) or {}
+    cf = fit_score.get("customer_fit", {}) or {}
+    verdict = p_dict.get("verdict") or {}
+    contacts_raw = p_dict.get("contacts", []) or []
+    # Contacts may be a list (saved format) or a dict by role type (legacy)
+    if isinstance(contacts_raw, dict):
+        contacts_list = []
+        for role_type, c in contacts_raw.items():
+            if isinstance(c, dict) and c.get("name"):
+                contacts_list.append({
+                    "name": c.get("name", ""),
+                    "title": c.get("title", ""),
+                    "role_type": role_type,
+                })
+    else:
+        contacts_list = [
+            {
+                "name": c.get("name", ""),
+                "title": c.get("title", ""),
+                "role_type": c.get("role_type", ""),
+            }
+            for c in contacts_raw if isinstance(c, dict) and c.get("name")
+        ]
+
+    scoring_summary = json.dumps({
+        "product": p_dict.get("name", ""),
+        "fit_score": fit_score.get("total", 0),
+        "product_labability": pl.get("score", 0),
+        "instructional_value": iv.get("score", 0),
+        "customer_fit": cf.get("score", 0),
+        "deployment_model": p_dict.get("deployment_model", ""),
+        "orchestration_method": p_dict.get("orchestration_method", ""),
+        "verdict": verdict.get("label", "") if isinstance(verdict, dict) else "",
+        "contacts": contacts_list,
+    }, indent=2)
+
+    return f"## Scoring Results\n{scoring_summary}\n\n{company_context}"
+
+
+def generate_briefcase_for_analysis(analysis_id: str,
+                                    only_for_products: list[str] | None = None) -> bool:
+    """Phase B: Generate Seller Briefcases for products in an analysis.
+
+    Briefcase is per-product. Each product gets THREE Claude calls in parallel:
+    Key Technical Questions (Opus), Conversation Starters (Haiku), Account
+    Intelligence (Haiku). Across N products that's 3N parallel calls.
+
+    only_for_products: if provided, generate ONLY for those product names.
+                      Default: skip any product that already has a briefcase.
+
+    Safe to run in a background thread. Returns True on success.
+    """
+    from storage_new import load_analysis as _load, save_analysis as _save
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from scorer_new import (
+        _generate_briefcase_section,
+        _KTQ_SYSTEM_PROMPT, _STARTERS_SYSTEM_PROMPT, _ACCT_SYSTEM_PROMPT,
+        _BRIEFCASE_KTQ_MODEL, _BRIEFCASE_STARTERS_MODEL, _BRIEFCASE_ACCT_MODEL,
+    )
+
+    analysis_dict = _load(analysis_id)
+    if not analysis_dict:
+        log.error("generate_briefcase_for_analysis: analysis %s not found", analysis_id)
+        return False
+
+    company_name = analysis_dict.get("company_name", "")
+    discovery_id = analysis_dict.get("discovery_id", "")
+    discovery_data = load_discovery(discovery_id) or {}
     company_context = _build_company_context_for_briefcase(company_name, discovery_data)
-    for product in analysis.products:
+
+    products_dicts = analysis_dict.get("products", [])
+
+    # Decide which products need a briefcase
+    target_names = set(only_for_products or [])
+    products_to_generate = []  # list of (index, product_dict)
+    for i, p_dict in enumerate(products_dicts):
+        name = p_dict.get("name", "")
+        already_has = p_dict.get("briefcase") is not None
+        wanted = (not target_names) or (name in target_names)
+        if wanted and not already_has:
+            products_to_generate.append((i, p_dict))
+
+    if not products_to_generate:
+        log.info("Briefcase: nothing to generate for analysis %s — all targeted products cached",
+                 analysis_id)
+        return True
+
+    log.info("Briefcase: generating for analysis %s (%d products: %s)",
+             analysis_id, len(products_to_generate),
+             ", ".join(p["name"] for _, p in products_to_generate))
+
+    # Build flat list of (product_idx, section_key, prompt, model, max_tokens, user_content)
+    SECTIONS = [
+        ("ktq", _KTQ_SYSTEM_PROMPT, _BRIEFCASE_KTQ_MODEL, 800),
+        ("starters", _STARTERS_SYSTEM_PROMPT, _BRIEFCASE_STARTERS_MODEL, 500),
+        ("acct", _ACCT_SYSTEM_PROMPT, _BRIEFCASE_ACCT_MODEL, 500),
+    ]
+
+    work_items = []  # (product_idx, section_key, system_prompt, model, max_tokens, user_content)
+    for idx, p_dict in products_to_generate:
+        user_content = _build_briefcase_context_from_dict(p_dict, company_context)
+        for section_key, system_prompt, model, max_tokens in SECTIONS:
+            work_items.append((idx, section_key, system_prompt, model, max_tokens, user_content))
+
+    # Run ALL section calls in parallel — across all products and all sections
+    # 3 products × 3 sections = 9 parallel calls; gated by slowest Opus call
+    section_results = {}  # (idx, section_key) -> bullets list
+    with ThreadPoolExecutor(max_workers=min(len(work_items), 12)) as executor:
+        futures = {
+            executor.submit(_generate_briefcase_section, sp, model, uc, max_tok): (idx, key)
+            for idx, key, sp, model, max_tok, uc in work_items
+        }
+        for future in as_completed(futures):
+            idx, key = futures[future]
+            try:
+                bullets = future.result()
+                section_results[(idx, key)] = bullets or []
+            except Exception as e:
+                log.error("Briefcase section failed for product %d %s: %s", idx, key, e)
+                section_results[(idx, key)] = []
+
+    # Assemble per-product briefcases and write back
+    PILLARS = {"ktq": "Product Labability", "starters": "Instructional Value", "acct": "Customer Fit"}
+    HEADINGS = {"ktq": "Key Technical Questions", "starters": "Conversation Starters", "acct": "Account Intelligence"}
+    KEY_NAMES = {"ktq": "key_technical_questions", "starters": "conversation_starters", "acct": "account_intelligence"}
+
+    for idx, _ in products_to_generate:
+        briefcase_dict = {}
+        for section_key in ("ktq", "starters", "acct"):
+            briefcase_dict[KEY_NAMES[section_key]] = {
+                "pillar": PILLARS[section_key],
+                "heading": HEADINGS[section_key],
+                "bullets": section_results.get((idx, section_key), []),
+            }
+        # Reload-modify-save to be safe with concurrent writes
+        current = _load(analysis_id) or analysis_dict
         try:
-            product_briefcase = generate_briefcase(product, company_context)
-            # Store on first product's analysis for now — will be refined
-            if analysis.briefcase is None:
-                from models_new import SellerBriefcase
-                analysis.briefcase = product_briefcase
+            current["products"][idx]["briefcase"] = briefcase_dict
+            _save(current)
+            analysis_dict = current
+            log.info("Briefcase: saved for product %d (%s) of analysis %s",
+                     idx, current["products"][idx].get("name"), analysis_id)
         except Exception as e:
-            log.error("Briefcase generation failed for %s: %s", product.name, e)
+            log.error("Briefcase: failed to save for product %d: %s", idx, e)
 
-    # Sort by Fit Score
-    score_products_and_sort(analysis)
-
-    # Save
-    analysis_id = save_analysis(analysis)
-    log.info("Intelligence.score: saved analysis %s for %s", analysis_id, company_name)
-
-    return analysis_id, analysis
+    log.info("Briefcase: generation complete for analysis %s", analysis_id)
+    return True
 
 
 def _build_company_context_for_briefcase(company_name: str, discovery_data: dict) -> str:

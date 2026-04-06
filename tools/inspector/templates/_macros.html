@@ -1,0 +1,72 @@
+{# Shared macros for the Full Analysis page and its partials.
+   Imported by full_analysis.html, _hero_section.html, _pillars_section.html. #}
+
+{% macro badge_color_class(color) -%}
+  {%- if color == 'green' -%}badge-green
+  {%- elif color == 'amber' -%}badge-amber
+  {%- elif color == 'red' -%}badge-red
+  {%- elif color == 'purple' -%}badge-purple
+  {%- else -%}badge-gray
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro bar_color_class(color) -%}
+  {%- if color == 'green' -%}bar-green
+  {%- elif color == 'amber' -%}bar-light-amber
+  {%- elif color == 'red' -%}bar-red
+  {%- else -%}bar-gray
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro dominant_color(dim) -%}
+  {%- set ns = namespace(green=0, amber=0, red=0, gray=0) -%}
+  {%- for b in dim.badges or [] -%}
+    {%- if b.color == 'green' -%}{%- set ns.green = ns.green + 1 -%}
+    {%- elif b.color == 'amber' -%}{%- set ns.amber = ns.amber + 1 -%}
+    {%- elif b.color == 'red' -%}{%- set ns.red = ns.red + 1 -%}
+    {%- else -%}{%- set ns.gray = ns.gray + 1 -%}{%- endif -%}
+  {%- endfor -%}
+  {%- if ns.red > 0 and ns.red >= ns.green -%}red
+  {%- elif ns.amber > ns.green -%}amber
+  {%- elif ns.green > 0 -%}green
+  {%- else -%}gray
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro evidence_data(badge) -%}
+<div class='ev-title'>{{ badge.name | e }}</div>
+{%- for ev in badge.evidence or [] -%}
+<div class='ev-bullet'>{{ ev.claim | inline_md }}</div>
+{%- if ev.source_url or ev.source_title %}<div class='ev-source'>Source: {{ (ev.source_title or ev.source_url) | e }}</div>{% endif -%}
+{%- if ev.confidence_level -%}
+{%- set _conf_class = 'ev-confidence-confirmed' if ev.confidence_level|lower == 'confirmed' else 'ev-confidence-other' -%}
+<div class='ev-confidence {{ _conf_class }}'>Confidence: {{ ev.confidence_level | e }}</div>
+{%- endif -%}
+{%- endfor -%}
+{%- endmacro %}
+
+{% macro render_dimension(dim) %}
+  {% set max_score = dim.weight or 1 %}
+  {% set pct = ((dim.score or 0) * 100 / max_score) | round(0, 'floor') | int %}
+  {% set dcolor = dominant_color(dim) %}
+  <div class="dimension">
+    <div class="dim-row">
+      <span class="dim-name">{{ dim.name | dim_caps }}</span>
+      <div class="dim-content">
+        <div class="dim-bar-row">
+          <div class="dim-bar-bg"><div class="dim-bar {{ bar_color_class(dcolor) }}" style="width: {{ pct }}%;"></div></div>
+          <span class="dim-score">{{ dim.score or 0 }}/{{ dim.weight or 0 }}</span>
+        </div>
+        <div class="dim-badges">
+          {% for b in dim.badges or [] %}
+            <span class="badge {{ badge_color_class(b.color) }}" data-evidence="{{ evidence_data(b) }}">{{ b.name }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro doc_svg() -%}
+<svg viewBox="0 0 16 16" width="14" height="14"><path d="M4 1h6l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M10 1v4h4" fill="none" stroke="currentColor" stroke-width="1.2"/><line x1="5.5" y1="8" x2="10.5" y2="8" stroke="currentColor" stroke-width="0.8"/><line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="0.8"/></svg>
+{%- endmacro %}

@@ -1,0 +1,269 @@
+{
+  "company_name": "Diligent",
+  "company_description": "Diligent is a SaaS governance, risk, and compliance (GRC) platform provider offering AI-powered board management, entity management, audit, risk, and compliance software used by boards of directors, executives, and GRC professionals worldwide.",
+  "company_url": "https://www.diligent.com",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Diligent One Platform",
+      "category": "ERP/CRM",
+      "subcategory": "GRC Platform",
+      "description": "A unified AI-powered platform that centralizes board management, governance, risk, compliance, and audit activities for enterprise organizations; LEARN AI embedded throughout.",
+      "deployment_model": "saas-only",
+      "discovery_score": 18,
+      "priority": 1,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Boards",
+      "category": "ERP/CRM",
+      "subcategory": "Board Management",
+      "description": "AI-powered board management software that automates meeting preparation, secures sensitive board materials, and provides directors with decision-support tools.",
+      "deployment_model": "saas-only",
+      "discovery_score": 16,
+      "priority": 2,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "BoardEffect",
+      "category": "ERP/CRM",
+      "subcategory": "Board Management",
+      "description": "Secure and flexible board management software purpose-built for nonprofits and higher education institutions to manage meetings, documents, and governance workflows.",
+      "deployment_model": "saas-only",
+      "discovery_score": 15,
+      "priority": 3,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Entities",
+      "category": "ERP/CRM",
+      "subcategory": "Entity Management",
+      "description": "Centralized corporate entity and subsidiary management software that maintains an always-current corporate record across complex organizational structures.",
+      "deployment_model": "saas-only",
+      "discovery_score": 14,
+      "priority": 4,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Community",
+      "category": "ERP/CRM",
+      "subcategory": "Public Sector Governance",
+      "description": "Governance and transparency platform designed for school boards and local government bodies to streamline meetings, communications, and public engagement.",
+      "deployment_model": "saas-only",
+      "discovery_score": 13,
+      "priority": 5,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Market Intelligence",
+      "category": "Data & Analytics",
+      "subcategory": "ESG & Governance Data",
+      "description": "On-demand data platform providing exclusive shareholder activism intelligence, executive compensation benchmarking, and ESG data for governance and investor relations teams.",
+      "deployment_model": "saas-only",
+      "discovery_score": 12,
+      "priority": 6,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent AI",
+      "category": "AI/ML Platform",
+      "subcategory": "GRC AI Assistant",
+      "description": "Embedded AI layer across the Diligent One Platform that automates board prep, generates risk insights, and surfaces compliance intelligence; LEARN AI for GRC workflows.",
+      "deployment_model": "saas-only",
+      "discovery_score": 14,
+      "priority": 7,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Risk Management",
+      "category": "ERP/CRM",
+      "subcategory": "Enterprise Risk Management",
+      "description": "Enterprise risk management module providing real-time risk visibility, AI-powered risk reporting, and decisioning tools for risk managers and the C-suite.",
+      "deployment_model": "saas-only",
+      "discovery_score": 15,
+      "priority": 8,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Compliance",
+      "category": "ERP/CRM",
+      "subcategory": "Compliance Management",
+      "description": "Compliance management solution that converts regulatory obligations into actionable metrics, tracks compliance status, and demonstrates ROI to leadership.",
+      "deployment_model": "saas-only",
+      "discovery_score": 15,
+      "priority": 9,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Audit Management",
+      "category": "ERP/CRM",
+      "subcategory": "Internal Audit",
+      "description": "Internal audit management platform that connects audit planning, fieldwork, analytics, and monitoring in a single workflow for internal audit teams.",
+      "deployment_model": "saas-only",
+      "discovery_score": 15,
+      "priority": 10,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent IT Risk & Cybersecurity",
+      "category": "Cybersecurity",
+      "subcategory": "IT Risk & Compliance",
+      "description": "Module within the Diligent One Platform that unifies IT risk management, cybersecurity oversight, and compliance tracking for information security teams.",
+      "deployment_model": "saas-only",
+      "discovery_score": 16,
+      "priority": 11,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Diligent Board Education & Certifications",
+      "category": "Training & Certification",
+      "subcategory": "Board Director Education",
+      "description": "Named training and certification program offering board director education, governance certifications, and professional development for board members and GRC practitioners.",
+      "deployment_model": "saas-only",
+      "discovery_score": 0,
+      "priority": 12,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "Nasdaq",
+      "product_name": "Nasdaq Boardvantage",
+      "category": "ERP/CRM",
+      "subcategory": "Board Management",
+      "competitive_context": "Nasdaq Boardvantage is a direct competitor to Diligent Boards in the enterprise board portal and meeting management market."
+    },
+    {
+      "competitor_name": "OnBoard",
+      "product_name": "OnBoard Board Intelligence Platform",
+      "category": "ERP/CRM",
+      "subcategory": "Board Management",
+      "competitive_context": "OnBoard competes with Diligent Boards and BoardEffect as a board management SaaS platform targeting mid-market and enterprise organizations."
+    },
+    {
+      "competitor_name": "Workiva",
+      "product_name": "Workiva Platform",
+      "category": "ERP/CRM",
+      "subcategory": "GRC & Reporting",
+      "competitive_context": "Workiva competes with Diligent's GRC and compliance modules in the areas of risk, audit, and ESG reporting for public companies."
+    },
+    {
+      "competitor_name": "ServiceNow",
+      "product_name": "ServiceNow GRC",
+      "category": "ERP/CRM",
+      "subcategory": "GRC Platform",
+      "competitive_context": "ServiceNow GRC competes with Diligent One Platform in enterprise risk, compliance, and audit management for large organizations."
+    },
+    {
+      "competitor_name": "SAI360",
+      "product_name": "SAI360 GRC Platform",
+      "category": "ERP/CRM",
+      "subcategory": "GRC Platform",
+      "competitive_context": "SAI360 competes with Diligent in integrated GRC, ethics, and compliance management software for enterprise customers."
+    },
+    {
+      "competitor_name": "Ideagen",
+      "product_name": "Ideagen Huddle / Pentana",
+      "category": "ERP/CRM",
+      "subcategory": "Audit & Compliance",
+      "competitive_context": "Ideagen's audit and compliance products compete with Diligent's audit management and board portal offerings."
+    },
+    {
+      "competitor_name": "Galvanize (now Diligent)",
+      "product_name": "HighBond",
+      "category": "ERP/CRM",
+      "subcategory": "GRC Platform",
+      "competitive_context": "HighBond was acquired by Diligent and integrated into the Diligent One Platform; previously competed in the audit and GRC analytics space."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": null,
+    "channel_program": "Diligent Partner Program",
+    "ondemand_library": 0,
+    "cert_program": 1,
+    "existing_lab_partner": [],
+    "ilt_vilt": null,
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "company_homepage": "The only AI-powered board management software directors ask for by name Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Request a demo menu menu Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Partner Company Support Login language Products arrow_drop_down Solutions arrow_drop_down Resources arrow_drop_down Diligent AI Request a demo Governance Risk Compliance Audit Diligent Boards Automate meeting prep, secure sensitive data and give directors the clarity to make the best decisions. BoardEffect Secure, flexible board management software for nonprofits and higher education. Entities Manage subsidiaries with a centralized corporate record that's always up to date. Community Increase transparency, streamline governance and empower your school board or local government. Diligent Market Intelligence On-demand access to exclusive shareholder activism, executive compensation and ESG data. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Role Use Cases Company Type Industries General Counsel Safeguard your organization with centralized oversight of governance, risk and compliance. Corporate Secretary Run governance flawlessly with AI tools that eliminate busywork and ensure audit-readiness. Executive Assistant Streamline board prep, communications and approvals with AI workflows for seamless meetings. C-Suite Accelerate decisions and inspire confidence with AI-powered reporting and real-time risk intelligence. Directors & Trustees Prepare faster, mitigate risk and make smarter decisions with purpose-built board tools. Risk Manager See enterprise risk in real time, act decisively, and deliver AI-powered insights. Information Security Unify IT risk, compliance and cyber oversight in one secure platform. Compliance Officer Turn regulatory obligations into clear, actionable metrics \u2014 proving compliance and ROI. Internal Auditor Connect audit management, analytics and monitoring in a secure, AI-powered hub. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Content Library Case Studies Virtual Summits Events Resources Hub Discover all of Diligent's insights in one place. Stay ahead of trends with expert perspectives, exclusive research and information you won't find anywhere else. MEDIA TYPE Blog Guides Videos Podcasts Webinars Research & Reports BY TOPIC Governance Risk & Au",
+    "product_page_0": "The only AI-powered board management software directors ask for by name Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Request a demo menu menu Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Partner Company Support Login language Products arrow_drop_down Solutions arrow_drop_down Resources arrow_drop_down Diligent AI Request a demo Governance Risk Compliance Audit Diligent Boards Automate meeting prep, secure sensitive data and give directors the clarity to make the best decisions. BoardEffect Secure, flexible board management software for nonprofits and higher education. Entities Manage subsidiaries with a centralized corporate record that's always up to date. Community Increase transparency, streamline governance and empower your school board or local government. Diligent Market Intelligence On-demand access to exclusive shareholder activism, executive compensation and ESG data. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Role Use Cases Company Type Industries General Counsel Safeguard your organization with centralized oversight of governance, risk and compliance. Corporate Secretary Run governance flawlessly with AI tools that eliminate busywork and ensure audit-readiness. Executive Assistant Streamline board prep, communications and approvals with AI workflows for seamless meetings. C-Suite Accelerate decisions and inspire confidence with AI-powered reporting and real-time risk intelligence. Directors & Trustees Prepare faster, mitigate risk and make smarter decisions with purpose-built board tools. Risk Manager See enterprise risk in real time, act decisively, and deliver AI-powered insights. Information Security Unify IT risk, compliance and cyber oversight in one secure platform. Compliance Officer Turn regulatory obligations into clear, actionable metrics \u2014 proving compliance and ROI. Internal Auditor Connect audit management, analytics and monitoring in a secure, AI-powered hub. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Content Library Case Studies Virtual Summits Events Resources Hub Discover all of Diligent's insights in one place. Stay ahead of trends with expert perspectives, exclusive research and information you won't find anywhere else. MEDIA TYPE Blog Guides Videos Podcasts Webinars Research & Reports BY TOPIC Governance Risk & Au",
+    "training_page": "Diligent Board Education & Certifications Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Request a demo menu menu Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Partner Company Support Login language Products arrow_drop_down Solutions arrow_drop_down Resources arrow_drop_down Diligent AI Request a demo Governance Risk Compliance Audit Diligent Boards Automate meeting prep, secure sensitive data and give directors the clarity to make the best decisions. BoardEffect Secure, flexible board management software for nonprofits and higher education. Entities Manage subsidiaries with a centralized corporate record that's always up to date. Community Increase transparency, streamline governance and empower your school board or local government. Diligent Market Intelligence On-demand access to exclusive shareholder activism, executive compensation and ESG data. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Role Use Cases Company Type Industries General Counsel Safeguard your organization with centralized oversight of governance, risk and compliance. Corporate Secretary Run governance flawlessly with AI tools that eliminate busywork and ensure audit-readiness. Executive Assistant Streamline board prep, communications and approvals with AI workflows for seamless meetings. C-Suite Accelerate decisions and inspire confidence with AI-powered reporting and real-time risk intelligence. Directors & Trustees Prepare faster, mitigate risk and make smarter decisions with purpose-built board tools. Risk Manager See enterprise risk in real time, act decisively, and deliver AI-powered insights. Information Security Unify IT risk, compliance and cyber oversight in one secure platform. Compliance Officer Turn regulatory obligations into clear, actionable metrics \u2014 proving compliance and ROI. Internal Auditor Connect audit management, analytics and monitoring in a secure, AI-powered hub. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Content Library Case Studies Virtual Summits Events Resources Hub Discover all of Diligent's insights in one place. Stay ahead of trends with expert perspectives, exclusive research and information you won't find anywhere else. MEDIA TYPE Blog Guides Videos Podcasts Webinars Research & Reports BY TOPIC Governance Risk & Audit Compliance AI & Cyber Publ",
+    "product_page_1": "Diligent One Platform Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Request a demo menu menu Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Partner Company Support Login language Products arrow_drop_down Solutions arrow_drop_down Resources arrow_drop_down Diligent AI Request a demo Governance Risk Compliance Audit Diligent Boards Automate meeting prep, secure sensitive data and give directors the clarity to make the best decisions. BoardEffect Secure, flexible board management software for nonprofits and higher education. Entities Manage subsidiaries with a centralized corporate record that's always up to date. Community Increase transparency, streamline governance and empower your school board or local government. Diligent Market Intelligence On-demand access to exclusive shareholder activism, executive compensation and ESG data. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Role Use Cases Company Type Industries General Counsel Safeguard your organization with centralized oversight of governance, risk and compliance. Corporate Secretary Run governance flawlessly with AI tools that eliminate busywork and ensure audit-readiness. Executive Assistant Streamline board prep, communications and approvals with AI workflows for seamless meetings. C-Suite Accelerate decisions and inspire confidence with AI-powered reporting and real-time risk intelligence. Directors & Trustees Prepare faster, mitigate risk and make smarter decisions with purpose-built board tools. Risk Manager See enterprise risk in real time, act decisively, and deliver AI-powered insights. Information Security Unify IT risk, compliance and cyber oversight in one secure platform. Compliance Officer Turn regulatory obligations into clear, actionable metrics \u2014 proving compliance and ROI. Internal Auditor Connect audit management, analytics and monitoring in a secure, AI-powered hub. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Content Library Case Studies Virtual Summits Events Resources Hub Discover all of Diligent's insights in one place. Stay ahead of trends with expert perspectives, exclusive research and information you won't find anywhere else. MEDIA TYPE Blog Guides Videos Podcasts Webinars Research & Reports BY TOPIC Governance Risk & Audit Compliance AI & Cyber Public Sector Diligent I",
+    "partner_portal_page": "Collaborate with Diligent to Drive Success Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Request a demo menu menu Lead the AI era of GRC at Elevate 2026 \u2014 Join us April 22\u201324 in Atlanta Register now arrow_forward Partner Company Support Login language Products arrow_drop_down Solutions arrow_drop_down Resources arrow_drop_down Diligent AI Request a demo Governance Risk Compliance Audit Diligent Boards Automate meeting prep, secure sensitive data and give directors the clarity to make the best decisions. BoardEffect Secure, flexible board management software for nonprofits and higher education. Entities Manage subsidiaries with a centralized corporate record that's always up to date. Community Increase transparency, streamline governance and empower your school board or local government. Diligent Market Intelligence On-demand access to exclusive shareholder activism, executive compensation and ESG data. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Role Use Cases Company Type Industries General Counsel Safeguard your organization with centralized oversight of governance, risk and compliance. Corporate Secretary Run governance flawlessly with AI tools that eliminate busywork and ensure audit-readiness. Executive Assistant Streamline board prep, communications and approvals with AI workflows for seamless meetings. C-Suite Accelerate decisions and inspire confidence with AI-powered reporting and real-time risk intelligence. Directors & Trustees Prepare faster, mitigate risk and make smarter decisions with purpose-built board tools. Risk Manager See enterprise risk in real time, act decisively, and deliver AI-powered insights. Information Security Unify IT risk, compliance and cyber oversight in one secure platform. Compliance Officer Turn regulatory obligations into clear, actionable metrics \u2014 proving compliance and ROI. Internal Auditor Connect audit management, analytics and monitoring in a secure, AI-powered hub. FEATURED Diligent One Platform Centralize and unify all your board management and GRC activities Content Library Case Studies Virtual Summits Events Resources Hub Discover all of Diligent's insights in one place. Stay ahead of trends with expert perspectives, exclusive research and information you won't find anywhere else. MEDIA TYPE Blog Guides Videos Podcasts Webinars Research & Reports BY TOPIC Governance Risk & Audit Compliance AI & Cyber Pub"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "5cce8d86",
+  "created_at": "2026-04-06T09:27:41.827484+00:00",
+  "known_products": [],
+  "_company_badge": "SOFTWARE",
+  "_org_color": "purple",
+  "_scraped_families": [
+    {
+      "name": "Board Management",
+      "url": "https://www.diligent.com/products/boards"
+    },
+    {
+      "name": "Enterprise Risk Management",
+      "url": "https://www.diligent.com/products/enterprise-risk-management"
+    },
+    {
+      "name": "Audit Management",
+      "url": "https://www.diligent.com/products/internal-audit"
+    },
+    {
+      "name": "Market Intelligence",
+      "url": "https://www.diligent.com/products/market-intelligence"
+    },
+    {
+      "name": "Research & Reports",
+      "url": "https://www.diligent.com/resources/research"
+    },
+    {
+      "name": "Podcasts",
+      "url": "https://www.diligent.com/resources/podcasts"
+    },
+    {
+      "name": "Guides",
+      "url": "https://www.diligent.com/resources/guides"
+    },
+    {
+      "name": "Partners",
+      "url": "https://www.diligent.com/partners/showcase"
+    },
+    {
+      "name": "Trust Center",
+      "url": "https://www.diligent.com/trust"
+    },
+    {
+      "name": "Accessibility Statement",
+      "url": "https://www.diligent.com/accessibility-statement"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{# Hero section — used by full_analysis.html and the in-place product swap endpoint.
+   Inputs: `analysis` and `selected_product` (product dict). #}
+{% set top = selected_product %}
+<div class="hero-verdict">
+  <div class="product-selector" onclick="this.classList.toggle('open')">
+    <span class="product-selector-label">{{ top.name }}</span>
+    <span class="product-selector-arrow"></span>
+    <div class="product-dropdown">
+      {% for p in analysis.products %}
+        <div class="product-option {% if p.name == top.name %}active{% endif %}"
+             data-product-index="{{ loop.index0 }}"
+             onclick="event.stopPropagation(); window.swapProduct({{ loop.index0 }})">
+          <span class="product-option-name">{{ p.name }}</span>
+          {% set _opt_score = (p.fit_score.total if p.fit_score else 0) or (p.fit_score._total if p.fit_score else 0) or 0 %}
+          <span class="product-option-score {{ _opt_score | score_color }}">{{ _opt_score }}</span>
+          {% if p.subcategory %}<span class="badge badge-purple">{{ p.subcategory | clean_subcategory }}</span>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% if top.verdict %}
+    <div class="verdict-badge-large verdict-{{ (top.verdict.color or 'red') | replace('_', '-') }}">{{ top.verdict.label }}</div>
+    <div class="verdict-sub">{{ top.verdict.fit_label }} · {{ top.verdict.acv_label }}</div>
+  {% endif %}
+</div>
+
+<div class="hero-center">
+  <div class="fit-score-label">Fit Score</div>
+  <div class="fit-score-num {{ (top.fit_score.total or top.fit_score._total or 0) | score_color }}">{{ top.fit_score.total or top.fit_score._total or 0 }}<span> / 100</span></div>
+</div>
+
+<div class="hero-acv">
+  <div class="hero-acv-label">ACV Potential</div>
+  {% if top.acv_potential %}
+    <div class="hero-acv-num">{{ top.acv_potential.acv_low | format_acv }} – {{ top.acv_potential.acv_high | format_acv }}</div>
+    {# Sum of all scored products in this analysis (not just the selected one) #}
+    {% set ns = namespace(low=0, high=0) %}
+    {% for p in analysis.products %}
+      {% if p.acv_potential %}
+        {% set ns.low = ns.low + (p.acv_potential.acv_low or 0) %}
+        {% set ns.high = ns.high + (p.acv_potential.acv_high or 0) %}
+      {% endif %}
+    {% endfor %}
+    <div class="hero-acv-detail">
+      Across {{ analysis.total_products_discovered or (analysis.products | length) }} products ({{ analysis.products | length }} scored)<br>
+      Scored products: <strong>{{ ns.low | format_acv }} – {{ ns.high | format_acv }}</strong>
+    </div>
+  {% endif %}
+</div>

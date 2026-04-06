@@ -1,0 +1,880 @@
+{
+  "company_name": "Workday",
+  "company_description": "Workday is a leading enterprise cloud software company providing AI-powered applications for human capital management, financial management, and planning for organizations of all sizes.",
+  "company_url": "https://www.workday.com",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Workday Human Capital Management (HCM)",
+      "category": "ERP/CRM",
+      "subcategory": "HR Management",
+      "description": "Comprehensive cloud-based HCM suite covering core HR, workforce management, talent management, and employee experience with embedded AI (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 38,
+      "priority": 1,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Financial Management",
+      "category": "ERP/CRM",
+      "subcategory": "Financial ERP",
+      "description": "Enterprise financial management platform covering accounting, revenue management, billing, and financial reporting with AI-driven insights (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 36,
+      "priority": 2,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Payroll",
+      "category": "ERP/CRM",
+      "subcategory": "Payroll Processing",
+      "description": "Integrated payroll solution that automates payroll calculations, compliance, and reporting within the Workday platform.",
+      "deployment_model": "saas-only",
+      "discovery_score": 30,
+      "priority": 3,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Adaptive Planning",
+      "category": "Data & Analytics",
+      "subcategory": "Financial Planning",
+      "description": "Cloud-based enterprise planning platform for budgeting, forecasting, and financial modeling with collaborative workflows and AI-assisted scenario planning (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 35,
+      "priority": 4,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Spend Management",
+      "category": "ERP/CRM",
+      "subcategory": "Procurement & Spend",
+      "description": "Unified spend management solution covering procurement, sourcing, supplier management, and expense reporting within the Workday ecosystem.",
+      "deployment_model": "saas-only",
+      "discovery_score": 28,
+      "priority": 5,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Recruiting",
+      "category": "ERP/CRM",
+      "subcategory": "Talent Acquisition",
+      "description": "End-to-end recruiting solution with AI-powered candidate matching, job requisition management, and hiring workflow automation (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 28,
+      "priority": 6,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Learning",
+      "category": "ERP/CRM",
+      "subcategory": "Learning Management",
+      "description": "Enterprise learning management system embedded in Workday HCM for delivering, tracking, and managing employee training and development.",
+      "deployment_model": "saas-only",
+      "discovery_score": 25,
+      "priority": 7,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Talent & Performance",
+      "category": "ERP/CRM",
+      "subcategory": "Talent Management",
+      "description": "Talent management module for performance reviews, goal setting, succession planning, and career development within the Workday platform.",
+      "deployment_model": "saas-only",
+      "discovery_score": 24,
+      "priority": 8,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Compensation",
+      "category": "ERP/CRM",
+      "subcategory": "Compensation Management",
+      "description": "Compensation planning and management solution for designing, administering, and analyzing employee compensation programs.",
+      "deployment_model": "saas-only",
+      "discovery_score": 22,
+      "priority": 9,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Benefits Administration",
+      "category": "ERP/CRM",
+      "subcategory": "Benefits Management",
+      "description": "Benefits administration module for managing employee benefits enrollment, eligibility, and compliance within the Workday HCM suite.",
+      "deployment_model": "saas-only",
+      "discovery_score": 20,
+      "priority": 10,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Absence Management",
+      "category": "ERP/CRM",
+      "subcategory": "Workforce Management",
+      "description": "Leave and absence management solution for tracking, approving, and reporting on employee time-off and leave of absence requests.",
+      "deployment_model": "saas-only",
+      "discovery_score": 18,
+      "priority": 11,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Time Tracking",
+      "category": "ERP/CRM",
+      "subcategory": "Workforce Management",
+      "description": "Time and attendance tracking solution integrated with Workday HCM and Payroll for accurate workforce time capture and compliance.",
+      "deployment_model": "saas-only",
+      "discovery_score": 18,
+      "priority": 12,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Data Cloud",
+      "category": "Data & Analytics",
+      "subcategory": "Data Integration",
+      "description": "Enterprise data platform that connects people and financial data across the full ecosystem to fuel intelligence and advanced analytics (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 40,
+      "priority": 13,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Prism Analytics",
+      "category": "Data & Analytics",
+      "subcategory": "Business Intelligence",
+      "description": "Self-service analytics and data blending tool that allows organizations to combine Workday data with external sources for richer reporting and insights.",
+      "deployment_model": "saas-only",
+      "discovery_score": 38,
+      "priority": 14,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday People Analytics",
+      "category": "Data & Analytics",
+      "subcategory": "HR Analytics",
+      "description": "AI-powered workforce analytics solution that surfaces insights and augmented analytics about workforce trends and risks (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 32,
+      "priority": 15,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Sana (Workday AI)",
+      "category": "AI/ML Platform",
+      "subcategory": "Enterprise AI Agent",
+      "description": "Workday's superintelligence AI platform that automates work across HR, Finance, and IT through agentic AI capabilities embedded across the Workday suite (CREATE AI / LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 42,
+      "priority": 16,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Illuminate",
+      "category": "AI/ML Platform",
+      "subcategory": "AI Foundation",
+      "description": "Workday's next-generation AI engine powering intelligent automation, recommendations, and insights across the Workday platform (CREATE AI / LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 38,
+      "priority": 17,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Deployment Agent",
+      "category": "AI/ML Platform",
+      "subcategory": "AI Agent",
+      "description": "AI-powered deployment agent that delivers real-time configuration intelligence and troubleshooting within the Workday tenant (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 35,
+      "priority": 18,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "BP Optimize Agent",
+      "category": "AI/ML Platform",
+      "subcategory": "Process Mining AI",
+      "description": "Embedded AI tool for real-time process mining that continuously scans business processes for anomalies and performance problems (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 32,
+      "priority": 19,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Extend (Platform Extensibility)",
+      "category": "Application Development",
+      "subcategory": "Low-Code Platform",
+      "description": "Low-code application development platform that allows partners and customers to build and deploy custom apps on the Workday platform.",
+      "deployment_model": "saas-only",
+      "discovery_score": 45,
+      "priority": 20,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Workday Integration Cloud",
+      "category": "Application Development",
+      "subcategory": "Integration Platform",
+      "description": "Integration platform and toolset for connecting Workday with third-party systems using pre-built connectors, Workday Studio, and APIs.",
+      "deployment_model": "saas-only",
+      "discovery_score": 48,
+      "priority": 21,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Workday Studio",
+      "category": "Application Development",
+      "subcategory": "Integration Development",
+      "description": "Eclipse-based development environment for building complex integrations between Workday and external systems using XSLT and custom logic.",
+      "deployment_model": "installable",
+      "discovery_score": 55,
+      "priority": 22,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "Workday Report Writer",
+      "category": "Data & Analytics",
+      "subcategory": "Reporting Tools",
+      "description": "Built-in reporting tool within Workday for creating custom reports, calculated fields, and dashboards using Workday data.",
+      "deployment_model": "saas-only",
+      "discovery_score": 30,
+      "priority": 23,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Calculated Fields",
+      "category": "Data & Analytics",
+      "subcategory": "Reporting Tools",
+      "description": "Configuration feature within Workday that allows administrators to create custom data transformations and derived fields for reporting and business processes.",
+      "deployment_model": "saas-only",
+      "discovery_score": 25,
+      "priority": 24,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Business Process Framework",
+      "category": "Application Development",
+      "subcategory": "Workflow Automation",
+      "description": "Configurable workflow engine within Workday that allows administrators to design, automate, and manage business process flows across HR and Finance.",
+      "deployment_model": "saas-only",
+      "discovery_score": 40,
+      "priority": 25,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Security Administration",
+      "category": "Cybersecurity",
+      "subcategory": "Identity & Access",
+      "description": "Role-based security configuration framework within Workday for managing user access, security groups, domain policies, and audit controls.",
+      "deployment_model": "saas-only",
+      "discovery_score": 42,
+      "priority": 26,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Financial Planning",
+      "category": "Data & Analytics",
+      "subcategory": "Financial Planning",
+      "description": "Integrated financial planning module within Workday for operational and strategic planning aligned with financial management data.",
+      "deployment_model": "saas-only",
+      "discovery_score": 28,
+      "priority": 27,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Workforce Planning",
+      "category": "ERP/CRM",
+      "subcategory": "Workforce Planning",
+      "description": "Strategic workforce planning solution that helps organizations model headcount, skills gaps, and future workforce needs.",
+      "deployment_model": "saas-only",
+      "discovery_score": 26,
+      "priority": 28,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Skills Cloud",
+      "category": "ERP/CRM",
+      "subcategory": "Skills Management",
+      "description": "AI-powered skills ontology and management platform that maps, infers, and matches employee skills across the organization (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 30,
+      "priority": 29,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday VNDLY",
+      "category": "ERP/CRM",
+      "subcategory": "Vendor Management",
+      "description": "Vendor management system (VMS) for managing contingent workforce, external workers, and statement-of-work engagements.",
+      "deployment_model": "saas-only",
+      "discovery_score": 28,
+      "priority": 30,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday GO",
+      "category": "ERP/CRM",
+      "subcategory": "Midmarket ERP",
+      "description": "All-in-one HR, finance, and payroll platform designed specifically for midsize businesses with simplified deployment and configuration.",
+      "deployment_model": "saas-only",
+      "discovery_score": 32,
+      "priority": 31,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Marketplace",
+      "category": "Application Development",
+      "subcategory": "App Marketplace",
+      "description": "Partner and customer app marketplace where AI-driven solutions built on the Workday platform can be discovered and deployed.",
+      "deployment_model": "saas-only",
+      "discovery_score": 20,
+      "priority": 32,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Wellness",
+      "category": "ERP/CRM",
+      "subcategory": "Employee Wellness",
+      "description": "Ecosystem of wellness partner integrations powered by Workday Illuminate AI to connect employees with health and wellbeing resources.",
+      "deployment_model": "saas-only",
+      "discovery_score": 15,
+      "priority": 33,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Journeys",
+      "category": "ERP/CRM",
+      "subcategory": "Employee Experience",
+      "description": "Personalized employee experience tool that guides workers through key life and work events with curated content and tasks.",
+      "deployment_model": "saas-only",
+      "discovery_score": 18,
+      "priority": 34,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Help",
+      "category": "ERP/CRM",
+      "subcategory": "Employee Self-Service",
+      "description": "Case management and knowledge base solution within Workday for HR service delivery and employee self-service support.",
+      "deployment_model": "saas-only",
+      "discovery_score": 18,
+      "priority": 35,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Peakon Employee Voice",
+      "category": "ERP/CRM",
+      "subcategory": "Employee Engagement",
+      "description": "Continuous employee listening and engagement platform that uses AI to surface insights from employee feedback and sentiment (LEARN AI).",
+      "deployment_model": "saas-only",
+      "discovery_score": 22,
+      "priority": 36,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Accounting Center",
+      "category": "ERP/CRM",
+      "subcategory": "Financial ERP",
+      "description": "High-volume accounting automation solution for financial services firms to process and reconcile large volumes of transactional data.",
+      "deployment_model": "saas-only",
+      "discovery_score": 25,
+      "priority": 37,
+      "_tier": "uncertain",
+      "_tier_label": "Uncertain"
+    },
+    {
+      "name": "Workday Grants Management",
+      "category": "ERP/CRM",
+      "subcategory": "Public Sector Finance",
+      "description": "Grants lifecycle management solution for higher education and public sector organizations to track, report, and comply with grant requirements.",
+      "deployment_model": "saas-only",
+      "discovery_score": 20,
+      "priority": 38,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Student",
+      "category": "ERP/CRM",
+      "subcategory": "Student Information System",
+      "description": "Student information system for higher education institutions covering admissions, registration, financial aid, and academic records.",
+      "deployment_model": "saas-only",
+      "discovery_score": 22,
+      "priority": 39,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Workday Pro Platform Administrator Certification",
+      "category": "Training & Certification",
+      "subcategory": "Administrator Certification",
+      "description": "Workday's official certification program for mastering management, testing, and troubleshooting of configurations across the Workday platform.",
+      "deployment_model": "saas-only",
+      "discovery_score": 0,
+      "priority": 40,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "SAP",
+      "product_name": "SAP SuccessFactors",
+      "category": "ERP/CRM",
+      "subcategory": "HR Management",
+      "competitive_context": "SAP SuccessFactors competes directly with Workday HCM in the enterprise cloud HR market."
+    },
+    {
+      "competitor_name": "Oracle",
+      "product_name": "Oracle HCM Cloud",
+      "category": "ERP/CRM",
+      "subcategory": "HR Management",
+      "competitive_context": "Oracle HCM Cloud is a direct competitor to Workday HCM for enterprise human capital management."
+    },
+    {
+      "competitor_name": "Oracle",
+      "product_name": "Oracle Fusion Cloud ERP",
+      "category": "ERP/CRM",
+      "subcategory": "Financial ERP",
+      "competitive_context": "Oracle Fusion Cloud ERP competes with Workday Financial Management in the enterprise cloud ERP space."
+    },
+    {
+      "competitor_name": "SAP",
+      "product_name": "SAP S/4HANA Cloud",
+      "category": "ERP/CRM",
+      "subcategory": "Financial ERP",
+      "competitive_context": "SAP S/4HANA Cloud competes with Workday Financial Management for enterprise finance and ERP workloads."
+    },
+    {
+      "competitor_name": "Microsoft",
+      "product_name": "Microsoft Dynamics 365",
+      "category": "ERP/CRM",
+      "subcategory": "HR & Finance ERP",
+      "competitive_context": "Microsoft Dynamics 365 HR and Finance modules compete with Workday in the midmarket and enterprise ERP space."
+    },
+    {
+      "competitor_name": "Anaplan",
+      "product_name": "Anaplan Planning Platform",
+      "category": "Data & Analytics",
+      "subcategory": "Financial Planning",
+      "competitive_context": "Anaplan competes with Workday Adaptive Planning in the enterprise planning and budgeting market."
+    },
+    {
+      "competitor_name": "Ceridian",
+      "product_name": "Dayforce",
+      "category": "ERP/CRM",
+      "subcategory": "HR Management",
+      "competitive_context": "Ceridian Dayforce competes with Workday HCM and Payroll, particularly in the midmarket segment."
+    },
+    {
+      "competitor_name": "ServiceNow",
+      "product_name": "ServiceNow HR Service Delivery",
+      "category": "ERP/CRM",
+      "subcategory": "HR Service Management",
+      "competitive_context": "ServiceNow HR Service Delivery competes with Workday Help and employee experience capabilities."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": "Workday Talent Development Partners",
+    "channel_program": "Workday Partner Program (Advisory, Services, Innovation Partners)",
+    "ondemand_library": 1,
+    "cert_program": 1,
+    "existing_lab_partner": [],
+    "ilt_vilt": "Workday Education offers ILT and VILT through partner network and direct training",
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "company_homepage": "Cloud Technology Platform and ERP System | Workday US Continue Skip to main content Our Technology Platform Become unstoppable on the Workday platform. In today\u2019s ever-changing business landscape, you need more than just software. You need a strategic advantage. Learn how our AI platform gives you the edge to not just keep pace but also to lead. Play Video (3:38) WHAT SETS WORKDAY APART How we keep business moving forever forward. Take your business to new heights with an AI platform that empowers every team to step into their full potential, and gain the confidence to navigate uncertainty, seize opportunities, and drive extraordinary value. Technology Core Sana. Transform entire HR and finance processes to deliver measurable business value with our next-level AI capabilities. Learn More Workday Data Cloud. Connect your people and money data to your full ecosystem\u2014 fueling enterprise intelligence and advanced analytics. Learn More Extensibility and interoperability. Build and deploy solutions for your unique needs that connect to your ecosystem on our AI platform. Learn More Workday suite. Transform how you manage your people and money with our suite of solutions built for organizations of all sizes. Learn More Experience. Deliver a unified experience that engages, empowers, and enables unparalleled productivity for all. Read Guide Responsible AI. Our AI governance is ISO 42001 certified\u2014meeting the highest standards for trustworthy innovation. Learn More Platform Agents Deployment Agent Accelerate your Workday journey. Our Deployment Agent delivers real-time configuration intelligence and troubleshooting directly within the tenant, leveraging a secure, expert-only knowledge base to help solve complex functional challenges. Learn More BP Optimize Agent Say goodbye to tedious manual investigation. Our BP Optimize Agent is an embedded AI tool for real-time process mining that continuously scans your business processes for anomalies and performance problems. Learn More \u201cHaving the ability to leverage the security and privacy controls within Workday\u2019s trusted enterprise management cloud enables us to confidently spin up new apps to meet our unique needs and drive more value from our Workday investment.\u201d DELIVERING GREATER INNOVATION Innovation powered by partnership. With innovations built by our customers, partners, and Workday, our platform provides you with even more ways to increase agility, transformation, and performance. Explore what\u2019s possible in the W",
+    "atp_page": "Talent Development Partners | Workday US Continue Skip to main content TALENT DEVELOPMENT PARTNERS Get certified and get down to work. Together with our talent development partners, we\u2019re offering pathways to expand your expertise or start a career using our AI platform. Play Video (3:47) Talent Development Partner Directory Find the right certification program for you. Choose from one of our select global partners to help you master the management, testing, and troubleshooting of configurations across our platform through the Workday Pro Platform Administrator Certification. The W. P. Carey School of Business at Arizona State University is one of the largest and most innovative business schools in the country, offering highly ranked undergraduate, MBA, and specialized master\u2019s programs. Known for its commitment to inclusivity, research excellence, and real-world impact, W. P. Carey prepares students to lead in a rapidly changing global economy. Available globally. Enroll Now Marymount University is a nationally ranked private Catholic institution in Arlington, Virginia. As a Hispanic-Serving Institution and one of the nation\u2019s most diverse campuses, Marymount offers innovative programs and a global perspective that prepares students to lead with purpose. Available globally. Enroll Now RESOURCES Resources for you. Blog Succeed in the New Skills Economy Read Blog Blog Solving the Skills Crisis Requires a New Approach Read Blog Blog Bridging the Gap: Sandeep\u2019s Journey from HR to Workday QA Read Blog Blog Leaders Embrace Skills-Based Strategies Read Blog Please accept cookies to continue. This content is blocked due to your cookie preferences for this site.  By clicking here, you accept YouTube's Terms of Service and Privacy Policy . Workday will save your choice in a session cookie. Accept Cookies Close",
+    "training_page": "Training and Certifications | Workday US Continue Skip to main content TRAINING AND CERTIFICATIONS Build talent that moves your business forward. Drive efficiency, productivity, and retain top talent with expert-led training and certifications to achieve more today and tomorrow. Community Sign In Read Infographic OFFERINGS Targeted training that helps you hit your goals. Workday Education enhances your success with offerings to help you work smarter, adapt faster, and fully leverage Workday AI capabilities to drive long-term success. Training for Everyone Training for Workday Users Training for Workday Administrators Build a strong knowledge base for what\u2019s next. Training courses designed for everyone and for every skill level through our Learn with Workday program . Getting Started with AI Learn to build, deploy, and govern AI for business responsibly with our on-demand video library. For: Customers, Partners, Everyone Enroll Now Workday Basics Series Gain foundational Workday knowledge with our Workday Basics courses that reward you with a badge of completion. For: Customers, Partners, Everyone Enroll Now Workday in Action for Business Users Efficiently navigate Workday and complete day-to-day tasks with our on-demand library of routine transaction tutorials. For: Customers, Partners, Everyone Enroll Now Workday Pro Platform Administrator Certification Master the management, testing, and troubleshooting of configurations across the Workday platform. For: Customers, Everyone Enroll Now Empower your team to maximize productivity and efficiency. Training courses designed for end users and business users. Getting Started with Workday Build a strong base in fundamental Workday concepts with our convenient, self-directed course. For: Customers Workday Briefing Series Inspire your executives with Workday\u2019s leading practices and collaboratively shape a future-forward vision for your business. For: Customers, Partners Adoption Kit Accelerate employee and manager use of self-service features with our subscription of customizable training resources. For: Customers Master configurations and scale the system with confidence. Training courses designed for system administrators and configuration specialists. Workday Pro Certification Validate your professional expertise with our comprehensive certification program. For: Customers, Partners Learn More Product Configuration Courses Customize Workday to your needs with our courses focused on comprehensive product configur",
+    "partner_portal_page": "Partners | Workday US Continue Skip to main content Workday Partners Forever forward, together. We\u2019re building a vibrant Workday ecosystem through the power of partnership. Driven by innovation and industry expertise, Workday partners help customers adapt, thrive, and move forever forward. Find a Partner Start Your Partner Journey Explore Partner Innovations Accelerating innovation through partnership. Explore Workday Marketplace. Workday Marketplace is where customers can find trusted, AI-driven apps and solutions built by Workday and our partners. Learn More Discover Workday Wellness. Connect customers to a comprehensive ecosystem of wellness partners\u2014powered by our next-gen AI Workday Illuminate\u2122. Learn More Find AI-powered solutions. Discover customer and Workday solutions\u2014all powered by Workday Illuminate. Learn More Build it on Workday. Built on Workday empowers partners to develop and share apps directly to thousands of customers via the Workday Marketplace. Learn More Already a partner? Visit our partner portal to access resources, deepen your knowledge, and connect with the community. Explore Partner Resources Find a Partner Explore our partner ecosystem. Get to know our sales, services, and innovation partners to learn how they help our customers solve their business-critical needs. Advisory Partners Receive guidance through digital acceleration, product selection, change management, and more. Learn More Innovation Partners Get help designing, building, and deploying solutions that allow you to easily integrate and enhance Workday capabilities. Learn More Services Partners Find the industry expertise and solutions known for helping organizations deploy and adopt new Workday capabilities. Learn More VNDLY Managed Service Provider Partners Tap into the knowledge, skills, and resources designed to help you reduce costs, determine recruitment strategies, and mitigate risk. Learn More PARTNER SPOTLIGHT We work with top-notch organizations. Workday partners are the best of the best and deliver unmatched expertise and service to our customers. Learn More Learn More Learn More Learn More Learn More Learn More Learn More Learn More Learn More Learn More Learn More Learn More Learn More \u201cThe solutions delivered by our partners directly translate to unparalleled value for our customers. Their innovative spirit is the cornerstone of our ecosystem, enabling us to exceed expectations and redefine success.\u201d \u2014Matt Brandt, SVP, Global Partners, Workday Who Succee",
+    "product_page_0": "Cloud Technology Platform and ERP System | Workday US Continue Skip to main content Our Technology Platform Become unstoppable on the Workday platform. In today\u2019s ever-changing business landscape, you need more than just software. You need a strategic advantage. Learn how our AI platform gives you the edge to not just keep pace but also to lead. Play Video (3:38) WHAT SETS WORKDAY APART How we keep business moving forever forward. Take your business to new heights with an AI platform that empowers every team to step into their full potential, and gain the confidence to navigate uncertainty, seize opportunities, and drive extraordinary value. Technology Core Sana. Transform entire HR and finance processes to deliver measurable business value with our next-level AI capabilities. Learn More Workday Data Cloud. Connect your people and money data to your full ecosystem\u2014 fueling enterprise intelligence and advanced analytics. Learn More Extensibility and interoperability. Build and deploy solutions for your unique needs that connect to your ecosystem on our AI platform. Learn More Workday suite. Transform how you manage your people and money with our suite of solutions built for organizations of all sizes. Learn More Experience. Deliver a unified experience that engages, empowers, and enables unparalleled productivity for all. Read Guide Responsible AI. Our AI governance is ISO 42001 certified\u2014meeting the highest standards for trustworthy innovation. Learn More Platform Agents Deployment Agent Accelerate your Workday journey. Our Deployment Agent delivers real-time configuration intelligence and troubleshooting directly within the tenant, leveraging a secure, expert-only knowledge base to help solve complex functional challenges. Learn More BP Optimize Agent Say goodbye to tedious manual investigation. Our BP Optimize Agent is an embedded AI tool for real-time process mining that continuously scans your business processes for anomalies and performance problems. Learn More \u201cHaving the ability to leverage the security and privacy controls within Workday\u2019s trusted enterprise management cloud enables us to confidently spin up new apps to meet our unique needs and drive more value from our Workday investment.\u201d DELIVERING GREATER INNOVATION Innovation powered by partnership. With innovations built by our customers, partners, and Workday, our platform provides you with even more ways to increase agility, transformation, and performance. Explore what\u2019s possible in the W",
+    "product_page_1": "The Enterprise AI Platform for Managing HR and Finance | Workday Continue Skip to main content Sana AI Summit: Explore the impact of AI with pioneering thinkers and researchers. Join the Waitlist Superintelligence for work. Meet Sana. Sana from Workday is the superintelligence that automates work across HR, Finance, IT, and beyond through the power of AI. It\u2019s a new work day. Explore Sana Play Video A new way of working. Sana is the last software your teams will ever need to learn. Find out why. Build an agile frontline workforce. Redefine the hiring experience and empower both managers and employees. Explore frontline workforce solutions. Learn More The all-in-one solution for your midsize business. Discover how Workday GO simplifies your operations by bringing HR, finance, and payroll into one integrated platform. Learn More Snowflake embraces AI revolution to accelerate growth and innovation. Learn More 7-Eleven saves time and transforms its hiring experience with AI. Learn More JLL harnesses AI to overcome a talent bottleneck and onboard quality talent at scale. Learn More Empower your entire organization to reimagine how work gets done. HR Elevate the potential of your people and boost productivity across your organization with human-AI collaboration. Human Capital Management Employee Experience Payroll All HR The new Workday Deployment Agent drives faster, easier, more affordable deployment for midsize businesses. Learn More Finance Use AI to optimize transactions and processes, deliver data-driven insights, and generate value across the enterprise. Financial Management Spend Management Financial Planning All Finance A Leader in the 2025 Gartner\u00ae Magic Quadrant\u2122 for Cloud ERP for Service-Centric Enterprises. Read Report IT Turn AI into ROI faster and deliver transformational outcomes driven by trust, agility, and data readiness you can rely on. Data Cloud IT Solutions Platform and Product Extensions Workday AI Explore this insight-filled guide for thriving in the AI era\u2014based on input from thousands of CIOs. Read Guide Legal Take control of your contracts and turn contract data into actionable insights that drive outcomes across your business. Legal Overview Contract Lifecycle Management Contract Intelligence Named \u2018Strong Performer\u2019 in the 2025 Forrester Wave\u2122: CLM Platforms. Read Report Operations Drive faster, smarter frontline operations and enable a connected, agile workforce with AI agents and mobile tools. Frontline Operations Workforce Manage"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "41a8a28a",
+  "created_at": "2026-04-06T07:57:36.266214+00:00",
+  "known_products": [],
+  "_lab_platform_detections": [
+    {
+      "platform": "Hack The Box",
+      "urls": [],
+      "mentions": [
+        "HTB"
+      ],
+      "evidence_type": "mention",
+      "is_skillable": false
+    }
+  ],
+  "_company_badge": "SOFTWARE",
+  "_org_color": "purple",
+  "_scraped_families": [
+    {
+      "name": "HR Solutions",
+      "url": "https://www.workday.com/en-us/solutions/role/enterprise-hr/overview.html"
+    },
+    {
+      "name": "Human Capital Management",
+      "url": "https://www.workday.com/en-us/products/human-capital-management/overview.html"
+    },
+    {
+      "name": "Human Resource Management",
+      "url": "https://www.workday.com/en-us/products/human-capital-management/human-resource-management.html"
+    },
+    {
+      "name": "Workday Paradox",
+      "url": "https://www.workday.com/en-us/products/conversational-ai/candidate-experience.html"
+    },
+    {
+      "name": "Talent Management",
+      "url": "https://www.workday.com/en-us/products/talent-management/overview.html"
+    },
+    {
+      "name": "Workforce Management",
+      "url": "https://www.workday.com/en-us/products/workforce-management/overview.html"
+    },
+    {
+      "name": "Employee Experience",
+      "url": "https://www.workday.com/en-us/products/human-capital-management/employee-experience.html"
+    },
+    {
+      "name": "HR Service Delivery",
+      "url": "https://www.workday.com/en-us/products/human-capital-management/hr-service-delivery.html"
+    },
+    {
+      "name": "Employee Voice",
+      "url": "https://www.workday.com/en-us/products/employee-voice/overview.html"
+    },
+    {
+      "name": "Workforce Planning",
+      "url": "https://www.workday.com/en-us/products/adaptive-planning/workforce-planning/overview.html"
+    },
+    {
+      "name": "Analytics & Reporting",
+      "url": "https://www.workday.com/en-us/products/analytics-reporting/overview.html"
+    },
+    {
+      "name": "Vendor Management System",
+      "url": "https://www.workday.com/en-us/products/vndly-vms/overview.html"
+    },
+    {
+      "name": "Local & Global Payroll",
+      "url": "https://www.workday.com/en-us/products/payroll/overview.html"
+    },
+    {
+      "name": "Finance Solutions",
+      "url": "https://www.workday.com/en-us/finance-solutions.html"
+    },
+    {
+      "name": "Financial Management",
+      "url": "https://www.workday.com/en-us/products/financial-management/overview.html"
+    },
+    {
+      "name": "Spend Management",
+      "url": "https://www.workday.com/en-us/products/spend-management/overview.html"
+    },
+    {
+      "name": "Financial Planning",
+      "url": "https://www.workday.com/en-us/products/adaptive-planning/financial-planning/overview.html"
+    },
+    {
+      "name": "Payroll",
+      "url": "https://www.workday.com/en-us/products/payroll/overview.html"
+    },
+    {
+      "name": "Planning",
+      "url": "https://www.workday.com/en-us/products/adaptive-planning/overview.html"
+    },
+    {
+      "name": "Close & Consolidation",
+      "url": "https://www.workday.com/en-us/products/adaptive-planning/epm-close-and-consolidation-software.html"
+    },
+    {
+      "name": "Operational Planning",
+      "url": "https://www.workday.com/en-us/products/adaptive-planning/operational-planning/overview.html"
+    },
+    {
+      "name": "Contract Intelligence",
+      "url": "https://www.workday.com/en-us/products/contract-management/contract-intelligence.html"
+    },
+    {
+      "name": "Contract Lifecycle Management",
+      "url": "https://www.workday.com/en-us/products/contract-management/contract-lifecycle-management.html"
+    },
+    {
+      "name": "All Industries",
+      "url": "https://www.workday.com/en-us/solutions/industries.html"
+    },
+    {
+      "name": "Frontline Workforce Solutions",
+      "url": "https://www.workday.com/en-us/solutions/frontline-worker.html"
+    },
+    {
+      "name": "Professional Services Automation",
+      "url": "https://www.workday.com/en-us/products/professional-services-automation/overview.html"
+    },
+    {
+      "name": "Supply Chain Management for Healthcare",
+      "url": "https://www.workday.com/en-us/solutions/industries/healthcare/supply-chain-management-for-healthcare.html"
+    },
+    {
+      "name": "Student Management",
+      "url": "https://www.workday.com/en-us/products/student/overview.html"
+    },
+    {
+      "name": "IT Solutions",
+      "url": "https://www.workday.com/en-us/solutions/role/enterprise-technology/overview.html"
+    },
+    {
+      "name": "Our Technology",
+      "url": "https://www.workday.com/en-us/why-workday/our-technology/overview.html"
+    },
+    {
+      "name": "Extensions",
+      "url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html"
+    },
+    {
+      "name": "Orchestrate & Integrations",
+      "url": "https://www.workday.com/en-us/products/platform-product-extensions/integrations.html"
+    },
+    {
+      "name": "Data Cloud",
+      "url": "https://www.workday.com/en-us/why-workday/our-technology/data-cloud.html"
+    },
+    {
+      "name": "Workday Extend",
+      "url": "https://www.workday.com/en-us/products/platform-product-extensions/app-development.html"
+    },
+    {
+      "name": "Workday ERP",
+      "url": "https://www.workday.com/en-us/enterprise-resource-planning.html"
+    },
+    {
+      "name": "Marketplace",
+      "url": "https://marketplace.workday.com/en-US/home"
+    },
+    {
+      "name": "Midsize Business Solutions",
+      "url": "https://www.workday.com/en-us/midsize-business/overview.html"
+    },
+    {
+      "name": "Workday Build",
+      "url": "https://www.workday.com/en-us/why-workday/workday-build.html"
+    },
+    {
+      "name": "Why Workday",
+      "url": "https://www.workday.com/en-us/why-workday.html"
+    },
+    {
+      "name": "Banking & Capital Markets",
+      "url": "https://www.workday.com/en-us/solutions/industries/financial-services/banking-and-capital-markets.html"
+    },
+    {
+      "name": "Financial Services",
+      "url": "https://www.workday.com/en-us/solutions/industries/financial-services.html"
+    },
+    {
+      "name": "Insurance",
+      "url": "https://www.workday.com/en-us/solutions/industries/financial-services/insurance.html"
+    },
+    {
+      "name": "Investment Management",
+      "url": "https://www.workday.com/en-us/solutions/industries/financial-services/investment-management.html"
+    },
+    {
+      "name": "Healthcare",
+      "url": "https://www.workday.com/en-us/solutions/industries/healthcare.html"
+    },
+    {
+      "name": "Hospitality",
+      "url": "https://www.workday.com/en-us/solutions/industries/hospitality.html"
+    },
+    {
+      "name": "Energy and Resources",
+      "url": "https://www.workday.com/en-us/solutions/industries/energy-and-resources.html"
+    },
+    {
+      "name": "Life Sciences",
+      "url": "https://www.workday.com/en-us/solutions/industries/life-sciences.html"
+    },
+    {
+      "name": "Manufacturing",
+      "url": "https://www.workday.com/en-us/solutions/industries/manufacturing.html"
+    },
+    {
+      "name": "Professional & Business Services",
+      "url": "https://www.workday.com/en-us/solutions/industries/professional-and-business-services.html"
+    },
+    {
+      "name": "Higher Education",
+      "url": "https://www.workday.com/en-us/solutions/industries/education.html"
+    },
+    {
+      "name": "Nonprofit",
+      "url": "https://www.workday.com/en-us/solutions/industries/nonprofit.html"
+    },
+    {
+      "name": "Public Sector",
+      "url": "https://www.workday.com/en-us/solutions/industries/public-sector.html"
+    },
+    {
+      "name": "Special Districts",
+      "url": "https://www.workday.com/en-us/solutions/industries/public-sector/special-districts.html"
+    },
+    {
+      "name": "State & Local Government",
+      "url": "https://www.workday.com/en-us/solutions/industries/public-sector/state-and-local.html"
+    },
+    {
+      "name": "U.S. Federal Government",
+      "url": "https://www.workday.com/en-us/solutions/industries/public-sector/us-federal-government-cloud.html"
+    },
+    {
+      "name": "Retail",
+      "url": "https://www.workday.com/en-us/solutions/industries/retail.html"
+    },
+    {
+      "name": "Communications",
+      "url": "https://www.workday.com/en-us/solutions/industries/communications.html"
+    },
+    {
+      "name": "Media & Entertainment",
+      "url": "https://www.workday.com/en-us/solutions/industries/media-and-entertainment.html"
+    },
+    {
+      "name": "Technology",
+      "url": "https://www.workday.com/en-us/solutions/industries/technology.html"
+    },
+    {
+      "name": "Transportation",
+      "url": "https://www.workday.com/en-us/solutions/industries/transportation.html"
+    },
+    {
+      "name": "Customer Stories",
+      "url": "https://www.workday.com/en-us/customer-stories.html"
+    },
+    {
+      "name": "Overview",
+      "url": "https://www.workday.com/en-us/services/overview.html"
+    },
+    {
+      "name": "Deployment",
+      "url": "https://www.workday.com/en-us/services/deployment.html"
+    },
+    {
+      "name": "Training & Certifications",
+      "url": "https://www.workday.com/en-us/services/training-certifications.html"
+    },
+    {
+      "name": "Success Plans",
+      "url": "https://www.workday.com/en-us/services/success-plans.html"
+    },
+    {
+      "name": "For Finance",
+      "url": "https://www.workday.com/en-us/products/financial-management/finance-news-resources.html"
+    },
+    {
+      "name": "For HR",
+      "url": "https://www.workday.com/en-us/products/human-capital-management/hr-news-resources.html"
+    },
+    {
+      "name": "Advisory",
+      "url": "https://www.workday.com/en-us/company/partners/advisory-partners.html"
+    },
+    {
+      "name": "Innovation",
+      "url": "https://www.workday.com/en-us/company/partners/innovation-partners.html"
+    },
+    {
+      "name": "Managed Service Provider",
+      "url": "https://www.workday.com/en-us/company/partners/managed-service-providers.html"
+    },
+    {
+      "name": "Services",
+      "url": "https://www.workday.com/en-us/company/partners/services-partners.html"
+    },
+    {
+      "name": "Partner Program",
+      "url": "https://www.workday.com/en-us/company/partners/partner-program-overview.html"
+    },
+    {
+      "name": "Evisort",
+      "url": "https://clients.evisort.com"
+    },
+    {
+      "name": "Manage Account",
+      "url": "https://digital.workday.com/en-us/account.html"
+    },
+    {
+      "name": "Workday Rising",
+      "url": "https://rising.workday.com/us.html?eid=enus_evt_otrschref_wd_wd_wd_ev_22.3340&utm_medium=evt&utm_source=otrschref&productfocus=wd&aud=wd&assettype=ev&assetid=22.3340&pblr=wd&reference=wdqsrch"
+    },
+    {
+      "name": "For Planning",
+      "url": "https://www.workday.com/en-us/products/adaptive-planning/overview.html"
+    },
+    {
+      "name": "Platform",
+      "url": "https://www.workday.com/en-us/solutions/role/enterprise-technology/overview.html"
+    },
+    {
+      "name": "Artificial Intelligence",
+      "url": "https://www.workday.com/en-us/artificial-intelligence.html"
+    },
+    {
+      "name": "Workday Suite",
+      "url": "https://www.workday.com/en-us/products/suite.html"
+    },
+    {
+      "name": "Partners",
+      "url": "https://www.workday.com/en-us/company/partners/overview.html"
+    },
+    {
+      "name": "See More Industries",
+      "url": "https://www.workday.com/en-us/solutions/industries.html"
+    }
+  ]
+}

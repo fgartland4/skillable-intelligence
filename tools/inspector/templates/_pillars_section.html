@@ -1,0 +1,58 @@
+{# Pillars section — used by full_analysis.html and the in-place product swap endpoint.
+   Inputs: `analysis`, `selected_product`. #}
+{% from '_macros.html' import render_dimension, doc_svg %}
+{% set top = selected_product %}
+{% set prod_pillar = top.fit_score.product_labability %}
+{% set inst_pillar = top.fit_score.instructional_value %}
+{% set cust_pillar = top.fit_score.customer_fit %}
+
+<div class="section-row">
+  <div style="flex: 7;"><span class="section-label">Product · <strong>{{ (prod_pillar.weight or 0) + (inst_pillar.weight or 0) }}%</strong> of Fit Score</span></div>
+  <div style="flex: 3;"><span class="section-label">Organization · <strong>{{ cust_pillar.weight or 0 }}%</strong> of Fit Score</span></div>
+</div>
+
+<div class="pillars">
+  <div class="product-side">
+    <div class="pillar-card">
+      <div class="pillar-header">
+        <div>
+          <span class="pillar-name">{{ prod_pillar.name }}</span><span class="pillar-icons"><span class="info-icon">?</span><span class="doc-icon" title="Export {{ prod_pillar.name }} report">{{ doc_svg() }}</span></span>
+          <div class="pillar-weight"><strong>{{ prod_pillar.weight or 0 }}%</strong> of Fit Score</div>
+        </div>
+        <div class="pillar-score {{ (prod_pillar.score or 0) | score_color }}">{{ prod_pillar.score or 0 }}<span>/100</span></div>
+      </div>
+      {% for dim in prod_pillar.dimensions or [] %}
+        {{ render_dimension(dim) }}
+      {% endfor %}
+    </div>
+
+    <div class="pillar-card">
+      <div class="pillar-header">
+        <div>
+          <span class="pillar-name">{{ inst_pillar.name }}</span><span class="pillar-icons"><span class="info-icon">?</span><span class="doc-icon" title="Export {{ inst_pillar.name }} report">{{ doc_svg() }}</span></span>
+          <div class="pillar-weight"><strong>{{ inst_pillar.weight or 0 }}%</strong> of Fit Score</div>
+        </div>
+        <div class="pillar-score {{ (inst_pillar.score or 0) | score_color }}">{{ inst_pillar.score or 0 }}<span>/100</span></div>
+      </div>
+      {% for dim in inst_pillar.dimensions or [] %}
+        {{ render_dimension(dim) }}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="org-side">
+    <div class="pillar-card-org">
+      <div class="pillar-header">
+        <div>
+          <span class="pillar-name-org">{{ cust_pillar.name }}</span>
+          <span class="info-icon">?</span>
+          <div class="pillar-weight"><strong>{{ cust_pillar.weight or 0 }}%</strong> of Fit Score</div>
+        </div>
+        <div class="pillar-score {{ (cust_pillar.score or 0) | score_color }}">{{ cust_pillar.score or 0 }}<span>/100</span></div>
+      </div>
+      {% for dim in cust_pillar.dimensions or [] %}
+        {{ render_dimension(dim) }}
+      {% endfor %}
+    </div>
+  </div>
+</div>

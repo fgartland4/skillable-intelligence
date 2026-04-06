@@ -56,9 +56,16 @@ log.info("Scoring prompt generated: %d characters", len(SCORING_PROMPT))
 # Claude API — proven infrastructure
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _call_claude(system_prompt: str, user_content: str, max_tokens: int = 4000) -> dict:
-    """Call Claude and parse JSON response. Retries on rate limit with exponential backoff."""
+def _call_claude(system_prompt: str, user_content: str, max_tokens: int = 4000,
+                 model_override: str | None = None) -> dict:
+    """Call Claude and parse JSON response. Retries on rate limit with exponential backoff.
+
+    model_override: pass a specific model ID (e.g. 'claude-opus-4-6' or
+    'claude-haiku-4-5-20251001') to use a different model for this call.
+    Defaults to the global ANTHROPIC_MODEL.
+    """
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    model_to_use = model_override or ANTHROPIC_MODEL
     last_exc = None
     for attempt in range(4):
         if attempt > 0:
@@ -66,14 +73,30 @@ def _call_claude(system_prompt: str, user_content: str, max_tokens: int = 4000) 
             log.warning("Rate limit — retrying in %ss (attempt %d/4)", wait, attempt + 1)
             time.sleep(wait)
         try:
+            call_start = time.time()
+            log.info("Claude call starting (model=%s, max_tokens=%d)", model_to_use, max_tokens)
+            token_count = 0
+            last_heartbeat = call_start
             with client.messages.stream(
-                model=ANTHROPIC_MODEL,
+                model=model_to_use,
                 max_tokens=max_tokens,
                 temperature=0,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_content}],
             ) as stream:
+                # Stream events to track progress and emit heartbeats
+                for event in stream:
+                    if event.type == "content_block_delta":
+                        token_count += 1
+                    now = time.time()
+                    if now - last_heartbeat >= 60:
+                        log.info("Claude call still running — %ds elapsed, ~%d chunks received",
+                                 int(now - call_start), token_count)
+                        last_heartbeat = now
                 message = stream.get_final_message()
+            elapsed = time.time() - call_start
+            log.info("Claude call complete in %.1fs (%d output tokens)",
+                     elapsed, message.usage.output_tokens if message.usage else 0)
             text = message.content[0].text
             if message.stop_reason == "max_tokens":
                 raise ValueError(
@@ -372,27 +395,45 @@ def _parse_badges_for_dimension(dim_name: str, evidence_dict: dict) -> list[Badg
     return badges
 
 
-def _parse_pillar(pillar_name: str, pillar_data: dict, evidence_dict: dict) -> PillarScore:
-    """Parse a Pillar from AI output into PillarScore."""
-    dims_data = pillar_data.get("dimensions", {})
-    weight = pillar_data.get("weight", 0)
+def _parse_pillar(pillar_name: str, pillar_data: dict, evidence_dict: dict,
+                  computed_dim_scores: dict | None = None) -> PillarScore:
+    """Parse a Pillar from AI output into PillarScore.
 
-    # Map dimension names to their config weights
-    dim_weights = {
-        # Product Labability
-        "provisioning": 35, "lab_access": 25, "scoring": 15, "teardown": 25,
-        # Instructional Value
-        "product_complexity": 40, "mastery_stakes": 25, "lab_versatility": 15, "market_demand": 20,
-        # Customer Fit
-        "training_commitment": 25, "organizational_dna": 25, "delivery_capacity": 30, "build_capacity": 20,
-    }
+    `computed_dim_scores` is the dict from `scoring_math.compute_all`'s
+    "dimensions" key — keyed by dimension key (lowercase, underscores).
+    When provided, dimension scores AND weights come from the math layer
+    rather than from the AI output. The AI's claimed scores are discarded.
+    """
+    import scoring_config as cfg
+
+    dims_data = pillar_data.get("dimensions", {})
+
+    # Map dimension key -> weight from the config (NO HARD CODING)
+    dim_weights: dict[str, int] = {}
+    for pillar in cfg.PILLARS:
+        for dim in pillar.dimensions:
+            key = dim.name.lower().replace(" ", "_")
+            dim_weights[key] = dim.weight
+
+    # Pillar weight from config too
+    weight = pillar_data.get("weight", 0)
+    for pillar in cfg.PILLARS:
+        if pillar.name == pillar_name:
+            weight = pillar.weight
+            break
 
     dimensions = []
     for dim_key, dim_data in dims_data.items():
         display_name = dim_key.replace("_", " ").title()
+        # Prefer computed score from scoring_math; fall back to AI output only
+        # if math wasn't run (defensive — should not happen in normal flow)
+        if computed_dim_scores and dim_key in computed_dim_scores:
+            score = computed_dim_scores[dim_key]["score"]
+        else:
+            score = min(dim_data.get("score", 0), dim_weights.get(dim_key, 100))
         dimensions.append(DimensionScore(
             name=display_name,
-            score=min(dim_data.get("score", 0), dim_weights.get(dim_key, 100)),
+            score=score,
             weight=dim_weights.get(dim_key, 0),
             summary=dim_data.get("summary", ""),
             badges=_parse_badges_for_dimension(display_name, evidence_dict),
@@ -446,20 +487,71 @@ def _parse_verdict(raw: dict) -> Verdict:
 
 
 def _parse_product(data: dict) -> Product:
-    """Parse a complete product from AI scoring output into the new model."""
+    """Parse a complete product from AI scoring output into the new model.
+
+    The AI is responsible for evidence synthesis (badges + bullets). All scoring
+    math is performed deterministically by `scoring_math.compute_all()` from the
+    badges the AI emitted. The AI's claimed dimension scores are IGNORED — the
+    Python math is the source of truth for every number on the page.
+    """
+    import scoring_math
+
     pillar_scores = data.get("pillar_scores", {})
     evidence_dict = data.get("evidence", {})
+    poor_match_flags = data.get("poor_match_flags", []) or []
+    orchestration_method = data.get("orchestration_method", "") or ""
 
-    # Parse the three Pillars
+    # ─── Build badges_by_dimension from the AI's evidence output ─────────
+    # Each evidence entry has a "badge" name and a "color". We pass both to
+    # the math layer so it can apply color-based fallback scoring for
+    # badge-presence dimensions (Customer Fit, parts of Instructional Value).
+    badges_by_dimension: dict[str, list] = {}
+    for dim_key, items in evidence_dict.items():
+        if not isinstance(items, list):
+            continue
+        badge_objs = [
+            {"name": item.get("badge", ""), "color": item.get("color", "")}
+            for item in items
+            if isinstance(item, dict) and item.get("badge")
+        ]
+        badges_by_dimension[dim_key.lower()] = badge_objs
+
+    # ─── Run the deterministic math ──────────────────────────────────────
+    math_result = scoring_math.compute_all(
+        badges_by_dimension=badges_by_dimension,
+        ceiling_flags=poor_match_flags,
+        orchestration_method=orchestration_method,
+    )
+
+    if math_result.get("ceilings_applied"):
+        log.info("Ceiling flags applied for %s: %s",
+                 data.get("product_name") or data.get("name", "?"),
+                 [c["flag"] for c in math_result["ceilings_applied"]])
+
+    # ─── Parse pillars, OVERRIDING dimension scores with computed values ─
     fit = FitScore()
     for pillar_name, pillar_data in pillar_scores.items():
-        parsed = _parse_pillar(pillar_name, pillar_data, evidence_dict)
+        parsed = _parse_pillar(
+            pillar_name, pillar_data, evidence_dict,
+            computed_dim_scores=math_result["dimensions"],
+        )
         if "Labability" in pillar_name:
             fit.product_labability = parsed
         elif "Instructional" in pillar_name:
             fit.instructional_value = parsed
         elif "Customer" in pillar_name:
             fit.customer_fit = parsed
+
+    # ─── Apply post-ceiling pillar score override and Fit Score override ─
+    # Product Labability gets the post-ceiling score from the math layer.
+    # The dimension scores remain authentic (so the badge story holds), but
+    # the pillar header reflects the ceiling cap.
+    pl_post_ceiling = math_result["pillars"]["product_labability"]
+    fit.product_labability.score_override = pl_post_ceiling
+    fit.pl_score_pre_ceiling = math_result["pillar_labability_pre_ceiling"]
+    fit.ceilings_applied = math_result["ceilings_applied"]
+    fit.technical_fit_multiplier = math_result["technical_fit_multiplier"]
+    fit.total_override = math_result["fit_score"]
 
     # Contacts
     contacts_raw = data.get("contacts", {})
@@ -522,38 +614,102 @@ def _parse_product(data: dict) -> Product:
 # Seller Briefcase — separate AI call after scoring (GP3)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_BRIEFCASE_SYSTEM_PROMPT = """You are a sales enablement expert for Skillable, a hands-on lab platform.
-You are given complete scoring results for a product. Generate three briefcase sections
-that arm the seller for conversations. Be sharp, specific, and actionable.
+# ═══════════════════════════════════════════════════════════════════════════════
+# Seller Briefcase — split into three independent AI calls per product
+#
+# Each section uses the right brain for its job:
+#
+#   Key Technical Questions  → Opus 4.6  — sales-critical, sharp synthesis
+#   Conversation Starters    → Haiku 4.5 — pattern-matched, fast
+#   Account Intelligence     → Haiku 4.5 — surface signals, fast
+#
+# All three calls per product run in parallel. Across N products, that's
+# 3N parallel calls — total time gated by the slowest (Opus KTQ).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_BRIEFCASE_KTQ_MODEL = "claude-opus-4-6"
+_BRIEFCASE_STARTERS_MODEL = "claude-haiku-4-5-20251001"
+_BRIEFCASE_ACCT_MODEL = "claude-haiku-4-5-20251001"
+
+_KTQ_SYSTEM_PROMPT = """You are a sales enablement expert for Skillable, a hands-on lab platform.
+
+Your job: write Key Technical Questions for a seller about a specific product. These questions
+will be used to start a conversation with a technical champion at the customer (typically a
+solution engineer, principal engineer, or product team lead). The seller will forward your
+exact question to the champion via email or Slack.
+
+These questions unblock the lab build. They surface the technical details Skillable needs:
+provisioning path, identity model, scoring surface, teardown approach, NFR licensing,
+multi-tenancy model, API completeness for state validation.
 
 Output JSON with this structure:
 {
-  "key_technical_questions": {
-    "bullets": ["Who to find, what department, what to ask, why it matters"]
-  },
-  "conversation_starters": {
-    "bullets": ["Product-specific talking points about why hands-on training matters"]
-  },
-  "account_intelligence": {
-    "bullets": ["Organizational signals, training leadership, competitive intel, news"]
-  }
+  "bullets": [
+    "<short label> — <who to find, what department>. <Verbatim question the champion can paste into a reply>",
+    ...
+  ]
 }
 
 Rules:
-- Each section: 2-3 bullets maximum
-- Every bullet is specific to THIS company and THIS product — never generic
-- Key Technical Questions: include a verbatim question the champion can send
-- Conversation Starters: make the seller credible without being technical
-- Account Intelligence: show the seller has done their homework
+- 2-3 bullets maximum
+- Every bullet starts with a sharp label (e.g., "Provisioning path", "NFR licensing", "Identity model")
+- Every bullet identifies WHO to find at the customer (role + department) and WHY they're the right person
+- Every bullet contains a VERBATIM question the champion can answer in 1-2 sentences
+- Every bullet is specific to THIS product and THIS company — never generic
+- The questions must be answerable. Don't ask "what's your strategy" — ask "does the REST API support DELETE on user records?"
+- Lead with the highest-value unknown — the one that unblocks the most downstream decisions
+"""
+
+_STARTERS_SYSTEM_PROMPT = """You are a sales enablement expert for Skillable, a hands-on lab platform.
+
+Your job: write Conversation Starters that help a seller talk credibly about why hands-on
+training matters for a specific product. The seller is not technical — they need product-specific
+talking points they can use in a discovery call without sounding scripted.
+
+Output JSON with this structure:
+{
+  "bullets": [
+    "<one product-specific talking point>",
+    ...
+  ]
+}
+
+Rules:
+- 2-3 bullets maximum
+- Each bullet is a complete, conversational sentence the seller could say out loud
+- Each bullet ties THIS product's complexity, stakes, or workflows to why hands-on training matters
+- Never generic ("hands-on training is important") — always grounded in this specific product
+- Make the seller sound credible without making them sound like an SE
+- Include one stat, anchor, or specific detail per bullet when possible
+"""
+
+_ACCT_SYSTEM_PROMPT = """You are a sales enablement expert for Skillable, a hands-on lab platform.
+
+Your job: write Account Intelligence bullets that show the seller has done their homework.
+These are organizational signals that help the seller walk into a conversation prepared:
+training leadership, org complexity, LMS platform in use, certifications, competitive lab
+platforms detected, recent news, partner programs.
+
+Output JSON with this structure:
+{
+  "bullets": [
+    "<one organizational signal with specific detail>",
+    ...
+  ]
+}
+
+Rules:
+- 2-3 bullets maximum
+- Each bullet surfaces a SPECIFIC organizational signal (named LMS, named training leader,
+  specific certification program, competitive platform, recent news event)
+- Never generic ("they care about training") — always anchored to a named entity
+- If a piece of intel is missing from the scoring data, do NOT invent it
+- Lead with the most actionable signal — the one a seller would actually open with
 """
 
 
-def generate_briefcase(product: Product, company_context: str) -> SellerBriefcase:
-    """Generate Seller Briefcase from complete scoring results.
-
-    Separate AI call — receives full scoring context for sharper output.
-    """
-    # Build context from the scored product
+def _build_briefcase_context(product: Product, company_context: str) -> str:
+    """Build the per-product context string used by all three section calls."""
     scoring_summary = json.dumps({
         "product": product.name,
         "fit_score": product.fit_score.total,
@@ -566,29 +722,63 @@ def generate_briefcase(product: Product, company_context: str) -> SellerBriefcas
         "contacts": [{"name": c.name, "title": c.title, "role_type": c.role_type}
                      for c in product.contacts],
     }, indent=2)
+    return f"## Scoring Results\n{scoring_summary}\n\n{company_context}"
 
-    user_content = f"# Generate Seller Briefcase\n\n## Scoring Results\n{scoring_summary}\n\n{company_context}"
 
+def _generate_briefcase_section(system_prompt: str, model: str,
+                                user_content: str, max_tokens: int) -> list[str]:
+    """Generate one briefcase section. Returns the bullets list, or empty on failure."""
     try:
-        result = _call_claude(_BRIEFCASE_SYSTEM_PROMPT, user_content, max_tokens=2000)
+        result = _call_claude(system_prompt, user_content,
+                              max_tokens=max_tokens, model_override=model)
+        return result.get("bullets", []) or []
     except Exception as e:
-        log.error("Briefcase generation failed: %s", e)
-        return SellerBriefcase()
+        log.error("Briefcase section generation failed (model=%s): %s", model, e)
+        return []
+
+
+def generate_briefcase(product: Product, company_context: str) -> SellerBriefcase:
+    """Generate the three Seller Briefcase sections in parallel.
+
+    Each section is its own Claude call with its own model:
+      - Key Technical Questions → Opus (sales-critical)
+      - Conversation Starters   → Haiku (fast)
+      - Account Intelligence    → Haiku (fast)
+
+    Total time is gated by the slowest call (Opus KTQ ≈ 20 seconds).
+    """
+    user_content = _build_briefcase_context(product, company_context)
+
+    sections = {}
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {
+            "ktq": executor.submit(
+                _generate_briefcase_section,
+                _KTQ_SYSTEM_PROMPT, _BRIEFCASE_KTQ_MODEL, user_content, 800),
+            "starters": executor.submit(
+                _generate_briefcase_section,
+                _STARTERS_SYSTEM_PROMPT, _BRIEFCASE_STARTERS_MODEL, user_content, 500),
+            "acct": executor.submit(
+                _generate_briefcase_section,
+                _ACCT_SYSTEM_PROMPT, _BRIEFCASE_ACCT_MODEL, user_content, 500),
+        }
+        for key, fut in futures.items():
+            sections[key] = fut.result()
 
     return SellerBriefcase(
         key_technical_questions=BriefcaseSection(
             pillar="Product Labability",
             heading="Key Technical Questions",
-            bullets=result.get("key_technical_questions", {}).get("bullets", []),
+            bullets=sections.get("ktq", []),
         ),
         conversation_starters=BriefcaseSection(
             pillar="Instructional Value",
             heading="Conversation Starters",
-            bullets=result.get("conversation_starters", {}).get("bullets", []),
+            bullets=sections.get("starters", []),
         ),
         account_intelligence=BriefcaseSection(
             pillar="Customer Fit",
             heading="Account Intelligence",
-            bullets=result.get("account_intelligence", {}).get("bullets", []),
+            bullets=sections.get("acct", []),
         ),
     )

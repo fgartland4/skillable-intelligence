@@ -48,12 +48,13 @@ For each item, identify:
   - "saas-only": vendor-managed only — no installer, no container, no marketplace path
   DO NOT mark a product "saas-only" just because a cloud version exists. If it can be installed on a VM, server, or container, use "installable" or "hybrid".
 - discovery_score: integer 0-100 estimating how promising this product is for Skillable labs. Score based on:
-  - Deployment model: installable/hybrid products score 65-90 (strong). Cloud-native scores 50-75. SaaS-only scores 10-40 unless rich APIs exist.
+  - Deployment model: installable/hybrid products score 65-90 (strong). Cloud-native scores 50-75. SaaS-only scores 10-25 unless ALL of these are confirmed: (1) public REST API with full CRUD operations, (2) per-learner sandbox or tenant provisioning API, (3) documented teardown/DELETE endpoint. If any of those three is missing or unconfirmed, SaaS-only stays in the 10-25 range. The bar is high — most SaaS products do NOT clear it.
+  - SaaS HARD CAP: SaaS-only products NEVER score above 25 if research surfaces any of: shared multi-tenant architecture with no per-learner isolation, MFA required on API auth, no documented sandbox/dev tenant program, training accounts only available through manual sales contact. Workday, ServiceNow, Salesforce, and similar enterprise SaaS platforms are typical examples — they score 5-20, not 50+.
   - Technical depth: products with deep configuration, multiple admin workflows, troubleshooting scenarios score higher
   - Market category: cybersecurity, cloud infra, networking, DevOps, data engineering products score higher (high training demand)
   - API availability: products with documented REST APIs, CLI tools, or scriptable interfaces score higher (enables automated scoring)
   - Training signals: existing certification programs, training catalogs, or partner training networks indicate market validation
-  Products that install on Windows/Linux VMs with meaningful admin workflows should score 70+. Consumer-grade or simple SaaS products score below 30.
+  Products that install on Windows/Linux VMs with meaningful admin workflows should score 70+. Consumer-grade or simple SaaS products score below 30. Enterprise SaaS without learner isolation scores below 25.
 - priority: integer starting at 1, ranked by value as a lab opportunity
 
 PRODUCT COUNT — Be thorough. For large companies, aim for 40-60 products. Don't artificially limit.

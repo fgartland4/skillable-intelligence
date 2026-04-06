@@ -361,6 +361,7 @@ Designer program records link back to source Inspector analysis via inspector_an
 | **Preferences groups** | reference_designer_decisions.md lists 5 groups; detailed spec lists 5 different groups | The two lists don't match exactly | Need to reconcile and lock the definitive 5 |
 | **User bubble color** | designer.html uses `#00D082` gradient for user chat bubbles | Brand palette has `#24ED98` as accent green | Should use brand palette color |
 | **Data domain enforcement** | product-intel route queries Inspector analysis cache | Foundation says "no path from Designer to company intelligence data" | Need to verify product-intel doesn't leak company intelligence fields |
+| **Certification frameworks in catalog** | Detailed spec includes vendor certification catalogs (Microsoft, CompTIA, AWS, Cisco) with simplified UX | reference_designer_decisions.md explicitly removed certification frameworks — not freely downloadable/licensable content the AI can reference | Need to decide: include with a different injection model, or exclude? |
 
 ---
 

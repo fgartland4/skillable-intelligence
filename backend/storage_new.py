@@ -161,17 +161,31 @@ def find_analysis_by_company_name(company_name: str) -> Optional[dict]:
 
 
 def find_analysis_by_discovery_id(discovery_id: str) -> Optional[dict]:
-    """Find an analysis linked to a specific discovery."""
+    """Find the MOST RECENT analysis linked to a specific discovery.
+
+    Multiple analyses may exist for the same discovery (from before the
+    stable-URL/cache logic was added). Always pick the most recent so cache
+    hits use the freshest data — and so newly appended products land on the
+    same analysis the user is viewing.
+    """
     if not discovery_id:
         return None
+    candidates = []
     for filename in os.listdir(_COMPANY_DIR):
         if not filename.startswith("analysis_"):
             continue
         filepath = os.path.join(_COMPANY_DIR, filename)
+        try:
+            mtime = os.path.getmtime(filepath)
+        except OSError:
+            continue
         data = _read_json(filepath)
         if data and data.get("discovery_id") == discovery_id:
-            return data
-    return None
+            candidates.append((mtime, data))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return candidates[0][1]
 
 
 def list_analyses() -> list[dict]:

@@ -1,554 +1,534 @@
+{#
+  Full Analysis page — rebuilt from wireframe.html (pixel-perfect).
+  Data source: analysis dict prepared by inspector_full_analysis() in app_new.py.
+#}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="/static/img/favicon.png">
-    <title>Full Analysis — {{ analysis.company_name }} — Skillable Intelligence</title>
-    <style>
-        {% include '_theme_new.html' %}
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        button { font-family: inherit; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--sk-bg);
-            color: var(--sk-text); min-height: 100vh;
-        }
-        a { color: var(--sk-accent); text-decoration: none; }
-        a:hover { color: #1dd88a; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/static/img/favicon.png">
+<title>{{ analysis.company_name }} — Full Analysis — Skillable Intelligence</title>
+<script>
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.product-selector.open').forEach(function(sel) {
+    if (!sel.contains(e.target)) sel.classList.remove('open');
+  });
+});
 
-        .page { max-width: 1320px; margin: 0 auto; padding: 28px 24px 80px; }
+// Badge hover evidence modal
+let hoverTimer = null;
+document.addEventListener('mouseover', function(e) {
+  const badge = e.target.closest('.badge[data-evidence]');
+  if (!badge) return;
+  hoverTimer = setTimeout(function() {
+    const existing = document.querySelector('.evidence-modal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.className = 'evidence-modal';
+    modal.innerHTML = badge.getAttribute('data-evidence');
+    const rect = badge.getBoundingClientRect();
+    modal.style.left = rect.left + 'px';
+    modal.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    document.body.appendChild(modal);
+    // Reposition if modal clips the right edge of the viewport
+    const margin = 16;
+    const modalRect = modal.getBoundingClientRect();
+    if (modalRect.right > window.innerWidth - margin) {
+      const newLeft = Math.max(margin, window.innerWidth - modal.offsetWidth - margin);
+      modal.style.left = newLeft + 'px';
+    }
+  }, 1500);
+});
+document.addEventListener('mouseout', function(e) {
+  const badge = e.target.closest('.badge[data-evidence]');
+  if (badge) {
+    clearTimeout(hoverTimer);
+    setTimeout(function() {
+      const modal = document.querySelector('.evidence-modal');
+      if (modal && !modal.matches(':hover')) modal.remove();
+    }, 300);
+  }
+});
+document.addEventListener('mouseleave', function(e) {
+  if (e.target.classList && e.target.classList.contains('evidence-modal')) {
+    e.target.remove();
+  }
+}, true);
+</script>
+<style>
+{% include '_theme_new.html' %}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe UI', Calibri, sans-serif; min-width: 900px; }
+/* Page content sits below the shared nav and gets the side/top padding */
+.page-content { padding: 20px 40px; }
 
-        /* ── Nav links ── */
-        .nav-links { display: flex; gap: 8px; margin-bottom: 24px; }
-        .btn-back {
-            font-size: 0.78rem; color: var(--sk-text-muted);
-            background: rgba(36,237,155,0.06); border: 1px solid rgba(36,237,155,0.18);
-            padding: 5px 12px; border-radius: 7px;
-            transition: color 0.15s, border-color 0.15s;
-        }
-        .btn-back:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+.header { padding-bottom: 14px; margin-bottom: 16px; }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.company-title { display: flex; align-items: flex-end; gap: 12px; }
+.company-name { font-size: 1.8rem; font-weight: 700; color: var(--sk-text-strong); line-height: 1; }
+.company-badge { font-size: 0.6rem; letter-spacing: 2px; padding: 3px 10px; border: 1px solid var(--sk-badge-purple-bdr); color: var(--sk-classify-purple); background: var(--sk-badge-purple-bg); border-radius: 3px; margin-bottom: 2px; text-transform: uppercase; }
+.header-right { text-align: right; }
+.header-cache { font-size: 0.7rem; color: var(--sk-text-muted); line-height: 1.6; white-space: nowrap; }
+.header-cache a { color: var(--sk-text-muted); text-decoration: none; border-bottom: 1px dotted var(--sk-text-dim); }
+.header-cache a:hover { color: var(--sk-accent-soft); border-bottom-color: var(--sk-accent-soft); }
+.header-nav { margin-top: 10px; font-size: 0.7rem; line-height: 1.6; }
+.header-nav a { color: var(--sk-accent-soft); text-decoration: none; }
+.header-nav a:hover { text-decoration: underline; }
+.company-desc {
+    color: var(--sk-text-muted); font-size: 0.82rem; margin-top: 8px;
+    max-width: 52%; line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
-        /* ═══════════════════════════════════════════════════════════════
-           HERO SECTION — the star of the show
-           ═══════════════════════════════════════════════════════════════ */
-        .hero {
-            display: flex; align-items: flex-start; justify-content: space-between;
-            gap: 24px; margin-bottom: 32px; padding-bottom: 24px;
-        }
+.hero { display: flex; align-items: flex-start; justify-content: center; gap: 0; padding: 16px 0 20px 0; margin-bottom: 16px; }
+.hero-verdict { min-width: 220px; text-align: center; margin-left: 40px; }
+.hero-center { text-align: center; flex: 1; }
+.hero-acv { min-width: 260px; text-align: center; margin-right: 60px; }
 
-        /* Left: product selector + verdict */
-        .hero-left { flex: 0 0 auto; }
-        .product-selector {
-            font-size: 1.3rem; font-weight: 700; color: var(--sk-text);
-            background: transparent; border: 1px solid var(--sk-border);
-            padding: 8px 16px; border-radius: 8px; cursor: pointer;
-            color: var(--sk-text); appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b9e88' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 12px center;
-            padding-right: 36px; min-width: 280px;
-        }
-        .product-selector:focus { border-color: var(--sk-accent); outline: none; }
-        .hero-verdict {
-            margin-top: 8px; display: flex; align-items: center; gap: 12px;
-        }
-        .hero-fit-acv {
-            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
-            text-transform: uppercase; color: var(--sk-text-muted);
-        }
+.product-selector { position: relative; display: block; cursor: pointer; margin-bottom: 8px; }
+.product-selector-label { font-size: 0.9rem; letter-spacing: 3px; color: var(--sk-text-muted); text-transform: uppercase; font-weight: 600; max-width: 440px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; line-height: 1; }
+.product-selector-arrow { display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid var(--sk-score-high); margin-left: 6px; vertical-align: 5px; transition: transform 0.2s; }
+.product-selector:hover .product-selector-label { color: var(--sk-score-high); }
+.product-dropdown { display: none; position: absolute; top: 100%; left: 0; margin-top: 6px; background: var(--sk-bg-card); border: 1px solid var(--sk-border-accent); border-radius: 6px; min-width: 560px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.5); overflow: hidden; }
+.product-selector.open .product-dropdown { display: block; }
+.product-selector.open .product-selector-arrow { transform: rotate(180deg); }
+.product-option { display: flex; align-items: center; padding: 10px 16px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; gap: 10px; }
+.product-option:last-child { border-bottom: none; }
+.product-option:hover { background: var(--sk-hover-bg); }
+.product-option.active { background: var(--sk-hover-bg-active); }
+.product-option-name { font-size: 0.75rem; color: var(--sk-text-body); width: 260px; min-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.product-option.active .product-option-name { color: var(--sk-score-high); }
+.product-option-score { font-size: 0.8rem; font-weight: 700; width: 32px; min-width: 32px; text-align: right; }
 
-        /* Center: Fit Score */
-        .hero-center { text-align: center; flex: 0 0 auto; }
-        .hero-score-label {
-            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em;
-            text-transform: uppercase; color: var(--sk-text-dim); margin-bottom: 4px;
-        }
-        .hero-score {
-            font-size: 4rem; font-weight: 900; line-height: 1;
-            letter-spacing: -0.02em;
-        }
-        .hero-score-max { font-size: 1.4rem; font-weight: 400; color: var(--sk-text-muted); }
+.verdict-badge-large { display: inline-block; font-size: 1.1rem; font-weight: 700; padding: 6px 18px; border: 2px solid currentColor; background: rgba(255,255,255,0.04); border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; }
+/* Verdict badge color variants — read from the same CSS variables as the
+   score color classes so the verdict badge always matches the fit score. */
+.verdict-dark-green { color: var(--sk-score-high); }
+.verdict-green { color: var(--sk-score-high); }
+.verdict-light-amber { color: var(--sk-score-mid); }
+.verdict-amber { color: var(--sk-score-mid); }
+.verdict-red { color: var(--sk-score-low-soft); }
+.verdict-sub { font-size: 0.7rem; color: var(--sk-text-dim); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Right: ACV Potential */
-        .hero-right { text-align: right; flex: 0 0 auto; }
-        .hero-acv-label {
-            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em;
-            text-transform: uppercase; color: var(--sk-text-dim); margin-bottom: 4px;
-        }
-        .hero-acv {
-            font-size: 1.9rem; font-weight: 900; color: var(--sk-accent);
-        }
-        .hero-acv-sub {
-            font-size: 0.72rem; color: var(--sk-score-mid); margin-top: 4px;
-        }
+.fit-score-label { font-size: 0.9rem; letter-spacing: 3px; color: var(--sk-text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; line-height: 1; }
+.fit-score-num { font-size: 4.5rem; font-weight: 900; line-height: 1; }
+.fit-score-num span { font-size: 1.4rem; color: var(--sk-text-faint); font-weight: 400; }
 
-        /* Cache date */
-        .cache-date {
-            font-size: 0.68rem; color: var(--sk-text-dim); margin-top: 8px;
-            cursor: pointer;
-        }
-        .cache-date:hover { color: var(--sk-accent); }
+.hero-acv-label { font-size: 0.9rem; letter-spacing: 3px; color: var(--sk-text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 6px; line-height: 1; }
+.hero-acv-num { font-size: 2.2rem; font-weight: 800; color: var(--sk-score-high); line-height: 1; }
+.hero-acv-detail { font-size: 0.75rem; color: var(--sk-text-muted); margin-top: 6px; line-height: 1.5; }
+.hero-acv-detail strong { color: var(--sk-accent-soft); font-weight: 600; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           PILLAR LABELS — 70/30 split indicator
-           ═══════════════════════════════════════════════════════════════ */
-        .split-labels {
-            display: flex; justify-content: space-between; margin-bottom: 12px;
-            padding: 0 4px;
-        }
-        .split-label {
-            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--sk-text-dim);
-        }
+.section-row { display: flex; gap: 16px; margin-bottom: 6px; }
+.section-label { font-size: 0.6rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           PILLAR CARDS — 70/30 visual split
-           ═══════════════════════════════════════════════════════════════ */
-        .pillars {
-            display: grid;
-            grid-template-columns: 1fr 1fr 0.85fr;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-        @media (max-width: 1000px) { .pillars { grid-template-columns: 1fr; } }
+.pillars { display: flex; gap: 16px; margin-bottom: 0; }
+.product-side { flex: 7; display: flex; gap: 16px; }
+.org-side { flex: 3; }
 
-        .pillar-card {
-            background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 12px; padding: 20px;
-        }
-        .pillar-card.pillar-org {
-            background: #0e2219;  /* Slightly different — visual distinction for org */
-        }
+.pillar-card { background: var(--sk-bg-card); border: 1px solid var(--sk-border-card); border-radius: 8px; padding: 8px 18px 12px 18px; flex: 1; }
+.pillar-card-org { background: var(--sk-bg-card-org); border: 1px solid var(--sk-border-card-org); border-radius: 8px; padding: 8px 18px 12px 18px; flex: 1; }
 
-        .pillar-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 16px;
-        }
-        .pillar-name {
-            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-        .pillar-name a { color: inherit; }
-        .pillar-icons { display: flex; gap: 8px; }
-        .pillar-icon {
-            width: 18px; height: 18px; color: var(--sk-text-dim);
-            cursor: pointer; transition: color 0.15s;
-        }
-        .pillar-icon:hover { color: var(--sk-accent); }
+.pillar-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px; flex-wrap: nowrap; }
+.pillar-header > div:first-child { white-space: nowrap; }
+.pillar-name { font-size: 0.75rem; letter-spacing: 1px; color: var(--sk-classify-purple); text-transform: uppercase; font-weight: 600; white-space: nowrap; }
+.pillar-name-org { font-size: 0.75rem; letter-spacing: 1px; color: var(--sk-classify-purple-light); text-transform: uppercase; font-weight: 600; }
+.pillar-score { font-size: 1.5rem; font-weight: 800; }
+.pillar-score span { font-size: 0.75rem; color: var(--sk-text-dim); font-weight: 400; }
+.pillar-weight { font-size: 0.7rem; color: var(--sk-text-muted); margin-top: 1px; }
+.pillar-icons { display: inline-flex; gap: 4px; align-items: center; margin-left: 6px; }
 
-        .pillar-score-row {
-            display: flex; align-items: baseline; justify-content: space-between;
-            margin-bottom: 12px;
-        }
-        .pillar-score {
-            font-size: 2.2rem; font-weight: 900;
-        }
-        .pillar-score-max {
-            font-size: 0.9rem; font-weight: 400; color: var(--sk-text-muted);
-        }
-        .pillar-weight {
-            font-size: 0.68rem; color: var(--sk-text-dim);
-        }
+.dimension { margin-bottom: 16px; }
+.dimension:last-child { margin-bottom: 0; }
+.dim-row { display: flex; align-items: center; gap: 12px; }
+.dim-name { font-size: 0.6rem; color: var(--sk-text-body); min-width: 90px; text-align: right; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.5px; }
+.dim-content { flex: 1; }
+.dim-bar-row { display: flex; align-items: center; gap: 8px; }
+.dim-bar-bg { flex: 1; height: 12px; background: var(--sk-border); border-radius: 3px; overflow: hidden; }
+.dim-bar { height: 100%; border-radius: 3px; }
+.dim-score { font-size: 0.65rem; color: var(--sk-text-muted); min-width: 32px; text-align: right; }
+.dim-badges { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
 
-        /* Dimensions within pillar cards */
-        .dim-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 0; border-top: 1px solid rgba(30,51,41,0.5);
-        }
-        .dim-name {
-            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
-            text-transform: uppercase; color: var(--sk-text-muted);
-        }
-        .dim-score-bar {
-            display: flex; align-items: center; gap: 8px; flex: 0 0 120px;
-        }
-        .dim-score-val {
-            font-size: 0.82rem; font-weight: 700; min-width: 28px; text-align: right;
-        }
-        .dim-bar { flex: 1; }
+.bar-green { background: linear-gradient(90deg, var(--sk-primary), var(--sk-score-high)); }
+.bar-light-amber { background: linear-gradient(90deg, var(--sk-bar-amber-dark), var(--sk-bar-amber-light)); }
+.bar-red { background: linear-gradient(90deg, var(--sk-bar-red-dark), var(--sk-bar-red-light)); }
+.bar-gray { background: linear-gradient(90deg, var(--sk-bar-gray-dark), var(--sk-bar-gray-light)); }
 
-        /* Badges within dimensions */
-        .dim-badges {
-            display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0 8px;
-        }
+.badge { font-size: 0.7rem; padding: 3px 9px; border-radius: 3px; font-weight: 500; cursor: default; transition: opacity 0.15s; line-height: 1.4; display: inline-block; vertical-align: middle; }
+.badge[data-evidence] { cursor: pointer; }
+.badge[data-evidence]:hover { opacity: 0.85; }
+.badge-green { background: var(--sk-badge-green-bg); color: var(--sk-score-high); border: 1px solid var(--sk-border-accent); }
+.badge-amber { background: var(--sk-badge-amber-bg); color: var(--sk-score-mid); border: 1px solid var(--sk-badge-amber-bdr); }
+.badge-red { background: var(--sk-badge-red-bg); color: var(--sk-score-low-soft); border: 1px solid var(--sk-badge-red-bdr); }
+.badge-gray { background: var(--sk-badge-gray-bg); color: var(--sk-text-muted); border: 1px solid var(--sk-badge-gray-bdr); }
+.badge-purple { background: var(--sk-badge-purple-bg); color: var(--sk-classify-purple); border: 1px solid var(--sk-badge-purple-bdr); white-space: nowrap; }
 
-        /* ═══════════════════════════════════════════════════════════════
-           SELLER BRIEFCASE — three sections below pillar cards
-           ═══════════════════════════════════════════════════════════════ */
-        .briefcase {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-        @media (max-width: 900px) { .briefcase { grid-template-columns: 1fr; } }
+.info-icon { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--sk-text-dim); color: var(--sk-text-dim); font-size: 0.5rem; font-weight: 600; text-align: center; line-height: 1; cursor: pointer; vertical-align: middle; }
+.info-icon:hover { border-color: var(--sk-score-high); color: var(--sk-score-high); }
 
-        .briefcase-section {
-            background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 10px; padding: 16px 18px;
-        }
-        .briefcase-header {
-            display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-        }
-        .briefcase-title {
-            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em;
-            text-transform: uppercase; color: var(--sk-accent);
-        }
-        .briefcase-pillar {
-            font-size: 0.58rem; color: var(--sk-text-dim);
-        }
-        .briefcase-bullets { list-style: none; }
-        .briefcase-bullets li {
-            font-size: 0.82rem; color: var(--sk-text-body); line-height: 1.55;
-            padding: 6px 0; border-bottom: 1px solid rgba(30,51,41,0.3);
-        }
-        .briefcase-bullets li:last-child { border-bottom: none; }
-        .briefcase-bullets li::before {
-            content: "→ "; color: var(--sk-accent); font-weight: 700;
-        }
+.doc-icon { display: inline-block; cursor: pointer; vertical-align: middle; margin-left: 3px; transition: opacity 0.15s; }
+.doc-icon:hover svg path, .doc-icon:hover svg line { stroke: var(--sk-score-high); }
 
-        /* ═══════════════════════════════════════════════════════════════
-           BADGE EVIDENCE HOVER MODAL (GP3)
-           ═══════════════════════════════════════════════════════════════ */
-        .badge-hover-modal {
-            display: none; position: absolute; z-index: 100;
-            background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 10px; padding: 14px 16px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-            max-width: 400px; min-width: 280px;
-        }
-        .badge-hover-modal.visible { display: block; }
-        .badge-modal-title {
-            font-size: 0.78rem; font-weight: 700; color: var(--sk-text);
-            margin-bottom: 8px;
-        }
-        .badge-modal-evidence {
-            font-size: 0.75rem; color: var(--sk-text-body); line-height: 1.5;
-            margin-bottom: 6px;
-        }
-        .badge-modal-confidence {
-            font-size: 0.68rem; color: var(--sk-text-dim); font-style: italic;
-        }
-        .badge-modal-source {
-            font-size: 0.68rem; color: var(--sk-text-dim); margin-top: 4px;
-        }
-        .badge-modal-source a { color: var(--sk-accent); }
+/* Evidence hover modal */
+.evidence-modal { position: absolute; z-index: 200; background: var(--sk-bg-card); border: 1px solid var(--sk-border-accent); border-radius: 6px; padding: 14px 18px; max-width: 540px; min-width: 360px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); font-size: 0.78rem; color: var(--sk-text); line-height: 1.6; }
+.evidence-modal .ev-title { font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; color: var(--sk-classify-purple); margin-bottom: 10px; font-weight: 600; }
+.evidence-modal .ev-bullet { padding-left: 10px; border-left: 2px solid var(--sk-border-accent); margin-bottom: 8px; }
+.evidence-modal .ev-bullet strong { color: var(--sk-score-high); }
+.evidence-modal .ev-bullet em { color: var(--sk-score-mid); font-style: normal; }
+.evidence-modal .ev-source { font-size: 0.65rem; color: var(--sk-text-muted); margin-top: 6px; }
+.evidence-modal .ev-confidence { font-size: 0.62rem; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.evidence-modal .ev-confidence-confirmed { color: var(--sk-score-high); }
+.evidence-modal .ev-confidence-other { color: var(--sk-text-muted); }
 
-        /* ═══════════════════════════════════════════════════════════════
-           EXPORT
-           ═══════════════════════════════════════════════════════════════ */
-        .export-row {
-            display: flex; justify-content: flex-end; margin-bottom: 16px;
-        }
-        .btn-export {
-            font-size: 0.78rem; color: var(--sk-text-muted);
-            background: rgba(36,237,155,0.06); border: 1px solid rgba(36,237,155,0.18);
-            padding: 7px 16px; border-radius: 7px; cursor: pointer;
-            transition: color 0.15s, border-color 0.15s;
-        }
-        .btn-export:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
-    </style>
+/* Briefcase */
+.briefcase { display: flex; gap: 16px; margin-top: 8px; margin-bottom: 24px; }
+.briefcase-product { flex: 7; display: flex; gap: 16px; }
+.briefcase-org { flex: 3; }
+.briefcase-card { background: var(--sk-bg-card-soft); border: 1px solid var(--sk-border-card); border-top: 2px solid var(--sk-classify-purple); border-radius: 0 0 8px 8px; padding: 12px 18px; flex: 1; }
+.briefcase-card-org { background: var(--sk-bg-card-org-soft); border: 1px solid var(--sk-border-card-org); border-top: 2px solid var(--sk-classify-purple-light); border-radius: 0 0 8px 8px; padding: 12px 18px; flex: 1; }
+.briefcase-title { font-size: 0.65rem; letter-spacing: 1.5px; color: var(--sk-classify-purple); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.briefcase-title-org { font-size: 0.65rem; letter-spacing: 1.5px; color: var(--sk-classify-purple-light); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.briefcase-item { font-size: 0.85rem; color: var(--sk-text-body); line-height: 1.55; margin-bottom: 8px; padding-left: 12px; border-left: 2px solid var(--sk-border-card); }
+.briefcase-item strong { color: var(--sk-score-high); font-weight: 600; }
+.briefcase-item em { color: var(--sk-score-mid); font-style: normal; }
+.briefcase-placeholder { font-size: 0.75rem; color: var(--sk-text-muted); font-style: italic; padding: 20px; text-align: center; }
+.briefcase-loading-dots { display: flex; gap: 6px; justify-content: center; align-items: center; padding: 18px 0 8px; }
+.briefcase-loading-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sk-score-high); opacity: 0.35;
+    animation: briefcase-dot-pulse 1.4s ease-in-out infinite;
+}
+.briefcase-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.briefcase-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes briefcase-dot-pulse {
+    0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+    40% { opacity: 1; transform: scale(1); }
+}
+
+/* Bottom row: three zones — Scored Products (left, mirrors KTQ width),
+   empty middle (room for future), Competitive Products (right, matches the
+   Account Intelligence box width above). Right edge of Competitive aligns
+   with the right edge of Account Intelligence. */
+.bottom-row {
+    display: grid;
+    grid-template-columns: 35fr 15fr 50fr;
+    gap: 16px;
+    margin-top: 16px;
+    align-items: flex-start;
+}
+.bottom-row > .products-section { min-width: 0; margin-top: 0; }
+.bottom-row > .competitive-section { grid-column: 3; min-width: 0; margin-top: 0; }
+
+/* Product list at bottom */
+.products-section { margin-top: 8px; }
+.products-header { margin-bottom: 12px; }
+.products-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; }
+.product-table { border-collapse: collapse; }
+.product-table tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
+.product-table tr:last-child { border-bottom: none; }
+.pt-name-link {
+    color: var(--sk-text-body); cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s, text-decoration-color 0.15s;
+}
+.pt-name-link:hover {
+    color: var(--sk-score-high);
+    text-decoration: underline;
+    text-decoration-color: var(--sk-score-high);
+}
+
+/* Competitive products list — muted/boxed so it's clearly separate */
+.competitive-section {
+    margin-top: 32px;
+    background: var(--sk-bg-surface-low);
+    border: 1px solid var(--sk-border-soft);
+    border-radius: 8px;
+    padding: 16px 18px 8px 18px;
+    opacity: 0.92;
+}
+.competitive-header { margin-bottom: 12px; }
+.competitive-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; }
+.competitive-list { display: flex; flex-direction: column; gap: 4px; }
+.competitive-row {
+    padding: 10px 8px 12px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.competitive-row:last-child { border-bottom: none; }
+.competitive-top {
+    display: grid;
+    /* Order: Competitor name | Product name (slate blue) | Subcategory badge | Search button (right).
+       Right edge of the search button aligns with the Products section's right edge. */
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr) auto auto;
+    align-items: center;
+    column-gap: 12px;
+}
+.competitive-company {
+    font-size: 0.78rem; font-weight: 600; color: var(--sk-text-body);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.competitive-name {
+    font-size: 0.82rem; font-weight: 600; color: var(--sk-link-slate);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.competitive-sub { text-align: left; min-width: 0; }
+.competitive-action { text-align: right; justify-self: end; }
+.run-report-form { display: inline; }
+.run-report-link {
+    display: inline-block;
+    font-size: 0.7rem; color: var(--sk-text-muted); background: transparent;
+    border: 1px solid var(--sk-badge-gray-bdr); border-radius: 4px;
+    padding: 4px 10px; cursor: pointer;
+    text-decoration: none; font-family: inherit; font-weight: 500;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.run-report-link:hover {
+    color: var(--sk-text); border-color: var(--sk-text-dim);
+    background: rgba(255,255,255,0.04);
+}
+.pt-name { min-width: 280px; font-size: 0.75rem; color: var(--sk-text-body); padding: 8px 16px 8px 0; }
+.pt-sub { min-width: 180px; padding: 8px 12px 8px 0; }
+.pt-score { min-width: 50px; font-size: 0.9rem; font-weight: 700; padding: 8px 12px 8px 0; text-align: right; }
+.pt-doc { padding: 8px 0; }
+</style>
 </head>
 <body>
 
-{% set active_tool = 'inspector' %}
 {% include '_nav_new.html' %}
 
-{% set top = analysis.top_products[0] if analysis.products else none %}
+<div class="page-content">
 
-<div class="page">
+{# ─── Macros ─ shared across full_analysis.html and its partials ──── #}
+{% from '_macros.html' import render_dimension, doc_svg %}
 
-    {# ── Nav links ── #}
-    <div class="nav-links">
-        <a href="/inspector/product-selection/{{ analysis.discovery_id }}" class="btn-back">← Back to Product Selection</a>
-        <a href="/inspector" class="btn-back">← Search Another Company</a>
+{# ─── Selected product — defaults to highest of current selection,
+     fallback to first product. Set by the Flask route. ──────────── #}
+{% set top = selected_product or (analysis.top_products[0] if analysis.top_products else None) %}
+
+{% if top %}
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="company-title">
+        <span class="company-name">{{ analysis.company_name }}</span>
+        {% if analysis.organization_type %}
+          <span class="company-badge">{{ analysis.organization_type | replace('_', ' ') }}</span>
+        {% endif %}
+      </div>
+      {% if analysis.company_description %}
+        <div class="company-desc">{{ analysis.company_description }}</div>
+      {% endif %}
     </div>
-
-    {# ── Export ── #}
-    <div class="export-row">
-        <a href="/inspector/export/{{ analysis.analysis_id }}" class="btn-export">Export to Word ↓</a>
-        <span class="cache-date" title="Refresh cache" style="margin-left: 12px;">
-            Analyzed {{ analysis.analyzed_at[:10] if analysis.analyzed_at else 'N/A' }}
-        </span>
+    <div class="header-right">
+      <div class="header-cache">
+        {{ analysis.total_products_discovered or (analysis.products | length) }} products analyzed
+        {% if analysis.analyzed_at %}
+          · <a href="#" onclick="window.refreshCache(event)" title="Refresh cache">{{ analysis.analyzed_at | format_analyzed_date }}</a>
+        {% endif %}
+      </div>
+      <div class="header-nav">
+        {% if analysis.discovery_id %}
+          <a href="{{ url_for('inspector_product_selection', discovery_id=analysis.discovery_id) }}">← Back to Product Selection</a><br>
+        {% endif %}
+        <a href="{{ url_for('inspector_home') }}">← Search Another Company</a>
+      </div>
     </div>
+  </div>
+</div>
 
-    {% if top %}
-    {# ═══════════════════════════════════════════════════════════════
-       HERO SECTION
-       ═══════════════════════════════════════════════════════════════ #}
-    <div class="hero">
-        <div class="hero-left">
-            <select class="product-selector" id="productSelector">
-                {% for p in analysis.top_products %}
-                <option value="{{ loop.index0 }}"
-                        data-score="{{ p.fit_score.total }}"
-                        data-subcategory="{{ p.subcategory }}">
-                    {{ p.name[:40] }} — {{ p.fit_score.total }}/100
-                </option>
-                {% endfor %}
-            </select>
-            <div class="hero-verdict">
-                {% if top.verdict %}
-                <span class="verdict-badge verdict-{{ top.verdict.color }}">{{ top.verdict.label }}</span>
-                {% endif %}
-                <span class="hero-fit-acv">
-                    {{ top.verdict.fit_label if top.verdict else '' }} · {{ top.verdict.acv_label if top.verdict else '' }}
-                </span>
-            </div>
-        </div>
+<!-- HERO (swappable when user picks a different product from the dropdown) -->
+<div class="hero" id="hero-section">
+  {% with selected_product=top %}{% include '_hero_section.html' %}{% endwith %}
+</div>
 
-        <div class="hero-center">
-            <div class="hero-score-label">FIT SCORE</div>
-            <div class="hero-score {{ top.fit_score.total | score_color }}">
-                {{ top.fit_score.total }}<span class="hero-score-max">/ 100</span>
-            </div>
-        </div>
+<!-- SECTION LABELS + THREE PILLARS (swappable) -->
+<div id="pillars-section">
+  {% with selected_product=top %}{% include '_pillars_section.html' %}{% endwith %}
+</div>
 
-        <div class="hero-right">
-            <div class="hero-acv-label">ACV POTENTIAL</div>
-            <div class="hero-acv">
-                {{ top.acv_potential.acv_low | format_acv }} – {{ top.acv_potential.acv_high | format_acv }}
-            </div>
-            <div class="hero-acv-sub">
-                Across {{ analysis.total_products_discovered }} products
-                ({{ analysis.products | length }} scored)
-            </div>
-        </div>
+<!-- SELLER BRIEFCASE (swappable + polled while generating) -->
+<div class="briefcase" id="briefcase-section">
+  {% with selected_product=top %}{% include '_briefcase_section.html' %}{% endwith %}
+</div>
+
+<!-- BOTTOM ROW: Scored Products (left) + Competitive Products (right) -->
+<div class="bottom-row">
+
+  <!-- SCORED PRODUCTS -->
+  <div class="products-section">
+    <div class="products-header">
+      <span class="products-title">{{ analysis.company_name | upper }} Product Scores ({{ analysis.products | length }} of {{ analysis.total_products_discovered or (analysis.products | length) }})</span>
     </div>
+    <table class="product-table">
+      {% for p in analysis.products %}
+      <tr>
+        <td class="pt-name"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span></td>
+        <td class="pt-sub">{% if p.subcategory %}<span class="badge badge-purple">{{ p.subcategory | clean_subcategory }}</span>{% endif %}</td>
+        <td class="pt-score {{ (p.fit_score.total or p.fit_score._total or 0) | score_color }}">{{ p.fit_score.total or p.fit_score._total or 0 }}</td>
+        <td class="pt-doc"><span class="doc-icon" title="Export report (Word)">{{ doc_svg() }}</span></td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
 
-    {# ═══════════════════════════════════════════════════════════════
-       PILLAR CARDS — 70/30 visual split
-       ═══════════════════════════════════════════════════════════════ #}
-    <div class="split-labels">
-        <span class="split-label">PRODUCT · 70% OF FIT SCORE</span>
-        <span class="split-label">ORGANIZATION · 30% OF FIT SCORE</span>
+  <!-- COMPETITIVE PRODUCTS — context for sellers and SEs -->
+  {% if analysis.competitive_products %}
+  <div class="competitive-section">
+    <div class="competitive-header">
+      <span class="competitive-title">{{ analysis.company_name | upper }} Competitive Products ({{ analysis.competitive_products | length }})</span>
     </div>
-
-    <div class="pillars">
-        {# ── Product Labability (40%) ── #}
-        <div class="pillar-card">
-            <div class="pillar-header">
-                <span class="pillar-name" style="color: var(--sk-accent);">
-                    {{ top.fit_score.product_labability.name | dim_caps }}
-                </span>
-                <span class="pillar-weight">{{ top.fit_score.product_labability.weight }}% of Fit Score</span>
-            </div>
-            <div class="pillar-score-row">
-                <span class="pillar-score {{ top.fit_score.product_labability.score | score_color }}">
-                    {{ top.fit_score.product_labability.score }}<span class="pillar-score-max">/100</span>
-                </span>
-            </div>
-            {% for dim in top.fit_score.product_labability.dimensions %}
-            <div class="dim-row">
-                <span class="dim-name">{{ dim.name | dim_caps }}</span>
-                <div class="dim-score-bar">
-                    <span class="dim-score-val {{ dim.score | score_color }}">{{ dim.score }}</span>
-                    <div class="dim-bar">
-                        <div class="score-bar">
-                            <div class="score-bar-fill" style="width: {{ (dim.score / dim.weight * 100) | int }}%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% if dim.badges %}
-            <div class="dim-badges">
-                {% for badge in dim.badges %}
-                <span class="dim-badge {{ badge.color | badge_color_class }}"
-                      data-badge-name="{{ badge.name }}"
-                      data-badge-evidence="{{ badge.evidence[0].claim if badge.evidence else '' }}"
-                      data-badge-confidence="{{ badge.evidence[0].confidence_level if badge.evidence else '' }}"
-                      data-badge-conf-explanation="{{ badge.evidence[0].confidence_explanation if badge.evidence else '' }}"
-                      data-badge-source="{{ badge.evidence[0].source_url if badge.evidence else '' }}">
-                    {{ badge.name }}
-                </span>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endfor %}
+    <div class="competitive-list">
+      {% for c in analysis.competitive_products %}
+      <div class="competitive-row">
+        <div class="competitive-top">
+          <span class="competitive-company" title="{{ c.competitor_name }}">{{ c.competitor_name | truncate(22, True, '…') }}</span>
+          <span class="competitive-name" title="{{ c.product_name }}">{{ c.product_name | truncate(22, True, '…') }}</span>
+          <span class="competitive-sub">{% if c.subcategory %}<span class="badge badge-purple">{{ c.subcategory | clean_subcategory }}</span>{% endif %}</span>
+          <span class="competitive-action">
+            <form action="{{ url_for('inspector_discover') }}" method="POST" target="_blank" class="run-report-form" onclick="event.stopPropagation()">
+              <input type="hidden" name="company_name" value="{{ c.competitor_name }}">
+              <button type="submit" class="run-report-link" title="Search {{ c.competitor_name }}">Search →</button>
+            </form>
+          </span>
         </div>
-
-        {# ── Instructional Value (30%) ── #}
-        <div class="pillar-card">
-            <div class="pillar-header">
-                <span class="pillar-name" style="color: var(--sk-accent);">
-                    {{ top.fit_score.instructional_value.name | dim_caps }}
-                </span>
-                <span class="pillar-weight">{{ top.fit_score.instructional_value.weight }}% of Fit Score</span>
-            </div>
-            <div class="pillar-score-row">
-                <span class="pillar-score {{ top.fit_score.instructional_value.score | score_color }}">
-                    {{ top.fit_score.instructional_value.score }}<span class="pillar-score-max">/100</span>
-                </span>
-            </div>
-            {% for dim in top.fit_score.instructional_value.dimensions %}
-            <div class="dim-row">
-                <span class="dim-name">{{ dim.name | dim_caps }}</span>
-                <div class="dim-score-bar">
-                    <span class="dim-score-val {{ dim.score | score_color }}">{{ dim.score }}</span>
-                    <div class="dim-bar">
-                        <div class="score-bar">
-                            <div class="score-bar-fill" style="width: {{ (dim.score / dim.weight * 100) | int }}%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% if dim.badges %}
-            <div class="dim-badges">
-                {% for badge in dim.badges %}
-                <span class="dim-badge {{ badge.color | badge_color_class }}"
-                      data-badge-name="{{ badge.name }}"
-                      data-badge-evidence="{{ badge.evidence[0].claim if badge.evidence else '' }}"
-                      data-badge-confidence="{{ badge.evidence[0].confidence_level if badge.evidence else '' }}"
-                      data-badge-conf-explanation="{{ badge.evidence[0].confidence_explanation if badge.evidence else '' }}"
-                      data-badge-source="{{ badge.evidence[0].source_url if badge.evidence else '' }}">
-                    {{ badge.name }}
-                </span>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
-
-        {# ── Customer Fit (30%) — slightly different background ── #}
-        <div class="pillar-card pillar-org">
-            <div class="pillar-header">
-                <span class="pillar-name" style="color: var(--sk-accent);">
-                    {{ top.fit_score.customer_fit.name | dim_caps }}
-                </span>
-                <span class="pillar-weight">{{ top.fit_score.customer_fit.weight }}% of Fit Score</span>
-            </div>
-            <div class="pillar-score-row">
-                <span class="pillar-score {{ top.fit_score.customer_fit.score | score_color }}">
-                    {{ top.fit_score.customer_fit.score }}<span class="pillar-score-max">/100</span>
-                </span>
-            </div>
-            {% for dim in top.fit_score.customer_fit.dimensions %}
-            <div class="dim-row">
-                <span class="dim-name">{{ dim.name | dim_caps }}</span>
-                <div class="dim-score-bar">
-                    <span class="dim-score-val {{ dim.score | score_color }}">{{ dim.score }}</span>
-                    <div class="dim-bar">
-                        <div class="score-bar">
-                            <div class="score-bar-fill" style="width: {{ (dim.score / dim.weight * 100) | int }}%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% if dim.badges %}
-            <div class="dim-badges">
-                {% for badge in dim.badges %}
-                <span class="dim-badge {{ badge.color | badge_color_class }}"
-                      data-badge-name="{{ badge.name }}"
-                      data-badge-evidence="{{ badge.evidence[0].claim if badge.evidence else '' }}"
-                      data-badge-confidence="{{ badge.evidence[0].confidence_level if badge.evidence else '' }}"
-                      data-badge-conf-explanation="{{ badge.evidence[0].confidence_explanation if badge.evidence else '' }}"
-                      data-badge-source="{{ badge.evidence[0].source_url if badge.evidence else '' }}">
-                    {{ badge.name }}
-                </span>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endfor %}
-        </div>
+      </div>
+      {% endfor %}
     </div>
-
-    {# ═══════════════════════════════════════════════════════════════
-       SELLER BRIEFCASE
-       ═══════════════════════════════════════════════════════════════ #}
-    {% if analysis.briefcase %}
-    <div class="briefcase">
-        <div class="briefcase-section">
-            <div class="briefcase-header">
-                <span class="briefcase-title">Key Technical Questions</span>
-                <span class="briefcase-pillar">Product Labability</span>
-            </div>
-            <ul class="briefcase-bullets">
-                {% for bullet in analysis.briefcase.key_technical_questions.bullets %}
-                <li>{{ bullet }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="briefcase-section">
-            <div class="briefcase-header">
-                <span class="briefcase-title">Conversation Starters</span>
-                <span class="briefcase-pillar">Instructional Value</span>
-            </div>
-            <ul class="briefcase-bullets">
-                {% for bullet in analysis.briefcase.conversation_starters.bullets %}
-                <li>{{ bullet }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="briefcase-section">
-            <div class="briefcase-header">
-                <span class="briefcase-title">Account Intelligence</span>
-                <span class="briefcase-pillar">Customer Fit</span>
-            </div>
-            <ul class="briefcase-bullets">
-                {% for bullet in analysis.briefcase.account_intelligence.bullets %}
-                <li>{{ bullet }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-    {% endif %}
-
-    {% endif %} {# end if top #}
+  </div>
+  {% endif %}
 
 </div>
 
-{# ═══════════════════════════════════════════════════════════════
-   BADGE EVIDENCE HOVER — 1.5 second delay (GP3)
-   ═══════════════════════════════════════════════════════════════ #}
-<div class="badge-hover-modal" id="badgeModal">
-    <div class="badge-modal-title" id="modalTitle"></div>
-    <div class="badge-modal-evidence" id="modalEvidence"></div>
-    <div class="badge-modal-confidence" id="modalConfidence"></div>
-    <div class="badge-modal-source" id="modalSource"></div>
+{% else %}
+<div class="header">
+  <div class="company-title"><span class="company-name">{{ analysis.company_name }}</span></div>
+  <div class="company-desc">No products were scored for this analysis.</div>
 </div>
+{% endif %}
+
+</div> {# /.page-content #}
 
 <script>
+// ── Inspector Full Analysis — product switching + briefcase polling ──
+// Tracks the currently displayed product. When the user picks a different product
+// from the dropdown, fetches the three swappable section fragments (hero, pillars,
+// briefcase) and swaps them in place — no page reload, no URL change, no scroll loss.
+// Briefcase polling is product-aware: only polls if the CURRENT product's briefcase
+// is missing.
 (function() {
-    const modal = document.getElementById('badgeModal');
-    let hoverTimeout = null;
+    const ANALYSIS_ID = "{{ analysis.analysis_id }}";
+    const POLL_INTERVAL_MS = 5000;
+    const MAX_POLLS = 60;
+    let currentProductIndex = {{ default_index or 0 }};
+    let pollCount = 0;
+    let pollTimer = null;
 
-    document.addEventListener('mouseover', function(e) {
-        const badge = e.target.closest('.dim-badge');
-        if (!badge) return;
+    // ── Product swap (called from product-option onclick in _hero_section.html) ──
+    window.swapProduct = function(productIndex) {
+        if (productIndex === currentProductIndex) {
+            // Just close the dropdown if it's the same product
+            document.querySelectorAll('.product-selector.open').forEach(function(el) {
+                el.classList.remove('open');
+            });
+            return;
+        }
+        fetch('/inspector/analysis/' + ANALYSIS_ID + '/product/' + productIndex)
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.error) return;
+                const hero = document.getElementById('hero-section');
+                const pillars = document.getElementById('pillars-section');
+                const briefcase = document.getElementById('briefcase-section');
+                if (hero && d.hero_html) hero.innerHTML = d.hero_html;
+                if (pillars && d.pillars_html) pillars.innerHTML = d.pillars_html;
+                if (briefcase && d.briefcase_html) briefcase.innerHTML = d.briefcase_html;
+                currentProductIndex = productIndex;
+                // Close dropdown
+                document.querySelectorAll('.product-selector.open').forEach(function(el) {
+                    el.classList.remove('open');
+                });
+                // Smooth scroll to top so the user sees the new product's hero
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // If the new product's briefcase isn't ready, restart polling
+                pollCount = 0;
+                if (briefcase && briefcase.querySelector('.briefcase-loading-dots')) {
+                    schedulePoll();
+                }
+            })
+            .catch(function() {});
+    };
 
-        clearTimeout(hoverTimeout);
-        hoverTimeout = setTimeout(function() {
-            const name = badge.dataset.badgeName;
-            const evidence = badge.dataset.badgeEvidence;
-            const confidence = badge.dataset.badgeConfidence;
-            const confExplanation = badge.dataset.badgeConfExplanation;
-            const source = badge.dataset.badgeSource;
+    // ── Cache refresh (called from cache date link in header) ──
+    window.refreshCache = function(event) {
+        if (event) event.preventDefault();
+        if (!confirm('Refresh cached analysis? This will re-run scoring for all products and may take a few minutes.')) {
+            return;
+        }
+        fetch('/inspector/analysis/' + ANALYSIS_ID + '/refresh', { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.ok) {
+                    // Send the user to the scoring progress page so they see the run
+                    window.location.href = '/inspector/score/progress/' + d.job_id;
+                } else {
+                    alert('Refresh failed: ' + (d.error || 'unknown error'));
+                }
+            })
+            .catch(function(e) { alert('Refresh failed: ' + e); });
+    };
 
-            if (!evidence) return;
+    // ── Briefcase polling (product-aware) ──
+    function checkBriefcase() {
+        pollCount++;
+        if (pollCount > MAX_POLLS) {
+            // Replace each loading dots row with a timeout message in the same card
+            document.querySelectorAll('.briefcase-loading-dots').forEach(function(el) {
+                const msg = document.createElement('div');
+                msg.className = 'briefcase-placeholder';
+                msg.textContent = 'Briefcase generation took too long — refresh to try again.';
+                el.replaceWith(msg);
+            });
+            return;
+        }
+        fetch('/inspector/analysis/' + ANALYSIS_ID + '/briefcase-status?product_index=' + currentProductIndex)
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.ready && d.html) {
+                    const target = document.getElementById('briefcase-section');
+                    if (target) target.innerHTML = d.html;
+                } else {
+                    schedulePoll();
+                }
+            })
+            .catch(function() { schedulePoll(); });
+    }
 
-            document.getElementById('modalTitle').textContent = name;
-            document.getElementById('modalEvidence').textContent = evidence;
-            document.getElementById('modalConfidence').textContent =
-                confidence ? `${confidence} — ${confExplanation}` : '';
-            document.getElementById('modalSource').innerHTML =
-                source ? `<a href="${source}" target="_blank">${source}</a>` : '';
+    function schedulePoll() {
+        if (pollTimer) clearTimeout(pollTimer);
+        pollTimer = setTimeout(checkBriefcase, POLL_INTERVAL_MS);
+    }
 
-            const rect = badge.getBoundingClientRect();
-            modal.style.top = (rect.bottom + window.scrollY + 8) + 'px';
-            modal.style.left = Math.max(8, rect.left + window.scrollX - 40) + 'px';
-            modal.classList.add('visible');
-        }, 1500);  // 1.5 second delay per spec
-    });
-
-    document.addEventListener('mouseout', function(e) {
-        const badge = e.target.closest('.dim-badge');
-        if (badge) {
-            clearTimeout(hoverTimeout);
-            modal.classList.remove('visible');
+    // Start polling on initial load only if the current product's briefcase isn't ready
+    document.addEventListener('DOMContentLoaded', function() {
+        const briefcase = document.getElementById('briefcase-section');
+        if (briefcase && briefcase.querySelector('.briefcase-loading-dots')) {
+            schedulePoll();
         }
     });
+    // Fallback if DOMContentLoaded already fired
+    if (document.readyState !== 'loading') {
+        const briefcase = document.getElementById('briefcase-section');
+        if (briefcase && briefcase.querySelector('.briefcase-loading-dots')) {
+            schedulePoll();
+        }
+    }
 })();
 </script>
 

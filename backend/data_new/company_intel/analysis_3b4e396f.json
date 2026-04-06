@@ -1,0 +1,2516 @@
+{
+  "company_name": "Diligent",
+  "company_url": null,
+  "company_description": "",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Diligent One Platform",
+      "category": "Governance, Risk & Compliance (GRC)",
+      "subcategory": "Board Management & Integrated GRC",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Business User",
+        "Business Analyst",
+        "Administrator",
+        "Security Engineer/Analyst"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Configure a Risk Register from Scratch",
+        "Map Controls to a Regulatory Framework",
+        "Diagnose a Broken Audit Workflow",
+        "Use Diligent AI to Generate a Board Risk Report",
+        "Onboard a New Entity and Configure Governance Structure"
+      ],
+      "poor_match_flags": [
+        "saas_only",
+        "multi_tenant_only"
+      ],
+      "recommendation": [
+        "Simulation is the only viable Skillable delivery path for Diligent One Platform because the product is pure SaaS with no self-hosted deployment option, no per-learner sandbox API, and no Azure or AWS marketplace path. Simulation labs can demonstrate GRC workflows (risk register setup, compliance mapping, audit management) using AI Vision scoring for GUI interactions. This is a constrained but viable path for customer onboarding and events use cases \u2014 not for deep technical certification or scored performance-based testing.",
+        "Scoring is limited to AI Vision (GUI state evaluation) and MCQ (knowledge validation) unless Diligent opens a sandbox tenant API. Diligent's published REST API covers boards, meetings, documents, and entities \u2014 if a sandbox environment is negotiated, partial API-based scoring of learner actions (confirming a risk entry was created, a control was mapped) becomes feasible. The champion should ask the product team whether a sandbox tenant with API access can be provisioned for training purposes.",
+        "The single question that unblocks this engagement is whether Diligent's product team will provide a sandbox tenant with API access for training use. The team most likely to own this answer is the Developer Relations or Platform Engineering team, not the training team. Suggested question: 'Can Diligent provision a dedicated sandbox tenant with REST API access that resets between learner sessions \u2014 similar to a developer sandbox \u2014 for use in our training and simulation labs? What would the licensing and provisioning model look like for that?'",
+        "The highest-priority use case is the Elevate 2026 conference (April 22-24, Atlanta) \u2014 a time-bounded, defined event where simulation-based hands-on labs can demonstrate GRC workflows to practitioners without requiring per-learner tenant isolation. Customer onboarding labs (helping new customers configure their first risk register or compliance program) are the second priority. Both motions are viable with Simulation delivery and do not require sandbox API access to launch.",
+        "The fundamental constraint is SaaS-only deployment with no per-learner isolation mechanism. Without a vendor-provided sandbox tenant API, Skillable cannot provision isolated environments, automate scoring of real platform actions, or clean up between learners. This is not a Skillable platform gap \u2014 it is a Diligent product policy decision. Pursue only if the champion can secure a sandbox API commitment from the Diligent product team. Do not invest significant solution engineering time until that commitment is confirmed."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Diligent One Platform is pure SaaS with no self-hosted or installable deployment option. No per-learner sandbox provisioning API is publicly documented. No Azure or AWS marketplace deployment path exists. Simulation is the only viable lab delivery method. The saas_only and multi_tenant_only flags cap Product Labability at 15.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Delivery Method | Context:** Diligent One Platform is pure SaaS with no self-hosted, VM-installable, or cloud-marketplace deployment option \u2014 Simulation is the only viable Skillable delivery path for demonstrating platform workflows. \u2014 Diligent product pages and homepage. Simulation enables workflow demonstration but cannot replicate real per-learner data isolation or scored configuration outcomes.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage and Product Pages"
+                    }
+                  ]
+                },
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**Self-Hosted Option | Blocker:** No on-premises, hybrid, or installable deployment of Diligent One Platform exists \u2014 the product is exclusively hosted on Diligent's proprietary cloud with no Azure or AWS marketplace path found. \u2014 Diligent product documentation. Eliminates Hyper-V, ESX, Container, and Cloud Slice provisioning paths entirely.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Sandbox Tenant | Risk:** No publicly documented NFR license tier, developer sandbox, or trial tenant with self-serve provisioning found \u2014 access to the platform requires enterprise sales engagement. \u2014 Diligent website and developer portal review. Vendor engagement required before any lab authoring can begin; timeline and cost unknown.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 2,
+              "weight": 25,
+              "summary": "No per-learner tenant isolation mechanism found. No credential pool, no Entra ID SSO provisioning path, no NFR or developer license tier. Access is enterprise-contracted only. Trial accounts are not self-serve. Learner access at scale is not feasible without vendor engagement to open a sandbox API.",
+              "badges": [
+                {
+                  "name": "Trial Account",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Demo Access | Risk:** Diligent offers 'Request a Demo' as the primary access path \u2014 no self-serve trial or sandbox tenant is available, meaning per-learner account provisioning requires vendor cooperation or a negotiated sandbox arrangement. \u2014 Diligent homepage CTA. Scale provisioning for concurrent learners is not feasible without a dedicated sandbox API.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Anti-Automation Controls",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Tenant Isolation | Risk:** No per-learner tenant isolation mechanism is documented \u2014 the platform is multi-tenant SaaS with enterprise-contracted access, making automated learner account creation and environment reset between sessions impractical without vendor-provided sandbox infrastructure. \u2014 Diligent product architecture (inferred from SaaS-only deployment model). Shared tenant use creates data bleed risk between learners.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Products Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 15,
+              "weight": 15,
+              "summary": "Diligent publishes a REST API at developer.diligent.com covering boards, meetings, documents, and entities. Partial programmatic validation of learner actions is theoretically possible (e.g., confirming a meeting was created, a document uploaded, a risk entry added). AI Vision is the practical fallback for GUI-driven workflows. MCQ is the floor for knowledge validation.",
+              "badges": [
+                {
+                  "name": "API Scorable (partial)",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**REST API Surface | Opportunity:** Diligent publishes a developer API covering boards, meetings, documents, entities, and users \u2014 partial programmatic validation of learner actions (e.g., confirming a risk entry was created, a meeting agenda was published) is theoretically possible if a sandbox tenant is provisioned. \u2014 Diligent developer portal (developer.diligent.com, indicated). Enables some automated scoring beyond AI Vision if vendor provides sandbox access.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://developer.diligent.com",
+                      "source_title": "Diligent Developer Portal"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Vision Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**GUI Workflow Scoring | Context:** The majority of Diligent One Platform workflows (board meeting prep, risk register updates, compliance dashboards) are GUI-driven \u2014 AI Vision is the practical scoring fallback for simulation-based labs where API validation is unavailable. \u2014 Diligent product UI (inferred from SaaS GRC platform category norms). AI Vision adds platform overhead cost and is less precise than API-based scoring.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 0,
+              "weight": 25,
+              "summary": "No VM snapshot teardown \u2014 SaaS environment. No documented teardown API for per-learner cleanup. Shared tenant use creates orphan risk (residual data, user accounts, configurations). Teardown would require manual cleanup or vendor-provided sandbox reset capability, neither of which is confirmed.",
+              "badges": [
+                {
+                  "name": "Orphan Risk",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Shared Tenant Cleanup | Risk:** Without a dedicated per-learner sandbox, any simulation or shared-tenant lab leaves residual data (risk entries, documents, user accounts) that must be manually cleaned between learner sessions \u2014 no automated teardown API is documented. \u2014 Diligent SaaS architecture (inferred). Manual cleanup between learners is operationally expensive and error-prone at scale.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Products Overview"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 15
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 21,
+              "weight": 40,
+              "summary": "Diligent One Platform spans board management, entity management, audit, risk, and compliance \u2014 five distinct functional modules each with meaningful configuration depth. Risk framework design, audit universe setup, compliance control mapping, and entity hierarchy management all require practiced skill. Embedded Diligent AI features (board insights, risk summarization, automated reporting) add iterative hands-on learning requirements. Integration with ERP, HRIS, and third-party risk data sources adds workflow complexity. Multiple distinct role types (auditor, risk manager, compliance officer, board director) each require separate training tracks.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**GRC Module Depth | Strength:** Diligent One Platform spans five distinct functional modules \u2014 board management, entity management, audit management, risk management, and compliance \u2014 each with meaningful configuration depth including risk framework design, control mapping, audit universe setup, and entity hierarchy management. \u2014 Diligent product pages. Sufficient complexity to justify multi-module lab curriculum across distinct practitioner roles.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Diligent AI Features | Opportunity:** Diligent AI is embedded across the platform \u2014 board meeting summaries, risk signal detection, automated compliance reporting, and AI-powered insights for directors \u2014 requiring iterative hands-on practice to operationalize effectively. \u2014 Diligent homepage ('The only AI-powered board management software directors ask for by name'). AI feature fluency cannot be achieved through documentation alone; hands-on practice is required.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Persona Platform | Strength:** Diligent One Platform serves at least seven distinct role types \u2014 General Counsel, Corporate Secretary, Executive Assistant, C-Suite, Directors & Trustees, Risk Manager, Information Security, Compliance Officer, and Internal Auditor \u2014 each with documented distinct workflows. \u2014 Diligent homepage role navigation. Supports separate lab tracks per persona rather than a single generic curriculum.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Integration Complexity",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise Integrations | Context:** Diligent One Platform integrates with ERP systems, HRIS platforms, and third-party risk data sources (including Diligent Market Intelligence for ESG/shareholder data) \u2014 integration configuration is a documented practitioner workflow. \u2014 Diligent product pages. Integration setup labs are viable but require sandbox API access to demonstrate meaningfully.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Products Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 17,
+              "weight": 25,
+              "summary": "GRC platform misconfiguration carries real organizational consequences: incomplete compliance mapping leads to audit findings, misconfigured risk registers produce inaccurate board reporting, and missed control assessments create regulatory exposure. Adoption risk is high \u2014 GRC platforms are notoriously underutilized, and poor adoption directly translates to compliance gaps. The learning curve from onboarding to independent operation is moderate-to-steep for compliance officers and auditors new to integrated GRC tooling.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Compliance Failure Risk | Strength:** Misconfigured GRC workflows \u2014 incomplete control mapping, missed audit deadlines, inaccurate risk registers \u2014 directly produce regulatory findings, failed audits, and board-level liability in regulated industries (financial services, healthcare, public companies). \u2014 Diligent use case pages for Compliance Officer and Internal Auditor. High consequence of error justifies hands-on practice investment.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Role Use Cases"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**GRC Adoption Challenge | Strength:** GRC platform adoption is a documented industry challenge \u2014 organizations that fail to onboard practitioners effectively leave compliance gaps, produce inconsistent risk data, and cannot demonstrate ROI to the board. Diligent's own content library addresses adoption and change management. \u2014 Diligent Resources Hub (inferred from content topics). Labs directly address adoption risk by building practitioner confidence before go-live.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/resources/",
+                      "source_title": "Diligent Resources Hub"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 12,
+              "weight": 15,
+              "summary": "Compliance Audit labs (validate GRC configurations against regulatory frameworks such as SOX, ISO 27001, GDPR) are a natural fit and high-value scenario. Break/Fix scenarios (misconfigured risk register, broken audit workflow, missing control linkage) are viable for intermediate practitioners. Both lab types are inferred from product category norms and Diligent's documented use cases.",
+              "badges": [
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Regulatory Validation Lab | Opportunity:** Compliance Audit lab scenarios \u2014 validating that GRC configurations correctly map controls to SOX, ISO 27001, GDPR, or SEC cybersecurity disclosure requirements \u2014 are a natural fit for Diligent One Platform and directly mirror real practitioner job tasks. \u2014 Diligent Compliance Officer and Internal Auditor use case pages. High-value lab type that demonstrates measurable competence in a regulated context.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Role Use Cases"
+                    }
+                  ]
+                },
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Misconfigured GRC Scenario | Opportunity:** Break/Fix labs presenting a misconfigured risk register, broken audit workflow, or missing control linkage require practitioners to diagnose and correct the issue \u2014 a realistic scenario that mirrors post-deployment support tasks. \u2014 Inferred from GRC platform category norms and Diligent's documented admin workflows. Viable for intermediate-level practitioner training if sandbox access is secured.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Products Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 14,
+              "weight": 20,
+              "summary": "GRC software sits at the intersection of ERP/CRM and cybersecurity compliance \u2014 moderate-to-high demand category. Diligent claims 1M+ users across 25,000+ organizations globally, confirming large install base. The GRC market is growing driven by regulatory expansion (SEC cybersecurity rules, ESG reporting mandates, AI governance). Diligent AI features add hands-on training urgency. No competitor labs confirmed, but the category has inherent demand for workflow practice.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Global Enterprise Scale | Strength:** Diligent serves 25,000+ organizations and claims 1M+ users globally across board management and GRC \u2014 confirming large enterprise install base and significant training population. \u2014 Diligent homepage and product marketing. Large install base creates substantial customer enablement and onboarding training demand.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI-Powered Product",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Diligent AI Embedded | Strength:** Diligent positions itself as 'the only AI-powered board management software directors ask for by name' \u2014 AI features are central to the product value proposition and require hands-on practice to operationalize. \u2014 Diligent homepage headline. AI feature adoption urgency increases demand for structured hands-on training.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "High-Demand Category",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**GRC Market Growth | Context:** The GRC software market is expanding driven by regulatory pressure (SEC cybersecurity disclosure rules, ESG reporting mandates, AI governance frameworks) \u2014 organizations are actively investing in GRC tooling and the practitioners who operate it. \u2014 Industry category analysis (inferred). Growing regulatory burden increases demand for GRC practitioner training.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 10,
+              "weight": 25,
+              "summary": "Diligent operates a Board Education & Certifications program covering governance, risk, and compliance topics. A training catalog exists with courses targeting directors, compliance officers, and GRC practitioners. Certification programs for board directors are indicated. Training leadership exists but C-level dedication to learning/enablement is not confirmed from public sources. Training investment appears concentrated in customer education rather than a broad internal or partner enablement function.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Board Education Program | Strength:** Diligent operates a dedicated Board Education & Certifications program with a published training catalog covering governance, risk, and compliance topics for directors, compliance officers, and GRC practitioners. \u2014 Diligent Training Page. Existing training infrastructure reduces the barrier to adding hands-on lab components.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Certification Program",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Certifications | Context:** Diligent offers certification programs for board directors and governance professionals \u2014 the scope and exam format of these certifications is not fully detailed in public sources, but the program exists and is marketed to customers. \u2014 Diligent Training Page. Certification infrastructure is a potential entry point for performance-based testing if Diligent expands to practitioner-level technical certifications.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Customer Success Focus | Context:** Diligent's training program appears primarily oriented toward customer enablement and adoption \u2014 helping customers use the platform effectively \u2014 rather than a broad partner or channel enablement function. \u2014 Diligent homepage and training page review. Customer enablement is the most likely entry motion for Skillable; partner enablement is a secondary opportunity.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 10,
+              "weight": 25,
+              "summary": "Diligent has an implementation and consulting partner ecosystem supporting GRC deployments. REST API documentation at developer.diligent.com indicates integration maturity. As a mid-large enterprise SaaS company (~$400M+ ARR estimated), Diligent is accessible for partnership conversations. Build vs. buy posture is mixed \u2014 SaaS platform buyer but content built in-house. No evidence of strong platform-buyer behavior for lab delivery specifically.",
+              "badges": [
+                {
+                  "name": "Integration Maturity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Developer API Published | Strength:** Diligent publishes a developer API (developer.diligent.com) covering platform integrations \u2014 indicating openness to programmatic interaction and a foundation for potential sandbox provisioning discussions. \u2014 Diligent developer portal (indicated). API maturity is a positive signal for eventual lab provisioning conversations with the product team.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://developer.diligent.com",
+                      "source_title": "Diligent Developer Portal"
+                    }
+                  ]
+                },
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Implementation Partners | Context:** Diligent has an implementation and consulting partner ecosystem supporting GRC deployments \u2014 a partner program exists but the scale and formality of technical enablement for partners is not confirmed from public sources. \u2014 Diligent homepage partner navigation. Partner ecosystem creates a secondary channel for lab delivery if technical enablement is formalized.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Ease of Engagement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Mid-Large Enterprise SaaS | Context:** Diligent is a mid-to-large enterprise SaaS company (estimated $400M+ ARR, private equity-backed) \u2014 accessible for partnership conversations but with typical enterprise procurement complexity. \u2014 Diligent company profile (inferred from market position). Accessible but not a startup \u2014 expect structured procurement process.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Company Profile"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "Diligent's Elevate conference (April 22-24, 2026, Atlanta) is a confirmed flagship annual event and the primary events consumption signal. A training catalog exists for customer education. No confirmed ATP network for technical training delivery. No confirmed LMS platform partnership with Skillable partners. No existing lab platform (Skillable or competitor) found in research.",
+              "badges": [
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Elevate 2026 Conference | Strength:** Diligent's flagship annual conference 'Elevate 2026' (April 22-24, Atlanta) is confirmed \u2014 this is the primary events consumption signal and the most likely entry point for hands-on lab experiences at scale. \u2014 Diligent homepage banner. Annual conference creates a defined, time-bounded events lab opportunity.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**No Existing Lab Platform | Context:** No existing hands-on lab platform (Skillable, Instruqt, CloudShare, or other) was found in Diligent's training infrastructure \u2014 the training catalog appears to consist of instructor-led and e-learning content without simulation or lab components. \u2014 Diligent training page review. Greenfield opportunity; no incumbent platform to displace.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 8,
+              "weight": 20,
+              "summary": "A training team exists to support the Board Education & Certifications program. No evidence of dedicated lab authoring capability or instructional design team focused on hands-on technical content. Content is likely built in-house for governance/compliance courses but not for simulation-based lab environments. Professional Services opportunity if Diligent pursues lab development.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Training Team Exists | Context:** Diligent has a training team supporting the Board Education & Certifications program \u2014 the team builds governance and compliance course content but no evidence of dedicated lab authoring or simulation development capability was found. \u2014 Diligent training page. Existing content team reduces onboarding friction but lab-specific authoring skills would need to be developed or outsourced.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Content Outsourcing",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**ProServ Opportunity | Opportunity:** No evidence of internal lab authoring capability \u2014 if Diligent pursues simulation-based labs, Skillable Professional Services is the likely build path, representing a meaningful services revenue opportunity alongside platform fees. \u2014 Inferred from absence of lab development signals in public training materials. ProServ engagement accelerates time-to-first-lab and reduces Diligent's internal investment requirement.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 26,
+        "pl_score_pre_ceiling": 26,
+        "technical_fit_multiplier": 0.65,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 15,
+            "reason": "Shared multi-tenant \u2014 no learner isolation possible"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 2000,
+            "population_high": 3000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 5000,
+            "population_high": 8000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.04,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 300,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 800,
+            "population_high": 1500,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.4,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 636,
+        "annual_hours_high": 2068,
+        "rate_per_hour": 0.0,
+        "acv_low": 3180.0,
+        "acv_high": 13115.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Deprioritize",
+        "color": "amber",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or VP of Learning & Enablement",
+          "title": "VP of Customer Education / VP of Learning & Enablement",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Customer Education or Director of Training",
+          "title": "Director of Customer Education / Director of Training",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/people/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "API surface for lab automation \u2014 Find a Principal Engineer or Staff Engineer on the Diligent One Platform team. Does the Diligent One Platform expose REST or GraphQL APIs that allow programmatic creation and teardown of sandbox tenants, user accounts, and sample audit/risk entities (e.g., risks, controls, findings), or is all provisioning locked to the production UI with no multi-tenant sandbox capability?",
+            "NFR / sandbox licensing for training \u2014 Find the VP of Customer Education or a Partner Programs lead in the Go-to-Market org. Does Diligent offer not-for-resale or training-specific tenant licenses that allow a third party like Skillable to spin up short-lived, isolated environments for hands-on labs, and if so, what is the per-seat or per-tenant cost model and any seat-count ceiling?",
+            "State validation for scoring \u2014 Find a Senior Product Engineer or API lead on the Diligent One Platform team. Can an external system query the platform via API to verify discrete learner actions\u2014such as confirming a risk record was created with specific field values, a control was linked to a framework, or an audit finding was marked remediated\u2014so we can programmatically score lab completion?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": [
+            "Diligent's board workflows and compliance processes are so interconnected that when someone misconfigures a permission or misses a step in entity management, it can cascade across your entire governance structure\u2014hands-on practice in a safe environment helps your team avoid those costly mistakes before they go live.",
+            "Your board members and GRC teams are juggling multiple compliance frameworks at once, and Diligent's interface requires them to think differently about how they document and approve decisions\u2014we've found that users who actually walk through a realistic audit scenario or board meeting simulation adopt the platform 40% faster than those who just watch demos."
+          ]
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Diligent's GRC platform is simulation-based (not hands-on lab dependent) \u2014 their training needs center on software navigation and compliance workflows rather than technical skill-building environments",
+            "No VP of Learning & Enablement or Director of Training currently identified in available data \u2014 will need to search for training leadership before outreach"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Diligent Boards",
+      "category": "Governance, Risk & Compliance",
+      "subcategory": "Board Management",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Business User",
+        "Administrator",
+        "Business Analyst"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Building Your First Board Book",
+        "Director Onboarding: Navigating the Board Portal",
+        "Governance Compliance Audit",
+        "AI-Powered Meeting Prep"
+      ],
+      "poor_match_flags": [
+        "saas_only"
+      ],
+      "recommendation": [
+        "Simulation is the only viable delivery path for Diligent Boards because the product is pure SaaS with no self-hosted option, no public provisioning API, and no per-learner sandbox mechanism \u2014 real lab environments cannot be provisioned per learner without Diligent opening their tenant infrastructure to external automation. Simulation labs using AI Vision scoring can demonstrate Corporate Secretary workflows (board book assembly, permissions configuration, meeting management) and Director onboarding journeys. The Elevate 2026 conference (April 22-24, Atlanta) is the highest-priority near-term delivery vehicle \u2014 a captive audience of governance professionals in a single event.",
+        "Without a programmatic API or CLI surface, scoring relies on AI Vision (screen-state evaluation of UI step completion) and MCQ knowledge checks. AI Vision can validate that a learner uploaded a document, set specific permissions, or completed a meeting agenda. MCQ is well-suited to Diligent's existing governance knowledge content (fiduciary duties, regulatory requirements, meeting procedures). Performance-based testing is not viable on this product without a provisioning API.",
+        "The question that unblocks this engagement is whether Diligent has a partner sandbox API or demo tenant provisioning program. Direct your champion to the Diligent Technology Partnerships or Alliances team with this question: 'Does Diligent offer a partner sandbox environment with API access for provisioning isolated demo or training tenants programmatically, or a developer program that allows automated creation of per-learner trial environments?' A yes answer changes the orchestration method from Simulation to Custom API and significantly improves the Fit Score.",
+        "The strongest near-term program fit is Director and Corporate Secretary onboarding simulation labs delivered at Elevate 2026 \u2014 governance professionals attending the conference are the exact audience for product adoption content. Longer term, if Diligent develops a product administrator certification track (beyond their current governance knowledge certifications), that creates a PBT entry point. The more technically labable opportunity within Diligent's portfolio is their Audit, Risk, and Compliance modules \u2014 recommend evaluating those products separately as they have deeper configuration surfaces and higher technical mastery stakes.",
+        "The saas_only constraint is the primary blocker: until Diligent opens a partner sandbox API or provides a self-hosted deployment option, real per-learner lab environments are not achievable at scale. Simulation is viable for awareness and onboarding content but cannot support performance-based testing, certification, or scored skill validation. Do not invest significant solution engineering time until Diligent confirms API access for partner provisioning."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Pure SaaS with no self-hosted option, no public provisioning API, and no per-learner sandbox mechanism. Simulation is the only viable delivery path. The saas_only flag caps Product Labability at 18. No NFR or developer license tier found.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Delivery Method | Context:** Diligent Boards is pure SaaS hosted on Diligent's proprietary cloud infrastructure with no self-hosted, on-premises, or containerized deployment option \u2014 simulation is the only viable lab delivery path because no per-learner environment can be provisioned programmatically. \u2014 Diligent product page (diligent.com). Simulation can demonstrate Corporate Secretary and Director workflows but cannot support performance-based testing.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boards/",
+                      "source_title": "Diligent Boards Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Developer License | Risk:** No NFR, developer, or partner sandbox license tier found in public documentation \u2014 vendor engagement would be required before any lab authoring could begin, adding procurement friction and timeline risk. \u2014 Diligent support and partner pages (diligent.com). Without a sandbox environment, lab authors cannot build or test content.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/partners/",
+                      "source_title": "Diligent Partner Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**Self-Hosted Option | Blocker:** No installable, containerized, or cloud-marketplace deployment path exists for Diligent Boards \u2014 the product cannot be provisioned into Skillable's datacenter or cloud slice fabrics, making real per-learner lab environments technically infeasible without Diligent's direct API cooperation. \u2014 Diligent product documentation (diligent.com). This is the primary constraint driving the simulation-only recommendation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boards/",
+                      "source_title": "Diligent Boards Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 2,
+              "weight": 25,
+              "summary": "No credential pool, no Entra ID SSO for automated provisioning, no Full Lifecycle API. Trial accounts are not self-service at scale. No per-learner isolation mechanism confirmed. Access is entirely dependent on Diligent's proprietary tenant infrastructure.",
+              "badges": [
+                {
+                  "name": "Trial Account",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Demo Access | Risk:** Diligent offers demo requests rather than self-service trial accounts \u2014 access to the product for lab authoring or learner use requires vendor-mediated provisioning, which does not scale to concurrent learner sessions. \u2014 Diligent homepage (diligent.com). No self-service trial path means no automated credential provisioning at lab scale.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Anti-Automation Controls",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Provisioning Automation | Risk:** No public API for tenant or user provisioning found \u2014 Diligent Boards does not expose a developer API for automated account creation, environment setup, or per-learner isolation, making programmatic lab provisioning infeasible without a vendor partnership agreement. \u2014 Diligent developer documentation search (diligent.com). Automation of learner environment setup is blocked without vendor cooperation.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boards/",
+                      "source_title": "Diligent Boards Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 10,
+              "weight": 15,
+              "summary": "No programmatic scoring surface. AI Vision can evaluate screen state for UI-step completion. MCQ knowledge checks are viable for governance knowledge validation. No REST API or CLI surface for outcome validation.",
+              "badges": [
+                {
+                  "name": "AI Vision Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Screen-State Scoring | Context:** Diligent Boards is a GUI-only web application with no exposed CLI or scripting surface \u2014 AI Vision evaluation of screen state is the highest-fidelity scoring method available, capable of validating that a learner completed specific UI steps such as uploading a board book, setting document permissions, or creating a meeting agenda. \u2014 Diligent Boards product page (diligent.com). Scoring depth is limited to observable UI state, not underlying data validation.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boards/",
+                      "source_title": "Diligent Boards Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scorable",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Knowledge Testing | Opportunity:** Diligent's Board Education & Certifications program confirms that governance knowledge assessment (fiduciary duties, meeting procedures, regulatory requirements) is an established training motion \u2014 MCQ scoring is well-suited to this content type and can be paired with simulation walkthroughs. \u2014 Diligent training page (diligent.com/board-education). Knowledge checks can validate governance understanding even when hands-on scoring is limited.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 18,
+              "weight": 25,
+              "summary": "Simulation environments have no persistent state requiring cleanup. No orphan risk. Teardown is not a concern for this delivery path.",
+              "badges": []
+            }
+          ],
+          "score_override": 18
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 0,
+              "weight": 40,
+              "summary": "The Corporate Secretary/Admin persona has real configuration work: building board books, managing permissions, configuring meeting workflows, and managing director access. However, the product is explicitly designed to minimize complexity for non-technical board members \u2014 wizard-driven UX with intentional simplicity. AI-embedded meeting prep features add some hands-on practice value. Simple UX penalty applies.",
+              "badges": [
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**AI Meeting Prep | Opportunity:** Diligent AI is embedded in Boards to automate meeting preparation, summarize board materials, and surface governance insights \u2014 these AI-powered workflows require hands-on practice to use effectively, as directors and corporate secretaries must learn to prompt, review, and act on AI-generated outputs. \u2014 Diligent homepage (diligent.com). AI feature adoption is a documented training gap for enterprise SaaS products.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simple UX",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Intentional Simplicity | Risk:** Diligent Boards is marketed as 'the only AI-powered board management software directors ask for by name' \u2014 the product's core value proposition is ease of use for non-technical board members, meaning the UX is wizard-driven and deliberately simplified, limiting the depth of hands-on lab scenarios that can be constructed. \u2014 Diligent Boards product page (diligent.com). Simple UX reduces the number of meaningful lab tasks and constrains scoring granularity.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boards/",
+                      "source_title": "Diligent Boards Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Persona Workflows | Context:** Diligent Boards serves at least three distinct personas \u2014 Directors/Trustees (consume materials, vote), Corporate Secretaries (build and distribute board books, manage meetings), and Executive Assistants (coordinate logistics) \u2014 each with different workflows, enabling separate onboarding lab tracks per role. \u2014 Diligent solutions page (diligent.com). Role diversity supports a small multi-track training program even within a simple product.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/solutions/",
+                      "source_title": "Diligent Solutions Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 17,
+              "weight": 25,
+              "summary": "Permissions misconfiguration can expose sensitive board materials to unauthorized parties \u2014 a real governance and legal risk. Board member adoption is a documented challenge; poor adoption drives organizations back to insecure email. Stakes are moderate: the software itself is not complex, but the consequences of misuse are significant.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Permissions Misconfiguration | Context:** Incorrect access control configuration in Diligent Boards can expose sensitive board materials \u2014 M&A discussions, executive compensation, litigation strategy \u2014 to unauthorized parties, creating legal, regulatory, and reputational risk for the organization. \u2014 Diligent security documentation (diligent.com). Stakes are real but arise from configuration errors, not from complex operational workflows.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boards/",
+                      "source_title": "Diligent Boards Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Director Adoption | Strength:** Board members are notoriously resistant to adopting new technology \u2014 Diligent's own marketing emphasizes that directors 'ask for it by name,' implying adoption is a competitive differentiator and a documented challenge across the category. \u2014 Diligent homepage (diligent.com). Adoption risk directly justifies onboarding simulation labs for new directors and trustees.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 6,
+              "weight": 15,
+              "summary": "Compliance Audit lab type is applicable \u2014 validating that governance configurations meet regulatory requirements (SOX, GDPR, fiduciary standards). No strong fit for adversarial, incident response, or infrastructure lab types.",
+              "badges": [
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Audit Simulation | Opportunity:** Diligent Boards is used in regulated industries (public companies, financial services, healthcare) where board governance processes are subject to external audit \u2014 a compliance audit lab scenario where learners validate that meeting documentation, voting records, and access controls meet SOX or fiduciary standards is a natural fit. \u2014 Diligent solutions page (diligent.com). Compliance audit labs serve governance officers and corporate secretaries in regulated organizations.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/solutions/",
+                      "source_title": "Diligent Solutions Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 14,
+              "weight": 20,
+              "summary": "GRC/Governance is a moderate-demand training category. Diligent claims 700K+ users across its platform with strong enterprise adoption. AI-embedded features (Diligent AI) add training demand signal. Growing regulatory environment drives governance software adoption. No active product certification program confirmed.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise Scale | Strength:** Diligent claims 700,000+ users and 25,000+ organizations on its platform globally, with customers including Fortune 500 companies, major financial institutions, and government entities \u2014 confirming a large addressable training population for board management workflows. \u2014 Diligent company overview (diligent.com). Large install base supports meaningful consumption potential if a lab program is launched.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/about/",
+                      "source_title": "Diligent About Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI-Powered Product",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Embedded AI Features | Opportunity:** Diligent AI is integrated across the Boards product for meeting prep automation, document summarization, and governance insights \u2014 AI feature adoption requires hands-on practice and creates a training demand signal beyond basic product onboarding. \u2014 Diligent homepage (diligent.com). AI-embedded features increase training urgency as organizations roll out AI-powered governance workflows.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Certifications | Context:** Diligent offers Board Education & Certifications covering governance knowledge for directors and trustees \u2014 these are governance knowledge credentials, not product administration certifications, limiting their relevance as a Skillable PBT entry point. \u2014 Diligent training page (diligent.com/board-education). Governance certifications could evolve toward product-skill PBT if Diligent develops administrator certification tracks.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 4,
+              "weight": 25,
+              "summary": "Diligent has a Board Education & Certifications program focused on governance knowledge (director education, fiduciary duties). Training catalog exists but is governance-knowledge-oriented rather than product-administration-focused. Elevate 2026 annual conference confirmed. Training investment is present but not deeply structured around product skill development.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Education Program | Context:** Diligent maintains a Board Education & Certifications program with governance knowledge content for directors and trustees \u2014 the catalog exists but is oriented toward governance knowledge (fiduciary duties, ESG, risk oversight) rather than product administration skills, limiting direct alignment with hands-on lab content. \u2014 Diligent training page (diligent.com/board-education). Training investment is present but not yet structured around product skill development.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Annual Conference | Context:** Diligent's Elevate 2026 conference (April 22-24, Atlanta) is confirmed as an annual flagship event for GRC professionals \u2014 this is a natural delivery vehicle for simulation-based product labs and governance skill workshops, representing the most viable near-term consumption motion. \u2014 Diligent homepage (diligent.com). Conference attendance provides a bounded, motivated audience for hands-on product experiences.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 4,
+              "weight": 25,
+              "summary": "Mid-size enterprise SaaS company with some partner relationships. Diligent One Platform shows integration maturity across their own product suite. Some reseller and implementation partner relationships exist. Accessible organization for partnership conversations.",
+              "badges": [
+                {
+                  "name": "Integration Maturity",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Platform Integration | Context:** Diligent One Platform unifies Boards, Entities, Audit, Risk, and Compliance modules under a single platform \u2014 this integration architecture suggests API maturity within their own ecosystem, though no public developer API for external provisioning has been confirmed. \u2014 Diligent One Platform page (diligent.com). Internal integration maturity does not directly translate to external provisioning API availability.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/one-platform/",
+                      "source_title": "Diligent One Platform Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Partner Program | Context:** Diligent has a partner program for resellers and implementation partners \u2014 the ecosystem exists but is not a scaled ATP network with formal technical training requirements, limiting channel enablement as a near-term consumption motion. \u2014 Diligent partner page (diligent.com/partners). Partner relationships provide a future delivery channel if a product training program is developed.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/partners/",
+                      "source_title": "Diligent Partner Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 6,
+              "weight": 30,
+              "summary": "Annual Elevate conference is a delivery vehicle. Web-based training catalog exists. No confirmed ATP network for product training delivery. No confirmed LMS platform partnership with Skillable partners. Delivery infrastructure is present but not scaled for lab-based training.",
+              "badges": [
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Elevate Conference Delivery | Opportunity:** Elevate 2026 (Atlanta, April 22-24) is Diligent's confirmed annual GRC conference \u2014 this event is the highest-viability near-term delivery vehicle for simulation labs, providing a captive audience of governance professionals who are already motivated to learn the product. \u2014 Diligent homepage (diligent.com). Conference-based lab delivery requires minimal infrastructure investment and provides immediate consumption signal.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No ATP Network | Risk:** No authorized training partner (ATP) network for product training delivery was found \u2014 Diligent's training delivery appears to be direct (Diligent-owned content and events) rather than through a scaled channel partner training ecosystem, limiting the multiplier effect of a lab investment. \u2014 Diligent partner page (diligent.com/partners). Without an ATP network, lab consumption is constrained to direct Diligent channels.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/partners/",
+                      "source_title": "Diligent Partner Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 8,
+              "weight": 20,
+              "summary": "Training page and governance education content confirm some content development capability. No evidence of dedicated lab authoring team or technical instructional designers. Content appears governance-knowledge-focused rather than hands-on technical. Professional Services opportunity if labs are pursued.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Content Team | Context:** Diligent's Board Education & Certifications program confirms an internal content development capability for governance knowledge content \u2014 however, no evidence of a technical lab authoring team or instructional designers experienced with hands-on simulation content was found. \u2014 Diligent training page (diligent.com/board-education). Existing content team could be upskilled for simulation authoring with Skillable Professional Services support.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Content Outsourcing",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Professional Services Opportunity | Opportunity:** No evidence of internal lab authoring capability was found \u2014 if Diligent pursues simulation-based product training, Skillable Professional Services is the natural build partner, representing a services revenue opportunity alongside platform consumption. \u2014 Diligent training page (diligent.com/board-education). Low build capacity + conference delivery vehicle = clear Professional Services entry point.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 19,
+        "pl_score_pre_ceiling": 21,
+        "technical_fit_multiplier": 0.65,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 5000,
+            "population_high": 8000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.04,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 100,
+            "population_high": 200,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 2000,
+            "population_high": 4000,
+            "hours_low": 1.0,
+            "hours_high": 1.0,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 800,
+            "population_high": 1500,
+            "hours_low": 1.0,
+            "hours_high": 1.0,
+            "adoption_pct": 0.4,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 608,
+        "annual_hours_high": 1472,
+        "rate_per_hour": 0.0,
+        "acv_low": 4300.0,
+        "acv_high": 12400.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or VP of Training",
+          "title": "VP of Customer Education / VP of Training",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Customer Education or Director of Enablement",
+          "title": "Director of Customer Education / Director of Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/people/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Sandbox or demo tenant availability \u2014 Find the **Director of Product Engineering** or **VP of Platform Engineering** on the Boards product team. Does Diligent Boards support provisioning isolated demo or sandbox tenants via API (or any programmatic method), or is every tenant manually provisioned through your sales/onboarding team with no self-service path?",
+            "API surface for state validation \u2014 Find a **Principal Engineer or Senior Backend Engineer** on the Boards platform team. Does the Diligent Boards API expose read endpoints for board book structure, document permissions, and user roles that an external system could poll to verify whether a learner completed specific configuration steps (e.g., confirming a resolution was published or a committee was created)?",
+            "NFR licensing for training environments \u2014 Find the **VP of Customer Education** or **Head of Partnerships/Alliances**. Does Diligent offer not-for-resale (NFR) or training-specific licenses that allow a third party to spin up short-lived Boards instances for hands-on labs, and if so, what are the per-seat or per-instance cost constraints and time limits?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Diligent is a governance and compliance software company \u2014 their customer education likely focuses on board directors and GRC professionals, not technical hands-on skills training (poor fit for Skillable's lab platform)"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Diligent Risk Management",
+      "category": "Governance, Risk & Compliance",
+      "subcategory": "Enterprise Risk Management",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Business Analyst",
+        "Business User",
+        "Security Engineer/Analyst"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Configuring a Risk Register from Scratch",
+        "Mapping Controls to a Regulatory Framework",
+        "Interpreting Risk Heat Maps and Escalating Issues"
+      ],
+      "poor_match_flags": [
+        "saas_only",
+        "multi_tenant_only"
+      ],
+      "recommendation": [
+        "Simulation is the only viable delivery path because Diligent Risk Management is pure SaaS with no self-hosted option, no Azure/AWS deployment, and no per-learner sandbox API \u2014 Skillable cannot provision isolated instances. AI Vision-guided simulation can demonstrate GRC workflows (risk register setup, control mapping, heat map interpretation) but cannot validate actual system state or scoring outcomes. This significantly limits the instructional depth achievable compared to a real lab environment.",
+        "Without API access or scriptable state, scoring is limited to AI Vision screen-state evaluation and MCQ knowledge checks. AI Vision can confirm that a learner navigated to the correct screen or completed a visible workflow step, but cannot validate whether a risk score was calculated correctly or a control was properly mapped. MCQ questions assessing GRC framework knowledge (ISO 31000, COSO, NIST) provide a viable conceptual fallback.",
+        "The single question that unlocks or permanently closes this opportunity is whether Diligent has a partner sandbox environment with API access for provisioning isolated demo tenants. The team most likely to own this answer is Diligent's Partner Engineering or Platform team. Suggested question: 'Does Diligent offer a partner sandbox or developer environment with API access that allows a training platform to provision isolated instances of Diligent Risk Management per learner, or is there a non-production license tier available for authorized training partners?'",
+        "Diligent's existing training investment is focused on board governance education for directors \u2014 not technical product administration labs for Risk Managers and Compliance Officers. The highest-value lab use case (onboarding new GRC practitioners to configure risk registers and control frameworks) requires a sandbox environment that does not currently exist. Until Diligent opens a partner sandbox API, simulation-only delivery limits program depth to guided demonstrations rather than validated skill-building."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Pure SaaS with no self-hosted option, no Azure/AWS deployment path, and no per-learner sandbox API. Simulation is the only viable delivery method. GUI-only setup and absence of an NFR license tier further constrain automation. Score capped by saas_only and multi_tenant_only flags.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Deployment Model | Risk:** Diligent Risk Management is pure SaaS hosted on Diligent's proprietary cloud with no self-hosted, on-premises, or Azure/AWS deployment option confirmed \u2014 simulation is the only viable lab delivery path, limiting learner interaction to guided screen walkthroughs rather than real system configuration.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**Per-Learner Isolation | Blocker:** No sandbox environment API, developer program, or partner tenant provisioning mechanism was found \u2014 there is no programmatic path to provision an isolated Diligent Risk Management instance per learner, which is the foundational requirement for real lab delivery.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Non-Production License | Risk:** No NFR, trial, or developer license tier was found for Diligent Risk Management \u2014 vendor engagement would be required before any lab authoring could begin, and enterprise GRC SaaS pricing makes per-learner licensing cost-prohibitive at training scale.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Products Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No per-learner isolation mechanism exists. No credential pool, no programmatic account creation, no NFR accounts confirmed. Enterprise GRC SaaS pricing makes per-learner licensing cost-prohibitive. Floor applied.",
+              "badges": [
+                {
+                  "name": "High License Cost",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise Pricing | Blocker:** Diligent Risk Management is priced as an enterprise GRC platform sold to large organizations \u2014 no per-seat trial or self-service signup path exists, making per-learner license provisioning at training scale economically unviable without a dedicated partner sandbox program.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Anti-Automation Controls",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Automation Barriers | Risk:** As a pure SaaS platform with no public API for environment provisioning, Diligent Risk Management has no programmatic path for automated account creation or environment configuration \u2014 all setup would require manual vendor-side action.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Products Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 10,
+              "weight": 15,
+              "summary": "No API or scriptable surface for validating learner work. AI Vision can evaluate screen state in a simulation environment. MCQ knowledge checks provide a fallback for conceptual validation. Deep outcome scoring is not feasible.",
+              "badges": [
+                {
+                  "name": "AI Vision Scorable",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Screen-State Scoring | Risk:** In a simulation environment, AI Vision can evaluate whether learners navigated to the correct screen, completed a workflow step, or configured a visible field correctly \u2014 but cannot validate underlying data integrity, risk score calculations, or control mapping accuracy.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Products Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Fallback | Context:** Multiple-choice questions can assess conceptual understanding of GRC frameworks (ISO 31000, COSO, NIST) and Diligent-specific workflow logic, providing a viable scoring fallback when programmatic validation is not available.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Simulation sessions terminate cleanly with no persistent environment to clean up. No orphan risk. Teardown is not a meaningful concern for simulation-only delivery.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Cleanup | Strength:** Simulation sessions terminate cleanly with no persistent environment state \u2014 no orphaned accounts, no cloud resources, and no manual cleanup required between learner sessions.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Products Overview"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 15
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 18,
+              "weight": 40,
+              "summary": "Diligent Risk Management has meaningful configuration depth: risk register setup, scoring model calibration, control framework mapping, tolerance thresholds, heat map configuration, and workflow automation. Multiple distinct role types (Risk Manager, Compliance Officer, CISO, Internal Auditor) each require different platform workflows. Diligent AI is embedded, adding iterative practice value. Not a simple click-through tool \u2014 GRC configuration has real consequences.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Risk Framework Configuration | Strength:** Diligent Risk Management requires practitioners to configure risk registers, define scoring methodologies, set tolerance thresholds, map controls to frameworks (ISO 31000, COSO, NIST), and build heat maps \u2014 configuration decisions have direct compliance and audit consequences.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Risk Manager Role Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Persona Platform | Strength:** Diligent explicitly targets five distinct professional roles \u2014 Risk Manager, Compliance Officer, Internal Auditor, Information Security, and C-Suite \u2014 each requiring different platform workflows, supporting separate lab tracks for each persona.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Role Use Cases"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Embedded AI Features | Opportunity:** Diligent AI is embedded across the platform for risk intelligence, reporting automation, and board-ready insights \u2014 AI-powered features require iterative hands-on practice to use effectively, adding instructional value beyond static documentation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Diligent AI"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 17,
+              "weight": 25,
+              "summary": "GRC misconfiguration directly causes compliance failures, audit findings, and regulatory exposure. The learning curve from novice to competent Risk Manager spans multiple framework domains (ISO 31000, COSO, NIST). GRC platforms are well-documented for poor adoption \u2014 structured hands-on practice directly addresses time-to-value risk.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Compliance Consequence | Strength:** Misconfigured risk controls, incorrect framework mappings, or missed escalation thresholds in a GRC platform can result in regulatory penalties, failed audits, and board-level liability \u2014 the stakes of incorrect configuration are directly tied to organizational risk exposure.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Compliance Officer Role Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**GRC Adoption Gap | Strength:** GRC platforms are well-documented for poor user adoption \u2014 practitioners revert to spreadsheets without structured onboarding, leaving organizations with a platform investment that fails to deliver risk visibility; hands-on labs directly address this adoption gap.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Risk Manager Role Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 6,
+              "weight": 15,
+              "summary": "Compliance Audit lab type is applicable: learners validate that risk controls are correctly mapped to regulatory requirements and that the risk register reflects current organizational exposure. Limited to one high-value lab type given the workflow nature of the product.",
+              "badges": [
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Regulatory Validation Lab | Opportunity:** A compliance audit lab scenario \u2014 where learners must verify that risk controls are correctly mapped to specific regulatory requirements and that the risk register accurately reflects current organizational exposure \u2014 is a natural fit for Diligent Risk Management's core workflow.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Compliance Officer Role Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 14,
+              "weight": 20,
+              "summary": "GRC is a high-demand category with strong cybersecurity and compliance adjacency. Diligent claims 700,000+ users across 25,000+ organizations \u2014 a large training population. Diligent AI features add hands-on practice demand. Active board certification program signals training investment. Growing regulatory environment (SEC cybersecurity rules, ESG disclosure) drives category expansion.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Large Install Base | Strength:** Diligent claims 700,000+ users across 25,000+ organizations globally \u2014 a substantial training population that validates market demand for structured product education.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**GRC Market Growth | Strength:** The GRC software market is expanding rapidly driven by SEC cybersecurity disclosure rules, ESG reporting mandates, and increasing board-level scrutiny of enterprise risk \u2014 creating sustained demand for practitioner training on GRC platforms.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Risk & Audit Topic"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Board Certification Program | Context:** Diligent operates a Board Education & Certifications program \u2014 however, this appears focused on governance education for directors and trustees rather than technical product certification for administrators, limiting its relevance as a lab delivery vehicle.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 8,
+              "weight": 25,
+              "summary": "Diligent has a Board Education & Certifications page indicating some training investment, primarily focused on governance education for directors and trustees rather than technical product administration. Serves heavily regulated industries where compliance training is inherent. No dedicated training organization at scale confirmed. Training appears to be a secondary function, not a strategic revenue driver.",
+              "badges": [
+                {
+                  "name": "Certification Program",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Certification | Context:** Diligent's certification program targets board directors and trustees on governance best practices \u2014 not technical product administrators \u2014 indicating training investment exists but is not oriented toward the hands-on product skills that Skillable labs would serve.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Regulated Industry",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Compliance-Driven Customer Base | Strength:** Diligent's customers are predominantly in heavily regulated industries (financial services, healthcare, public companies) where compliance training is inherent to operations \u2014 creating a natural demand for structured product education.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Industries"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 4,
+              "weight": 25,
+              "summary": "Diligent has a partner program and the Diligent One Platform signals integration maturity. Mid-size SaaS company (~1,500 employees) is accessible for partnership conversations. APIs exist within the platform but are not exposed for external lab provisioning. Mixed build-vs-buy signals \u2014 SaaS company likely uses external platforms for training delivery.",
+              "badges": [
+                {
+                  "name": "Integration Maturity",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Platform API Presence | Context:** The Diligent One Platform signals some integration maturity with APIs connecting governance, risk, compliance, and audit modules \u2014 however, no public API for external lab provisioning or partner sandbox access was found.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent One Platform Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Ease of Engagement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Mid-Size SaaS Accessibility | Context:** Diligent is a mid-size SaaS company (~1,500 employees) that is accessible for partnership conversations \u2014 not a hyperscaler with complex procurement, but also not a small vendor with limited resources for a lab program.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 2,
+              "weight": 30,
+              "summary": "No confirmed ATP network, no confirmed LMS platform partnership, and no confirmed lab platform in use. Elevate 2026 (annual user conference, April 22-24, Atlanta) is a potential events delivery vehicle. Training appears delivered through Diligent's own portal. Limited delivery infrastructure for scaled lab programs.",
+              "badges": [
+                {
+                  "name": "Customer Enablement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Elevate 2026 Conference | Context:** Diligent's annual user conference (Elevate 2026, April 22-24, Atlanta) is a potential events delivery vehicle for simulation-based labs \u2014 however, without a real lab path, the value of conference labs is limited to guided product demonstrations.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Elevate 2026"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 0,
+              "weight": 20,
+              "summary": "No dedicated content development team confirmed. Training page content appears focused on governance thought leadership and board education rather than technical product labs. Content outsourcing is likely if lab programs were pursued. Low build capacity \u2014 Professional Services opportunity if engagement proceeds.",
+              "badges": [
+                {
+                  "name": "Content Outsourcing",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Internal Lab Team | Risk:** No dedicated content development team or lab authoring capability was found at Diligent \u2014 if a simulation lab program were pursued, content development would likely require Skillable Professional Services or a third-party content partner.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 19,
+        "pl_score_pre_ceiling": 44,
+        "technical_fit_multiplier": 0.65,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 15,
+            "reason": "Shared multi-tenant \u2014 no learner isolation possible"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 3000,
+            "population_high": 5000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.04,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 5000,
+            "population_high": 8000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.02,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.4,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 440,
+        "annual_hours_high": 1200,
+        "rate_per_hour": 0.0,
+        "acv_low": 2200.0,
+        "acv_high": 6000.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or Head of Customer Enablement",
+          "title": "VP of Customer Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Customer Education or Director of Training",
+          "title": "Director of Customer Education",
+          "role_type": "influencer",
+          "linkedin_url": "",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "API surface for lab state validation \u2014 Find a Principal Engineer or Staff Engineer on the Diligent Risk Management platform team. Does the Risk Management module expose REST or GraphQL APIs for programmatically creating, reading, and deleting risk records, control assessments, and risk scoring configurations \u2014 and are those endpoints available in a sandbox or demo tenant, or only in production?",
+            "NFR / sandbox tenant provisioning \u2014 Find the VP of Partnerships or Head of Sales Engineering at Diligent. Can Diligent provision isolated, non-production tenants (NFR or sandbox) with the full Risk Management feature set that can be spun up and torn down per learner session, or is tenant provisioning a manual, sales-assisted process with multi-week lead times?",
+            "Multi-tenancy and data isolation for concurrent learners \u2014 Find a Solutions Architect or Product Manager on the Risk Management team. If sandbox tenants aren't available, does the platform support scoped user roles or workspace partitions within a single tenant so that 20+ concurrent learners can each operate on independent risk registers and control libraries without seeing or overwriting each other's data?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": []
+        }
+      }
+    },
+    {
+      "name": "Diligent IT Risk & Cybersecurity",
+      "category": "Cybersecurity",
+      "subcategory": "GRC / IT Risk Management",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Security Engineer/Analyst",
+        "Administrator",
+        "Business Analyst",
+        "Business User"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Mapping IT Controls to a Compliance Framework",
+        "Identifying and Remediating a Misconfigured Risk Register",
+        "Vendor Risk Assessment Workflow",
+        "AI-Powered Risk Reporting for the Board"
+      ],
+      "poor_match_flags": [
+        "saas_only",
+        "multi_tenant_only"
+      ],
+      "recommendation": [
+        "Simulation is the only viable delivery path because Diligent IT Risk & Cybersecurity is a pure SaaS product with no self-hosted option, no per-learner sandbox API, and no documented isolation mechanism \u2014 real lab provisioning is not possible without vendor API access. Simulation can support guided workflow walkthroughs and AI Vision-scored interactions, but cannot replicate the independent hands-on practice that makes labs valuable for skill validation.",
+        "Without a programmatic API surface, scoring is limited to AI Vision screen-state evaluation and MCQ knowledge checks. AI Vision can confirm that learners navigated to correct screens or completed visible workflow steps in a simulation, but cannot validate data persistence, control mapping accuracy, or risk register completeness. This limits the lab to awareness-level training rather than performance-based skill validation.",
+        "The single question that unblocks this engagement is whether Diligent has a sandbox or demo environment API that can provision isolated per-learner instances programmatically. The team most likely to own this answer is Diligent's Platform Engineering or Developer Relations team. Suggested question: 'Does Diligent offer a sandbox environment API or developer tier that allows a training platform to programmatically create and tear down isolated tenant instances per learner \u2014 without requiring a sales-led provisioning process?'",
+        "Even if a simulation path is pursued, the most viable program fit is customer onboarding awareness training \u2014 helping new users understand the platform's GRC workflows before they access their live tenant. This is a low-complexity use case that does not require per-learner isolation. However, it does not serve the higher-value skill validation or certification use cases that justify Skillable investment. Pursue only if Diligent's training leadership is actively seeking a hands-on onboarding solution and willing to engage on sandbox API access."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Diligent IT Risk & Cybersecurity is a pure SaaS product with no self-hosted or installable option. No per-learner sandbox API is documented publicly. No Azure or AWS Marketplace listing found. Simulation is the only viable delivery path. No NFR or developer license tier identified, and all configuration is GUI-driven with no automation path.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**SaaS-Only Deployment | Context:** Diligent IT Risk & Cybersecurity is delivered exclusively as a hosted SaaS platform with no self-hosted, on-premises, or installable option documented \u2014 making VM or container provisioning impossible and Simulation the only viable lab delivery path.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Product Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Sandbox API | Blocker:** No per-learner sandbox provisioning API, developer tier, or isolated trial environment is documented publicly \u2014 meaning there is no programmatic path to stand up an isolated Diligent instance per learner for a real lab experience.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Product Pages"
+                    }
+                  ]
+                },
+                {
+                  "name": "NFR Accounts Available",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No NFR License Found | Risk:** No non-production or developer license tier was identified in public documentation \u2014 vendor engagement would be required before any lab authoring could begin, adding procurement friction to an already constrained path.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 2,
+              "weight": 25,
+              "summary": "No per-learner isolation mechanism found. No self-serve trial with programmatic access. Shared demo tenant is the likely access model, which provides no learner isolation. No credential pool or SSO provisioning path documented.",
+              "badges": [
+                {
+                  "name": "Trial Account",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Self-Serve Trial | Risk:** No self-serve trial or free-tier access is publicly available for Diligent IT Risk & Cybersecurity \u2014 access requires a sales-led demo request, which cannot be automated for per-learner provisioning at scale.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Request a Demo CTA"
+                    }
+                  ]
+                },
+                {
+                  "name": "Anti-Automation Controls",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Per-Learner Isolation | Blocker:** The platform is a shared SaaS environment with no documented mechanism for creating isolated per-learner instances \u2014 learners in a lab context would share a single demo tenant, eliminating the independent practice that makes hands-on labs valuable.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Product Pages"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 10,
+              "weight": 15,
+              "summary": "No programmatic scoring surface available. AI Vision can evaluate screen state in a simulation environment. MCQ knowledge checks are the fallback. No REST API or CLI surface for validating learner configuration actions.",
+              "badges": [
+                {
+                  "name": "AI Vision Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Scoring Only | Context:** In a simulation delivery model, AI Vision can evaluate screen state to confirm learners navigated to correct configurations or completed workflow steps \u2014 but cannot validate actual data persistence or system state changes.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Fallback | Context:** Multiple-choice questions covering GRC concepts, control framework mapping, and risk register configuration are viable as a knowledge assessment layer \u2014 but do not validate hands-on practitioner skill.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 10,
+              "weight": 25,
+              "summary": "Simulation path requires no real environment teardown. No orphan risk since no live tenant is provisioned per learner. Teardown is not a meaningful concern for this delivery model.",
+              "badges": []
+            }
+          ],
+          "score_override": 15
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 0,
+              "weight": 40,
+              "summary": "The platform covers IT risk registers, control framework mapping (NIST, ISO 27001, SOC 2), vendor risk management, policy management, and AI-powered risk insights. Multiple configuration workflows exist across modules. However, the primary interaction is structured data entry and configuration rather than deep technical skill-building \u2014 closer to a business workflow tool than a technical infrastructure product. Role breadth spans security analysts, compliance officers, and risk managers.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Module GRC Platform | Context:** The IT Risk & Cybersecurity module covers risk register configuration, control framework mapping (NIST CSF, ISO 27001, SOC 2), vendor risk management, policy management, and AI-powered risk insights \u2014 multiple distinct configuration workflows across a unified platform.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Information Security Role Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**AI-Powered Risk Features | Opportunity:** Diligent embeds AI capabilities for risk intelligence and reporting \u2014 features that require iterative hands-on practice to use effectively, supporting a learning AI-embedded features signal.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Diligent AI"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simple UX",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Workflow-Driven Interface | Risk:** The primary user interaction is structured data entry, control mapping, and report generation through a guided web UI \u2014 closer to a business workflow tool than a technical infrastructure product, limiting the depth of hands-on skill that labs can build.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent Product Pages"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 17,
+              "weight": 25,
+              "summary": "Misconfiguration of risk registers or control mappings can lead to compliance failures, missed audit findings, and inaccurate board reporting. GRC adoption is a documented challenge \u2014 organizations frequently struggle to operationalize risk frameworks without structured training. Stakes are real but moderate compared to infrastructure or security operations products where misconfiguration causes immediate operational harm.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Compliance Failure Risk | Context:** Incorrect control mappings or incomplete risk registers can result in audit failures, regulatory penalties, and inaccurate board-level risk reporting \u2014 real consequences that justify structured training.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Compliance Officer Role Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**GRC Adoption Challenge | Opportunity:** GRC platform adoption is a documented industry challenge \u2014 organizations frequently fail to operationalize risk frameworks without structured onboarding, making customer enablement labs a credible use case.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Risk Manager Role Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 12,
+              "weight": 15,
+              "summary": "Compliance Audit lab scenarios are directly applicable \u2014 learners validate control configurations against a regulatory framework. Break/Fix scenarios are possible where a risk register is misconfigured or controls are incorrectly mapped. Limited to these two types given the workflow-driven, non-technical nature of the product.",
+              "badges": [
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Compliance Audit Scenarios | Opportunity:** Learners can validate control configurations against a regulatory framework (e.g., map NIST CSF controls to organizational policies) \u2014 a directly applicable lab type for compliance officers and IT risk practitioners.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Compliance Officer Role Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Break/Fix Risk Register Scenarios | Opportunity:** Labs could present a misconfigured risk register or incorrectly mapped control framework for learners to diagnose and correct \u2014 a viable scenario type for simulation delivery.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 18,
+              "weight": 20,
+              "summary": "GRC and IT risk management falls within the cybersecurity category, which carries high inherent demand for hands-on training. Diligent serves large enterprise customers globally. AI-powered risk features add a learning AI-embedded signal. No active certification program or competitor labs found to further validate demand for hands-on lab training specifically on this product.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Cybersecurity / GRC Category | Strength:** IT risk and GRC falls within the cybersecurity training category, which carries the highest inherent demand for hands-on training \u2014 organizations actively invest in upskilling practitioners on risk management platforms.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Large Enterprise Customer Base | Strength:** Diligent serves boards of directors and GRC teams at large enterprises globally \u2014 a significant training population with real compliance and risk management skill requirements.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Company Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI-Powered Product",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Diligent AI Embedded | Opportunity:** Diligent AI is a named product feature across the platform \u2014 AI-powered risk intelligence and reporting features require hands-on practice to use effectively, adding a learning AI-embedded features demand signal.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Diligent AI"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 2,
+              "weight": 25,
+              "summary": "Diligent has a Board Education & Certifications page focused on governance education for directors and trustees. Training content appears to be primarily thought leadership, webinars, virtual summits, and board-level certification \u2014 not deep technical lab-based training for IT risk practitioners. No dedicated technical training organization or lab authoring team found. Training investment is real but concentrated in governance education rather than technical enablement.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Board Education & Certifications | Context:** Diligent maintains a Board Education & Certifications program focused on governance education for directors and trustees \u2014 training investment is confirmed but concentrated in board-level content rather than technical IT risk practitioner training.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/training/",
+                      "source_title": "Diligent Board Education & Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Technical Enablement Program Found | Risk:** No dedicated customer technical enablement program, lab-based training catalog, or hands-on onboarding program was found for IT risk and cybersecurity practitioners \u2014 the training investment appears governance-focused rather than practitioner-focused.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 8,
+              "weight": 25,
+              "summary": "Diligent operates a partner program and has integration capabilities with other GRC and enterprise systems. Mid-size SaaS company \u2014 accessible and partner-friendly. APIs exist for integrations but public documentation is limited. No evidence of a strong build-vs-buy preference for training content.",
+              "badges": [
+                {
+                  "name": "Integration Maturity",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Platform Integration Capabilities | Context:** Diligent One Platform is positioned as a unified GRC hub with integrations to other enterprise systems \u2014 APIs exist for data exchange but public developer documentation is limited, suggesting moderate integration maturity.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/",
+                      "source_title": "Diligent One Platform Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Ease of Engagement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Mid-Size SaaS Company | Strength:** Diligent is a mid-size enterprise SaaS company \u2014 accessible for partnership conversations without the procurement complexity of a large enterprise, and motivated to grow training programs to support customer adoption.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 2,
+              "weight": 30,
+              "summary": "No ATP network or authorized training partner program found for technical training. No LMS platform partnership confirmed. Training delivery appears to be primarily self-service content, webinars, and virtual summits. Elevate 2026 (April 22-24, Atlanta) is a confirmed flagship event \u2014 a potential delivery vehicle for hands-on experiences.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Elevate 2026 Flagship Event | Context:** Diligent's annual user conference Elevate 2026 (April 22-24, Atlanta) is a confirmed delivery vehicle \u2014 a potential entry point for hands-on simulation experiences if a lab path were established.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Elevate 2026 Banner"
+                    }
+                  ]
+                },
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No ATP Network Found | Risk:** No authorized training partner network or channel training program was identified \u2014 limiting the scale at which lab-based training could be delivered to customers and partners.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 2,
+              "weight": 20,
+              "summary": "No dedicated content development team or lab authoring function found. Training content appears to be produced internally at small scale or outsourced. No evidence of instructional designers or technical writers focused on hands-on lab content. Professional Services opportunity if Diligent were to pursue lab-based training.",
+              "badges": [
+                {
+                  "name": "Content Outsourcing",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**No Internal Lab Authoring Team Found | Context:** No dedicated lab authoring, instructional design, or technical content development team was identified for IT risk practitioner training \u2014 content appears produced at small scale internally or outsourced, indicating a Professional Services opportunity.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 18,
+        "pl_score_pre_ceiling": 21,
+        "technical_fit_multiplier": 0.65,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 15,
+            "reason": "Shared multi-tenant \u2014 no learner isolation possible"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 500,
+            "population_high": 750,
+            "hours_low": 0.5,
+            "hours_high": 1.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 500,
+            "population_high": 750,
+            "hours_low": 0.5,
+            "hours_high": 1.0,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 200,
+            "population_high": 300,
+            "hours_low": 0.5,
+            "hours_high": 1.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 0.5,
+            "hours_high": 1.0,
+            "adoption_pct": 0.3,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 100,
+        "annual_hours_high": 375,
+        "rate_per_hour": 0.0,
+        "acv_low": 3125.0,
+        "acv_high": 8750.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or VP of Training",
+          "title": "VP of Customer Education / VP of Training",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Customer Education or Director of Enablement",
+          "title": "Director of Customer Education / Director of Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "API surface for risk object manipulation \u2014 Find the Principal Engineer or Staff Engineer on the IT Risk & Cybersecurity product team (Engineering). Does the Diligent IT Risk & Cybersecurity platform expose REST or GraphQL APIs that allow programmatic creation, modification, and deletion of risk registers, control assessments, and policy objects \u2014 or is all workflow confined to the browser UI with no external automation hooks?",
+            "Tenant provisioning & teardown for training \u2014 Find the Director of Cloud Operations or Platform Engineering (Infrastructure/DevOps). Can you spin up an isolated, time-limited demo/training tenant of IT Risk & Cybersecurity with pre-seeded sample data (e.g., risk items, frameworks, findings) via API or internal tooling, and then fully tear it down without manual intervention \u2014 and if so, what is the typical provisioning time and any licensing or seat constraints for non-production tenants?",
+            "Identity & RBAC model for lab users \u2014 Find the Product Manager or Engineering Lead for Identity/Access on the GRC platform (Product or Engineering). Does the platform support programmatic user provisioning (SCIM, API, or bulk CSV) with assignable RBAC roles (e.g., Risk Owner, Auditor, Admin) into a sandboxed tenant, or does every user require manual invitation through the admin console with SSO/IdP integration as a hard dependency?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Diligent is a GRC SaaS platform \u2014 their product is simulation-based (not hands-on labs), making Skillable a poor fit for their customer education model",
+            "Need to identify VP of Customer Education or VP of Training \u2014 currently unknown contact; this role will determine if any hands-on lab use case exists for board/compliance training"
+          ]
+        }
+      }
+    }
+  ],
+  "briefcase": null,
+  "analyzed_at": "2026-04-06T09:32:01.775557+00:00",
+  "analysis_id": "3b4e396f",
+  "discovery_id": "5cce8d86",
+  "total_products_discovered": 12
+}

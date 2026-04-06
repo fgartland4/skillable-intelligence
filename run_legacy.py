@@ -1,7 +1,10 @@
-"""Start the new Skillable Intelligence app on port 5001.
+"""Start the legacy Skillable Intelligence app on port 5000.
 
-Run from the project root:
-    python run_new.py
+The legacy app serves Designer and Prospector while the new app
+(run_new.py on port 5001) serves Inspector. Two completely separate
+Python processes — no code mixing. Run from the project root:
+
+    python run_legacy.py
 """
 
 import logging
@@ -26,11 +29,11 @@ for env_path in [
                     os.environ[key.strip()] = value.strip()
         break
 
-# Add paths
+# Add paths so the legacy app can find its modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 sys.path.insert(0, os.path.dirname(__file__))
 
-# Configure logging BEFORE importing the app so all loggers (including werkzeug) inherit
+# Configure logging so request logs show up
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -38,14 +41,12 @@ logging.basicConfig(
     stream=sys.stdout,
     force=True,
 )
-# Make sure werkzeug request logs and our backend logs both show
 logging.getLogger("werkzeug").setLevel(logging.INFO)
-logging.getLogger("backend").setLevel(logging.INFO)
 
-# NOW import the app (after env vars are set)
-from backend.app_new import app
+# NOW import the legacy app
+from backend.app import app
 
 if __name__ == "__main__":
-    print("\n  Skillable Intelligence (new framework)")
-    print("  http://localhost:5001\n", flush=True)
-    app.run(debug=True, port=5001, use_reloader=False)
+    print("\n  Skillable Intelligence (legacy — Designer + Prospector)")
+    print("  http://localhost:5000\n", flush=True)
+    app.run(debug=True, port=5000, use_reloader=False)

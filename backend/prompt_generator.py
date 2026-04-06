@@ -152,14 +152,20 @@ def _format_provisioning_penalties() -> str:
 
 
 def _format_ceiling_flags() -> str:
-    """Format ceiling flag table from CEILING_FLAGS dict."""
-    lines = ["| Flag | Cap if >= 20 | Cap if < 20 | Max Score |",
-             "|------|-------------|-------------|-----------|"]
+    """Format ceiling flag table from CEILING_FLAGS dict.
+
+    Each flag, when emitted by the AI, caps the Product Labability pillar
+    score at the listed max_score. The math layer enforces this — the AI
+    cannot bypass it by claiming a higher score.
+    """
+    lines = [
+        "| Flag | Caps Product Labability at | Reason |",
+        "|------|----------------------------|--------|",
+    ]
     for flag, rules in cfg.CEILING_FLAGS.items():
         max_score = rules.get("max_score", "—")
-        lines.append(
-            f"| {flag} | {rules['cap_if_gte_20']} | {rules['cap_if_lt_20']} | {max_score} |"
-        )
+        reason = rules.get("reason", "")
+        lines.append(f"| `{flag}` | {max_score} | {reason} |")
     return "\n".join(lines)
 
 

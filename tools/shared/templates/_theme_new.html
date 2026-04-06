@@ -31,15 +31,56 @@
     --sk-text-dim:       #4a7060;
 
     /* Classification badge colors (NOT scoring colors) */
-    --sk-classify-purple:     #a78bfa;
-    --sk-classify-purple-bg:  rgba(112,0,255,0.12);
-    --sk-classify-purple-bdr: rgba(112,0,255,0.22);
-    --sk-classify-teal:       #2dd4bf;
-    --sk-classify-teal-bg:    rgba(20,184,166,0.1);
-    --sk-classify-teal-bdr:   rgba(20,184,166,0.22);
-    --sk-classify-blue:       #60a5fa;
-    --sk-classify-blue-bg:    rgba(59,130,246,0.1);
-    --sk-classify-blue-bdr:   rgba(59,130,246,0.22);
+    --sk-classify-purple:       #a78bfa;
+    --sk-classify-purple-light: #c4a7fa;
+    --sk-classify-purple-bg:    rgba(112,0,255,0.12);
+    --sk-classify-purple-bdr:   rgba(112,0,255,0.22);
+    --sk-classify-teal:         #2dd4bf;
+    --sk-classify-teal-bg:      rgba(20,184,166,0.1);
+    --sk-classify-teal-bdr:     rgba(20,184,166,0.22);
+    --sk-classify-blue:         #60a5fa;
+    --sk-classify-blue-bg:      rgba(59,130,246,0.1);
+    --sk-classify-blue-bdr:     rgba(59,130,246,0.22);
+
+    /* Text scale (extension of dark theme above) */
+    --sk-text-strong:    #ffffff;
+    --sk-text-faint:     #4a5550;
+
+    /* Card / surface scale (extension of dark theme above) */
+    --sk-bg-page:        #0a1a14;
+    --sk-bg-card:        #0d2219;
+    --sk-bg-card-soft:   #0a1810;
+    --sk-bg-card-org:    #121a16;
+    --sk-bg-card-org-soft: #0f1612;
+    --sk-bg-surface-low: #0a1410;
+    --sk-border-card:    #1a3a2a;
+    --sk-border-card-org: #25352a;
+    --sk-border-accent:  #1a5a3a;
+    --sk-border-soft:    #15241c;
+    --sk-hover-bg:       #163a28;
+    --sk-hover-bg-active: #1a4a30;
+    --sk-accent-soft:    #1cc87a;
+    --sk-accent-pale:    var(--sk-accent-pale);
+    --sk-link-slate:     #7e9cc4;
+
+    /* Scoring badge chip backgrounds/borders (used in dark theme) */
+    --sk-badge-green-bg:     #0d3d25;
+    --sk-badge-amber-bg:     #3d2a0d;
+    --sk-badge-amber-bdr:    #5a4a1a;
+    --sk-badge-red-bg:       #3d1515;
+    --sk-badge-red-bdr:      #6a2a2a;
+    --sk-badge-gray-bg:      #1e2420;
+    --sk-badge-gray-bdr:     #3a3a3a;
+    --sk-badge-purple-bg:    #1a1428;
+    --sk-badge-purple-bdr:   #3a2a5a;
+
+    /* Score bar gradients */
+    --sk-bar-amber-dark: #6a5a1b;
+    --sk-bar-amber-light: #d4a017;
+    --sk-bar-red-dark:   #5a1a1a;
+    --sk-bar-red-light:  #ff5555;
+    --sk-bar-gray-dark:  #2a2a2a;
+    --sk-bar-gray-light: #666666;
 }
 
 /* ── Score color classes ────────────────────────────────────────── */
@@ -91,7 +132,7 @@
     padding: 2px 7px; border-radius: 4px; white-space: nowrap;
     letter-spacing: 0.06em; text-transform: uppercase;
 }
-.badge-deploy-green { background: rgba(36,237,155,0.08); color: #6dd9a8; border: 1px solid rgba(36,237,155,0.18); }
+.badge-deploy-green { background: rgba(36,237,155,0.08); color: var(--sk-accent-pale); border: 1px solid rgba(36,237,155,0.18); }
 .badge-deploy-gray  { background: rgba(148,163,184,0.08); color: #94a3b8; border: 1px solid rgba(148,163,184,0.18); }
 .badge-deploy-amber { background: rgba(245,158,11,0.1); color: var(--sk-score-mid); border: 1px solid rgba(245,158,11,0.25); }
 
@@ -120,7 +161,7 @@
 
 /* ── Discovery tier colors ────────────────────────────────────── */
 .t-sp { color: var(--sk-accent); }
-.t-l  { color: #6dd9a8; }
+.t-l  { color: var(--sk-accent-pale); }
 .t-u  { color: var(--sk-score-mid); }
 .t-ul { color: var(--sk-score-low-soft); }
 

@@ -1,94 +1,74 @@
 # Skillable Intelligence — Claude Working Context
 
-This file loads automatically every session. It points to the authoritative documents — read those, not this summary.
+This file loads automatically every session. Read the documents it points to — not this summary.
 
 ---
 
-## Authoritative Documents — Source of Truth
+## MANDATORY — File Storage Rule
 
-| Document | Location | What it owns |
+**NEVER save documents, memory files, or any persistent content to the local hard drive.** All documentation, notes, decisions, and reference material must be stored in the repo (`docs/` or appropriate location) so it is on OneDrive and GitHub. No exceptions. Nothing important lives only on this machine.
+
+---
+
+## First — Read These Before Doing Anything
+
+| Step | Document | Why |
 |---|---|---|
-| **Platform-Foundation.md** | `docs/Platform-Foundation.md` | Strategic authority — Guiding Principles, Pillars, Dimensions, people, motivation, architecture, ACV model, UX structure. Where it conflicts with anything else, it wins. |
-| **Badging-and-Scoring-Reference.md** | `docs/Badging-and-Scoring-Reference.md` | Operational detail — badge names, color criteria, scoring signals, point values, penalties, thresholds, locked vocabulary. Also the in-app explainability layer (GP3). |
-| **Test-Plan.md** | `docs/Test-Plan.md` | Test strategy — 9 categories, GP traceability, pytest in `backend/tests/` |
+| 1 | `docs/collaboration-with-frank.md` | How Frank thinks, how to work together, the startup sequence. **Read this first, every session.** |
+| 2 | `docs/Platform-Foundation.md` | Strategic authority — Guiding Principles, architecture, scoring framework, UX, personas. Where it conflicts with anything else, it wins. |
+| 3 | `docs/Badging-and-Scoring-Reference.md` | Operational detail — badge names, color criteria, scoring signals, point values, penalties, thresholds, locked vocabulary. |
 
 ---
 
-## The New Architecture — What Matters
+## Project-Specific Rules
 
-Everything built before the Platform Foundation (April 4, 2026) is proof-of-concept. The deliverables that define the new architecture:
+### Legacy Boundary
 
-| File | What it is |
-|---|---|
-| `docs/Platform-Foundation.md` | Strategic authority |
-| `docs/Badging-and-Scoring-Reference.md` | Operational detail |
-| `docs/Research-Methodology-Improvements.md` | Detection logic improvements |
-| `docs/Designer-Session-Guide.md` | Session methodology for Designer foundation session |
-| `docs/Designer-Session-Prep.md` | Designer session pre-read |
-| `docs/Test-Plan.md` | Test strategy |
-| `backend/scoring_config.py` | Configuration layer — Define-Once single source of truth |
-| `backend/prompt_generator.py` | Template to runtime prompt assembly |
-| `backend/prompts/scoring_template.md` | AI instruction template with placeholders |
+Everything built before the Platform Foundation (April 4, 2026) is proof-of-concept. Never silently reuse old files, old prompts, old data, or old vocabulary. If it wasn't built from the Platform Foundation forward, it doesn't belong. Flag and fix — don't carry forward.
 
-Old code files (scorer.py, models.py, constants.py, core.py, app.py, templates, product_scoring.txt) will be rebuilt from these documents.
+### Always Commit and Push
+
+After completing any code changes, automatically stage, commit, and push without prompting.
+
+### Never Mention the Preview Panel
+
+The preview tool renders raw Jinja2 template syntax, not the running Flask app. After editing any template, do not mention the preview panel. To see changes, reload the Flask app.
+
+### Grid Uniformity
+
+Consistent 2-column grids. Field widths match across sections. Full-width sections with inner grids. Narrow dropdowns for short values. Vertical alignment via proper grid rows. Buttons match adjacent input height. Use `settings-grid` or `settings-grid-4cell` patterns.
+
+### Skillable Terminology
+
+Two cloud fabrics (Azure Cloud Slice, AWS Cloud Slice). Three virtualization fabrics (Hyper-V, ESX, Docker). "Fabric" is correct for these. **Never say "network fabric"** — networking is a capability of the virtualization fabrics, not a separate entity. See `docs/skillable-terminology.md` when created.
+
+### No Inspector-to-Designer In-App Handoff
+
+Intentional — tools serve different personas, accessed separately. The `analysis_id` bridges them at the data level. Never flag this as a missing feature.
+
+### Decision Log
+
+Decisions made during sessions are logged in `docs/decision-log.md`. This is write-only — never read it to determine what's current. The Foundation docs are best current thinking.
 
 ---
 
-## Prompt Generation System — Three Layers
+## Build Roadmap
+
+See `docs/build-roadmap.md` for the agreed sequence and current status.
+
+---
+
+## Key Architecture
+
+### Prompt Generation System — Three Layers
 
 | Layer | File | What it does |
 |---|---|---|
-| **Configuration** | `backend/scoring_config.py` | All variables — pillar names, weights, badges, signals, penalties, thresholds, vocabulary. The one place anything changes. |
-| **Template** | `backend/prompts/scoring_template.md` | Instruction structure for the AI with `{PLACEHOLDER}` references to config. |
-| **Generated Prompt** | Built in memory by `prompt_generator.py` | Config injected into template at runtime. Never saved as static file. Always current. |
+| **Configuration** | `backend/scoring_config.py` | All variables — pillar names, weights, badges, signals, penalties, thresholds, vocabulary |
+| **Template** | `backend/prompts/scoring_template.md` | Instruction structure with `{PLACEHOLDER}` references to config |
+| **Generated Prompt** | Built in memory by `prompt_generator.py` | Config injected into template at runtime. Never saved as static file. |
 
----
-
-## Guiding Principles
-
-- **GP1:** Right Information, Right Time, Right Person, Right Context, Right Way
-- **GP2:** Why → What → How
-- **GP3:** Explainably Trustworthy — every judgment traceable from conclusion to evidence
-- **GP4:** Self-Evident Design — intent evident at every layer, variable names to UX
-- **GP5:** Intelligence Compounds — It Never Resets
-- **End-to-End Principle:** Same Pillar/Dimension/Requirement structure through every layer
-- **Define-Once Principle:** All names, weights, thresholds defined once in config, referenced everywhere
-- **WCAG AA Compliance:** Build standard — all color combinations validated
-
----
-
-## Scoring Framework
-
-Three Pillars (40/30/30):
-- **Product Labability** (40%) — Provisioning, Lab Access, Scoring, Teardown
-- **Instructional Value** (30%) — Product Complexity, Mastery Stakes, Lab Versatility, Market Demand
-- **Customer Fit** (30%) — Training Commitment, Organizational DNA, Delivery Capacity, Build Capacity
-
-Each Pillar scores out of 100 internally (sum of dimension scores), then weighted to Fit Score.
-
----
-
-## Locked Vocabulary
-
-See `docs/Badging-and-Scoring-Reference.md` "Vocabulary — Locked Terms" for the complete table.
-
-Key terms:
-
-| Use this | Never this |
-|---|---|
-| Fit Score | Composite Score / Lab Score |
-| Product Labability | Technical Orchestrability |
-| Instructional Value | Product Demand / Workflow Complexity |
-| Customer Fit | Customer Motivation / Organizational Readiness (as separate pillars) |
-| Product Complexity | Difficult to Master |
-| Mastery Stakes | Mastery Matters / Consequence of Failure |
-| Market Demand | Market Fit / Market Readiness / Strategic Fit |
-| Green / Gray / Amber / Red | Pass / Partial / Fail / Yellow |
-| Installable | Self-hosted (as data value) |
-
----
-
-## Data Architecture — Three Domains
+### Data Architecture — Three Domains
 
 | Domain | What it contains | Access |
 |---|---|---|
@@ -96,11 +76,7 @@ Key terms:
 | **Program data** | Lab series, outlines, activities, instructions (Designer) | Scoped — only your own programs |
 | **Company intelligence** | Fit scores, badges, contacts, ACV estimates | Internal-only — Skillable roles only |
 
-Stored separately from day one. Architectural separation, not just permissions.
-
----
-
-## Page Names
+### Page Names
 
 | Page | Name |
 |---|---|
@@ -112,29 +88,10 @@ Discovery tier labels: Seems Promising, Likely, Uncertain, Unlikely
 
 ---
 
-## How Frank Wants to Work
-
-1. **WHY → WHO → WHAT → HOW.** Always in this order. Never code without alignment.
-2. **Digestible chunks.** No walls of text. One thing at a time.
-3. **Confirm before acting.** Alignment must be explicit.
-4. **Never delete Word docs** without asking.
-5. **Recommend, then ask.** Surface better paths, but don't act until Frank agrees.
-6. **Be a partner.** Think together. Flag patterns across tools. Collaborative momentum over speed.
-7. **Guiding Principles apply to everything** — not just the platform. GP1-GP5 shape how we collaborate, communicate, and make decisions.
-8. **One source of truth.** One copy of every document. Never maintain duplicates. If it's in the repo, that's the only copy. Define-Once applies to docs, code, config, memory — everything.
-9. **Fix immediately — don't ask.** When something is wrong, fix it. Don't ask "want me to fix it?" — that wastes time and erodes trust (GP3). When checking for issues, act on what you find. Best current thinking means correcting mistakes the moment they're discovered.
-10. **No legacy code.** Everything must be rebuilt to new standards. Never silently reuse old files, old prompts, old data, or old vocabulary. If it wasn't built from the Platform Foundation forward, it doesn't belong. Flag and fix — don't carry forward (GP4).
-
----
-
-## Decision Log
-
-All decisions: `memory/decision-log.md` (Claude project memory folder). Update before any session ends.
-
----
-
 ## Word Document Standards
 
 **Font:** Calibri 10pt body, 8pt footer
 **Logo:** `C:\Users\Frank.Gartland\OneDrive - Skillable\Sales Enablement\Keep\z-Skillable Logos\Skillable Logo\Default@4x.png` — right-aligned, ~1.1" wide
 **Footer:** "Page X of Y" right-aligned, 8pt Calibri gray (#888888)
+
+For full Word doc generation standards, see `docs/` reference files.
