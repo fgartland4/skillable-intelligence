@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Product Selection — {{ discovery.company_name }} — Skillable Intelligence</title>
+    <style>
+        {% include '_theme_new.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, label { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: #1dd88a; }
+
+        /* ── Page layout ── */
+        .page { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
+
+        /* ── Back link ── */
+        .btn-back {
+            display: inline-block; font-size: 0.78rem; color: var(--sk-text-muted);
+            background: rgba(36,237,155,0.06); border: 1px solid rgba(36,237,155,0.18);
+            padding: 5px 12px; border-radius: 7px; margin-bottom: 20px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .btn-back:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+
+        /* ── Header ── */
+        .header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 20px; margin-bottom: 28px;
+        }
+        .header-left { flex: 1 1 auto; min-width: 0; max-width: calc(100% - 320px); }
+        .company-title {
+            font-size: 1.9rem; font-weight: 800; color: var(--sk-text);
+            letter-spacing: -0.02em; line-height: 1.2;
+        }
+        .header-desc {
+            color: var(--sk-text-muted); margin-top: 6px; font-size: 0.84rem;
+            line-height: 1.55;
+        }
+
+        /* ── Header right: actions ── */
+        .header-right { flex-shrink: 0; text-align: right; }
+        .action-row { display: flex; align-items: center; gap: 8px; justify-content: flex-end; margin-bottom: 8px; }
+
+        .btn-deep-dive {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 11px 24px; background: var(--sk-accent); color: var(--sk-bg);
+            border: none; border-radius: 10px; font-size: 0.9rem;
+            font-weight: 700; cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+        }
+        .btn-deep-dive:hover:not(:disabled) { background: #1dd88a; box-shadow: 0 0 20px rgba(36,237,155,0.28); }
+        .btn-deep-dive:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
+
+        .btn-view-prev {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 11px 18px; background: transparent; color: var(--sk-text-muted);
+            border: 1px solid var(--sk-border); border-radius: 10px; font-size: 0.84rem;
+            font-weight: 600; cursor: pointer; text-decoration: none;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .btn-view-prev:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.35); }
+
+        .sel-status {
+            font-size: 0.78rem; font-weight: 700; color: var(--sk-text-dim);
+            min-height: 1.2em; transition: color 0.15s;
+        }
+        .sel-status.has-selection { color: var(--sk-score-mid); }
+
+        /* ── Two-column board ── */
+        .board {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+
+        /* ── Tier sections ── */
+        .tier-section { margin-bottom: 20px; }
+        .tier-section.tier-empty .tier-hdr { opacity: 0.35; }
+
+        .tier-hdr {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+        }
+        .tier-lbl {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; white-space: nowrap;
+        }
+        .tier-rule {
+            flex: 1; height: 1px;
+            background: linear-gradient(to right, currentColor, transparent);
+            opacity: 0.18;
+        }
+
+        /* ── Product cards ── */
+        .tier-cards { display: flex; flex-direction: column; gap: 4px; }
+
+        .product-card {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px;
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 9px; cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            user-select: none;
+        }
+        .product-card:hover { background: #0f2018; border-color: rgba(36,237,155,0.22); }
+        .product-card.card-checked { border-color: rgba(36,237,155,0.45); background: rgba(36,237,155,0.04); }
+        .product-card.card-dimmed { opacity: 0.38; pointer-events: none; }
+
+        .product-cb { display: none; }
+
+        .cb-visual {
+            width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0;
+            border: 1.5px solid #2a4a3a; background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.12s, border-color 0.12s;
+        }
+        .product-card.card-checked .cb-visual {
+            background: var(--sk-accent); border-color: var(--sk-accent);
+        }
+        .cb-tick { display: none; font-size: 10px; color: var(--sk-bg); font-weight: 800; }
+        .product-card.card-checked .cb-tick { display: block; }
+
+        .card-name {
+            flex: 1 1 auto; font-size: 0.87rem; font-weight: 600; color: var(--sk-text);
+            overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+        }
+
+        .tier-empty-hint {
+            font-size: 0.73rem; color: var(--sk-border); font-style: italic; padding-left: 4px;
+        }
+
+        /* ── Right panel ── */
+        .right-col { display: flex; flex-direction: column; gap: 12px; }
+
+        .panel-box {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; padding: 14px 16px;
+        }
+        .panel-label {
+            font-size: 0.58rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--sk-text-dim); margin-bottom: 10px;
+        }
+
+        /* At a Glance */
+        .glance-rows { display: flex; flex-direction: column; gap: 6px; }
+        .glance-row { display: flex; align-items: center; gap: 8px; }
+        .glance-tier-name {
+            flex: 1; font-size: 0.62rem; font-weight: 800;
+            letter-spacing: 0.1em; text-transform: uppercase;
+        }
+        .glance-count { font-size: 0.72rem; font-weight: 700; color: var(--sk-text); }
+        .glance-row.glance-muted { opacity: 0.3; }
+        .glance-divider { border: none; border-top: 1px solid var(--sk-border); margin: 8px 0; }
+        .glance-total { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sk-text-dim); }
+        .glance-total-count { font-size: 0.72rem; font-weight: 700; color: var(--sk-text-muted); }
+
+        /* Training & Certification panel */
+        .panel-box-tc { border-color: var(--sk-classify-purple-bdr); }
+        .panel-label-tc { color: var(--sk-classify-purple); }
+        .tc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+        .tc-list li {
+            font-size: 0.78rem; color: var(--sk-text-muted); padding: 3px 0;
+            border-bottom: 1px solid rgba(112,0,255,0.08);
+        }
+        .tc-list li:last-child { border-bottom: none; }
+        .tc-list li::before { content: "●  "; color: rgba(167,139,250,0.5); font-size: 0.55rem; }
+
+        /* Competitive Landscape */
+        .comp-card { cursor: default; padding: 10px 14px; }
+        .comp-card:hover { background: var(--sk-surface); border-color: var(--sk-border); }
+        .comp-name { font-weight: 600; color: #94a3b8; }
+        .comp-product { color: var(--sk-text-dim); font-size: 0.73rem; }
+
+        /* Family picker modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(6,16,12,0.88); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal-box {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 14px; padding: 0; width: 640px; max-width: 95vw;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+        }
+        .modal-header { padding: 18px 24px 12px; border-bottom: 1px solid var(--sk-border); }
+        .modal-company { font-size: 0.95rem; font-weight: 700; color: var(--sk-text); }
+        .modal-count { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 2px; }
+        .modal-prompt { font-size: 0.75rem; color: var(--sk-text-muted); margin-top: 4px; }
+        .modal-body {
+            padding: 8px 0; max-height: 70vh; overflow-y: auto;
+            scrollbar-width: thin; scrollbar-color: var(--sk-border) var(--sk-surface);
+        }
+        .family-radio {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 24px; cursor: pointer; transition: background 0.12s;
+        }
+        .family-radio:hover { background: rgba(36,237,155,0.04); }
+        .family-radio input[type=checkbox] { accent-color: var(--sk-accent); width: 14px; height: 14px; }
+        .family-name { flex: 1; font-size: 0.8rem; color: var(--sk-text); font-weight: 500; }
+        .family-count { font-size: 0.7rem; color: var(--sk-text-dim); white-space: nowrap; }
+        .modal-footer { padding: 14px 24px 20px; border-top: 1px solid var(--sk-border); text-align: right; }
+        .btn-family-continue {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 22px; background: var(--sk-accent); color: var(--sk-bg);
+            border: none; border-radius: 9px; font-size: 0.88rem;
+            font-weight: 700; cursor: pointer; transition: background 0.15s;
+        }
+        .btn-family-continue:hover { background: #1dd88a; }
+        .btn-family-continue:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'inspector' %}
+{% include '_nav_new.html' %}
+
+{# ── Computed sets using new tier labels ── #}
+{% set tc_prods = discovery.products | selectattr('category', 'equalto', 'Training & Certification') | list %}
+{% set non_tc_prods = discovery.products | rejectattr('category', 'equalto', 'Training & Certification') | list %}
+{% set sp_prods = non_tc_prods | selectattr('_tier', 'equalto', 'seems_promising') | list %}
+{% set l_prods  = non_tc_prods | selectattr('_tier', 'equalto', 'likely') | list %}
+{% set u_prods  = non_tc_prods | selectattr('_tier', 'equalto', 'uncertain') | list %}
+{% set ul_prods = non_tc_prods | selectattr('_tier', 'equalto', 'unlikely') | list %}
+
+{# ── Family picker ── #}
+{% set show_family_picker = discovery.product_families is defined and discovery.product_families | length > 0 %}
+
+<div class="page">
+
+    {# ── Back links ── #}
+    <a href="/inspector" class="btn-back">← Back to Company Search</a>
+    {% if request.args.getlist('family') %}
+    <a href="/inspector/product-selection/{{ discovery.discovery_id }}" class="btn-back" style="margin-left: 8px;">← Change Product Family</a>
+    {% endif %}
+
+    {# ── Header ── #}
+    <div class="header">
+        <div class="header-left">
+            <h1 class="company-title">
+                {{ discovery.company_name }}
+                <span class="org-badge {{ discovery._org_color }}">{{ discovery._company_badge }}</span>
+            </h1>
+            {% if discovery.company_description %}
+            <p class="header-desc">{{ discovery.company_description }}</p>
+            {% endif %}
+        </div>
+
+        <div class="header-right">
+            <form method="POST" action="/inspector/score" id="diveForm">
+                <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
+                <div class="action-row">
+                    <button type="submit" class="btn-deep-dive" id="diveBtn" disabled>
+                        Deep Dive →
+                    </button>
+                    {% if existing_analysis %}
+                    <a href="/inspector/analysis/{{ existing_analysis.analysis_id }}" class="btn-view-prev">
+                        View Previous →
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="sel-status" id="selStatus">0 of {{ non_tc_prods | length }} products selected</div>
+            </form>
+        </div>
+    </div>
+
+    {# ── Two-column board ── #}
+    <div class="board">
+
+        {# ── Left: tier sections ── #}
+        <div class="left-col">
+            {% set tiers = [
+                ('seems_promising', 'SEEMS PROMISING', 'sp', sp_prods),
+                ('likely',          'LIKELY',           'l',  l_prods),
+                ('uncertain',       'UNCERTAIN',        'u',  u_prods),
+                ('unlikely',        'UNLIKELY',         'ul', ul_prods)
+            ] %}
+            {% for tier_key, tier_label, tier_cls, tier_prods in tiers %}
+            <div class="tier-section {% if tier_prods | length == 0 %}tier-empty{% endif %}">
+                <div class="tier-hdr">
+                    <span class="tier-lbl t-{{ tier_cls }}">{{ tier_label }}</span>
+                    <span class="tier-rule" style="color: {% if tier_cls == 'sp' %}var(--sk-accent){% elif tier_cls == 'l' %}#6dd9a8{% elif tier_cls == 'u' %}var(--sk-score-mid){% else %}var(--sk-score-low-soft){% endif %}"></span>
+                </div>
+
+                {% if tier_prods %}
+                <div class="tier-cards">
+                    {% for p in tier_prods | sort(attribute='priority') %}
+                    <label class="product-card">
+                        <input type="checkbox" name="products" value="{{ p.name }}"
+                               form="diveForm" class="product-cb">
+                        <div class="cb-visual">
+                            <span class="cb-tick">✓</span>
+                        </div>
+                        <span class="card-name">{{ p.name }}</span>
+                        {% if p.subcategory or p.category %}
+                        <span class="badge-cat">{{ p.subcategory or p.category }}</span>
+                        {% endif %}
+                        {% if p.deployment_model %}
+                        <span class="badge-deploy {{ p.deployment_model | deployment_color }}">{{ p.deployment_model | deployment_display }}</span>
+                        {% endif %}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="tier-empty-hint">No products in this tier</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            {# Competitive Landscape #}
+            {% if discovery.competitive_landscape %}
+            <div class="tier-section" style="margin-top: 12px;">
+                <div class="tier-hdr">
+                    <span class="tier-lbl" style="color: #94a3b8;">COMPETITIVE LANDSCAPE</span>
+                    <span class="tier-rule" style="color: #94a3b8;"></span>
+                </div>
+                <div class="tier-cards">
+                    {% for c in discovery.competitive_landscape %}
+                    <div class="product-card comp-card">
+                        <span class="card-name">
+                            <span class="comp-name">{{ c.name }}</span>
+                            {% if c.product %}<span class="comp-product"> — {{ c.product }}</span>{% endif %}
+                        </span>
+                        {% if c.subcategory or c.category %}
+                        <span class="badge-cat" style="opacity: 0.6;">{{ c.subcategory or c.category }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# ── Right: At a Glance + T&C ── #}
+        <div class="right-col">
+
+            <div class="panel-box">
+                <div class="panel-label">At a Glance</div>
+                <div class="glance-rows">
+                    <div class="glance-row {% if sp_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-sp">Seems Promising</span>
+                        <span class="glance-count">{{ sp_prods | length }}</span>
+                    </div>
+                    <div class="glance-row {% if l_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-l">Likely</span>
+                        <span class="glance-count">{{ l_prods | length }}</span>
+                    </div>
+                    <div class="glance-row {% if u_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-u">Uncertain</span>
+                        <span class="glance-count">{{ u_prods | length }}</span>
+                    </div>
+                    <div class="glance-row {% if ul_prods | length == 0 %}glance-muted{% endif %}">
+                        <span class="glance-tier-name t-ul">Unlikely</span>
+                        <span class="glance-count">{{ ul_prods | length }}</span>
+                    </div>
+                    <hr class="glance-divider">
+                    <div class="glance-row">
+                        <span class="glance-total" style="flex:1">Total Products</span>
+                        <span class="glance-total-count">{{ non_tc_prods | length }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if tc_prods %}
+            <div class="panel-box panel-box-tc">
+                <div class="panel-label panel-label-tc">Training &amp; Certification</div>
+                <ul class="tc-list">
+                    {% for p in tc_prods %}
+                    <li>{{ p.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{# ── Family Picker Modal ── #}
+{% if show_family_picker %}
+<div class="modal-overlay visible" id="familyModal">
+    <div class="modal-box">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div class="modal-company">{{ discovery.company_name }}</div>
+                <div class="modal-count">{{ discovery.products | length }} products discovered</div>
+                <div class="modal-prompt">Select up to 4 Product Families</div>
+            </div>
+            <button onclick="document.getElementById('familyModal').classList.remove('visible')"
+                    style="background:none; border:none; color:var(--sk-text-muted); font-size:1.4rem; cursor:pointer; padding:0 4px; line-height:1;"
+                    title="Close">&times;</button>
+        </div>
+        <form method="GET" action="/inspector/product-selection/{{ discovery.discovery_id }}" id="familyForm">
+            <div class="modal-body">
+                {% for family in discovery.product_families %}
+                <label class="family-radio">
+                    <input type="checkbox" name="family" value="{{ family.name }}" class="family-cb">
+                    <span class="family-name">{{ family.name }}</span>
+                    <span class="family-count">{{ family.product_count }} products</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn-family-continue" id="familyContinueBtn" disabled>
+                    Continue →
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+(function() {
+    const MAX_SEL = 6;  // Configurable — will be pulled from config
+    const form   = document.getElementById('diveForm');
+    const btn    = document.getElementById('diveBtn');
+    const status = document.getElementById('selStatus');
+    const TOTAL  = {{ non_tc_prods | length }};
+
+    function updateState() {
+        const cbs = Array.from(document.querySelectorAll('.product-cb'));
+        const checked = cbs.filter(cb => cb.checked);
+        const n = checked.length;
+
+        btn.disabled = n === 0;
+
+        if (n === 0) {
+            status.textContent = `0 of ${TOTAL} products selected`;
+            status.classList.remove('has-selection');
+        } else if (n < MAX_SEL) {
+            status.textContent = `${n} of ${TOTAL} selected`;
+            status.classList.add('has-selection');
+        } else {
+            status.textContent = `${MAX_SEL} of ${MAX_SEL} — uncheck one to swap`;
+            status.classList.add('has-selection');
+        }
+
+        const cards = document.querySelectorAll('.product-card:not(.comp-card)');
+        cards.forEach(card => {
+            const cb = card.querySelector('.product-cb');
+            if (!cb) return;
+            if (n >= MAX_SEL && !cb.checked) {
+                card.classList.add('card-dimmed');
+                cb.disabled = true;
+            } else {
+                card.classList.remove('card-dimmed');
+                cb.disabled = false;
+            }
+        });
+    }
+
+    document.addEventListener('change', function(e) {
+        if (!e.target.classList.contains('product-cb')) return;
+        const card = e.target.closest('.product-card');
+        card.classList.toggle('card-checked', e.target.checked);
+        updateState();
+    });
+
+    // Family picker
+    const familyContinueBtn = document.getElementById('familyContinueBtn');
+    if (familyContinueBtn) {
+        const MAX_FAMILIES = 4;
+        const familyCbs = document.querySelectorAll('.family-cb');
+        function updateFamilyState() {
+            const checked = Array.from(familyCbs).filter(cb => cb.checked);
+            familyContinueBtn.disabled = checked.length === 0;
+            familyCbs.forEach(cb => {
+                const label = cb.closest('.family-radio');
+                if (checked.length >= MAX_FAMILIES && !cb.checked) {
+                    cb.disabled = true;
+                    if (label) label.style.opacity = '0.35';
+                } else {
+                    cb.disabled = false;
+                    if (label) label.style.opacity = '1';
+                }
+            });
+        }
+        familyCbs.forEach(cb => cb.addEventListener('change', updateFamilyState));
+    }
+
+    updateState();
+    window.addEventListener('pageshow', function() {
+        btn.innerHTML = 'Deep Dive \u2192';
+        updateState();
+    });
+})();
+</script>
+
+</body>
+</html>

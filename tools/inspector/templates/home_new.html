@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Inspector — Skillable Intelligence</title>
+    <style>
+        {% include '_theme_new.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text);
+            min-height: 100vh;
+        }
+
+        /* Hero — compact, centered */
+        .hero { text-align: center; padding: 48px 20px 36px; max-width: 660px; margin: 0 auto; }
+        .hero h1 {
+            font-size: 2.6rem; font-weight: 800; line-height: 1.15;
+            color: var(--sk-text); margin: 0 auto 14px;
+            letter-spacing: -0.02em;
+        }
+        .hero h1 span { color: var(--sk-accent); }
+        .hero-sub {
+            color: var(--sk-text-muted); font-size: 1rem;
+            max-width: 560px; margin: 0 auto; line-height: 1.6;
+        }
+
+        /* Search card */
+        .container { width: 100%; max-width: 680px; margin: 0 auto; padding: 0 20px 80px; }
+        .search-card {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 16px; padding: 36px;
+            box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 20px 60px rgba(0,0,0,0.4);
+        }
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin-bottom: 8px;
+        }
+        .form-group label {
+            display: block; font-size: 0.8rem; color: var(--sk-text-muted);
+            margin-bottom: 8px; font-weight: 600; letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .form-group input {
+            width: 100%; padding: 13px 16px;
+            border-radius: 10px; border: 1px solid var(--sk-border);
+            background: var(--sk-bg); color: var(--sk-text);
+            font-size: 1rem; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus {
+            border-color: var(--sk-accent);
+            box-shadow: 0 0 0 3px rgba(36,237,155,0.12);
+        }
+        .form-group input::placeholder { color: var(--sk-text-dim); }
+        .form-hint {
+            text-align: center; font-size: 0.75rem; color: var(--sk-text-dim);
+            margin-bottom: 20px;
+        }
+        .form-actions { text-align: center; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 13px 32px; background: var(--sk-accent); color: var(--sk-bg);
+            border: none; border-radius: 10px; font-size: 0.95rem;
+            font-weight: 700; cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.01em;
+        }
+        .btn:hover { background: #1dd88a; box-shadow: 0 0 24px rgba(36,237,155,0.3); }
+        .btn:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; box-shadow: none; }
+        .refresh-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 14px; cursor: pointer; user-select: none;
+        }
+        .refresh-link input { width: 14px; height: 14px; accent-color: var(--sk-accent); cursor: pointer; }
+        .refresh-link span { font-size: 0.72rem; color: var(--sk-text-dim); }
+    </style>
+</head>
+<body>
+    {% set active_tool = 'inspector' %}
+    {% include '_nav_new.html' %}
+
+    <div class="hero">
+        <h1>Which products are ready for <span>Skillable labs?</span></h1>
+        <p class="hero-sub">AI-powered research and scoring to identify organizations and products ready to embrace hands-on skill development and validation.</p>
+    </div>
+
+    <div class="container">
+        <div class="search-card">
+            <form method="POST" action="/inspector/discover" id="analyzeForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="company_name">Organization</label>
+                        <input type="text" id="company_name" name="company_name"
+                            placeholder="Company name..." autofocus>
+                    </div>
+                    <div class="form-group">
+                        <label for="product_name">Product</label>
+                        <input type="text" id="product_name" name="product_name"
+                            placeholder="Product name (optional)...">
+                    </div>
+                </div>
+                <div class="form-hint">
+                    If the company has a large product portfolio, please be specific in the product field.
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn" id="submitBtn" disabled>
+                        <span>Research</span>
+                        <span>&#8594;</span>
+                    </button>
+                    <div>
+                        <label class="refresh-link">
+                            <input type="checkbox" name="force_refresh" value="1" id="forceRefresh">
+                            <span>Refresh cache</span>
+                        </label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('submitBtn');
+        const orgInput = document.getElementById('company_name');
+        const prodInput = document.getElementById('product_name');
+        function checkReady() {
+            btn.disabled = !(orgInput.value.trim() || prodInput.value.trim());
+            btn.innerHTML = '<span>Research</span><span>&#8594;</span>';
+        }
+        orgInput.addEventListener('input', checkReady);
+        prodInput.addEventListener('input', checkReady);
+        checkReady();
+        window.addEventListener('pageshow', checkReady);
+        document.getElementById('analyzeForm').addEventListener('submit', function() {
+            btn.disabled = true;
+            btn.innerHTML = '<span>Researching...</span>';
+        });
+    </script>
+</body>
+</html>
