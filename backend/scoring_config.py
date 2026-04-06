@@ -1249,20 +1249,76 @@ ORGANIZATION_TYPES: tuple[OrganizationType, ...] = (
 # ACV = Population x Adoption Rate x Hours per Learner x Rate
 # ═══════════════════════════════════════════════════════════════════════════════
 
+#  Frank's four named price variables — single source of truth for every
+#  $/hour the platform quotes. Tweaking a rate is a one-line edit; no
+#  rescore needed because Python recomputes ACV at render time. Plus a
+#  separate Simulation rate (it's a real fabric, just priced differently).
+CLOUD_LABS_RATE = 6.00    # Cloud Slice / BYOC — platform fee only, customer pays cloud bill
+VM_LOW_RATE     = 8.00    # Container or lightweight single VM
+VM_MID_RATE     = 14.00   # Clean single VM through 2-3 VMs with minor service deps
+VM_HIGH_RATE    = 45.00   # Demanding multi-VM, exotic, GPU-required, networking topologies
+SIMULATION_RATE = VM_LOW_RATE  # Frank: Sims priced same as VM Low ($8)
+
+#  Six fabric tiers — Frank's locked categorization. Each tier reads its
+#  dollar value from one of the named variables above so every price in
+#  the codebase traces back to a single line.
 RATE_TABLES: tuple[RateTier, ...] = (
-    RateTier("Azure/AWS Cloud Slice", 6.00, 6.00,
-        "Platform rate only — cloud consumption billed separately through customer's cloud subscription"),
-    RateTier("Custom API (BYOC)", 6.00, 6.00,
-        "Platform rate only — vendor cloud costs separate"),
-    RateTier("Container", 6.00, 12.00,
-        "$6 for lightweight container labs, $12 with pre-baked images and orchestration complexity"),
-    RateTier("Standard VM (1-3 VMs)", 12.00, 15.00,
-        "$12 for clean single-VM install, $15 for 2-3 VMs or minor service dependencies"),
-    RateTier("Large/complex VM", 45.00, 55.00,
-        "$45 for demanding multi-VM, $55 for exotic or GPU-required environments"),
-    RateTier("Simulation", 5.00, 5.00,
-        "No live environment, but AI Vision compute and platform overhead apply"),
+    RateTier("Azure/AWS Cloud Slice", CLOUD_LABS_RATE, CLOUD_LABS_RATE,
+        "Cloud Labs rate. Platform fee only — cloud consumption billed "
+        "separately through customer's cloud subscription"),
+    RateTier("Custom API (BYOC)", CLOUD_LABS_RATE, CLOUD_LABS_RATE,
+        "Cloud Labs rate. Platform fee only — vendor cloud costs separate"),
+    RateTier("Container", VM_LOW_RATE, VM_LOW_RATE,
+        "VM Low rate. Container labs and lightweight pre-baked images"),
+    RateTier("Standard VM (1-3 VMs)", VM_MID_RATE, VM_MID_RATE,
+        "VM Mid rate. Clean single-VM install through 2-3 VMs with minor "
+        "service dependencies — the everyday admin lab"),
+    RateTier("Large/complex VM", VM_HIGH_RATE, VM_HIGH_RATE,
+        "VM High rate. Demanding multi-VM, exotic builds, GPU-required, "
+        "or networking topologies with 4+ VMs"),
+    RateTier("Simulation", SIMULATION_RATE, SIMULATION_RATE,
+        "Simulation rate. No live environment — AI Vision compute and "
+        "platform overhead only. Used when real provisioning is impractical."),
 )
+
+# ─────────────────────────────────────────────────────────────────────────
+# ACV tier thresholds — map a computed annual ACV (dollar value) to a
+# tier label (high / medium / low). Used by the verdict grid at render
+# time. The thresholds are evaluated against the HIGH end of the ACV
+# range so a deal is sized at its upside, not its floor.
+#
+# FRANK CONFIRM: these are placeholder defaults — review and tweak.
+# Tweaking is a one-line edit; the next page render picks it up with
+# zero rescore needed.
+# ─────────────────────────────────────────────────────────────────────────
+ACV_TIER_HIGH_THRESHOLD   = 250_000  # ACV high >= $250K  → "high"
+ACV_TIER_MEDIUM_THRESHOLD = 50_000   # ACV high >= $50K   → "medium"
+                                     # else                → "low"
+
+# Map raw orchestration_method strings the AI emits to a canonical rate
+# tier name. Used by the deterministic Python ACV math at render time.
+# Anything not matched falls through to Standard VM as a conservative default.
+ORCHESTRATION_TO_RATE_TIER = {
+    # Cloud Labs family
+    "azure cloud slice": "Azure/AWS Cloud Slice",
+    "aws cloud slice":   "Azure/AWS Cloud Slice",
+    "cloud slice":       "Azure/AWS Cloud Slice",
+    "custom api":        "Custom API (BYOC)",
+    "byoc":              "Custom API (BYOC)",
+    # Container
+    "container":         "Container",
+    "containers":        "Container",
+    "docker":            "Container",
+    # Standard VM is the default for Hyper-V and ESX without complexity signals
+    "hyper-v":           "Standard VM (1-3 VMs)",
+    "hyperv":            "Standard VM (1-3 VMs)",
+    "esx":               "Standard VM (1-3 VMs)",
+    "esxi":              "Standard VM (1-3 VMs)",
+    "vmware":            "Standard VM (1-3 VMs)",
+    # Simulation
+    "simulation":        "Simulation",
+    "simulated":         "Simulation",
+}
 
 PRODUCT_CATEGORY_RATE_PRIORS = (
     {"category": "Networking", "typical_vms": "2-6", "rate_tier": "complex", "rate_range": "$45-55/hr", "seat_time": "60-90+ min",

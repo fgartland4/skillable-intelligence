@@ -431,3 +431,132 @@ def compute_all(badges_by_dimension: dict[str, list[str]],
         "technical_fit_multiplier": multiplier,
         "fit_score": fit_score,
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ACV Potential — deterministic Python math (Frank's locked model)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# The AI's job is to estimate per-motion population, adoption %, and hours
+# per learner. Python's job is everything else: per-motion hours, total
+# hours, rate lookup by orchestration method, and dollar conversion.
+#
+# Frank's model (2026-04-06):
+#   For each motion:
+#     hours_low  = pop_low  * adoption * hours_per_learner_low
+#     hours_high = pop_high * adoption * hours_per_learner_high
+#     acv_low    = hours_low  * rate
+#     acv_high   = hours_high * rate
+#   Total ACV = sum across motions.
+#
+# Rate per hour comes from the four named variables in scoring_config.py:
+#   CLOUD_LABS_RATE / VM_LOW_RATE / VM_MID_RATE / VM_HIGH_RATE / SIMULATION_RATE
+# Looked up by orchestration_method via cfg.ORCHESTRATION_TO_RATE_TIER.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _resolve_acv_tier(acv_high_dollars: float) -> str:
+    """Map a computed ACV high-end dollar value to a tier label.
+
+    Reads thresholds from cfg.ACV_TIER_HIGH_THRESHOLD and
+    cfg.ACV_TIER_MEDIUM_THRESHOLD. Evaluating against the high end of the
+    range so a deal is sized at its upside potential.
+    """
+    if acv_high_dollars >= cfg.ACV_TIER_HIGH_THRESHOLD:
+        return "high"
+    if acv_high_dollars >= cfg.ACV_TIER_MEDIUM_THRESHOLD:
+        return "medium"
+    return "low"
+
+
+def _resolve_rate(orchestration_method: str) -> tuple[str, float]:
+    """Map a product's orchestration method to (tier_name, $/hour).
+
+    Falls back to Standard VM (1-3 VMs) at VM_MID_RATE when the orchestration
+    method is empty, unknown, or doesn't map to any known tier — that's the
+    everyday-admin-lab default and is conservatively neither cheap nor pricey.
+    """
+    key = (orchestration_method or "").strip().lower()
+    tier_name = cfg.ORCHESTRATION_TO_RATE_TIER.get(key, "Standard VM (1-3 VMs)")
+    for tier in cfg.RATE_TABLES:
+        if tier.name == tier_name:
+            # Single-value model — low_rate == high_rate per Frank's locked rates
+            return tier_name, float(tier.low_rate)
+    # Should not happen — RATE_TABLES is the source of truth and the mapping
+    # only points at names that exist in it. Final safety net = VM_MID_RATE.
+    return "Standard VM (1-3 VMs)", float(cfg.VM_MID_RATE)
+
+
+def compute_acv_potential(product: dict) -> dict:
+    """Recompute ACV from the AI's motion estimates using deterministic math.
+
+    Reads from product:
+      - acv_potential.motions[]    — AI-emitted population/adoption/hours
+      - orchestration_method        — AI-emitted fabric choice
+
+    Mutates product["acv_potential"] in place with computed fields:
+      - motions[i].hrs_low / hrs_high   — per-motion annual hours (computed)
+      - motions[i].acv_low / acv_high   — per-motion dollar contribution
+      - annual_hours_low / high          — total across motions
+      - acv_low / acv_high               — total dollar range
+      - rate_per_hour                    — the looked-up rate
+      - rate_tier_name                   — which tier was chosen
+
+    Returns the updated acv_potential dict (or an empty dict if there's
+    nothing to compute).
+
+    Defends against missing or malformed motion data — any motion that's
+    not a dict or has zero/missing inputs contributes zero hours rather
+    than raising.
+    """
+    acv = product.get("acv_potential")
+    if not isinstance(acv, dict):
+        return {}
+
+    motions = acv.get("motions") or []
+    if not isinstance(motions, list):
+        motions = []
+
+    tier_name, rate = _resolve_rate(product.get("orchestration_method") or "")
+
+    total_hours_low = 0.0
+    total_hours_high = 0.0
+
+    for m in motions:
+        if not isinstance(m, dict):
+            continue
+        try:
+            pop_low = float(m.get("population_low") or 0)
+            pop_high = float(m.get("population_high") or 0)
+            adopt = float(m.get("adoption_pct") or 0)
+            hrs_low = float(m.get("hours_low") or 0)
+            hrs_high = float(m.get("hours_high") or 0)
+        except (TypeError, ValueError):
+            continue
+
+        m_hours_low = pop_low * adopt * hrs_low
+        m_hours_high = pop_high * adopt * hrs_high
+        m_acv_low = m_hours_low * rate
+        m_acv_high = m_hours_high * rate
+
+        # Stash per-motion computed fields so the widget can render them
+        # without redoing the math in Jinja
+        m["hrs_low"] = round(m_hours_low)
+        m["hrs_high"] = round(m_hours_high)
+        m["acv_low"] = round(m_acv_low)
+        m["acv_high"] = round(m_acv_high)
+
+        total_hours_low += m_hours_low
+        total_hours_high += m_hours_high
+
+    acv_low_dollars = total_hours_low * rate
+    acv_high_dollars = total_hours_high * rate
+
+    acv["annual_hours_low"] = round(total_hours_low)
+    acv["annual_hours_high"] = round(total_hours_high)
+    acv["acv_low"] = round(acv_low_dollars)
+    acv["acv_high"] = round(acv_high_dollars)
+    acv["rate_per_hour"] = rate
+    acv["rate_tier_name"] = tier_name
+    acv["acv_tier"] = _resolve_acv_tier(acv_high_dollars)
+
+    return acv

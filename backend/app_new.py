@@ -668,6 +668,15 @@ def _prepare_analysis_for_render(analysis: dict) -> None:
         fs["ceilings_applied"] = result["ceilings_applied"]
         fs["technical_fit_multiplier"] = result["technical_fit_multiplier"]
 
+        # ── Recompute ACV from motions × deterministic rate ──
+        # The AI's job is to estimate per-motion population, adoption %,
+        # and hours per learner. Python's job is everything else: per-motion
+        # hours, total hours, rate lookup by orchestration method, dollar
+        # conversion, and tier assignment from dollar thresholds.
+        # Mutates p["acv_potential"] in place; the verdict and the widget
+        # both read from the new values immediately.
+        scoring_math.compute_acv_potential(p)
+
         # Recompute the verdict from the new Fit Score and ACV tier — the
         # AI's cached verdict is stale once the math layer rewrites the score.
         acv_tier = (p.get("acv_potential") or {}).get("acv_tier") or "low"

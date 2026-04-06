@@ -365,9 +365,20 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     color: var(--sk-classify-purple-light);
     text-transform: uppercase; font-weight: 600;
 }
-.acv-table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+.acv-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.68rem;
+    table-layout: fixed;  /* fixed widths so nothing word-wraps unexpectedly */
+}
+/* Five fixed columns. Use Case takes the slack via auto width on the
+   first col group; the four number columns are pinned narrow. */
+.acv-table col.acv-col-motion { width: auto; }
+.acv-table col.acv-col-aud    { width: 64px; }
+.acv-table col.acv-col-adopt  { width: 36px; }
+.acv-table col.acv-col-hrs    { width: 38px; }
+.acv-table col.acv-col-yr     { width: 70px; }
 .acv-table thead th {
-    text-align: left; padding: 4px 4px 6px;
+    text-align: left; padding: 4px 3px 6px;
     color: var(--sk-text-muted); font-weight: 600;
     text-transform: uppercase; font-size: 0.55rem;
     letter-spacing: 0.5px; border-bottom: 1px solid var(--sk-border-card-org);
@@ -375,16 +386,18 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 }
 .acv-table thead th.acv-num { text-align: right; }
 .acv-table tbody td {
-    padding: 5px 4px;
+    padding: 5px 3px;
     color: var(--sk-text-body);
     border-bottom: 1px solid rgba(255,255,255,0.03);
-    vertical-align: top;
+    vertical-align: middle;
+    white-space: nowrap;       /* never wrap a number cell */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.acv-table tbody td.acv-num { text-align: right; white-space: nowrap; }
+.acv-table tbody td.acv-num { text-align: right; }
 .acv-table .acv-motion {
     font-weight: 500; color: var(--sk-text);
-    overflow: hidden; text-overflow: ellipsis;
-    max-width: 0; /* with table-layout auto + ellipsis below */
+    /* Truncate long motion names with an ellipsis; full name in title tooltip */
 }
 .acv-total-row td {
     padding-top: 8px; font-weight: 700;
@@ -684,6 +697,13 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
       </div>
       {% if acv and acv.motions %}
       <table class="acv-table">
+        <colgroup>
+          <col class="acv-col-motion">
+          <col class="acv-col-aud">
+          <col class="acv-col-adopt">
+          <col class="acv-col-hrs">
+          <col class="acv-col-yr">
+        </colgroup>
         <thead>
           <tr>
             <th>Use Case</th>
@@ -695,19 +715,12 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
         </thead>
         <tbody>
           {% for m in acv.motions %}
-          {% set audience_low = m.population_low or 0 %}
-          {% set audience_high = m.population_high or 0 %}
-          {% set adopt = m.adoption_pct or 0 %}
-          {% set hours_low = m.hours_low or 0 %}
-          {% set hours_high = m.hours_high or 0 %}
-          {% set hrs_yr_low = (audience_low * adopt * hours_low) | round | int %}
-          {% set hrs_yr_high = (audience_high * adopt * hours_high) | round | int %}
           <tr>
             <td class="acv-motion" title="{{ m.label }}">{{ m.label }}</td>
-            <td class="acv-num">{{ "{:,.0f}".format(audience_low) }}–{{ "{:,.0f}".format(audience_high) }}</td>
-            <td class="acv-num">{{ (adopt * 100) | round | int }}%</td>
-            <td class="acv-num">{{ hours_low | int }}–{{ hours_high | int }}</td>
-            <td class="acv-num">{{ "{:,.0f}".format(hrs_yr_low) }}–{{ "{:,.0f}".format(hrs_yr_high) }}</td>
+            <td class="acv-num">{{ "{:,.0f}".format(m.population_low or 0) }}–{{ "{:,.0f}".format(m.population_high or 0) }}</td>
+            <td class="acv-num">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
+            <td class="acv-num">{{ (m.hours_low or 0) | int }}–{{ (m.hours_high or 0) | int }}</td>
+            <td class="acv-num">{{ "{:,.0f}".format(m.hrs_low or 0) }}–{{ "{:,.0f}".format(m.hrs_high or 0) }}</td>
           </tr>
           {% endfor %}
           <tr class="acv-total-row acv-total-label">
@@ -722,6 +735,11 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
           {% endif %}
         </tbody>
       </table>
+      {% if acv.rate_per_hour %}
+      <div class="acv-methodology">
+        Rate: <strong>${{ acv.rate_per_hour | int }}/hr</strong>{% if acv.rate_tier_name %} · {{ acv.rate_tier_name }}{% endif %}
+      </div>
+      {% endif %}
       {% else %}
       <div class="acv-empty">No use case breakdown available for this product yet.</div>
       {% endif %}

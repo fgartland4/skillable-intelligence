@@ -31,19 +31,24 @@
 
 <div class="hero-acv">
   <div class="hero-acv-label">ACV Potential</div>
-  {% if top.acv_potential %}
-    <div class="hero-acv-num">{{ top.acv_potential.acv_low | format_acv }} – {{ top.acv_potential.acv_high | format_acv }}</div>
-    {# Sum of all scored products in this analysis (not just the selected one) #}
-    {% set ns = namespace(low=0, high=0) %}
-    {% for p in analysis.products %}
-      {% if p.acv_potential %}
-        {% set ns.low = ns.low + (p.acv_potential.acv_low or 0) %}
-        {% set ns.high = ns.high + (p.acv_potential.acv_high or 0) %}
-      {% endif %}
-    {% endfor %}
+  {# Hero number is the COMPANY TOTAL — sum of acv_low/high across every
+     scored product in the analysis. The selected product's individual
+     contribution is shown below for context. Per-motion breakdown lives
+     in the ACV by Use Case widget at the bottom of the page. #}
+  {% set ns = namespace(low=0, high=0) %}
+  {% for p in analysis.products %}
+    {% if p.acv_potential %}
+      {% set ns.low = ns.low + (p.acv_potential.acv_low or 0) %}
+      {% set ns.high = ns.high + (p.acv_potential.acv_high or 0) %}
+    {% endif %}
+  {% endfor %}
+  {% if ns.high > 0 %}
+    <div class="hero-acv-num">{{ ns.low | format_acv }} – {{ ns.high | format_acv }}</div>
     <div class="hero-acv-detail">
-      Across {{ analysis.total_products_discovered or (analysis.products | length) }} products ({{ analysis.products | length }} scored)<br>
-      Scored products: <strong>{{ ns.low | format_acv }} – {{ ns.high | format_acv }}</strong>
+      Across <strong>{{ analysis.products | length }}</strong> scored {% if (analysis.total_products_discovered or 0) > (analysis.products | length) %}of <strong>{{ analysis.total_products_discovered }}</strong> discovered{% endif %} products
+      {% if top.acv_potential and top.acv_potential.acv_high %}
+      <br><span style="opacity:0.75">{{ top.name }}: <strong>{{ top.acv_potential.acv_low | format_acv }} – {{ top.acv_potential.acv_high | format_acv }}</strong></span>
+      {% endif %}
     </div>
   {% endif %}
 </div>
