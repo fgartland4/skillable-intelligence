@@ -49,6 +49,17 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-06 — Roadmap consolidation
+
+### Single consolidated roadmap doc
+- **DECIDED:** `docs/build-roadmap.md` and `docs/Research-Methodology-Improvements.md` consolidated into a single new doc at `docs/roadmap.md`. Both source docs deleted in the same commit. The new doc is the complete inventory of every item we know we want to do, are doing, have done, or need to decide.
+- **Why:** Frank flagged that we'd been developing 2-3 different places listing next steps. The two source docs had real overlap (Render deployment prep was in both), stale items (Score Calc Dedup, Replace print() with logging, Prompt Generation System were marked as TODO but actually done), and unclear ownership ("where do I add this?" had multiple answers). One inventory eliminates the fragmentation.
+- **Format:** Each section has a 2-column table (Item | Description) with status icons inline in the item name (✓ Done · 📝 Partial · 🟢 Active · 🔵 Backlog · ❓ Decision Needed) plus HIGH/MED/LOW priority tags on items not yet done. Sections organized by area: Macro Build Sequence, Architecture & Foundation, Inspector, Prospector, Designer, Research Engine, Infrastructure, Cross-Cutting, Decisions Needed.
+- **`next-session-todo.md` stays separate.** It serves a different time horizon: focused near-term action driver, refreshed every session, part of the CLAUDE.md startup sequence (step 4). The roadmap is the long-term inventory; next-session-todo is "what to do this session." Items flow: idea → roadmap as 🔵 Backlog → moved to next-session-todo when prioritized → marked ✓ Done in roadmap when shipped.
+- **Cross-references updated:** `CLAUDE.md` build roadmap reference now points at `docs/roadmap.md`. `Platform-Foundation.md` Supporting Documents table updated. New "complete inventory" pointer added to CLAUDE.md startup section so future Claude knows the roadmap exists as a reference (but doesn't need to read it as part of the startup sequence — that would be too much).
+
+---
+
 ## Session: 2026-04-06 — Principles surfaced from Bug Hunting
 
 ### Visual changes must NEVER affect scoring

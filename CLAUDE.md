@@ -19,6 +19,8 @@ This file loads automatically every session. Read the documents it points to —
 | 3 | `docs/Badging-and-Scoring-Reference.md` | Operational detail — badge names, color criteria, scoring signals, point values, penalties, thresholds, locked vocabulary. |
 | 4 | `docs/next-session-todo.md` | **Read last.** What shipped in the previous session, what's open, and the FIRST thing to do this session. The "Shipped" section at the bottom is the historical record — read it when current behavior surprises you. The Foundation docs above lag the most recent architectural work; this doc is the bridge until they're synced. |
 
+For the **complete inventory** of everything we know we want to do or have done — across every tool, every area, every status — see `docs/roadmap.md`. That doc is a reference, not a read-first. Use it when you need to look up "is this captured?" or "where does X fit?" or "what's our overall arc?"
+
 ---
 
 ## Project-Specific Rules
@@ -55,7 +57,7 @@ Decisions made during sessions are logged in `docs/decision-log.md`. This is wri
 
 ## Build Roadmap
 
-See `docs/build-roadmap.md` for the agreed sequence and current status.
+See `docs/roadmap.md` for the consolidated inventory of everything we know we want to do, are doing, have done, or need to decide.
 
 ---
 

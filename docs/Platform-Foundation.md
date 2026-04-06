@@ -759,4 +759,4 @@ The AI scoring prompt is no longer a static document. It is generated at runtime
 
 | Document | Purpose |
 |---|---|
-| **Research-Methodology-Improvements.md** | Living list of detection logic, research improvements, and implementation details for the refactor |
+| **roadmap.md** | Consolidated inventory of every item we know we want to do, are doing, have done, or need to decide. For active session work, see `next-session-todo.md`. |

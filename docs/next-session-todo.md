@@ -9,6 +9,8 @@
 
 The 2026-04-06 session was long and productive across two stretches: a late-night architectural push and a morning continuation that focused on anti-hardcoding test infrastructure. A LOT changed. Skim **§ "Shipped recently (so this list isn't lying)"** at the bottom before doing anything — it's the historical record so you don't accidentally re-do completed work.
 
+**This doc is the focused near-term action list.** For the complete inventory of every item (active, backlog, done, decisions needed) across every tool and area, see **`docs/roadmap.md`** — that's where ideas live until they're prioritized and pulled into this doc.
+
 The single most important thing when you sit down: **§ 1 — Verify SOTI re-score**. The universal variable-badge rule landed in the late-night push and changes how the AI emits scoring signals. The math layer didn't change at all, but the AI's output should now credit the +30-ish signal values that were missing before. Run this BEFORE anything else so you know the new prompt actually does what we expect.
 
 ---
@@ -175,10 +177,14 @@ The deterministic ACV math from last night is **doing the math correctly** but t
 
 ## §6 — Smaller carry-overs
 
-- **Migrate Designer + Prospector tools off the legacy `_nav.html` / `_theme.html` shared templates** onto `_nav_new.html` / `_theme_new.html`. Once they're migrated, the old `_nav.html` and `_theme.html` can be deleted (currently they're still referenced by `tools/designer/templates/designer_home.html`, `tools/prospector/templates/prospector.html`, `tools/prospector/templates/prospector_results.html`). The old theme has hardcoded hex colors that should flow through the variable system after migration.
-- **Update Foundation docs** — add new scoring math (PL floor, technical fit multiplier, ceiling flags), the deterministic ACV math model, the locked rate variables, the universal variable-badge rule, and per-pillar WHY/WHAT/HOW content. Most of this lives in the decision log — sync it forward.
-- **Comprehensive scoring framework alignment review** — walk every scored field against `Badging-and-Scoring-Reference.md` and confirm no drift between docs / config / math / template / cached data.
-- **Audit the other ceiling-flag-implied synthetic badges** — tonight we added `No Learner Isolation` injection for `saas_only` / `multi_tenant_only`. Same pattern should apply to `bare_metal_required` (synthetic "Bare Metal Required" badge) and `no_api_automation` (synthetic "No API Automation" badge). Check `cfg.SYNTHETIC_BADGES` for the place to add them.
+These four are still relevant near-term but the full descriptions now live in `docs/roadmap.md` (the consolidated inventory). Keep this section short — pull items from the roadmap when actually starting them.
+
+- **Migrate Designer + Prospector tools off legacy `_nav.html` / `_theme.html`** — see roadmap §D and §C. Deferred until the new Designer code push lands.
+- **Update Foundation docs** with new scoring math, deterministic ACV model, locked rates, universal variable-badge rule, per-pillar WHY/WHAT/HOW — see roadmap §B.
+- **Comprehensive scoring framework alignment review** — walk every scored field against `Badging-and-Scoring-Reference.md`. See roadmap §B.
+- **Audit other ceiling-flag-implied synthetic badges** (`bare_metal_required`, `no_api_automation`) — same pattern as `No Learner Isolation`. See roadmap §B.
+
+For the **complete inventory** of every item (active, backlog, done, decisions needed) → `docs/roadmap.md`.
 
 ---
 

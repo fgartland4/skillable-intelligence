@@ -115,16 +115,27 @@ def main():
         print("validate-badge-names: OK - No legacy badge vocabulary found.")
         sys.exit(0)
 
-    print("\nCOMMIT BLOCKED -- Legacy badge vocabulary detected:\n")
-    for filepath, violations in all_violations.items():
-        print(f"  {filepath}:")
-        for line_num, term, line in violations:
-            print(f"    Line {line_num}: matched '{term}'")
-            print(f"    > {line[:120]}")
-        print()
+    # Windows console default encoding (cp1252) can't print Unicode chars
+    # like check marks, em-dashes, etc. that legitimately appear in our
+    # markdown source. Force UTF-8 output for the diagnostic so the hook
+    # can report on those files without crashing on its own print().
+    def _safe_print(text: str) -> None:
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            # Fall back to ASCII, replacing un-encodable chars
+            print(text.encode("ascii", errors="replace").decode("ascii"))
 
-    print("Fix the vocabulary above before committing.")
-    print("See docs/Badging-and-Scoring-Reference.md for correct terms.\n")
+    _safe_print("\nCOMMIT BLOCKED -- Legacy badge vocabulary detected:\n")
+    for filepath, violations in all_violations.items():
+        _safe_print(f"  {filepath}:")
+        for line_num, term, line in violations:
+            _safe_print(f"    Line {line_num}: matched '{term}'")
+            _safe_print(f"    > {line[:120]}")
+        _safe_print("")
+
+    _safe_print("Fix the vocabulary above before committing.")
+    _safe_print("See docs/Badging-and-Scoring-Reference.md for correct terms.\n")
     sys.exit(1)
 
 if __name__ == "__main__":
