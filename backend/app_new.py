@@ -124,7 +124,7 @@ def dim_caps_filter(name: str) -> str:
 @app.route("/inspector")
 def inspector_home():
     """Inspector home — search for a company."""
-    return render_template("inspector/templates/home_new.html")
+    return render_template("home_new.html")
 
 
 @app.route("/inspector/discover", methods=["POST"])
@@ -162,7 +162,7 @@ def inspector_discover():
 
     threading.Thread(target=run_discovery, daemon=True).start()
 
-    return render_template("inspector/templates/discovering.html",
+    return render_template("discovering.html",
                           discovery_id=job_id,
                           search_label=company_name)
 
@@ -199,7 +199,7 @@ def inspector_product_selection(discovery_id: str):
     # Check for existing analysis
     existing = find_analysis_by_discovery_id(discovery_id)
 
-    return render_template("inspector/templates/product_selection.html",
+    return render_template("product_selection.html",
                           discovery=disc, existing_analysis=existing)
 
 
@@ -239,7 +239,7 @@ def inspector_score():
 
     threading.Thread(target=run_scoring, daemon=True).start()
 
-    return render_template("inspector/templates/scoring.html",
+    return render_template("scoring.html",
                           job_id=job_id,
                           company_name=disc.get("company_name", ""),
                           product_count=len(selected))
@@ -266,7 +266,7 @@ def inspector_full_analysis(analysis_id: str):
     if not analysis:
         return error_response("Analysis not found.", 404)
 
-    return render_template("inspector/templates/full_analysis.html",
+    return render_template("full_analysis.html",
                           analysis=analysis)
 
 
@@ -276,7 +276,7 @@ def inspector_full_analysis(analysis_id: str):
 
 @app.route("/prospector")
 def prospector_home():
-    return render_template("prospector/templates/prospector.html")
+    return render_template("prospector.html")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -285,7 +285,7 @@ def prospector_home():
 
 @app.route("/designer")
 def designer_home():
-    return render_template("designer/templates/designer_home.html")
+    return render_template("designer_home.html")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
