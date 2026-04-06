@@ -121,7 +121,9 @@
                 source.close();
                 document.getElementById("status").textContent = "Complete — loading products...";
                 document.getElementById("progressFill").style.width = "100%";
-                window.location.href = "/inspector/product-selection/" + msg.slice(5);
+                // Use replace() so this transient waiting page does NOT stay in
+                // browser history — back from Product Selection skips it.
+                window.location.replace("/inspector/product-selection/" + msg.slice(5));
             } else if (msg.startsWith("error:")) {
                 source.close();
                 showError(msg.slice(6));

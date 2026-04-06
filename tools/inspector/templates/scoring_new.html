@@ -118,7 +118,10 @@
                 document.getElementById("status").textContent = "Complete — loading Full Analysis...";
                 document.getElementById("progressFill").style.width = "100%";
                 setTimeout(function() {
-                    window.location.href = "/inspector/analysis/" + msg.slice(5);
+                    // Use replace() so this transient waiting page does NOT stay
+                    // in browser history — back from Full Analysis goes to
+                    // Product Selection, not to this dead waiting page.
+                    window.location.replace("/inspector/analysis/" + msg.slice(5));
                 }, 1500);
             } else if (msg.startsWith("error:")) {
                 source.close();
@@ -139,7 +142,9 @@
                             document.getElementById("status").textContent = "Complete — loading Full Analysis...";
                             document.getElementById("progressFill").style.width = "100%";
                             setTimeout(function() {
-                                window.location.href = "/inspector/analysis/" + d.result_id;
+                                // Use replace() so the waiting page is removed
+                                // from history — see note in the SSE handler above.
+                                window.location.replace("/inspector/analysis/" + d.result_id);
                             }, 1500);
                         } else if (d.status === "error") {
                             clearInterval(pollInterval);
