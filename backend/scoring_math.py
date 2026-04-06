@@ -474,15 +474,18 @@ def _resolve_rate(orchestration_method: str) -> tuple[str, float]:
     Falls back to Standard VM (1-3 VMs) at VM_MID_RATE when the orchestration
     method is empty, unknown, or doesn't map to any known tier — that's the
     everyday-admin-lab default and is conservatively neither cheap nor pricey.
+
+    Reads RateTier.delivery_path and RateTier.rate_low — see scoring_config
+    dataclass on line 170.
     """
     key = (orchestration_method or "").strip().lower()
     tier_name = cfg.ORCHESTRATION_TO_RATE_TIER.get(key, "Standard VM (1-3 VMs)")
     for tier in cfg.RATE_TABLES:
-        if tier.name == tier_name:
-            # Single-value model — low_rate == high_rate per Frank's locked rates
-            return tier_name, float(tier.low_rate)
+        if tier.delivery_path == tier_name:
+            # Single-value model — rate_low == rate_high per Frank's locked rates
+            return tier_name, float(tier.rate_low)
     # Should not happen — RATE_TABLES is the source of truth and the mapping
-    # only points at names that exist in it. Final safety net = VM_MID_RATE.
+    # only points at delivery_path values that exist in it. Final safety net.
     return "Standard VM (1-3 VMs)", float(cfg.VM_MID_RATE)
 
 
