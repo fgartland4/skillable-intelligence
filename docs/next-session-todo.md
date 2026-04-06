@@ -1,21 +1,21 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-06 (end of session)
-**Read this first when you sit down tomorrow.**
+**Last updated:** 2026-04-06 (extended through morning continuation)
+**Read this first when you sit down for the next session.**
 
 ---
 
-## Read me first — what shipped tonight, what's open
+## Read me first — what shipped recently, what's open
 
-Tonight was a long, productive session. A LOT changed. Skim **§ "Shipped tonight (so this list isn't lying)"** at the bottom before doing anything — it's the reference for what's already done so you don't accidentally re-do completed work.
+The 2026-04-06 session was long and productive across two stretches: a late-night architectural push and a morning continuation that focused on anti-hardcoding test infrastructure. A LOT changed. Skim **§ "Shipped recently (so this list isn't lying)"** at the bottom before doing anything — it's the historical record so you don't accidentally re-do completed work.
 
-The single most important thing for tomorrow: **§ 1 — Verify SOTI re-score**. The universal variable-badge rule landed late tonight and changes how the AI emits scoring signals. The math layer didn't change at all, but the AI's output should now credit the +30-ish signal values that were missing all session. Run this BEFORE anything else so you know the new prompt actually does what we expect.
+The single most important thing when you sit down: **§ 1 — Verify SOTI re-score**. The universal variable-badge rule landed in the late-night push and changes how the AI emits scoring signals. The math layer didn't change at all, but the AI's output should now credit the +30-ish signal values that were missing before. Run this BEFORE anything else so you know the new prompt actually does what we expect.
 
 ---
 
 ## §1 — FIRST THING: Verify the universal variable-badge rule actually fires (~15 min)
 
-Tonight's biggest architectural change. The scoring prompt now tells the AI:
+The biggest architectural change of the 2026-04-06 session. The scoring prompt now tells the AI:
 
 > "When you have more than one badge to emit for the same canonical name, give every badge a unique name. First occurrence keeps the canonical name. Subsequent occurrences pick a matching scoring signal name (e.g., `Hyper-V: Standard`) — preferred — or a qualifier-derived label as fallback."
 
@@ -306,11 +306,28 @@ Each operation (`research_products`, `discover_products`, etc.) gets a `Progress
 
 ---
 
-## Shipped tonight (so this list isn't lying)
+## Shipped recently (so this list isn't lying)
 
-This section is the historical record of what landed in the 2026-04-06 session. Don't redo any of these — read it for context if a current behavior surprises you.
+Historical record of what landed in the 2026-04-06 session (split into a late-night architectural push and a morning continuation focused on test infrastructure). Don't redo any of these — read it for context if a current behavior surprises you.
 
-### Major architectural shipments
+### Shipped during the morning continuation (2026-04-06 AM)
+
+- **CLAUDE.md startup sequence updated** — added `docs/next-session-todo.md` as **step 4** in the read-first list. Without this, next-session Claude would read the foundation docs and present a status that's missing the most recent architectural work (because the foundation docs lag the universal variable-badge rule, deterministic ACV math, etc.). The todo doc is now the explicit bridge until the foundation docs sync forward.
+- **Anti-hardcoding test suite (Phases 1-4)** — `backend/tests/test_no_hardcoding.py` with 5 tests, all passing. Catches the exact class of bug that bit us during the late-night push. Documented in **Test Plan Category 10** with a deliberate "False-Positive Watch" section explaining the pre-release strict-mode philosophy.
+  - **Phase 1A** — hex literal scan in active templates. Theme files allow hex inside `:root` variable definitions only. Inspector + new shared theme: clean.
+  - **Phase 1B** — inline `style="color: #..."` attribute scan. Catches hex bypassing the theme system entirely.
+  - **Phase 2A** — Python dict-with-color-keys scan. Walks AST of `app_new.py` + `scoring_math.py` for dict literals where ≥2 keys are color names — almost always a duplicate of `BADGE_COLOR_POINTS` or `BADGE_COLOR_DISPLAY_PRIORITY`. **Caught 1 real violation:** `badge_color_class_filter` in `app_new.py` had a hardcoded `{"green": "badge-green", ...}` dict. **Fixed:** derive from `f"badge-{color}"` against `cfg.BADGE_COLOR_POINTS`.
+  - **Manual catch during Phase 2 triage:** `deployment_display_filter` had the same anti-pattern with deployment-model keys (`installable`/`hybrid`/`cloud`/`saas-only`) — Phase 2A missed it because the keys aren't color names. **Fixed:** read from `cfg.DEPLOYMENT_MODELS[model]["display"]`.
+  - **Phase 2B** — cross-file scan for distinctive scoring_config string constants (currently `DEFAULT_RATE_TIER_NAME`). Catches inlined values that should reference cfg.
+  - **Phase 3** — magic-number scan with `# magic-allowed: <reason>` annotation system. Allowed barewords: 0, 1, -1, 100, plus standard HTTP status codes (200/400/404/etc). Slice indices (`uuid[:8]`) handled via `ast.Slice`. Initial run on `app_new.py` surfaced 23 violations → triaged: 14 HTTP codes added to allowed barewords, 3 slice indices handled by detector improvement, 4 money formatting thresholds annotated, 1 Flask dev port annotated, 1 regex group index annotated. `scoring_math.py` had **zero** unannotated magic numbers — last night's cleanup pass was thorough.
+  - **Phase 4** — pre-commit hook integration. `.git/hooks/pre-commit` now runs `validate-badge-names.py` AND the anti-hardcoding test suite on every commit. Tracked copies at `scripts/git-hooks/pre-commit` + `scripts/git-hooks/install.sh` so the hook content survives across clones. Hook overhead: ~0.5s per commit. To install on a fresh clone: `bash scripts/git-hooks/install.sh`. To bypass in an emergency: `git commit --no-verify` (don't use routinely).
+- **Test Plan Category 10 added** — full philosophy section with the false-positive watch protocol. Documents the decision tree when a violation comes up (real → fix; non-applicable → annotate with reason; pattern too broad → narrow the rule and document; adding more friction than value → skip the specific test as last resort). GP Traceability matrix updated.
+- **Cohesity ACV undersizing observation captured** — flagged that Cohesity Data Cloud + 1 other product = $34K-$167K total, which feels WAY too low for a vendor with 15 globally-deployed enterprise data protection products. Documented as **§5.5 HIGH PRIORITY** with two distinct potential causes (AI undersizing populations + hero shows partial-as-whole) and concrete investigation steps. Pairs naturally with §1 SOTI verification as a "scoring trust" session.
+- **Designer + Prospector deferral confirmed** — both tools' templates explicitly excluded from the anti-hardcoding scan with documented reasons (Designer waiting for new code push, Prospector grouped for migration with Designer). Exclusions are visible in `backend/tests/test_no_hardcoding.py` `_EXCLUDED_PATHS` so future me knows when they can be removed.
+
+### Shipped during the late-night push (2026-04-05/06)
+
+#### Major architectural shipments
 
 - **Deterministic Python ACV math** — `scoring_math.compute_acv_potential()` runs at every page render. The AI estimates per-motion population, adoption %, and hours per learner; Python computes hours, dollars, rate lookup (by orchestration method), and tier label. AI no longer touches dollars at all. Locked rates: Cloud Labs $6, VM Low $8, VM Mid $14, VM High $45, Simulation = VM Low. Tier thresholds: HIGH ≥ $250K, MEDIUM ≥ $50K, LOW < $50K.
 - **ACV by Use Case widget** — Built and live in the bottom-right column under Account Intelligence. Reads `acv_potential.motions[]`, displays per-motion audience / adoption / hours / hours-per-year, plus Annual Hours and Annual Potential totals, plus a methodology footer showing the chosen rate ($X/hr · tier name). Has its own `?` icon wired to a WHY/WHAT/HOW info modal entry.
@@ -320,7 +337,7 @@ This section is the historical record of what landed in the 2026-04-06 session. 
 - **Bug 2 fix — synthetic No Learner Isolation injection** — When `saas_only` or `multi_tenant_only` ceiling flags are set on a product, `_normalize_badges_for_scoring` injects a `No Learner Isolation` red Blocker badge into Lab Access. Metadata reads from `cfg.SYNTHETIC_BADGES` (Define-Once). This fires regardless of whether the AI emits the badge.
 - **Reusable info modal** — `?` icons next to all three pillar names (Product Labability, Instructional Value, Customer Fit) and the ACV widget title open a modal showing per-pillar WHY / WHAT / HOW. Modal infra is generic — `openInfoModal(key)` accepts any `{eyebrow, title, sections}` payload. Doc icons next to products are still decorative; wiring them to per-product reports is the next-session task in §2.
 
-### Visual + UX shipments
+#### Visual + UX shipments
 
 - **Bottom row aligned with briefcase row** — `bottom-row` is now `flex 7:3` matching `.briefcase`. `bottom-row-product` (flex 7) holds Products and Competitive as two equal-width children. `bottom-row-org` (flex 3) holds the ACV by Use Case widget. Every box aligns edge-for-edge with the box above it.
 - **Hero ACV display fix** — big hero number is now the **company total** (sum of `acv_low`/`acv_high` across every scored product), with the selected product's individual contribution shown smaller below for context. Was previously showing the single selected product on top — felt flipped.
@@ -330,7 +347,7 @@ This section is the historical record of what landed in the 2026-04-06 session. 
 - **Badge evidence modal** — right-edge clipping detection (Fix #4), inline_md filter for bullet formatting, confidence color (green confirmed / gray other), wider modal max-width (540px).
 - **Score color buckets decision** — five logical thresholds (`SCORE_THRESHOLDS` in config) collapse to three visible color buckets (green / amber / red) with the verdict label text carrying the finer-grained nuance. Decided intentionally — see decision log.
 
-### Scoring + math shipments
+#### Scoring + math shipments
 
 - **Best-color-wins dedupe** — when the math layer sees two badges with the same name but different colors, it now picks the version with the highest BADGE_COLOR_POINTS (preferred: green +6) instead of first-encountered. Fixes a regression where Frank's earlier merger color promotion silently dropped points.
 - **PL floor enforcement** — `compute_fit_score()` enforces `fit_score = max(weighted_sum, pl_score)`. Strong IV/CF can pull Fit Score above PL but never below.
@@ -338,7 +355,7 @@ This section is the historical record of what landed in the 2026-04-06 session. 
 - **SaaS hard cap** — `saas_only` ceiling flag caps PL at 18, `multi_tenant_only` caps at 15.
 - **Heartbeat logging** — scorer log heartbeat interval reduced from 15s to 60s to cut log noise.
 
-### Cleanup + audit shipments (this very session)
+#### Cleanup + audit shipments (late-night push)
 
 - **Hardcoding violations removed** in tonight's added code:
   - `BADGE_COLOR_POINTS` is now read from config in `scoring_math` (was duplicated).
@@ -350,7 +367,7 @@ This section is the historical record of what landed in the 2026-04-06 session. 
   - `BADGE_UNKNOWN_COLOR_SCORE_FALLBACK` constant added for unknown-color graceful degradation.
 - **One stray hex color** in `_theme_new.html` (`.badge-deploy-gray #94a3b8`) replaced with `var(--sk-context)`.
 
-### Decisions logged to `docs/decision-log.md`
+#### Decisions logged to `docs/decision-log.md`
 
 - Visual changes must NEVER affect scoring (architectural principle)
 - Universal variable-badge rule (Frank's framing verbatim)
