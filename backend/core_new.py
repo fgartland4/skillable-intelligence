@@ -1,6 +1,7 @@
 """Core logic for the Skillable Intelligence Platform.
 
-Verdict assignment, score helpers, lab platform detection, and error handling.
+Verdict assignment, score helpers, lab platform detection, SSE progress
+streaming, and error handling.
 All logic reads from scoring_config.py — Define-Once Principle.
 """
 
@@ -8,12 +9,94 @@ from __future__ import annotations
 
 import logging
 import re
+import threading
+import time
 from typing import Optional
 
 from backend import scoring_config as cfg
 from models_new import CompanyAnalysis, FitScore, Product, Verdict
 
 log = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SSE Progress Streaming — framework-agnostic infrastructure
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_SSE_TIMEOUT = 600  # 10 minutes max for any operation
+
+_progress: dict[str, list[str]] = {}
+_progress_timestamps: dict[str, float] = {}
+_progress_lock = threading.Lock()
+_PROGRESS_MAX_JOBS = 50
+_PROGRESS_EVICT_COUNT = 10
+_PROGRESS_MAX_MSGS = 200
+_PROGRESS_JOB_TTL = 300
+
+
+def push(job_id: str, msg: str):
+    """Push a progress message for a job. Thread-safe."""
+    now = time.time()
+    with _progress_lock:
+        if job_id not in _progress:
+            # Evict stale jobs
+            stale = [jid for jid, ts in _progress_timestamps.items()
+                     if now - ts > _PROGRESS_JOB_TTL]
+            for jid in stale:
+                _progress.pop(jid, None)
+                _progress_timestamps.pop(jid, None)
+            if len(_progress) >= _PROGRESS_MAX_JOBS:
+                for old_key in list(_progress.keys())[:_PROGRESS_EVICT_COUNT]:
+                    _progress.pop(old_key, None)
+                    _progress_timestamps.pop(old_key, None)
+            _progress[job_id] = []
+            _progress_timestamps[job_id] = now
+
+        msgs = _progress[job_id]
+        if len(msgs) >= _PROGRESS_MAX_MSGS:
+            _progress[job_id] = msgs[_PROGRESS_MAX_MSGS // 2:]
+        _progress[job_id].append(msg)
+
+
+def sse_stream(job_id: str, poll_interval: float = 0.3):
+    """SSE generator: yields messages until done/error or timeout."""
+    last = 0
+    deadline = time.time() + _SSE_TIMEOUT
+    last_yield = time.time()
+    heartbeat_interval = 15
+    while time.time() < deadline:
+        with _progress_lock:
+            msgs = list(_progress.get(job_id, []))
+        sent = False
+        for msg in msgs[last:]:
+            last += 1
+            sent = True
+            last_yield = time.time()
+            yield f"data: {msg}\n\n"
+            if msg.startswith("done:") or msg.startswith("error:"):
+                with _progress_lock:
+                    _progress.pop(job_id, None)
+                    _progress_timestamps.pop(job_id, None)
+                return
+        if not sent and time.time() - last_yield >= heartbeat_interval:
+            yield ": heartbeat\n\n"
+            last_yield = time.time()
+        time.sleep(poll_interval)
+    yield "data: error:Timed out — please try again.\n\n"
+
+
+def poll_job(job_id: str) -> dict:
+    """Polling fallback for SSE — returns job status as JSON."""
+    with _progress_lock:
+        msgs = list(_progress.get(job_id, []))
+    if not msgs:
+        return {"status": "unknown"}
+    for msg in reversed(msgs):
+        if msg.startswith("done:"):
+            return {"status": "done", "result_id": msg[5:]}
+        if msg.startswith("error:"):
+            return {"status": "error", "message": msg[6:]}
+    return {"status": "running"}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
