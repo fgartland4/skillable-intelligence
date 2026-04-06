@@ -122,6 +122,8 @@ Discovery tier labels: Seems Promising, Likely, Uncertain, Unlikely
 6. **Be a partner.** Think together. Flag patterns across tools. Collaborative momentum over speed.
 7. **Guiding Principles apply to everything** — not just the platform. GP1-GP5 shape how we collaborate, communicate, and make decisions.
 8. **One source of truth.** One copy of every document. Never maintain duplicates. If it's in the repo, that's the only copy. Define-Once applies to docs, code, config, memory — everything.
+9. **Fix immediately — don't ask.** When something is wrong, fix it. Don't ask "want me to fix it?" — that wastes time and erodes trust (GP3). When checking for issues, act on what you find. Best current thinking means correcting mistakes the moment they're discovered.
+10. **No legacy code.** Everything must be rebuilt to new standards. Never silently reuse old files, old prompts, old data, or old vocabulary. If it wasn't built from the Platform Foundation forward, it doesn't belong. Flag and fix — don't carry forward (GP4).
 
 ---
 
