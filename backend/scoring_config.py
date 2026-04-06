@@ -1402,7 +1402,7 @@ then Context, then Risks, then Blockers."""
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DEPLOYMENT_MODELS = {
-    "self-hosted":  {"display": "Installable", "color": "green_muted",
+    "installable":  {"display": "Installable", "color": "green_muted",
                      "description": "Downloadable installer, container image, or VM image"},
     "hybrid":       {"display": "Hybrid", "color": "gray",
                      "description": "Available as both installable and cloud/SaaS"},
