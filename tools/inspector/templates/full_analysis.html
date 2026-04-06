@@ -359,22 +359,19 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .competitive-row:last-child { border-bottom: none; }
 .competitive-top {
     display: grid;
-    /* Order: Competitor name | Product name (slate blue) | Subcategory badge | Search button (right).
-       Right edge of the search button aligns with the Products section's right edge. */
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.3fr) auto auto;
+    /* Order: Search button | Product name (slate blue) | Subcategory badge.
+       Company name only appears inside the search button label. */
+    grid-template-columns: 220px 280px 1fr;
     align-items: center;
-    column-gap: 12px;
+    gap: 0;
 }
-.competitive-company {
-    font-size: 0.78rem; font-weight: 600; color: var(--sk-text-body);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+.competitive-action { text-align: left; }
 .competitive-name {
     font-size: 0.82rem; font-weight: 600; color: var(--sk-link-slate);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    padding-left: 8px; padding-right: 16px;
 }
-.competitive-sub { text-align: left; min-width: 0; }
-.competitive-action { text-align: right; justify-self: end; }
+.competitive-sub { text-align: left; }
 .run-report-form { display: inline; }
 .run-report-link {
     display: inline-block;
@@ -562,15 +559,14 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
       {% for c in analysis.competitive_products %}
       <div class="competitive-row">
         <div class="competitive-top">
-          <span class="competitive-company" title="{{ c.competitor_name }}">{{ c.competitor_name | truncate(22, True, '…') }}</span>
-          <span class="competitive-name" title="{{ c.product_name }}">{{ c.product_name | truncate(22, True, '…') }}</span>
-          <span class="competitive-sub">{% if c.subcategory %}<span class="badge badge-purple">{{ c.subcategory | clean_subcategory }}</span>{% endif %}</span>
           <span class="competitive-action">
             <form action="{{ url_for('inspector_discover') }}" method="POST" target="_blank" class="run-report-form" onclick="event.stopPropagation()">
               <input type="hidden" name="company_name" value="{{ c.competitor_name }}">
-              <button type="submit" class="run-report-link" title="Search {{ c.competitor_name }}">Search →</button>
+              <button type="submit" class="run-report-link">Search {{ c.competitor_name }} →</button>
             </form>
           </span>
+          <span class="competitive-name">{{ c.product_name }}</span>
+          <span class="competitive-sub">{% if c.subcategory %}<span class="badge badge-purple">{{ c.subcategory | clean_subcategory }}</span>{% endif %}</span>
         </div>
       </div>
       {% endfor %}
