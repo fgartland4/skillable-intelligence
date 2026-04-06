@@ -4,6 +4,22 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-06 — ACV tier thresholds locked
+
+### ACV tier dollar thresholds
+- **DECIDED:** ACV tier labels are computed deterministically in Python from the **high end** of the per-product ACV range (a deal is sized at its upside, not its floor):
+  - `acv_high >= $250,000` → **HIGH ACV**
+  - `acv_high >= $50,000`  → **MEDIUM ACV**
+  - `acv_high <  $50,000`  → **LOW ACV**
+- **Where:** `scoring_config.ACV_TIER_HIGH_THRESHOLD` and `ACV_TIER_MEDIUM_THRESHOLD`. One-line edits with zero rescore needed — `_prepare_analysis_for_render` recomputes on every page render via `scoring_math.compute_acv_potential()`.
+- **Why:** Visible label needs *some* threshold to flip between low/medium/high. Frank picked deliberately conservative numbers — anything under $50K is correctly Low, $50K–$250K is real but bounded, $250K+ is the point where a deal warrants serious investment. The verdict grid combines this tier with Fit Score to choose the verdict label and color.
+- **Architectural note:** This finishes the move of ACV math from the AI prompt into deterministic Python. The AI's only ACV job now is per-motion population, adoption %, and hours/learner — population × adoption × hours, the rate lookup, the dollar conversion, and the tier label all happen in Python.
+
+### Verdict ACV labels — keep them
+- **DECIDED:** Keep the LOW ACV / MEDIUM ACV / HIGH ACV labels under the verdict badge. They give immediate context next to the verdict text without forcing the reader to compute "is $63K low or medium" in their head. The labels are now driven by the Python tier computation above, not AI guesswork.
+
+---
+
 ## Session: 2026-04-06 — Score color buckets
 
 ### Three visible color buckets, five logical thresholds — intentional

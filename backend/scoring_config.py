@@ -1284,12 +1284,11 @@ RATE_TABLES: tuple[RateTier, ...] = (
 # ─────────────────────────────────────────────────────────────────────────
 # ACV tier thresholds — map a computed annual ACV (dollar value) to a
 # tier label (high / medium / low). Used by the verdict grid at render
-# time. The thresholds are evaluated against the HIGH end of the ACV
-# range so a deal is sized at its upside, not its floor.
+# time. Thresholds are evaluated against the HIGH end of the ACV range
+# so a deal is sized at its upside potential, not its floor.
 #
-# FRANK CONFIRM: these are placeholder defaults — review and tweak.
-# Tweaking is a one-line edit; the next page render picks it up with
-# zero rescore needed.
+# Locked 2026-04-06 (Frank). Tweaking is a one-line edit; the next page
+# render picks up the new value with zero rescore needed.
 # ─────────────────────────────────────────────────────────────────────────
 ACV_TIER_HIGH_THRESHOLD   = 250_000  # ACV high >= $250K  → "high"
 ACV_TIER_MEDIUM_THRESHOLD = 50_000   # ACV high >= $50K   → "medium"
