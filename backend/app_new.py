@@ -140,9 +140,10 @@ def org_color_filter(org_type: str) -> str:
 
 @app.template_filter("format_acv")
 def format_acv_filter(value) -> str:
+    """Format a dollar value with $1k / $1M abbreviations."""
     value = float(value or 0)
-    if value >= 1_000_000: return f"${value / 1_000_000:.1f}M"
-    elif value >= 1_000: return f"${value / 1_000:.0f}k"
+    if value >= 1_000_000: return f"${value / 1_000_000:.1f}M"  # magic-allowed: standard money formatting (millions)
+    elif value >= 1_000: return f"${value / 1_000:.0f}k"  # magic-allowed: standard money formatting (thousands)
     return f"${value:.0f}"
 
 
@@ -480,7 +481,7 @@ def _normalize_badges_for_scoring(p: dict) -> None:
                     m = _EVIDENCE_LABEL_RE.match(claim)
                     if m:
                         label = m.group(1).strip()
-                        qualifier = m.group(2).strip()
+                        qualifier = m.group(2).strip()  # magic-allowed: regex capture group index
                         new_ev = dict(ev)
                         new_ev["claim"] = claim[m.end():]
                         parsed.append((label, qualifier, new_ev))
@@ -970,4 +971,4 @@ def api_health():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000)  # magic-allowed: Flask dev server port

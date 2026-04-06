@@ -440,6 +440,171 @@ def test_no_hardcoded_distinctive_scoring_config_constants():
         pytest.fail("\n".join(msg_lines))
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 3 — Magic-number scan with annotation system
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Pre-Release Strict Mode: any int or float literal in scoring_math.py that
+# isn't a "well-known bareword constant" (0, 1, -1, 100) must either:
+#   1. Reference a named constant from scoring_config, OR
+#   2. Carry a `# magic-allowed: <reason>` annotation on the same line
+#
+# Why scoring_math.py specifically: it's the math layer for the whole
+# scoring system. Any numeric literal here that isn't from config is a
+# definition that lives in two places and will silently rot. The whole
+# point of scoring_config.py is that scoring_math.py reads from it.
+#
+# Phase 3 deliberately starts narrow (one file) so we don't drown in
+# false positives from route handlers, HTTP status codes, polling
+# intervals, etc. Expand the scope in subsequent phases if/when we
+# decide the annotation pattern works at scale.
+
+_PHASE_3_SCAN_FILES: tuple[str, ...] = (
+    "backend/scoring_math.py",
+    "backend/app_new.py",
+)
+
+# Numeric literals that don't need to come from config or be annotated.
+# The "well-known barewords" — these are universal constants whose meaning
+# is unambiguous in any code context.
+_ALLOWED_BAREWORD_NUMBERS: frozenset[float] = frozenset({
+    # Truly universal
+    0, 0.0,
+    1, 1.0,
+    -1, -1.0,
+    100, 100.0,
+    # HTTP status codes — universal in any web framework, not "magic"
+    200, 201, 202, 204,
+    301, 302, 304,
+    400, 401, 403, 404, 405, 409, 422, 429,
+    500, 502, 503, 504,
+})
+
+# Annotation marker — same-line comment that opts a literal out of the scan.
+# Format: `# magic-allowed: <reason>` with at least 5 chars of reason text.
+_MAGIC_ALLOWED_PATTERN = re.compile(r"#\s*magic-allowed\s*:\s*\S{4,}")
+
+
+def _find_unannotated_magic_numbers(path: Path) -> list[tuple[int, str, str]]:
+    """Walk the AST and return (line, literal_value, snippet) for any
+    int/float literal that:
+      - is not in _ALLOWED_BAREWORD_NUMBERS
+      - does not have a `# magic-allowed: ...` annotation on its line
+      - is not inside a docstring (AST distinguishes Constant strings from
+        these — string literals aren't matched anyway, only numeric)
+      - is not a tuple/list index (ast.Subscript) — those are fine
+    """
+    import ast
+
+    findings: list[tuple[int, str, str]] = []
+    try:
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+    except (SyntaxError, OSError):
+        return findings
+
+    source_lines = source.splitlines()
+
+    # Collect lines that have a `# magic-allowed: ...` annotation
+    allowed_lines: set[int] = set()
+    for line_num, line in enumerate(source_lines, start=1):
+        if _MAGIC_ALLOWED_PATTERN.search(line):
+            allowed_lines.add(line_num)
+
+    # Collect literal positions that belong to subscript-style indexing —
+    # array[5], uuid[:8], rows[1:10:2] etc. These are positional indices
+    # not magic numbers.
+    indexing_lines: set[tuple[int, float]] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Subscript):
+            slice_node = node.slice
+            # Direct constant index: arr[5]
+            if isinstance(slice_node, ast.Constant) and isinstance(slice_node.value, (int, float)):
+                indexing_lines.add((slice_node.lineno, float(slice_node.value)))
+            # Slice with constants: arr[:8], arr[3:], arr[1:10:2]
+            elif isinstance(slice_node, ast.Slice):
+                for part in (slice_node.lower, slice_node.upper, slice_node.step):
+                    if isinstance(part, ast.Constant) and isinstance(part.value, (int, float)):
+                        indexing_lines.add((part.lineno, float(part.value)))
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Constant):
+            continue
+        value = node.value
+        # Bool is a subclass of int — exclude True/False
+        if isinstance(value, bool):
+            continue
+        if not isinstance(value, (int, float)):
+            continue
+        if float(value) in _ALLOWED_BAREWORD_NUMBERS:
+            continue
+
+        line_no = getattr(node, "lineno", 0)
+        if line_no in allowed_lines:
+            continue
+        if (line_no, float(value)) in indexing_lines:
+            continue
+
+        snippet = source_lines[line_no - 1].strip() if 0 < line_no <= len(source_lines) else ""
+
+        # Skip if the line is clearly inside a docstring (heuristic — looks
+        # for an enclosing triple-quote on the same or prior visible line).
+        # The AST doesn't tag literals inside docstrings as Constants of int
+        # type because docstrings are strings, but be defensive.
+        if snippet.startswith('"""') or snippet.startswith("'''"):
+            continue
+
+        findings.append((line_no, repr(value), snippet))
+
+    return findings
+
+
+def test_no_unannotated_magic_numbers_in_scoring_math():
+    """Phase 3 — Magic-number scan over scoring_math.py.
+
+    Any int/float literal that isn't a well-known bareword (0, 1, -1, 100)
+    must either reference a config constant via cfg.* or carry a
+    `# magic-allowed: <reason>` annotation on the same line.
+
+    Pre-release strict mode. False positives are EXPECTED — annotate or
+    refactor. See Test-Plan.md Category 10.
+    """
+    violations: dict[str, list[tuple[int, str, str]]] = {}
+    for rel in _PHASE_3_SCAN_FILES:
+        path = _REPO_ROOT / rel
+        if not path.exists():
+            continue
+        findings = _find_unannotated_magic_numbers(path)
+        if findings:
+            violations[rel] = findings
+
+    if violations:
+        msg_lines = [
+            "Unannotated magic numbers found in scoring math files:",
+            "",
+            "  Allowed barewords: 0, 1, -1, 100",
+            "  Anything else must either:",
+            "    - reference a constant from scoring_config.py via cfg.X, or",
+            "    - carry a `# magic-allowed: <reason>` comment on the same line",
+            "",
+        ]
+        for rel_path, findings in violations.items():
+            msg_lines.append(f"  {rel_path}:")
+            for line_num, literal, line in findings[:12]:
+                snippet = line[:120] + ("..." if len(line) > 120 else "")
+                msg_lines.append(f"    line {line_num}: literal {literal}")
+                msg_lines.append(f"      {snippet}")
+            if len(findings) > 12:
+                msg_lines.append(f"    ... and {len(findings) - 12} more")
+            msg_lines.append("")
+        msg_lines.append(
+            "Fix: either move the value into scoring_config.py and reference "
+            "it via cfg.<NAME>, or annotate with "
+            "`# magic-allowed: <reason>` if it's genuinely a one-off."
+        )
+        pytest.fail("\n".join(msg_lines))
+
+
 def test_no_inline_style_hex_in_active_templates():
     """Phase 1B — No inline `style="color: #..."` or `style="background: #..."`
     attributes in markup. Inline hardcoded colors bypass the theme system

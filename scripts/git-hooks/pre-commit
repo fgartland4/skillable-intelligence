@@ -1,0 +1,38 @@
+#!/bin/sh
+# Skillable Intelligence — pre-commit hook (TRACKED COPY)
+#
+# Two checks run on every commit:
+#   1. validate-badge-names.py — blocks commits that introduce legacy
+#      badge vocabulary (Path A1, Yellow, Composite Score, etc.)
+#   2. test_no_hardcoding.py — blocks commits that introduce hardcoded
+#      values that should reference scoring_config.py or _theme_new.html
+#      (anti-hardcoding tests, see docs/Test-Plan.md Category 10)
+#
+# Both must pass for the commit to proceed. To bypass in an emergency:
+#     git commit --no-verify
+# (Don't use --no-verify routinely. The whole point of the hook is the
+# safety net.)
+#
+# ── Installation ──────────────────────────────────────────────────────
+# This file is tracked in scripts/git-hooks/ so it survives across
+# clones and machines. Git itself doesn't read hooks from this location;
+# they must be in .git/hooks/ to fire. To install:
+#
+#     bash scripts/git-hooks/install.sh
+#
+# Or manually:
+#     cp scripts/git-hooks/pre-commit .git/hooks/pre-commit
+#     chmod +x .git/hooks/pre-commit
+#
+# Re-run the install whenever this file changes (it's the only way to
+# pick up updates — git's hook system isn't auto-syncing).
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+echo "[pre-commit] Validating badge vocabulary..."
+python "$ROOT/scripts/validate-badge-names.py" || exit $?
+
+echo "[pre-commit] Running anti-hardcoding tests..."
+python -m pytest "$ROOT/backend/tests/test_no_hardcoding.py" -q --no-header || exit $?
+
+echo "[pre-commit] OK"
