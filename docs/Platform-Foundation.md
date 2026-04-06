@@ -8,6 +8,8 @@ This document reflects best current thinking. As thinking evolves, this document
 
 ## Guiding Principles
 
+**These are a thinking system, not a list.** Read them, then read the rest of this document, then come back and re-read them. The second pass is where they become operational — where you see how each GP shapes the architecture, the scoring, the UX, and how we work together. See `collaboration-with-frank.md` → "Re-reading Is the Point."
+
 These are the capital-G, capital-P Guiding Principles of the platform. Every feature, every screen, every piece of content, every line of code should be testable against these.
 
 ### GP1: Right Information, Right Time, Right Person, Right Context, Right Way
@@ -85,6 +87,22 @@ All UX elements must meet WCAG AA contrast standards (4.5:1 for normal text, 3.0
 ### The Define-Once Principle
 
 All Pillar names, dimension names, weights, thresholds, badge names, and vocabulary are defined **once** in a configuration layer and referenced everywhere — code, prompts, UX templates, documentation. Nothing is hard-coded. If a name or weight changes, it changes in one place and propagates through the entire system. No find-and-replace across files. No drift. This is how Self-Evident Design (GP4) works at the code level.
+
+---
+
+## How the GPs Show Up in the Platform
+
+*After reading the GPs, scan this table. It is the key that makes the rest of the document operational — every architectural choice below traces back to one or more of these principles. When re-reading, use this as the lens.*
+
+| GP | Where it lives in the platform |
+|---|---|
+| **GP1** — right info, right time, right person, right way | Progressive Disclosure Stack · HubSpot-first for sellers · Seller Briefcase · persona-specific entry points · concise-first, depth on hover |
+| **GP2** — Why → What → How | Every Pillar card leads with the question · Seller Briefcase opens with Why · conversational competence for both sellers and SEs starts with Why |
+| **GP3** — Explainably Trustworthy | Confidence levels (confirmed / indicated / inferred) · evidence on hover · documentation is the in-app explainability layer · traceable from conclusion back to source |
+| **GP4** — Self-Evident Design | Variable names carry meaning · Pillar / Dimension / Requirement hierarchy is explicit · `scoring_config.py` is the Define-Once source · names you can read without a glossary |
+| **GP5** — Intelligence Compounds | One persistent analysis per company · cache sharpens, never wipes · prompt changes trigger smart invalidation · every analysis enriches what came before |
+| **End-to-End** | Same Pillar / Dimension / Requirement model shapes research, storage, scoring, display — no translation step |
+| **Define-Once** | All framework variables in one config · referenced everywhere · change once, propagate everywhere |
 
 ---
 

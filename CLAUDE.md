@@ -12,6 +12,8 @@ This file loads automatically every session. Read the documents it points to —
 
 ## First — Read These Before Doing Anything
 
+**These are not a skim.** Read each pass with a different lens — first for content, then for how everything interrelates. Re-reading is the point. See `docs/collaboration-with-frank.md` → "Re-reading Is the Point" for why.
+
 | Step | Document | Why |
 |---|---|---|
 | 1 | `docs/collaboration-with-frank.md` | How Frank thinks, how to work together, the startup sequence. **Read this first, every session.** |
