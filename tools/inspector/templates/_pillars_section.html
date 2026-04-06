@@ -16,7 +16,7 @@
     <div class="pillar-card">
       <div class="pillar-header">
         <div>
-          <span class="pillar-name">{{ prod_pillar.name }}</span><span class="pillar-icons"><span class="info-icon">?</span><span class="doc-icon" title="Export {{ prod_pillar.name }} report">{{ doc_svg() }}</span></span>
+          <span class="pillar-name">{{ prod_pillar.name }}</span><span class="pillar-icons"><span class="info-icon" onclick="openInfoModal('product_labability')" title="What is {{ prod_pillar.name }}?">?</span><span class="doc-icon" title="Export {{ prod_pillar.name }} report">{{ doc_svg() }}</span></span>
           <div class="pillar-weight"><strong>{{ prod_pillar.weight or 0 }}%</strong> of Fit Score</div>
         </div>
         <div class="pillar-score {{ (prod_pillar.score or 0) | score_color }}">{{ prod_pillar.score or 0 }}<span>/100</span></div>
@@ -29,7 +29,7 @@
     <div class="pillar-card">
       <div class="pillar-header">
         <div>
-          <span class="pillar-name">{{ inst_pillar.name }}</span><span class="pillar-icons"><span class="info-icon">?</span><span class="doc-icon" title="Export {{ inst_pillar.name }} report">{{ doc_svg() }}</span></span>
+          <span class="pillar-name">{{ inst_pillar.name }}</span><span class="pillar-icons"><span class="info-icon" onclick="openInfoModal('instructional_value')" title="What is {{ inst_pillar.name }}?">?</span><span class="doc-icon" title="Export {{ inst_pillar.name }} report">{{ doc_svg() }}</span></span>
           <div class="pillar-weight"><strong>{{ inst_pillar.weight or 0 }}%</strong> of Fit Score</div>
         </div>
         <div class="pillar-score {{ (inst_pillar.score or 0) | score_color }}">{{ inst_pillar.score or 0 }}<span>/100</span></div>
@@ -45,7 +45,7 @@
       <div class="pillar-header">
         <div>
           <span class="pillar-name-org">{{ cust_pillar.name }}</span>
-          <span class="info-icon">?</span>
+          <span class="info-icon" onclick="openInfoModal('customer_fit')" title="What is {{ cust_pillar.name }}?">?</span>
           <div class="pillar-weight"><strong>{{ cust_pillar.weight or 0 }}%</strong> of Fit Score</div>
         </div>
         <div class="pillar-score {{ (cust_pillar.score or 0) | score_color }}">{{ cust_pillar.score or 0 }}<span>/100</span></div>
