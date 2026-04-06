@@ -141,8 +141,11 @@
             font-size: 0.73rem; color: var(--sk-border); font-style: italic; padding-left: 4px;
         }
 
-        /* ── Right panel ── */
-        .right-col { display: flex; flex-direction: column; gap: 12px; }
+        /* ── Right panel — sticky so Deep Dive button is always visible ── */
+        .right-col {
+            display: flex; flex-direction: column; gap: 12px;
+            position: sticky; top: 80px; align-self: start;
+        }
 
         .panel-box {
             background: var(--sk-surface); border: 1px solid var(--sk-border);
