@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Full Analysis — {{ analysis.company_name }} — Skillable Intelligence</title>
+    <style>
+        {% include '_theme_new.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: #1dd88a; }
+
+        .page { max-width: 1320px; margin: 0 auto; padding: 28px 24px 80px; }
+
+        /* ── Nav links ── */
+        .nav-links { display: flex; gap: 8px; margin-bottom: 24px; }
+        .btn-back {
+            font-size: 0.78rem; color: var(--sk-text-muted);
+            background: rgba(36,237,155,0.06); border: 1px solid rgba(36,237,155,0.18);
+            padding: 5px 12px; border-radius: 7px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .btn-back:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           HERO SECTION — the star of the show
+           ═══════════════════════════════════════════════════════════════ */
+        .hero {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 24px; margin-bottom: 32px; padding-bottom: 24px;
+        }
+
+        /* Left: product selector + verdict */
+        .hero-left { flex: 0 0 auto; }
+        .product-selector {
+            font-size: 1.3rem; font-weight: 700; color: var(--sk-text);
+            background: transparent; border: 1px solid var(--sk-border);
+            padding: 8px 16px; border-radius: 8px; cursor: pointer;
+            color: var(--sk-text); appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b9e88' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 12px center;
+            padding-right: 36px; min-width: 280px;
+        }
+        .product-selector:focus { border-color: var(--sk-accent); outline: none; }
+        .hero-verdict {
+            margin-top: 8px; display: flex; align-items: center; gap: 12px;
+        }
+        .hero-fit-acv {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--sk-text-muted);
+        }
+
+        /* Center: Fit Score */
+        .hero-center { text-align: center; flex: 0 0 auto; }
+        .hero-score-label {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em;
+            text-transform: uppercase; color: var(--sk-text-dim); margin-bottom: 4px;
+        }
+        .hero-score {
+            font-size: 4rem; font-weight: 900; line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        .hero-score-max { font-size: 1.4rem; font-weight: 400; color: var(--sk-text-muted); }
+
+        /* Right: ACV Potential */
+        .hero-right { text-align: right; flex: 0 0 auto; }
+        .hero-acv-label {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em;
+            text-transform: uppercase; color: var(--sk-text-dim); margin-bottom: 4px;
+        }
+        .hero-acv {
+            font-size: 1.9rem; font-weight: 900; color: var(--sk-accent);
+        }
+        .hero-acv-sub {
+            font-size: 0.72rem; color: var(--sk-score-mid); margin-top: 4px;
+        }
+
+        /* Cache date */
+        .cache-date {
+            font-size: 0.68rem; color: var(--sk-text-dim); margin-top: 8px;
+            cursor: pointer;
+        }
+        .cache-date:hover { color: var(--sk-accent); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PILLAR LABELS — 70/30 split indicator
+           ═══════════════════════════════════════════════════════════════ */
+        .split-labels {
+            display: flex; justify-content: space-between; margin-bottom: 12px;
+            padding: 0 4px;
+        }
+        .split-label {
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--sk-text-dim);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PILLAR CARDS — 70/30 visual split
+           ═══════════════════════════════════════════════════════════════ */
+        .pillars {
+            display: grid;
+            grid-template-columns: 1fr 1fr 0.85fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        @media (max-width: 1000px) { .pillars { grid-template-columns: 1fr; } }
+
+        .pillar-card {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 12px; padding: 20px;
+        }
+        .pillar-card.pillar-org {
+            background: #0e2219;  /* Slightly different — visual distinction for org */
+        }
+
+        .pillar-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .pillar-name {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .pillar-name a { color: inherit; }
+        .pillar-icons { display: flex; gap: 8px; }
+        .pillar-icon {
+            width: 18px; height: 18px; color: var(--sk-text-dim);
+            cursor: pointer; transition: color 0.15s;
+        }
+        .pillar-icon:hover { color: var(--sk-accent); }
+
+        .pillar-score-row {
+            display: flex; align-items: baseline; justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .pillar-score {
+            font-size: 2.2rem; font-weight: 900;
+        }
+        .pillar-score-max {
+            font-size: 0.9rem; font-weight: 400; color: var(--sk-text-muted);
+        }
+        .pillar-weight {
+            font-size: 0.68rem; color: var(--sk-text-dim);
+        }
+
+        /* Dimensions within pillar cards */
+        .dim-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 0; border-top: 1px solid rgba(30,51,41,0.5);
+        }
+        .dim-name {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--sk-text-muted);
+        }
+        .dim-score-bar {
+            display: flex; align-items: center; gap: 8px; flex: 0 0 120px;
+        }
+        .dim-score-val {
+            font-size: 0.82rem; font-weight: 700; min-width: 28px; text-align: right;
+        }
+        .dim-bar { flex: 1; }
+
+        /* Badges within dimensions */
+        .dim-badges {
+            display: flex; flex-wrap: wrap; gap: 4px; padding: 4px 0 8px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           SELLER BRIEFCASE — three sections below pillar cards
+           ═══════════════════════════════════════════════════════════════ */
+        .briefcase {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        @media (max-width: 900px) { .briefcase { grid-template-columns: 1fr; } }
+
+        .briefcase-section {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; padding: 16px 18px;
+        }
+        .briefcase-header {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+        }
+        .briefcase-title {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--sk-accent);
+        }
+        .briefcase-pillar {
+            font-size: 0.58rem; color: var(--sk-text-dim);
+        }
+        .briefcase-bullets { list-style: none; }
+        .briefcase-bullets li {
+            font-size: 0.82rem; color: var(--sk-text-body); line-height: 1.55;
+            padding: 6px 0; border-bottom: 1px solid rgba(30,51,41,0.3);
+        }
+        .briefcase-bullets li:last-child { border-bottom: none; }
+        .briefcase-bullets li::before {
+            content: "→ "; color: var(--sk-accent); font-weight: 700;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           BADGE EVIDENCE HOVER MODAL (GP3)
+           ═══════════════════════════════════════════════════════════════ */
+        .badge-hover-modal {
+            display: none; position: absolute; z-index: 100;
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; padding: 14px 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            max-width: 400px; min-width: 280px;
+        }
+        .badge-hover-modal.visible { display: block; }
+        .badge-modal-title {
+            font-size: 0.78rem; font-weight: 700; color: var(--sk-text);
+            margin-bottom: 8px;
+        }
+        .badge-modal-evidence {
+            font-size: 0.75rem; color: var(--sk-text-body); line-height: 1.5;
+            margin-bottom: 6px;
+        }
+        .badge-modal-confidence {
+            font-size: 0.68rem; color: var(--sk-text-dim); font-style: italic;
+        }
+        .badge-modal-source {
+            font-size: 0.68rem; color: var(--sk-text-dim); margin-top: 4px;
+        }
+        .badge-modal-source a { color: var(--sk-accent); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           EXPORT
+           ═══════════════════════════════════════════════════════════════ */
+        .export-row {
+            display: flex; justify-content: flex-end; margin-bottom: 16px;
+        }
+        .btn-export {
+            font-size: 0.78rem; color: var(--sk-text-muted);
+            background: rgba(36,237,155,0.06); border: 1px solid rgba(36,237,155,0.18);
+            padding: 7px 16px; border-radius: 7px; cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .btn-export:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'inspector' %}
+{% include '_nav_new.html' %}
+
+{% set top = analysis.top_products[0] if analysis.products else none %}
+
+<div class="page">
+
+    {# ── Nav links ── #}
+    <div class="nav-links">
+        <a href="/inspector/product-selection/{{ analysis.discovery_id }}" class="btn-back">← Back to Product Selection</a>
+        <a href="/inspector" class="btn-back">← Search Another Company</a>
+    </div>
+
+    {# ── Export ── #}
+    <div class="export-row">
+        <a href="/inspector/export/{{ analysis.analysis_id }}" class="btn-export">Export to Word ↓</a>
+        <span class="cache-date" title="Refresh cache" style="margin-left: 12px;">
+            Analyzed {{ analysis.analyzed_at[:10] if analysis.analyzed_at else 'N/A' }}
+        </span>
+    </div>
+
+    {% if top %}
+    {# ═══════════════════════════════════════════════════════════════
+       HERO SECTION
+       ═══════════════════════════════════════════════════════════════ #}
+    <div class="hero">
+        <div class="hero-left">
+            <select class="product-selector" id="productSelector">
+                {% for p in analysis.top_products %}
+                <option value="{{ loop.index0 }}"
+                        data-score="{{ p.fit_score.total }}"
+                        data-subcategory="{{ p.subcategory }}">
+                    {{ p.name[:40] }} — {{ p.fit_score.total }}/100
+                </option>
+                {% endfor %}
+            </select>
+            <div class="hero-verdict">
+                {% if top.verdict %}
+                <span class="verdict-badge verdict-{{ top.verdict.color }}">{{ top.verdict.label }}</span>
+                {% endif %}
+                <span class="hero-fit-acv">
+                    {{ top.verdict.fit_label if top.verdict else '' }} · {{ top.verdict.acv_label if top.verdict else '' }}
+                </span>
+            </div>
+        </div>
+
+        <div class="hero-center">
+            <div class="hero-score-label">FIT SCORE</div>
+            <div class="hero-score {{ top.fit_score.total | score_color }}">
+                {{ top.fit_score.total }}<span class="hero-score-max">/ 100</span>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <div class="hero-acv-label">ACV POTENTIAL</div>
+            <div class="hero-acv">
+                {{ top.acv_potential.acv_low | format_acv }} – {{ top.acv_potential.acv_high | format_acv }}
+            </div>
+            <div class="hero-acv-sub">
+                Across {{ analysis.total_products_discovered }} products
+                ({{ analysis.products | length }} scored)
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════
+       PILLAR CARDS — 70/30 visual split
+       ═══════════════════════════════════════════════════════════════ #}
+    <div class="split-labels">
+        <span class="split-label">PRODUCT · 70% OF FIT SCORE</span>
+        <span class="split-label">ORGANIZATION · 30% OF FIT SCORE</span>
+    </div>
+
+    <div class="pillars">
+        {# ── Product Labability (40%) ── #}
+        <div class="pillar-card">
+            <div class="pillar-header">
+                <span class="pillar-name" style="color: var(--sk-accent);">
+                    {{ top.fit_score.product_labability.name | dim_caps }}
+                </span>
+                <span class="pillar-weight">{{ top.fit_score.product_labability.weight }}% of Fit Score</span>
+            </div>
+            <div class="pillar-score-row">
+                <span class="pillar-score {{ top.fit_score.product_labability.score | score_color }}">
+                    {{ top.fit_score.product_labability.score }}<span class="pillar-score-max">/100</span>
+                </span>
+            </div>
+            {% for dim in top.fit_score.product_labability.dimensions %}
+            <div class="dim-row">
+                <span class="dim-name">{{ dim.name | dim_caps }}</span>
+                <div class="dim-score-bar">
+                    <span class="dim-score-val {{ dim.score | score_color }}">{{ dim.score }}</span>
+                    <div class="dim-bar">
+                        <div class="score-bar">
+                            <div class="score-bar-fill" style="width: {{ (dim.score / dim.weight * 100) | int }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if dim.badges %}
+            <div class="dim-badges">
+                {% for badge in dim.badges %}
+                <span class="dim-badge {{ badge.color | badge_color_class }}"
+                      data-badge-name="{{ badge.name }}"
+                      data-badge-evidence="{{ badge.evidence[0].claim if badge.evidence else '' }}"
+                      data-badge-confidence="{{ badge.evidence[0].confidence_level if badge.evidence else '' }}"
+                      data-badge-conf-explanation="{{ badge.evidence[0].confidence_explanation if badge.evidence else '' }}"
+                      data-badge-source="{{ badge.evidence[0].source_url if badge.evidence else '' }}">
+                    {{ badge.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        {# ── Instructional Value (30%) ── #}
+        <div class="pillar-card">
+            <div class="pillar-header">
+                <span class="pillar-name" style="color: var(--sk-accent);">
+                    {{ top.fit_score.instructional_value.name | dim_caps }}
+                </span>
+                <span class="pillar-weight">{{ top.fit_score.instructional_value.weight }}% of Fit Score</span>
+            </div>
+            <div class="pillar-score-row">
+                <span class="pillar-score {{ top.fit_score.instructional_value.score | score_color }}">
+                    {{ top.fit_score.instructional_value.score }}<span class="pillar-score-max">/100</span>
+                </span>
+            </div>
+            {% for dim in top.fit_score.instructional_value.dimensions %}
+            <div class="dim-row">
+                <span class="dim-name">{{ dim.name | dim_caps }}</span>
+                <div class="dim-score-bar">
+                    <span class="dim-score-val {{ dim.score | score_color }}">{{ dim.score }}</span>
+                    <div class="dim-bar">
+                        <div class="score-bar">
+                            <div class="score-bar-fill" style="width: {{ (dim.score / dim.weight * 100) | int }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if dim.badges %}
+            <div class="dim-badges">
+                {% for badge in dim.badges %}
+                <span class="dim-badge {{ badge.color | badge_color_class }}"
+                      data-badge-name="{{ badge.name }}"
+                      data-badge-evidence="{{ badge.evidence[0].claim if badge.evidence else '' }}"
+                      data-badge-confidence="{{ badge.evidence[0].confidence_level if badge.evidence else '' }}"
+                      data-badge-conf-explanation="{{ badge.evidence[0].confidence_explanation if badge.evidence else '' }}"
+                      data-badge-source="{{ badge.evidence[0].source_url if badge.evidence else '' }}">
+                    {{ badge.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        {# ── Customer Fit (30%) — slightly different background ── #}
+        <div class="pillar-card pillar-org">
+            <div class="pillar-header">
+                <span class="pillar-name" style="color: var(--sk-accent);">
+                    {{ top.fit_score.customer_fit.name | dim_caps }}
+                </span>
+                <span class="pillar-weight">{{ top.fit_score.customer_fit.weight }}% of Fit Score</span>
+            </div>
+            <div class="pillar-score-row">
+                <span class="pillar-score {{ top.fit_score.customer_fit.score | score_color }}">
+                    {{ top.fit_score.customer_fit.score }}<span class="pillar-score-max">/100</span>
+                </span>
+            </div>
+            {% for dim in top.fit_score.customer_fit.dimensions %}
+            <div class="dim-row">
+                <span class="dim-name">{{ dim.name | dim_caps }}</span>
+                <div class="dim-score-bar">
+                    <span class="dim-score-val {{ dim.score | score_color }}">{{ dim.score }}</span>
+                    <div class="dim-bar">
+                        <div class="score-bar">
+                            <div class="score-bar-fill" style="width: {{ (dim.score / dim.weight * 100) | int }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if dim.badges %}
+            <div class="dim-badges">
+                {% for badge in dim.badges %}
+                <span class="dim-badge {{ badge.color | badge_color_class }}"
+                      data-badge-name="{{ badge.name }}"
+                      data-badge-evidence="{{ badge.evidence[0].claim if badge.evidence else '' }}"
+                      data-badge-confidence="{{ badge.evidence[0].confidence_level if badge.evidence else '' }}"
+                      data-badge-conf-explanation="{{ badge.evidence[0].confidence_explanation if badge.evidence else '' }}"
+                      data-badge-source="{{ badge.evidence[0].source_url if badge.evidence else '' }}">
+                    {{ badge.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════
+       SELLER BRIEFCASE
+       ═══════════════════════════════════════════════════════════════ #}
+    {% if analysis.briefcase %}
+    <div class="briefcase">
+        <div class="briefcase-section">
+            <div class="briefcase-header">
+                <span class="briefcase-title">Key Technical Questions</span>
+                <span class="briefcase-pillar">Product Labability</span>
+            </div>
+            <ul class="briefcase-bullets">
+                {% for bullet in analysis.briefcase.key_technical_questions.bullets %}
+                <li>{{ bullet }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="briefcase-section">
+            <div class="briefcase-header">
+                <span class="briefcase-title">Conversation Starters</span>
+                <span class="briefcase-pillar">Instructional Value</span>
+            </div>
+            <ul class="briefcase-bullets">
+                {% for bullet in analysis.briefcase.conversation_starters.bullets %}
+                <li>{{ bullet }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="briefcase-section">
+            <div class="briefcase-header">
+                <span class="briefcase-title">Account Intelligence</span>
+                <span class="briefcase-pillar">Customer Fit</span>
+            </div>
+            <ul class="briefcase-bullets">
+                {% for bullet in analysis.briefcase.account_intelligence.bullets %}
+                <li>{{ bullet }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %} {# end if top #}
+
+</div>
+
+{# ═══════════════════════════════════════════════════════════════
+   BADGE EVIDENCE HOVER — 1.5 second delay (GP3)
+   ═══════════════════════════════════════════════════════════════ #}
+<div class="badge-hover-modal" id="badgeModal">
+    <div class="badge-modal-title" id="modalTitle"></div>
+    <div class="badge-modal-evidence" id="modalEvidence"></div>
+    <div class="badge-modal-confidence" id="modalConfidence"></div>
+    <div class="badge-modal-source" id="modalSource"></div>
+</div>
+
+<script>
+(function() {
+    const modal = document.getElementById('badgeModal');
+    let hoverTimeout = null;
+
+    document.addEventListener('mouseover', function(e) {
+        const badge = e.target.closest('.dim-badge');
+        if (!badge) return;
+
+        clearTimeout(hoverTimeout);
+        hoverTimeout = setTimeout(function() {
+            const name = badge.dataset.badgeName;
+            const evidence = badge.dataset.badgeEvidence;
+            const confidence = badge.dataset.badgeConfidence;
+            const confExplanation = badge.dataset.badgeConfExplanation;
+            const source = badge.dataset.badgeSource;
+
+            if (!evidence) return;
+
+            document.getElementById('modalTitle').textContent = name;
+            document.getElementById('modalEvidence').textContent = evidence;
+            document.getElementById('modalConfidence').textContent =
+                confidence ? `${confidence} — ${confExplanation}` : '';
+            document.getElementById('modalSource').innerHTML =
+                source ? `<a href="${source}" target="_blank">${source}</a>` : '';
+
+            const rect = badge.getBoundingClientRect();
+            modal.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+            modal.style.left = Math.max(8, rect.left + window.scrollX - 40) + 'px';
+            modal.classList.add('visible');
+        }, 1500);  // 1.5 second delay per spec
+    });
+
+    document.addEventListener('mouseout', function(e) {
+        const badge = e.target.closest('.dim-badge');
+        if (badge) {
+            clearTimeout(hoverTimeout);
+            modal.classList.remove('visible');
+        }
+    });
+})();
+</script>
+
+</body>
+</html>
