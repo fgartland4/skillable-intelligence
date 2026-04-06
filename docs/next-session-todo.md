@@ -4,6 +4,57 @@ Best current thinking on what's queued. Reorder freely.
 
 ---
 
+## HIGH PRIORITY — ACV by Use Case widget (rebuild from POC)
+
+**Frank's framing (2026-04-06):** "The ACV Potential 'by use case' view that was in the POC. Rows and columns. Listed the major use cases on a row, then a column for total possible audience, etc. This was the very top thing shown in the Product Detail cards at the very bottom of the Dossier pages. CRITICAL ACV Widget."
+
+**Where it lived in the POC:** `tools/inspector/templates/_legacy_dossier.html` lines ~611–655. Class names: `.consumption-block`, `.consumption-table`. Reads from `product.consumption_potential`.
+
+**Data shape (still in every cached analysis):**
+```
+product.consumption_potential = {
+  motions: [
+    {
+      label: "Partner Training Channel" | "Events" | "Certification PBT" | ...,
+      population_low: int,
+      population_high: int,
+      adoption_pct: float,        // e.g. 0.15 for 15%
+      hours_low: float,           // hours per learner
+      hours_high: float,
+    },
+    ...
+  ],
+  vm_rate_estimate: float,         // $/hour
+  annual_hours_low: float,
+  annual_hours_high: float,
+  methodology_note: string,
+}
+```
+
+**Layout (rows × columns):**
+| Motion | Population | Adoption | Hrs / Learner | Est. Hours / Yr |
+|---|---|---|---|---|
+| Partner Training Channel | 2,500–4,000 | 15% | 4–8h | 1,500–4,800 |
+| Events (Conferences) | 8,000–12,000 | 8% | 2–4h | 1,280–3,840 |
+| Certification PBT | 500–1,200 | 60% | 1–2h | 300–1,440 |
+| ... | ... | ... | ... | ... |
+| **Annual Potential** (total row, spans 4 cols) | | | | **$X,XXX – $Y,YYY** |
+
+The dollar range in the total row = `(annual_hours_low × vm_rate_estimate) – (annual_hours_high × vm_rate_estimate)`. Methodology note rendered below the table in muted text.
+
+**Where it goes on the new page:** Inside `bottom-row-org` — the empty placeholder reserved tonight. Right column under Account Intelligence. The placeholder div `<div class="acv-widget-placeholder"></div>` is the insertion point.
+
+**Build steps:**
+1. New partial: `tools/inspector/templates/_acv_use_case_widget.html` — themed via CSS variables, takes `selected_product` as input.
+2. Replace the placeholder div in `full_analysis.html` with `{% include '_acv_use_case_widget.html' %}`.
+3. Wire it into the in-place product swap endpoint so switching products in the dropdown updates the widget alongside hero/pillars/briefcase. New return field: `acv_widget_html`.
+4. Verify the data shape is still being emitted by the scorer (it was in the POC; check the new prompt template). If missing, add it back to the scoring prompt.
+5. Optional: tie in with the next-session task "Move ACV math out of AI call into deterministic Python" — once that lands, the widget reads from Python-computed motion data instead of AI-emitted data, with the same shape.
+
+**Why this is critical (Frank's words):** This is how sellers and SEs see *where the deal lives* — which use case is the volume driver, which one to talk to the customer about first, what the realistic upper bound looks like. Without it, the ACV number on the hero is a single opaque range with no story behind it.
+
+---
+
 ## HIGH PRIORITY — Scoring data quality bugs (found 2026-04-06 Diligent test)
 
 ### Bug 1 — Badge/evidence cross-wiring

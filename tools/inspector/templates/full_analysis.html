@@ -76,6 +76,24 @@ const INFO_MODAL_CONTENT = {
         body: 'We look for <em>concrete</em> training signals — a published certification, a named ATP program, an on-demand training catalog, partner delivery networks. Stated intent without execution scores low. We weight existing training infrastructure heavily because it means the company already understands the value of training and has the org muscle to buy it. Like Instructional Value, Customer Fit contributes through the Technical Fit Multiplier — the strongest training story in the world doesn\'t close a deal if the underlying product can\'t actually be lab-delivered.'
       }
     ]
+  },
+  acv_use_case: {
+    eyebrow: 'WIDGET · DEAL STORY BY MOTION',
+    title: 'ACV by Use Case',
+    sections: [
+      {
+        label: 'Why this matters',
+        body: 'A single ACV range hides the real story. <strong>Where does the deal actually live?</strong> Is it driven by partner channel training? Annual conference events? Certification PBT? Internal employee enablement? The use cases that make up the total are not interchangeable — sellers need to know which motion to talk to the customer about first, which one is the volume driver, and which one is the long-tail upside. This widget gives you that breakdown at a glance.'
+      },
+      {
+        label: 'What we measure',
+        body: 'For each use case (motion) we capture: <strong>Audience</strong> — the realistic population of learners who could consume labs through this motion. <strong>Adoption %</strong> — the percentage of that audience we expect to actually engage in any given year. <strong>Hours per Learner</strong> — how many hands-on hours one engaged learner consumes. <em>Estimated Hours / Year</em> per row is the product: <em>Audience × Adoption × Hours</em>. The total row sums every motion and converts to a dollar range using the platform\'s realized rate.'
+      },
+      {
+        label: 'How we score it',
+        body: 'Each motion is sized from concrete signals discovered during research — partner program size, conference attendance, certification volume, employee count, customer base. Conservative on the low end, ambitious on the high end. <em>Adoption percentages reflect realistic engagement</em>, not theoretical reach — we don\'t assume every employee in a 100,000-person company is a target lab learner. The total row should match the ACV Potential range shown in the hero. If a row looks wrong, the underlying audience or adoption assumption needs adjustment, not the widget itself.'
+      }
+    ]
   }
 };
 
@@ -325,10 +343,66 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .bottom-row-product > .products-section { flex: 1; min-width: 0; margin-top: 0; }
 .bottom-row-product > .competitive-section { flex: 1; min-width: 0; margin-top: 0; }
 .bottom-row-org { flex: 3; min-width: 0; }
-.acv-widget-placeholder {
-    /* Empty reserved zone for the ACV by Use Case widget. Render nothing
-       visible until the widget lands. */
-    min-height: 1px;
+
+/* ── ACV by Use Case widget ──
+   Rebuilt from the legacy dossier consumption table. Reads from
+   selected_product.acv_potential. Sits under Account Intelligence so
+   the org-side column tells a complete story: who they are
+   (Account Intelligence) + what the deal is worth by motion (ACV widget). */
+.acv-widget {
+    background: var(--sk-bg-card-org-soft);
+    border: 1px solid var(--sk-border-card-org);
+    border-top: 2px solid var(--sk-classify-purple-light);
+    border-radius: 0 0 8px 8px;
+    padding: 12px 14px 14px 14px;
+}
+.acv-widget-header {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 10px;
+}
+.acv-widget-title {
+    font-size: 0.65rem; letter-spacing: 1.5px;
+    color: var(--sk-classify-purple-light);
+    text-transform: uppercase; font-weight: 600;
+}
+.acv-table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+.acv-table thead th {
+    text-align: left; padding: 4px 4px 6px;
+    color: var(--sk-text-muted); font-weight: 600;
+    text-transform: uppercase; font-size: 0.55rem;
+    letter-spacing: 0.5px; border-bottom: 1px solid var(--sk-border-card-org);
+    white-space: nowrap;
+}
+.acv-table thead th.acv-num { text-align: right; }
+.acv-table tbody td {
+    padding: 5px 4px;
+    color: var(--sk-text-body);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: top;
+}
+.acv-table tbody td.acv-num { text-align: right; white-space: nowrap; }
+.acv-table .acv-motion {
+    font-weight: 500; color: var(--sk-text);
+    overflow: hidden; text-overflow: ellipsis;
+    max-width: 0; /* with table-layout auto + ellipsis below */
+}
+.acv-total-row td {
+    padding-top: 8px; font-weight: 700;
+    color: var(--sk-text); border-top: 1px solid var(--sk-border-card-org);
+    border-bottom: none;
+}
+.acv-total-row td.acv-num { color: var(--sk-score-high); }
+.acv-total-row.acv-total-label td:first-child {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--sk-text-muted); font-weight: 600;
+}
+.acv-methodology {
+    font-size: 0.62rem; color: var(--sk-text-muted);
+    font-style: italic; margin-top: 8px; line-height: 1.4;
+}
+.acv-empty {
+    font-size: 0.7rem; color: var(--sk-text-muted);
+    font-style: italic; padding: 16px 4px; text-align: center;
 }
 
 /* Product list at bottom */
@@ -599,11 +673,59 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 
   </div>
 
-  <!-- ORG ZONE: reserved for the ACV by Use Case widget (next session).
-       Empty placeholder keeps the column width allocated so the product
-       zone above stays the same width as the briefcase product zone. -->
+  <!-- ORG ZONE: ACV by Use Case widget. Sits under Account Intelligence
+       so the org-side column tells a complete deal story. -->
   <div class="bottom-row-org">
-    <div class="acv-widget-placeholder"></div>
+    {% set acv = top.acv_potential %}
+    <div class="acv-widget">
+      <div class="acv-widget-header">
+        <span class="acv-widget-title">{{ top.name | upper }} ACV by Use Case</span>
+        <span class="info-icon" onclick="openInfoModal('acv_use_case')" title="What is ACV by Use Case?">?</span>
+      </div>
+      {% if acv and acv.motions %}
+      <table class="acv-table">
+        <thead>
+          <tr>
+            <th>Use Case</th>
+            <th class="acv-num">Audience</th>
+            <th class="acv-num">Adopt</th>
+            <th class="acv-num">Hrs</th>
+            <th class="acv-num">Hrs / Yr</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in acv.motions %}
+          {% set audience_low = m.population_low or 0 %}
+          {% set audience_high = m.population_high or 0 %}
+          {% set adopt = m.adoption_pct or 0 %}
+          {% set hours_low = m.hours_low or 0 %}
+          {% set hours_high = m.hours_high or 0 %}
+          {% set hrs_yr_low = (audience_low * adopt * hours_low) | round | int %}
+          {% set hrs_yr_high = (audience_high * adopt * hours_high) | round | int %}
+          <tr>
+            <td class="acv-motion" title="{{ m.label }}">{{ m.label }}</td>
+            <td class="acv-num">{{ "{:,.0f}".format(audience_low) }}–{{ "{:,.0f}".format(audience_high) }}</td>
+            <td class="acv-num">{{ (adopt * 100) | round | int }}%</td>
+            <td class="acv-num">{{ hours_low | int }}–{{ hours_high | int }}</td>
+            <td class="acv-num">{{ "{:,.0f}".format(hrs_yr_low) }}–{{ "{:,.0f}".format(hrs_yr_high) }}</td>
+          </tr>
+          {% endfor %}
+          <tr class="acv-total-row acv-total-label">
+            <td colspan="4">Annual Hours</td>
+            <td class="acv-num">{{ "{:,.0f}".format(acv.annual_hours_low or 0) }}–{{ "{:,.0f}".format(acv.annual_hours_high or 0) }}</td>
+          </tr>
+          {% if (acv.acv_low or 0) > 0 or (acv.acv_high or 0) > 0 %}
+          <tr class="acv-total-row acv-total-label">
+            <td colspan="4">Annual Potential</td>
+            <td class="acv-num">{{ acv.acv_low | format_acv }} – {{ acv.acv_high | format_acv }}</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="acv-empty">No use case breakdown available for this product yet.</div>
+      {% endif %}
+    </div>
   </div>
 
 </div>
