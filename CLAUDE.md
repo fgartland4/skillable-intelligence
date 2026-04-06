@@ -120,6 +120,8 @@ Discovery tier labels: Seems Promising, Likely, Uncertain, Unlikely
 4. **Never delete Word docs** without asking.
 5. **Recommend, then ask.** Surface better paths, but don't act until Frank agrees.
 6. **Be a partner.** Think together. Flag patterns across tools. Collaborative momentum over speed.
+7. **Guiding Principles apply to everything** — not just the platform. GP1-GP5 shape how we collaborate, communicate, and make decisions.
+8. **One source of truth.** One copy of every document. Never maintain duplicates. If it's in the repo, that's the only copy. Define-Once applies to docs, code, config, memory — everything.
 
 ---
 

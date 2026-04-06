@@ -61,6 +61,7 @@ SKIP_PATHS = [
     "docs/intelligence-platform.md",        # legacy doc
     "docs/Designer-Session-Prep.md",        # references legacy terms when identifying conflicts
     "docs/Test-Plan.md",                    # test descriptions reference legacy terms as examples of what to reject
+    "backend/tests/",                       # test code legitimately references legacy terms to verify they're NOT used
     ".git/",
     "__pycache__/",
     "node_modules/",

@@ -10,10 +10,10 @@ import sys
 
 message = {
     "systemMessage": (
-        "⚠️ SESSION ENDING — Before this session closes:\n"
+        "SESSION ENDING — Before this session closes:\n"
         "1. Have all decisions made today been written to memory/decision-log.md?\n"
-        "2. Have any new badge names or scoring rules been added to Badging-Framework-Core.md?\n"
-        "3. Does product_scoring.txt still match Badging-Framework-Core.md?\n"
+        "2. Have any changes been made to docs/Badging-and-Scoring-Reference.md or docs/Platform-Foundation.md?\n"
+        "3. Is scoring_config.py consistent with the Badging and Scoring Reference?\n"
         "If any decisions were made and not yet logged, write them now."
     )
 }
