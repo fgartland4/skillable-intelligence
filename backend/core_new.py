@@ -237,12 +237,15 @@ def company_classification_label(org_type: str, products: list[Product]) -> str:
 
     # Software companies — derive from product categories
     if products:
-        categories = set(p.category for p in products if p.category)
+        # Exclude Training & Certification from category count
+        categories = set(p.category for p in products
+                        if p.category and p.category != "Training & Certification")
         if len(categories) >= 3:
             return "ENTERPRISE SOFTWARE"
-        elif len(categories) == 1:
-            return f"{next(iter(categories)).upper()} SOFTWARE"
         elif len(categories) == 2:
+            cats = sorted(categories)
+            return f"{cats[0].upper()} & {cats[1].upper()} SOFTWARE"
+        elif len(categories) == 1:
             return f"{next(iter(categories)).upper()} SOFTWARE"
 
     return "SOFTWARE"

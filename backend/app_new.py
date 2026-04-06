@@ -190,9 +190,12 @@ def inspector_product_selection(discovery_id: str):
         p["_tier"] = discovery_tier(score_val)
         p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
 
-    # Company classification
+    # Company classification — pass products so category can be derived
+    from models_new import Product
+    product_objs = [Product(name=p.get("name", ""), category=p.get("category", ""))
+                    for p in disc.get("products", [])]
     disc["_company_badge"] = company_classification_label(
-        disc.get("organization_type", "software_company"), []
+        disc.get("organization_type", "software_company"), product_objs
     )
     disc["_org_color"] = org_badge_color_group(
         disc.get("organization_type", "software_company")
@@ -267,6 +270,37 @@ def inspector_full_analysis(analysis_id: str):
     analysis = load_analysis(analysis_id)
     if not analysis:
         return error_response("Analysis not found.", 404)
+
+    # Storage returns a dict — sort products by fit_score for the template
+    products = analysis.get("products", [])
+    for p in products:
+        # Compute fit_score total from pillar scores if not already set
+        ps = p.get("fit_score", {})
+        if isinstance(ps, dict):
+            pillars = ps.get("pillars", [ps.get("product_labability", {}),
+                                          ps.get("instructional_value", {}),
+                                          ps.get("customer_fit", {})])
+            # Calculate total if not present
+            if "total" not in ps:
+                total = 0
+                for pillar in [ps.get("product_labability", {}),
+                               ps.get("instructional_value", {}),
+                               ps.get("customer_fit", {})]:
+                    if isinstance(pillar, dict):
+                        pillar_score = pillar.get("score", 0)
+                        pillar_weight = pillar.get("weight", 0)
+                        total += pillar_score * (pillar_weight / 100)
+                ps["_total"] = round(total)
+            else:
+                ps["_total"] = ps["total"]
+        else:
+            ps = {"_total": 0}
+            p["fit_score"] = ps
+
+    # Sort by score descending
+    products.sort(key=lambda p: p.get("fit_score", {}).get("_total", 0), reverse=True)
+    analysis["top_products"] = products
+    analysis["products"] = products
 
     return render_template("full_analysis.html",
                           analysis=analysis)
