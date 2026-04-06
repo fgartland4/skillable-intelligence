@@ -39,7 +39,7 @@ from datetime import datetime, timezone, timedelta
 
 log = logging.getLogger(__name__)
 
-from researcher import discover_products, research_products
+from researcher_new import discover_products, research_products, research_company_fit, scrape_product_families
 from scorer_new import discover_products_with_claude, score_selected_products, generate_briefcase, _call_claude
 from storage_new import (
     save_analysis, load_analysis,
@@ -112,7 +112,7 @@ def discover(company_name: str, known_products: list[str] | None = None,
     log.info("Intelligence.discover: running research for %s", company_name)
 
     from concurrent.futures import ThreadPoolExecutor
-    from researcher import scrape_product_families
+    from researcher_new import scrape_product_families
     with ThreadPoolExecutor(max_workers=2) as pool:
         family_future = pool.submit(scrape_product_families, company_name)
         findings = discover_products(company_name, known_products)
