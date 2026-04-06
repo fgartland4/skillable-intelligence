@@ -207,6 +207,19 @@ def _format_badge_naming_principles() -> str:
         "- Qualifier labels (Strength, Opportunity, Risk, Blocker, Context) are appended after a pipe: `Badge Name | Qualifier`",
         "- Never create new badge names — if a signal does not match a canonical badge, use the closest match",
         "- Variable-driven badges include context after the qualifier (e.g., `Partner Ecosystem | Strength: ~500 ATPs`)",
+        "",
+        "**UNIVERSAL DISAMBIGUATION RULE — read carefully**",
+        "",
+        "When you have **more than one badge to emit for the same canonical name**, you must give every badge a unique name. Never emit the same canonical badge twice in one dimension.",
+        "",
+        "- **First occurrence**: keep the canonical badge name as-is (e.g., `Runs in Hyper-V`).",
+        "- **Subsequent occurrences**: rename them using a more specific variable from the dimension's vocabulary, in this priority order:",
+        "  1. **PREFERRED — pick a matching scoring signal name** from the dimension's `Scoring Signals` list (e.g., `Hyper-V: Standard`, `Hyper-V: CLI Scripting`, `Azure Cloud Slice: Entra ID SSO`). These names carry real point values and lift the score appropriately.",
+        "  2. **FALLBACK — derive a specific label** from the qualifier and the actual finding (e.g., `Install Complexity`, `Multi-VM Topology`, `License Friction`). These don't lift the score but they prevent visual duplicates and make the evidence specific.",
+        "",
+        "**Why this matters**: the math layer credits scoring-signal names with real point values (e.g., `Hyper-V: Standard` = +30 in Provisioning) and falls back to color points for everything else. When you have a clean Hyper-V install at standard quality, you should emit `Runs in Hyper-V` AS THE FIRST BADGE plus `Hyper-V: Standard` AS A SECOND BADGE — that gives the user the friendly chip AND credits the +30 signal value.",
+        "",
+        "**Each dimension's scoring signals are listed in the dimension section below** under `Scoring Signals`. Use the EXACT signal name from that list when emitting a second badge. If no signal matches your finding, use the qualifier-derived fallback.",
     ])
 
 
@@ -362,16 +375,44 @@ def _format_locked_vocabulary() -> str:
 
 
 def _format_canonical_badge_names() -> str:
-    """Bullet list of all canonical badge names."""
-    names = cfg.get_all_badge_names()
-    # Deduplicate while preserving order
-    seen: set[str] = set()
-    unique: list[str] = []
-    for n in names:
-        if n not in seen:
-            seen.add(n)
-            unique.append(n)
-    return "\n".join(f"- {name}" for name in unique)
+    """Two grouped lists of allowed badge names per dimension:
+
+    - **Canonical badges** — visual chip vocabulary (e.g., `Runs in Hyper-V`).
+      The AI should always use one of these as the FIRST badge for any given
+      finding to keep the UI consistent.
+    - **Scoring signals** — point-bearing names that map to a specific
+      quality/intensity within a dimension (e.g., `Hyper-V: Standard` = +30).
+      The AI should emit a SECOND badge using one of these whenever there's
+      specific quality nuance to capture for scoring.
+
+    Grouping per-dimension makes it obvious which signals belong to which
+    canonical badge, and the AI can pair them naturally.
+    """
+    sections: list[str] = []
+    seen_badges: set[str] = set()
+    seen_signals: set[str] = set()
+
+    for pillar in cfg.PILLARS:
+        for dim in pillar.dimensions:
+            badge_names = [b.name for b in dim.badges if b.name not in seen_badges]
+            signal_names = [s.name for s in dim.scoring_signals if s.name not in seen_signals]
+            if not badge_names and not signal_names:
+                continue
+            section = [f"#### {dim.name}"]
+            if badge_names:
+                section.append("Canonical badges (use as the FIRST badge):")
+                for n in badge_names:
+                    section.append(f"- {n}")
+                    seen_badges.add(n)
+            if signal_names:
+                section.append("")
+                section.append("Scoring signals (use as a SECOND badge for nuance):")
+                for n in signal_names:
+                    section.append(f"- {n}")
+                    seen_signals.add(n)
+            sections.append("\n".join(section))
+
+    return "\n\n".join(sections)
 
 
 def _format_output_json_template() -> str:

@@ -523,12 +523,27 @@ def _normalize_badges_for_display(p: dict) -> None:
     written into the product dict — these mutations cannot retroactively
     change them.
 
-    Currently does one thing: merge same-named badges within a dimension
-    so the user doesn't see "Runs in Hyper-V" twice. The merger combines
-    all evidence items into one badge and promotes the color to the worst
-    of the group (red > amber > green > gray) so risks aren't hidden by
-    an adjacent positive signal. The hover modal still shows every
-    evidence item, so no information is lost.
+    **Defensive safety net for the universal variable-badge rule.**
+
+    The scoring prompt now tells the AI to disambiguate same-name badges
+    at the source — first occurrence keeps the canonical name, subsequent
+    occurrences are renamed to a scoring signal name (preferred) or a
+    qualifier-derived label (fallback). When the AI complies, this
+    function has nothing to do because every badge in a dimension is
+    already uniquely named.
+
+    But two cases still produce duplicates:
+      1. **Legacy cached analyses** scored before the prompt change.
+         These still have raw duplicate-name badges from the old AI
+         output. The merger collapses them so old pages render cleanly.
+      2. **AI non-compliance** — the AI occasionally still emits
+         duplicates despite the prompt instruction. The merger is the
+         backstop.
+
+    Merge behavior: combine all evidence items into one badge and promote
+    the color to the worst of the group (red > amber > green > gray) so
+    risks aren't hidden by an adjacent positive signal. The hover modal
+    still shows every evidence item, so no information is lost.
 
     The math layer in Phase 1 has already been called against the
     pre-merge badge list, so dropping the count or changing colors here

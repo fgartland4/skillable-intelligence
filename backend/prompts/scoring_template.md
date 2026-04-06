@@ -278,10 +278,13 @@ Return ONLY valid JSON — a single product object:
 
 {LOCKED_VOCABULARY}
 
-### Canonical Badge Names
+### Canonical Badge Names — Two Vocabularies Per Dimension
 
-You MUST use ONLY the exact badge names below. No other badge names are permitted. Any name not on this list will break rendering, routing, and reporting.
+You MUST use ONLY the exact names below. Each dimension has TWO grouped lists:
+
+1. **Canonical badges** — friendly visual chip names. Always pick one of these for the FIRST badge you emit for any finding.
+2. **Scoring signals** — point-bearing names that capture quality/intensity nuance. Whenever you have specific quality to express beyond the base badge (e.g., "Standard install" vs "CLI Scripting" vs "Full Lifecycle API"), emit a SECOND badge using the matching signal name from this dimension's list. Per the **Universal Disambiguation Rule** in the Badge Naming Principles section above, never emit the same canonical badge twice in one dimension — disambiguate the second occurrence with a signal name.
+
+If your finding doesn't match any signal exactly, use the closest signal that fits. If no signal fits at all, fall back to a qualifier-derived label as described in the disambiguation rule.
 
 {CANONICAL_BADGE_NAMES}
-
-When a signal doesn't match any canonical name exactly, use the closest match from this list. Do not create new labels.

@@ -480,24 +480,24 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 }
 .run-report-form { display: inline; }
 .run-report-link {
-    /* Plain text link — no box, no border, no fixed width. The link
-       sits at the right edge of its column (justify-self: end on the
-       parent .competitive-action) and its width is whatever the
-       company name needs. */
+    /* Plain text link — same color treatment as .pt-name-link in the
+       Scored Products table so the two lists read as the same kind
+       of element. No box, no border, no fixed width. */
     display: inline;
     background: transparent;
     border: none;
     padding: 0;
     cursor: pointer;
-    font-size: 0.74rem; color: var(--sk-link-slate); font-family: inherit;
+    font-size: 0.74rem; color: var(--sk-text-body); font-family: inherit;
     font-weight: 500;
     text-decoration: none;
     white-space: nowrap;
-    transition: color 0.15s;
+    transition: color 0.15s, text-decoration-color 0.15s;
 }
 .run-report-link:hover {
     color: var(--sk-score-high);
     text-decoration: underline;
+    text-decoration-color: var(--sk-score-high);
 }
 .pt-name { min-width: 280px; font-size: 0.75rem; color: var(--sk-text-body); padding: 8px 16px 8px 0; }
 .pt-sub { min-width: 180px; padding: 8px 12px 8px 0; }

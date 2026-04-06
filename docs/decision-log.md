@@ -4,6 +4,26 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-06 — Universal variable-badge rule
+
+### One rule, two vocabularies, applied universally
+- **DECIDED:** When a finding warrants multiple badges in the same dimension, every badge gets a unique name. Never emit the same canonical badge twice.
+  - **First occurrence:** keep the canonical badge name (e.g., `Runs in Hyper-V`).
+  - **Subsequent occurrences:** rename using a more specific variable, in priority order:
+    1. **PREFERRED** — pick the matching scoring signal name from the dimension's `scoring_signals` list (e.g., `Hyper-V: Standard`, `Hyper-V: CLI Scripting`, `Azure Cloud Slice: Entra ID SSO`). These names carry real point values via `signal_lookup` in the scoring math layer.
+    2. **FALLBACK** — derive a qualifier-specific label from the evidence (e.g., `Install Complexity`, `Multi-VM Topology`). These don't lift the score but they prevent visual duplicates and make the evidence specific.
+- **Why this is universal:** It solves two problems at once with one architectural rule.
+  - **Visual problem:** No more duplicate badge names rendering twice with different colors. Each row shows distinct, specific labels.
+  - **Scoring problem:** Closes the badge-vocabulary-vs-scoring-signal disconnect. The math layer credits scoring-signal names with their real point values (e.g., `Hyper-V: Standard` = +30) instead of falling back to color points (+6 for green). Affected products: every installable VM/cloud product that previously underscored.
+- **Architectural shape:**
+  - **Prompt** is the source of truth (`backend/prompts/scoring_template.md` + `prompt_generator._format_badge_naming_principles()` + `_format_canonical_badge_names()`).
+  - **Math layer** needs zero changes — it already credits any name that matches `signal_lookup` and falls back to color points otherwise.
+  - **Display normalizer** (`_normalize_badges_for_display`) keeps the same-name merge logic as a defensive safety net for legacy cached analyses + occasional AI non-compliance, but the AI is now responsible for disambiguating at the source.
+- **Test plan:** Re-run a fresh discovery + score on SOTI ONE Platform after the prompt change lands. Expect Provisioning to jump from ~6 to ~30+ (Hyper-V: Standard signal credit). Then validate against Cohesity, Tanium, Diligent for regressions. None of those should drop in score — only installable products with a viable scoring signal should gain.
+- **Frank's framing (verbatim):** "Wouldn't this be a better idea? If there's two for any badge... instead of showing it twice, you show it once. And then you do a nice variable driven badge for the second one that really kinda points out the good thing or the bad thing... it's really the visual is the problem. Let's just for the second one, if there's more than one, then do a variable on the problem."
+
+---
+
 ## Session: 2026-04-06 — ACV tier thresholds locked
 
 ### ACV tier dollar thresholds
