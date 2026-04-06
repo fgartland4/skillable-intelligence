@@ -458,18 +458,19 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .competitive-row:last-child { border-bottom: none; }
 .competitive-top {
     display: grid;
-    /* New order: Product name (slate blue) | Subcategory badge | Run button.
-       Run button is right-aligned to the box edge with a small padding gap.
-       Product name column gets more room (truncates at 32 chars instead of
-       22) so longer product names read better. */
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    /* Three columns:
+       1. Product name (slate blue) — fixed width so the Subcategory column
+          always starts at the same x-position from row to row.
+       2. Subcategory badge — left-aligned in its own column, consistent
+          spacing from the product name regardless of truncation.
+       3. Run link — right-aligned to the box edge (no button box now). */
+    grid-template-columns: 210px auto 1fr;
     align-items: center;
-    column-gap: 12px;
+    column-gap: 14px;
 }
 .competitive-name {
     font-size: 0.82rem; font-weight: 600; color: var(--sk-link-slate);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    padding-right: 4px;
 }
 .competitive-sub { text-align: left; }
 .competitive-action {
@@ -479,24 +480,24 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 }
 .run-report-form { display: inline; }
 .run-report-link {
-    display: inline-block;
-    /* Fixed width so every run button is uniform regardless of company
-       name length. Narrower than the prior 196px (label is now "Run X"
-       not "Search X" and Frank wanted ~5 fewer chars before truncation). */
-    width: 150px;
-    text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    /* Plain text link — no box, no border, no fixed width. The link
+       sits at the right edge of its column (justify-self: end on the
+       parent .competitive-action) and its width is whatever the
+       company name needs. */
+    display: inline;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.74rem; color: var(--sk-link-slate); font-family: inherit;
+    font-weight: 500;
+    text-decoration: none;
     white-space: nowrap;
-    font-size: 0.7rem; color: var(--sk-text-muted); background: transparent;
-    border: 1px solid var(--sk-badge-gray-bdr); border-radius: 4px;
-    padding: 4px 10px; cursor: pointer;
-    text-decoration: none; font-family: inherit; font-weight: 500;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    transition: color 0.15s;
 }
 .run-report-link:hover {
-    color: var(--sk-text); border-color: var(--sk-text-dim);
-    background: rgba(255,255,255,0.04);
+    color: var(--sk-score-high);
+    text-decoration: underline;
 }
 .pt-name { min-width: 280px; font-size: 0.75rem; color: var(--sk-text-body); padding: 8px 16px 8px 0; }
 .pt-sub { min-width: 180px; padding: 8px 12px 8px 0; }
