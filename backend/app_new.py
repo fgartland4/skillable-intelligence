@@ -401,27 +401,30 @@ def score_status(job_id: str):
 _EVIDENCE_LABEL_RE = re.compile(r'^\*\*([^*|]+?)\s*\|\s*([^*]+?):\*\*\s*')
 
 
-def _normalize_product_badges(p: dict) -> None:
-    """Render-time fix for two scorer data quality bugs.
+def _normalize_badges_for_scoring(p: dict) -> None:
+    """Phase 1 of badge normalization — runs BEFORE the scoring math.
+
+    Decision-log principle (2026-04-06): visual changes must NEVER affect
+    scoring. This function does ONLY the transforms that legitimately
+    change what the math sees:
 
     Bug 1 — The AI groups multiple distinct signals under one umbrella badge.
     Each evidence item starts with its own `**Label | Qualifier:**` prefix
-    that names the actual signal. Hovering shows wrong evidence under wrong
-    badge name. Fix: when a badge's evidence items each carry an embedded
-    label, split into N badges — one per evidence — using the embedded label
-    as the new badge name and the embedded qualifier as the new badge
-    qualifier. The prefix is stripped from the claim text since the badge
-    name now carries it.
+    that names the actual signal. Fix: when a badge's evidence items each
+    carry an embedded label, split into N badges — one per evidence —
+    using the embedded label as the new badge name and the embedded
+    qualifier as the new badge qualifier. The prefix is stripped from the
+    claim text since the badge name now carries it.
 
-    Bug 2 — The "No Learner Isolation" badge is sometimes missing on products
-    where it should always appear (multi_tenant_only or saas_only ceiling
-    flags set). Fix: after splitting, ensure the badge exists in the Lab
-    Access dimension when the relevant ceiling flag is present. Use whatever
-    evidence the AI provided about isolation if available; otherwise inject
-    a deterministic claim derived from the deployment model.
+    Bug 2 — The "No Learner Isolation" badge is sometimes missing on
+    products where it should always appear (multi_tenant_only or saas_only
+    ceiling flags set). Fix: ensure the badge exists in the Lab Access
+    dimension when the relevant ceiling flag is present. This is a
+    deterministic injection from the deployment model.
 
-    Mutates the product dict in place. Must run BEFORE scoring math so the
-    math sees the corrected badge structure.
+    Mutates the product dict in place. Display-only transforms (merging
+    same-named badges, color promotion) live in
+    _normalize_badges_for_display() and run AFTER the math.
     """
     fs = p.get("fit_score")
     if not isinstance(fs, dict):
@@ -476,46 +479,11 @@ def _normalize_product_badges(p: dict) -> None:
                     # Mixed or no labels — leave the badge alone
                     new_badges.append(b)
 
-            # ── Merge same-named badges within this dimension ──
-            # The splitter above can produce multiple badges with the same
-            # name when the AI emitted two separate parent badges whose
-            # evidence items happen to share the same embedded label
-            # (e.g., two evidence items both prefixed "**Runs in Hyper-V |
-            # ...**"). Without merging, the user sees the same badge name
-            # twice with different colors. Combine them: one badge per
-            # unique name, evidence lists merged, color = the most
-            # attention-grabbing of the group so risks aren't hidden by
-            # an adjacent positive signal.
-            color_priority = {"red": 4, "amber": 3, "green": 2, "gray": 1, "": 0}
-            merged_by_name: dict[str, dict] = {}
-            ordered_names: list[str] = []
-            for b in new_badges:
-                if not isinstance(b, dict):
-                    continue
-                name = (b.get("name") or "").strip()
-                if not name:
-                    continue
-                if name not in merged_by_name:
-                    merged_by_name[name] = {
-                        "name": name,
-                        "color": b.get("color", ""),
-                        "qualifier": b.get("qualifier", ""),
-                        "evidence": list(b.get("evidence") or []),
-                    }
-                    ordered_names.append(name)
-                else:
-                    existing = merged_by_name[name]
-                    # Promote color to the worst (highest-priority) of the two
-                    if color_priority.get(b.get("color", ""), 0) > color_priority.get(existing["color"], 0):
-                        existing["color"] = b.get("color", "")
-                        # Use the qualifier of the worst-color badge so the
-                        # qualifier line in the modal matches the badge color
-                        existing["qualifier"] = b.get("qualifier", "")
-                    existing["evidence"].extend(b.get("evidence") or [])
-            dim_dict["badges"] = [merged_by_name[n] for n in ordered_names]
+            dim_dict["badges"] = new_badges
 
             # Bug 2 enforcement: ensure No Learner Isolation badge exists in
-            # the Lab Access dimension when the deployment model demands it
+            # the Lab Access dimension when the deployment model demands it.
+            # This is a real signal the math should see, not a display tweak.
             if needs_isolation_badge:
                 dim_name_lower = dim_dict.get("name", "").lower()
                 if "lab access" in dim_name_lower:
@@ -544,6 +512,65 @@ def _normalize_product_badges(p: dict) -> None:
                                 "source_title": "Derived from product deployment model",
                             }],
                         })
+
+
+def _normalize_badges_for_display(p: dict) -> None:
+    """Phase 2 of badge normalization — runs AFTER the scoring math.
+
+    Decision-log principle (2026-04-06): visual changes must NEVER affect
+    scoring. This function only does transforms that affect what the user
+    sees, not what the math saw. By the time it runs, scores are already
+    written into the product dict — these mutations cannot retroactively
+    change them.
+
+    Currently does one thing: merge same-named badges within a dimension
+    so the user doesn't see "Runs in Hyper-V" twice. The merger combines
+    all evidence items into one badge and promotes the color to the worst
+    of the group (red > amber > green > gray) so risks aren't hidden by
+    an adjacent positive signal. The hover modal still shows every
+    evidence item, so no information is lost.
+
+    The math layer in Phase 1 has already been called against the
+    pre-merge badge list, so dropping the count or changing colors here
+    has zero effect on scores.
+    """
+    fs = p.get("fit_score")
+    if not isinstance(fs, dict):
+        return
+
+    color_priority = {"red": 4, "amber": 3, "green": 2, "gray": 1, "": 0}
+
+    for pillar_key, pillar_dict in fs.items():
+        if not isinstance(pillar_dict, dict):
+            continue
+        for dim_dict in pillar_dict.get("dimensions", []) or []:
+            if not isinstance(dim_dict, dict):
+                continue
+            badges = dim_dict.get("badges", []) or []
+            merged_by_name: dict[str, dict] = {}
+            ordered_names: list[str] = []
+            for b in badges:
+                if not isinstance(b, dict):
+                    continue
+                name = (b.get("name") or "").strip()
+                if not name:
+                    continue
+                if name not in merged_by_name:
+                    merged_by_name[name] = {
+                        "name": name,
+                        "color": b.get("color", ""),
+                        "qualifier": b.get("qualifier", ""),
+                        "evidence": list(b.get("evidence") or []),
+                    }
+                    ordered_names.append(name)
+                else:
+                    existing = merged_by_name[name]
+                    # Promote color to the worst (highest-priority) of the two
+                    if color_priority.get(b.get("color", ""), 0) > color_priority.get(existing["color"], 0):
+                        existing["color"] = b.get("color", "")
+                        existing["qualifier"] = b.get("qualifier", "")
+                    existing["evidence"].extend(b.get("evidence") or [])
+            dim_dict["badges"] = [merged_by_name[n] for n in ordered_names]
 
 
 def _prepare_analysis_for_render(analysis: dict) -> None:
@@ -580,11 +607,13 @@ def _prepare_analysis_for_render(analysis: dict) -> None:
             p["fit_score"] = {"total": 0, "_total": 0}
             continue
 
-        # ── Normalize badges before scoring ──
+        # ── Phase 1: Normalize badges for SCORING (changes math inputs) ──
         # Splits multi-signal umbrella badges into one-badge-per-signal so
         # evidence is always shown under the correct badge name. Also injects
         # the No Learner Isolation badge when ceiling flags require it.
-        _normalize_product_badges(p)
+        # Display-only transforms (merging same-named badges, color promotion)
+        # run AFTER the math in Phase 2 below.
+        _normalize_badges_for_scoring(p)
 
         # ── Collect badges per dimension from the saved evidence ──
         # Pass dicts with name + color so the math layer can apply
@@ -649,6 +678,14 @@ def _prepare_analysis_for_render(analysis: dict) -> None:
             "fit_label": new_verdict.fit_label,
             "acv_label": new_verdict.acv_label,
         }
+
+        # ── Phase 2: Normalize badges for DISPLAY (does NOT affect math) ──
+        # Merges same-named badges within each dimension and promotes color
+        # to the worst of the group so risks are visible. Runs strictly
+        # AFTER the math + score writeback so it can never silently distort
+        # scores. Decision-log principle (2026-04-06): visual changes must
+        # never affect scoring.
+        _normalize_badges_for_display(p)
 
     # Sort by computed Fit Score, descending
     products.sort(key=lambda p: (p.get("fit_score") or {}).get("_total", 0), reverse=True)

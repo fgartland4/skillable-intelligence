@@ -4,6 +4,16 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-06 — Principles surfaced from Bug Hunting
+
+### Visual changes must NEVER affect scoring
+- **DECIDED (principle):** Any change made for display purposes — badge merging, splitting, deduplication, color promotion, name normalization, sorting, grouping — must NEVER alter the inputs the scoring math sees. Scoring math reads the AI's evidence as faithfully as possible. Display transforms run on a separate path so the user sees a clean UI without the math being silently distorted.
+- **Origin:** Caught during the badge merger fix on SOTI ONE Platform. The merger collapsed two same-named "Runs in Hyper-V" badges into one and promoted the color from green to amber for clarity. The math layer reads `BADGE_COLOR_POINTS` for badges that don't match a named signal — green = +6, amber = 0. The color promotion silently dropped 6 points per dimension where this happened, ~10 points across SOTI's pillars.
+- **Architectural enforcement:** `_normalize_product_badges` should be split into two functions — one that runs before the math (deterministic injections like Bug 2's No Learner Isolation badge, plus the badge splitter) and one that runs AFTER the math (display-only merging and color promotion). The math sees the unmerged list; the user sees the merged list.
+- **Generalization:** The same principle applies to any future display work — sorting badges by severity, hiding low-confidence badges, collapsing badge groups, renaming badges for clarity. None of these may touch what the math sees.
+
+---
+
 ## Session: 2026-04-05 (late night) — Inspector Cache, Stable URL, Per-Product Briefcase, In-Place Swap
 
 ### Stable URL Per Company

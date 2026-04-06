@@ -314,7 +314,9 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
    with the right edge of Account Intelligence. */
 .bottom-row {
     display: grid;
-    grid-template-columns: 35fr 15fr 50fr;
+    /* Competitive box narrower; middle gap absorbs the slack so the right
+       edge of Competitive stays anchored to the page's right edge. */
+    grid-template-columns: 35fr 30fr 35fr;
     gap: 16px;
     margin-top: 16px;
     align-items: flex-start;
@@ -375,6 +377,13 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .run-report-form { display: inline; }
 .run-report-link {
     display: inline-block;
+    /* Fixed width so every search button is uniform regardless of company
+       name length. Long names truncate with an ellipsis inside the button. */
+    width: 196px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 0.7rem; color: var(--sk-text-muted); background: transparent;
     border: 1px solid var(--sk-badge-gray-bdr); border-radius: 4px;
     padding: 4px 10px; cursor: pointer;
@@ -562,7 +571,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
           <span class="competitive-action">
             <form action="{{ url_for('inspector_discover') }}" method="POST" target="_blank" class="run-report-form" onclick="event.stopPropagation()">
               <input type="hidden" name="company_name" value="{{ c.competitor_name }}">
-              <button type="submit" class="run-report-link">Search {{ c.competitor_name }} →</button>
+              <button type="submit" class="run-report-link" title="Search {{ c.competitor_name }}">Search {{ c.competitor_name }} →</button>
             </form>
           </span>
           <span class="competitive-name">{{ c.product_name }}</span>
