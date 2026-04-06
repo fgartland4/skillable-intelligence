@@ -164,9 +164,9 @@ def inspector_discover():
 
     threading.Thread(target=run_discovery, daemon=True).start()
 
-    return render_template("discovering.html",
+    return render_template("discovering_new.html",
                           discovery_id=job_id,
-                          search_label=company_name)
+                          company_name=company_name)
 
 
 @app.route("/inspector/discover/progress/<job_id>")
@@ -241,7 +241,7 @@ def inspector_score():
 
     threading.Thread(target=run_scoring, daemon=True).start()
 
-    return render_template("scoring.html",
+    return render_template("scoring_new.html",
                           job_id=job_id,
                           company_name=disc.get("company_name", ""),
                           product_count=len(selected))
