@@ -65,10 +65,12 @@ validate_startup()
 
 @app.template_filter("score_color")
 def score_color_filter(score: int) -> str:
-    if score >= 80: return "score-dark-green"
-    elif score >= 65: return "score-green"
-    elif score >= 45: return "score-light-amber"
-    elif score >= 25: return "score-amber"
+    """Score color CSS class — reads thresholds from config (Define-Once)."""
+    from backend import scoring_config as cfg
+    for color, threshold in sorted(cfg.SCORE_THRESHOLDS.items(),
+                                    key=lambda x: x[1], reverse=True):
+        if score >= threshold:
+            return f"score-{color.replace('_', '-')}"
     return "score-red"
 
 

@@ -293,7 +293,8 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
     benchmarks_text = _build_benchmarks_text()
 
     # Fire one call per product in parallel — cap at 6 workers
-    with ThreadPoolExecutor(max_workers=min(len(selected), 6)) as executor:
+    from config_new import MAX_SCORING_WORKERS, SCORING_TIMEOUT_SECS
+    with ThreadPoolExecutor(max_workers=min(len(selected), MAX_SCORING_WORKERS)) as executor:
         product_futures = {
             executor.submit(
                 _score_single_product,
@@ -305,7 +306,7 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
         }
 
         product_results = {}
-        for future in as_completed(product_futures, timeout=300):
+        for future in as_completed(product_futures, timeout=SCORING_TIMEOUT_SECS):
             name = product_futures[future]
             try:
                 product_results[name] = future.result()

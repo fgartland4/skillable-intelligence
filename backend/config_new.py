@@ -17,8 +17,15 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY", "")
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "results")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data_new")
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# ── Operational constants — single source for all modules ──
+CACHE_TTL_DAYS = 45
+MAX_SCORING_WORKERS = 6
+SCORING_TIMEOUT_SECS = 300
+MAX_SEARCH_WORKERS = 12
+MAX_FETCH_WORKERS = 10
 
 _BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks.json")
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")

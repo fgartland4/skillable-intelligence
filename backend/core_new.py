@@ -113,48 +113,38 @@ def assign_verdict(fit_score: int, acv_tier: str) -> Verdict:
     Returns:
         Verdict with label, color, fit_label, and acv_label
     """
-    # Determine score band and color
-    score_band = _score_band(fit_score)
-
-    # Look up verdict from grid
-    for entry in cfg.VERDICT_GRID:
-        entry_min = entry.min_score if hasattr(entry, "min_score") else entry[0]
-        entry_tier = entry.acv_tier if hasattr(entry, "acv_tier") else entry[1]
-        entry_verdict = entry.verdict if hasattr(entry, "verdict") else entry[2]
-        entry_color = entry.color if hasattr(entry, "color") else entry[3]
-
-        if fit_score >= entry_min and acv_tier == entry_tier:
-            return Verdict(
-                label=entry_verdict,
-                color=entry_color,
-                fit_label=_fit_label(fit_score),
-                acv_label=f"{acv_tier.upper()} ACV",
-            )
-
-    # Fallback — should never reach here if verdict grid is complete
-    log.warning("No verdict found for fit_score=%d, acv_tier=%s", fit_score, acv_tier)
-    return Verdict(label="Unknown", color="gray")
+    # Use scoring_config's get_verdict — single source of truth
+    vd = cfg.get_verdict(fit_score, acv_tier)
+    return Verdict(
+        label=vd.label,
+        color=vd.color,
+        fit_label=_fit_label(fit_score),
+        acv_label=f"{acv_tier.upper()} ACV",
+    )
 
 
 def _score_band(score: int) -> str:
-    """Determine which score color band a score falls into."""
-    if score >= 80:
-        return "dark_green"
-    elif score >= 65:
-        return "green"
-    elif score >= 45:
-        return "light_amber"
-    elif score >= 25:
-        return "amber"
-    else:
-        return "red"
+    """Determine which score color band a score falls into.
+
+    Reads thresholds from scoring_config.py — Define-Once.
+    """
+    for color, threshold in sorted(cfg.SCORE_THRESHOLDS.items(),
+                                    key=lambda x: x[1], reverse=True):
+        if score >= threshold:
+            return color
+    return "red"
 
 
 def _fit_label(score: int) -> str:
-    """Generate the fit label (e.g., 'HIGH FIT') from score."""
-    if score >= 65:
+    """Generate the fit label (e.g., 'HIGH FIT') from score.
+
+    Uses the green threshold from config as the HIGH FIT boundary.
+    """
+    green_threshold = cfg.SCORE_THRESHOLDS.get("green", 65)
+    amber_threshold = cfg.SCORE_THRESHOLDS.get("light_amber", 45)
+    if score >= green_threshold:
         return "HIGH FIT"
-    elif score >= 45:
+    elif score >= amber_threshold:
         return "MODERATE FIT"
     else:
         return "LOW FIT"
@@ -168,12 +158,23 @@ def discovery_tier(score: int) -> str:
     """Assign a discovery tier label based on initial assessment score.
 
     These communicate confidence at discovery depth — not conclusions.
+    Thresholds derived from scoring config (Define-Once).
     """
-    if score >= 70:
+    thresholds = sorted(cfg.SCORE_THRESHOLDS.values(), reverse=True)
+    # Map config thresholds to discovery tiers:
+    # dark_green(80) + green(65) → seems_promising (use green threshold)
+    # light_amber(45) → likely
+    # amber(25) → uncertain
+    # red(0) → unlikely
+    green_threshold = cfg.SCORE_THRESHOLDS.get("green", 65)
+    amber_threshold = cfg.SCORE_THRESHOLDS.get("light_amber", 45)
+    red_threshold = cfg.SCORE_THRESHOLDS.get("amber", 25)
+
+    if score >= green_threshold:
         return "seems_promising"
-    elif score >= 45:
+    elif score >= amber_threshold:
         return "likely"
-    elif score >= 20:
+    elif score >= red_threshold:
         return "uncertain"
     else:
         return "unlikely"

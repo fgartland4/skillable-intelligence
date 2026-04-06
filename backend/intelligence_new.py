@@ -60,7 +60,7 @@ from config_new import ANTHROPIC_MODEL
 # Cache TTL — single definition for the whole platform
 # ═══════════════════════════════════════════════════════════════════════════════
 
-CACHE_TTL_DAYS = 45
+from config_new import CACHE_TTL_DAYS
 
 
 def cache_is_fresh(timestamp_str: str) -> bool:
