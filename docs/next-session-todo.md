@@ -140,6 +140,39 @@ This is a sketch, not a commitment. Tune in priority order after we instrument a
 
 ---
 
+## §5.5 — Exhaustive ACV calculation review (HIGH PRIORITY)
+
+The deterministic ACV math from last night is **doing the math correctly** but the **inputs from the AI are coming out way too low** for global vendors with large user bases. We need a focused review of the AI's per-motion population and adoption estimates against ground truth.
+
+**Confirmed undersized cases (Frank 2026-04-06):**
+
+| Company | What we see | Why it feels wrong |
+|---|---|---|
+| **Cohesity** | $34K–$167K total ACV across 2 of 15 scored products. Cohesity Data Cloud alone: $25K–$129K | 15 globally-deployed enterprise data protection products. Cohesity has hundreds of thousands of admins/operators worldwide. Even at modest adoption rates the ACV should be in the hundreds of thousands to low millions, not $34K. |
+| **(more to come — Frank flagging as he tests)** | | |
+
+**Two distinct problems probably contributing:**
+
+1. **AI is undersizing per-motion populations.** When the AI estimates `population_low/high` for each motion, it appears to be conservative to the point of inaccuracy for large vendors. A "Customer Onboarding & Enablement" motion for Cohesity should reflect tens of thousands of customers, not a few hundred.
+2. **Hero number is "scored only" but reads as "whole company."** The hero shows `$34K–$167K` with subtext "Across 2 scored of 15 discovered products" — the headline number represents 13% of the portfolio but visually presents as the answer. Either:
+   - **Extrapolate to full-company estimate** in the hero (`$34K–$167K from scored, ~$255K–$1.25M extrapolated to all 15`)
+   - **Or reword the label** so it's clearly partial (`Partial ACV (2 of 15 products): $34K–$167K`)
+   - **Or score all products by default** instead of only the user-selected subset
+
+**Investigation steps:**
+
+1. **Pull the Cohesity raw scorer JSON** from the cache and inspect each motion's `population_low/high` and `adoption_pct`. Are they realistic for a vendor of Cohesity's size?
+2. **Compare to known benchmarks** in `backend/benchmarks_new.json` — Cohesity is listed there with relationship/scale signals. The AI should be using those signals to inform population sizing.
+3. **Check the prompt's CONSUMPTION_MOTIONS guidance** — the adoption ceiling rules and population guidance. Are we instructing the AI to "be conservative" in a way that produces unrealistically small numbers?
+4. **Add 3-5 known anchor companies** with hand-validated population/adoption estimates to the test fixtures, run scoring, compare AI output to anchors. Anything more than ~25% off is a flag.
+5. **Decide on the hero display semantics** (extrapolate, reword, or score-all). This is a UX call.
+
+**Why HIGH priority:** ACV is the dollar number sellers and execs see first. If it's wrong by 5–10x, it undermines trust in the whole platform. This needs to be right before any external user sees the tool.
+
+**Pairs naturally with §1 (SOTI verification)** — both are scoring data quality validations. Could be the focus of one dedicated "scoring trust" session.
+
+---
+
 ## §6 — Smaller carry-overs
 
 - **Migrate Designer + Prospector tools off the legacy `_nav.html` / `_theme.html` shared templates** onto `_nav_new.html` / `_theme_new.html`. Once they're migrated, the old `_nav.html` and `_theme.html` can be deleted (currently they're still referenced by `tools/designer/templates/designer_home.html`, `tools/prospector/templates/prospector.html`, `tools/prospector/templates/prospector_results.html`). The old theme has hardcoded hex colors that should flow through the variable system after migration.

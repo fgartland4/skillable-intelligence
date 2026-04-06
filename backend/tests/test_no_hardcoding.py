@@ -216,6 +216,230 @@ def _scan_template_for_inline_style_hex(path: Path) -> list[tuple[int, str]]:
     return findings
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 2 path scope — which Python files are "production business logic"?
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Scan rule: every backend/*.py file that has `_new` in its name (the
+# rebuilt-from-Foundation modules) PLUS the active non-suffixed modules
+# that are clearly part of the new architecture (scoring_math, scoring_config
+# itself is excluded as the source of truth, prompt_generator).
+#
+# Excluded: legacy POC siblings (app.py, config.py, core.py, intelligence.py,
+# models.py, researcher.py, scorer.py, storage.py — every file with a `_new`
+# counterpart), constants.py (legacy), designer_engine.py (Designer deferred).
+#
+# Why list explicitly instead of "everything except *_legacy*": the legacy
+# files don't follow a name convention — they're just the non-_new siblings.
+# An explicit allowlist is the safer pattern here.
+
+_PYTHON_SCAN_FILES: tuple[str, ...] = (
+    "backend/app_new.py",
+    "backend/core_new.py",
+    "backend/intelligence_new.py",
+    "backend/models_new.py",
+    "backend/prompt_generator.py",
+    "backend/researcher_new.py",
+    "backend/scorer_new.py",
+    "backend/scoring_math.py",
+    "backend/storage_new.py",
+)
+
+
+def _python_files_to_scan() -> list[Path]:
+    return [_REPO_ROOT / rel for rel in _PYTHON_SCAN_FILES if (_REPO_ROOT / rel).exists()]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 2A — Python dict literals with color-name keys
+# ─────────────────────────────────────────────────────────────────────────────
+
+# A dict literal where ALL keys are color-name strings is almost always a
+# duplicate of cfg.BADGE_COLOR_POINTS or cfg.BADGE_COLOR_DISPLAY_PRIORITY.
+# This is the exact pattern that bit us last night in two files.
+_COLOR_KEY_NAMES = frozenset({"green", "amber", "red", "gray", "yellow"})
+
+
+def _find_color_key_dict_literals(path: Path) -> list[tuple[int, str]]:
+    """Walk the AST of a Python file and return (line, snippet) for any
+    dict literal whose keys are all string constants from _COLOR_KEY_NAMES.
+    """
+    import ast
+
+    findings: list[tuple[int, str]] = []
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except SyntaxError:
+        return findings
+
+    source_lines = path.read_text(encoding="utf-8").splitlines()
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        if not node.keys:
+            continue
+        # All keys must be string constants
+        if not all(isinstance(k, ast.Constant) and isinstance(k.value, str) for k in node.keys):
+            continue
+        key_set = {k.value.lower() for k in node.keys}
+        if not key_set:
+            continue
+        # All keys must be in our color name set (allow extra "" for empty fallback)
+        if not key_set.issubset(_COLOR_KEY_NAMES | {""}):
+            continue
+        # At least 2 of the 4 main color names must be present (filter out
+        # `{"green": ...}` alone which could legitimately be a single-color thing)
+        if len(key_set & _COLOR_KEY_NAMES) < 2:
+            continue
+        line_no = node.lineno
+        snippet = source_lines[line_no - 1].strip() if 0 < line_no <= len(source_lines) else ""
+        findings.append((line_no, snippet))
+
+    return findings
+
+
+def test_no_python_dicts_with_color_keys():
+    """Phase 2A — Python dict literals where all keys are color names should
+    not exist outside scoring_config.py. Such dicts are almost always a
+    duplicate of BADGE_COLOR_POINTS or BADGE_COLOR_DISPLAY_PRIORITY and
+    should reference cfg.* instead.
+
+    See Test-Plan.md Category 10 for the false-positive watch.
+    """
+    violations: dict[str, list[tuple[int, str]]] = {}
+    for path in _python_files_to_scan():
+        findings = _find_color_key_dict_literals(path)
+        if findings:
+            rel = path.relative_to(_REPO_ROOT).as_posix()
+            violations[rel] = findings
+
+    if violations:
+        msg_lines = ["Python dict literals with color-name keys found:"]
+        msg_lines.append(
+            "  These are almost always duplicates of "
+            "cfg.BADGE_COLOR_POINTS or cfg.BADGE_COLOR_DISPLAY_PRIORITY."
+        )
+        msg_lines.append("")
+        for rel_path, findings in violations.items():
+            msg_lines.append(f"  {rel_path}:")
+            for line_num, line in findings[:6]:
+                snippet = line[:120] + ("..." if len(line) > 120 else "")
+                msg_lines.append(f"    line {line_num}: {snippet}")
+            if len(findings) > 6:
+                msg_lines.append(f"    ... and {len(findings) - 6} more")
+            msg_lines.append("")
+        msg_lines.append(
+            "Fix: replace the literal dict with `cfg.BADGE_COLOR_POINTS` "
+            "(scoring) or `cfg.BADGE_COLOR_DISPLAY_PRIORITY` (display "
+            "severity). Import scoring_config as cfg if needed."
+        )
+        pytest.fail("\n".join(msg_lines))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 2B — Cross-file scan for distinctive scoring_config string constants
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Curated list of distinctive scoring_config constants whose VALUES are
+# unique enough that finding the literal value anywhere else in production
+# code is almost always a hardcoding violation.
+#
+# We use a curated list (rather than dynamic discovery from cfg.__dict__)
+# because dynamic discovery would catch many short common strings ("low",
+# "high", "Lab Access" appears in display contexts) and produce noise.
+#
+# When a NEW distinctive constant is added to scoring_config, add its name
+# here. The test imports cfg to get the actual value, so renaming the
+# constant doesn't break the test — only renaming AND inlining the value
+# elsewhere would.
+_DISTINCTIVE_CFG_CONSTANTS: tuple[str, ...] = (
+    "DEFAULT_RATE_TIER_NAME",
+)
+
+
+def _find_distinctive_cfg_literals(path: Path, forbidden: dict[str, str]) -> list[tuple[int, str, str]]:
+    """Walk the AST and return (line, constant_name, snippet) for any
+    string literal whose value matches one in `forbidden`.
+    """
+    import ast
+
+    findings: list[tuple[int, str, str]] = []
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except SyntaxError:
+        return findings
+
+    source_lines = path.read_text(encoding="utf-8").splitlines()
+    value_to_name = {v: name for name, v in forbidden.items()}
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Constant):
+            continue
+        if not isinstance(node.value, str):
+            continue
+        if node.value not in value_to_name:
+            continue
+        line_no = getattr(node, "lineno", 0)
+        snippet = source_lines[line_no - 1].strip() if 0 < line_no <= len(source_lines) else ""
+        # Skip lines that already reference cfg (likely the lookup itself,
+        # e.g., `cfg.DEFAULT_RATE_TIER_NAME` — but the AST sees the resolved
+        # string only after import, not the attribute access. The string
+        # literal in the source is the literal value. If the line contains
+        # the constant NAME as text, it's probably a comment/docstring/lookup.)
+        if any(c in snippet for c in _DISTINCTIVE_CFG_CONSTANTS):
+            continue
+        findings.append((line_no, value_to_name[node.value], snippet))
+
+    return findings
+
+
+def test_no_hardcoded_distinctive_scoring_config_constants():
+    """Phase 2B — Distinctive string constants exported from scoring_config
+    should not appear as literals anywhere else in production code. If you
+    see "Standard VM (1-3 VMs)" in scoring_math.py, you should be using
+    cfg.DEFAULT_RATE_TIER_NAME instead.
+
+    Curated list — only constants distinctive enough that a literal match
+    is overwhelmingly a hardcoding violation. See Test-Plan.md Category 10
+    for the rationale.
+    """
+    import scoring_config as cfg
+
+    forbidden: dict[str, str] = {}
+    for name in _DISTINCTIVE_CFG_CONSTANTS:
+        if hasattr(cfg, name):
+            value = getattr(cfg, name)
+            if isinstance(value, str):
+                forbidden[name] = value
+
+    violations: dict[str, list[tuple[int, str, str]]] = {}
+    for path in _python_files_to_scan():
+        findings = _find_distinctive_cfg_literals(path, forbidden)
+        if findings:
+            rel = path.relative_to(_REPO_ROOT).as_posix()
+            violations[rel] = findings
+
+    if violations:
+        msg_lines = ["Distinctive scoring_config constant values found as literals:"]
+        msg_lines.append("")
+        for rel_path, findings in violations.items():
+            msg_lines.append(f"  {rel_path}:")
+            for line_num, const_name, line in findings[:6]:
+                snippet = line[:120] + ("..." if len(line) > 120 else "")
+                msg_lines.append(f"    line {line_num}: should be cfg.{const_name}")
+                msg_lines.append(f"      {snippet}")
+            if len(findings) > 6:
+                msg_lines.append(f"    ... and {len(findings) - 6} more")
+            msg_lines.append("")
+        msg_lines.append(
+            "Fix: import scoring_config as cfg and reference cfg.<NAME> "
+            "instead of the literal value. Renames in scoring_config will "
+            "then automatically propagate."
+        )
+        pytest.fail("\n".join(msg_lines))
+
+
 def test_no_inline_style_hex_in_active_templates():
     """Phase 1B — No inline `style="color: #..."` or `style="background: #..."`
     attributes in markup. Inline hardcoded colors bypass the theme system

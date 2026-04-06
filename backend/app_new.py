@@ -100,12 +100,31 @@ def tier_class_filter(tier_key: str) -> str:
 
 @app.template_filter("badge_color_class")
 def badge_color_class_filter(color: str) -> str:
-    return {"green": "badge-green", "gray": "badge-gray", "amber": "badge-amber", "red": "badge-red"}.get(color, "badge-gray")
+    """Map a badge color to its CSS class.
+
+    The CSS class name is derived from the color name itself
+    (`badge-{color}`). Validity is checked against the canonical
+    color list in `cfg.BADGE_COLOR_POINTS` so the function works
+    automatically if a new color is ever added to the config.
+    """
+    import scoring_config as cfg
+    if color in cfg.BADGE_COLOR_POINTS:
+        return f"badge-{color}"
+    return "badge-gray"
 
 
 @app.template_filter("deployment_display")
 def deployment_display_filter(model: str) -> str:
-    return {"installable": "Installable", "hybrid": "Hybrid", "cloud": "Cloud-Native", "saas-only": "SaaS-Only"}.get(model, model)
+    """Return the display label for a deployment model key.
+
+    Reads from `cfg.DEPLOYMENT_MODELS` (Define-Once). Falls back to
+    the raw model key if the value is unknown.
+    """
+    import scoring_config as cfg
+    entry = cfg.DEPLOYMENT_MODELS.get(model)
+    if isinstance(entry, dict):
+        return entry.get("display", model)
+    return model
 
 
 @app.template_filter("deployment_color")
