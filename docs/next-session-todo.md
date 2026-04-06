@@ -55,6 +55,33 @@ The dollar range in the total row = `(annual_hours_low × vm_rate_estimate) – 
 
 ---
 
+## HIGH PRIORITY — Badge vocabulary vs scoring signal disconnect (found 2026-04-06 SOTI test)
+
+**Symptom:** SOTI ONE Platform (and likely every other product with installable VM/cloud paths) is scoring much lower in Provisioning than the AI itself thinks it should. SOTI Provisioning: saved score = **6**, but the AI's own summary text says *"Scored at Hyper-V: Standard with two penalties applied"*. Hyper-V: Standard is a scoring signal worth **+30**. The 24-point gap propagates up into PL pillar, then into the Fit Score and verdict.
+
+**Root cause:** The AI is emitting **badge vocabulary names** (`"Runs in Hyper-V"`) in the `badges` array, not **scoring signal names** (`"Hyper-V: Standard"`). In `scoring_config.py` these are two separate concepts:
+
+- `_provisioning_badges` (line 228): visual chip vocabulary — `"Runs in Hyper-V"`, `"Runs in Azure"`, `"Runs in Containers"`, `"Bare Metal Required"`, etc.
+- `_provisioning_signals` (line 262): point-bearing scoring signals — `"Hyper-V: Full Lifecycle API"` (+35), `"Hyper-V: CLI Scripting"` (+34), `"Hyper-V: Standard"` (+30), `"Hyper-V: Limited"` (+26), `"Hyper-V: Complex Install"` (+20), etc.
+
+The scoring math in `scoring_math.py:compute_dimension_score()` checks `signal_lookup` first, then `penalty_lookup`, then falls back to `BADGE_COLOR_POINTS` for badges that don't match either. Vocabulary names always fall through to the color fallback — green = +6, amber = 0, red = -3 — so the rich 20-35 point signals are NEVER credited even when the AI's prose accurately identifies them.
+
+**Three fix options to choose between:**
+
+1. **Prompt fix (lowest risk):** Update `scoring_template.md` to instruct the AI to emit BOTH the visual badge AND the matching scoring signal in the `badges` array. Two badges per signal — one for the chip, one for the points. Easy to implement, depends on AI compliance.
+
+2. **Prompt unification (cleanest long-term):** Collapse `_provisioning_badges` and `_provisioning_signals` into a single concept. Each badge name IS the scoring signal name. The visual chip displays whatever the AI emits and the same name carries the point value. Bigger config rewrite but eliminates the failure mode entirely.
+
+3. **Python inference (most deterministic):** Given a badge like `"Runs in Hyper-V"`, a color qualifier, and `product.orchestration_method`, Python picks the right scoring signal automatically. Add a `_signal_for_badge()` helper that maps `(badge_name, color, orchestration_method)` → signal name. Most rules to write but no AI dependency.
+
+**Recommended:** Option 2 (unification) followed by a re-test. Eliminates two-vocabulary confusion at the source and matches the architecture decision Frank already made for ACV math (move logic into config, not AI).
+
+**Effect once fixed:** Every cached analysis of installable products should immediately gain back ~15-25 points in Provisioning, propagating up through PL, the Technical Fit Multiplier, and the Fit Score. Verdict labels for installable products will tend to climb one or two tiers.
+
+**Why NOT hot-fixed:** Touches the prompt template, the scoring config, and the math fallback logic. Needs careful design + a test pass against multiple cached companies (SOTI, Cohesity, Tanium, Diligent) to confirm no regressions before shipping. Don't ship at midnight.
+
+---
+
 ## HIGH PRIORITY — Scoring data quality bugs (found 2026-04-06 Diligent test)
 
 ### Bug 1 — Badge/evidence cross-wiring
