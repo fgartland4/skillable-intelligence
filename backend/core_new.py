@@ -207,55 +207,8 @@ def score_products_and_sort(analysis: CompanyAnalysis) -> None:
     analysis.products.sort(key=lambda p: p.fit_score.total, reverse=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Domain-Based Lab Platform Detection
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def detect_lab_platforms(page_content: str) -> list[dict]:
-    """Scan page content for outbound links to known lab platform domains.
-
-    A URL link is stronger evidence than a name mention.
-    Uses the canonical lab platform list from scoring_config.py.
-
-    Args:
-        page_content: Raw HTML or text content from a fetched page
-
-    Returns:
-        List of dicts: [{"platform": "Skillable", "domain": "labondemand.com", "urls": [...]}]
-    """
-    detections = []
-
-    for platform in cfg.LAB_PLATFORMS:
-        domains = platform.get("detection_domains", [])
-        if not domains:
-            # Fall back to the main domain if no detection_domains specified
-            main_domain = platform.get("domain", "")
-            if main_domain:
-                domains = [main_domain]
-
-        found_urls = []
-        for domain in domains:
-            if not domain:
-                continue
-            # Look for URLs containing this domain
-            pattern = rf'https?://[^\s"\'<>]*{re.escape(domain)}[^\s"\'<>]*'
-            matches = re.findall(pattern, page_content, re.IGNORECASE)
-            found_urls.extend(matches)
-
-            # Also check for plain domain mentions (weaker signal)
-            if domain.lower() in page_content.lower() and not found_urls:
-                found_urls.append(f"mention:{domain}")
-
-        if found_urls:
-            detections.append({
-                "platform": platform.get("name", "Unknown"),
-                "domain": domains[0] if domains else "",
-                "urls": list(set(found_urls)),
-                "is_skillable": "skillable" in platform.get("name", "").lower(),
-                "evidence_type": "url" if any(not u.startswith("mention:") for u in found_urls) else "mention",
-            })
-
-    return detections
+# Domain-based lab platform detection lives in researcher_new.py
+# (uses knowledge/competitors.json, not scoring_config.py)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

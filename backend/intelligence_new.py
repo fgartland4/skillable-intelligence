@@ -51,7 +51,7 @@ from storage_new import (
 from core_new import (
     assign_verdict, discovery_tier, DISCOVERY_TIER_LABELS,
     company_classification_label, org_badge_color_group,
-    detect_lab_platforms, score_products_and_sort,
+    score_products_and_sort,
 )
 from models_new import CompanyAnalysis, Product
 from config_new import ANTHROPIC_MODEL
@@ -141,15 +141,12 @@ def discover(company_name: str, known_products: list[str] | None = None,
         p["_tier"] = discovery_tier(score)
         p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
 
-    # Domain-based lab platform detection on fetched pages
-    page_contents = findings.get("page_contents", {})
-    all_page_text = "\n".join(page_contents.values())
-    if all_page_text:
-        platform_detections = detect_lab_platforms(all_page_text)
-        if platform_detections:
-            discovery["_lab_platform_detections"] = platform_detections
-            log.info("Intelligence.discover: detected %d lab platform(s) for %s",
-                     len(platform_detections), company_name)
+    # Domain-based lab platform detection — already done by researcher
+    lab_detections = findings.get("lab_platform_detections", [])
+    if lab_detections:
+        discovery["_lab_platform_detections"] = lab_detections
+        log.info("Intelligence.discover: detected %d lab platform(s) for %s",
+                 len(lab_detections), company_name)
 
     # Company classification
     discovery["_company_badge"] = company_classification_label(
