@@ -82,6 +82,137 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def recompute_analysis(analysis: dict) -> None:
+    """Re-run the deterministic scoring math against a saved analysis dict.
+
+    This is the cache-revalidation contract. Inspector calls it on every
+    page load. Prospector batch scoring should call it before rendering
+    cached results. Designer (when product context is needed) should call
+    it before reading any product's scores.
+
+    Mutates the analysis dict in place:
+      1. Phase 1 normalization (badge_normalization.normalize_for_scoring)
+         strips evidence-claim bold prefixes from every badge so the popover
+         text doesn't compete with the canonical badge.name
+      2. For each product, collects badges by dimension via
+         badge_normalization.collect_badges_for_math (the ONLY safe place
+         that constructs badge dicts for the math layer)
+      3. Runs scoring_math.compute_all to get fresh dimension + pillar
+         scores, ceiling caps, and the technical fit multiplier
+      4. Writes the computed scores back into the saved dict
+      5. Recomputes ACV via scoring_math.compute_acv_potential
+      6. Reassigns verdict via core_new.assign_verdict from the new
+         Fit Score + ACV tier
+      7. Phase 2 normalization (badge_normalization.normalize_for_display)
+         merges any same-named badges and promotes color to worst-of-group
+      8. Sorts products by Fit Score descending
+
+    Layer Discipline note (2026-04-07): this function used to live as
+    _prepare_analysis_for_render in app_new.py — the Inspector Flask app.
+    Per CRIT-2 in code-review-2026-04-07.md, it was moved here so all
+    three tools can share one cache-revalidation path. The "render" name
+    was misleading — almost nothing in this function is rendering, it's
+    deterministic recompute against saved badges. Inspector's route
+    handler now calls this and then handles only true rendering concerns
+    (template selection, default product index, etc).
+
+    Zero hardcoded values — pillar keys, dimension keys, and weights all
+    come from scoring_config.PILLARS at runtime.
+    """
+    import scoring_math
+    import scoring_config as cfg
+    import badge_normalization
+    from core_new import assign_verdict
+
+    # Map each pillar's dict-key to its Pillar object — once, not per product
+    pillar_key_to_obj: dict[str, cfg.Pillar] = {}
+    dim_key_to_pillar_key: dict[str, str] = {}
+    for pillar in cfg.PILLARS:
+        pkey = pillar.name.lower().replace(" ", "_")
+        pillar_key_to_obj[pkey] = pillar
+        for dim in pillar.dimensions:
+            dkey = dim.name.lower().replace(" ", "_")
+            dim_key_to_pillar_key[dkey] = pkey
+
+    products = analysis.get("products", [])
+    for p in products:
+        fs = p.get("fit_score")
+        if not isinstance(fs, dict):
+            p["fit_score"] = {"total": 0, "_total": 0}
+            continue
+
+        # ── Phase 1: Strip evidence-claim bold prefixes (changes only the
+        # claim text, never badge.name/color/strength/signal_category) ──
+        badge_normalization.normalize_for_scoring(p)
+
+        # ── Collect badges per dimension via the shared utility ──
+        # This is the ONLY safe place to construct badge dicts for the
+        # math layer. Any other code path that walks badges by hand and
+        # forgets a field is a bug class. See badge_normalization module
+        # docstring for the history of why this matters.
+        badges_by_dim = badge_normalization.collect_badges_for_math(p, dim_key_to_pillar_key)
+
+        # ── Run the math — single source of truth ──
+        result = scoring_math.compute_all(
+            badges_by_dimension=badges_by_dim,
+            ceiling_flags=p.get("poor_match_flags") or [],
+            orchestration_method=p.get("orchestration_method") or "",
+        )
+
+        # ── Write computed scores back into the saved dict in place ──
+        # Dimension scores remain authentic (the badges that matched).
+        # Pillar scores reflect post-ceiling values for Product Labability.
+        for pillar_key, pillar_obj in pillar_key_to_obj.items():
+            pillar_dict = fs.get(pillar_key, {})
+            if not isinstance(pillar_dict, dict):
+                continue
+            pillar_dict["weight"] = pillar_obj.weight
+            for dim_dict in pillar_dict.get("dimensions", []) or []:
+                if not isinstance(dim_dict, dict):
+                    continue
+                dim_key = dim_dict.get("name", "").lower().replace(" ", "_")
+                dim_result = result["dimensions"].get(dim_key)
+                if dim_result is not None:
+                    dim_dict["score"] = dim_result["score"]
+            pillar_dict["score"] = result["pillars"].get(pillar_key, 0)
+
+        # Top-level fit_score audit fields
+        fs["total"] = result["fit_score"]
+        fs["_total"] = result["fit_score"]
+        fs["pl_score_pre_ceiling"] = result["pillar_labability_pre_ceiling"]
+        fs["ceilings_applied"] = result["ceilings_applied"]
+        fs["technical_fit_multiplier"] = result["technical_fit_multiplier"]
+
+        # ── Recompute ACV from motions × deterministic rate ──
+        # The AI's job is to estimate per-motion population, adoption %,
+        # and hours per learner. Python's job is everything else: per-motion
+        # hours, total hours, rate lookup by orchestration method, dollar
+        # conversion, and tier assignment from dollar thresholds.
+        scoring_math.compute_acv_potential(p)
+
+        # Recompute the verdict from the new Fit Score and ACV tier — the
+        # AI's cached verdict is stale once the math layer rewrites the score.
+        acv_tier = (p.get("acv_potential") or {}).get("acv_tier") or "low"
+        new_verdict = assign_verdict(result["fit_score"], acv_tier)
+        p["verdict"] = {
+            "label": new_verdict.label,
+            "color": new_verdict.color,
+            "fit_label": new_verdict.fit_label,
+            "acv_label": new_verdict.acv_label,
+        }
+
+        # ── Phase 2: Merge same-named badges, promote color to worst ──
+        # Runs strictly AFTER the math + score writeback so it can never
+        # silently distort scores. Decision-log principle (2026-04-06):
+        # visual changes must NEVER affect scoring.
+        badge_normalization.normalize_for_display(p)
+
+    # Sort by computed Fit Score, descending
+    products.sort(key=lambda p: (p.get("fit_score") or {}).get("_total", 0), reverse=True)
+    analysis["top_products"] = products
+    analysis["products"] = products
+
+
 def _stamp_for_save(data: dict, timestamp_field: str = "analyzed_at") -> dict:
     """Stamp an analysis or discovery dict with the current SCORING_LOGIC_VERSION
     and a fresh timestamp.
