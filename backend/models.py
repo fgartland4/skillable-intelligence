@@ -45,7 +45,7 @@ class Badge:
 
     Pillar 2/3 RUBRIC fields (strength, signal_category) are required for
     rubric-model dimensions and ignored elsewhere. They MUST be carried
-    through from Claude's output via scorer_new._parse_badges_for_dimension
+    through from Claude's output via scorer._parse_badges_for_dimension
     so the math layer can credit points by (dimension, strength) lookup
     against the dimension's rubric tiers.
     """
@@ -346,7 +346,7 @@ class CompanyAnalysis:
     # the parser), NOT when the analysis was actually finalized and saved.
     # In cache-and-append flows, the existing timestamp would survive
     # untouched even when new products were added. The intelligence layer
-    # (intelligence_new.score / discover) is responsible for stamping this
+    # (intelligence.score / discover) is responsible for stamping this
     # field at the right boundary, and save_analysis updates it on every
     # write so the persisted timestamp always reflects when the file was
     # actually written.

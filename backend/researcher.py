@@ -159,7 +159,7 @@ def _fetch_page_html(url: str) -> str:
 def _run_searches_parallel(queries: list[tuple[str, str]], num_results: int = 5) -> dict[str, list[dict]]:
     """Run multiple search queries in parallel. Returns {key: [results]}."""
     results = {}
-    from config_new import MAX_SEARCH_WORKERS
+    from config import MAX_SEARCH_WORKERS
     with ThreadPoolExecutor(max_workers=MAX_SEARCH_WORKERS) as executor:
         futures = {
             executor.submit(_search_web, query, num_results): key
@@ -181,7 +181,7 @@ def _fetch_pages_parallel(targets: list[tuple[str, str]], for_links: bool = Fals
     If for_links=True, returns raw HTML for domain-based detection.
     """
     results = {}
-    from config_new import MAX_FETCH_WORKERS
+    from config import MAX_FETCH_WORKERS
     with ThreadPoolExecutor(max_workers=MAX_FETCH_WORKERS) as executor:
         futures = {}
         for key, url in targets:

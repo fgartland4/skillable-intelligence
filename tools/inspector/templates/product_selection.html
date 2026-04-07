@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/static/img/favicon.png">
     <title>Product Selection — {{ discovery.company_name }} — Skillable Intelligence</title>
     <style>
-        {% include '_theme_new.html' %}
+        {% include '_theme.html' %}
         {{ ch.styles() }}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, label { font-family: inherit; }
@@ -240,7 +240,7 @@
 <body>
 
 {% set active_tool = 'inspector' %}
-{% include '_nav_new.html' %}
+{% include '_nav.html' %}
 
 {# ── Computed sets using new tier labels ── #}
 {% set tc_prods = discovery.products | selectattr('category', 'equalto', 'Training & Certification') | list %}

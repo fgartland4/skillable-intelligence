@@ -1,0 +1,84 @@
+{# Shared theme — include inside <style> tags in any template.
+   Single source of truth for brand colors, score colors, and reusable classes.
+   Color values match constants.py and CLAUDE.md palette. #}
+
+/* ── Brand palette ──────────────────────────────────────────────── */
+:root {
+    --sk-sidebar:        #0A3E28;
+    --sk-primary:        #136945;
+    --sk-accent:         #24ED9B;
+    --sk-accent-muted:   #7dd8b8;
+
+    --sk-score-high:     #24ED9B;
+    --sk-score-mid:      #f59e0b;
+    --sk-score-low:      #e05252;
+    --sk-score-low-soft: #f87171;
+
+    --sk-blocker:        #e05252;
+    --sk-risk:           #f59e0b;
+    --sk-strength:       #24ED9B;
+
+    --sk-bg:             #060f0b;
+    --sk-surface:        #0c1f19;
+    --sk-border:         #1e3329;
+    --sk-text:           #e8f5f0;
+    --sk-text-body:      #c8ddd6;
+    --sk-text-muted:     #6b9e88;
+    --sk-text-dim:       #4a7060;
+}
+
+/* ── Score color classes ────────────────────────────────────────── */
+.score-high { color: var(--sk-score-high); font-weight: 700; }
+.score-mid  { color: var(--sk-score-mid);  font-weight: 700; }
+.score-low  { color: var(--sk-score-low-soft); font-weight: 700; }
+
+/* ── Organization type badges ───────────────────────────────────── */
+.org-badge {
+    display: inline-block; font-size: 0.68rem; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px; vertical-align: middle;
+    margin-left: 8px; text-transform: uppercase; letter-spacing: 0.06em;
+    border: 1px solid;
+}
+.org-badge.software_company       { color: #7dd8b8; border-color: #1e4035; background: rgba(29,74,59,0.35); }
+.org-badge.training_organization  { color: #a78bfa; border-color: #3b2c6e; background: rgba(59,44,110,0.35); }
+.org-badge.academic_institution   { color: #93c5fd; border-color: #1e3a5f; background: rgba(30,58,95,0.35); }
+.org-badge.systems_integrator     { color: #fdba74; border-color: #5c3a1e; background: rgba(92,58,30,0.35); }
+.org-badge.technology_distributor  { color: #6ee7b7; border-color: #1a4535; background: rgba(26,69,53,0.35); }
+.org-badge.professional_services  { color: #cbd5e1; border-color: #334155; background: rgba(51,65,85,0.35); }
+
+/* ── Dimension badge chips ──────────────────────────────────────── */
+.dim-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.8rem; padding: 4px 10px; border-radius: 5px;
+    border: 1px solid; width: fit-content;
+}
+.dim-badge.green  { color: var(--sk-accent); border-color: rgba(36,237,155,0.2); background: rgba(36,237,155,0.05); }
+.dim-badge.amber { color: var(--sk-score-mid); border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.05); }
+.dim-badge.red    { color: var(--sk-score-low); border-color: rgba(224,82,82,0.2); background: rgba(224,82,82,0.05); }
+
+/* ── Hero badge chips ───────────────────────────────────────────── */
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 0.82rem; font-weight: 500;
+    padding: 5px 12px; border-radius: 6px; border: 1px solid;
+}
+.hero-badge.green  { color: var(--sk-accent); border-color: rgba(36,237,155,0.25); background: rgba(36,237,155,0.06); }
+.hero-badge.amber { color: var(--sk-score-mid); border-color: rgba(245,158,11,0.25); background: rgba(245,158,11,0.06); }
+.hero-badge.red    { color: var(--sk-score-low); border-color: rgba(224,82,82,0.25); background: rgba(224,82,82,0.06); }
+
+/* ── Verdict label chips ────────────────────────────────────────── */
+.verdict-label {
+    font-size: 1rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 6px;
+}
+.verdict-label.strong-fit { color: var(--sk-accent); background: rgba(36,237,155,0.1); border: 1px solid rgba(36,237,155,0.3); }
+.verdict-label.pursue     { color: var(--sk-accent-muted); background: rgba(125,216,184,0.08); border: 1px solid rgba(125,216,184,0.25); }
+.verdict-label.monitor    { color: var(--sk-score-mid); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); }
+.verdict-label.pass       { color: var(--sk-score-low); background: rgba(224,82,82,0.08); border: 1px solid rgba(224,82,82,0.3); }
+
+/* ── Evidence source links ──────────────────────────────────────── */
+.ev-source {
+    font-size: 0.72rem; color: var(--sk-text-dim);
+    margin-left: 4px; white-space: nowrap;
+}
+.ev-source:hover { color: var(--sk-accent); }

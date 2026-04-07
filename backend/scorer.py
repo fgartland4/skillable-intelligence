@@ -17,8 +17,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import anthropic
 
-from config_new import ANTHROPIC_API_KEY, ANTHROPIC_MODEL
-from models_new import (
+from config import ANTHROPIC_API_KEY, ANTHROPIC_MODEL
+from models import (
     ACVPotential, Badge, CompanyAnalysis, ConsumptionMotion, Contact,
     DimensionScore, Evidence, FitScore, OrgUnit, PillarScore, Product,
     ProspectorRow, SellerBriefcase, BriefcaseSection, Verdict,
@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 # Calibration benchmarks
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks_new.json")
+_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks.json")
 with open(_BENCHMARKS_PATH, "r", encoding="utf-8") as _f:
     CUSTOMER_BENCHMARKS = json.load(_f)
 
@@ -40,7 +40,7 @@ with open(_BENCHMARKS_PATH, "r", encoding="utf-8") as _f:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
-_DISCOVERY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "discovery_new.txt")
+_DISCOVERY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "discovery.txt")
 with open(_DISCOVERY_PROMPT_PATH, "r", encoding="utf-8") as _f:
     DISCOVERY_PROMPT = _f.read()
 
@@ -316,7 +316,7 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
     benchmarks_text = _build_benchmarks_text()
 
     # Fire one call per product in parallel — cap at 6 workers
-    from config_new import MAX_SCORING_WORKERS, SCORING_TIMEOUT_SECS
+    from config import MAX_SCORING_WORKERS, SCORING_TIMEOUT_SECS
     with ThreadPoolExecutor(max_workers=min(len(selected), MAX_SCORING_WORKERS)) as executor:
         product_futures = {
             executor.submit(

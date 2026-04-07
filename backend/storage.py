@@ -24,7 +24,7 @@ from typing import Optional
 
 log = logging.getLogger(__name__)
 
-_BASE_DIR = os.path.join(os.path.dirname(__file__), "data_new")
+_BASE_DIR = os.path.join(os.path.dirname(__file__), "data")
 _PRODUCT_DIR = os.path.join(_BASE_DIR, "product_data")
 _COMPANY_DIR = os.path.join(_BASE_DIR, "company_intel")
 _PROGRAM_DIR = os.path.join(_BASE_DIR, "program_data")
@@ -81,7 +81,7 @@ def save_discovery(discovery_id: str, data: dict) -> str:
     if not data.get("_scoring_logic_version"):
         raise ValueError(
             f"save_discovery({discovery_id}): _scoring_logic_version is missing. "
-            f"The intelligence layer (intelligence_new.discover) must stamp "
+            f"The intelligence layer (intelligence.discover) must stamp "
             f"this field before calling save_discovery."
         )
     if not data.get("created_at"):
@@ -133,7 +133,7 @@ def save_analysis(analysis) -> str:
     on the data before calling save_analysis. The storage layer no longer
     auto-stamps either field — that allowed save_analysis to lie about
     when an analysis was actually scored (CRIT-6 / CRIT-10 in code-review-
-    2026-04-07.md). The intelligence layer (intelligence_new.score and
+    2026-04-07.md). The intelligence layer (intelligence.score and
     discover) is the only place that should set these stamps, and it does
     so atomically with the actual scoring work via the _stamp_for_save
     helper.
@@ -165,7 +165,7 @@ def save_analysis(analysis) -> str:
     if not data.get("_scoring_logic_version"):
         raise ValueError(
             f"save_analysis({analysis_id}): _scoring_logic_version is missing. "
-            f"The intelligence layer (intelligence_new.score / discover) must "
+            f"The intelligence layer (intelligence.score / discover) must "
             f"stamp this field via _stamp_for_save before calling save_analysis. "
             f"If this is a briefcase save, the loaded analysis dict should already "
             f"have the stamp from its previous scoring — verify the load path."
@@ -180,7 +180,7 @@ def save_analysis(analysis) -> str:
 
     # Belt-and-braces: dedupe products by name on every save, keeping the
     # LAST occurrence (which is the freshest score from the cache-and-append
-    # flow). The intelligence_new.score() stale-version path now wipes the
+    # flow). The intelligence.score() stale-version path now wipes the
     # legacy list before appending, so duplicates shouldn't get created in
     # the first place — but this dedup pass closes any other code path that
     # might mutate the products list and hand it back here.

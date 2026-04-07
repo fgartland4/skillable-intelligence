@@ -20,11 +20,9 @@
       "AI Roadshow: hands-on AI labs at touring events where learners practice Copilot and Azure AI in context"
     ],
     "key_signals": {
-      "technical": "Native Skillable integrations for Azure (Cloud Slice fabric), M365 tenants, and Hyper-V. Every major product family has a viable lab path.",
-      "workflow": "Every product requires DTDS activities. Multiple product lines have embedded AI features (Copilot) requiring hands-on iterative practice.",
-      "organizational_readiness": "ATP/Learning Partner network is massive and global. Gray market training ecosystem enormous. Annual flagship events plus global AI Tour. Formal certification with PBT.",
-      "market_readiness": "Dominant in cloud, security, data, developer tools, and AI infrastructure — all core Skillable categories. CREATE AI platform (Azure AI Studio) adds +5.",
-      "org_readiness": "Dedicated training organizations per product group. Platform adoption (build + deliver) not project adoption. Training is a strategic revenue driver across the org."
+      "product_labability": "Native Skillable integrations for Azure (Cloud Slice fabric), M365 tenants, and Hyper-V. Every major product family has a viable lab path.",
+      "instructional_value": "Every product requires DTDS activities. Multiple product lines have embedded AI features (Copilot) requiring hands-on iterative practice.",
+      "customer_fit": "Dedicated training organizations per product group. Platform adoption (build + deliver) not project adoption. Training is a strategic revenue driver across the org."
     },
     "score_guidance": "CEILING benchmark — total product labability 88-100, partnership readiness 90-100."
   },
@@ -36,11 +34,9 @@
       "DataProtect, DataManagement (Hyper-V fabric — Skillable Datacenter, rich REST APIs)"
     ],
     "key_signals": {
-      "technical": "Self-hosted/hybrid, installs in VMs. Rich REST APIs covering all 4 lifecycle stages including scoring/validation of backup and recovery outcomes.",
-      "workflow": "Deep admin console. Multi-step workflows for backup policy, recovery orchestration, data management. Role-based (admin/operator/viewer). Strong troubleshooting scenarios. AI-powered data management features requiring hands-on practice.",
-      "organizational_readiness": "Cohesity University with certification tracks. Partner enablement with lab requirements. Formal training catalog.",
-      "market_readiness": "Data protection is Skillable core strength. Large enterprise install base. Fast-growing category.",
-      "org_readiness": "Dedicated training org. Formal tiered partner program with technical certification. Customer success team."
+      "product_labability": "Self-hosted/hybrid, installs in VMs. Rich REST APIs covering all 4 lifecycle stages including scoring/validation of backup and recovery outcomes.",
+      "instructional_value": "Deep admin console. Multi-step workflows for backup policy, recovery orchestration, data management. Role-based (admin/operator/viewer). Strong troubleshooting scenarios. AI-powered data management features requiring hands-on practice.",
+      "customer_fit": "Dedicated training org. Formal tiered partner program with technical certification. Customer success team."
     },
     "score_guidance": "HIGH benchmark — product labability 82-92, partnership readiness 75-88."
   },
@@ -52,11 +48,9 @@
       "Tanium Platform (Hyper-V fabric — Skillable Datacenter, agent-based, rich module API)"
     ],
     "key_signals": {
-      "technical": "Agent-based, installs in VMs. Rich API covering endpoint detection, patch management, compliance validation.",
-      "workflow": "Complex admin workflows: threat hunting, patch management, asset discovery, compliance reporting. Multiple operator roles.",
-      "organizational_readiness": "Tanium Training with role-based certification. Partner technical certification requirements. Tanium Converge is Tanium's annual flagship customer and partner conference — Skillable delivers hundreds to thousands of hands-on labs at Converge each year. This is a proven, repeating events consumption motion, not a one-time experiment.",
-      "market_readiness": "Cybersecurity/endpoint management is Skillable core. Enterprise-only. Limited hands-on lab alternatives.",
-      "org_readiness": "Strong training org. Tiered partner program. Professional services. Enterprise LMS."
+      "product_labability": "Agent-based, installs in VMs. Rich API covering endpoint detection, patch management, compliance validation.",
+      "instructional_value": "Complex admin workflows: threat hunting, patch management, asset discovery, compliance reporting. Multiple operator roles.",
+      "customer_fit": "Strong training org. Tiered partner program. Professional services. Enterprise LMS."
     },
     "score_guidance": "HIGH benchmark — comparable to Cohesity. Strong on all dimensions. Tanium Converge is a proven events consumption signal — when scoring any cybersecurity or enterprise platform company with a flagship conference, use Tanium Converge as the reference point."
   },
@@ -68,11 +62,9 @@
       "UiPath Platform (Azure Cloud Slice / Hyper-V fabric) — RPA with embedded AI requiring hands-on practice"
     ],
     "key_signals": {
-      "technical": "Installable automation platform with cloud components. Rich APIs for provisioning environments and validating automation workflows.",
-      "workflow": "Complex design, build, deploy, monitor, troubleshoot cycle for automation. Embedded AI features (AI-powered document processing, AI Center) require iterative hands-on practice — cannot be learned by watching.",
-      "organizational_readiness": "UiPath Academy with role-based certification. Large ATP network. Annual events with hands-on workshops.",
-      "market_readiness": "Enterprise automation and AI is fast-growing, high-value category.",
-      "org_readiness": "Strong training org. Robust partner program. AI-powered product features drive urgent hands-on training demand."
+      "product_labability": "Installable automation platform with cloud components. Rich APIs for provisioning environments and validating automation workflows.",
+      "instructional_value": "Complex design, build, deploy, monitor, troubleshoot cycle for automation. Embedded AI features (AI-powered document processing, AI Center) require iterative hands-on practice — cannot be learned by watching.",
+      "customer_fit": "Strong training org. Robust partner program. AI-powered product features drive urgent hands-on training demand."
     },
     "score_guidance": "HIGH benchmark — AI-embedded workflow boosts workflow complexity score significantly."
   },
@@ -84,11 +76,9 @@
       "Tableau Desktop (Hyper-V fabric — installs on Windows), Tableau Cloud (Custom API provisioning)"
     ],
     "key_signals": {
-      "technical": "Tableau Desktop installs on Windows — clean Hyper-V path. Complex data modeling, visualization workflows.",
-      "workflow": "Complex BI workflows: data connection, modeling, calculated fields, dashboard design, publication. AI-powered analytics features requiring hands-on practice. Role-based.",
-      "organizational_readiness": "Tableau Conference delivers 14,000+ labs to 10,000+ attendees in 3-4 days. Tableau certifications. Large user community and gray market training.",
-      "market_readiness": "Data & Analytics is a core Skillable strength. Massive install base.",
-      "org_readiness": "Dedicated training org. Salesforce (parent) has enormous partner ecosystem and ATP network."
+      "product_labability": "Tableau Desktop installs on Windows — clean Hyper-V path. Complex data modeling, visualization workflows.",
+      "instructional_value": "Complex BI workflows: data connection, modeling, calculated fields, dashboard design, publication. AI-powered analytics features requiring hands-on practice. Role-based.",
+      "customer_fit": "Dedicated training org. Salesforce (parent) has enormous partner ecosystem and ATP network."
     },
     "score_guidance": "HIGH benchmark, especially for events use case. AI-powered analytics features add workflow complexity signal."
   },
@@ -107,11 +97,9 @@
       "Phase 5 (planned): Certification integration — labs embedded in formal Commvault certification exams as PBT components. This is the deepest strategic integration — Skillable becomes infrastructure for the certification program, not just a training add-on."
     ],
     "key_signals": {
-      "technical": "Hybrid deployment (on-premises + cloud). APIs for provisioning environments, validating backup and recovery outcomes, and scoring learner actions. Strong REST API surface across the data protection lifecycle.",
-      "workflow": "Complex data management workflows: backup policy configuration, recovery orchestration, threat detection, anomaly response, data governance. AI-powered recovery and threat detection features requiring hands-on iterative practice — product is too complex to learn by watching.",
-      "organizational_readiness": "Dedicated training organization. Customer training catalog. Partner enablement program. Now building scored labs and evaluating labs for certification — the full Skillable value chain. Commvault loves Skillable and is expanding aggressively.",
-      "market_readiness": "Data protection/cyber resilience is core Skillable territory. AI-powered cyber resilience features (anomaly detection, automated recovery) are exactly the kind of embedded AI that drives hands-on lab demand.",
-      "org_readiness": "Strong training org. Active and growing partner program. The expansion arc from SE enablement → customer training → partner training → scored labs → certification is the ideal partnership trajectory."
+      "product_labability": "Hybrid deployment (on-premises + cloud). APIs for provisioning environments, validating backup and recovery outcomes, and scoring learner actions. Strong REST API surface across the data protection lifecycle.",
+      "instructional_value": "Complex data management workflows: backup policy configuration, recovery orchestration, threat detection, anomaly response, data governance. AI-powered recovery and threat detection features requiring hands-on iterative practice — product is too complex to learn by watching.",
+      "customer_fit": "Strong training org. Active and growing partner program. The expansion arc from SE enablement → customer training → partner training → scored labs → certification is the ideal partnership trajectory."
     },
     "score_guidance": "HIGH benchmark — strong on all dimensions. THE canonical example of the Skillable expansion arc: entry through SE enablement, then customer training, then partner, then scoring, then certification. When scoring any data protection, cyber resilience, or enterprise infrastructure company with similar characteristics, expect a comparable trajectory. IMPORTANT CALIBRATION SIGNAL: The expansion from SE enablement to customer/partner training to certification happened because the technical investment scales — the same lab built for SEs is adapted for customers and partners. Products with this characteristic (complex enough to need hands-on SE prep, used by customers and partners who also need training, moving toward certification) should score HIGH on partnership readiness AND consume across all 5 non-events motions. Score guidance: labability 75-90, partnership readiness 78-90."
   },
@@ -131,11 +119,9 @@
       "Natural next phases: expansion to more NVIDIA certification tracks (AI Developer, CUDA, NIM/NeMo, Triton), events labs at GTC (NVIDIA's flagship conference), partner/reseller technical enablement."
     ],
     "key_signals": {
-      "technical": "GPU is the core requirement — NVIDIA certification labs require GPU-capable environments. Path is cloud VMs with GPU (Azure N-series or AWS P/G instances via Compute Gallery or EC2 AMI), not Skillable's standard Hyper-V datacenter (GPU not available there). This is the canonical use case for cloud VM lab environments — premium cost justified by GPU requirement. Lab content covers DGX/HGX system management, NGC (NVIDIA GPU Cloud) operations, InfiniBand/NVLink networking configuration, AI model deployment workflows.",
-      "workflow": "AI Operations: deploy, configure, and manage NVIDIA AI infrastructure (DGX systems, GPU clusters, monitoring). AI Infrastructure: provision GPU compute, configure storage and networking, validate AI workload deployment. AI Networking: configure InfiniBand fabric, NVLink topology, RDMA, network validation for AI training workloads. All three are deeply technical, multi-step, and entirely impossible to learn without hands-on practice on real (or real-equivalent) infrastructure.",
-      "organizational_readiness": "NVIDIA certifications are among the most strategically important in the AI infrastructure market — NVIDIA-certified engineers are in high demand. Three active PBT exams at launch, with Simplified Chinese localization showing global scale commitment. GTC (GPU Technology Conference) is NVIDIA's flagship annual event — tens of thousands of attendees, a major potential events consumption motion. NVIDIA Deep Learning Institute (DLI) is a mature training org with global reach.",
-      "market_readiness": "CREATE AI — NVIDIA builds, trains, and deploys AI infrastructure. Maximum market fit score. The most strategically important company in AI infrastructure. NVIDIA-certified engineers are in immediate market demand. This is the highest-value AI certification segment Skillable operates in.",
-      "org_readiness": "NVIDIA Deep Learning Institute is a mature, well-resourced training organization. Three certification exams live at launch. Simplified Chinese localization shows strategic investment. Certiverse EDP integration confirms commitment to a professional exam delivery experience. GTC conference is a massive untapped events opportunity."
+      "product_labability": "GPU is the core requirement — NVIDIA certification labs require GPU-capable environments. Path is cloud VMs with GPU (Azure N-series or AWS P/G instances via Compute Gallery or EC2 AMI), not Skillable's standard Hyper-V datacenter (GPU not available there). This is the canonical use case for cloud VM lab environments — premium cost justified by GPU requirement. Lab content covers DGX/HGX system management, NGC (NVIDIA GPU Cloud) operations, InfiniBand/NVLink networking configuration, AI model deployment workflows.",
+      "instructional_value": "AI Operations: deploy, configure, and manage NVIDIA AI infrastructure (DGX systems, GPU clusters, monitoring). AI Infrastructure: provision GPU compute, configure storage and networking, validate AI workload deployment. AI Networking: configure InfiniBand fabric, NVLink topology, RDMA, network validation for AI training workloads. All three are deeply technical, multi-step, and entirely impossible to learn without hands-on practice on real (or real-equivalent) infrastructure.",
+      "customer_fit": "NVIDIA Deep Learning Institute is a mature, well-resourced training organization. Three certification exams live at launch. Simplified Chinese localization shows strategic investment. Certiverse EDP integration confirms commitment to a professional exam delivery experience. GTC conference is a massive untapped events opportunity."
     },
     "score_guidance": "HIGHEST TIER for AI infrastructure / CREATE AI companies. THIRD-PARTY EDP INTEGRATION PATTERN: When a company uses a third-party exam delivery provider (Certiverse, PSI, Pearson VUE, Prometric), Skillable functions as the lab infrastructure layer behind that EDP — not a standalone portal. This is a valid and growing integration pattern; do not score it lower because Skillable isn't the front-end. GPU REQUIREMENT: Cloud VMs (Azure or AWS) with GPU instances are the correct path for AI infrastructure labs requiring GPU. The premium cost is justified; flag GPU as a path note, not a blocker, for NVIDIA-class products. MULTILINGUAL DELIVERY: Simplified Chinese localization confirms Skillable supports global certification delivery — note this as a capability when companies ask about international reach. Score guidance: labability 78-92, partnership readiness 82-92."
   },
@@ -154,11 +140,9 @@
       "Long-term: Customer training, partner/distributor enablement, potentially NI Connect conference labs."
     ],
     "key_signals": {
-      "technical": "LabVIEW and TestStand install on Windows — clean Hyper-V path. LabVIEW is a graphical dataflow programming environment; learners build and debug VI (Virtual Instrument) programs. TestStand manages test sequences programmatically. Both are inherently hands-on — you cannot learn LabVIEW by watching a demo, you must build and wire diagrams yourself. Strong VM labability: software installs cleanly, has rich scripting surfaces for scoring, and complex enough to require multi-hour lab sessions.",
-      "workflow": "LabVIEW: design data acquisition VIs, instrument drivers, real-time measurement loops, FPGA programming, debugging broken VIs. TestStand: build test sequences, configure step types, deploy to targets, analyze results. Multiple role types (developer, test engineer, systems integrator). Deep DTDS coverage across all five phases. Troubleshooting broken VI architectures is a canonical PBT scenario.",
-      "organizational_readiness": "NI has a formal certification program — NI Certified LabVIEW Associate Developer (CLAD), Certified LabVIEW Developer (CLD), Certified LabVIEW Architect (CLA). These are well-regarded credentials in the test & measurement engineering community. NI Connect (formerly NIWeek) is NI's annual flagship conference — historically held in Austin, large engineering community, strong hands-on workshop tradition. Emerson acquisition (2023) brings additional resources and potential for expanded global enablement.",
-      "market_readiness": "Industrial/OT and Test & Measurement — specialized but deeply embedded in aerospace, automotive, semiconductor, energy, and defense. Engineers who use NI products are technically sophisticated and certification-motivated. Certification is a signal of technical depth, not just training maturity.",
-      "org_readiness": "Mature certification program (CLAD/CLD/CLA) already established. NI came to Skillable specifically for PBT — they understand what they want and are motivated buyers. Emerson parent provides resources. NI Connect conference is a natural events consumption motion."
+      "product_labability": "LabVIEW and TestStand install on Windows — clean Hyper-V path. LabVIEW is a graphical dataflow programming environment; learners build and debug VI (Virtual Instrument) programs. TestStand manages test sequences programmatically. Both are inherently hands-on — you cannot learn LabVIEW by watching a demo, you must build and wire diagrams yourself. Strong VM labability: software installs cleanly, has rich scripting surfaces for scoring, and complex enough to require multi-hour lab sessions.",
+      "instructional_value": "LabVIEW: design data acquisition VIs, instrument drivers, real-time measurement loops, FPGA programming, debugging broken VIs. TestStand: build test sequences, configure step types, deploy to targets, analyze results. Multiple role types (developer, test engineer, systems integrator). Deep DTDS coverage across all five phases. Troubleshooting broken VI architectures is a canonical PBT scenario.",
+      "customer_fit": "Mature certification program (CLAD/CLD/CLA) already established. NI came to Skillable specifically for PBT — they understand what they want and are motivated buyers. Emerson parent provides resources. NI Connect conference is a natural events consumption motion."
     },
     "score_guidance": "HIGH benchmark for industrial/test & measurement software companies with certification programs. PBT-FIRST ENTRY PATTERN: NI came to Skillable for certification assessment before building a training catalog. When scoring any company with an existing technical certification program (especially engineering or developer certifications), the PBT/Certification motion may be the PRIMARY entry point, not the capstone. Score certification-ready companies higher on Training & Enablement Maturity even if they lack an ATP network — a mature cert program is a direct Skillable entry vector. NI Connect conference is a significant events consumption signal for this category. Score guidance: labability 72-85, partnership readiness 70-82."
   },
@@ -170,11 +154,9 @@
       "CompTIA certifications (Hyper-V fabric for underlying tools — Windows Server, Linux, network devices, cloud platforms)"
     ],
     "key_signals": {
-      "technical": "Labs run on industry-standard tools (Windows Server, Linux, Cisco, cloud) via Hyper-V and Cloud Slice. CompTIA CertMaster Labs confirms commitment to hands-on.",
-      "workflow": "Performance-based exam scenarios. Multi-tool environments. Troubleshooting workflows across networking, security, sysadmin.",
-      "organizational_readiness": "CompTIA IS the certification ecosystem. Massive global catalog. Uses Pearson VUE as exam delivery provider — a proven Skillable EDP integration (Pearson VUE is a major Skillable partner).",
-      "market_readiness": "IT certification is Skillable's home market.",
-      "org_readiness": "Very mature training and certification org. Deep global partner network. Existing LMS and delivery infrastructure."
+      "product_labability": "Labs run on industry-standard tools (Windows Server, Linux, Cisco, cloud) via Hyper-V and Cloud Slice. CompTIA CertMaster Labs confirms commitment to hands-on.",
+      "instructional_value": "Performance-based exam scenarios. Multi-tool environments. Troubleshooting workflows across networking, security, sysadmin.",
+      "customer_fit": "Very mature training and certification org. Deep global partner network. Existing LMS and delivery infrastructure."
     },
     "score_guidance": "HIGH benchmark for certification bodies and training organizations."
   },
@@ -187,11 +169,9 @@
       "GIAC includes: GSEC (Security Essentials), GPEN (Penetration Tester), GCIH (Certified Incident Handler), GWAPT (Web App Pen Tester), and many others"
     ],
     "key_signals": {
-      "technical": "SANS courses are among the most lab-intensive in cybersecurity — every SANS course is built around hands-on practice from day one. GIAC PBT components require real tool use in real environments. Hyper-V fabric: Kali Linux, Windows Server, network devices, pre-configured vulnerable target environments. Strong VM labability — the entire SANS curriculum is designed for hands-on delivery.",
-      "workflow": "Penetration testing workflows: reconnaissance, exploitation, post-exploitation, reporting. Incident response workflows: detection, containment, eradication, recovery. Forensic analysis, malware analysis, network defense. Multiple specialist role tracks — each GIAC certification maps to a distinct technical specialty.",
-      "organizational_readiness": "GIAC certifications are among the most respected hands-on credentials in cybersecurity. SANS courses sell out globally. Large gray market training ecosystem. Uses Pearson VUE as EDP — proven Skillable integration.",
-      "market_readiness": "Cybersecurity is Skillable's highest-priority market. SANS/GIAC is the gold standard for practitioner-level cybersecurity certification. Maximum category fit.",
-      "org_readiness": "SANS is a pure training and certification organization — training IS the product. Very mature. Global delivery. Deep practitioner community."
+      "product_labability": "SANS courses are among the most lab-intensive in cybersecurity — every SANS course is built around hands-on practice from day one. GIAC PBT components require real tool use in real environments. Hyper-V fabric: Kali Linux, Windows Server, network devices, pre-configured vulnerable target environments. Strong VM labability — the entire SANS curriculum is designed for hands-on delivery.",
+      "instructional_value": "Penetration testing workflows: reconnaissance, exploitation, post-exploitation, reporting. Incident response workflows: detection, containment, eradication, recovery. Forensic analysis, malware analysis, network defense. Multiple specialist role tracks — each GIAC certification maps to a distinct technical specialty.",
+      "customer_fit": "SANS is a pure training and certification organization — training IS the product. Very mature. Global delivery. Deep practitioner community."
     },
     "score_guidance": "HIGH benchmark for cybersecurity training organizations and certification bodies. Pearson VUE EDP integration is a confirmed, proven path. SANS/GIAC is the ceiling benchmark for cybersecurity-focused training organizations."
   },
@@ -205,11 +185,9 @@
       "CHFI (Computer Hacking Forensic Investigator), LPT (Licensed Penetration Tester), and others"
     ],
     "key_signals": {
-      "technical": "EC-Council certifications are explicitly hands-on — CEH Practical and CPENT are 100% performance-based with no multiple choice. Labs run attack and defense scenarios in isolated VM environments. Hyper-V fabric with Kali Linux, Windows targets, network topology. CEH is one of the most widely held cybersecurity certifications globally.",
-      "workflow": "Ethical hacking workflows: network scanning, vulnerability assessment, exploitation, privilege escalation, evasion techniques. CPENT uses a live cyber range — learners attack real machines in isolated network segments. Forensics workflows: evidence collection, chain of custody, artifact analysis.",
-      "organizational_readiness": "CEH is one of the most recognized entry-level cybersecurity credentials. Massive global enrollment. ATC (Authorized Training Center) network worldwide. Uses Pearson VUE as EDP — proven Skillable integration.",
-      "market_readiness": "Cybersecurity certification — maximum category fit. CEH is arguably the most widely recognized ethical hacking cert. Huge global demand.",
-      "org_readiness": "Training org at scale. ATC network. Mature certification infrastructure. Multiple cert tracks across different cybersecurity domains."
+      "product_labability": "EC-Council certifications are explicitly hands-on — CEH Practical and CPENT are 100% performance-based with no multiple choice. Labs run attack and defense scenarios in isolated VM environments. Hyper-V fabric with Kali Linux, Windows targets, network topology. CEH is one of the most widely held cybersecurity certifications globally.",
+      "instructional_value": "Ethical hacking workflows: network scanning, vulnerability assessment, exploitation, privilege escalation, evasion techniques. CPENT uses a live cyber range — learners attack real machines in isolated network segments. Forensics workflows: evidence collection, chain of custody, artifact analysis.",
+      "customer_fit": "Training org at scale. ATC network. Mature certification infrastructure. Multiple cert tracks across different cybersecurity domains."
     },
     "score_guidance": "HIGH benchmark for cybersecurity certification bodies. Pearson VUE EDP confirmed. CEH Practical and CPENT demonstrate that 100% performance-based exams are viable on Skillable."
   },
@@ -222,11 +200,9 @@
       "Covers: penetration testing, incident response, threat intelligence, security architecture"
     ],
     "key_signals": {
-      "technical": "CREST certifications are rigorous, UK-rooted, and entirely practical — no theory-only path. Exam environments simulate real enterprise targets. Hyper-V fabric with Windows Active Directory environments, web applications, network infrastructure. Among the most technically demanding cybersecurity credentials globally.",
-      "workflow": "Advanced penetration testing: internal/external network pen test, web application assessment, mobile assessment. Incident response simulations. All assessed in live lab environments under exam conditions.",
-      "organizational_readiness": "CREST is highly respected in UK/European enterprise, government, and financial services sectors. Smaller total enrollment than CEH but extremely high practitioner prestige. Uses Pearson VUE as EDP — proven Skillable integration.",
-      "market_readiness": "Cybersecurity — maximum category fit. CREST credentialing is often required for suppliers to UK government and financial services. Niche but high-value.",
-      "org_readiness": "Mature certification body. Strong UK/EMEA community. Government and regulated industry relevance."
+      "product_labability": "CREST certifications are rigorous, UK-rooted, and entirely practical — no theory-only path. Exam environments simulate real enterprise targets. Hyper-V fabric with Windows Active Directory environments, web applications, network infrastructure. Among the most technically demanding cybersecurity credentials globally.",
+      "instructional_value": "Advanced penetration testing: internal/external network pen test, web application assessment, mobile assessment. Incident response simulations. All assessed in live lab environments under exam conditions.",
+      "customer_fit": "Mature certification body. Strong UK/EMEA community. Government and regulated industry relevance."
     },
     "score_guidance": "HIGH benchmark for advanced cybersecurity certification — niche but prestigious. Pearson VUE EDP confirmed."
   },
@@ -242,11 +218,9 @@
       "CDPSE (Certified Data Privacy Solutions Engineer)"
     ],
     "key_signals": {
-      "technical": "ISACA certifications are adding practical/performance-based components to traditionally knowledge-based exams. Lab environments cover IT audit workflows, security controls assessment, risk management scenarios, data privacy tooling. Hyper-V fabric for tool-based scenarios. Uses PSI as EDP (not Pearson VUE) — a distinct but proven Skillable integration.",
-      "workflow": "IT audit: control testing, evidence gathering, risk assessment workflows. Security management: policy implementation, incident classification, governance framework application. Risk: risk register maintenance, control assessment, reporting. These are practical skills that hands-on labs reinforce beyond reading frameworks.",
-      "organizational_readiness": "ISACA certifications (especially CISA and CISM) are among the most held credentials in IT audit, governance, and risk. Global enterprise and government recognition. Large member community. Chapter network worldwide.",
-      "market_readiness": "IT governance, audit, and risk — adjacent to Skillable's cybersecurity strength. Large professional credentialing market with strong employer recognition.",
-      "org_readiness": "Mature global certification org. Strong enterprise and government customer base. PSI EDP integration confirmed and working."
+      "product_labability": "ISACA certifications are adding practical/performance-based components to traditionally knowledge-based exams. Lab environments cover IT audit workflows, security controls assessment, risk management scenarios, data privacy tooling. Hyper-V fabric for tool-based scenarios. Uses PSI as EDP (not Pearson VUE) — a distinct but proven Skillable integration.",
+      "instructional_value": "IT audit: control testing, evidence gathering, risk assessment workflows. Security management: policy implementation, incident classification, governance framework application. Risk: risk register maintenance, control assessment, reporting. These are practical skills that hands-on labs reinforce beyond reading frameworks.",
+      "customer_fit": "Mature global certification org. Strong enterprise and government customer base. PSI EDP integration confirmed and working."
     },
     "score_guidance": "HIGH benchmark for IT governance/audit certification bodies. PSI EDP INTEGRATION: ISACA uses PSI (not Pearson VUE) as their exam delivery provider. PSI is a confirmed Skillable EDP partner. When a prospect uses PSI, note this as a proven integration path — same as Pearson VUE. Score guidance for similar orgs: labability 65-80, partnership readiness 72-85."
   },
@@ -264,11 +238,9 @@
       "Phase 3 (potential): Cisco Live — one of the largest annual tech conferences (~30,000+ attendees). Hands-on labs at DevNet Zone and breakout sessions. Events consumption at scale."
     ],
     "key_signals": {
-      "technical": "CCIE is the hardest networking certification in existence — expert-level, 8-hour hands-on lab exam. Labs require emulating multi-device network topologies: real Cisco IOS routers and switches, ASA firewalls, network segments with real routing protocols (BGP, OSPF, EIGRP), NAT, VPN tunnels, and dedicated IP addressing. Skillable's private network fabric, isolated VLANs, and network device emulation are exactly the required capability. This is the ceiling benchmark for networking complexity — if CCIE passes, any networking certification lab passes. Cisco's written exams use Pearson VUE (confirmed Skillable EDP partner); CCIE lab historically in-person at Cisco facilities, now delivered via Skillable.",
-      "workflow": "CCIE tracks: Enterprise Infrastructure, Enterprise Wireless, Data Center, Security, Service Provider, Collaboration, DevNet. Every track requires complex multi-step configuration and troubleshooting workflows. Exam scenario: candidate receives a broken or partially-configured network, must diagnose, configure, and verify in a timed environment. No click-through UI — pure CLI, real device configuration, real protocol behavior.",
-      "organizational_readiness": "Cisco has the largest networking training and certification ecosystem in the world. CCNA/CCNP/CCIE hierarchy is the gold standard for networking careers globally. Massive global ATP (Authorized Training Partner) network — training partners in every major market. Cisco U. (formerly Cisco Learning Network) is Cisco's own learning platform. Certification community is enormous — millions of active cert holders pursuing next tier.",
-      "market_readiness": "Networking/infrastructure is a foundational Skillable category. Cisco is the canonical networking vendor — CCIE is the canonical expert certification. CCIE delivery proves Skillable's top-tier capability to Cisco's entire customer and partner ecosystem.",
-      "org_readiness": "Cisco has a formal training and certification org. Enormous global partner network. Cisco Live is a massive annual events consumption opportunity. Pearson VUE EDP for written exams — proven Skillable integration."
+      "product_labability": "CCIE is the hardest networking certification in existence — expert-level, 8-hour hands-on lab exam. Labs require emulating multi-device network topologies: real Cisco IOS routers and switches, ASA firewalls, network segments with real routing protocols (BGP, OSPF, EIGRP), NAT, VPN tunnels, and dedicated IP addressing. Skillable's private network fabric, isolated VLANs, and network device emulation are exactly the required capability. This is the ceiling benchmark for networking complexity — if CCIE passes, any networking certification lab passes. Cisco's written exams use Pearson VUE (confirmed Skillable EDP partner); CCIE lab historically in-person at Cisco facilities, now delivered via Skillable.",
+      "instructional_value": "CCIE tracks: Enterprise Infrastructure, Enterprise Wireless, Data Center, Security, Service Provider, Collaboration, DevNet. Every track requires complex multi-step configuration and troubleshooting workflows. Exam scenario: candidate receives a broken or partially-configured network, must diagnose, configure, and verify in a timed environment. No click-through UI — pure CLI, real device configuration, real protocol behavior.",
+      "customer_fit": "Cisco has a formal training and certification org. Enormous global partner network. Cisco Live is a massive annual events consumption opportunity. Pearson VUE EDP for written exams — proven Skillable integration."
     },
     "score_guidance": "CEILING benchmark for networking vendors and certification bodies. CCIE lab delivery = confirmed Skillable can handle the most complex network topology requirements. Any networking product that requires multi-device emulation (routers, switches, firewalls, real routing protocols) should be scored HIGH — Cisco CCIE proves the fabric works at the absolute ceiling. For similar networking vendors (Juniper, Palo Alto, F5, Fortinet, Arista): technical score 28-36, workflow 20-26, training ecosystem 12-18. Cisco Live events motion: when scoring any company with a major annual conference, Cisco Live (~30k attendees) is the upper bound reference for events consumption scale."
   },
@@ -282,11 +254,9 @@
       "Hyland Alfresco (Hyper-V fabric — installable on Linux/Windows VMs)"
     ],
     "key_signals": {
-      "technical": "OnBase installs on Windows Server in a Hyper-V VM — the VM image IS the lab environment. Lab authors build the pre-configured image once; Skillable spins up copies per learner. No runtime provisioning APIs needed. Workflow Designer, Unity Client, and admin console are script-accessible. High viability on Hyper-V fabric; API richness is a bonus for scoring, not a requirement.",
-      "workflow": "Deep admin console. Complex multi-step content management, case management, workflow automation, and AP/AR automation workflows. Admin/operator/end-user role distinction. Troubleshooting, integration configuration, and workflow design are all hands-on activities that cannot be learned by watching.",
-      "organizational_readiness": "Hyland University with formal certification tracks. Growing ATP network. Large gray market training ecosystem (Udemy, consultancy courses). Hyland CommunityLIVE is Hyland's annual flagship customer and partner conference — Skillable delivers hundreds to thousands of hands-on labs at CommunityLIVE each year. This is a proven, repeating events consumption motion alongside the ongoing training catalog.",
-      "market_readiness": "Content management / ECM is a growing Skillable category. Large enterprise install base. Complex product with training demand from implementation partners.",
-      "org_readiness": "Dedicated training org (Hyland University). Partner enablement program. CommunityLIVE annual conference. Professional services arm."
+      "product_labability": "OnBase installs on Windows Server in a Hyper-V VM — the VM image IS the lab environment. Lab authors build the pre-configured image once; Skillable spins up copies per learner. No runtime provisioning APIs needed. Workflow Designer, Unity Client, and admin console are script-accessible. High viability on Hyper-V fabric; API richness is a bonus for scoring, not a requirement.",
+      "instructional_value": "Deep admin console. Complex multi-step content management, case management, workflow automation, and AP/AR automation workflows. Admin/operator/end-user role distinction. Troubleshooting, integration configuration, and workflow design are all hands-on activities that cannot be learned by watching.",
+      "customer_fit": "Dedicated training org (Hyland University). Partner enablement program. CommunityLIVE annual conference. Professional services arm."
     },
     "score_guidance": "HIGH benchmark for VM-installable enterprise software. Technical score 18-22 — 'installable in VM + complex admin workflows' is the right tier, NOT 'minimal automation'. Workflow score 18-22 due to deep admin console and DTDS activities. Do not penalize for lacking cloud-native APIs — the Hyper-V fabric is designed exactly for this class of software. Hyland CommunityLIVE is a proven events consumption signal — when scoring any enterprise software company with a user conference, use CommunityLIVE as a reference point."
   },
@@ -298,11 +268,9 @@
       "Workday HCM, Workday Finance (Custom API provisioning — Not Viable, proprietary cloud, locked APIs)"
     ],
     "key_signals": {
-      "technical": "SaaS on Workday's proprietary cloud. APIs locked down. No self-hosted option. No Azure/AWS path. No free developer tier. Tenant provisioning takes months and costs thousands. FAILS API Automation Gate.",
-      "workflow": "End users (HR/finance employees) have business_user persona. Implementation consultants have complexity but cannot be served without provisioning.",
-      "organizational_readiness": "Training programs exist. Training leadership is engaged but cannot influence product team API decisions.",
-      "market_readiness": "Large install base, but technical fit failure overrides everything.",
-      "org_readiness": "Training org is mature and engaged. Partnership readiness can score 60-75 independently of low product labability."
+      "product_labability": "SaaS on Workday's proprietary cloud. APIs locked down. No self-hosted option. No Azure/AWS path. No free developer tier. Tenant provisioning takes months and costs thousands. FAILS API Automation Gate.",
+      "instructional_value": "End users (HR/finance employees) have business_user persona. Implementation consultants have complexity but cannot be served without provisioning.",
+      "customer_fit": "Training org is mature and engaged. Partnership readiness can score 60-75 independently of low product labability."
     },
     "warning": "WILLING BUYER / UNWILLING PRODUCT TEAM pattern. Skillable invested over a year with engaged training leadership but product team will not open APIs. Maintain relationship at low cost. Do not invest significant solution engineering time until vendor commits to API openness.",
     "score_guidance": "LOW product labability (8-15 total after multiplier). Partnership readiness may score 60-75 independently. The composite gate (Lab < 30 → composite capped at 25) applies here — do not let high partnership readiness inflate pursuit priority."
@@ -320,11 +288,9 @@
       "Cisco has mentioned bare metal requirements in isolated conversations — flag and redirect to Skillable Simulations or a hardware-vendor-specific lab solution."
     ],
     "key_signals": {
-      "technical": "Physical hardware orchestration — provision, clone, reset, or manage physical servers or network gear. No virtualization layer. Skillable cannot snapshot or fork physical hardware state per learner. This is not a gap that will be closed; it is a fundamental architecture boundary.",
-      "workflow": "Scenarios that look like this: 'We want learners to configure a real HPE ProLiant server from bare metal', 'We need to reset a physical storage array between learner sessions', 'We want to practice firmware flashing on real hardware'.",
-      "organizational_readiness": "Training need is real and demand may be genuine — but a different delivery partner is required (vendor-owned physical lab facilities, specialized hardware-in-loop vendors).",
-      "market_readiness": "Hardware-centric vendors (HPE, Dell, NetApp, Pure Storage, Juniper physical appliances, Palo Alto hardware) sometimes raise this. Most accept VMs or simulators as a substitute — only flag bare metal when the customer is explicit that real hardware is required.",
-      "org_readiness": "High partnership readiness scores are possible and valid — the training relationship is worth maintaining. The blocker is purely technical."
+      "product_labability": "Physical hardware orchestration — provision, clone, reset, or manage physical servers or network gear. No virtualization layer. Skillable cannot snapshot or fork physical hardware state per learner. This is not a gap that will be closed; it is a fundamental architecture boundary.",
+      "instructional_value": "Scenarios that look like this: 'We want learners to configure a real HPE ProLiant server from bare metal', 'We need to reset a physical storage array between learner sessions', 'We want to practice firmware flashing on real hardware'.",
+      "customer_fit": "High partnership readiness scores are possible and valid — the training relationship is worth maintaining. The blocker is purely technical."
     },
     "warning": "⚠️ BARE METAL HARD STOP — Do Not Pursue as a lab delivery scenario. Redirect options: (1) Skillable Simulations for non-interactive demo scenarios. (2) VM-based equivalents — most enterprise server software installs fine in a Hyper-V/ESX VM and learners cannot tell the difference for software workflows. (3) Acknowledge the gap honestly and maintain the relationship for the software-side training they DO have. Important distinction: hardware-locked LICENSING (BIOS GUID-based activation) is NOT a blocker — Skillable pins BIOS GUIDs in VM profiles. Only flag when physical hardware orchestration itself is the requirement.",
     "score_guidance": "BARE METAL HARD STOP: total product labability 5-15. Product Labability 0-5, Instructional Value 2-6, Organizational Readiness 1-4. Add 'bare_metal_required' to poor_match_flags. Set Next Step to Do Not Pursue. Note: if the same company also has software products that install in VMs (e.g., HPE also sells OneView, Nimble storage software, Aruba network management software), score THOSE products separately and normally — only the bare metal scenario triggers the hard stop."
@@ -337,10 +303,9 @@
       "Facebook, Instagram (consumer apps — no viable path)"
     ],
     "key_signals": {
-      "technical": "Consumer products. No enterprise deployment. No APIs for per-learner provisioning. Nothing to install.",
-      "workflow": "Learned in minutes by using it. No DTDS activities. Consumer persona.",
-      "organizational_readiness": "No certification. No gray market training. No partner ATP.",
-      "market_readiness": "Consumer category. No Skillable relevance."
+      "product_labability": "Consumer products. No enterprise deployment. No APIs for per-learner provisioning. Nothing to install.",
+      "instructional_value": "Learned in minutes by using it. No DTDS activities. Consumer persona.",
+      "customer_fit": "No certification. No gray market training. No partner ATP. Consumer category. No Skillable relevance."
     },
     "score_guidance": "FLOOR benchmark — total product labability 0-10. Note: Meta's developer products (React, PyTorch) score very differently — always score at product level, not company level."
   }

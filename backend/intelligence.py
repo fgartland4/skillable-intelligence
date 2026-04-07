@@ -39,28 +39,28 @@ from datetime import datetime, timezone, timedelta
 
 log = logging.getLogger(__name__)
 
-from researcher_new import discover_products, research_products, research_company_fit, scrape_product_families
-from scorer_new import discover_products_with_claude, score_selected_products, generate_briefcase, _call_claude
-from storage_new import (
+from researcher import discover_products, research_products, research_company_fit, scrape_product_families
+from scorer import discover_products_with_claude, score_selected_products, generate_briefcase, _call_claude
+from storage import (
     save_analysis, load_analysis,
     save_discovery, load_discovery,
     find_analysis_by_company_name, find_discovery_by_company_name,
     find_analysis_by_discovery_id,
     save_competitor_candidates,
 )
-from core_new import (
+from core import (
     assign_verdict, discovery_tier, DISCOVERY_TIER_LABELS,
     company_classification_label, org_badge_color_group,
     score_products_and_sort,
 )
-from models_new import CompanyAnalysis, Product
-from config_new import ANTHROPIC_MODEL
+from models import CompanyAnalysis, Product
+from config import ANTHROPIC_MODEL
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Cache TTL — single definition for the whole platform
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from config_new import CACHE_TTL_DAYS
+from config import CACHE_TTL_DAYS
 
 
 def cache_is_fresh(timestamp_str: str) -> bool:
@@ -101,14 +101,14 @@ def recompute_analysis(analysis: dict) -> None:
          scores, ceiling caps, and the technical fit multiplier
       4. Writes the computed scores back into the saved dict
       5. Recomputes ACV via scoring_math.compute_acv_potential
-      6. Reassigns verdict via core_new.assign_verdict from the new
+      6. Reassigns verdict via core.assign_verdict from the new
          Fit Score + ACV tier
       7. Phase 2 normalization (badge_normalization.normalize_for_display)
          merges any same-named badges and promotes color to worst-of-group
       8. Sorts products by Fit Score descending
 
     Layer Discipline note (2026-04-07): this function used to live as
-    _prepare_analysis_for_render in app_new.py — the Inspector Flask app.
+    _prepare_analysis_for_render in app.py — the Inspector Flask app.
     Per CRIT-2 in code-review-2026-04-07.md, it was moved here so all
     three tools can share one cache-revalidation path. The "render" name
     was misleading — almost nothing in this function is rendering, it's
@@ -122,7 +122,7 @@ def recompute_analysis(analysis: dict) -> None:
     import scoring_math
     import scoring_config as cfg
     import badge_normalization
-    from core_new import assign_verdict
+    from core import assign_verdict
 
     # Map each pillar's dict-key to its Pillar object — once, not per product
     pillar_key_to_obj: dict[str, cfg.Pillar] = {}
@@ -292,7 +292,7 @@ def discover(company_name: str, known_products: list[str] | None = None,
     _progress("Locating the company website…")
 
     from concurrent.futures import ThreadPoolExecutor
-    from researcher_new import scrape_product_families
+    from researcher import scrape_product_families
     with ThreadPoolExecutor(max_workers=2) as pool:
         family_future = pool.submit(scrape_product_families, company_name)
         _progress("Identifying the product portfolio…")
@@ -379,7 +379,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
       The list of newly scored names is used by the briefcase phase to generate
       briefcases ONLY for new products (cached ones keep their cached briefcase).
     """
-    from storage_new import find_analysis_by_discovery_id, save_analysis as _save
+    from storage import find_analysis_by_discovery_id, save_analysis as _save
     import scoring_config as cfg
 
     if not discovery_data:
@@ -561,9 +561,9 @@ def generate_briefcase_for_analysis(analysis_id: str,
 
     Safe to run in a background thread. Returns True on success.
     """
-    from storage_new import load_analysis as _load, save_analysis as _save
+    from storage import load_analysis as _load, save_analysis as _save
     from concurrent.futures import ThreadPoolExecutor, as_completed
-    from scorer_new import (
+    from scorer import (
         _generate_briefcase_section,
         _KTQ_SYSTEM_PROMPT, _STARTERS_SYSTEM_PROMPT, _ACCT_SYSTEM_PROMPT,
         _BRIEFCASE_KTQ_MODEL, _BRIEFCASE_STARTERS_MODEL, _BRIEFCASE_ACCT_MODEL,

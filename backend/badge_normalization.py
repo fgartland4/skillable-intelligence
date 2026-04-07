@@ -4,7 +4,7 @@ This module owns the two-phase badge normalization that ALL three tools
 (Inspector, Prospector, Designer) need to apply when rendering scored
 products. Per the Layer Discipline principle in Platform-Foundation.md,
 intelligence work like this lives in the shared layer, NEVER in a tool's
-own files. Inspector previously had these functions inline in app_new.py
+own files. Inspector previously had these functions inline in app.py
 which would have forced Prospector and Designer to either duplicate the
 logic or import from the Inspector Flask app file (coupling them to
 Inspector's lifecycle).
@@ -38,7 +38,7 @@ normalize_for_display(p: dict) -> None
 History
 =======
 
-These functions used to live in backend/app_new.py — the Inspector Flask
+These functions used to live in backend/app.py — the Inspector Flask
 app. The deep code review on 2026-04-07 (docs/code-review-2026-04-07.md)
 flagged this as a Layer Discipline violation under findings CRIT-2 and
 CRIT-3: intelligence-layer work was buried in a tool file where Prospector
@@ -49,11 +49,11 @@ Three concrete bugs in the same shape have shipped to production from
 this code, all caused by parser/normalizer functions silently dropping
 fields:
 
-1. scorer_new.py:512 dropped strength + signal_category when feeding the
+1. scorer.py:512 dropped strength + signal_category when feeding the
    math layer (commit e5c95c7)
-2. app_new.py:_prepare_analysis_for_render did the same drop on every
+2. app.py:_prepare_analysis_for_render did the same drop on every
    page load (commit 120e3c9)
-3. app_new.py:_normalize_badges_for_display dropped them on the merge
+3. app.py:_normalize_badges_for_display dropped them on the merge
    path (commit 0a6801d / Phase A)
 
 The lesson is that there must be exactly ONE place that constructs badge
@@ -237,7 +237,7 @@ def collect_badges_for_math(p: dict, dim_key_to_pillar_key: dict[str, str] | Non
     omitting any of strength/signal_category silently breaks rubric scoring
     on Pillar 2/3 (CRIT-1 / e5c95c7 / 120e3c9).
 
-    Used by intelligence_new.recompute_analysis() to feed the math layer
+    Used by intelligence.recompute_analysis() to feed the math layer
     from a saved analysis dict. Future Prospector and Designer code that
     needs the same recompute behavior should also call this rather than
     walking the product dict by hand.

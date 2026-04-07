@@ -3,7 +3,7 @@
 See docs/Test-Plan.md Category 10 for the philosophy + false-positive watch.
 
 These tests catch hardcoded values that should reference scoring_config.py
-or _theme_new.html. The principle: no magic values in business logic.
+or _theme.html. The principle: no magic values in business logic.
 Colors, thresholds, badge names, dimension names, rate values, etc. all
 live in one canonical place.
 
@@ -54,13 +54,13 @@ _EXCLUDED_PATHS: tuple[tuple[str, str], ...] = (
     ("tools/designer/", "deferred — waiting for Designer code push (next session)"),
 
     # Prospector tool — same deferral as Designer per Frank 2026-04-06.
-    # Will be migrated to _nav_new.html / _theme_new.html in next session
+    # Will be migrated to _nav.html / _theme.html in next session
     # alongside Designer. Tracked in next-session-todo.md.
     ("tools/prospector/", "deferred — migration scheduled for next session"),
 
     # Legacy shared nav + theme — currently used by unmigrated tools
     # (Designer + Prospector). Will be deleted once both tools migrate to
-    # _nav_new.html / _theme_new.html. Tracked as the §6 carry-over in
+    # _nav.html / _theme.html. Tracked as the §6 carry-over in
     # docs/next-session-todo.md.
     ("tools/shared/templates/_nav.html", "legacy shared file — deleted post-migration"),
     ("tools/shared/templates/_theme.html", "legacy shared file — deleted post-migration"),
@@ -105,7 +105,7 @@ def _is_theme_file(path: Path) -> bool:
     """True if this file is a theme file (where hex literals legitimately
     live as the source of truth for CSS variables).
     """
-    return path.name in ("_theme_new.html", "_theme.html")
+    return path.name in ("_theme.html", "_theme.html")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -187,8 +187,8 @@ def test_no_hardcoded_hex_in_active_templates():
             msg_lines.append("")
         msg_lines.append(
             "Fix: replace each hex with var(--sk-...) from "
-            "tools/shared/templates/_theme_new.html. If you need a new color "
-            "token, ADD it to _theme_new.html first, then reference it."
+            "tools/shared/templates/_theme.html. If you need a new color "
+            "token, ADD it to _theme.html first, then reference it."
         )
         pytest.fail("\n".join(msg_lines))
 
@@ -220,29 +220,23 @@ def _scan_template_for_inline_style_hex(path: Path) -> list[tuple[int, str]]:
 # Phase 2 path scope — which Python files are "production business logic"?
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# Scan rule: every backend/*.py file that has `_new` in its name (the
-# rebuilt-from-Foundation modules) PLUS the active non-suffixed modules
-# that are clearly part of the new architecture (scoring_math, scoring_config
-# itself is excluded as the source of truth, prompt_generator).
-#
-# Excluded: legacy POC siblings (app.py, config.py, core.py, intelligence.py,
-# models.py, researcher.py, scorer.py, storage.py — every file with a `_new`
-# counterpart), constants.py (legacy), designer_engine.py (Designer deferred).
-#
-# Why list explicitly instead of "everything except *_legacy*": the legacy
-# files don't follow a name convention — they're just the non-_new siblings.
-# An explicit allowlist is the safer pattern here.
+# Scan rule: every active backend/*.py file that's part of the running platform
+# after the 2026-04-07 rename + legacy cleanup. The legacy proof-of-concept
+# code now lives in legacy-reference/ (out of the Python import path) and is
+# explicitly excluded from this scan. designer_engine.py is a forward-looking
+# stub for the Designer Foundation Session, also excluded.
 
 _PYTHON_SCAN_FILES: tuple[str, ...] = (
-    "backend/app_new.py",
-    "backend/core_new.py",
-    "backend/intelligence_new.py",
-    "backend/models_new.py",
+    "backend/app.py",
+    "backend/badge_normalization.py",
+    "backend/core.py",
+    "backend/intelligence.py",
+    "backend/models.py",
     "backend/prompt_generator.py",
-    "backend/researcher_new.py",
-    "backend/scorer_new.py",
+    "backend/researcher.py",
+    "backend/scorer.py",
     "backend/scoring_math.py",
-    "backend/storage_new.py",
+    "backend/storage.py",
 )
 
 
@@ -461,7 +455,7 @@ def test_no_hardcoded_distinctive_scoring_config_constants():
 
 _PHASE_3_SCAN_FILES: tuple[str, ...] = (
     "backend/scoring_math.py",
-    "backend/app_new.py",
+    "backend/app.py",
 )
 
 # Numeric literals that don't need to come from config or be annotated.
@@ -635,7 +629,7 @@ def test_no_inline_style_hex_in_active_templates():
             msg_lines.append("")
         msg_lines.append(
             "Fix: replace inline style hex with a CSS class that uses "
-            "var(--sk-...) from _theme_new.html. If the color is dynamic "
+            "var(--sk-...) from _theme.html. If the color is dynamic "
             "(Jinja-driven), pick the variable in the Python view layer "
             "and pass the var name into the template."
         )

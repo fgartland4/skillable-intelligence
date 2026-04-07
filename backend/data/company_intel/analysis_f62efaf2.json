@@ -1,0 +1,2706 @@
+{
+  "company_name": "Devolutions",
+  "company_url": null,
+  "company_description": "",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Devolutions Hub Business",
+      "category": "Cybersecurity",
+      "subcategory": "Password & Credential Management",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "cloud",
+      "orchestration_method": "Hyper-V",
+      "user_personas": [
+        "Administrator",
+        "Security Engineer/Analyst",
+        "Infrastructure Engineer"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Hub Business Vault Architecture & Role-Based Access",
+        "SSO & MFA Integration with Active Directory",
+        "Credential Audit & Compliance Review",
+        "Break/Fix: Misconfigured Vault Permissions",
+        "RDM + Hub Business Integration Lab"
+      ],
+      "poor_match_flags": [],
+      "recommendation": [
+        "Deploy a Windows Hyper-V VM with Remote Desktop Manager and Devolutions Workspace pre-installed as the primary lab environment, and use the Hub Business REST API to provision a per-learner vault and user account at lab launch. This hybrid approach is the right choice because Hub Business is cloud-hosted SaaS \u2014 the client-side experience (where learners spend most of their time) lives on the Windows VM, while the API handles the cloud-side per-learner isolation. Devolutions Server (self-hosted) is worth evaluating as an alternative: it installs directly on a Hyper-V VM and eliminates the SaaS API dependency entirely, potentially simplifying the lab build.",
+        "The Hub Business REST API can validate vault configuration state, user permission assignments, and credential entries programmatically \u2014 enabling Performance-Based Testing for admin tasks such as 'configure least-privilege vault access' or 'enable MFA for all vault users.' PowerShell scripting (supported by Devolutions' own PowerShell Universal product) can supplement API scoring for client-side validation. Together these support rich, automated scoring without falling back to MCQ.",
+        "The key technical question that blocks or unblocks this lab build is whether Devolutions will provide NFR or training-tier Hub Business tenants for lab use at scale, and whether the REST API supports bulk vault/user creation without rate limits. The champion should direct this question to Devolutions' partnerships or product team: 'Can we provision isolated Hub Business vaults per learner via your REST API for training lab use, and do you offer NFR or training-tier licenses for lab environments at scale?' The Devolutions Academy team is the most likely internal champion \u2014 they already own the training brand and have motivation to add hands-on labs.",
+        "Devolutions Academy is the natural home for these labs \u2014 the company already has a training brand and a free learning hub. Labs would directly accelerate customer onboarding and reduce time-to-value for new Hub Business deployments, addressing the documented adoption risk of credential sprawl when teams don't fully adopt a centralized vault. A second-phase opportunity is partner/reseller enablement: the reseller network needs technical depth to position Hub Business against CyberArk and BeyondTrust, and hands-on labs are the most effective way to build that depth.",
+        "Devolutions has no confirmed certification program \u2014 a notable gap compared to CyberArk, BeyondTrust, and 1Password, all of which operate formal credential management certifications. A Devolutions Hub Business certification backed by Performance-Based Testing would differentiate the product in a crowded PAM market and create a recurring consumption motion. This is worth raising with the Academy team as a strategic opportunity, not just a lab delivery conversation."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 35,
+              "weight": 35,
+              "summary": "Hub Business is cloud-hosted SaaS. The lab environment is a Windows VM (Hyper-V) with the RDM and Workspace clients pre-installed, connecting to a per-learner Hub Business vault provisioned via the Devolutions REST API. The Hyper-V client VM is clean and straightforward; the cloud-side provisioning adds a Sandbox API dependency that introduces moderate build complexity.",
+              "badges": [
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Client-Side VM Path | Strength:** The primary lab experience runs on a Windows VM (Hyper-V) with Remote Desktop Manager and Devolutions Workspace pre-installed, connecting to a Hub Business cloud vault. The client software installs cleanly on Windows \u2014 the VM image is the lab environment for all client-side tasks. \u2014 Devolutions product page. This is the standard Hyper-V path; no exotic dependencies on the client side.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/products",
+                      "source_title": "Devolutions Products Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Sandbox API",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**REST API Coverage | Opportunity:** Devolutions Hub Business exposes a documented REST API covering vault creation, user management, role assignment, and credential operations \u2014 enabling per-learner Hub Business environment provisioning alongside the Hyper-V client VM. \u2014 Devolutions documentation. This API is the mechanism for provisioning the cloud-side component of each learner's lab environment.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Multi-VM Lab",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Component Lab Design | Opportunity:** A realistic Hub Business lab involves at least two components \u2014 a Windows client VM (RDM/Workspace) and the Hub Business cloud backend \u2014 plus optionally an Active Directory VM for SSO/MFA integration scenarios. This multi-component topology is a Skillable strength that competitors struggle to replicate. \u2014 Devolutions product ecosystem documentation. Enables richer, more realistic admin scenarios.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 25,
+              "weight": 25,
+              "summary": "Devolutions Hub Business exposes a REST API covering user creation, role assignment, and vault access management \u2014 enabling per-learner identity provisioning. Training or NFR license availability is not self-serve confirmed and likely requires vendor engagement. Learner isolation via per-vault provisioning is indicated by the API surface.",
+              "badges": [
+                {
+                  "name": "Identity API",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**User Provisioning API | Strength:** The Hub Business REST API supports creating users, assigning roles, and managing vault access programmatically \u2014 enabling automated per-learner identity setup without manual admin intervention. \u2014 Devolutions documentation. This is the core mechanism for per-learner lab access provisioning.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Learner Isolation",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Per-Vault Isolation | Strength:** Hub Business supports multiple independent vaults with separate user memberships and permissions \u2014 each learner can be provisioned into a dedicated vault, providing genuine per-learner isolation without shared state. \u2014 Devolutions Hub Business architecture documentation. Isolation is achievable via API-driven vault provisioning.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Training License",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**NFR License Path | Risk:** Devolutions offers a free trial and a 'Proof of Concept' program for 100+ user evaluations, suggesting a path to training/NFR licenses. However, no self-serve NFR or lab-tier license is explicitly documented \u2014 vendor engagement will be required to negotiate training-use terms at scale. \u2014 Devolutions homepage (POC program reference). This is a build-time dependency that requires early vendor conversation.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 15,
+              "weight": 15,
+              "summary": "The Hub Business REST API can validate vault configuration state, user permissions, and credential entries programmatically. Devolutions' strong PowerShell culture (PowerShell Universal product) suggests script-based scoring is also viable. Together these support Performance-Based Testing scenarios for admin configuration tasks.",
+              "badges": [
+                {
+                  "name": "Scoring API",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**REST API State Validation | Opportunity:** The Hub Business REST API can query vault configuration state, user permission assignments, and credential entries \u2014 enabling programmatic validation of learner-completed admin tasks such as 'create a vault with least-privilege roles' or 'configure MFA policy'. \u2014 Devolutions documentation. Supports rich Performance-Based Testing scenarios for credential management administration.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Script Scoring",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**PowerShell Scripting Culture | Opportunity:** Devolutions produces PowerShell Universal as a dedicated automation product, indicating deep PowerShell integration across the product suite. PowerShell modules for Hub Business administration are likely available, enabling script-based scoring of client-side and server-side configuration tasks. \u2014 Devolutions PowerShell Universal product page. Strengthens scoring coverage beyond the REST API alone.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/products",
+                      "source_title": "Devolutions Products Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "The Hyper-V client VM tears down automatically via snapshot revert. The Hub Business cloud component requires API calls to delete per-learner users and vaults. Orphan risk exists if API teardown calls fail or are incomplete, requiring monitoring and retry logic in the lab teardown script.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Automatic VM Teardown | Strength:** The Hyper-V client VM tears down automatically via Skillable snapshot revert at lab end \u2014 no manual cleanup required for the client-side environment. This covers the majority of the lab footprint. \u2014 Skillable platform capability. Standard datacenter teardown applies to all Hyper-V labs.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://skillable.com",
+                      "source_title": "Skillable Platform Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Teardown API",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**API-Driven Cloud Cleanup | Opportunity:** The Hub Business REST API supports deleting users and vaults programmatically, enabling automated teardown of the cloud-side lab component at session end. Lab teardown scripts can call the API to remove per-learner vaults and user accounts. \u2014 Devolutions documentation. Teardown is automatable but requires explicit scripting as a lab build task.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Orphan Risk",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Cloud Orphan Risk | Risk:** If API teardown calls fail (network error, rate limit, timeout), per-learner Hub Business vaults and user accounts may persist in the cloud tenant, accumulating orphaned resources over time. Lab teardown scripts must include error handling and retry logic, and periodic audits of the Hub Business tenant are advisable. \u2014 Inferred from SaaS API teardown patterns. Standard risk for any cloud-component lab with API-driven cleanup.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            }
+          ],
+          "score_override": 100
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 12,
+              "weight": 40,
+              "summary": "Hub Business requires meaningful configuration depth: vault architecture design, user and group permission hierarchies, SSO and MFA policy configuration, PAM integration, and audit log management. Multiple distinct roles (Hub admin, vault manager, end user, security auditor) create role-based lab scenarios. The product is not trivially learned by watching \u2014 hands-on practice is required to internalize permission models and policy interactions.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Vault Architecture Depth | Strength:** Hub Business requires configuring vault hierarchies, user and group permission models, role-based access control, SSO/MFA policy enforcement, and PAM integration \u2014 a multi-layer configuration surface that cannot be learned by reading documentation alone. \u2014 Devolutions Hub Business product documentation. Hands-on practice is essential to internalize permission inheritance and policy interactions.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "deep_configuration"
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Role Admin Surface | Strength:** Hub Business supports distinct roles \u2014 Hub administrator, vault manager, end user, and security auditor \u2014 each with different configuration responsibilities and access scopes. Role-based lab scenarios can target different learner personas within the same product. \u2014 Devolutions Hub Business documentation. Enables persona-specific lab tracks without building entirely separate environments.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "role_diversity"
+                },
+                {
+                  "name": "Integration Complexity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Ecosystem Integration Breadth | Strength:** Hub Business integrates with Remote Desktop Manager, Devolutions Gateway, Active Directory/Entra ID for SSO, and PAM workflows \u2014 creating multi-product integration scenarios that require hands-on configuration practice across connected systems. \u2014 Devolutions Integration Center page. Integration labs are a natural extension of core admin labs.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "integration_complexity"
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 14,
+              "weight": 25,
+              "summary": "Misconfigured vault permissions or over-privileged access directly expose credentials to insider threats or external attackers \u2014 a high-consequence error in any IT environment. The learning curve from basic user to competent vault administrator is steep, particularly around permission inheritance, PAM integration, and audit configuration. Poor adoption is a documented risk in credential management tools.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Credential Exposure Risk | Strength:** Misconfigured vault permissions or over-privileged access in Hub Business directly expose organizational credentials to insider threats or external attackers \u2014 a high-consequence error with potential for breach, data loss, and compliance failure. Credential management is a primary attack vector in modern enterprise breaches. \u2014 Devolutions security positioning documentation. The stakes of getting it wrong are real and consequential.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "harm_severity"
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Credential Sprawl on Poor Adoption | Strength:** When IT teams fail to adopt a centralized credential vault, the result is credential sprawl \u2014 passwords stored in spreadsheets, browsers, and sticky notes \u2014 which is a documented and common security failure pattern. Hands-on training directly reduces this adoption risk. \u2014 Devolutions product positioning (workforce password management). Poor adoption has measurable security consequences.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "adoption_risk"
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 8,
+              "weight": 15,
+              "summary": "Compliance audit scenarios (auditing vault access logs, verifying least-privilege enforcement) fit Hub Business naturally and serve regulated-industry customers. Break/fix scenarios (misconfigured permissions, broken SSO integration, orphaned credentials) are also well-suited to the product's admin surface.",
+              "badges": [
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Audit Log & Access Review Lab | Strength:** Hub Business generates audit logs of all credential access and vault modifications \u2014 a natural fit for compliance audit lab scenarios where learners must review access logs, identify policy violations, and produce audit-ready reports. Regulated-industry customers (finance, healthcare, government) have direct compliance motivation. \u2014 Devolutions compliance positioning. Compliance audit labs serve the highest-value customer segments.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "compliance_audit"
+                },
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Permission Misconfiguration Scenarios | Opportunity:** Break/fix labs can present learners with a Hub Business environment containing misconfigured vault permissions, orphaned user accounts, or broken SSO integration \u2014 requiring diagnosis and remediation. These scenarios test real troubleshooting skills that arise in production deployments. \u2014 Inferred from Hub Business admin surface. Break/fix is a natural extension of the configuration lab track.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "break_fix"
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 8,
+              "weight": 20,
+              "summary": "Password and privileged access management is a high-demand cybersecurity category driven by zero-trust adoption and regulatory pressure. Devolutions serves a large IT professional community with a free tier and paid tiers, indicating meaningful install base scale. Competitor training programs from CyberArk, 1Password, and Bitwarden confirm market appetite for hands-on credential management training.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PAM/Password Mgmt Category | Strength:** Password and privileged access management is one of the fastest-growing cybersecurity categories, driven by zero-trust adoption mandates, ransomware response requirements, and regulatory pressure (SOC 2, ISO 27001, HIPAA). Hands-on training demand in this category is high and growing. \u2014 Industry analyst consensus (Gartner PAM Magic Quadrant category). Category tailwinds directly support lab training investment.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "category_demand"
+                },
+                {
+                  "name": "Competitor Labs Confirmed",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Competitor Training Programs | Context:** CyberArk, BeyondTrust, and 1Password all operate formal training and certification programs for their credential/PAM products, confirming market appetite for structured hands-on training in this category. Devolutions lacks a comparable certification program \u2014 an opportunity gap. \u2014 Inferred from competitor training program research. Competitor investment validates the category; Devolutions' gap is an opportunity.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "competitor_labs"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 6,
+              "weight": 25,
+              "summary": "Devolutions Academy is a published, free training hub explicitly positioned as the go-to resource for mastering Devolutions products. This confirms a training investment and brand. However, no explicit hands-on or lab-based language is confirmed from available research \u2014 the Academy appears to be primarily content/documentation-based rather than scenario-driven.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Devolutions Academy | Strength:** Devolutions operates a free, branded training hub (Devolutions Academy) explicitly positioned as the go-to resource for mastering the full product suite. This confirms a deliberate training investment and a published training brand \u2014 not just ad-hoc documentation. \u2014 Devolutions Academy page. The Academy is the natural home for hands-on lab integration.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Academy Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "training_catalog"
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Content-First Training Model | Context:** Available research shows Devolutions Academy is primarily documentation and content-based \u2014 no explicit hands-on, lab, or scenario-based language is confirmed. The training investment exists but appears to be in the content-delivery phase rather than interactive/experiential learning. \u2014 Devolutions Academy page. This is the gap that Skillable labs would fill.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Academy Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "hands_on_commitment"
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 3,
+              "weight": 20,
+              "summary": "Devolutions Academy implies a content development function, but no named instructional designers, lab authors, or content team structure is confirmed from available research. The existence of a structured Academy suggests some internal content creation capability, but depth is unclear.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Academy Content Function | Context:** The existence of Devolutions Academy implies a content development function responsible for producing and maintaining training materials. However, no named instructional designers, lab authors, or content team structure is confirmed from available research \u2014 the depth of this function is unclear. \u2014 Devolutions Academy page. Skillable Professional Services could supplement or lead lab authoring.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Academy Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "content_team_named"
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "Devolutions has a confirmed reseller network (Find a Reseller page) indicating a channel partner ecosystem for distribution. No lab platform is confirmed \u2014 this is a greenfield opportunity. Devolutions Academy serves as the primary delivery vehicle but appears to lack interactive lab infrastructure.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Reseller Network | Opportunity:** Devolutions operates a confirmed reseller network (Find a Reseller page), indicating a channel partner ecosystem that could serve as a distribution channel for partner-facing lab training. The size and technical depth of this network is not confirmed from available research. \u2014 Devolutions Find a Reseller page. Channel partners are a natural second-phase consumption motion after customer training.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Find a Reseller Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "atp_network"
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**No Lab Platform Confirmed | Context:** No existing lab delivery platform is confirmed from available research \u2014 Devolutions Academy appears to deliver content without an interactive lab infrastructure. This is a greenfield opportunity for Skillable, not a displacement scenario. \u2014 Devolutions Academy page. Greenfield entry is typically lower friction than displacing an incumbent.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Academy Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "lab_platform"
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 9,
+              "weight": 25,
+              "summary": "Devolutions is a Canadian SMB software company with a partner-friendly posture \u2014 reseller network, free tools for individuals, and a community forum suggest an accessible, collaborative culture. The company's focus on IT professionals and its open integration ecosystem (RDM integrates with hundreds of tools) indicates a platform-buyer and partner-friendly orientation.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Reseller & Integration Partner Network | Strength:** Devolutions operates a reseller network and an Integration Center documenting partnerships with hundreds of third-party tools \u2014 indicating a partner-friendly organizational culture comfortable with external ecosystem relationships. \u2014 Devolutions Integration Center and Find a Reseller pages. Partner-friendly culture reduces friction in establishing a Skillable relationship.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "partner_pattern"
+                },
+                {
+                  "name": "Ease of Engagement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Accessible SMB Culture | Strength:** Devolutions is a Canadian SMB software company with a community-first posture \u2014 free tools for individual users, an active forum, and a free Academy. This accessibility signals a nimble, partner-friendly organization that is easier to engage than large enterprise software vendors with complex procurement processes. \u2014 Devolutions homepage and community forum. Lower engagement friction means faster path to a lab partnership conversation.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "engagement_ease"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 100,
+        "pl_score_pre_ceiling": 100,
+        "technical_fit_multiplier": 1.0,
+        "ceilings_applied": []
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 5000,
+            "population_high": 12000,
+            "hours_low": 1.5,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 300,
+            "population_high": 800,
+            "hours_low": 1.5,
+            "hours_high": 2.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 3000,
+            "population_high": 8000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 500,
+            "population_high": 1500,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.02,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 100,
+            "population_high": 300,
+            "hours_low": 1.5,
+            "hours_high": 2.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 500,
+            "population_high": 2000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.4,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 726,
+        "annual_hours_high": 2993,
+        "rate_per_hour": 0.0,
+        "acv_low": 10164.0,
+        "acv_high": 41902.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Good Fit",
+        "color": "dark_green",
+        "fit_label": "HIGH FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Training or Head of Devolutions Academy",
+          "title": "VP of Training / Head of Academy",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Customer Education or Director of Partner Enablement",
+          "title": "Director of Customer Education",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Provisioning path \u2014 Find a Principal Engineer or Backend Lead on the Devolutions Hub Business team. Does Hub Business expose a REST or GraphQL API for programmatically creating/deleting vaults, users, and entries, and if so, can those endpoints be called with a service-account token scoped to a temporary tenant or organization unit so we can spin up a fully isolated lab workspace per learner?",
+            "NFR / trial licensing \u2014 Find the Director of Partner Enablement or whoever owns Devolutions' partner program. Can Devolutions issue NFR or time-boxed Hub Business licenses (or ephemeral cloud orgs) that auto-expire after a lab session, and is there an existing mechanism\u2014API call or admin setting\u2014to programmatically revoke or deprovision those licenses at teardown?",
+            "Scoring surface \u2014 Find a Solution Engineer or Developer Advocate familiar with Hub Business internals. Can we validate learner actions (e.g., confirm a vault was created, a PAM checkout policy was applied, or an entry's permissions were set correctly) by querying the Hub Business API for object state, or would we need to rely on event logs / audit trail endpoints to verify task completion?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": [
+            "A lot of teams we talk to underestimate how much time it takes their admins to get comfortable with Devolutions Hub's PAM workflows\u2014especially around credential rotation and access approvals\u2014so hands-on labs let them practice those high-stakes scenarios before they're live in production.",
+            "Since Hub Business integrates with so many different identity systems and remote connection protocols, we've found that teams retain the configuration steps way better when they can actually build a connection, test it, and troubleshoot it themselves rather than just watching a demo."
+          ]
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Devolutions runs a formal academy program (Devolutions Academy) \u2014 likely training partners and customers on PAM/remote access solutions, creating demand for hands-on lab environments",
+            "As a security-focused software company, Devolutions certifies users on privileged access management and IT automation \u2014 ideal use cases for interactive lab platforms to replace slide-based training"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Devolutions Remote Desktop Manager",
+      "category": "IT Operations & Remote Access",
+      "subcategory": "Remote Connection Management / Privileged Access",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "installable",
+      "orchestration_method": "Hyper-V",
+      "user_personas": [
+        "Administrator",
+        "Security Engineer/Analyst",
+        "Infrastructure Engineer"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Configuring Your First Shared Vault",
+        "Credential Injection & Privileged Session Management",
+        "Break/Fix: Diagnosing a Misconfigured RDM Environment",
+        "Integrating RDM with Active Directory & PAM",
+        "Audit & Compliance Reporting"
+      ],
+      "poor_match_flags": [],
+      "recommendation": [
+        "Deploy RDM on Hyper-V using a pre-built Windows VM image with RDM installed and a companion Windows Server target VM \u2014 this 2-VM topology is the natural lab shape for IT admin training and is a Skillable competitive strength that CloudShare and Instruqt cannot replicate. The VM image IS the lab: build once, spin up per-learner copies with snapshot revert handling all teardown automatically. For team-based vault scenarios, add a third Devolutions Server VM. No runtime provisioning API is needed \u2014 the Hyper-V fabric handles everything.",
+        "Use the Devolutions PowerShell module as the primary scoring surface \u2014 it enables programmatic validation of connection entries, credential injection settings, permission assignments, and vault configuration without requiring GUI interaction. Supplement with AI Vision for GUI-state verification of session properties and recording policies where PowerShell coverage has gaps. Break/fix labs are particularly well-suited to automated scoring: the correct state is unambiguous (the broken configuration is either fixed or it isn't).",
+        "The key question is whether Devolutions Academy has a mandate to add hands-on lab content \u2014 and who owns that decision. The champion is likely the head of Devolutions Academy or a VP/Director of Product Marketing or Customer Success. A verbatim question to send: 'Is Devolutions Academy currently exploring interactive, hands-on lab experiences for RDM training, and who on your team owns the Academy content roadmap? We have a proven path to add scored, multi-VM labs to your Academy in 6-8 weeks.'",
+        "The highest-value entry point is customer onboarding enablement \u2014 new RDM customers (especially teams upgrading from RDM Free to a shared vault model) need structured hands-on guidance to configure data sources, permissions, and credential injection correctly. A 90-minute onboarding lab reduces support ticket volume and accelerates time-to-value. The same lab content can be adapted for reseller channel enablement, giving Devolutions' reseller network a hands-on tool to demo and train customers.",
+        "Devolutions is a smaller company (~200 employees estimated) with a lean content team \u2014 they may lack the instructional design and lab authoring capacity to build labs independently. Skillable Professional Services should be positioned as the build partner from the first conversation, not as an afterthought. Additionally, the free RDM tier means the addressable paid customer base for premium training programs is smaller than the 500K+ total user count suggests \u2014 consumption estimates should be anchored to the paid user population."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 30,
+              "weight": 35,
+              "summary": "RDM installs via MSI on Windows \u2014 clean Hyper-V path. A realistic lab uses 2-3 VMs: a Windows client running RDM, one or more Windows Server or Linux target VMs, and optionally a Devolutions Server VM for shared vault scenarios. Multi-VM topology is a natural Skillable strength.",
+              "badges": [
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Windows Installer Path | Strength:** RDM is distributed as a standard Windows MSI/EXE installer, confirmed on the Devolutions download center \u2014 installs cleanly on a Windows 10/11 or Windows Server VM with no special hardware or kernel requirements. The VM image IS the lab environment. \u2014 Devolutions Download Center. This is the canonical Hyper-V path: build the image once, spin up per-learner copies.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Multi-VM Lab",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-VM Topology | Strength:** A realistic RDM lab naturally spans 2-3 VMs: (1) Windows client VM running RDM, (2) Windows Server or Linux target VM to connect to via RDP/SSH, and optionally (3) a Devolutions Server VM for shared vault and team permission scenarios. This multi-VM topology is a Skillable competitive strength that CloudShare and Instruqt cannot match. \u2014 Devolutions product ecosystem documentation. Enables authentic IT admin workflows rather than simulated single-machine exercises.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/products/",
+                      "source_title": "Devolutions Products Overview"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Pre-Instancing",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Slow First-Launch Mitigation | Opportunity:** If Devolutions Server is included in the lab topology, initial service startup and database initialization may add 2-5 minutes to first launch. Skillable Pre-Instancing mitigates this by warming VM pools before learner demand \u2014 inferred from typical Windows Server service initialization patterns. Keeps lab launch time under 2 minutes for learners.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/products/",
+                      "source_title": "Devolutions Products Overview"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 25,
+              "weight": 25,
+              "summary": "RDM Free tier eliminates license friction for individual-user labs. Pre-configured VM images with embedded connection entries and credentials reset cleanly via snapshot revert. Devolutions Server adds an Identity API path for team-based labs, but is not required for standalone RDM scenarios.",
+              "badges": [
+                {
+                  "name": "Training License",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Free Tier Availability | Strength:** RDM Free is explicitly offered on the Devolutions homepage as the 'best all-in-one remote connection and credential management tool for independent IT users' at no cost \u2014 confirmed on the Devolutions download center. No license key, credit card, or sales engagement required for individual-user lab scenarios. Eliminates the most common lab access blocker for installable software.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager \u2014 Free Edition"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Cred Recycling",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Snapshot-Based Reset | Strength:** All RDM connection entries, embedded credentials, vault configuration, and user settings are stored in the local SQLite data source (or Devolutions Server database) within the VM \u2014 snapshot revert resets the entire lab state to baseline between learners with zero manual intervention. No separate credential reset API call required. \u2014 inferred from RDM local data source architecture. Operationally clean recycling at scale.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Identity API",
+                  "color": "amber",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Server-Dependent User API | Risk:** Devolutions Server (the self-hosted vault component) exposes a REST API for user and group management, enabling programmatic user creation and role assignment for team-based lab scenarios. However, this requires deploying Devolutions Server as an additional VM \u2014 not available in standalone RDM Free labs. \u2014 Devolutions product ecosystem documentation. Adds build complexity for multi-user team labs but is viable when the scenario warrants it.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/products/",
+                      "source_title": "Devolutions Products Overview"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 15,
+              "weight": 15,
+              "summary": "Devolutions documents PowerShell cmdlets (e.g., Get-RDMSession, Set-RDMSession) enabling script-based validation of connection entries, credential assignments, and vault configuration. AI Vision supplements for GUI-state verification of session properties and permission screens.",
+              "badges": [
+                {
+                  "name": "Script Scoring",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PowerShell Module Coverage | Strength:** Devolutions documents a PowerShell module for RDM (RemoteDesktopManager PowerShell module) enabling programmatic read/write of session entries, credential assignments, group memberships, and vault configuration \u2014 confirmed in Devolutions documentation. Lab scoring scripts can validate that learners created the correct connection entries, applied the right credential injection settings, and configured appropriate permissions without requiring GUI interaction.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Documentation"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "AI Vision",
+                  "color": "amber",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**GUI State Verification | Opportunity:** RDM's session properties, permission inheritance trees, and credential injection settings are visually rendered in a rich Windows GUI \u2014 AI Vision can validate screen state for tasks where PowerShell coverage is incomplete (e.g., confirming a specific connection type is selected, verifying a session recording policy is enabled). \u2014 inferred from RDM GUI architecture. Useful as a supplemental scoring layer for GUI-heavy configuration tasks.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Hyper-V snapshot revert handles all teardown automatically \u2014 connection entries, credentials, and vault state reset to baseline with no manual intervention required.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Automatic VM Teardown | Strength:** All lab state \u2014 RDM connection entries, embedded credentials, vault data, and any target VM configuration \u2014 lives inside Skillable-hosted Hyper-V VMs. Snapshot revert at lab end restores all VMs to baseline automatically. No vendor API call, no manual cleanup, no orphaned accounts. \u2014 Skillable platform capability applied to Hyper-V-hosted RDM labs. Zero teardown overhead at any scale.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                }
+              ]
+            }
+          ],
+          "score_override": 95
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 12,
+              "weight": 40,
+              "summary": "RDM supports 200+ connection types and integrates with Active Directory, PAM tools, KeePass, and Devolutions Server. Multi-phase workflows span data source configuration, entry organization, permission assignment, credential injection, and session auditing. Role diversity (admin, helpdesk, security auditor) adds instructional breadth.",
+              "badges": [
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Connection Lifecycle Depth | Strength:** RDM workflows span multiple distinct phases: configure data source \u2192 create and organize connection entries (200+ supported types) \u2192 assign credentials and injection policies \u2192 set role-based permissions \u2192 establish sessions \u2192 review audit logs. Each phase has meaningful configuration decisions with security implications. \u2014 Devolutions product homepage. Cannot be learned by watching \u2014 requires hands-on practice to internalize.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "multi_phase_workflow"
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Role Lab Potential | Opportunity:** RDM supports distinct operational roles: IT administrator (configures vaults and permissions), helpdesk technician (uses pre-configured connections), security auditor (reviews session recordings and access logs), and team lead (manages shared data sources). Different lab tracks can target each role \u2014 expanding the addressable learner population beyond a single admin persona. \u2014 inferred from RDM feature set and Devolutions product documentation.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/products/",
+                      "source_title": "Devolutions Products Overview"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "role_diversity"
+                },
+                {
+                  "name": "Integration Complexity",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Ecosystem Integration Breadth | Opportunity:** RDM integrates with Active Directory, Devolutions PAM, KeePass, 1Password, CyberArk, HashiCorp Vault, and dozens of third-party credential stores \u2014 confirmed on the Devolutions integration center page. Labs that configure these integrations add significant complexity and real-world relevance, particularly for security-focused IT teams adopting zero-trust architectures.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions Integration Center"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "integration_complexity"
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 9,
+              "weight": 25,
+              "summary": "Misconfigured vault permissions or improperly scoped credential injection can expose privileged credentials to unauthorized users \u2014 a direct security risk. In regulated environments, audit trail gaps from misconfigured session recording create compliance exposure.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Credential Exposure Risk | Strength:** Misconfigured vault permissions or improperly scoped credential injection in RDM can expose privileged credentials (domain admin, root, service accounts) to unauthorized users \u2014 a direct path to lateral movement and breach. In regulated environments (healthcare, finance, government), audit trail gaps from misconfigured session recording create compliance exposure. \u2014 inferred from RDM PAM and credential management feature set. The consequence of getting it wrong is a security incident, not just a support ticket.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "harm_severity"
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 5,
+              "weight": 15,
+              "summary": "Break/fix scenarios are a natural fit: learners receive a misconfigured RDM environment (broken credential injection, incorrect permission inheritance, failed SSH tunnel) and must diagnose and resolve. These scenarios mirror real IT support workflows.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Misconfigured Environment Scenarios | Strength:** Break/fix labs are a natural fit for RDM: learners receive a pre-broken environment (credential injection pointing to wrong vault, RDP session with incorrect gateway settings, permission inheritance misconfigured so helpdesk can access admin-only entries) and must diagnose and resolve. These scenarios directly mirror real IT support escalations and are highly engaging for experienced IT admins. \u2014 inferred from RDM configuration surface and IT admin training norms.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "break_fix"
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 8,
+              "weight": 20,
+              "summary": "Devolutions claims 500,000+ users globally across IT teams of all sizes. The remote access and PAM category is high-demand, driven by zero-trust adoption and hybrid work. No formal certification program confirmed, limiting the cert ecosystem signal.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Remote Access & PAM Category Growth | Strength:** Remote connection management and privileged access management are high-demand categories driven by zero-trust adoption, hybrid work, and regulatory compliance requirements. The broader PAM market is growing at ~25% CAGR (Gartner). RDM sits at the intersection of both categories, making hands-on training commercially relevant across IT teams of all sizes. \u2014 inferred from industry analyst category data.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/remote-desktop-manager/",
+                      "source_title": "Devolutions Remote Desktop Manager Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "category_demand"
+                },
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Large Install Base | Strength:** Devolutions claims 500,000+ users globally across IT teams ranging from independent consultants to enterprise IT departments \u2014 indicated from Devolutions marketing materials. This scale confirms sustained market adoption and a large addressable population for training programs, though the mix of free vs. paid users limits the precision of the enterprise-only signal.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "enterprise_validation"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 3,
+              "weight": 25,
+              "summary": "Devolutions Academy exists as a free self-service training hub covering RDM and companion products. Content appears to be documentation and video-based with no confirmed hands-on or lab component. No formal certification program identified.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Devolutions Academy | Opportunity:** Devolutions Academy is described as a 'FREE go-to hub for mastering Devolutions' suite of products and services' \u2014 confirmed on the company homepage. The existence of a named training property signals intent to invest in learner enablement, though the content appears to be documentation and video-based with no confirmed hands-on lab component. Adding interactive labs would meaningfully differentiate the Academy.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions Company Homepage \u2014 Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "training_catalog"
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 3,
+              "weight": 20,
+              "summary": "Academy content implies some internal content creation capability, but no named instructional design or lab authoring team is publicly documented. Small company size (~200 employees estimated) limits dedicated content development resources.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Academy Content Creation | Context:** The existence of Devolutions Academy implies some internal content creation capability \u2014 documentation writers, video producers, or technical educators. However, no named instructional design team, lab authoring role, or content development partnership is publicly documented. Estimated company size (~200 employees) suggests a lean content team. Skillable Professional Services could fill the lab authoring gap. \u2014 inferred from Academy existence and company size signals.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions Company Homepage \u2014 Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "content_team_named"
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "Devolutions maintains a reseller network (Find a Reseller page confirmed). No lab platform identified \u2014 greenfield opportunity. No flagship user conference identified. Delivery infrastructure is modest relative to larger enterprise software vendors.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Reseller Network | Opportunity:** Devolutions maintains a 'Find a Reseller' page \u2014 confirmed on the company homepage \u2014 indicating an established channel partner network. The scale and technical depth of this network is not publicly documented, but its existence creates a downstream delivery channel for partner-facing lab programs if Devolutions invests in channel enablement. \u2014 Devolutions ATP/Reseller page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions \u2014 Find a Reseller"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "atp_network"
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**No Lab Platform Identified | Opportunity:** No existing lab delivery platform (Skillable, CloudShare, Instruqt, or DIY) is publicly documented for Devolutions Academy. This is a greenfield opportunity \u2014 Devolutions has training content and a learner audience but no confirmed hands-on lab infrastructure. Skillable would be the first mover in this space for Devolutions. \u2014 inferred from Academy page review.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "lab_platform"
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 9,
+              "weight": 25,
+              "summary": "Devolutions operates a free tier (RDM Free), an active community forum, and a reseller partner network \u2014 signals of an accessible, partner-friendly company. Canadian mid-market software company with pragmatic, community-oriented culture. Likely easy to engage.",
+              "badges": [
+                {
+                  "name": "Ease of Engagement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Accessible, Community-Oriented Culture | Strength:** Devolutions operates a free product tier (RDM Free), an active community forum, and a public reseller directory \u2014 all signals of a pragmatic, partner-friendly company that values community engagement over closed-ecosystem control. As a Canadian mid-market software company, procurement cycles are likely shorter and decision-making more accessible than enterprise-tier vendors. \u2014 Devolutions company homepage.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions Company Homepage"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "engagement_ease"
+                },
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Reseller & Integration Partner Network | Opportunity:** Devolutions maintains a reseller network and an integration center listing partnerships with major vendors (CyberArk, HashiCorp, Active Directory, etc.) \u2014 confirmed on the Devolutions homepage. This partner-oriented posture suggests openness to platform partnerships like Skillable, rather than a build-everything-in-house culture.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/",
+                      "source_title": "Devolutions Integration Center"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "partner_pattern"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 95,
+        "pl_score_pre_ceiling": 95,
+        "technical_fit_multiplier": 1.0,
+        "ceilings_applied": []
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 8000,
+            "population_high": 12000,
+            "hours_low": 1.5,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.5,
+            "hours_high": 2.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 15000,
+            "population_high": 25000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 100,
+            "population_high": 150,
+            "hours_low": 1.5,
+            "hours_high": 2.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 1095,
+        "annual_hours_high": 2435,
+        "rate_per_hour": 0.0,
+        "acv_low": 21000.0,
+        "acv_high": 47950.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Good Fit",
+        "color": "dark_green",
+        "fit_label": "HIGH FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or Head of Devolutions Academy",
+          "title": "VP of Customer Education / Head of Academy",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Customer Success or Director of Partner Enablement",
+          "title": "Director of Customer Success / Director of Partner Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Silent install & licensing \u2014 Find a Principal Engineer or DevOps Lead on the RDM product team. Does Remote Desktop Manager support fully silent MSI/EXE installation with a pre-seeded serial key or license file (no interactive GUI prompts), and can the license be activated offline or via CLI so we can bake it into a Hyper-V base image that spins up pre-licensed for each learner?",
+            "Data source provisioning \u2014 Find a Solution Architect or Senior Developer on the RDM backend team. When a lab needs a pre-configured data source (e.g., SQLite, SQL Server, or Devolutions Server), can the connection profile be injected via an exported .rdm config file or registry keys at VM startup, and does the REST API on Devolutions Server expose endpoints to programmatically create/delete vaults and user accounts so we can automate per-session teardown?",
+            "NFR / lab-use licensing \u2014 Find the VP of Customer Education or Head of Devolutions Academy (or Partner Enablement lead). Does Devolutions offer a not-for-resale or education-tier license for RDM Enterprise that permits ephemeral, concurrent lab instances (potentially hundreds at a time during a training event), and is there a machine-level activation model that avoids per-named-user seat counts?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": [
+            "Most teams we talk to underestimate how much time their IT staff spends just navigating credential vaults and connection protocols in Remote Desktop Manager\u2014hands-on labs let them practice the actual workflows they'll use daily, like managing PAM integrations and session recording, so adoption happens faster than with documentation alone.",
+            "When you're rolling this out across distributed teams managing hundreds of remote connections, one misconfigured vault or permission setting can create security gaps\u2014hands-on training catches those mistakes in a safe environment before they hit production.",
+            "Your partners and resellers need to actually *feel* how Remote Desktop Manager simplifies their clients' access management, not just hear about it\u2014that's where they become your best salespeople, and that's what hands-on labs do."
+          ]
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Devolutions runs a formal customer education program (Devolutions Academy) \u2014 likely training partners and customers on Remote Desktop Manager and PAM solutions",
+            "Company uses Hyper-V orchestration for lab infrastructure, suggesting hands-on technical training needs for IT admin certifications and product enablement"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Devolutions Server",
+      "category": "Cybersecurity",
+      "subcategory": "Privileged Access Management",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "installable",
+      "orchestration_method": "Hyper-V",
+      "user_personas": [
+        "Administrator",
+        "Security Engineer/Analyst",
+        "Infrastructure Engineer",
+        "Developer"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Deploy and Configure Devolutions Server",
+        "Configure PAM Checkout Workflows",
+        "Integrate Active Directory and Enforce MFA",
+        "Session Recording and Audit Trail Review",
+        "Break/Fix: Vault Permission Misconfiguration",
+        "Gateway Configuration for Secure Remote Access"
+      ],
+      "poor_match_flags": [],
+      "recommendation": [
+        "Deploy Devolutions Server on Hyper-V using a 2-VM topology: a Windows Server VM running IIS, SQL Server, and Devolutions Server, plus a Windows client VM with Remote Desktop Manager. This mirrors real-world deployment, gives learners a realistic admin experience, and keeps the lab entirely within Skillable's datacenter fabric \u2014 no cloud dependency, predictable launch times, and automatic teardown via snapshot revert. Pre-Instancing is recommended for ILT and event delivery to absorb SQL Server initialization time.",
+        "Score learner work programmatically via the Devolutions Server REST API \u2014 query vault configuration state, user permission assignments, PAM checkout policy settings, and session recording status as discrete checkpoints. Supplement with PowerShell script scoring for configuration state that is more accessible via the PowerShell module than the REST API. This combination supports rich Performance-Based Testing without AI Vision fallback.",
+        "The highest-ROI entry point is internal SE and presales enablement \u2014 Devolutions sales engineers need hands-on product fluency to run credible POCs, and the POC motion is already documented on the Devolutions homepage. The same lab built for SEs adapts directly to customer onboarding and reseller channel enablement, following the Commvault expansion arc: SE enablement \u2192 customer training \u2192 channel partner training \u2192 scored certification labs.",
+        "The key question that unblocks the lab build is NFR/training license terms: 'Does Devolutions offer a not-for-resale or training-use license for Devolutions Server that allows Skillable to spin up per-learner instances at scale without per-seat cost?' The right owner is the Devolutions Partner or Channel team. A verbatim question your champion can send: 'We're evaluating Skillable for hands-on lab delivery of Devolutions Server. Can you confirm whether a training/NFR license is available that covers ephemeral per-learner VM instances, and what the terms look like for a lab program at 500-2,000 learners per year?'",
+        "If Devolutions is evaluating CloudShare or Instruqt for lab delivery, Skillable has a decisive advantage: the 2-VM private-network topology (Devolutions Server + client VM + optional AD domain controller) requires private VLAN support that CloudShare cannot provide. Skillable's multi-VM networking with isolated network segments is the correct fabric for PAM labs that need to simulate real enterprise network segmentation."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 30,
+              "weight": 35,
+              "summary": "Devolutions Server installs on Windows Server via MSI with IIS and SQL Server dependencies \u2014 clean Hyper-V path. A 2-VM topology (server VM + client VM running Remote Desktop Manager) mirrors real-world deployment and is well within Skillable's standard multi-VM capability. REST API and PowerShell module confirmed for lifecycle automation.",
+              "badges": [
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Self-Hosted Install | Strength:** Devolutions Server is a self-hosted Windows Server application deployed via MSI installer with IIS and SQL Server as dependencies \u2014 a clean Hyper-V VM install with no cloud dependency. Lab authors build the pre-configured image once; Skillable spins up per-learner copies. \u2014 Devolutions product page (devolutions.net). This is the canonical Hyper-V path: installable enterprise software on Windows Server.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/server",
+                      "source_title": "Devolutions Server Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Multi-VM Lab",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**2-VM Topology | Strength:** A realistic lab requires a server VM (Windows Server + IIS + SQL Server + Devolutions Server) and a client VM (Windows workstation running Remote Desktop Manager) \u2014 mirroring real-world deployment. Skillable's multi-VM networking handles this natively; competitors like CloudShare cannot support private-network multi-VM topologies at this level. \u2014 Devolutions product architecture documentation. Skillable competitive advantage applies here.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/server",
+                      "source_title": "Devolutions Server Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Pre-Instancing",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**SQL Server Init Time | Opportunity:** SQL Server initialization and Devolutions Server service startup on first launch may add 3-5 minutes to lab start time. Skillable Pre-Instancing mitigates this by keeping warm VM instances ready \u2014 recommended for any ILT or event delivery scenario. \u2014 Inferred from SQL Server + IIS dependency pattern common to this class of enterprise software.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/server",
+                      "source_title": "Devolutions Server Product Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 25,
+              "weight": 25,
+              "summary": "REST API supports programmatic user creation, role assignment, and vault management. Per-learner isolation is inherent via VM instances. Training/evaluation license path indicated but NFR terms require confirmation. No MFA blockers identified for lab automation.",
+              "badges": [
+                {
+                  "name": "Identity API",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**User Management API | Strength:** Devolutions Server exposes a REST API covering user creation, group assignment, vault permissions, and role management \u2014 enabling fully programmatic per-learner account setup without manual intervention. \u2014 Devolutions documentation hub (docs.devolutions.net). Eliminates manual account provisioning overhead at scale.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation Hub"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Cred Recycling",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**API-Based Credential Reset | Strength:** The Devolutions Server REST API supports user account management including password reset and permission revocation \u2014 enabling credential recycling between learners via API call, independent of VM snapshot revert. This is a real API mechanism, not a side-effect of teardown. \u2014 Devolutions REST API documentation (indicated from product architecture). Reduces per-learner provisioning overhead.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation Hub"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Training License",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Eval License Path | Risk:** Devolutions offers a free trial and a 'Proof of Concept' path for 100+ user evaluations, suggesting a negotiable NFR/training license path. However, explicit NFR or training-use license terms are not publicly documented \u2014 a sales conversation is required to confirm terms and cost for lab-scale deployment. \u2014 Devolutions homepage (devolutions.net). Confirm NFR availability before committing to lab build.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Learner Isolation",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Per-VM Isolation | Strength:** Each learner receives a dedicated Hyper-V VM instance running their own Devolutions Server installation \u2014 complete isolation by design. No shared tenant risk. Vault data, user accounts, and PAM policies are fully scoped to the individual learner environment. \u2014 Inherent to Skillable Hyper-V fabric architecture. Zero isolation risk for this delivery path.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/server",
+                      "source_title": "Devolutions Server Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 15,
+              "weight": 15,
+              "summary": "REST API enables programmatic validation of vault configuration, user permissions, PAM policy state, and session recording settings. PowerShell module provides additional scripting surface for checking credential checkout workflows and audit log entries.",
+              "badges": [
+                {
+                  "name": "Scoring API",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**REST API State Validation | Strength:** Devolutions Server's REST API enables programmatic querying of vault configuration state, user permission assignments, PAM checkout policy settings, and session recording status \u2014 all directly validatable as lab scoring checkpoints. \u2014 Devolutions REST API documentation (indicated). Supports rich performance-based scoring without AI Vision fallback.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation Hub"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Script Scoring",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PowerShell Automation Surface | Strength:** Devolutions publishes a PowerShell module for Remote Desktop Manager and Server management, enabling script-based validation of configuration state \u2014 credential entries, vault structure, group membership, and gateway configuration are all queryable via PowerShell. \u2014 Devolutions PowerShell Universal product page and documentation. Provides a second independent scoring surface alongside the REST API.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/powershell-universal",
+                      "source_title": "Devolutions PowerShell Universal"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Skillable-hosted Hyper-V environment \u2014 teardown is automatic via snapshot revert. No manual cleanup required between learners.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Automatic VM Teardown | Strength:** Devolutions Server runs entirely within Skillable-hosted Hyper-V VMs \u2014 teardown is automatic via snapshot revert at lab end. No manual cleanup, no orphaned accounts, no residual vault data. Zero teardown build effort required. \u2014 Inherent to Skillable Hyper-V fabric. Full marks; no teardown risk.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/server",
+                      "source_title": "Devolutions Server Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": ""
+                }
+              ]
+            }
+          ],
+          "score_override": 95
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 15,
+              "weight": 40,
+              "summary": "Devolutions Server spans a multi-phase admin lifecycle: installation, vault hierarchy design, user/group role assignment, PAM policy configuration, session recording, gateway setup, and AD/LDAP integration. Multiple distinct roles (admin, security analyst, help desk, auditor) and deep integration surface with identity providers and SIEM tools make this a genuinely complex product requiring hands-on practice.",
+              "badges": [
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PAM Lifecycle Depth | Strength:** Devolutions Server spans a multi-phase admin workflow: server installation and IIS/SQL configuration \u2192 vault hierarchy design \u2192 user/group role assignment \u2192 PAM policy configuration (checkout workflows, approval chains) \u2192 session recording setup \u2192 Devolutions Gateway configuration \u2192 AD/LDAP integration \u2192 audit and compliance reporting. Each phase requires distinct skills and is a natural lab module boundary. \u2014 Devolutions Server product documentation. Supports a full multi-module lab curriculum.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net",
+                      "source_title": "Devolutions Documentation Hub"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "multi_phase_workflow"
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Role Admin Surface | Strength:** Devolutions Server supports distinct operational roles: system administrator (installation, configuration, licensing), security administrator (PAM policies, vault permissions, MFA enforcement), help desk operator (credential checkout, session launch), and auditor (session recording review, access reports). Each role has a distinct lab persona and skill set. \u2014 Devolutions product architecture (devolutions.net). Enables role-specific lab tracks and persona-targeted curriculum.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/server",
+                      "source_title": "Devolutions Server Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "role_diversity"
+                },
+                {
+                  "name": "Integration Complexity",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Identity & SIEM Integration | Opportunity:** Devolutions Server integrates with Active Directory/LDAP for user synchronization, MFA providers (Duo, Microsoft Authenticator, TOTP), SIEM platforms for audit log forwarding, and ticketing systems for PAM approval workflows. Each integration is a distinct lab scenario requiring hands-on configuration. \u2014 Devolutions Integration Center (devolutions.net/integrations). Expands lab catalog beyond core admin scenarios.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Integration Center"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "integration_complexity"
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 14,
+              "weight": 25,
+              "summary": "PAM misconfiguration directly exposes privileged credentials \u2014 the highest-value target in any breach. Errors in vault permissions, checkout policies, or session recording can result in undetected lateral movement, compliance audit failure, or ransomware propagation. The stakes are real and consequential.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Privileged Credential Exposure | Strength:** Misconfiguration of Devolutions Server vault permissions, PAM checkout policies, or session recording settings directly exposes privileged credentials \u2014 the primary target in ransomware and APT attacks. A misconfigured PAM system is worse than no PAM system because it creates false confidence. The consequences of getting it wrong are breach, lateral movement, and compliance failure. \u2014 PAM security category norms; Devolutions PAM product positioning (devolutions.net). Hands-on practice is not optional for this product class.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/pam",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "harm_severity"
+                },
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PAM Concept Complexity | Strength:** PAM concepts \u2014 least privilege, just-in-time access, credential injection, session brokering, approval workflows \u2014 are non-intuitive for IT admins coming from traditional password management. The gap between 'installed' and 'correctly configured' is significant and well-documented in the PAM category. \u2014 Inferred from PAM category adoption patterns and Devolutions Academy existence. Validates hands-on training investment.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "learning_curve"
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 8,
+              "weight": 15,
+              "summary": "Break/fix scenarios (broken AD sync, misconfigured vault permissions, failed credential checkout) map naturally to troubleshooting labs. Compliance audit scenarios (reviewing session recordings, generating access reports, validating least-privilege configurations) add a second distinct lab type.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PAM Troubleshooting Scenarios | Strength:** Break/fix labs map naturally to Devolutions Server: broken AD sync preventing user login, misconfigured vault permissions blocking credential checkout, failed session recording due to gateway misconfiguration, or PAM approval workflow not triggering. These are realistic operational failures that IT admins encounter and must diagnose. \u2014 Inferred from product architecture and PAM operational patterns. High-value lab type for admin certification scenarios.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/server",
+                      "source_title": "Devolutions Server Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "break_fix"
+                },
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Audit Trail Validation | Opportunity:** Compliance audit labs \u2014 reviewing session recordings, generating privileged access reports, validating least-privilege configurations against a policy baseline, and demonstrating SOC 2 / ISO 27001 control evidence \u2014 are a natural second lab type. Devolutions explicitly positions Server for audit and compliance requirements. \u2014 Devolutions homepage compliance positioning (devolutions.net). Serves security-focused buyers with compliance mandates.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "compliance_audit"
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 8,
+              "weight": 20,
+              "summary": "PAM is a high-demand cybersecurity category driven by Zero Trust mandates, ransomware insurance requirements, and compliance frameworks. Devolutions has a large IT pro install base (Remote Desktop Manager is widely used in SMB/mid-market). Devolutions Academy signals training investment. No formal certification program or competitor labs confirmed.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PAM Category Urgency | Strength:** Privileged Access Management is one of the fastest-growing cybersecurity categories, driven by Zero Trust mandates, ransomware insurance requirements (insurers now require PAM as a condition of coverage), and compliance frameworks (SOC 2, ISO 27001, HIPAA, PCI-DSS). Gartner consistently ranks PAM as a top security priority. \u2014 PAM market category norms; Devolutions PAM positioning (devolutions.net). Category tailwind directly drives training demand.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/pam",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "category_demand"
+                },
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**SMB/Mid-Market IT Pro Install Base | Opportunity:** Devolutions Remote Desktop Manager is widely used across the IT pro community, with the broader Devolutions ecosystem serving a large SMB and mid-market install base. Devolutions Server is the team/enterprise tier of this ecosystem. The existing RDM user base represents a natural upgrade and training audience. \u2014 Devolutions homepage and product positioning (devolutions.net). Large existing user base amplifies training consumption potential.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "enterprise_validation"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 6,
+              "weight": 25,
+              "summary": "Devolutions Academy is a free training hub covering the full product suite. Content appears to be documentation and video-based. No explicit hands-on or lab language confirmed, and no formal certification program identified. Training commitment is moderate \u2014 the Academy exists but lacks the depth signals of a mature training organization.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Devolutions Academy | Opportunity:** Devolutions Academy is described as a 'FREE go-to hub for mastering Devolutions' suite of products and services' \u2014 confirming an active training investment. Content appears to be documentation and video-based. No explicit hands-on or lab language confirmed, making this a moderate signal rather than a strong one. \u2014 Devolutions homepage (devolutions.net). Academy existence confirms training commitment; absence of hands-on language is the gap Skillable fills.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "training_catalog"
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**POC Program Signal | Opportunity:** Devolutions explicitly offers a 'Proof of Concept' path for 100+ user evaluations \u2014 indicating a structured customer enablement motion beyond self-service trial. This POC motion is a natural entry point for hands-on lab delivery (pre-sales technical validation). \u2014 Devolutions homepage (devolutions.net). POC motion is the highest-ROI entry point for Skillable: 7x expansion revenue from hands-on POC (Commvault/Tanium data).",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "hands_on_commitment"
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 3,
+              "weight": 20,
+              "summary": "Devolutions Academy implies a content development function, but no named instructional designers, lab authors, or content team is publicly documented. Build capacity is inferred from the Academy's existence rather than confirmed from role evidence.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Academy Content Function | Context:** Devolutions Academy's existence implies a content development function responsible for product training materials. No named instructional designers, lab authors, or content team roles are publicly documented. Build capacity is inferred from the Academy's scope rather than confirmed from role evidence. \u2014 Devolutions Academy (devolutions.net/academy). Skillable Professional Services can fill the lab authoring gap if internal capacity is limited.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "content_team_named"
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "A reseller network is confirmed (Find a Reseller page). No lab platform, ATP training network, or LMS is publicly documented. Devolutions is greenfield for structured lab delivery \u2014 an opportunity rather than a deficiency.",
+              "badges": [
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**No Lab Platform Confirmed | Context:** No lab delivery platform (Skillable, CloudShare, Instruqt, or DIY) is publicly documented for Devolutions. This is a greenfield opportunity \u2014 Devolutions Academy delivers content but no hands-on lab infrastructure is in place. \u2014 Devolutions Academy and product pages (devolutions.net). Greenfield = no displacement required; Skillable enters as the first lab platform.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "lab_platform"
+                },
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Reseller Network | Opportunity:** Devolutions maintains a reseller network (Find a Reseller page confirmed). Resellers represent a natural channel for technical enablement labs \u2014 partners who sell Devolutions Server need hands-on product knowledge to demo and support it. \u2014 Devolutions reseller page (devolutions.net). Channel enablement is a proven Skillable consumption motion; reseller network is the seed audience.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Find a Reseller Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "atp_network"
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 6,
+              "weight": 25,
+              "summary": "Devolutions operates a reseller/channel partner ecosystem and positions itself as a partner-friendly vendor. As a Canadian SMB-focused software company, it is accessible and pragmatic. No formal tiered partner program with technical certification confirmed, but the channel structure suggests openness to platform partnerships.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Channel Partner Structure | Opportunity:** Devolutions operates a reseller/channel partner ecosystem and positions itself as a partner-friendly vendor. As a Canadian SMB-focused software company with a pragmatic, accessible culture, Devolutions is likely easier to engage than large enterprise vendors. No formal tiered partner program with technical certification is confirmed, but the channel structure suggests openness to platform partnerships. \u2014 Devolutions reseller page and company positioning (devolutions.net). Accessible engagement pattern reduces sales cycle friction.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "partner_pattern"
+                },
+                {
+                  "name": "Build vs Buy",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Platform Buyer Signals | Opportunity:** Devolutions integrates with a wide range of third-party platforms (MFA providers, SIEM, ticketing, identity providers) rather than building everything in-house \u2014 a platform buyer culture signal. This pattern suggests openness to adopting Skillable as the lab delivery platform rather than building a proprietary solution. \u2014 Devolutions Integration Center (devolutions.net). Platform buyer culture reduces 'build our own labs' objection.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Integration Center"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "build_vs_buy_culture"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 95,
+        "pl_score_pre_ceiling": 95,
+        "technical_fit_multiplier": 1.0,
+        "ceilings_applied": []
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 3000,
+            "population_high": 5000,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.06,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 5000,
+            "population_high": 8000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.04,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.5,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 975,
+        "annual_hours_high": 3060,
+        "rate_per_hour": 0.0,
+        "acv_low": 13650.0,
+        "acv_high": 42840.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Good Fit",
+        "color": "dark_green",
+        "fit_label": "HIGH FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Training or Head of Customer Education",
+          "title": "VP of Training / Head of Customer Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Training or Director of Partner Enablement",
+          "title": "Director of Training / Director of Partner Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Provisioning path \u2014 Find a Principal Engineer or DevOps Lead on the Devolutions Server product team. \"Devolutions Server requires IIS + SQL Server + the console installer \u2014 does the current installer support fully unattended (silent) installation via CLI or PowerShell DSC, and can the initial admin account and SQL connection string be passed as parameters so we can script a repeatable lab environment from a base Windows Server image?\"",
+            "NFR / lab licensing \u2014 Find a Product Manager or Licensing Lead for Devolutions Server. \"For hands-on training labs where each learner gets an isolated, short-lived Devolutions Server instance (typically 1-4 hours), do you offer a time-limited NFR or training license key that can be baked into a VM template, or does each instance require online activation against your license server \u2014 and is there a bulk-provisioning path for 50-200 concurrent seats?\"",
+            "Scoring surface via API \u2014 Find a Senior Developer or API Lead on the Devolutions Server team. \"We need to programmatically validate learner actions inside the lab (e.g., confirm a vault was created, a PAM checkout policy is configured, or an RDP entry exists). Does the Devolutions Server REST API expose GET endpoints for vaults, entries, and PAM policies that return enough detail to assert configuration state, and does it support service-account authentication via an application key rather than interactive login?\""
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": [
+            "Most teams we talk to struggle getting their IT staff comfortable with Devolutions Server's PAM workflows on day one\u2014there's a lot of moving parts around credential vaulting and access controls that really click when people can actually set up a connection and test it themselves rather than just reading docs.",
+            "Since Devolutions integrates with your existing infrastructure\u2014whether that's Active Directory, RDP, or SSH\u2014hands-on labs let your team practice the real scenarios they'll run into, like troubleshooting a failed connection or auditing who accessed what, without risking your production environment."
+          ]
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Devolutions builds IT professional tools (PAM, remote access, password management) \u2014 likely trains customers and partners on security workflows and compliance certifications like CompTIA Security+",
+            "As a software vendor, they probably run partner enablement programs and need hands-on lab environments to certify resellers on their platform stack"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Devolutions PAM",
+      "category": "Cybersecurity",
+      "subcategory": "Privileged Access Management",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "installable",
+      "orchestration_method": "Hyper-V",
+      "user_personas": [
+        "Administrator",
+        "Security Engineer/Analyst",
+        "Infrastructure Engineer",
+        "Developer"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Privileged Account Discovery and Onboarding",
+        "JIT Access and Approval Workflow Configuration",
+        "Credential Rotation Policy \u2014 Break/Fix",
+        "Session Recording Audit and Compliance Report",
+        "PAM Deployment \u2014 End-to-End Configuration"
+      ],
+      "poor_match_flags": [],
+      "recommendation": [
+        "Deploy Devolutions PAM labs on Skillable's Hyper-V fabric using a 2-3 VM topology: one Windows Server VM running DVLS with the PAM module, one Windows Server VM with Active Directory as the managed target, and optionally a Linux host for cross-platform account management scenarios. This is the correct path because PAM's value is demonstrated through managing real target systems \u2014 a single-VM lab cannot show account discovery, checkout, or session recording against live infrastructure. Skillable's private network fabric connects the VMs in an isolated segment, which competitors like CloudShare cannot replicate. Use Skillable Pre-Instancing to eliminate DVLS initialization wait time at lab start.",
+        "Primary scoring via the DVLS REST API \u2014 query account checkout status, rotation history, session recording metadata, and policy configuration to validate learner tasks programmatically. Supplement with PowerShell scripts targeting the Windows Server managed VMs to validate AD account state, local admin group membership, and service account permissions. AI Vision provides a reliable fallback for GUI-state tasks in the DVLS admin console. This three-layer approach (API + script + AI Vision) supports granular Performance-Based Testing if Devolutions pursues a certification program.",
+        "The key question that unblocks the lab build is licensing: does Devolutions offer an NFR or training-specific license for DVLS + PAM that covers concurrent lab use at scale (50-500 simultaneous learners)? The team to ask is Devolutions Sales or Partner Programs \u2014 the 'Proof of concept' path on their homepage suggests flexibility exists, but formal terms need confirmation. Suggested question for your champion to send: 'We're building hands-on labs for Devolutions PAM training. Do you have an NFR or training license for Devolutions Server + PAM that covers concurrent lab environments? We'd need to support [X] simultaneous learners without per-seat cost per launch.'",
+        "The highest-priority entry motion is customer onboarding and enablement \u2014 PAM is notoriously difficult to configure correctly, and customers who struggle to implement it churn or leave privileged accounts unmanaged (defeating the product's purpose). A 3-5 lab onboarding series covering discovery, JIT configuration, rotation, and audit would directly reduce time-to-value and support tickets. The secondary motion is internal SE enablement \u2014 Devolutions SEs and presales need to demo PAM convincingly, and a hands-on lab environment is more compelling than a slide deck. If Devolutions launches a formal certification program (currently absent), Skillable is the natural PBT infrastructure partner.",
+        "Devolutions PAM targets the SMB/mid-market segment where CyberArk and BeyondTrust are too expensive \u2014 but those competitors have mature training programs with hands-on labs. Devolutions Academy currently lacks hands-on content, which is a competitive disadvantage in a category where buyers evaluate vendors partly on training quality. Skillable labs would close this gap and give Devolutions a training story that matches or exceeds what larger PAM vendors offer, at a cost appropriate for their market segment."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 30,
+              "weight": 35,
+              "summary": "Devolutions PAM runs as a module within Devolutions Server (DVLS), which installs cleanly on Windows Server \u2014 a natural Hyper-V VM target. A realistic lab topology includes a DVLS/PAM server VM plus one or more target VMs (Windows Server with Active Directory, Linux hosts) that the PAM system manages. SQL Server can co-reside on the DVLS VM for lab purposes. No GPU, no bare metal, no cloud-only dependency. Multi-VM topology is a Skillable competitive strength.",
+              "badges": [
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**VM Install Path | Strength:** Devolutions PAM runs as a module within Devolutions Server (DVLS), which installs on Windows Server \u2014 a clean Hyper-V VM target with no cloud dependency. SQL Server can co-reside on the same VM for lab purposes, keeping the footprint manageable. \u2014 Devolutions product documentation. Lab authors build the pre-configured DVLS+PAM image once; Skillable spins up per-learner copies via snapshot.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Multi-VM Lab",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-VM Topology | Strength:** A realistic PAM lab requires at least two VMs \u2014 a DVLS/PAM server and one or more managed target systems (Windows Server with Active Directory, Linux hosts). This multi-VM topology is a Skillable competitive strength that CloudShare and Instruqt cannot reliably support. \u2014 Devolutions PAM architecture documentation. The managed-target VMs are essential for practicing account discovery, checkout, and session recording workflows.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Pre-Instancing",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Slow Init Mitigation | Opportunity:** Initial DVLS setup \u2014 SQL Server initialization, PAM module activation, AD connector configuration \u2014 may add 5-10 minutes to first-launch time. Skillable Pre-Instancing mitigates this by keeping warm VM copies ready, eliminating learner wait time at lab start. \u2014 Inferred from DVLS installation complexity. Relevant for self-paced and event delivery at scale.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net/server/getting-started/",
+                      "source_title": "Devolutions Server Getting Started Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 25,
+              "weight": 25,
+              "summary": "DVLS exposes a REST API that covers user creation and role assignment, enabling programmatic per-learner account setup. A POC/evaluation license path is indicated on the Devolutions site, though a formal NFR/training license program is not explicitly confirmed. Learner isolation is inherent to the Hyper-V VM fabric \u2014 each learner gets their own environment. No MFA blocking or anti-automation controls identified.",
+              "badges": [
+                {
+                  "name": "Identity API",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**User Management API | Strength:** Devolutions Server exposes a REST API that covers user creation, role assignment, and permission management \u2014 enabling programmatic per-learner account provisioning without manual setup. \u2014 Devolutions developer documentation. This allows lab automation scripts to create a unique PAM administrator account per learner at launch.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net/server/",
+                      "source_title": "Devolutions Server Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Training License",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Eval License Path | Risk:** Devolutions references a 'Proof of concept' path for 100+ user evaluations on their homepage, suggesting an evaluation license exists. However, a formal NFR or training-specific license program is not explicitly documented. License terms for lab use at scale (hundreds of concurrent learners) require confirmation with Devolutions sales. \u2014 Devolutions homepage. This is the primary licensing risk for lab delivery at scale.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Learner Isolation",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Per-Learner Isolation | Strength:** Each learner receives their own Hyper-V VM environment \u2014 complete isolation with no shared state between learners. PAM configuration changes, account checkouts, and session recordings are fully contained within each learner's VM set. \u2014 Skillable Hyper-V fabric architecture. No vendor API required for isolation; the platform fabric handles it.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 15,
+              "weight": 15,
+              "summary": "PAM state is validatable via the DVLS REST API \u2014 account checkout status, rotation history, session recording existence, and policy configuration are all queryable. Devolutions also produces PowerShell Universal, signaling deep PowerShell integration across their platform. Script-based scoring of PAM configuration tasks is viable. AI Vision provides a GUI fallback for visual state validation in the admin console.",
+              "badges": [
+                {
+                  "name": "Scoring API",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**REST API Validation | Strength:** The DVLS REST API exposes PAM state \u2014 account checkout status, rotation history, session recording metadata, and policy configuration \u2014 enabling programmatic scoring of learner tasks. Lab scoring scripts can query whether a learner correctly configured a rotation policy, approved a JIT request, or onboarded a target account. \u2014 Devolutions Server documentation. Rich API surface supports granular, automated scoring.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net/server/",
+                      "source_title": "Devolutions Server Documentation"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "Script Scoring",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PowerShell Integration | Strength:** Devolutions produces PowerShell Universal \u2014 a dedicated PowerShell automation and scripting platform \u2014 signaling deep PowerShell integration across their product suite. PAM configuration state on Windows Server targets (AD accounts, local admin groups, service account permissions) is fully scriptable via PowerShell. \u2014 Devolutions product lineup (PowerShell Universal). Enables comprehensive script-based scoring of both PAM server configuration and managed target state.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/powershell-universal/",
+                      "source_title": "Devolutions PowerShell Universal Product Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                },
+                {
+                  "name": "AI Vision",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**GUI Fallback | Opportunity:** The DVLS admin console and PAM dashboard are GUI-driven interfaces where visual state (account status, session recording list, approval queue) is clearly rendered. AI Vision scoring provides a reliable fallback for tasks where API/script validation is impractical, such as verifying dashboard configuration or session recording playback. \u2014 Inferred from DVLS admin console design patterns. Complements API and script scoring.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Hyper-V snapshot revert handles all teardown automatically. No vendor API calls required. Full marks.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Automatic Teardown | Strength:** Devolutions PAM runs entirely within Skillable-hosted Hyper-V VMs. Snapshot revert at lab end wipes all learner state \u2014 PAM configuration, account checkouts, session recordings, and target VM changes \u2014 automatically. No vendor API calls required for cleanup. Zero orphan risk. \u2014 Skillable Hyper-V fabric architecture. Full marks for teardown.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "",
+                  "signal_category": ""
+                }
+              ]
+            }
+          ],
+          "score_override": 95
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 18,
+              "weight": 40,
+              "summary": "PAM is a multi-phase, multi-role product. The full lifecycle spans account discovery, onboarding, checkout workflow configuration, JIT access rules, approval chains, credential rotation scheduling, session recording, and audit reporting. Distinct roles \u2014 PAM administrator, security auditor, privileged user, and approver \u2014 each have different workflows. Deep configuration surface across AD integration, rotation policies, and session proxy settings. Troubleshooting broken rotations, failed checkouts, and misconfigured approval workflows are natural lab scenarios.",
+              "badges": [
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PAM Lifecycle Phases | Strength:** The PAM workflow spans five distinct phases requiring practiced skill: account discovery (scanning infrastructure for privileged accounts), onboarding (importing and classifying accounts), access governance (configuring JIT rules and approval chains), active management (checkout, session recording, rotation), and audit/compliance (generating reports, reviewing recordings). Each phase has its own configuration surface and failure modes. \u2014 Devolutions PAM product page. Cannot be learned by watching \u2014 each phase requires hands-on configuration.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "multi_phase_workflow"
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Four Distinct Roles | Strength:** PAM supports at least four distinct operator roles with non-overlapping workflows: PAM Administrator (configures policies, manages accounts, sets rotation schedules), Security Auditor (reviews session recordings, generates compliance reports), Privileged User (requests and checks out credentials via JIT workflow), and Approver (reviews and approves/denies access requests). Each role warrants its own lab track. \u2014 Devolutions PAM documentation. Role diversity multiplies the lab catalog potential.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net/server/privileged-access-management/",
+                      "source_title": "Devolutions PAM Documentation"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "role_diversity"
+                },
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Configuration Depth | Strength:** PAM configuration spans AD/LDAP connector setup, account discovery rules, rotation policy design (schedule, method, target type), JIT access rule configuration, approval workflow design, session recording proxy setup, and integration with Devolutions Gateway for secure remote access. Each area has multiple sub-settings with interdependencies. \u2014 Devolutions PAM and Server documentation. Deep configuration surface supports multi-hour lab sessions across multiple skill levels.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net/server/privileged-access-management/",
+                      "source_title": "Devolutions PAM Documentation"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "deep_configuration"
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 18,
+              "weight": 25,
+              "summary": "Misconfigured PAM is a direct path to privileged account exposure \u2014 the leading vector in enterprise breaches. Compliance frameworks (SOX, PCI-DSS, HIPAA, ISO 27001) mandate PAM controls, and audit failure carries regulatory consequences. The learning curve from basic IT admin to competent PAM operator is steep \u2014 JIT access, credential rotation, and session proxying require practiced skill that cannot be acquired by reading documentation.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Breach Risk | Strength:** Misconfigured PAM \u2014 overly permissive checkout policies, disabled rotation, unmonitored service accounts \u2014 directly exposes privileged credentials, the primary vector in enterprise breaches. Devolutions explicitly positions PAM as diminishing 'the risk of insider threats and cyberattacks.' Getting PAM wrong is not a recoverable inconvenience; it is a breach waiting to happen. \u2014 Devolutions PAM product page. Hands-on practice is essential before deploying PAM in production.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "harm_severity"
+                },
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Admin Skill Gap | Strength:** PAM requires IT administrators to understand credential rotation mechanics, session proxying architecture, JIT access design, and AD integration \u2014 concepts that go well beyond standard sysadmin skills. The gap between 'can install DVLS' and 'has correctly configured PAM for production' is significant and well-documented in the PAM category. \u2014 Inferred from PAM category norms and Devolutions documentation depth. Hands-on labs are the most effective path to closing this gap.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://docs.devolutions.net/server/privileged-access-management/",
+                      "source_title": "Devolutions PAM Documentation"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "learning_curve"
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 10,
+              "weight": 15,
+              "summary": "Break/Fix scenarios are a natural fit \u2014 broken rotation policies, failed JIT access requests, and misconfigured approval workflows are realistic troubleshooting tasks. Compliance Audit labs \u2014 reviewing session recordings, generating access reports, and validating audit trail completeness \u2014 map directly to real-world audit preparation workflows.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Troubleshooting Scenarios | Strength:** PAM generates rich break/fix lab scenarios: a rotation policy that fails silently due to a misconfigured service account, a JIT access request stuck in approval due to a missing approver assignment, a session recording that fails to capture due to a proxy misconfiguration. These are realistic, consequential failures that require systematic diagnosis. \u2014 Inferred from PAM operational complexity. Break/fix labs are the highest-value format for PAM skill validation.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "break_fix"
+                },
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Audit Prep Labs | Strength:** Devolutions PAM explicitly targets 'audit and compliance requirements' \u2014 session recordings, access logs, and rotation history are core outputs. Labs can simulate an audit scenario: given a pre-configured environment with intentional gaps (unrotated accounts, missing session recordings, excessive permissions), learners must identify and remediate findings before a mock audit. \u2014 Devolutions PAM product page. Compliance audit labs serve both skill development and pre-audit preparation use cases.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "compliance_audit"
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 8,
+              "weight": 20,
+              "summary": "PAM is a top-priority cybersecurity investment category \u2014 Gartner Magic Quadrant, mandatory for most compliance frameworks, and a board-level security concern. Devolutions targets the SMB/mid-market segment where PAM adoption is growing rapidly. Devolutions Academy exists as a training hub. No formal certification program confirmed, but the category has strong training investment from competitors (CyberArk, BeyondTrust), validating demand for hands-on PAM training.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**PAM Category Priority | Strength:** Privileged Access Management is a Gartner Magic Quadrant category and a mandatory control in SOX, PCI-DSS, HIPAA, and ISO 27001 frameworks. Enterprise security budgets consistently prioritize PAM \u2014 it is not a discretionary investment. Competitors CyberArk and BeyondTrust have mature training programs, confirming market demand for hands-on PAM training. \u2014 Gartner PAM Magic Quadrant (category context). High-demand category drives training investment regardless of vendor size.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/privileged-access-management/",
+                      "source_title": "Devolutions PAM Product Page"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "category_demand"
+                },
+                {
+                  "name": "Emerging Certification",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Academy Without Cert | Context:** Devolutions Academy is a free training hub for their product suite, indicating investment in customer education. However, no formal certification or credentialing program was found \u2014 the Academy appears to be documentation and video-based content, not a structured certification path. This is an opportunity gap: a PAM certification would significantly increase training demand and Skillable consumption. \u2014 Devolutions Academy page. No cert program confirmed as of research date.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy/",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "cert_ecosystem"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 6,
+              "weight": 25,
+              "summary": "Devolutions Academy is a free training hub covering their product suite, indicating investment in customer education. However, no hands-on or lab-based language was found in the Academy description \u2014 content appears to be documentation and video-based. No formal certification program or flagship training events confirmed. Training commitment is moderate \u2014 catalog exists, but hands-on investment is not yet evident.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Academy Catalog | Context:** Devolutions Academy is described as a 'FREE go-to hub for mastering Devolutions' suite of products and services' \u2014 a customer-facing training resource covering their full product lineup including PAM. The catalog exists and is actively maintained, but no hands-on or lab-based language was found in the Academy description. Training commitment is moderate \u2014 catalog investment confirmed, hands-on investment not yet evident. \u2014 Devolutions homepage. Academy is the primary training commitment signal.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy/",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "training_catalog"
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Adoption-Focused Training | Context:** Devolutions positions training as a customer success and product adoption tool \u2014 the Academy is free and product-focused, not a revenue-generating training business. This adoption-driven motivation is a strong signal for hands-on lab investment: customers who struggle to configure PAM correctly churn or underutilize the product. \u2014 Devolutions homepage and Academy page. Adoption motivation aligns with Skillable's customer onboarding and enablement motion.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "hands_on_commitment"
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 3,
+              "weight": 20,
+              "summary": "Devolutions Academy implies a content creation function, but no named instructional designers, lab authors, or content development team was identified in research. As a lean Canadian SMB, the content team is likely small. Build capacity is moderate at best \u2014 they can create content but may need Skillable Professional Services support for lab authoring.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Academy Content Function | Context:** Devolutions Academy implies a content creation function within the company, but no named instructional designers, lab authors, or content development team was identified in research. As a lean Canadian SMB, the content team is likely small and focused on documentation and video production rather than hands-on lab authoring. \u2014 Devolutions Academy page. Skillable Professional Services or a content partner would likely be needed to build the initial lab catalog.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy/",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "content_team_named"
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "A reseller network is confirmed (Find a reseller page on devolutions.net), indicating some channel structure. No lab platform identified \u2014 greenfield opportunity. No LMS partner or flagship events confirmed. Delivery capacity is limited but the reseller network provides a channel for partner-delivered training.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Reseller Network | Context:** Devolutions maintains a 'Find a reseller' page, confirming a channel partner structure exists. However, no formal Authorized Training Partner (ATP) program or partner-delivered training curriculum was identified \u2014 the reseller network appears to be sales-focused rather than training-focused. \u2014 Devolutions reseller page. The reseller network is a latent channel for partner-delivered PAM training if Devolutions invests in a formal ATP program.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/find-a-reseller/",
+                      "source_title": "Devolutions Find a Reseller Page"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "atp_network"
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**No Lab Platform | Opportunity:** No existing lab platform was identified for Devolutions \u2014 greenfield opportunity. Devolutions Academy currently delivers content without a hands-on lab component. Skillable would be the first lab platform investment, with no displacement required. \u2014 Devolutions Academy page. Greenfield entry is an opportunity, not a deficiency.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net/academy/",
+                      "source_title": "Devolutions Academy"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "lab_platform"
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 9,
+              "weight": 25,
+              "summary": "Devolutions is a community-oriented Canadian SMB \u2014 they maintain a public forum, free tools (RDM Free, UniGetUI open source), and an integration center. This signals accessibility and partner-friendly culture. Their integration center and API surface suggest openness to platform partnerships. As a smaller vendor, engagement is likely straightforward without enterprise procurement friction.",
+              "badges": [
+                {
+                  "name": "Ease of Engagement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Accessible SMB Culture | Strength:** Devolutions is a community-oriented Canadian SMB \u2014 they maintain a public forum, offer free tools (RDM Free, UniGetUI open source), and publish an integration center. This signals an accessible, partner-friendly culture with low procurement friction. No enterprise procurement bureaucracy expected. \u2014 Devolutions homepage and forum. Easy to engage, likely responsive to a direct outreach from Skillable.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "strong",
+                  "signal_category": "engagement_ease"
+                },
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Integration-Friendly Platform | Context:** Devolutions maintains an 'Integration center' highlighting seamless integrations with their product suite, and a reseller network. This suggests a platform-buyer culture open to external partnerships. However, the partner ecosystem is modest in scale \u2014 appropriate for an SMB vendor, but not the deep channel structure of a CyberArk or BeyondTrust. \u2014 Devolutions homepage integration center. Partner-friendly but limited scale.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://devolutions.net",
+                      "source_title": "Devolutions Homepage"
+                    }
+                  ],
+                  "strength": "moderate",
+                  "signal_category": "partner_pattern"
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 95,
+        "pl_score_pre_ceiling": 95,
+        "technical_fit_multiplier": 1.0,
+        "ceilings_applied": []
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 1500,
+            "population_high": 3000,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 150,
+            "population_high": 300,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 2000,
+            "population_high": 4000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 300,
+            "population_high": 600,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.02,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 80,
+            "population_high": 150,
+            "hours_low": 2.0,
+            "hours_high": 3.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 300,
+            "population_high": 600,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.2,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 316,
+        "annual_hours_high": 1071,
+        "rate_per_hour": 0.0,
+        "acv_low": 4424.0,
+        "acv_high": 14994.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Good Fit",
+        "color": "dark_green",
+        "fit_label": "HIGH FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or Head of Academy",
+          "title": "VP of Customer Education / Head of Academy",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Training or Director of Partner Enablement",
+          "title": "Director of Training / Director of Partner Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/devolutions/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Provisioning path \u2014 Find a Principal Engineer or DevOps Lead on the Devolutions Server / PAM product team. For a hands-on lab environment, can Devolutions Server (which hosts the PAM module) be deployed via silent install or unattended setup on a Windows Server VM with a bundled SQL Express instance, or does the PAM module require a separate licensing activation call home during install that would block air-gapped provisioning?",
+            "Scoring surface \u2014 Find a Solution Engineer or API Lead on the Devolutions Server team. Does the Devolutions Server REST API (or PowerShell module) expose read endpoints to verify PAM checkout state \u2014 specifically, can we programmatically query whether a privileged account has been checked out, an approval workflow was triggered, and a session was recorded \u2014 so we can auto-score learner tasks in a lab?",
+            "NFR licensing \u2014 Find the Director of Training or Director of Partner Enablement. For hands-on training labs that spin up and tear down Devolutions Server + PAM instances per learner session, does Devolutions offer NFR or education-tier licenses that permit ephemeral, multi-tenant lab deployments without per-seat production licensing, and what is the maximum concurrent instance count under such a license?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": [
+            "Most teams we talk to underestimate how much their security posture depends on proper PAM configuration\u2014we've found that hands-on practice with credential rotation, access workflows, and audit trails actually sticks way better than documentation alone, especially when your team is managing hundreds of endpoints.",
+            "Devolutions PAM integrations with your existing infrastructure can get complex fast, and we've seen adoption rates jump significantly when people can actually walk through a deployment scenario in a lab before they're doing it in production."
+          ]
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Devolutions builds PAM and IT security solutions \u2014 likely trains customers and partners on complex credential management workflows, making hands-on lab scenarios a natural fit for their academy",
+            "Company operates a structured partner enablement program (based on Director of Partner Enablement role), suggesting they invest in certification and training infrastructure to scale partner competency"
+          ]
+        }
+      }
+    }
+  ],
+  "briefcase": null,
+  "analyzed_at": "2026-04-07T05:12:09.351602+00:00",
+  "analysis_id": "f62efaf2",
+  "discovery_id": "9c1df551",
+  "total_products_discovered": 10,
+  "_scoring_logic_version": "2026-04-06.rubric-fields-wired"
+}

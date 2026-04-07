@@ -1491,7 +1491,7 @@ CEILING_FLAGS: dict[str, dict] = {
 # `Learner Isolation` canonical badge in Lab Access (gatekeeper, green/
 # amber/red, always emit) now carries this signal directly, sourced from
 # research evidence about per-user provisioning capability. The call sites
-# in app_new._normalize_badges_for_scoring have been removed.
+# in app._normalize_badges_for_scoring have been removed.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2092,7 +2092,7 @@ def is_cached_logic_current(cached_data: dict | None) -> bool:
         False if cached_data is a dict missing the version field, OR if
               the version field is older than the current version.
 
-    Used by intelligence_new.discover() and intelligence_new.score() to
+    Used by intelligence.discover() and intelligence.score() to
     invalidate cached analyses after scoring logic changes — closes the
     cache versioning gap that allowed stale Cohesity/Trellix analyses
     to render with degraded scores after the Pillar 1/2/3 refactors.

@@ -17,7 +17,7 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6")
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY", "")
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data_new")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
 # ── Operational constants — single source for all modules ──
@@ -42,12 +42,12 @@ def _get_framework_last_modified() -> str:
     framework_files = [
         _Path(__file__).parent / "scoring_config.py",
         _Path(__file__).parent / "prompts" / "scoring_template.md",
-        _Path(__file__).parent / "prompts" / "discovery_new.txt",
+        _Path(__file__).parent / "prompts" / "discovery.txt",
         _Path(__file__).parent / "knowledge" / "skillable_capabilities.json",
         _Path(__file__).parent / "knowledge" / "delivery_patterns.json",
         _Path(__file__).parent / "knowledge" / "competitors.json",
         _Path(__file__).parent / "knowledge" / "contact_guidance.json",
-        _Path(__file__).parent / "benchmarks_new.json",
+        _Path(__file__).parent / "benchmarks.json",
     ]
     latest = 0
     for f in framework_files:
@@ -61,7 +61,7 @@ def _get_framework_last_modified() -> str:
 
 FRAMEWORK_LAST_MODIFIED = _get_framework_last_modified()
 
-_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks_new.json")
+_BENCHMARKS_PATH = os.path.join(os.path.dirname(__file__), "benchmarks.json")
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 
 
@@ -79,7 +79,7 @@ def validate_startup() -> None:
         errors.append(f"benchmarks_new.json not found at {_BENCHMARKS_PATH}")
 
     # Discovery prompt (still a static file — not part of Prompt Generation System)
-    discovery_path = os.path.join(_PROMPTS_DIR, "discovery_new.txt")
+    discovery_path = os.path.join(_PROMPTS_DIR, "discovery.txt")
     if not os.path.exists(discovery_path):
         errors.append(f"Discovery prompt not found: {discovery_path}")
 

@@ -1,6 +1,6 @@
 {#
   Full Analysis page — rebuilt from wireframe.html (pixel-perfect).
-  Data source: analysis dict prepared by inspector_full_analysis() in app_new.py.
+  Data source: analysis dict prepared by inspector_full_analysis() in app.py.
 #}
 {% import '_company_header.html' as ch %}
 {% import '_search_modal.html' as sm %}
@@ -174,7 +174,7 @@ document.addEventListener('mouseleave', function(e) {
 }, true);
 </script>
 <style>
-{% include '_theme_new.html' %}
+{% include '_theme.html' %}
 {{ ch.styles() }}
 {{ sm.styles() }}
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -563,7 +563,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 </head>
 <body>
 
-{% include '_nav_new.html' %}
+{% include '_nav.html' %}
 
 {# ─── Reusable info / docs modal — populated and opened by openInfoModal() ─── #}
 <div class="info-modal-overlay" id="infoModal" onclick="if(event.target===this) closeInfoModal()">

@@ -1,7 +1,7 @@
-"""Start the new Skillable Intelligence app on port 5001.
+"""Start the Skillable Intelligence app on port 5001.
 
 Run from the project root:
-    python run_new.py
+    python run.py
 """
 
 import logging
@@ -43,9 +43,9 @@ logging.getLogger("werkzeug").setLevel(logging.INFO)
 logging.getLogger("backend").setLevel(logging.INFO)
 
 # NOW import the app (after env vars are set)
-from backend.app_new import app
+from backend.app import app
 
 if __name__ == "__main__":
-    print("\n  Skillable Intelligence (new framework)")
+    print("\n  Skillable Intelligence")
     print("  http://localhost:5001\n", flush=True)
     app.run(debug=True, port=5001, use_reloader=False)

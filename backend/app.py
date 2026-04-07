@@ -17,15 +17,15 @@ from pathlib import Path
 import jinja2
 from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, stream_with_context
 
-from config_new import ANTHROPIC_API_KEY, validate_startup
-from core_new import (
+from config import ANTHROPIC_API_KEY, validate_startup
+from core import (
     assign_verdict, company_classification_label, discovery_tier,
     DISCOVERY_TIER_LABELS, error_response, org_badge_color_group,
     score_products_and_sort, push, sse_stream, poll_job,
 )
-from intelligence_new import discover, score, qualify, lookup, cache_is_fresh, generate_briefcase_for_analysis
-from models_new import CompanyAnalysis, Product
-from storage_new import (
+from intelligence import discover, score, qualify, lookup, cache_is_fresh, generate_briefcase_for_analysis
+from models import CompanyAnalysis, Product
+from storage import (
     load_analysis, load_discovery,
     find_discovery_by_company_name, find_analysis_by_discovery_id,
     list_analyses,
@@ -256,7 +256,7 @@ def format_analyzed_date_filter(value) -> str:
 @app.route("/inspector")
 def inspector_home():
     """Inspector home — search for a company."""
-    return render_template("home_new.html")
+    return render_template("home.html")
 
 
 @app.route("/inspector/discover", methods=["POST"])
@@ -294,7 +294,7 @@ def inspector_discover():
 
     threading.Thread(target=run_discovery, daemon=True).start()
 
-    return render_template("discovering_new.html",
+    return render_template("discovering.html",
                           discovery_id=job_id,
                           company_name=company_name)
 
@@ -321,7 +321,7 @@ def inspector_product_selection(discovery_id: str):
         p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
 
     # Company classification — pass products so category can be derived
-    from models_new import Product
+    from models import Product
     product_objs = [Product(name=p.get("name", ""), category=p.get("category", ""))
                     for p in disc.get("products", [])]
     disc["_company_badge"] = company_classification_label(
@@ -473,7 +473,7 @@ def inspector_score():
 
     threading.Thread(target=run_scoring, daemon=True).start()
 
-    return render_template("scoring_new.html",
+    return render_template("scoring.html",
                           job_id=job_id,
                           company_name=disc.get("company_name", ""),
                           product_count=len(selected))
@@ -498,13 +498,13 @@ def _prepare_analysis_for_render(analysis: dict) -> None:
     Intelligence layer — Inspector route handlers should not own scoring
     math, badge normalization, or recompute logic.
 
-    See intelligence_new.recompute_analysis() for the implementation.
+    See intelligence.recompute_analysis() for the implementation.
     Per the Layer Discipline principle (CLAUDE.md) and CRIT-2 in
     code-review-2026-04-07.md, this function moved out of Inspector
     in Phase C of the deep-review fix sequence. Prospector and Designer
-    will eventually call intelligence_new.recompute_analysis() directly.
+    will eventually call intelligence.recompute_analysis() directly.
     """
-    from intelligence_new import recompute_analysis
+    from intelligence import recompute_analysis
     recompute_analysis(analysis)
 
 
@@ -557,7 +557,7 @@ def inspector_refresh_cache(analysis_id: str):
 
     # CRIT-7 in code-review-2026-04-07.md: do NOT pre-save a wiped state
     # with the old analyzed_at stamp. Instead, pass force_refresh=True to
-    # intelligence_new.score(), which now atomically wipes the existing
+    # intelligence.score(), which now atomically wipes the existing
     # products and re-scores them within the same save boundary. The user
     # sees the previous analysis until the new score completes, which is
     # honest — no glitchy "0 products with old date" intermediate state.

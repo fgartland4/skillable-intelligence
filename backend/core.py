@@ -14,7 +14,7 @@ import time
 from typing import Optional
 
 from backend import scoring_config as cfg
-from models_new import CompanyAnalysis, FitScore, Product, Verdict
+from models import CompanyAnalysis, FitScore, Product, Verdict
 
 log = logging.getLogger(__name__)
 
@@ -208,7 +208,7 @@ def score_products_and_sort(analysis: CompanyAnalysis) -> None:
     analysis.products.sort(key=lambda p: p.fit_score.total, reverse=True)
 
 
-# Domain-based lab platform detection lives in researcher_new.py
+# Domain-based lab platform detection lives in researcher.py
 # (uses knowledge/competitors.json, not scoring_config.py)
 
 
