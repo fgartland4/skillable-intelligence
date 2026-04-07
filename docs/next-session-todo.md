@@ -1,17 +1,47 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-06 (extended through morning continuation)
+**Last updated:** 2026-04-06 (extended through afternoon — Pillar 1 architecture refactor shipped)
 **Read this first when you sit down for the next session.**
+
+---
+
+## Heads-up — major Pillar 1 refactor shipped 2026-04-06 afternoon
+
+A long collaboration session with Frank produced a complete architectural sharpening of Pillar 1 (Product Labability). Four commits landed: `4e56133`, `45a1678`, `b133b10`, `498ad04`. Every Pillar 1 sharpening is in the code, the prompt, the math layer, and `Badging-and-Scoring-Reference.md`. **Read those commit messages before doing any Pillar 1 work** — they capture every decision (new canonicals, retired vocabulary, ceiling flag changes, color-aware math, meta-principle).
+
+The "verify SOTI re-score" task in §1 below is now PARTIALLY OBSOLETE — the universal variable-badge rule was retired in favor of flat-tier scoring. SOTI should still be re-run to verify the new vocabulary fires correctly with the live AI, but the expected mechanism is different from what §1 describes.
+
+---
+
+## SE Clarification Queue — answers needed from a sales engineer
+
+These four items are gates on completing Pillar 1. Frank to gather answers from a Skillable sales engineer; once received, the answers feed into the prompt template, the math layer cap values, and the friction badge inventory.
+
+| # | Question | Why it matters |
+|---|---|---|
+| **SE-1** | **Bare Metal Required** — when evaluating a vendor product, what specific signals in their docs or marketing tell us "this requires bare metal hardware orchestration that we can't virtualize"? Examples of products that hit this — what gave it away? | Today the AI guesses at this. We need detection signals for the canonical `Bare Metal Required` red Blocker badge so it fires reliably and doesn't fire spuriously. |
+| **SE-2** | **Container Disqualifiers** — we have four documented disqualifiers (dev-use-only image, Windows GUI required, multi-VM network, not container-native in production). Which is the most common practical reason to skip containers? When Windows is needed, is "Windows container" ever the right call, or do we always default to a Windows VM? | Pillar 1 work (commits above) added `Runs in Container` as a green/amber/don't-emit canonical, but the disqualifier list needs SE input to be sharp enough for the AI. |
+| **SE-3** | **Simulation Scorable** — when a lab is delivered via Simulation, when CAN we score it (via AI Vision) and when CAN'T we? Should `Simulation Scorable` ever be a red blocker, or is it always green/amber depending on what's visible on screen? | The `Simulation Scorable` canonical is currently amber-only in `scoring_config.py`. Frank flagged this for SE input — the answer determines whether we add a red state and what triggers it. |
+| **SE-4** | **SaaS Path Cap Values (graduated)** — for a SaaS product where the only path is Simulation (no provisioning API + Simulation viable, e.g., Epiq, Diligent), what's the right Product Labability cap? Current framework tiers: Hyper-V 30–35, Cloud Slice 28–33, Custom API 19–25, Simulation 7–14. Where should "SaaS, no API, Simulation only" cap out? And for the dead-end case (Workday-style: no API + no Simulation viable), where should the cap be — 5? 0? | This is the LAST blocker on `scoring_math.py` — when `Sandbox API` is red, the math layer needs to apply a PL cap. Tentative values are 20 (Simulation viable) and 5 (nothing viable), but Frank wanted to see them in graduated context against the other path tiers before locking. SE input on the right cap relative to other paths will lock these numbers. |
+
+**Where the answers land in code once received:**
+
+| Answer | Lands in |
+|---|---|
+| SE-1 (Bare Metal detection) | `prompts/scoring_template.md` Pillar 1 section + possibly new research queries in `researcher_new.py` |
+| SE-2 (Container disqualifiers) | `prompts/scoring_template.md` Pillar 1 section under the `Runs in Container` canonical |
+| SE-3 (Simulation Scorable color states) | `backend/scoring_config.py` `_scoring_badges` `Simulation Scorable` definition + `prompts/scoring_template.md` Pillar 1 Scoring section |
+| SE-4 (Sandbox API red PL cap values) | `backend/scoring_math.py` cap logic — currently the cap is NOT applied (the math just uses color points -3 for red Sandbox API). A new mechanism reads the badge state and caps PL based on whether Simulation is viable. |
 
 ---
 
 ## Read me first — what shipped recently, what's open
 
-The 2026-04-06 session was long and productive across two stretches: a late-night architectural push and a morning continuation that focused on anti-hardcoding test infrastructure. A LOT changed. Skim **§ "Shipped recently (so this list isn't lying)"** at the bottom before doing anything — it's the historical record so you don't accidentally re-do completed work.
+The 2026-04-06 session was long and productive across THREE stretches: a late-night architectural push, a morning continuation focused on anti-hardcoding test infrastructure, and an afternoon Pillar 1 architecture refactor. A LOT changed. Skim **§ "Shipped recently (so this list isn't lying)"** at the bottom before doing anything — it's the historical record so you don't accidentally re-do completed work.
 
 **This doc is the focused near-term action list.** For the complete inventory of every item (active, backlog, done, decisions needed) across every tool and area, see **`docs/roadmap.md`** — that's where ideas live until they're prioritized and pulled into this doc.
 
-The single most important thing when you sit down: **§ 1 — Verify SOTI re-score**. The universal variable-badge rule landed in the late-night push and changes how the AI emits scoring signals. The math layer didn't change at all, but the AI's output should now credit the +30-ish signal values that were missing before. Run this BEFORE anything else so you know the new prompt actually does what we expect.
+The single most important thing when you sit down: **the SE Clarification Queue above**. Pillar 1 is feature-complete in code but four answers are gates on the final cap value mechanism, the friction badge details, and a few canonical color states. After the SE clarifications come back, the next move is to re-run cached customers (Trellix, Cohesity, SOTI, Epiq, Diligent, Workday) with the live AI to verify direction-of-movement against the synthetic math verification already done in commits `b133b10`.
 
 ---
 
