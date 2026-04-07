@@ -404,10 +404,18 @@ def inspector_product_selection(discovery_id: str):
             if n:
                 cached_product_names.add(n)
 
+    # Stale-cache decision: if there's an existing analysis AND it was scored
+    # with an older logic version, surface a confirmation modal when the user
+    # clicks Deep Dive instead of silently re-using the cached scores. Frank
+    # 2026-04-07: "it would be nice maybe to have that modal saying, hey,
+    # there's newer stuff. Do you wanna just go, or do you want the newer stuff?"
+    cached_is_stale = bool(existing) and not cfg.is_cached_logic_current(existing)
+
     return render_template("product_selection.html",
                           discovery=disc,
                           existing_analysis=existing,
                           cached_product_names=cached_product_names,
+                          cached_is_stale=cached_is_stale,
                           deep_dive_max_new=cfg.DEEP_DIVE_MAX_NEW_PRODUCTS,
                           show_family_picker=show_family_picker)
 

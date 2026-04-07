@@ -1,4 +1,5 @@
 {% import '_company_header.html' as ch %}
+{% import '_search_modal.html' as sm %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -440,6 +441,14 @@
 </div>
 {% endif %}
 
+{# Search modal markup + JS — required for the stale-cache decision modal
+   that fires when the user clicks Deep Dive on a company whose cached
+   analysis was scored with an older logic version. #}
+{{ sm.markup() }}
+<script>
+{{ sm.js() }}
+</script>
+
 <script>
 (function() {
     // MAX_NEW caps how many *new* (uncached) products can be added per Deep Dive.
@@ -573,6 +582,69 @@
         btn.innerHTML = 'Deep Dive \u2192';
         updateState();
     });
+
+    {% if cached_is_stale and existing_analysis %}
+    // Stale-cache decision modal — Frank 2026-04-07.
+    //
+    // When the user clicks Deep Dive on a company whose cached analysis was
+    // scored with an older logic version, intercept the submit and show a
+    // confirmation modal: "Newer stuff or just go?" Three outcomes:
+    //
+    //   • Refresh now — POST to the analysis refresh endpoint, transition the
+    //     modal to progress mode, redirect to Full Analysis when the rescore
+    //     finishes. (Same path as the modal that fires on Full Analysis when
+    //     the cache is already stale.)
+    //
+    //   • Continue with cached — let the original Deep Dive submit through.
+    //     Cached products re-use existing scores; any newly-checked products
+    //     get freshly scored as usual.
+    //
+    //   • Cancel — close the modal, no action taken.
+    //
+    // Once the user has made a choice on this page load, the flag is set so
+    // a second click of Deep Dive (e.g. after they tweak the selection) goes
+    // straight through without re-prompting.
+    let staleCachePromptHandled = false;
+    form.addEventListener('submit', function(e) {
+        if (staleCachePromptHandled) return;
+        e.preventDefault();
+        openSearchModalDecision({
+            eyebrow: 'Cache check',
+            title:   '{{ discovery.company_name | e }}',
+            message: 'There is newer scoring logic available. Refresh the cached analysis with current scoring, or continue with the cached scores as-is?',
+            onRefresh: function() {
+                fetch('/inspector/analysis/{{ existing_analysis.analysis_id }}/refresh', { method: 'POST' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(d) {
+                        if (!d.ok) {
+                            alert('Refresh failed: ' + (d.error || 'unknown error'));
+                            return;
+                        }
+                        transitionSearchModalToProgress({
+                            eyebrow: 'Refreshing',
+                            title:   '{{ discovery.company_name | e }}',
+                            sseUrl:  '/inspector/score/progress/' + d.job_id,
+                            onComplete: function() {
+                                window.location.href = '/inspector/analysis/{{ existing_analysis.analysis_id }}';
+                            }
+                        });
+                    })
+                    .catch(function(e) { alert('Refresh failed: ' + e); });
+            },
+            onIgnore: function() {
+                staleCachePromptHandled = true;
+                form.submit();
+            }
+        });
+        // Relabel the default buttons for the Deep Dive submit-intercept
+        // context — "Ignore for now" reads ambiguously here when it actually
+        // proceeds with the cached Deep Dive.
+        const refreshBtn = document.getElementById('searchModalRefreshBtn');
+        const ignoreBtn  = document.getElementById('searchModalIgnoreBtn');
+        if (refreshBtn) refreshBtn.textContent = 'Refresh first';
+        if (ignoreBtn)  ignoreBtn.textContent  = 'Use cached';
+    });
+    {% endif %}
 })();
 </script>
 
