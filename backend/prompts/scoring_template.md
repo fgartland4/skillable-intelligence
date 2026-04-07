@@ -146,39 +146,46 @@ Each bullet MUST use a canonical badge label from the locked vocabulary, followe
 
 The commercial case. Measures whether this product genuinely warrants hands-on lab experiences.
 
-{PILLAR_2_DIMENSIONS}
+### Pillar 2 uses the RUBRIC model — read this carefully
 
-### Product Complexity Assessment
+Pillar 2 dimensions measure **interpretive subject-matter complexity**, which varies by domain. Networking, cybersecurity, legal, banking, healthcare each have their own terminology. Forcing canonical badge names here loses the domain-specific nuance that makes badges useful to the seller.
 
-Before scoring, answer:
-1. **Product Complexity**: State whether using this product requires repeated, practiced skill — or whether it's learned adequately from documentation, videos, or observation alone. Name the specific job tasks that a trained user must perform independently.
-2. **Mastery Stakes**: State whether hands-on practice produces measurable job impact. What happens if they get it wrong?
+So Pillar 2 uses a different model from Pillar 1:
 
-**Documentation breadth is the primary signal.** Build a structural complexity map from:
-1. Module count — from doc site navigation. Each module = a potential lab series anchor.
-2. Features per module — depth within each module.
-3. Options/steps per feature — features with many configuration steps score high.
-4. Interoperability — count distinct integration targets documented.
+| Field | Required for Pillar 2 badges | What it does |
+|---|---|---|
+| **`badge`** (visible chip name) | Variable, AI-synthesized, domain-specific (e.g., `Outside Counsel Dependency`, `Lateral Movement Detection`, `Settlement Reconciliation`) | Compelling product-specific phrase the seller sees on the chip |
+| **`strength`** | `strong` / `moderate` / `weak` — REQUIRED, AI grades against the dimension's rubric | Math layer credits points by `(dimension, strength)` lookup |
+| **`signal_category`** | One value from the dimension's `signal_categories` list — REQUIRED | Hidden tag for cross-product analytics and auditability |
+| **`color`** | green / amber / red | Visual rendering + mirrors strength (green ≈ strong, amber ≈ moderate, red = hard negative only) |
+| **`evidence`** | Sentence-level context (existing field) | Hover popover |
 
-Frame complexity positively: A deeply complex product justifies a curriculum, not just one lab. High module count + deep features + high interoperability = large program opportunity.
+### Naming rules for Pillar 2 variable badges
 
-**Consumer Grade / Simple UX disqualifier**: Products where errors have no meaningful consequence score LOW regardless of feature count.
+| Rule | |
+|---|---|
+| **2–3 words preferred, 4 words absolute max** | Only 4 if every word is short |
+| **Use abbreviations and numerals aggressively** | `Cert Exam`, `~2M Users`, `Series D $200M`, `IPO 2024`, `~30 Lab Authors`, `Cohesity Connect 5K` |
+| **Common compactions** | `Cert` (not Certification), `Config` (not Configuration), `Admin` (not Administrator), `Ops` (not Operations), `Eval` (not Evaluation), `Auth` (not Authentication), `Dev` (not Development), `Docs` (not Documentation), `Repo` (not Repository), `Perf` (not Performance), `Env` (not Environment), `Prod` (not Production), `App` (not Application) |
+| **Standard industry acronyms — never spell out** | API, CLI, GUI, AI, MFA, NFR, ATP, LMS, RBAC, IDP, IPO, PBT, MCQ, SSO |
+| **Subject matter terminology is encouraged** | The whole point of Pillar 2 variable names is to capture domain-specific concepts |
+| **NO product names of the company being scored** | The dossier header has the company name — don't repeat it in badges |
 
-### Lab Versatility Menu
+### Strength grading discipline
 
-{LAB_TYPE_MENU}
+The AI MUST explicitly grade each badge against the dimension's rubric. Don't default to strong. The rubric's three tiers exist to create real spread between products:
 
-AI picks at most 1-2 badges per product based on specific product research, not category. Most simple products get none. Scoring: +5 per badge found, cap {LAB_VERSATILITY_CAP}.
+| Strength | When to pick it |
+|---|---|
+| **strong** | Evidence is unambiguous and the criterion clearly applies |
+| **moderate** | Evidence is partial, narrower scope, or the criterion applies with some shoehorning |
+| **weak** | DO NOT EMIT a badge for weak evidence — it's not worth the seller's attention |
 
-### Market Demand — Category Priors
+Fewer sharp badges beats more diluted ones (same principle as Pillar 1 friction badges).
 
-{CATEGORY_PRIORS}
+### Pillar 2 dimension rubrics
 
-Score the highest applicable category, then add 50% of the next highest applicable (round to nearest whole number). Apply at most two categories.
-
-### Market Demand — AI Signals
-
-{MARKET_DEMAND_AI_SIGNALS}
+{PILLAR_2_RUBRICS}
 
 ---
 
@@ -188,31 +195,40 @@ Score the highest applicable category, then add 50% of the next highest applicab
 
 Everything about the organization in one Pillar. 30% of the Fit Score — meaningful but never overriding the product truth.
 
-{PILLAR_3_DIMENSIONS}
+### Pillar 3 also uses the RUBRIC model
 
-### Training Commitment Assessment
+Same architecture as Pillar 2: variable badge names, strength grading, signal_category tags. The only difference is what kinds of variable details show up in the badge name — for Pillar 3 it's organizational details (counts, platform names, conferences).
 
-Before scoring, answer:
-1. **Can they build it?** Does the organization have a dedicated content team, instructional designers, or a content development function?
-2. **Can they deliver it?** What delivery vehicles exist: ATP network, certification program, events, channel, on-demand catalog?
+### Naming rules for Pillar 3 variable badges
 
-### Organizational DNA
+Same length cap (2–3 words preferred, 4 max) and same abbreviation rules as Pillar 2, plus these specific Pillar 3 rules:
 
-The character of the organization — do they partner or build in-house? Are they easy or hard to do business with? All badges are variable-driven.
+| ✅ OK in badge name | ❌ NOT OK in badge name |
+|---|---|
+| Counts and scale (`~500 ATPs`, `~30 Lab Authors`, `30K Attendees`) | **Person titles or names** (`VP of Customer Education`, `Jane Smith`) — too individual |
+| Platform names (`Skillable`, `CloudShare`, `Docebo Public`, `Cornerstone Internal`) | The company name of the org being scored (redundant with the dossier header) |
+| Conference names (`Cohesity Connect 5K`, `Cisco Live 30K`) | Generic categories (`Lab Platform`, `Training Department`) |
+| Funding signals (`Series D $200M`, `IPO 2024`) | Long descriptive phrases |
+| Geographic reach (`Global`, `NAMER+EMEA`) | |
 
-### Delivery Capacity
+### Lab Platform naming convention (Delivery Capacity)
 
-Weighted highest within {PILLAR_3_NAME} because having labs = cost, delivering labs = value. Without delivery channels, labs never reach learners.
+The lab platform badge IS the platform name. No `Lab Platform:` prefix.
 
-LMS partner detection: {SKILLABLE_PARTNER_LMS_LIST} are Skillable partners — flag as strong integration positives.
+| State | Badge name | Color | Strength |
+|---|---|---|---|
+| Skillable customer (expansion) | `Skillable` | green | strong |
+| Competitor (displacement) | `CloudShare`, `Instruqt`, `Skytap`, `Kyndryl`, `ReadyTech`, etc. | amber | strong |
+| Greenfield (no platform yet) | `No Lab Platform` | gray Context | moderate |
+| Built their own | `DIY Lab Platform` | gray Context | moderate |
 
-Lab platform detection: Use the canonical lab platform list: {CANONICAL_LAB_PLATFORMS}
+### Pillar 3 dimension rubrics
 
-### Build Capacity
+{PILLAR_3_RUBRICS}
 
-Weighted lowest because Skillable Professional Services or partners fill this gap. Low Build Capacity + strong Delivery Capacity = Professional Services Opportunity.
+### Pillar 3 dimensions are presented in chronological reading order
 
-**Outsourced authoring flag**: If all courses come from a single third-party provider or no internal author job postings exist, flag this — they need Skillable PS, not just the platform.
+Training Commitment → Build Capacity → Delivery Capacity → Organizational DNA. This order mirrors how a seller naturally thinks about a customer's training maturity (commitment → capacity to build → capacity to deliver → organizational pattern). The order is the same in the code (`scoring_config.py`), the docs (`Badging-and-Scoring-Reference.md`), and the UX rendering — single source of truth.
 
 ---
 

@@ -400,6 +400,63 @@ def _format_locked_vocabulary() -> str:
     return "\n".join(lines)
 
 
+def _format_pillar_rubrics(pillar: cfg.Pillar) -> str:
+    """Format the rubric model for a Pillar 2 or Pillar 3 pillar.
+
+    For each dimension that has a rubric, emit:
+      - Dimension name + cap + question
+      - The strength tier table (strong / moderate / weak with point values + criteria)
+      - IS / IS NOT routing boundaries
+      - signal_category list the AI must pick from
+    """
+    sections: list[str] = []
+    for dim in pillar.dimensions:
+        if dim.rubric is None:
+            continue
+        rubric = dim.rubric
+        cap = dim.cap if dim.cap is not None else dim.weight
+
+        section = [
+            f"### {dim.name} (cap {cap})",
+            "",
+            f"*{dim.question}*",
+            "",
+            "**Strength tiers (rubric — math credits by strength × dimension):**",
+            "",
+            "| Strength | Worth | Criterion |",
+            "|---|---|---|",
+        ]
+        for tier in rubric.tiers:
+            criterion = tier.criterion.replace("|", "\\|")
+            worth = "don't emit" if tier.points == 0 and tier.strength == "weak" else f"+{tier.points}"
+            section.append(f"| **{tier.strength}** | {worth} | {criterion} |")
+        section.append("")
+
+        section.append("**This dimension IS about:**")
+        for item in rubric.is_about:
+            section.append(f"- {item}")
+        section.append("")
+
+        section.append("**This dimension IS NOT about (do not route findings here):**")
+        for item in rubric.is_not_about:
+            section.append(f"- ❌ {item}")
+        section.append("")
+
+        section.append("**signal_category — pick exactly ONE per badge from this list:**")
+        section.append("")
+        for cat in rubric.signal_categories:
+            section.append(f"- `{cat}`")
+        section.append("")
+
+        if dim.notes:
+            section.append(f"*Note:* {dim.notes}")
+            section.append("")
+
+        sections.append("\n".join(section))
+
+    return "\n\n".join(sections)
+
+
 def _format_canonical_badge_names() -> str:
     """Per-dimension list of the canonical badge vocabulary.
 
@@ -491,6 +548,8 @@ def _format_output_json_template() -> str:
         "badge": "...",
         "qualifier": "Strength|Opportunity|Risk|Blocker|Context",
         "color": "green|gray|amber|red",
+        "strength": "strong|moderate|weak",
+        "signal_category": "<one of the dimension's signal_categories — Pillar 2/3 only>",
         "claim": "...",
         "confidence": "confirmed|indicated|inferred",
         "source_url": "...",
@@ -498,6 +557,7 @@ def _format_output_json_template() -> str:
       }
     ]
   },
+  "_strength_field_note": "REQUIRED for every Pillar 2 (Instructional Value) and Pillar 3 (Customer Fit) badge. The math layer credits points by (dimension, strength) lookup against the dimension's rubric. Pillar 1 badges do NOT use the strength field — Pillar 1 uses canonical name matching against scoring signals. The signal_category field is REQUIRED for Pillar 2 and 3 badges and must be picked from the dimension's signal_categories list — see the Pillar 2 and Pillar 3 sections.",
   "poor_match_flags": ["..."],
   "lab_types": ["..."],
   "lab_concepts": [
@@ -570,6 +630,12 @@ def _build_placeholder_map() -> dict[str, str]:
         "PILLAR_1_WEIGHT": str(p1.weight),
         "PILLAR_1_QUESTION": p1.question,
         "PILLAR_1_DIMENSIONS": _format_dimension_table(p1),
+
+        # Pillar 2 + Pillar 3 rubric blocks (rubric model — variable badge names,
+        # strength grading, signal_category tags). Replaces the old PILLAR_2_DIMENSIONS
+        # and PILLAR_3_DIMENSIONS tables in the prompt template.
+        "PILLAR_2_RUBRICS": _format_pillar_rubrics(p2),
+        "PILLAR_3_RUBRICS": _format_pillar_rubrics(p3),
 
         # Pillar 2
         "PILLAR_2_NAME": p2.name,

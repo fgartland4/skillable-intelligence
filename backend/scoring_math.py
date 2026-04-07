@@ -78,38 +78,41 @@ def compute_dimension_score(dim_key: str,
                             badges: Iterable) -> dict:
     """Compute the score for one dimension from the badges the AI emitted.
 
-    Two scoring patterns are supported and chosen automatically:
+    THREE scoring patterns are supported and chosen automatically:
 
-    1. **Signal/penalty pattern** (Provisioning, Lab Access, Scoring, Teardown,
-       and parts of Instructional Value): the dimension defines explicit
-       `scoring_signals` and `penalties` in the config. Each badge name is
-       matched against those tables; matched signals add their points,
+    1. **Rubric pattern** (Pillar 2 Instructional Value, Pillar 3 Customer Fit):
+       the dimension defines a `rubric` with strength tiers (strong/moderate/weak).
+       Each badge carries a `strength` field; the math credits points by
+       (dimension, strength) lookup. Variable badge names are expected and
+       supported — no name matching against canonicals.
+
+    2. **Signal/penalty pattern** (Pillar 1 Product Labability): the dimension
+       defines explicit `scoring_signals` and `penalties`. Each badge name is
+       matched against those tables; matched signals add their points (color-
+       aware: green = full, gray = full, amber = half, red = color fallback),
        matched penalties subtract their deductions.
 
-    2. **Badge-color pattern** (Customer Fit dimensions and any dimension
-       without explicit signals): each badge contributes points based on its
-       color, using `cfg.BADGE_COLOR_POINTS` as the conversion table.
-
-    A dimension can use BOTH patterns simultaneously: badges that match a
-    canonical signal/penalty name use those points; everything else falls
-    back to color points.
+    3. **Badge-color pattern** (legacy fallback): each badge contributes points
+       based on its color, using `cfg.BADGE_COLOR_POINTS`. Used for any dimension
+       without rubric or scoring_signals, and for badges in signal/penalty
+       dimensions whose names don't match the lookup tables.
 
     Args:
         dim_key: Dimension key in lowercase with underscores (e.g., "lab_access").
         badges: Iterable of either bare badge name strings (legacy callers) OR
-                dicts with "name" and "color" fields. Dicts are preferred so
-                color-based fallback can run.
+                dicts with "name", "color", optional "strength" (rubric), and
+                optional "signal_category" fields.
 
     Returns:
         A dict with the score breakdown so the result is auditable:
         {
             "score": int,
             "weight": int,
-            "signals_matched": [{"name": str, "points": int}, ...],
-            "penalties_applied": [{"name": str, "deduction": int}, ...],
-            "color_contributions": [
-                {"name": str, "color": str, "points": int}, ...
-            ],
+            "model": "rubric" | "signal_penalty",
+            "signals_matched": [...] (signal/penalty model),
+            "penalties_applied": [...] (signal/penalty model),
+            "rubric_credits": [...] (rubric model — name + strength + points + category),
+            "color_contributions": [...],
             "raw_total": int,
             "capped": bool,
             "floored": bool,
@@ -120,11 +123,17 @@ def compute_dimension_score(dim_key: str,
     if dim is None:
         log.warning("compute_dimension_score: unknown dimension '%s'", dim_key)
         return {
-            "score": 0, "weight": 0, "signals_matched": [],
-            "penalties_applied": [], "color_contributions": [],
+            "score": 0, "weight": 0, "model": "unknown",
+            "signals_matched": [], "penalties_applied": [], "rubric_credits": [],
+            "color_contributions": [],
             "raw_total": 0, "capped": False, "floored": False,
             "unknown_badges": [],
         }
+
+    # Rubric model (Pillar 2 + Pillar 3) — branch early so the rest of this
+    # function only handles signal/penalty dimensions.
+    if dim.rubric is not None:
+        return _compute_rubric_dimension_score(dim, badges)
 
     signal_lookup = _build_signal_lookup(dim)
     penalty_lookup = _build_penalty_lookup(dim)
@@ -236,8 +245,128 @@ def compute_dimension_score(dim_key: str,
     return {
         "score": int(score),
         "weight": dim.weight,
+        "model": "signal_penalty",
         "signals_matched": signals_matched,
         "penalties_applied": penalties_applied,
+        "rubric_credits": [],  # not used in signal/penalty model
+        "color_contributions": color_contributions,
+        "raw_total": int(raw_total),
+        "capped": capped,
+        "floored": floored,
+        "unknown_badges": unknown,
+    }
+
+
+def _compute_rubric_dimension_score(dim: cfg.Dimension, badges: Iterable) -> dict:
+    """Rubric-based scoring for Pillar 2 + Pillar 3 dimensions.
+
+    Each badge carries:
+      - name (variable, AI-synthesized — used for display only)
+      - color (green / amber / red — visual + secondary signal)
+      - strength (strong / moderate / weak — required, math driver)
+      - signal_category (one of the dimension's fixed category list — for analytics)
+
+    The math credits points by (dimension, strength) lookup against the
+    dimension's rubric tiers. Color is preserved for visual rendering and
+    used as a fallback when strength is missing.
+
+    Strength → color cross-check (when both present):
+      green ↔ strong, amber ↔ moderate, red ↔ hard negative (uses color points)
+
+    Mitigation #1 (anti-inflation): the AI must explicitly grade each badge
+    against the rubric. Missing strength field falls back to color points.
+    """
+    rubric = dim.rubric
+    assert rubric is not None  # caller already checked
+
+    # Build strength → points lookup from the rubric tiers
+    strength_lookup: dict[str, int] = {tier.strength: tier.points for tier in rubric.tiers}
+
+    # Valid signal categories for this dimension (for tag validation, not scoring)
+    valid_categories: set[str] = set(rubric.signal_categories)
+
+    rubric_credits: list[dict] = []
+    color_contributions: list[dict] = []
+    unknown: list[str] = []
+
+    fallback = cfg.BADGE_UNKNOWN_COLOR_SCORE_FALLBACK
+
+    for badge in badges:
+        if not badge:
+            continue
+        if isinstance(badge, dict):
+            raw_name = badge.get("name", "")
+            color = (badge.get("color") or "").strip().lower()
+            strength = (badge.get("strength") or "").strip().lower()
+            category = (badge.get("signal_category") or "").strip()
+        else:
+            raw_name = str(badge)
+            color = ""
+            strength = ""
+            category = ""
+
+        if not raw_name:
+            continue
+
+        # Red color = hard negative — uses color points (-3) regardless of strength.
+        # Reserved for explicit hard negatives like Consumer Grade or Hard to Engage.
+        if color == "red":
+            color_contributions.append({
+                "name": raw_name.strip(),
+                "color": color,
+                "points": cfg.BADGE_COLOR_POINTS.get(color, fallback),
+            })
+            continue
+
+        # Rubric path — strength is required for full credit.
+        if strength and strength in strength_lookup:
+            pts = strength_lookup[strength]
+            rubric_credits.append({
+                "name": raw_name.strip(),
+                "strength": strength,
+                "points": pts,
+                "signal_category": category if category in valid_categories else "",
+                "color": color,
+            })
+            continue
+
+        # Strength missing or invalid — fall back to color points so cached
+        # data and AI errors don't silently zero out.
+        if color and color in cfg.BADGE_COLOR_POINTS:
+            color_contributions.append({
+                "name": raw_name.strip(),
+                "color": color,
+                "points": cfg.BADGE_COLOR_POINTS[color],
+            })
+        else:
+            unknown.append(raw_name.strip())
+
+    # Compute raw total
+    rubric_total = sum(c["points"] for c in rubric_credits)
+    color_total = sum(c["points"] for c in color_contributions)
+    raw_total = rubric_total + color_total
+
+    # Apply cap (defaults to dimension weight) and floor (defaults to 0)
+    cap = dim.cap if dim.cap is not None else dim.weight
+    floor = dim.floor if dim.floor is not None else 0
+
+    score = raw_total
+    capped = False
+    floored = False
+    if score > cap:
+        score = cap
+        capped = True
+    if score < floor:
+        score = floor
+        floored = True
+
+    return {
+        "score": int(score),
+        "weight": dim.weight,
+        "model": "rubric",
+        "signals_matched": [],   # not used in rubric model
+        "penalties_applied": [],  # not used in rubric model
+        "rubric_credits": rubric_credits,
         "color_contributions": color_contributions,
         "raw_total": int(raw_total),
         "capped": capped,

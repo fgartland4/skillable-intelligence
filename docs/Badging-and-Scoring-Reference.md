@@ -416,11 +416,32 @@ Applied after scoring Product Labability:
 
 ---
 
+## Two Architectures Across Pillars — read this first
+
+The three Pillars use **two different scoring architectures** because the three Pillars measure fundamentally different kinds of things. This is intentional. Future maintainers: do not collapse them into one model.
+
+| Pillar | Nature | Architecture | Why |
+|---|---|---|---|
+| **1 — Product Labability** | Technical fact-finding. Hyper-V either supports the install or it doesn't. APIs exist or they don't. **Concrete and binary.** | **Canonical model.** Fixed badge vocabulary. Math credits points by name-matched signal lookup. Color-aware (green = full, amber = half, red = color fallback). | The technical fabric concepts are universal — `Runs in Hyper-V`, `Sandbox API`, `Datacenter` mean the same thing across every product. Canonical names work cleanly. |
+| **2 — Instructional Value** | Domain-specific judgment. Subject matter complexity for legal, cybersecurity, banking, healthcare etc. is genuinely different. **Subjective and contextual.** | **Rubric model.** Variable, AI-synthesized badge names. Math credits points by `(dimension, strength)` lookup against a per-dimension rubric. Each badge carries a `signal_category` tag for cross-product analytics. | Forcing canonical names here loses the domain-specific terminology that makes badges useful to the seller. The rubric grades evidence strength so the math is still deterministic. |
+| **3 — Customer Fit** | Organizational pattern recognition. Mostly universal concepts but the specific evidence varies (counts, platforms, conferences). **Mostly universal, somewhat interpretive.** | **Rubric model.** Same as Pillar 2. Variable badge names with concrete data + rubric grading. | Per-product specifics like `~500 ATPs` or `Skillable` or `Cohesity Connect 5K` are exactly what makes the chip useful — generic names like `Partner Ecosystem` are abstract. Rubric handles the strength grading. |
+
+**The two-architecture decision was made deliberately on 2026-04-06** after walking the Pillar 1 implementation and discovering that the same approach didn't fit Pillars 2 and 3. See decision log for the full rationale.
+
+---
+
 ## Pillar 2 — Instructional Value (30%)
 
 *Does this product have instructional value for hands-on training?*
 
 The commercial case. Measures whether this product genuinely warrants hands-on lab experiences. Combined with Product Labability, these two product-level pillars represent 70% of the Fit Score.
+
+Pillar 2 uses the **rubric model**. Each badge the AI emits carries:
+- `name` — variable, AI-synthesized, domain-specific (the visible chip)
+- `strength` — `strong` / `moderate` / `weak` — REQUIRED, drives the math
+- `signal_category` — one of the dimension's fixed category list — REQUIRED, hidden, for analytics
+- `color` — green / amber / red (mirrors strength; red is reserved for hard negatives only)
+- `evidence` — sentence-level context (existing field, hover popover)
 
 | Dimension | Weight | Question |
 |---|---|---|
@@ -429,143 +450,83 @@ The commercial case. Measures whether this product genuinely warrants hands-on l
 | LAB VERSATILITY | 15 | What kinds of hands-on experiences can we build? |
 | MARKET DEMAND | 20 | Does the broader market validate the need? |
 
-### 2.1 Product Complexity (40 pts)
+### 2.1 Product Complexity (cap 40)
 
 *Is this product hard enough to require hands-on practice?*
 
-#### Scoring Signals
-
-| Signal | Points |
-|---|---|
-| Design & Architecture topics | +5 |
-| Configuration & Tuning topics | +5 |
-| Deployment & Provisioning topics | +5 |
-| Support Scenarios (monitoring, alerting, incident response) | +5 |
-| Troubleshooting topics | +5 |
-| Creating AI (product builds/trains/deploys AI) | +5 |
-| Learning AI-embedded features | +4 |
-| Integration complexity (external systems are primary workflow) | +3 |
-| Role breadth (multiple personas need separate programs) | +2 |
-| Multi-component topology (multiple VMs or services) | +2 |
-| Consumer Grade | -20 |
-| Simple UX | -15 |
-
-Documentation breadth is the primary signal — count modules, features per module, options per feature, interoperability.
-
-Cap: 40.
-
-#### Badges
-
-| Badge | Green | Amber | Red |
-|---|---|---|---|
-| **Deep Configuration** | Many options, real consequences | Some config, limited | — |
-| **Multi-Phase Workflow** | Multiple distinct phases | Some depth, similar phases | — |
-| **Role Diversity** | Many personas need separate programs | Few roles, not distinct | — |
-| **Troubleshooting** | Rich fault scenarios confirmed | Some troubleshooting, limited | — |
-| **Complex Networking** | VLANs, routing, multi-network topologies | Some networking, straightforward | — |
-| **Integration Complexity** | External systems are primary workflow | Some integrations | — |
-| **AI Practice Required** | AI features need iterative practice | AI present but shallow | — |
-| **Consumer Grade** | — | Might be consumer-oriented (inferred) | Consumer app confirmed |
-| **Simple UX** | — | Might be too simple (inferred) | Straightforward interface confirmed |
-
----
-
-### 2.2 Mastery Stakes (25 pts)
-
-*How much does competence matter?*
-
-#### Scoring Signals
-
-| Signal | Points |
-|---|---|
-| High-stakes skills (misconfiguration causes breach, data loss, compliance failure, downtime) | +10 |
-| Steep learning curve (long path from beginner to competent, multiple stages) | +8 |
-| Adoption risk (poor adoption or slow TTV is documented) | +7 |
-
-Cap: 25.
-
-#### Badges
-
-| Badge | Green | Amber |
+| Strength | Worth | Criterion |
 |---|---|---|
-| **High-Stakes Skills** | Misconfiguration causes real harm | Stakes exist but moderate |
-| **Steep Learning Curve** | Long path to competence, multiple stages | Some learning curve but manageable |
-| **Adoption Risk** | Poor adoption is a documented concern | Some adoption challenges |
+| **strong** | +6 | Deep multi-system, multi-phase workflows; multiple distinct admin/operator roles; rich troubleshooting paths; OR genuine AI requiring iterative practice |
+| **moderate** | +3 | Some depth or some complexity but limited scope — single-phase, narrow role set, light troubleshooting |
+| **weak** | don't emit | Thin documentation, mostly straightforward, single-stage workflow |
+
+**signal_category list** (the AI picks ONE per badge): `deep_configuration` · `multi_phase_workflow` · `role_diversity` · `troubleshooting_depth` · `complex_networking` · `integration_complexity` · `ai_practice_required` · `consumer_grade` (red) · `simple_ux` (red)
+
+**Hard negatives (red — fall back to color points):** `Consumer Grade` · `Simple UX` — fire only when the product is genuinely too trivial for labs.
+
+**Typical spread:** 6 strong = 36/40. Moderate complexity → 3-5 moderate → 9-15.
 
 ---
 
-### 2.3 Lab Versatility (15 pts)
+### 2.2 Mastery Stakes (cap 25)
 
-*What kinds of hands-on experiences can we build?*
+*How much does competence matter? What happens if they get it wrong?*
 
-These are special, high-value lab types — not the standard step-by-step labs everyone builds. The AI picks 1-2 that fit the specific product from the menu below. Most simple products get none.
-
-These badges serve dual purpose: in Inspector, they provide **conversational competence** for sellers. In Designer, they feed **program recommendations**.
-
-#### Lab Type Menu (AI picks 1-2 per product)
-
-| Badge | What it signals | Likely product types |
+| Strength | Worth | Criterion |
 |---|---|---|
-| **Red vs Blue** | Adversarial team scenarios | Cybersecurity — EDR, SIEM, network security |
-| **Simulated Attack** | Realistic attack, learner responds | Cybersecurity — any defensive product |
-| **Incident Response** | Production down, diagnose under pressure | Infrastructure, security, cloud, databases |
-| **Break/Fix** | Something's broken, figure it out | Broad — complex failure modes |
-| **Team Handoff** | Multi-person sequential workflow | DevOps, data engineering, SDLC |
-| **Bug Bounty** | Find the flaws — competitive discovery | Development platforms, data, security |
-| **Cyber Range** | Full realistic network, live threats | Network security, SOC operations |
-| **Performance Tuning** | System works but needs optimization | Databases, infrastructure, cloud, data |
-| **Migration Lab** | Move from A to B | Enterprise software, cloud, infrastructure |
-| **Architecture Challenge** | Design and build from requirements | Cloud, infrastructure, networking, data |
-| **Compliance Audit** | Validate configurations against regulations | Healthcare, finance, security, regulated |
-| **Disaster Recovery** | Systems failed, recover operations | Infrastructure, cloud, data protection |
+| **strong** | +9 | Misconfiguration causes breach, data loss, compliance failure, sanctions, malpractice, downtime — real and consequential harm |
+| **moderate** | +5 | Errors are visible and create rework / reputation cost but are recoverable |
+| **weak** | don't emit | Mostly inconvenience — easily fixed, no lasting consequences |
 
-Scoring: +5 per badge found, cap 15. All badges are green (opportunities).
+**signal_category list:** `harm_severity` · `learning_curve` · `adoption_risk` · `compliance_consequences`
+
+**Typical spread:** 3 strong = 27 → capped at 25 (max). 2 strong + 1 moderate = 23. Mostly moderate = 10.
 
 ---
 
-### 2.4 Market Demand (20 pts)
+### 2.3 Lab Versatility (cap 15)
+
+*What kinds of high-value, hands-on experiences can we build for this product?*
+
+| Strength | Worth | Criterion |
+|---|---|---|
+| **strong** | +5 | Clear high-value lab type fits naturally — Cyber Range, Red vs Blue, Performance Tuning, Migration Lab, Compliance Audit, Incident Response, etc. |
+| **moderate** | +3 | Lab type is adaptable to the product but requires some shoehorning |
+| **weak** | don't emit | Lab type doesn't fit — most simple products get nothing in this dimension |
+
+**signal_category list:** `adversarial_scenario` · `incident_response` · `break_fix` · `team_handoff` · `cyber_range` · `performance_tuning` · `migration_lab` · `architecture_challenge` · `compliance_audit` · `disaster_recovery` · `bug_bounty`
+
+**Typical spread:** 3 strong = 15 (max). Most products get 1-2 entries. Dual purpose: conversational competence in Inspector, program recommendations in Designer.
+
+---
+
+### 2.4 Market Demand (cap 20)
 
 *Does the broader market validate the need for hands-on training on this product?*
 
-The AI looks at company-specific signals first, product signals second, category as the floor.
-
-#### Category Priors
-
-| Category | Points |
-|---|---|
-| Cybersecurity, Cloud Infrastructure, Networking/SDN, Data Science & Engineering, Data & Analytics, DevOps | +8 (High) |
-| Data Protection, Infrastructure/Virtualization, App Development, ERP/CRM, Healthcare IT, FinTech, Collaboration, Content Management, Legal Tech, Industrial/OT | +4 (Moderate) |
-| Simple SaaS, Consumer | +0 (Low) |
-
-#### AI Signals
-
-| Signal | Points |
-|---|---|
-| Creating AI (product builds, trains, deploys AI) | +3 |
-| Learning AI-embedded features (hands-on practice needed) | +3 |
-
-#### Other Signals
-
-| Signal | Points |
-|---|---|
-| Active Certification (credentialing ecosystem) | +2 |
-| Competitor Labs Confirmed (other providers invest) | +2 |
-| Large/growing install base | +2 |
-| Growing category | +1 |
-
-Cap: 20.
-
-#### Market Demand Badges (variable-driven)
-
-| Area | Example badge text | Color logic |
+| Strength | Worth | Criterion |
 |---|---|---|
-| Company growth | **Rapid Growth**, **Series D $200M**, **IPO 2024**, **Layoffs Reported** | Green / Amber |
-| Install base | **~2M Users**, **~50K Users**, **~500 Users** | Green / Gray / Amber |
-| Geography | **Global**, **NAMER & EMEA**, **US Only**, **APAC Only** | Green / Gray |
-| Certification | **Active Certification**, **Emerging Certification** | Green / Gray |
-| Competitor labs | **Competitor Labs Confirmed** | Green |
-| Category | **High-Demand Category**, **AI-Powered Product**, **AI Platform** | Green |
-| Enterprise validation | **Enterprise Validated** | Green |
+| **strong** | +5 | Clear scale signal — large install base, active certification ecosystem, AI platform, enterprise validation at scale, high-demand category, IPO/major funding |
+| **moderate** | +3 | Moderate signal — growing category, mid-size install base, emerging certification, regional presence |
+| **weak** | don't emit | Thin signal — small install base, niche category, no certification |
+
+**signal_category list:** `install_base_scale` · `geographic_reach` · `cert_ecosystem` · `funding_growth` · `category_demand` · `competitor_labs` · `ai_signal` · `enterprise_validation`
+
+**Variable badge name examples:** `~2M Users` · `Series D $200M` · `IPO 2024` · `Cisco Live 30K` · `Active Cert Exam` · `~500 ATPs` · `Global` · `AI Platform` · `Fortune 100 Clients`
+
+**Typical spread:** 4 strong = 20 (max). Mostly moderate = 9-12.
+
+---
+
+## Variable badge name rules (Pillar 2)
+
+| Rule | |
+|---|---|
+| **2-3 words preferred, 4 words absolute max** | Only 4 if every word is short |
+| **Use abbreviations and numerals aggressively** | `Cert` (not Certification), `Config` (not Configuration), `Admin` (not Administrator), `Ops` (not Operations), `Dev` (not Development), `Auth` (not Authentication), `Docs`, `Repo`, `Perf`, `Env`, `Prod`, `App` |
+| **Standard industry acronyms — never spell out** | API, CLI, GUI, AI, MFA, NFR, ATP, LMS, RBAC, IDP, IPO, PBT, MCQ, SSO |
+| **Subject matter terminology is encouraged** | The whole point of Pillar 2 variable names is to capture domain-specific concepts — `Outside Counsel Dependency`, `Lateral Movement Detection`, `Settlement Reconciliation` |
+| **NO product names of the company being scored** | The dossier header has the company name — don't repeat it in badges |
 
 ---
 
@@ -573,101 +534,139 @@ Cap: 20.
 
 *Is this organization a good match for Skillable?*
 
-Everything about the organization in one Pillar. Combines training commitment, organizational character, delivery capacity, and build capability. 30% of the Fit Score — meaningful but never overriding the product truth.
+Everything about the organization in one Pillar. Combines training commitment, build capacity, delivery capacity, and organizational DNA. 30% of the Fit Score — meaningful but never overriding the product truth.
 
-| Dimension | Weight | Question |
-|---|---|---|
-| TRAINING COMMITMENT | 25 | Have they invested in training? What's the evidence? |
-| ORGANIZATIONAL DNA | 25 | Are they the kind of company that partners and builds training? |
-| DELIVERY CAPACITY | 30 | Can they get labs to learners at scale? |
-| BUILD CAPACITY | 20 | Can they create the labs? |
+Pillar 3 uses the **rubric model**, same architecture as Pillar 2.
 
-### 3.1 Training Commitment (25 pts)
+### Dimension order (chronological reading order)
+
+The dimensions are presented in chronological reading order — how a seller naturally thinks about a customer's training maturity:
+
+| Order | Dimension | Weight | Question |
+|---|---|---|---|
+| 1 | **Training Commitment** | 25 | Have they invested in training? |
+| 2 | **Build Capacity** | 20 | Can they create the labs? |
+| 3 | **Delivery Capacity** | 30 | Can they get labs to learners at scale? |
+| 4 | **Organizational DNA** | 25 | Are they the kind of company that partners? |
+
+This order is the **single source of truth** — defined once in `scoring_config.py` PILLAR_CUSTOMER_FIT.dimensions tuple, propagates to the docs (this section), the AI prompt template, and the dossier UX rendering.
+
+### 3.1 Training Commitment (cap 25)
 
 *Have they invested in training? What's the evidence?*
 
-Badges are evidence of organizational commitment across three motivation categories. The three motivations (product adoption, skill development, compliance & risk) also serve as a **framing variable** — they shape how recommendations are communicated, not just scored.
-
-#### Badges
-
-**Product Adoption evidence:**
-
-| Badge | Green | Amber |
+| Strength | Worth | Criterion |
 |---|---|---|
-| **Customer Enablement** | Dedicated program confirmed | Mentioned but unstructured |
-| **Customer Success** | Dedicated CS team confirmed | Mentioned but unclear scope |
-| **Channel Enablement** | Partner training program confirmed | Channel exists, no formal enablement |
+| **strong** | +6 | **Explicit hands-on / lab / interactive / scenario-based language** in published programs · Active cert with tested exam pass rates · Major flagship training events · Senior training leadership with mandate (level only — never name the person) · Strong regulated-industry compliance training |
+| **moderate** | +3 | Catalog of training exists but mostly content-only · Documented programs without scale evidence · Director-level training leader · Some compliance training |
+| **weak** | don't emit | Single training mention with no detail |
 
-**Skill Development evidence:**
+**signal_category list:** `hands_on_commitment` · `cert_exam_active` · `training_catalog` · `training_leadership_level` · `compliance_program` · `training_events` · `product_training_partnership`
 
-| Badge | Green | Amber |
-|---|---|---|
-| **Certification Program** | Active certification with exams | Mentioned, no active exams |
-| **Training Catalog** | Published courses, meaningful scale | Small catalog or shallow |
+**The hands-on / lab / interactive language pattern is the strongest single signal.** When the AI finds explicit references to hands-on labs, interactive exercises, scenario-based training in the vendor's published programs, that's the highest-value Training Commitment finding — credit it as strong.
 
-**Compliance & Risk evidence:**
-
-| Badge | Green | Gray |
-|---|---|---|
-| **Regulated Industry** | Healthcare, finance, cybersecurity — compliance inherent | Some regulation, not compliance-driven |
-| **Compliance Training Program** | Training built around regulatory requirements | — |
-| **Audit Requirements** | External audits require demonstrated competence | — |
-
-**Cross-cutting:**
-
-| Badge | Green | Gray | Amber |
-|---|---|---|---|
-| **Training Leadership** | C-level or VP dedicated to learning/enablement | Director-level training leader | Managers only |
-| **Training Culture** | Training permeates the business — multiple teams across the lifecycle | Some investment, concentrated in one area | Minimal — one or two people |
+**Example badge names:** `Hands-on Lab Commitment` · `Active Cert Exam` · `Cohesity Connect 5K` · `Compliance Training Mandate` · `VP-Level Training` · `~200 Course Catalog`
 
 ---
 
-### 3.2 Organizational DNA (25 pts)
-
-*Are they the kind of company that partners and builds training programs?*
-
-The character of the organization — do they partner or build in-house? Are they easy or hard to do business with? All badges are variable-driven.
-
-| Badge area | Example badge text | Green | Gray | Amber |
-|---|---|---|---|---|
-| Partner ecosystem | **~500 ATPs**, **Strong Channel Program** | Strong partner network | Some partnerships | **No Partner Program**, **Limited Partners** |
-| Build vs Buy | **Platform Buyer**, **Mixed Approach** | Uses external platforms | Some build, some buy | **Builds In-House** |
-| Integration maturity | **Open Platform**, **API Available** | Rich APIs, marketplace, SDKs | APIs exist but limited | **Closed System** |
-| Ease of engagement | **Accessible**, **Complex Organization** | Mid-size, partner-friendly | Large but workable | **Hard to Engage** |
-
----
-
-### 3.3 Delivery Capacity (30 pts)
-
-*Can they get labs to learners at scale?*
-
-Weighted highest within Customer Fit. Having labs = cost. Delivering labs = value. Without delivery channels, labs never reach learners.
-
-#### Delivery Badges
-
-| Badge | Color logic |
-|---|---|
-| **ATP / Learning Partners** | Green = scaled network. Amber = limited. |
-| **{LMS Name} (Public/Internal)** | Green = Skillable partner (Docebo, Cornerstone, Skillable TMS). Gray = other LMS. Variable: shows specific platform + audience. |
-| **{Lab Platform Name}** | Green = Skillable (expansion). Amber = competitor (migration). DIY noted in evidence. |
-| **Gray Market Offering** | Amber = third-party training exists — conversation starter. |
-
-Skillable TMS is green — our own platform.
-
----
-
-### 3.4 Build Capacity (20 pts)
+### 3.2 Build Capacity (cap 20)
 
 *Can they create the labs?*
 
-Weighted lowest because Skillable Professional Services or partners fill this gap. Low Build Capacity + strong Delivery Capacity = **Professional Services Opportunity**.
-
-| Badge | Green | Amber |
+| Strength | Worth | Criterion |
 |---|---|---|
-| **Content Dev Team** | Named training org, Lab Authors, IDs, Tech Writers | — |
-| **Technical Build Team** | Can build lab environments, not just content | — |
-| **DIY Labs** | Already building labs themselves — have the skills | — |
-| **Content Outsourcing** | — | Third parties build content — ProServ opportunity |
+| **strong** | +5 | Named education / curriculum / content team explicitly responsible for content creation · IDs, Lab Authors, Tech Writers / Editors documented · Product-Training partnership documented as collaborative content development · Strong DIY lab evidence · Documented content development partnerships |
+| **moderate** | +3 | SME participation in content development mentioned · Named training department with some authoring signals · Third-party content firm engagement · Instructors with **explicit dual-role** authoring evidence |
+| **weak** | don't emit | Just "training department exists" with no creation evidence · Plain instructor headcount (those route to Delivery Capacity) · SMEs whose role is review/accuracy only |
+
+**signal_category list:** `content_team_named` · `instructional_designers` · `lab_authors` · `tech_writers` · `product_training_partnership` · `content_partnership` · `diy_labs` · `instructor_authors_dual_role`
+
+**CRITICAL distinction — Build Capacity is about CREATE roles, not delivery:**
+
+| ✅ Build Capacity | ❌ NOT Build Capacity |
+|---|---|
+| Instructional Designers (IDs) | Pure delivery instructors / trainers / workshop leaders |
+| Content Developers | Generic "training department" without creation evidence |
+| Lab Authors | Lab infrastructure (that's Delivery Capacity) |
+| Tech Writers / Editors | Training catalog SIZE (that's Training Commitment) |
+| SMEs **explicitly paired with content authoring** | SMEs whose role is review or accuracy only |
+| Instructors **with explicit dual-role authoring evidence** | Plain instructor headcount |
+
+**Default routing for instructors:** Delivery Capacity. Build Capacity only fires when the AI finds explicit dual-role evidence (instructor as lab author, tech writer, content developer, etc.).
+
+**Example badge names:** `Workday Education Team` · `~30 Lab Authors` · `IDs On Staff` · `Tech Writer Team` · `Content Co-Authoring` · `DIY Lab Authoring` · `University Content Partnership`
+
+---
+
+### 3.3 Delivery Capacity (cap 30)
+
+*Can they get labs to learners at scale?*
+
+Weighted highest within Customer Fit because having labs = cost, delivering labs = value. Without delivery channels, labs never reach learners.
+
+| Strength | Worth | Criterion |
+|---|---|---|
+| **strong** | +8 | Existing lab platform (Skillable = expansion, competitor name = displacement) · Large ATP / learning partner network at scale · Skillable-partner LMS already in place (Docebo, Cornerstone) · Major flagship events with hands-on tracks at scale · Instructor-led delivery network at scale |
+| **moderate** | +4 | `No Lab Platform` (greenfield — opportunity, NOT deficiency) · `DIY Lab Platform` (replacement opportunity) · Limited ATP network · Other LMS in place · Moderate instructor delivery network · Smaller events |
+| **weak** | don't emit | Plain "they offer training" with no delivery infrastructure named |
+
+**signal_category list:** `lab_platform` (variable) · `atp_network` · `lms_partner` · `lms_other` · `instructor_delivery_network` · `training_events_scale` · `gray_market`
+
+#### Lab Platform naming convention
+
+The lab platform badge IS the platform name. **No `Lab Platform:` prefix.**
+
+| State | Badge name | Color | Strength |
+|---|---|---|---|
+| Skillable customer (expansion) | `Skillable` | green | strong |
+| Competitor (displacement) | `CloudShare`, `Instruqt`, `Skytap`, `Kyndryl`, `ReadyTech`, etc. | amber | strong |
+| Greenfield (no platform yet) | `No Lab Platform` | gray Context | moderate |
+| Built their own | `DIY Lab Platform` | gray Context | moderate |
+
+**`No Lab Platform` is moderate, not weak.** From a Skillable seller's perspective, no incumbent means greenfield opportunity — no competitor to displace, just need to sell the hands-on premise.
+
+**Example badge names:** `Skillable` · `CloudShare` · `No Lab Platform` · `~500 ATPs` · `Docebo Public` · `Cohesity Connect 5K` · `~200 Trainers`
+
+---
+
+### 3.4 Organizational DNA (cap 25)
+
+*Are they the kind of company that partners and builds training programs?*
+
+| Strength | Worth | Criterion |
+|---|---|---|
+| **strong** | +6 | Strong partner ecosystem (e.g., `~500 ATPs`, formal channel program with technical certification) · Platform Buyer culture (uses external platforms vs builds in-house) · Accessible / partner-friendly engagement |
+| **moderate** | +3 | Mixed approach — some partner, some build in-house · Moderate partner engagement · Some channel structure · Larger but workable |
+| **weak** | don't emit | Generic "they're an organization" with no specific patterns |
+
+**Hard negative (red — fall back to color points):** `Hard to Engage` — fires only when documented evidence shows the org is bureaucratic, slow, or hostile to partners.
+
+**signal_category list:** `partner_pattern` · `build_vs_buy_culture` · `engagement_ease` · `channel_structure`
+
+#### Organizational DNA IS / IS NOT — read carefully (this dimension has a routing failure history)
+
+| ✅ Organizational DNA IS about | ❌ Organizational DNA is NOT about |
+|---|---|
+| How the COMPANY operates as a business | The technical architecture of their products (Pillar 1) |
+| Partnership patterns and ecosystem strength | API openness, platform extensibility, integration maturity (Pillar 1) |
+| Build-in-house vs buy-from-outside culture | Whether their software is technically modular (Pillar 1) |
+| Ease of doing business — accessible vs hard to engage | Cloud-native vs on-prem deployment shape (classification) |
+| Cultural patterns — bureaucratic vs nimble | Their product line structure (this is about the ORG, not products) |
+| Channel program structure | "Open Platform Architecture" — mis-routing pattern caught on Trellix |
+
+**Example badge names:** `~500 ATPs` · `Strong Channel` · `Platform Buyer` · `Partner-Friendly` · `Mixed Build/Buy` · `Hard to Engage` (red)
+
+---
+
+## Pillar 3 variable badge name rules (in addition to Pillar 2 rules above)
+
+| ✅ OK in Pillar 3 badge names | ❌ NOT OK in Pillar 3 badge names |
+|---|---|
+| Counts and scale (`~500 ATPs`, `~30 Lab Authors`, `30K Attendees`) | **Person titles or names** (`VP of Customer Education`, `Jane Smith`) — too individual |
+| Platform names (`Skillable`, `CloudShare`, `Docebo Public`, `Cornerstone Internal`) | The company name of the org being scored (redundant with the dossier header) |
+| Conference names (`Cohesity Connect`, `Cisco Live`) | Generic categories (`Lab Platform`, `Training Department`) |
+| Funding signals (`Series D $200M`, `IPO 2024`) | Long descriptive phrases |
+| Geographic reach (`Global`, `NAMER+EMEA`) | |
 
 ---
 

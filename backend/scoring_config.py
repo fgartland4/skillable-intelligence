@@ -80,12 +80,53 @@ class Penalty:
 
 
 @dataclass(frozen=True)
+class RubricTier:
+    """One strength tier within a dimension's rubric.
+
+    Used by Pillar 2 (Instructional Value) and Pillar 3 (Customer Fit) where
+    badge names are variable and AI-synthesized rather than canonical. The AI
+    grades each badge it emits against the dimension's rubric and tags it
+    with a strength level (`strong` / `moderate` / `weak`). The math layer
+    credits points based on (dimension, strength) lookup.
+
+    Pillar 1 does NOT use rubrics — its canonical badge names map directly
+    to scoring signals via name match.
+    """
+    strength: str        # "strong", "moderate", "weak"
+    points: int          # Points credited per badge at this strength tier
+    criterion: str       # Plain-English description of what qualifies for this tier
+
+
+@dataclass(frozen=True)
+class Rubric:
+    """A complete rubric for one dimension.
+
+    Bundles the strength tiers, the IS/IS NOT routing boundaries, and the
+    fixed list of signal categories the AI must pick from when emitting a
+    badge in this dimension. The signal_categories list is the hidden
+    canonical hedge — it preserves cross-product comparability and
+    auditability without forcing canonical visible names.
+    """
+    tiers: tuple[RubricTier, ...]
+    is_about: tuple[str, ...]            # What the dimension IS about (positive boundary)
+    is_not_about: tuple[str, ...]        # What the dimension is NOT about (negative boundary — explicit routing rules)
+    signal_categories: tuple[str, ...]   # Fixed list of category tags the AI must pick from per badge
+
+
+@dataclass(frozen=True)
 class Dimension:
     """A scored area within a Pillar.
 
     Each Pillar has four Dimensions.  Dimensions are weighted within their
-    Pillar (weights sum to 100 within each Pillar) and contain badges,
-    scoring signals, and penalties.
+    Pillar (weights sum to 100 within each Pillar) and contain either:
+      - badges + scoring_signals + penalties (Pillar 1 — canonical model)
+      - badges + a rubric (Pillars 2 and 3 — rubric model with variable badge names)
+
+    The two architectures are intentional: Pillar 1 measures concrete
+    technical facts where canonical names work cleanly; Pillars 2 and 3
+    measure interpretive subject-matter and organizational fit where the
+    domain-specific terminology that makes badges useful varies per product.
+    See `Badging-and-Scoring-Reference.md` for the rationale.
     """
     name: str
     weight: int
@@ -93,6 +134,7 @@ class Dimension:
     badges: tuple[Badge, ...] = ()
     scoring_signals: tuple[ScoringSignal, ...] = ()
     penalties: tuple[Penalty, ...] = ()
+    rubric: Optional[Rubric] = None     # Rubric model (Pillars 2 and 3) — None for Pillar 1
     cap: Optional[int] = None
     floor: Optional[int] = None
     notes: str = ""
@@ -574,15 +616,60 @@ _product_complexity_signals = (
     ScoringSignal("Simple UX", -15, "Wizard-driven or overly simple interface"),
 )
 
+_product_complexity_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 6,
+            "Deep multi-system, multi-phase workflows; multiple distinct admin/operator roles; "
+            "rich troubleshooting paths; OR genuine AI requiring iterative practice",
+        ),
+        RubricTier(
+            "moderate", 3,
+            "Some depth or some complexity but limited scope — single-phase, narrow role set, "
+            "light troubleshooting",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Thin documentation, mostly straightforward, single-stage workflow — don't emit",
+        ),
+    ),
+    is_about=(
+        "Whether using this product requires repeated, practiced skill",
+        "Documentation breadth — module count, features per module, options per feature, interoperability",
+        "Multi-phase workflows that span design, build, deploy, monitor, troubleshoot",
+        "Role diversity — admin vs operator vs end user vs developer",
+        "AI features that require iterative hands-on practice (cannot be learned by watching)",
+    ),
+    is_not_about=(
+        "Whether the product is easy or hard to PROVISION (that is Pillar 1)",
+        "Whether labs can be SCORED (that is Pillar 1 Scoring dimension)",
+        "Whether the customer org has training infrastructure (that is Pillar 3)",
+        "The mastery STAKES of getting it wrong (that is the Mastery Stakes dimension)",
+    ),
+    signal_categories=(
+        "deep_configuration",
+        "multi_phase_workflow",
+        "role_diversity",
+        "troubleshooting_depth",
+        "complex_networking",
+        "integration_complexity",
+        "ai_practice_required",
+        "consumer_grade",      # red
+        "simple_ux",           # red
+    ),
+)
+
 _product_complexity_dimension = Dimension(
     name="Product Complexity",
     weight=40,
     question="Is this product hard enough to require hands-on practice?",
     badges=_product_complexity_badges,
-    scoring_signals=_product_complexity_signals,
+    rubric=_product_complexity_rubric,
     cap=40,
-    notes="Documentation breadth is the primary signal — count modules, features per module, "
-          "options per feature, interoperability.",
+    notes="Pillar 2 — rubric model. Badge names are variable and AI-synthesized to capture "
+          "domain-specific complexity (subject matter terminology). The AI grades each badge "
+          "against the rubric tiers and tags it with a signal_category from the fixed list. "
+          "Math is rubric-driven, not name-matched.",
 )
 
 
@@ -607,12 +694,48 @@ _mastery_stakes_signals = (
     ScoringSignal("Adoption risk", 7, "Poor adoption or slow TTV is documented"),
 )
 
+_mastery_stakes_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 9,
+            "Misconfiguration causes breach, data loss, compliance failure, sanctions, "
+            "malpractice, downtime — real and consequential harm",
+        ),
+        RubricTier(
+            "moderate", 5,
+            "Errors are visible and create rework / reputation cost but are recoverable",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Mostly inconvenience — easily fixed, no lasting consequences — don't emit",
+        ),
+    ),
+    is_about=(
+        "Real-world consequences of getting it wrong",
+        "Whether errors cause breach, data loss, regulatory failure, financial harm, downtime",
+        "Career or business stakes for the practitioner",
+        "Steepness of the learning curve from beginner to competent",
+        "Adoption risk — documented evidence that poor adoption is a known concern",
+    ),
+    is_not_about=(
+        "How HARD the product is to use (that is Product Complexity)",
+        "Whether the product can be SCORED (that is Pillar 1 Scoring)",
+        "How important the product is to the customer's business in general (that is Market Demand)",
+    ),
+    signal_categories=(
+        "harm_severity",
+        "learning_curve",
+        "adoption_risk",
+        "compliance_consequences",
+    ),
+)
+
 _mastery_stakes_dimension = Dimension(
     name="Mastery Stakes",
     weight=25,
     question="How much does competence matter?",
     badges=_mastery_stakes_badges,
-    scoring_signals=_mastery_stakes_signals,
+    rubric=_mastery_stakes_rubric,
     cap=25,
 )
 
@@ -656,18 +779,59 @@ _lab_versatility_badges = (
     ), notes="Infrastructure, cloud, data protection"),
 )
 
+_lab_versatility_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 5,
+            "Clear high-value lab type fits naturally — Cyber Range, Red vs Blue, Performance Tuning, "
+            "Migration Lab, Compliance Audit, Incident Response, etc. — the product genuinely supports it",
+        ),
+        RubricTier(
+            "moderate", 3,
+            "Lab type is adaptable to the product but requires some shoehorning",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Lab type doesn't fit — most simple products get nothing in this dimension — don't emit",
+        ),
+    ),
+    is_about=(
+        "High-value, special lab types beyond standard step-by-step labs",
+        "Lab types that fit the product naturally — adversarial scenarios, cyber ranges, "
+        "incident response, break/fix, migration, compliance audit, performance tuning",
+        "Lab types that serve dual purpose — conversational competence in Inspector + "
+        "program recommendations in Designer",
+    ),
+    is_not_about=(
+        "Standard step-by-step labs (those exist for every product, not credit-worthy here)",
+        "How the lab is provisioned (that is Pillar 1)",
+        "Whether the customer can deliver labs (that is Delivery Capacity)",
+    ),
+    signal_categories=(
+        "adversarial_scenario",
+        "incident_response",
+        "break_fix",
+        "team_handoff",
+        "cyber_range",
+        "performance_tuning",
+        "migration_lab",
+        "architecture_challenge",
+        "compliance_audit",
+        "disaster_recovery",
+        "bug_bounty",
+    ),
+)
+
 _lab_versatility_dimension = Dimension(
     name="Lab Versatility",
     weight=15,
     question="What kinds of hands-on experiences can we build?",
     badges=_lab_versatility_badges,
-    scoring_signals=(
-        ScoringSignal("Lab type badge found", 5, "+5 per badge found; AI picks 1-2 per product"),
-    ),
+    rubric=_lab_versatility_rubric,
     cap=15,
-    notes="These are special, high-value lab types — not standard step-by-step labs. "
-          "AI picks 1-2 per product. Most simple products get none. All badges are green (opportunities). "
-          "Dual purpose: conversational competence in Inspector, program recommendations in Designer.",
+    notes="Pillar 2 — rubric model. The AI picks 1-3 lab types per product based on specific "
+          "research, grades each against the rubric, and tags with a signal_category. Dual "
+          "purpose: conversational competence in Inspector + program recommendations in Designer.",
 )
 
 
@@ -740,14 +904,60 @@ _market_demand_signals = (
     ScoringSignal("Growing category", 1, "Product category is expanding"),
 )
 
+_market_demand_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 5,
+            "Clear scale signal — large install base, active certification ecosystem, AI platform, "
+            "enterprise validation at scale, high-demand category, IPO or major funding, "
+            "global geographic reach",
+        ),
+        RubricTier(
+            "moderate", 3,
+            "Moderate signal — growing category, mid-size install base, emerging certification, "
+            "regional presence, recent series funding",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Thin signal — small install base, niche category, no certification — don't emit",
+        ),
+    ),
+    is_about=(
+        "Whether the broader market validates the need for hands-on training on this product",
+        "Install base scale (~2M Users, ~50K Users, ~500 Users)",
+        "Geographic reach (Global, NAMER+EMEA, Regional)",
+        "Certification ecosystem (Active Cert, Emerging Cert)",
+        "Funding and growth signals (IPO, Series D, Rapid Growth, Layoffs)",
+        "Category demand priors (cybersecurity, cloud, networking are inherently high-demand)",
+        "Competitor labs confirmed (other providers invest in hands-on for this product)",
+        "AI signals (product builds AI, product has embedded AI features)",
+    ),
+    is_not_about=(
+        "How the customer org is structured (that is Organizational DNA)",
+        "Whether the customer has training programs (that is Training Commitment)",
+        "Technical depth of the product (that is Product Complexity)",
+    ),
+    signal_categories=(
+        "install_base_scale",
+        "geographic_reach",
+        "cert_ecosystem",
+        "funding_growth",
+        "category_demand",
+        "competitor_labs",
+        "ai_signal",
+        "enterprise_validation",
+    ),
+)
+
 _market_demand_dimension = Dimension(
     name="Market Demand",
     weight=20,
     question="Does the broader market validate the need for hands-on training on this product?",
     badges=_market_demand_badges,
-    scoring_signals=_market_demand_signals,
+    rubric=_market_demand_rubric,
     cap=20,
-    notes="AI looks at company-specific signals first, product signals second, category as the floor.",
+    notes="Pillar 2 — rubric model. Variable badge names carry the actual data (~2M Users, "
+          "Series D $200M, IPO 2024, Cisco Live 30K). Compact 2-3 word names with abbreviations.",
 )
 
 
@@ -821,14 +1031,59 @@ _training_commitment_badges = (
     )),
 )
 
+_training_commitment_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 6,
+            "Explicit hands-on / lab / interactive / scenario-based language in published programs; "
+            "active certification with tested exam pass rates; major flagship training events; "
+            "senior training leadership with mandate (level only — never name the person); "
+            "strong regulated-industry compliance training programs",
+        ),
+        RubricTier(
+            "moderate", 3,
+            "Catalog of training exists but mostly content-only (no hands-on); documented programs "
+            "without scale evidence; director-level training leader; some compliance training",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Single training mention with no detail; generic 'we train our customers' statements; "
+            "minimal investment evidence — don't emit",
+        ),
+    ),
+    is_about=(
+        "Investment evidence — programs, catalogs, certifications, hands-on language, leadership",
+        "Whether the org has put resources behind training as a strategic function",
+        "Three motivation categories: product adoption, skill development, compliance & risk",
+        "Hands-on / interactive / scenario-based language is the strongest single signal",
+    ),
+    is_not_about=(
+        "Technical openness of products (that is Pillar 1)",
+        "Org culture / decision-making (that is Organizational DNA)",
+        "Lab platform infrastructure (that is Delivery Capacity)",
+        "Content creation roles (that is Build Capacity)",
+    ),
+    signal_categories=(
+        "hands_on_commitment",
+        "cert_exam_active",
+        "training_catalog",
+        "training_leadership_level",
+        "compliance_program",
+        "training_events",
+        "product_training_partnership",
+    ),
+)
+
 _training_commitment_dimension = Dimension(
     name="Training Commitment",
     weight=25,
     question="Have they invested in training? What's the evidence?",
     badges=_training_commitment_badges,
-    notes="Badges are evidence of organizational commitment across three motivation categories "
-          "(product adoption, skill development, compliance & risk). The three motivations also "
-          "serve as a framing variable that shapes how recommendations are communicated.",
+    rubric=_training_commitment_rubric,
+    notes="Pillar 3 — rubric model. Three motivation categories (product adoption, skill "
+          "development, compliance & risk) serve as framing variables that shape how "
+          "recommendations are communicated. The hands-on / lab / interactive language pattern "
+          "is the single strongest Training Commitment signal.",
 )
 
 
@@ -855,13 +1110,59 @@ _organizational_dna_badges = (
     )),
 )
 
+_organizational_dna_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 6,
+            "Strong partner ecosystem with formal channel program and partner certification; "
+            "Platform Buyer culture (uses external platforms vs builds in-house); accessible / "
+            "partner-friendly engagement; mid-size or formal partnership program",
+        ),
+        RubricTier(
+            "moderate", 3,
+            "Mixed approach — some partner, some build in-house; moderate partner engagement; "
+            "some channel structure; larger but workable",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Generic 'they're an organization' with no specific patterns; closed system with no "
+            "partnership signals — don't emit",
+        ),
+    ),
+    is_about=(
+        "How the COMPANY operates as a business",
+        "Partnership patterns and ecosystem strength (~500 ATPs, formal channel)",
+        "Build-in-house vs buy-from-outside culture",
+        "Ease of doing business — accessible vs hard to engage",
+        "Cultural patterns — bureaucratic vs nimble, formal vs flexible",
+        "Channel program structure (rep counts, tiers, partnership depth)",
+    ),
+    is_not_about=(
+        "The technical architecture of their products (Pillar 1: Sandbox API, Identity API, etc.)",
+        "API openness, platform extensibility, integration maturity (Pillar 1)",
+        "Whether their software is technically modular (Pillar 1)",
+        "Cloud-native vs on-prem deployment shape (classification metadata)",
+        "Their product line structure (this dimension is about the ORG, not the products)",
+        "'Open Platform Architecture' or similar technical openness signals (Pillar 1)",
+    ),
+    signal_categories=(
+        "partner_pattern",
+        "build_vs_buy_culture",
+        "engagement_ease",
+        "channel_structure",
+    ),
+)
+
 _organizational_dna_dimension = Dimension(
     name="Organizational DNA",
     weight=25,
     question="Are they the kind of company that partners and builds training programs?",
     badges=_organizational_dna_badges,
-    notes="The character of the organization — do they partner or build in-house? "
-          "Are they easy or hard to do business with? All badges are variable-driven.",
+    rubric=_organizational_dna_rubric,
+    notes="Pillar 3 — rubric model. The character of the organization — partner vs build-in-house, "
+          "easy or hard to engage. CRITICAL: this dimension is about the COMPANY, not the company's "
+          "products. Technical architecture findings (API openness, platform extensibility) belong "
+          "in Pillar 1, NOT here.",
 )
 
 
@@ -883,14 +1184,61 @@ _delivery_capacity_badges = (
     )),
 )
 
+_delivery_capacity_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 8,
+            "Existing lab platform (Skillable = expansion, competitor name = displacement); "
+            "large ATP / learning partner network at scale; Skillable-partner LMS already in place "
+            "(Docebo, Cornerstone); major flagship events with hands-on tracks at scale; "
+            "instructor-led delivery network at scale",
+        ),
+        RubricTier(
+            "moderate", 4,
+            "No Lab Platform (greenfield — opportunity, not deficiency); DIY Lab Platform "
+            "(replacement opportunity); limited ATP network; other LMS in place; moderate "
+            "instructor delivery network; smaller events",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Plain 'they offer training' with no delivery infrastructure named — don't emit",
+        ),
+    ),
+    is_about=(
+        "Infrastructure to GET labs to learners",
+        "Lab platforms — Skillable (expansion), competitor (displacement), DIY (replacement), none (greenfield)",
+        "ATP / authorized training partner / learning partner networks",
+        "LMS platforms at scale (Skillable-partner LMS scores higher — Docebo, Cornerstone)",
+        "Major flagship events with hands-on tracks (Cohesity Connect, Cisco Live, etc.)",
+        "Instructor-led delivery networks at scale",
+    ),
+    is_not_about=(
+        "Content creation roles (Build Capacity)",
+        "Just having a training catalog (Training Commitment)",
+        "Org culture / partnerships in general (Organizational DNA)",
+        "Whether the labs themselves are good (that is content quality, not delivery)",
+    ),
+    signal_categories=(
+        "lab_platform",            # variable: Skillable / competitor name / DIY / none
+        "atp_network",
+        "lms_partner",
+        "lms_other",
+        "instructor_delivery_network",
+        "training_events_scale",
+        "gray_market",
+    ),
+)
+
 _delivery_capacity_dimension = Dimension(
     name="Delivery Capacity",
     weight=30,
     question="Can they get labs to learners at scale?",
     badges=_delivery_capacity_badges,
-    notes="Weighted highest within Customer Fit because having labs = cost, "
-          "delivering labs = value. Without delivery channels, labs never reach "
-          "learners and there is no business impact.",
+    rubric=_delivery_capacity_rubric,
+    notes="Pillar 3 — rubric model. Weighted highest within Customer Fit because having labs = "
+          "cost, delivering labs = value. Lab platform badges are named for the platform itself "
+          "(Skillable, CloudShare, Instruqt) — no 'Lab Platform:' prefix. 'No Lab Platform' is "
+          "moderate (greenfield) NOT weak.",
 )
 
 
@@ -909,13 +1257,67 @@ _build_capacity_badges = (
     )),
 )
 
+_build_capacity_rubric = Rubric(
+    tiers=(
+        RubricTier(
+            "strong", 5,
+            "Named education / curriculum / content team explicitly responsible for content "
+            "creation; Instructional Designers, Lab Authors, Tech Writers / Editors documented; "
+            "product-training partnership documented as collaborative content development; "
+            "strong DIY lab evidence (already building their own); documented content development partnerships",
+        ),
+        RubricTier(
+            "moderate", 3,
+            "SME participation in content development mentioned; named training department with "
+            "some authoring signals; third-party content firm engagement; instructors with explicit "
+            "dual-role authoring evidence",
+        ),
+        RubricTier(
+            "weak", 0,
+            "Just 'training department exists' with no creation evidence; plain instructor headcount "
+            "(those route to Delivery Capacity); SMEs whose role is review/accuracy only — don't emit",
+        ),
+    ),
+    is_about=(
+        "Roles that CREATE content — Instructional Designers (IDs), Content Developers, "
+        "Lab Authors, Tech Writers, Tech Editors",
+        "Named education / curriculum / content teams ('Workday Education Team', vendor universities)",
+        "Product-Training partnership documented as collaborative content development",
+        "DIY lab evidence — already building their own labs",
+        "Documented content development partnerships (third-party content firms)",
+        "Subject matter experts WHEN explicitly paired with content authoring (not review-only)",
+        "Instructors WHEN explicit dual-role authoring evidence (instructor as lab author / tech writer)",
+    ),
+    is_not_about=(
+        "Pure delivery instructors / trainers / workshop leaders (those go to Delivery Capacity)",
+        "Generic 'training department' without creation evidence",
+        "Lab infrastructure (that is Delivery Capacity)",
+        "Training catalog SIZE or scope (that is Training Commitment)",
+        "SMEs whose role is content review or accuracy validation only",
+    ),
+    signal_categories=(
+        "content_team_named",
+        "instructional_designers",
+        "lab_authors",
+        "tech_writers",
+        "product_training_partnership",
+        "content_partnership",
+        "diy_labs",
+        "instructor_authors_dual_role",
+    ),
+)
+
 _build_capacity_dimension = Dimension(
     name="Build Capacity",
     weight=20,
     question="Can they create the labs?",
     badges=_build_capacity_badges,
-    notes="Weighted lowest because Skillable Professional Services or partners can fill this gap. "
-          "Low Build Capacity + strong Delivery Capacity = Professional Services Opportunity.",
+    rubric=_build_capacity_rubric,
+    notes="Pillar 3 — rubric model. CRITICAL distinction: Build Capacity is about CREATE roles "
+          "(IDs, content devs, tech writers, lab authors), NOT delivery roles (instructors, "
+          "trainers). Plain instructor headcount routes to Delivery Capacity. Build Capacity only "
+          "credits instructors when there's explicit dual-role authoring evidence. Weighted lowest "
+          "because Skillable Professional Services or partners can fill this gap.",
 )
 
 
@@ -924,11 +1326,14 @@ PILLAR_CUSTOMER_FIT = Pillar(
     weight=30,
     level="organization",
     question="Is this organization a good match for Skillable?",
+    # Dimensions in chronological reading order (Frank, 2026-04-06):
+    # Training Commitment → Build Capacity → Delivery Capacity → Organizational DNA
+    # Single source of truth — code, docs, and UX rendering all read this order.
     dimensions=(
         _training_commitment_dimension,
-        _organizational_dna_dimension,
-        _delivery_capacity_dimension,
         _build_capacity_dimension,
+        _delivery_capacity_dimension,
+        _organizational_dna_dimension,
     ),
 )
 
