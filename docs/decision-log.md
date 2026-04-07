@@ -4,6 +4,85 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-07 evening — Pillar 1 risk caps, CF unification, prompt sharpening, Phase F, Phase 4 tests
+
+A long late-night session covering scoring math refinements, prompt sharpening for Pillars 2/3 + the Sales Briefcase, the Customer Fit centralization (Phase F), and the creative test strategy (Category 11). Commits referenced inline.
+
+### Risk Cap Reduction — Pillar 1 dimensions can never be at full cap when amber/red risks present
+- **DECIDED:** When a Pillar 1 dimension surfaces amber or red risk badges, the dimension's effective cap is reduced (not the score deducted, the cap itself lowered): -3 points per amber risk badge, -8 points per red risk badge.
+- **Why a cap reduction, not a deduction:** the existing color-aware math already deducts color points for amber/red badges. Doing a second deduction would double-count. Lowering the cap means the dimension can still earn green credits but can never reach its full theoretical max while risks are present — which is what "risk" actually means in business terms.
+- **Calibration source:** Frank, after reviewing Trellix and Diligent dossiers — the dimensions that should "never feel clean" with red present were still showing high scores via green offsets. Capping forces the visible score to honor the worst-case finding.
+- **Constants:** `cfg.AMBER_RISK_CAP_REDUCTION = 3`, `cfg.RED_RISK_CAP_REDUCTION = 8` in `scoring_config.py`.
+- **Commit:** `00123cc`.
+
+### Customer Fit unification — best-showing wins, broadcast across all products
+- **DECIDED:** Customer Fit is a property of the **organization**, not the product. Every product from the same company must show **identical** Pillar 3 dimensions, scores, and badges. The merge rule is **"best showing wins"** (Option B): when two products surface different evidence for the same CF signal_category, the stronger color + stronger strength wins, and that single best version broadcasts to every product.
+- **Why best-showing wins:** the alternative (worst-of-group) made every product look as bad as the worst-researched product, which punished CF for incomplete evidence. Best-showing aligns with how a seller actually frames the conversation — "what we know about this company at its best."
+- **Frank's framing:** "Customer Fit measures the organization, not the product. Every product from the same company must show identical Pillar 3."
+- **Initial implementation (commit `a6f7b74`):** an interim merge inside `recompute_analysis()` that built the unified CF from the analysis's products and broadcast it onto every product. This worked but Frank flagged it as the wrong architectural home — see Phase F below.
+
+### Phase F — Customer Fit lives on the discovery, owned by the Intelligence layer
+- **DECIDED:** The canonical home for the unified Customer Fit is `discovery["_customer_fit"]`, written by `intelligence.score()` at every save boundary, read by `intelligence.recompute_analysis()` at every page load. Inspector / Prospector / Designer all read from this one place. The interim per-analysis merge becomes a fallback for legacy data.
+- **Why move it from analysis to discovery:** discovery is the company-level concept; analysis is the per-Deep-Dive concept. Customer Fit is a company-level property. Every Deep Dive on the same discovery (even months apart, across Inspector + Prospector + Designer) should see the same CF — and it should be computed once, not re-merged on every page load.
+- **Lookup order in `recompute_analysis()`:**
+  1. `discovery["_customer_fit"]` — canonical Phase F home
+  2. `_build_unified_customer_fit(products)` — fallback for legacy analyses whose discovery hasn't been stamped, or for the pre-save window inside `score()` before aggregate has run
+- **Layer Discipline note:** `aggregate_customer_fit_to_discovery()` lives in `intelligence.py`, not `app.py` — it's intelligence work that all three tools need, not Inspector-specific orchestration.
+- **Commit:** `b5c981d`.
+
+### Diligent Five Fixes — five distinct scoring + badging refinements shipped together
+- **DECIDED (1):** Sandbox API red caps Pillar 1 hard. When the Sandbox API canonical fires red on a SaaS product, Pillar 1 is capped at **25** if Simulation is viable (the next-best path) and at **5** if nothing is viable. Constants: `cfg.SANDBOX_API_RED_CAP_SIM_VIABLE` and `cfg.SANDBOX_API_RED_CAP_NOTHING_VIABLE`. This is the SE-4 answer Frank approved by inspection of Diligent's earlier 66-point Pillar 1.
+- **DECIDED (2):** Datacenter excludes Simulation. The Datacenter badge previously fired even on Simulation-only products; now Simulation is excluded from the Datacenter set. A new gray `Simulation Reset` badge with 0 points is emitted in Teardown for Simulation products to surface the teardown story without crediting it.
+- **DECIDED (3):** Scoring breadth rule (the "Grand Slam" rule). MCQ alone = 0 points. AI Vision alone caps at 10 (`cfg.SCORING_AI_VISION_ALONE_CAP`). Script alone = full marks (VM context). Scoring API alone caps at 12 (`cfg.SCORING_API_ALONE_CAP`). **Grand Slam (AI Vision + Script OR API) = full marks** — the breadth bonus credits the combined scoring surface, not the individual methods.
+- **DECIDED (4):** Drop the Fit Score floor. The previous formula was `fit_score = max(weighted_sum, pl_score)`, which let strong PL pull the Fit Score above its weighted-sum value. Now the formula is the pure weighted sum. Frank's framing: "if Customer Fit is bad, the Fit Score should be allowed to reflect that — even on a great product."
+- **DECIDED (5):** Pillar 2/3 prompt sharpening — three new rules in `prompts/scoring_template.md`: strength grading discipline (don't hedge to moderate; force STRONG for high-stakes domains like governance/cybersecurity/healthcare); subject-matter-specific badge names (not generic templates); emit gap badges (red) when grading low to make judgment visible.
+- **Commit:** `8b9d6be`.
+
+### Pillar 3 badges must convey JUDGMENT, not describe categories
+- **DECIDED:** Customer Fit badges must read as findings about the customer, not as category labels. "Build vs Buy" is not a finding — it's a topic. "Platform Buyer" or "In-House Builder" are findings. The prompt now carries an explicit FORBIDDEN list of generic structural names (`Build vs Buy`, `DIY Labs`, `Content Dev Team`, `Partner Ecosystem`, `Integration Maturity`, `Ease of Engagement`, `Lab Platform` as a label, `Training Culture`, `Certification Program`, `Training Catalog`) with required judgment-form alternatives for each.
+- **The three permitted shapes** for every Pillar 3 badge:
+  1. **A counted/named specific** (`~500 ATPs`, `Elevate 2026`, `Skillable`, `Series D $200M`)
+  2. **A judgment phrase** (`Light Content Dev`, `Few Tech SMEs`, `Long RFP Process`, `Soft Skills Focus`, `Slide-Deck Culture`, `Compliance-Only Training`)
+  3. **An explicit gap** (`No Lab Authors`, `No Documented ATPs`, `No Tech Writer Team`)
+- **Forcing function:** if the AI cannot produce one of those three shapes for a dimension's evidence, it must re-read the dossier — it doesn't understand the evidence well enough to emit a badge.
+- **Frank's framing:** "Customer Fit badges need to show judgement. Light Content Dev, Soft Skills, Long RFP Process, Few Tech SMEs... Something like that."
+- **Commit:** `7bb8d04`.
+
+### Account Intelligence — time-bounded events as TOP recommendations with concrete actions
+- **DECIDED:** When the scoring evidence mentions a specific conference, flagship event, certification launch, product release, or other time-bounded signal, that bullet should be FIRST in Account Intelligence and must include three things: (1) the named event with date if known; (2) a concrete person/role to find ("the head of Elevate 2026"); (3) WHY it matters as a specific Skillable opportunity, anchored to the framework: "Events are Skillable's lowest-friction consumption motion — defined audience, defined timeline, no incumbent platform to displace."
+- **Worked example for Diligent's Elevate 2026** is in the prompt as the WEAK vs STRONG side-by-side.
+- **Frank's framing:** "If you go down to account intelligence — find out who's running that event. Like, who's the Elevate 2026 conference. It's phenomenal place for us to start by having hands-on experiences at events."
+- **Commit:** `9e5d174`.
+
+### Briefcase routing rule — KTQ technical / Conv Starters strategic / Acct Intel leaders
+- **DECIDED:** The three Sales Briefcase sections target three non-overlapping audiences:
+  - **Key Technical Questions** target TECHNICAL ROLES ONLY: Principal/Staff Engineer, API Team Lead, Solution Architect, Sales/Solution Engineer, Customer Onboarding Engineer, DevRel, SRE, product team technical lead. **NEVER target VPs, Directors, CLOs, or any pure-management role** — forwarding "does the REST API support DELETE on user records?" to a VP wastes the seller's credibility.
+  - **Conversation Starters** target STRATEGIC LEADERS: VPs of Customer Education / Training / Customer Success, Directors of Enablement, CLOs, VPs of Product. Talking points must be VP-respondable ("yeah, that's exactly why we're doing X"), framed around business outcomes (retention, time-to-productivity, certification pass rates, NRR, churn risk). Never technical.
+  - **Account Intelligence** targets named leaders + named events.
+- **Why explicit role lists:** the previous prompts said "technical champion" without naming roles, and the AI was emitting "ask the VP of Customer Education..." for technical API questions. Explicit ✅/❌ lists in the prompt force compliance.
+- **Frank's framing:** "If you want a technical question, that's how are we gonna get your labs into Skillable? You don't wanna be talking to director-level people and VPs of customer education... principal engineers, API team leads... solution architects, solution engineers, sales engineers... people that help with customer onboarding... VPs and things, that's in conversation starters. And account intelligence — that's where you wanna know the leaders."
+- **Commit:** `c91b819`.
+
+### Stale-cache decision modal on Product Selection → Deep Dive
+- **DECIDED:** When a user clicks Deep Dive on a Product Selection page whose existing cached analysis was scored with an older `SCORING_LOGIC_VERSION`, intercept the form submit and show a confirmation modal: **Refresh first** / **Use cached** / Cancel. Once the user has made a choice on a given page load, a second click of Deep Dive goes through without re-prompting.
+- **Why:** Frank reported clicking Deep Dive on cached Diligent and the system silently re-scored without giving him a choice. The cache versioning gate was right (the data WAS stale) but the user lost agency over the decision. The modal preserves the gate's correctness while restoring the choice.
+- **Implementation note:** the same modal partial (`_search_modal.html`) that powers the Full Analysis stale-cache modal is now imported on Product Selection. Buttons relabeled from the default "Refresh / Ignore for now" to "Refresh first / Use cached" because "Ignore for now" reads ambiguously in a submit-intercept context.
+- **Commit:** `7c69eb1`.
+
+### Phase 4 — creative test strategy (Category 11) — 27 tests across 10 classes
+- **DECIDED:** Implement all 10 test classes from `docs/code-review-2026-04-07.md §"Phase 4 — creative test strategy"`. The 88 existing structural tests would not have caught any of the CRITICAL findings from the deep code review — they assert config shape, not the integration paths between layers. Category 11 walks every saved analysis on disk plus a battery of synthetic in-memory fixtures and asserts runtime invariants that span layers.
+- **The 10 test classes** (full descriptions in `docs/Test-Plan.md` Category 11): round-trip badge identity (Pillar 3 exempt for Phase F unification), recompute idempotence, vocabulary closure, bold prefix doesn't leak (against the recomputed view, not raw JSON), cache stamp truth, pillar isolation, polarity invariants, adversarial fixtures, layer discipline (AST), define-once enforcement (string constants only).
+- **Auto-skip stale fixtures:** `_load_saved_analyses(current_only=True)` skips any saved analysis whose `_scoring_logic_version` doesn't match the current — those are queued for re-score by the cache versioning gate, so it isn't fair to enforce current architectural rules against them.
+- **Render-time normalization:** tests check the **recomputed view** (what the user actually sees), not the raw saved JSON, because Phase 1 normalization runs at render time by design.
+- **Frank's framing:** "would love you to finish all these tests... they're so important for keeping us from making architecture mistakes."
+- **Commit:** `a414723`. 27 new tests, 115 total passing (was 88).
+
+### Legacy quarantine — drop the `_new` suffix from the entire active code path
+- **DECIDED:** The `_new` suffix (`app_new.py`, `intelligence_new.py`, `scorer_new.py`, `data_new/`) was a transitional convention while the rebuild was in flight. With the rebuild complete and the legacy POC code moved to `legacy-reference/`, the suffix is now a documentation-rot risk — every file that references "the new code" goes stale the moment "new" stops being new. Drop the suffix everywhere and reference the canonical names (`app.py`, `intelligence.py`, etc.).
+- **Commits:** `e2620b0` (rename), `9f44222` (sync session-opening docs).
+
+---
+
 ## Session: 2026-04-06 — Universal variable-badge rule
 
 ### One rule, two vocabularies, applied universally
