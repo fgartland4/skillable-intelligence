@@ -334,8 +334,22 @@ def inspector_product_selection(discovery_id: str):
     # Check for existing analysis
     existing = find_analysis_by_discovery_id(discovery_id)
 
+    # Build the set of cached product names so the Product Selection page can
+    # pre-select them with a visual chip indicator. The user can deselect or
+    # add more products before clicking Deep Dive — the score() path is
+    # cache-and-append, so cached products are re-used and only NEW selections
+    # actually trigger fresh scoring.
+    cached_product_names: set[str] = set()
+    if existing:
+        for p in existing.get("products", []) or []:
+            n = (p.get("name") or "").strip()
+            if n:
+                cached_product_names.add(n)
+
     return render_template("product_selection.html",
-                          discovery=disc, existing_analysis=existing)
+                          discovery=disc,
+                          existing_analysis=existing,
+                          cached_product_names=cached_product_names)
 
 
 @app.route("/inspector/score", methods=["POST"])
@@ -874,6 +888,23 @@ def inspector_full_analysis(analysis_id: str):
             if not analysis.get("_org_color"):
                 analysis["_org_color"] = disc.get("_org_color", "")
 
+    # Cache version check — if the cached analysis was scored with an older
+    # SCORING_LOGIC_VERSION than the current one, the page should prompt the
+    # user to refresh (decision modal opens on page load). The user can choose
+    # Refresh (kicks off scoring with progress modal) or Ignore for now
+    # (renders the cached page as-is). Closes the gap that allowed Workday
+    # cached scores to render with degraded math after the Pillar 1/2/3 refactor.
+    import scoring_config as cfg
+    is_cache_stale = not cfg.is_cached_logic_current(analysis)
+    if is_cache_stale:
+        log.info(
+            "inspector_full_analysis: analysis %s is stale (cached version %r vs current %r) — "
+            "page will prompt user to refresh",
+            analysis_id,
+            analysis.get("_scoring_logic_version", "<missing>"),
+            cfg.SCORING_LOGIC_VERSION,
+        )
+
     _prepare_analysis_for_render(analysis)
 
     # If no product has a briefcase yet (and there's no legacy analysis-level
@@ -903,7 +934,8 @@ def inspector_full_analysis(analysis_id: str):
     return render_template("full_analysis.html",
                           analysis=analysis,
                           selected_product=selected_product,
-                          default_index=default_idx)
+                          default_index=default_idx,
+                          is_cache_stale=is_cache_stale)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -45,9 +45,6 @@
             border-bottom: 1px solid var(--sk-border);
         }
         .header-left { flex: 1 1 auto; min-width: 0; max-width: calc(100% - 320px); }
-        /* Legacy .company-title and .header-desc styles deleted —
-           replaced by the shared Company Header Widget partial
-           (_company_header.html, ch.styles() injected above). */
 
         /* ── Header right: actions ── */
         .header-right { flex-shrink: 0; text-align: right; }
@@ -63,20 +60,16 @@
         .btn-deep-dive:hover:not(:disabled) { background: var(--sk-accent-soft); box-shadow: 0 0 20px rgba(36,237,155,0.28); }
         .btn-deep-dive:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
 
-        .btn-view-prev {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 11px 18px; background: transparent; color: var(--sk-text-muted);
-            border: 1px solid var(--sk-border); border-radius: 10px; font-size: 0.84rem;
-            font-weight: 600; cursor: pointer; text-decoration: none;
-            transition: color 0.15s, border-color 0.15s;
-        }
-        .btn-view-prev:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.35); }
-
         .sel-status {
             font-size: 0.78rem; font-weight: 700; color: var(--sk-text-dim);
             min-height: 1.2em; transition: color 0.15s;
         }
         .sel-status.has-selection { color: var(--sk-score-mid); }
+        .sel-cached-hint {
+            font-size: 0.72rem; color: var(--sk-text-dim);
+            min-height: 1.2em; margin-top: 4px;
+            font-style: italic;
+        }
 
         /* ── Two-column board ── */
         .board {
@@ -132,6 +125,25 @@
         }
         .cb-tick { display: none; font-size: 10px; color: var(--sk-bg); font-weight: 800; }
         .product-card.card-checked .cb-tick { display: block; }
+
+        /* In-cache visual indicator — product was already scored in the
+           current discovery's analysis. Pre-selected on page load; the user
+           can deselect or add more products. The badge sits at the right
+           edge of the card alongside category/deployment chips. */
+        .badge-cached {
+            display: inline-block; padding: 2px 7px; border-radius: 4px;
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.04em;
+            background: var(--sk-badge-purple-bg);
+            color: var(--sk-classify-purple);
+            border: 1px solid var(--sk-badge-purple-bdr);
+            white-space: nowrap;
+        }
+        .product-card.card-cached {
+            border-color: var(--sk-badge-purple-bdr);
+        }
+        .product-card.card-cached.card-checked {
+            border-color: rgba(36,237,155,0.45);
+        }
 
         .card-name {
             flex: 1 1 auto; font-size: 0.87rem; font-weight: 600; color: var(--sk-text);
@@ -267,13 +279,9 @@
                     <button type="submit" class="btn-deep-dive" id="diveBtn" disabled>
                         Deep Dive →
                     </button>
-                    {% if existing_analysis %}
-                    <a href="/inspector/analysis/{{ existing_analysis.analysis_id }}" class="btn-view-prev">
-                        View Previous →
-                    </a>
-                    {% endif %}
                 </div>
                 <div class="sel-status" id="selStatus">0 of {{ non_tc_prods | length }} products selected</div>
+                <div class="sel-cached-hint" id="selCachedHint">&nbsp;</div>
             </form>
         </div>
     </div>
@@ -299,9 +307,11 @@
                 {% if tier_prods %}
                 <div class="tier-cards">
                     {% for p in tier_prods | sort(attribute='priority') %}
-                    <label class="product-card">
+                    {% set is_cached = p.name in cached_product_names %}
+                    <label class="product-card{% if is_cached %} card-cached{% endif %}">
                         <input type="checkbox" name="products" value="{{ p.name }}"
-                               form="diveForm" class="product-cb">
+                               form="diveForm" class="product-cb"
+                               {% if is_cached %}checked data-cached="1"{% endif %}>
                         <div class="cb-visual">
                             <span class="cb-tick">✓</span>
                         </div>
@@ -311,6 +321,9 @@
                         {% endif %}
                         {% if p.deployment_model %}
                         <span class="badge-deploy {{ p.deployment_model | deployment_color }}">{{ p.deployment_model | deployment_display }}</span>
+                        {% endif %}
+                        {% if is_cached %}
+                        <span class="badge-cached" title="Already scored — cached result will be reused">In cache</span>
                         {% endif %}
                     </label>
                     {% endfor %}
@@ -427,15 +440,26 @@
 <script>
 (function() {
     const MAX_SEL = 6;  // Configurable — will be pulled from config
-    const form   = document.getElementById('diveForm');
-    const btn    = document.getElementById('diveBtn');
-    const status = document.getElementById('selStatus');
-    const TOTAL  = {{ non_tc_prods | length }};
+    const form        = document.getElementById('diveForm');
+    const btn         = document.getElementById('diveBtn');
+    const status      = document.getElementById('selStatus');
+    const cachedHint  = document.getElementById('selCachedHint');
+    const TOTAL       = {{ non_tc_prods | length }};
+
+    // Estimated seconds per newly-scored product (cached re-uses are free).
+    // Adjust as we get real telemetry; conservative default for now.
+    const EST_SECONDS_PER_NEW_PRODUCT = 35;
 
     function updateState() {
         const cbs = Array.from(document.querySelectorAll('.product-cb'));
         const checked = cbs.filter(cb => cb.checked);
         const n = checked.length;
+
+        // Cached vs new split — cached products were pre-selected on page load
+        // and carry data-cached="1". Newly user-selected products will trigger
+        // fresh scoring; cached ones re-use the existing analysis.
+        const cachedSelected = checked.filter(cb => cb.dataset.cached === '1').length;
+        const newSelected    = n - cachedSelected;
 
         btn.disabled = n === 0;
 
@@ -448,6 +472,27 @@
         } else {
             status.textContent = `${MAX_SEL} of ${MAX_SEL} — uncheck one to swap`;
             status.classList.add('has-selection');
+        }
+
+        // Cached/new hint + estimated time
+        if (cachedHint) {
+            if (n === 0) {
+                cachedHint.innerHTML = '&nbsp;';
+            } else if (newSelected === 0) {
+                cachedHint.textContent = `${cachedSelected} cached — instant`;
+            } else {
+                const secs = newSelected * EST_SECONDS_PER_NEW_PRODUCT;
+                const mm = Math.floor(secs / 60);
+                const ss = secs % 60;
+                const timeStr = mm > 0
+                    ? `~${mm}m ${ss}s`
+                    : `~${ss}s`;
+                if (cachedSelected > 0) {
+                    cachedHint.textContent = `${cachedSelected} cached + ${newSelected} new (${timeStr})`;
+                } else {
+                    cachedHint.textContent = `${newSelected} new (${timeStr})`;
+                }
+            }
         }
 
         const cards = document.querySelectorAll('.product-card:not(.comp-card)');
@@ -463,6 +508,16 @@
             }
         });
     }
+
+    // Apply card-checked class to pre-selected cached products on page load.
+    // The existing change handler below toggles this class on user click,
+    // but it never fires for the initial server-rendered checked state.
+    document.querySelectorAll('.product-cb').forEach(cb => {
+        if (cb.checked) {
+            const card = cb.closest('.product-card');
+            if (card) card.classList.add('card-checked');
+        }
+    });
 
     document.addEventListener('change', function(e) {
         if (!e.target.classList.contains('product-cb')) return;

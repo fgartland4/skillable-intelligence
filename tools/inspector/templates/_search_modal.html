@@ -1,0 +1,461 @@
+{# Standard Search Modal — reusable progress overlay used by every long-running operation.
+
+   Three sections per Frank's design:
+     1. Top    — eyebrow + operation target name
+     2. Middle — status text + animated dots (variable; future versions can render a per-stage checklist here)
+     3. Bottom — Skillable progress bar + elapsed timer
+
+   Sits as an overlay on top of any page (z-index above all page content).
+   The page underneath stays visible (slightly dimmed via backdrop) so context
+   is preserved.
+
+   USAGE:
+     {% import '_search_modal.html' as sm %}
+
+     <!-- Inside <style> block (once per page) -->
+     {{ sm.styles() }}
+
+     <!-- Once anywhere in <body> -->
+     {{ sm.markup() }}
+
+     <!-- After loading the JS function -->
+     <script>
+       {{ sm.js() }}
+     </script>
+
+     <!-- Then anywhere call -->
+     openSearchModal({
+       eyebrow: 'Refreshing',
+       title:   'Cohesity',
+       sseUrl:  '/inspector/score/progress/' + jobId,
+       onComplete: function(payload) { window.location.reload(); },
+       onError:    function(message) { alert(message); }
+     });
+
+   The SSE message contract is the existing 'status:' / 'done:' / 'error:'
+   text format published by backend push() calls. Future iterations can
+   extend the contract with structured stage events; this MVP is wire-
+   compatible with everything the platform publishes today. #}
+
+
+{% macro styles() %}
+/* ── Standard Search Modal — reusable progress overlay ── */
+.search-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.search-modal-backdrop.is-open { display: flex; }
+
+.search-modal-card {
+  background: var(--sk-surface);
+  border: 1px solid var(--sk-border);
+  border-radius: 20px;
+  padding: 44px 44px 36px;
+  text-align: center;
+  max-width: 520px; width: 92%;
+  box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 30px 80px rgba(0,0,0,0.55);
+  position: relative;
+}
+.search-modal-cancel {
+  position: absolute; top: 14px; right: 18px;
+  background: none; border: none;
+  color: var(--sk-text-dim);
+  font-size: 1.4rem; cursor: pointer;
+  line-height: 1; padding: 4px 8px;
+}
+.search-modal-cancel:hover { color: var(--sk-text-muted); }
+
+/* Top section — eyebrow + target name */
+.search-modal-eyebrow {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sk-accent);
+  margin-bottom: 10px;
+}
+.search-modal-title {
+  font-size: 1.7rem; font-weight: 800;
+  color: var(--sk-text);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 28px;
+}
+
+/* Middle section — status text + animated dots */
+.search-modal-status {
+  color: var(--sk-text-muted);
+  font-size: 0.92rem;
+  min-height: 22px;
+  margin-bottom: 22px;
+}
+.search-modal-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.search-modal-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--sk-accent);
+  animation: search-modal-pulse 1.4s ease-in-out infinite;
+}
+.search-modal-dot:nth-child(2) { animation-delay: 0.2s; }
+.search-modal-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes search-modal-pulse {
+  0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
+  40%           { transform: scale(1);   opacity: 1;   }
+}
+
+/* Bottom section — Skillable progress bar + timer + logo footer */
+.search-modal-progress-track {
+  width: 100%; height: 3px;
+  background: var(--sk-border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 22px 0 8px;
+}
+.search-modal-progress-fill {
+  height: 100%; width: 0%;
+  background: var(--sk-accent);
+  border-radius: 2px;
+  transition: width 1.2s ease;
+}
+.search-modal-timer {
+  font-size: 0.76rem;
+  color: var(--sk-text-dim);
+  margin-bottom: 18px;
+}
+.search-modal-logo {
+  margin-top: 6px;
+  display: flex; justify-content: center;
+  opacity: 0.85;
+}
+.search-modal-logo img { height: 22px; }
+
+/* Error state */
+.search-modal-error {
+  display: none;
+  margin-top: 18px;
+}
+.search-modal-error-msg {
+  color: var(--sk-score-low-soft);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  background: rgba(248,113,113,0.07);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.search-modal-error-btn {
+  display: inline-block; padding: 10px 22px;
+  background: rgba(36,237,155,0.08);
+  border: 1px solid rgba(36,237,155,0.25);
+  color: var(--sk-accent);
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.search-modal-error-btn:hover { background: rgba(36,237,155,0.15); }
+
+/* Decision mode — shown when the modal opens as a choice prompt
+   (e.g., "data refresh recommended" — Refresh / Ignore for now). */
+.search-modal-decision {
+  display: none;
+  margin-top: 4px;
+}
+.search-modal-decision-msg {
+  color: var(--sk-text-body);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin-bottom: 22px;
+}
+.search-modal-decision-actions {
+  display: flex; gap: 12px; justify-content: center;
+}
+.search-modal-btn {
+  display: inline-block; padding: 11px 24px;
+  border-radius: 10px; font-size: 0.88rem;
+  font-weight: 700; cursor: pointer;
+  border: 1px solid;
+  font-family: inherit;
+}
+.search-modal-btn-primary {
+  background: var(--sk-accent);
+  color: var(--sk-bg);
+  border-color: var(--sk-accent);
+}
+.search-modal-btn-primary:hover {
+  background: var(--sk-accent-soft);
+  box-shadow: 0 0 16px rgba(36,237,155,0.25);
+}
+.search-modal-btn-secondary {
+  background: transparent;
+  color: var(--sk-text-muted);
+  border-color: var(--sk-border);
+}
+.search-modal-btn-secondary:hover {
+  color: var(--sk-text-strong);
+  border-color: var(--sk-text-dim);
+}
+
+/* When the modal is in decision mode, hide the progress UI (status,
+   dots, progress bar, timer). Switch to decision section. */
+.search-modal-card.is-decision .search-modal-status,
+.search-modal-card.is-decision .search-modal-dots,
+.search-modal-card.is-decision .search-modal-progress-track,
+.search-modal-card.is-decision .search-modal-timer,
+.search-modal-card.is-decision .search-modal-logo {
+  display: none;
+}
+.search-modal-card.is-decision .search-modal-decision { display: block; }
+{% endmacro %}
+
+
+{% macro markup() %}
+<div class="search-modal-backdrop" id="searchModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
+  <div class="search-modal-card">
+    <button type="button" class="search-modal-cancel" id="searchModalCancel" title="Cancel">&times;</button>
+
+    {# Top section — eyebrow + target #}
+    <div class="search-modal-eyebrow" id="searchModalEyebrow">Working</div>
+    <div class="search-modal-title"   id="searchModalTitle">&nbsp;</div>
+
+    {# Middle section — status + animated dots #}
+    <div class="search-modal-status" id="searchModalStatus">Starting...</div>
+    <div class="search-modal-dots">
+      <div class="search-modal-dot"></div>
+      <div class="search-modal-dot"></div>
+      <div class="search-modal-dot"></div>
+    </div>
+
+    {# Bottom section — progress bar + timer + Skillable logo #}
+    <div class="search-modal-progress-track">
+      <div class="search-modal-progress-fill" id="searchModalProgressFill"></div>
+    </div>
+    <div class="search-modal-timer" id="searchModalTimer">0:00</div>
+    <div class="search-modal-logo">
+      <img src="/static/img/skillable-logo.svg" alt="Skillable"
+           onerror="this.style.display='none';" />
+    </div>
+
+    {# Decision mode — Refresh / Ignore choice prompt (hidden by default) #}
+    <div class="search-modal-decision">
+      <div class="search-modal-decision-msg" id="searchModalDecisionMsg">&nbsp;</div>
+      <div class="search-modal-decision-actions">
+        <button type="button" class="search-modal-btn search-modal-btn-secondary" id="searchModalIgnoreBtn">Ignore for now</button>
+        <button type="button" class="search-modal-btn search-modal-btn-primary"   id="searchModalRefreshBtn">Refresh</button>
+      </div>
+    </div>
+
+    <div class="search-modal-error" id="searchModalError">
+      <div class="search-modal-error-msg" id="searchModalErrorMsg"></div>
+      <button type="button" class="search-modal-error-btn" id="searchModalErrorBtn">Close</button>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+
+{% macro js() %}
+// ── Standard Search Modal — opens an overlay subscribed to an SSE endpoint ──
+//
+// Usage:
+//   openSearchModal({
+//     eyebrow: 'Refreshing',
+//     title:   'Cohesity',
+//     sseUrl:  '/inspector/score/progress/' + jobId,
+//     onComplete: function(payload) { window.location.reload(); },
+//     onError:    function(message) { /* defaults to alert */ }
+//   });
+//
+// SSE message contract: 'status:<text>' / 'done:<payload>' / 'error:<message>'
+// (matches the existing push() format published by backend operations).
+window.openSearchModal = function(opts) {
+  opts = opts || {};
+  const backdrop = document.getElementById('searchModalBackdrop');
+  if (!backdrop) {
+    console.error('openSearchModal: search modal markup not on page');
+    return;
+  }
+
+  // Reset state for any previous run
+  document.getElementById('searchModalEyebrow').textContent = opts.eyebrow || 'Working';
+  document.getElementById('searchModalTitle').textContent   = opts.title || '';
+  document.getElementById('searchModalStatus').textContent  = 'Starting...';
+  document.getElementById('searchModalProgressFill').style.width = '0%';
+  document.getElementById('searchModalTimer').textContent   = '0:00';
+  document.getElementById('searchModalError').style.display = 'none';
+  document.querySelectorAll('.search-modal-status, .search-modal-dots, .search-modal-progress-track, .search-modal-timer')
+    .forEach(function(el) { el.style.display = ''; });
+
+  backdrop.classList.add('is-open');
+
+  // Subscribe to SSE
+  const source = new EventSource(opts.sseUrl);
+  const startTime = Date.now();
+  let pct = 0;
+
+  // Animated progress bar (creeps to ~85% then waits for done)
+  const progressInterval = setInterval(function() {
+    pct = Math.min(pct + 0.4, 85);  // magic-allowed: progress bar visual creep rate
+    document.getElementById('searchModalProgressFill').style.width = pct + '%';
+  }, 300);
+
+  // Elapsed timer
+  const timerInterval = setInterval(function() {
+    const s = Math.floor((Date.now() - startTime) / 1000);
+    const mm = Math.floor(s / 60);
+    const ss = String(s % 60).padStart(2, '0');
+    document.getElementById('searchModalTimer').textContent = mm + ':' + ss;
+  }, 1000);
+
+  function cleanup() {
+    source.close();
+    clearInterval(progressInterval);
+    clearInterval(timerInterval);
+  }
+
+  function close() {
+    cleanup();
+    backdrop.classList.remove('is-open');
+  }
+
+  function showError(message) {
+    document.getElementById('searchModalStatus').style.display = 'none';
+    document.querySelector('.search-modal-dots').style.display = 'none';
+    document.querySelector('.search-modal-progress-track').style.display = 'none';
+    document.getElementById('searchModalTimer').style.display = 'none';
+    document.getElementById('searchModalErrorMsg').textContent = message;
+    document.getElementById('searchModalError').style.display = 'block';
+  }
+
+  source.onmessage = function(e) {
+    const msg = e.data || '';
+    if (msg.startsWith('status:')) {
+      document.getElementById('searchModalStatus').textContent = msg.slice(7);
+    } else if (msg.startsWith('done:')) {
+      cleanup();
+      document.getElementById('searchModalStatus').textContent = 'Complete';
+      document.getElementById('searchModalProgressFill').style.width = '100%';
+      const payload = msg.slice(5);
+      if (typeof opts.onComplete === 'function') {
+        opts.onComplete(payload);
+      } else {
+        setTimeout(close, 600);  // magic-allowed: brief pause so user sees the 100% bar
+      }
+    } else if (msg.startsWith('error:')) {
+      cleanup();
+      const errMsg = msg.slice(6);
+      if (typeof opts.onError === 'function') {
+        opts.onError(errMsg);
+      } else {
+        showError(errMsg);
+      }
+    }
+  };
+
+  source.onerror = function() {
+    cleanup();
+    showError('Connection lost. Please try again.');
+  };
+
+  // Cancel button
+  document.getElementById('searchModalCancel').onclick = close;
+  document.getElementById('searchModalErrorBtn').onclick = close;
+};
+
+
+// ── Decision mode — open the modal as a Refresh/Ignore choice prompt ──
+//
+// Used when a page detects stale cache on load and wants to prompt the user
+// before triggering an actual refresh. If the user picks Refresh, the modal
+// transitions in place to progress mode (subscribing to the SSE endpoint
+// returned by onRefresh()). If the user picks Ignore, the modal closes and
+// the page stays as-is (with whatever cached data was rendered).
+//
+// Usage:
+//   openSearchModalDecision({
+//     eyebrow: 'Cache check',
+//     title:   'Cohesity',
+//     message: 'This analysis was scored with older logic. Refresh recommended.',
+//     onRefresh: function() {
+//       // Kick off the refresh, return the SSE URL + completion handler
+//       fetch('/inspector/analysis/' + analysisId + '/refresh', { method: 'POST' })
+//         .then(function(r) { return r.json(); })
+//         .then(function(d) {
+//           if (!d.ok) { throw new Error(d.error || 'refresh failed'); }
+//           // Transition the same modal to progress mode
+//           transitionSearchModalToProgress({
+//             sseUrl: '/inspector/score/progress/' + d.job_id,
+//             onComplete: function() { window.location.reload(); }
+//           });
+//         });
+//     },
+//     onIgnore: function() { /* default: close */ }
+//   });
+window.openSearchModalDecision = function(opts) {
+  opts = opts || {};
+  const backdrop = document.getElementById('searchModalBackdrop');
+  if (!backdrop) {
+    console.error('openSearchModalDecision: search modal markup not on page');
+    return;
+  }
+  const card = backdrop.querySelector('.search-modal-card');
+
+  document.getElementById('searchModalEyebrow').textContent     = opts.eyebrow || 'Notice';
+  document.getElementById('searchModalTitle').textContent       = opts.title || '';
+  document.getElementById('searchModalDecisionMsg').textContent = opts.message || '';
+
+  // Switch to decision mode (CSS handles hiding progress UI / showing buttons)
+  card.classList.add('is-decision');
+  document.getElementById('searchModalError').style.display = 'none';
+  backdrop.classList.add('is-open');
+
+  function close() {
+    card.classList.remove('is-decision');
+    backdrop.classList.remove('is-open');
+  }
+
+  document.getElementById('searchModalIgnoreBtn').onclick = function() {
+    close();
+    if (typeof opts.onIgnore === 'function') opts.onIgnore();
+  };
+
+  document.getElementById('searchModalRefreshBtn').onclick = function() {
+    if (typeof opts.onRefresh === 'function') {
+      opts.onRefresh();
+    }
+  };
+
+  document.getElementById('searchModalCancel').onclick = close;
+};
+
+
+// ── Transition the open modal from decision mode to progress mode ──
+//
+// Called by an onRefresh handler after kicking off a backend operation.
+// Reuses the same modal element — no flicker, just swaps the inner UI.
+window.transitionSearchModalToProgress = function(opts) {
+  opts = opts || {};
+  const backdrop = document.getElementById('searchModalBackdrop');
+  if (!backdrop) return;
+  const card = backdrop.querySelector('.search-modal-card');
+
+  // Drop decision mode so progress UI is visible again
+  card.classList.remove('is-decision');
+
+  // Reuse openSearchModal's progress logic, but DON'T re-open the backdrop
+  // (it's already open from the decision prompt) — just refresh the state
+  // and start the SSE subscription. We do this by calling openSearchModal
+  // with the same opts; it gracefully resets the progress UI elements.
+  openSearchModal({
+    eyebrow:    opts.eyebrow    || document.getElementById('searchModalEyebrow').textContent,
+    title:      opts.title      || document.getElementById('searchModalTitle').textContent,
+    sseUrl:     opts.sseUrl,
+    onComplete: opts.onComplete,
+    onError:    opts.onError,
+  });
+};
+{% endmacro %}
+</content>
+</invoke>

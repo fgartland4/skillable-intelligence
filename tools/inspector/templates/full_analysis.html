@@ -3,6 +3,7 @@
   Data source: analysis dict prepared by inspector_full_analysis() in app_new.py.
 #}
 {% import '_company_header.html' as ch %}
+{% import '_search_modal.html' as sm %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -175,6 +176,7 @@ document.addEventListener('mouseleave', function(e) {
 <style>
 {% include '_theme_new.html' %}
 {{ ch.styles() }}
+{{ sm.styles() }}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe UI', Calibri, sans-serif; min-width: 900px; }
 /* Page content sits below the shared nav and gets the side/top padding */
@@ -182,9 +184,6 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 
 .header { padding-bottom: 14px; margin-bottom: 16px; }
 .header-top { display: flex; align-items: flex-start; justify-content: space-between; }
-/* Legacy .company-title, .company-name, .company-badge, .company-desc styles
-   deleted — replaced by the shared Company Header Widget partial
-   (_company_header.html, ch.styles() injected above). */
 .header-right { text-align: right; }
 .header-cache { font-size: 0.7rem; color: var(--sk-text-muted); line-height: 1.6; white-space: nowrap; }
 .header-cache a { color: var(--sk-text-muted); text-decoration: none; border-bottom: 1px dotted var(--sk-text-dim); }
@@ -756,6 +755,10 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 </div>
 {% endif %}
 
+{# Standard Search Modal — overlay used by stale-cache refresh and the
+   Refresh Cache button. Single instance per page; opens via JS. #}
+{{ sm.markup() }}
+
 </div> {# /.page-content #}
 
 <script>
@@ -809,23 +812,34 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     };
 
     // ── Cache refresh (called from cache date link in header) ──
+    // Uses the Standard Search Modal in progress mode to overlay the page
+    // while scoring re-runs. Replaces the legacy navigation hack that sent
+    // the user to the raw SSE endpoint URL (rendering raw event-stream text).
     window.refreshCache = function(event) {
         if (event) event.preventDefault();
-        if (!confirm('Refresh cached analysis? This will re-run scoring for all products and may take a few minutes.')) {
-            return;
-        }
+        startCacheRefresh();
+    };
+
+    function startCacheRefresh() {
         fetch('/inspector/analysis/' + ANALYSIS_ID + '/refresh', { method: 'POST' })
             .then(function(r) { return r.json(); })
             .then(function(d) {
-                if (d.ok) {
-                    // Send the user to the scoring progress page so they see the run
-                    window.location.href = '/inspector/score/progress/' + d.job_id;
-                } else {
+                if (!d.ok) {
                     alert('Refresh failed: ' + (d.error || 'unknown error'));
+                    return;
                 }
+                // Open the modal in progress mode subscribed to the score
+                // progress SSE endpoint. When the SSE emits 'done:', reload
+                // the page so the user sees the freshly scored data.
+                openSearchModal({
+                    eyebrow: 'Refreshing',
+                    title:   '{{ analysis.company_name | e }}',
+                    sseUrl:  '/inspector/score/progress/' + d.job_id,
+                    onComplete: function() { window.location.reload(); }
+                });
             })
             .catch(function(e) { alert('Refresh failed: ' + e); });
-    };
+    }
 
     // ── Briefcase polling (product-aware) ──
     function checkBriefcase() {
@@ -874,6 +888,48 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     }
 })();
 </script>
+
+{# Standard Search Modal JS — defines openSearchModal, openSearchModalDecision,
+   transitionSearchModalToProgress on the window object. #}
+<script>
+{{ sm.js() }}
+</script>
+
+{% if is_cache_stale %}
+{# Stale cache detected on page load — prompt the user with the decision modal.
+   Refresh: kicks off the existing /refresh endpoint, transitions modal to
+            progress mode, reloads page when scoring completes.
+   Ignore for now: closes the modal; the user sees the cached page as-is. #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    openSearchModalDecision({
+        eyebrow: 'Cache check',
+        title:   '{{ analysis.company_name | e }}',
+        message: 'Data refresh recommended — this analysis was scored with an older version of the scoring logic. Refresh now for current scoring, or ignore and continue with the cached view.',
+        onRefresh: function() {
+            // Re-use the same path as the manual refresh button: hit the
+            // refresh endpoint, then transition the modal in place to
+            // progress mode subscribed to the score progress SSE.
+            fetch('/inspector/analysis/{{ analysis.analysis_id }}/refresh', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (!d.ok) {
+                        alert('Refresh failed: ' + (d.error || 'unknown error'));
+                        return;
+                    }
+                    transitionSearchModalToProgress({
+                        eyebrow: 'Refreshing',
+                        title:   '{{ analysis.company_name | e }}',
+                        sseUrl:  '/inspector/score/progress/' + d.job_id,
+                        onComplete: function() { window.location.reload(); }
+                    });
+                })
+                .catch(function(e) { alert('Refresh failed: ' + e); });
+        }
+    });
+});
+</script>
+{% endif %}
 
 </body>
 </html>
