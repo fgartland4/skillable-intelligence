@@ -331,6 +331,65 @@ def inspector_product_selection(discovery_id: str):
         disc.get("organization_type", "software_company")
     )
 
+    import scoring_config as cfg
+
+    # ── Product Family Picker ────────────────────────────────────────────────
+    # When a discovery returns 20+ non-TC products AND the website nav scrape
+    # produced multiple families, surface a family picker so the user can
+    # narrow the scope before selecting products for Deep Dive. The modal
+    # markup already lives in the template — this just builds the data and
+    # the show_family_picker flag, plus filters when the user has chosen.
+    show_family_picker = False
+    non_tc = [p for p in disc.get("products", [])
+              if p.get("category") != "Training & Certification"]
+    selected_families = request.args.getlist("family")
+
+    if selected_families:
+        # User picked one or more families — filter products to matches.
+        # Training & Certification products always come along regardless.
+        families_lower = {f.lower() for f in selected_families}
+        disc["products"] = [
+            p for p in disc.get("products", [])
+            if p.get("category", "").lower() in families_lower
+            or any(fl in p.get("name", "").lower() for fl in families_lower)
+            or any(fl in p.get("subcategory", "").lower() for fl in families_lower)
+            or p.get("category") == "Training & Certification"
+        ]
+        disc["_selected_families"] = selected_families
+    elif len(non_tc) >= cfg.PRODUCT_FAMILY_PICKER_THRESHOLD:
+        # Show the family picker — prefer scraped families from website nav
+        # (vendor's own organization), fall back to category-based grouping.
+        scraped = disc.get("_scraped_families") or []
+        families = []
+        if scraped:
+            for fam in scraped:
+                fam_lower = fam["name"].lower()
+                fam["product_count"] = sum(
+                    1 for p in non_tc
+                    if fam_lower in p.get("name", "").lower()
+                    or fam_lower in p.get("category", "").lower()
+                    or fam_lower in p.get("subcategory", "").lower()
+                )
+            families = sorted(scraped,
+                              key=lambda f: f.get("product_count", 0),
+                              reverse=True)
+        else:
+            # Fallback: group by category
+            family_counts: dict[str, int] = {}
+            for p in non_tc:
+                cat = p.get("category", "Other")
+                family_counts[cat] = family_counts.get(cat, 0) + 1
+            families = sorted(
+                [{"name": c, "product_count": n} for c, n in family_counts.items()],
+                key=lambda f: f["product_count"], reverse=True
+            )
+
+        # Only show the picker when there are multiple families to choose
+        # from — one family is no choice at all.
+        if len(families) > 1:
+            disc["product_families"] = families
+            show_family_picker = True
+
     # Check for existing analysis
     existing = find_analysis_by_discovery_id(discovery_id)
 
@@ -346,13 +405,12 @@ def inspector_product_selection(discovery_id: str):
             if n:
                 cached_product_names.add(n)
 
-    import scoring_config as cfg
-
     return render_template("product_selection.html",
                           discovery=disc,
                           existing_analysis=existing,
                           cached_product_names=cached_product_names,
-                          deep_dive_max_new=cfg.DEEP_DIVE_MAX_NEW_PRODUCTS)
+                          deep_dive_max_new=cfg.DEEP_DIVE_MAX_NEW_PRODUCTS,
+                          show_family_picker=show_family_picker)
 
 
 @app.route("/inspector/score", methods=["POST"])

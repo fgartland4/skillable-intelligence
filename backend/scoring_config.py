@@ -2124,6 +2124,17 @@ def is_cached_logic_current(cached_data: dict | None) -> bool:
 # from monopolizing the API budget.
 DEEP_DIVE_MAX_NEW_PRODUCTS = 4
 
+# Threshold above which the Product Family picker activates on the Product
+# Selection page. When a discovery returns this many or more non-TC products
+# AND the website nav scrape produced multiple families, the page surfaces
+# the family picker modal so the user can narrow the focus before selecting
+# products for Deep Dive. Below this threshold, the picker is skipped — there
+# isn't enough product volume to make narrowing worthwhile.
+#
+# Was 30 historically, dropped to 20 on 2026-04-06 per Frank's directive.
+# Spec source: docs/archive/inspector.md "Product Family Selection" rule.
+PRODUCT_FAMILY_PICKER_THRESHOLD = 20
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # VALIDATION
