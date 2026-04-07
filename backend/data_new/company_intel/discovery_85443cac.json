@@ -1,0 +1,514 @@
+{
+  "company_name": "Tanium",
+  "company_description": "Tanium is an enterprise cybersecurity and IT operations platform that provides real-time endpoint visibility, control, and management across large-scale environments through its converged endpoint management architecture.",
+  "company_url": "https://www.tanium.com",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Tanium Autonomous IT Platform",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Management",
+      "description": "Unified platform providing real-time visibility and control across all endpoints at enterprise scale, enabling autonomous IT operations with LEARN AI features for intelligent remediation.",
+      "deployment_model": "hybrid",
+      "discovery_score": 88,
+      "priority": 1,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Endpoint Management",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Management",
+      "description": "Provides IT operations teams with real-time inventory, patch management, software distribution, and configuration management across all endpoints.",
+      "deployment_model": "hybrid",
+      "discovery_score": 87,
+      "priority": 2,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Threat Response",
+      "category": "Cybersecurity",
+      "subcategory": "Detection & Response",
+      "description": "Endpoint detection and response (EDR) solution that enables security teams to detect, investigate, and respond to threats across all endpoints in real time.",
+      "deployment_model": "hybrid",
+      "discovery_score": 86,
+      "priority": 3,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Protect",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Protection",
+      "description": "Endpoint protection platform that enforces security policies, manages host-based firewalls, and controls application execution across enterprise endpoints.",
+      "deployment_model": "hybrid",
+      "discovery_score": 84,
+      "priority": 4,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Patch",
+      "category": "Cybersecurity",
+      "subcategory": "Vulnerability Management",
+      "description": "Automated patch management solution that identifies missing patches and deploys updates across Windows, Linux, and macOS endpoints at scale.",
+      "deployment_model": "hybrid",
+      "discovery_score": 83,
+      "priority": 5,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Comply",
+      "category": "Cybersecurity",
+      "subcategory": "Compliance & Audit",
+      "description": "Continuous compliance assessment tool that evaluates endpoints against industry benchmarks (CIS, STIG, PCI-DSS) and reports compliance posture in real time.",
+      "deployment_model": "hybrid",
+      "discovery_score": 82,
+      "priority": 6,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Asset",
+      "category": "Cybersecurity",
+      "subcategory": "Asset Management",
+      "description": "Real-time asset inventory and discovery solution that provides comprehensive visibility into all hardware and software assets across the enterprise.",
+      "deployment_model": "hybrid",
+      "discovery_score": 80,
+      "priority": 7,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Discover",
+      "category": "Cybersecurity",
+      "subcategory": "Asset Discovery",
+      "description": "Identifies unmanaged and rogue devices on the network, providing visibility into assets that may not have the Tanium client installed.",
+      "deployment_model": "hybrid",
+      "discovery_score": 79,
+      "priority": 8,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Vulnerability Risk & Compliance",
+      "category": "Cybersecurity",
+      "subcategory": "Vulnerability Management",
+      "description": "Combines vulnerability scanning, risk scoring, and compliance reporting to prioritize and remediate security exposures across endpoints.",
+      "deployment_model": "hybrid",
+      "discovery_score": 82,
+      "priority": 9,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Deploy",
+      "category": "Cybersecurity",
+      "subcategory": "Software Distribution",
+      "description": "Enterprise software deployment solution that distributes, installs, and manages software packages across large endpoint populations at scale.",
+      "deployment_model": "hybrid",
+      "discovery_score": 78,
+      "priority": 10,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Performance",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Monitoring",
+      "description": "Monitors endpoint performance metrics including CPU, memory, disk, and process activity to identify and resolve performance issues in real time.",
+      "deployment_model": "hybrid",
+      "discovery_score": 76,
+      "priority": 11,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Integrity Monitor",
+      "category": "Cybersecurity",
+      "subcategory": "File Integrity Monitoring",
+      "description": "Provides real-time file integrity monitoring (FIM) to detect unauthorized changes to critical system files, directories, and registry keys.",
+      "deployment_model": "hybrid",
+      "discovery_score": 80,
+      "priority": 12,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Map",
+      "category": "Cybersecurity",
+      "subcategory": "Network Visibility",
+      "description": "Visualizes network connections and service dependencies between endpoints to support incident response and network segmentation planning.",
+      "deployment_model": "hybrid",
+      "discovery_score": 75,
+      "priority": 13,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Index",
+      "category": "Cybersecurity",
+      "subcategory": "File Search & Forensics",
+      "description": "Enables real-time file system indexing and search across all endpoints to support forensic investigations and data discovery.",
+      "deployment_model": "hybrid",
+      "discovery_score": 74,
+      "priority": 14,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Connect",
+      "category": "Cybersecurity",
+      "subcategory": "Data Integration",
+      "description": "Integration module that streams Tanium data to external SIEM, ITSM, and analytics platforms such as Splunk, ServiceNow, and Elastic.",
+      "deployment_model": "hybrid",
+      "discovery_score": 73,
+      "priority": 15,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Interact",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Query",
+      "description": "Real-time query interface that allows operators to ask questions of all endpoints simultaneously and receive answers within seconds.",
+      "deployment_model": "hybrid",
+      "discovery_score": 85,
+      "priority": 16,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Trends",
+      "category": "Data & Analytics",
+      "subcategory": "Endpoint Analytics",
+      "description": "Historical trending and visualization module that tracks endpoint data over time to identify patterns and support capacity planning.",
+      "deployment_model": "hybrid",
+      "discovery_score": 70,
+      "priority": 17,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Benchmark",
+      "category": "Data & Analytics",
+      "subcategory": "Peer Benchmarking",
+      "description": "Compares an organization's endpoint security and operations metrics against anonymized industry peer data to identify gaps and improvements.",
+      "deployment_model": "saas-only",
+      "discovery_score": 18,
+      "priority": 18,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Tanium Impact",
+      "category": "Cybersecurity",
+      "subcategory": "Risk Assessment",
+      "description": "Analyzes user and group privilege relationships across endpoints to identify and reduce attack surface from over-privileged accounts.",
+      "deployment_model": "hybrid",
+      "discovery_score": 78,
+      "priority": 19,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Reveal",
+      "category": "Cybersecurity",
+      "subcategory": "Data Discovery",
+      "description": "Scans endpoints for sensitive data such as PII, PHI, and PCI data to support data governance and regulatory compliance programs.",
+      "deployment_model": "hybrid",
+      "discovery_score": 77,
+      "priority": 20,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Client",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Agent",
+      "description": "Lightweight endpoint agent installed on managed devices that enables real-time communication, data collection, and action execution across the Tanium platform.",
+      "deployment_model": "installable",
+      "discovery_score": 82,
+      "priority": 21,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Server",
+      "category": "Cybersecurity",
+      "subcategory": "Management Server",
+      "description": "Core server component of the Tanium platform that orchestrates communication between the Tanium Module Server, Zone Servers, and endpoints.",
+      "deployment_model": "installable",
+      "discovery_score": 83,
+      "priority": 22,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Module Server",
+      "category": "Cybersecurity",
+      "subcategory": "Platform Services",
+      "description": "Hosts Tanium solution modules and workbenches, extending the core platform with specialized capabilities for security and IT operations.",
+      "deployment_model": "installable",
+      "discovery_score": 78,
+      "priority": 23,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Zone Server",
+      "category": "Cybersecurity",
+      "subcategory": "Network Architecture",
+      "description": "Proxy component that enables Tanium clients in DMZ or segmented network zones to communicate securely with the Tanium Server.",
+      "deployment_model": "installable",
+      "discovery_score": 72,
+      "priority": 24,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium API",
+      "category": "DevOps",
+      "subcategory": "API Integration",
+      "description": "RESTful API that enables programmatic access to Tanium platform capabilities for automation, orchestration, and third-party integrations.",
+      "deployment_model": "hybrid",
+      "discovery_score": 74,
+      "priority": 25,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Tanium Cloud",
+      "category": "Cloud Infrastructure",
+      "subcategory": "SaaS Delivery",
+      "description": "Cloud-hosted delivery model for the Tanium platform that eliminates on-premises infrastructure requirements while maintaining full platform capabilities.",
+      "deployment_model": "saas-only",
+      "discovery_score": 20,
+      "priority": 26,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Tanium Training & Certification",
+      "category": "Training & Certification",
+      "subcategory": "Vendor Certification",
+      "description": "Tanium's official training and certification program covering platform administration, security operations, and IT operations use cases.",
+      "deployment_model": "saas-only",
+      "discovery_score": 0,
+      "priority": 27,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "CrowdStrike",
+      "product_name": "Falcon Insight XDR",
+      "category": "Cybersecurity",
+      "subcategory": "Detection & Response",
+      "competitive_context": "CrowdStrike Falcon competes directly with Tanium Threat Response in the EDR/XDR market for enterprise endpoint security."
+    },
+    {
+      "competitor_name": "Microsoft",
+      "product_name": "Microsoft Defender for Endpoint",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Protection",
+      "competitive_context": "Microsoft Defender for Endpoint competes with Tanium's endpoint protection and management capabilities, especially in Microsoft-centric environments."
+    },
+    {
+      "competitor_name": "Ivanti",
+      "product_name": "Ivanti Neurons",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Management",
+      "competitive_context": "Ivanti Neurons competes with Tanium's endpoint management and patch management modules for enterprise IT operations."
+    },
+    {
+      "competitor_name": "ServiceNow",
+      "product_name": "IT Operations Management (ITOM)",
+      "category": "Cybersecurity",
+      "subcategory": "Asset Management",
+      "competitive_context": "ServiceNow ITOM competes with Tanium Asset and Discover for enterprise asset inventory and IT operations workflows."
+    },
+    {
+      "competitor_name": "Qualys",
+      "product_name": "Qualys VMDR",
+      "category": "Cybersecurity",
+      "subcategory": "Vulnerability Management",
+      "competitive_context": "Qualys VMDR competes with Tanium Comply and Patch for vulnerability assessment and remediation across enterprise endpoints."
+    },
+    {
+      "competitor_name": "Rapid7",
+      "product_name": "InsightVM",
+      "category": "Cybersecurity",
+      "subcategory": "Vulnerability Management",
+      "competitive_context": "Rapid7 InsightVM competes with Tanium's vulnerability and compliance modules for enterprise risk management."
+    },
+    {
+      "competitor_name": "BigFix (HCL)",
+      "product_name": "BigFix",
+      "category": "Cybersecurity",
+      "subcategory": "Endpoint Management",
+      "competitive_context": "HCL BigFix is a legacy competitor to Tanium in large-scale endpoint management and patch deployment."
+    },
+    {
+      "competitor_name": "SentinelOne",
+      "product_name": "Singularity Platform",
+      "category": "Cybersecurity",
+      "subcategory": "Detection & Response",
+      "competitive_context": "SentinelOne Singularity competes with Tanium Threat Response in the autonomous EDR and XDR market segment."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": "Tanium Partner Program",
+    "channel_program": "Tanium Partner Network",
+    "ondemand_library": 1,
+    "cert_program": 1,
+    "existing_lab_partner": [],
+    "ilt_vilt": "Tanium offers instructor-led and virtual instructor-led training through its Learning portal",
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "partner_portal_page": "{{'feedback.message'|i18n}} {{'feedback.message.link'|i18n}} \u00c3\u0097 \u00d7 Feedback {{feedbackModal.extraMessage|i18n}} \u00d7 {{ 'common.cancel'|i18n }} {{ 'common.continue'|i18n }} \u00d7 {{ 'nav.help'|i18n }} {{ 'common.close'|i18n }} \u00d7 {{ 'common.language' | i18n }} {{ 'common.close'|i18n }} {{ 'common.save'|i18n }}",
+    "product_page_1": "Tanium Autonomous IT Platform | Tanium Skip to content",
+    "atp_page": "Learning | Tanium Skip to content",
+    "training_page": "Tanium Training | Tanium Skip to content",
+    "company_homepage": "Autonomous IT, endpoint intelligence and control Skip to content",
+    "product_page_0": "Autonomous IT, endpoint intelligence and control Skip to content"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "85443cac",
+  "created_at": "2026-04-06T17:44:00.235021+00:00",
+  "known_products": [],
+  "_company_badge": "SOFTWARE",
+  "_org_color": "purple",
+  "_scraped_families": [
+    {
+      "name": "Tanium Account",
+      "url": "https://account.cloud.tanium.com/"
+    },
+    {
+      "name": "Platform",
+      "url": "https://www.tanium.com/autonomous-it-platform"
+    },
+    {
+      "name": "Explore Tanium",
+      "url": "https://www.tanium.com/autonomous-it-platform"
+    },
+    {
+      "name": "Solutions",
+      "url": "https://www.tanium.com/solutions/"
+    },
+    {
+      "name": "Agentic AI",
+      "url": "https://www.tanium.com/solutions/ai"
+    },
+    {
+      "name": "Endpoint Performance Optimization",
+      "url": "https://www.tanium.com/solutions/endpoint-performance-optimization"
+    },
+    {
+      "name": "Real-Time Asset Visibility",
+      "url": "https://www.tanium.com/solutions/asset-visibility"
+    },
+    {
+      "name": "Continuous Endpoint Security",
+      "url": "https://www.tanium.com/solutions/continuous-endpoint-security"
+    },
+    {
+      "name": "Autonomous Patch Management",
+      "url": "https://www.tanium.com/solutions/autonomous-patch-management"
+    },
+    {
+      "name": "Enterprise Application Management",
+      "url": "https://www.tanium.com/solutions/enterprise-application-management"
+    },
+    {
+      "name": "Mobile",
+      "url": "https://www.tanium.com/solutions/endpoint-management-for-mobile"
+    },
+    {
+      "name": "Operational Technology (OT)",
+      "url": "https://www.tanium.com/solutions/tanium-endpoint-management-for-operational-technology"
+    },
+    {
+      "name": "Integrations & Connectivity",
+      "url": "https://www.tanium.com/solutions/integrations-and-connectivity/"
+    },
+    {
+      "name": "Energy, Oil, and Gas",
+      "url": "https://www.tanium.com/solutions/energy-oil-gas/"
+    },
+    {
+      "name": "Financial Services",
+      "url": "https://www.tanium.com/solutions/financial-services/"
+    },
+    {
+      "name": "Healthcare",
+      "url": "https://www.tanium.com/solutions/healthcare/"
+    },
+    {
+      "name": "Manufacturing",
+      "url": "https://www.tanium.com/solutions/manufacturing/"
+    },
+    {
+      "name": "Federal Government",
+      "url": "https://www.tanium.com/solutions/federal-government/"
+    },
+    {
+      "name": "State & Local Government",
+      "url": "https://www.tanium.com/solutions/state-and-local-government/"
+    },
+    {
+      "name": "Education",
+      "url": "https://www.tanium.com/solutions/education/"
+    },
+    {
+      "name": "Retail",
+      "url": "https://www.tanium.com/solutions/retail/"
+    },
+    {
+      "name": "Technology",
+      "url": "https://www.tanium.com/solutions/technology/"
+    },
+    {
+      "name": "Partners",
+      "url": "https://www.tanium.com/partners/"
+    },
+    {
+      "name": "Partner program overview",
+      "url": "https://www.tanium.com/partners/"
+    },
+    {
+      "name": "View all partners",
+      "url": "https://www.tanium.com/partners/find-a-partner"
+    },
+    {
+      "name": "SERVICENOWTanium powers ServiceNow AI agents and workflows.",
+      "url": "https://www.tanium.com/partners/servicenow/spotlight/"
+    },
+    {
+      "name": "Company",
+      "url": "#"
+    },
+    {
+      "name": "See a demo",
+      "url": "https://www.tanium.com/see-a-demo"
+    }
+  ]
+}

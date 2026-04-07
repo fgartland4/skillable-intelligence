@@ -1,0 +1,1818 @@
+{
+  "company_name": "EQIQ",
+  "company_url": null,
+  "company_description": "",
+  "organization_type": "professional_services",
+  "products": [
+    {
+      "name": "Go-To-Market Strategy Consulting",
+      "category": "Management Consulting",
+      "subcategory": "Go-To-Market Strategy",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Business Analyst",
+        "Business User"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "GTM Framework Knowledge Check"
+      ],
+      "poor_match_flags": [
+        "no_api_automation",
+        "saas_only",
+        "consumer_product"
+      ],
+      "recommendation": [
+        "EQIQ's Go-To-Market Strategy Consulting is a pure professional services offering with no software product to provision, configure, or score in any Skillable environment. The API Automation Gate fails at Step 1 \u2014 there is no software platform, no per-learner provisioning path, no accounts to create, and no state to validate. Hands-on labs require a software product; consulting methodology does not qualify. No investment of solution engineering time is warranted.",
+        "The research pages provided for this scoring exercise returned content from three unrelated companies \u2014 IQ-EQ (fund administration), Epiq (procurement software), and The Emotional Intelligence Training Company (EQ-i 2.0 certification). None of these are EQIQ the GTM consulting firm. If the intent was to score one of these other companies, the product should be resubmitted with correct research. IQ-EQ (fund services) and Epiq (source-to-pay software) would both warrant separate, proper evaluations.",
+        "If EQIQ has developed or is developing a proprietary software platform (e.g., a GTM assessment tool, a sales enablement SaaS, or a positioning framework application), that product should be scored separately. The consulting methodology itself is not labable, but a software tool that operationalizes the methodology could be. Confirm with the prospect whether any software product exists before closing the file entirely."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "No software product exists to provision. EQIQ's Go-To-Market Strategy Consulting is a pure professional services offering \u2014 human advisory, workshops, and strategic frameworks. There is no installable software, no SaaS platform, no container image, and no cloud service to deploy. No deployment method exists in any Skillable fabric.",
+              "badges": [
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Software Product | Blocker:** EQIQ's Go-To-Market Strategy Consulting is a pure professional services offering with no software component \u2014 no installable application, no SaaS platform, no container image, and no cloud service exists to deploy in any Skillable fabric. The 'product' is human advisory and strategic frameworks delivered by consultants.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simulation",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Only | Risk:** Even the simulation path is marginal \u2014 Skillable Simulations are designed for software products where real provisioning is impractical, not for consulting methodology content where no software interface exists to simulate. A simulation would amount to a click-through scenario with no meaningful hands-on fidelity.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No accounts, licenses, or credentials to provision. Consulting engagements are delivered by human consultants, not through a software platform with user accounts. No API, no credential pool, no tenant provisioning path exists.",
+              "badges": [
+                {
+                  "name": "High License Cost",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Platform Accounts | Blocker:** There are no user accounts, software licenses, or credentials to provision for a consulting engagement. Access to EQIQ's services is through direct consultant relationships, not a software platform with per-learner account management.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 4,
+              "weight": 15,
+              "summary": "No programmatic scoring surface exists. At best, knowledge-check MCQ questions could assess familiarity with GTM frameworks and terminology, but there is no software state to validate, no CLI output to parse, and no API to query.",
+              "badges": [
+                {
+                  "name": "MCQ Scorable",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Only | Risk:** The only viable scoring mechanism is MCQ-based knowledge checks on GTM framework terminology and concepts. No software state exists to validate, no CLI output to parse, and no API to query \u2014 scoring cannot assess applied competence, only recalled knowledge.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Nothing to tear down. No environment is provisioned, so no teardown is required or possible.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**No Environment to Teardown | Context:** No lab environment is provisioned, so teardown is moot. This dimension scores zero by default \u2014 not because teardown is difficult, but because there is nothing to tear down.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 0,
+              "weight": 40,
+              "summary": "GTM strategy frameworks (positioning, messaging, ICP definition, sales motion design) are conceptual and advisory in nature. Competence is developed through application in real business contexts, not through hands-on software configuration. No admin console, no CLI, no configuration workflows exist. The 'product' is a methodology, not a software system.",
+              "badges": [
+                {
+                  "name": "Simple UX",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Software Interface | Blocker:** GTM strategy consulting has no software interface, configuration console, or procedural workflow that hands-on labs can replicate. Competence in GTM strategy is developed through real business application, mentorship, and iterative practice in live sales and marketing contexts \u2014 not through lab environments.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 10,
+              "weight": 25,
+              "summary": "GTM execution quality has real business consequences \u2014 poor positioning and messaging directly affect pipeline and revenue. However, these stakes are addressed through coaching, practice pitches, and real-world application, not through hands-on software labs. Hands-on lab environments do not meaningfully accelerate GTM competence.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Business Outcome Stakes | Context:** Poor GTM execution has real revenue consequences for technology companies, but these stakes are not addressable through hands-on software labs. The skills are strategic and interpersonal \u2014 positioning, messaging, sales motion design \u2014 developed through coaching and real-world application, not lab configuration.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 0,
+              "weight": 15,
+              "summary": "No applicable lab types. GTM strategy consulting does not produce scenarios suitable for Break/Fix, Incident Response, Architecture Challenge, or any other Skillable lab format. The work is inherently conversational and analytical, not procedural or configurable.",
+              "badges": [
+                {
+                  "name": "Architecture Challenge",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Applicable Lab Types | Risk:** None of Skillable's lab format types (Break/Fix, Incident Response, Architecture Challenge, Compliance Audit, etc.) map to GTM strategy consulting work. The closest analog \u2014 a case study or role-play scenario \u2014 is not a hands-on lab format Skillable supports natively.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 2,
+              "weight": 20,
+              "summary": "GTM strategy consulting is a moderate-demand training category in the abstract, but demand for hands-on lab-based training on consulting methodology is negligible. No certification program, no competitor labs, no install base to train. The market for this specific offering as a lab product does not exist.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Consulting Category | Context:** GTM strategy is a legitimate and growing professional development category, but demand for hands-on lab-based training on consulting methodology is negligible. No competitor lab providers invest in this space, no certification programs exist for GTM consulting frameworks, and no install base requires technical onboarding.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 0,
+              "weight": 25,
+              "summary": "No evidence of a dedicated training organization, certification program, training catalog, or enablement infrastructure. EQIQ is a small consulting firm whose output IS advisory services, not a software company that trains customers to use a product.",
+              "badges": [
+                {
+                  "name": "Training Culture",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Training Infrastructure | Risk:** No evidence of a dedicated training organization, certification program, training catalog, LMS, or enablement team. EQIQ is a boutique consulting firm of approximately 10-50 people whose output is advisory services, not a software company with a customer training function.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 0,
+              "weight": 25,
+              "summary": "Small boutique consulting firm. No partner ecosystem, no marketplace presence, no API integrations. Engagements are bespoke and relationship-driven. Not the profile of an organization that builds and scales a lab-based training program.",
+              "badges": [
+                {
+                  "name": "Build vs Buy",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Boutique Consulting Firm | Risk:** EQIQ is a small, relationship-driven consulting firm. No partner ecosystem, no marketplace presence, no API integrations, and no platform infrastructure. Engagements are bespoke \u2014 the opposite of the scalable, platform-based training programs Skillable serves.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 0,
+              "weight": 30,
+              "summary": "No LMS platform, no ATP network, no authorized training partners, no on-demand catalog infrastructure identified. Consulting services are delivered directly by EQIQ consultants. No scalable delivery channel for lab-based training exists.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Delivery Infrastructure | Risk:** No ATP network, no LMS platform, no on-demand catalog, and no authorized training partners identified. Consulting services are delivered directly by EQIQ consultants in bespoke engagements \u2014 no scalable channel for lab-based training distribution exists.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 0,
+              "weight": 20,
+              "summary": "No content development team, no instructional designers, no lab authors identified. EQIQ's staff are strategy consultants, not technical content developers. No evidence of any existing digital learning content.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Content Development Function | Risk:** No instructional designers, lab authors, or technical content developers identified. EQIQ staff are strategy consultants. No existing digital learning content, courseware, or lab authoring capability is evident.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 5,
+        "pl_score_pre_ceiling": 38,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          },
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 0,
+        "annual_hours_high": 0,
+        "rate_per_hour": 0.0,
+        "acv_low": 0.0,
+        "acv_high": 0.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for CEO or Founder",
+          "title": "CEO / Founder",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/eqiq",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Head of Enablement or VP Sales Enablement",
+          "title": "Head of Sales Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/eqiq",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": []
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": []
+        }
+      }
+    },
+    {
+      "name": "Sales Enablement Services",
+      "category": "Management Consulting",
+      "subcategory": "Sales Enablement & Go-to-Market Advisory",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Business User",
+        "Business Analyst"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [],
+      "poor_match_flags": [
+        "no_api_automation",
+        "saas_only",
+        "multi_tenant_only",
+        "consumer_product"
+      ],
+      "recommendation": [
+        "EQIQ Sales Enablement Services is a management consulting engagement \u2014 not a software product. There is no installable application, no cloud service, no API, and no deployable artifact that Skillable can provision in any fabric (Hyper-V, ESX, Container, Azure Cloud Slice, AWS Cloud Slice, or Custom API). The research pages retrieved during scoring were from entirely unrelated companies, confirming that no EQIQ software product exists. This is a fundamental architecture mismatch, not a solvable technical challenge.",
+        "The research data returned for 'EQIQ Sales Enablement Services' pulled pages from IQ-EQ (a financial services firm), Epiq (a procurement software company), and The Emotional Intelligence Training Company \u2014 none of which are EQIQ. This suggests either a data retrieval error or a company name collision. Before closing this record, verify whether the intended company is a different organization with a similar name that does produce a deployable software product.",
+        "If a Skillable champion believes EQIQ has a software product worth evaluating, the key question to ask is: 'Does EQIQ offer a software platform \u2014 something customers install, configure, or access via API \u2014 or is the entire offering delivered through human consultants?' If the answer is human consulting only, no lab path exists. If a software platform is confirmed, re-score with accurate product research."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 0,
+              "weight": 35,
+              "summary": "EQIQ Sales Enablement Services is a human consulting engagement \u2014 strategy workshops, advisory sessions, and coaching delivered by consultants. There is no software product, no installable application, no cloud service, and no API. Nothing can be provisioned in any Skillable fabric. Research pages retrieved were from unrelated companies (IQ-EQ financial services, Epiq procurement software, Emotional Intelligence Training Company), confirming no deployable EQIQ product exists. No Deployment Method applies.",
+              "badges": [
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Software Product | Blocker:** EQIQ Sales Enablement Services is a management consulting engagement \u2014 GTM strategy, positioning, messaging, and leadership coaching delivered by human consultants. No installable software, no cloud service, no API, and no deployable artifact of any kind exists. Research pages retrieved during scoring were from entirely unrelated companies (IQ-EQ financial services, Epiq procurement software, Emotional Intelligence Training Company), confirming that no EQIQ software product could be identified. There is nothing to provision in any Skillable fabric.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No software means no user accounts, no credentials, no licensing, and no access mechanism to provision. There is no per-learner isolation possible because there is no environment to isolate. Fails the API Automation Gate entirely.",
+              "badges": [
+                {
+                  "name": "Anti-Automation Controls",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Automation Path | Blocker:** With no software product, there are no user accounts to provision, no credentials to manage, no licenses to apply, and no environment to configure. The API Automation Gate fails completely \u2014 not because APIs are locked, but because no software system exists to automate against.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 4,
+              "weight": 15,
+              "summary": "With no software environment, the only conceivable scoring fallback is MCQ knowledge checks about sales methodology frameworks \u2014 not hands-on validation. This is the absolute floor of scoring quality.",
+              "badges": [
+                {
+                  "name": "MCQ Scorable",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Only | Risk:** The only conceivable scoring mechanism for sales methodology frameworks is multiple-choice knowledge assessment \u2014 testing recall of positioning frameworks or GTM concepts. No programmatic validation of hands-on work is possible because no software environment exists. This is the absolute floor of scoring quality and does not constitute a meaningful lab experience.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "No environment to tear down. Not applicable.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Not Applicable | Context:** No environment is provisioned, so teardown is moot. This dimension does not apply.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 0,
+              "weight": 40,
+              "summary": "Sales enablement consulting frameworks (messaging, positioning, GTM strategy) can be intellectually complex, but they are learned through reading, discussion, and observation \u2014 not hands-on software practice. There are no configuration steps, no CLI commands, no APIs to call, no system states to validate. The 'product' is advisory methodology, not a technical tool requiring repeated practice.",
+              "badges": [
+                {
+                  "name": "Simple UX",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**Consulting Methodology | Blocker:** Sales enablement advisory \u2014 positioning frameworks, messaging architecture, GTM strategy \u2014 is learned through reading, discussion, and observation. There are no configuration steps, no system states, no CLI commands, and no technical workflows requiring repeated hands-on practice. The 'product' is human expertise delivered in workshops, not a technical tool.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 10,
+              "weight": 25,
+              "summary": "Sales effectiveness matters commercially, but poor sales messaging does not cause system outages, data breaches, or compliance failures. Stakes are moderate at best and do not require hands-on lab validation to demonstrate competence.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Commercial Stakes Only | Risk:** Sales effectiveness has real commercial consequences (win rates, revenue), but poor sales messaging does not cause system outages, data breaches, or compliance failures. The stakes do not require hands-on lab validation \u2014 they are addressed through coaching, practice conversations, and feedback, not technical environment configuration.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 0,
+              "weight": 15,
+              "summary": "No applicable lab types. Role-play simulations of sales conversations are not within Skillable's hands-on lab scope. No Break/Fix, no Incident Response, no Architecture Challenge \u2014 none of the canonical lab types apply to consulting advisory services.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Applicable Lab Types | Risk:** None of the canonical Skillable lab types (Break/Fix, Incident Response, Architecture Challenge, Compliance Audit, etc.) apply to management consulting advisory services. Role-play simulations of sales conversations fall outside Skillable's hands-on technical lab scope.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 0,
+              "weight": 20,
+              "summary": "Sales enablement as a category has training demand, but EQIQ is a boutique consulting firm with no known install base, no certification program, no competitor labs, and no market signals that would drive Skillable lab consumption. The company appears to be very small with no public funding, no user community, and no training catalog.",
+              "badges": [
+                {
+                  "name": "~500 Users",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Boutique Firm Scale | Risk:** EQIQ appears to be a very small boutique consulting firm with no public funding disclosures, no known install base, no certification program, and no evidence of a training catalog or user community that would generate Skillable lab consumption at meaningful scale.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 2,
+              "weight": 25,
+              "summary": "EQIQ's core business IS advisory and enablement consulting, which implies some training orientation. However, they are the training provider, not the training buyer in the traditional sense. No evidence of a formal training catalog, certification program, or structured enablement program for their own clients at scale.",
+              "badges": [
+                {
+                  "name": "Training Culture",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Advisory Orientation | Context:** EQIQ's core business is sales enablement consulting, which implies familiarity with training and enablement concepts. However, they are a training provider to their clients, not a training buyer seeking a lab platform. No evidence of a formal internal training catalog, certification program, or structured digital enablement program.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 0,
+              "weight": 25,
+              "summary": "Boutique consulting firm. No evidence of a partner ecosystem, marketplace integrations, or platform buying behavior. Consulting firms typically build in-house and deliver through human consultants, not technology platforms.",
+              "badges": [
+                {
+                  "name": "Build vs Buy",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Builds In-House | Risk:** Boutique consulting firms deliver value through human expertise, not technology platforms. No evidence of partner ecosystem, marketplace integrations, or platform buying behavior. EQIQ would be expected to build any training content in-house through consultant-led workshops rather than purchasing a lab platform.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 0,
+              "weight": 30,
+              "summary": "No ATP network, no LMS platform identified, no lab platform in use. Delivery is through human consultants in workshops and advisory engagements \u2014 not scalable digital lab delivery.",
+              "badges": [
+                {
+                  "name": "Lab Platform",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Digital Delivery Infrastructure | Risk:** No LMS platform, no ATP network, no lab platform, and no digital delivery channel identified. Client delivery is through human consultants in workshops and advisory sessions \u2014 not scalable digital lab delivery infrastructure.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 0,
+              "weight": 20,
+              "summary": "No content development team, no technical build team, no evidence of lab authoring capability. A boutique consulting firm of this type would require full Skillable Professional Services engagement to build anything, but there is no product to build labs for.",
+              "badges": [
+                {
+                  "name": "Content Outsourcing",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Lab Build Capability | Risk:** No content development team, no technical lab authoring capability, and no evidence of instructional design staff focused on digital lab content. A boutique consulting firm of this type would require full external support to build any lab content \u2014 but there is no software product to build labs for.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 5,
+        "pl_score_pre_ceiling": 29,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          },
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 15,
+            "reason": "Shared multi-tenant \u2014 no learner isolation possible"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 0,
+        "annual_hours_high": 0,
+        "rate_per_hour": 0.0,
+        "acv_low": 0.0,
+        "acv_high": 0.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Training or Head of Customer Education",
+          "title": "Unknown",
+          "role_type": "decision_maker",
+          "linkedin_url": "",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Enablement",
+          "title": "Unknown",
+          "role_type": "influencer",
+          "linkedin_url": "",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Service delivery format \u2014 Find a Managing Partner or Practice Lead in the Go-to-Market Strategy practice. When you deliver sales enablement engagements to your tech-company clients, do any of those engagements include hands-on exercises where reps interact with live software (e.g., CRM workflows, demo environments, competitive battle-card tools), or is the delivery entirely slide-based coaching and advisory?",
+            "Client lab demand signal \u2014 Find a Director of Enablement or Senior Consultant who runs client-facing workshops. Have any of your technology-company clients asked you to provide interactive, sandbox-style practice environments (e.g., simulated sales calls, live product demo sandboxes, or guided tool walkthroughs) as part of the enablement programs you build for them?",
+            "Productization roadmap \u2014 Find the CEO or Head of Product/Offerings. Is EQIQ exploring packaging any of its enablement methodologies as a scalable digital product (self-paced courses, certification programs, or interactive playbooks) rather than purely consultant-delivered engagements?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": []
+        }
+      }
+    },
+    {
+      "name": "Positioning & Messaging Consulting",
+      "category": "Management Consulting",
+      "subcategory": "Go-to-Market Strategy & Sales Enablement",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Business Analyst",
+        "Business User"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Build a Positioning Canvas for a Fictional SaaS Product",
+        "Competitive Messaging Audit"
+      ],
+      "poor_match_flags": [
+        "no_api_automation",
+        "saas_only",
+        "consumer_product"
+      ],
+      "recommendation": [
+        "EQIQ's Positioning & Messaging Consulting is a human-delivered professional service, not a software product. There is no installable application, no cloud environment, no API surface, and no learner-facing digital platform \u2014 the fundamental requirement for any Skillable lab path. No provisioning method exists, and the 'product' produces human-readable consulting deliverables (positioning canvases, messaging frameworks) that cannot be validated programmatically. This is not a gap that can be engineered around; it is a category mismatch.",
+        "The research returned pages for three unrelated companies \u2014 IQ-EQ (financial services fund administration), Epiq (source-to-pay procurement software), and EITC (emotional intelligence certification) \u2014 none of which are EQIQ the GTM consulting firm. EQIQ appears to have minimal web presence, which itself is a signal of company scale. Before any further evaluation, confirm the correct company URL and verify that a software product exists before re-scoring.",
+        "No meaningful automated scoring path exists. The only viable assessment method is MCQ-based recall of positioning frameworks (e.g., April Dunford's Obviously Awesome methodology, Geoffrey Moore's Crossing the Chasm positioning statement template). AI Vision could theoretically evaluate a completed positioning canvas screenshot, but the instructional value of doing so is negligible compared to the platform overhead cost."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "No software product exists to provision. EQIQ's Positioning & Messaging offering is a human-delivered consulting service \u2014 there is no installable application, no cloud environment, no container image, and no API surface. The only theoretical path is a Simulation of a conceptual framework exercise, but even that requires a software interface that does not exist. No Deployment Method applies.",
+              "badges": [
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Software Product | Blocker:** EQIQ's Positioning & Messaging offering is a human-delivered consulting service with no installable software, no cloud environment, no container image, and no API surface \u2014 there is nothing to provision into Skillable's infrastructure.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simulation",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Only | Risk:** The only conceivable lab path would be a Skillable Simulation of a positioning framework exercise (e.g., guided document-building walkthrough), but this requires a software interface that does not exist and would deliver minimal instructional value beyond a PDF worksheet.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No accounts, credentials, or access mechanisms exist. Consulting engagements are delivered by human consultants in workshops \u2014 there is no learner-facing software environment to access, no credential pool to recycle, and no SSO integration possible.",
+              "badges": [
+                {
+                  "name": "Credit Card Required",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Access Mechanism | Blocker:** Consulting engagements have no learner-facing software environment, no credential pool, no SSO integration, and no trial account \u2014 access to EQIQ's service is through a human consultant relationship, not a digital platform.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 4,
+              "weight": 15,
+              "summary": "No programmatic scoring surface exists. At best, knowledge-check MCQ questions could assess recall of positioning frameworks (e.g., Geoffrey Moore's Crossing the Chasm, April Dunford's Obviously Awesome). No API, no CLI, no queryable config state \u2014 the 'product' produces human-readable documents, not machine-readable outputs.",
+              "badges": [
+                {
+                  "name": "MCQ Scorable",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Only | Risk:** The only viable scoring approach is MCQ-based recall of positioning frameworks (e.g., ICP definition, value proposition structure, competitive differentiation models). No programmatic scoring surface exists \u2014 the product produces human-readable documents, not machine-readable system states.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Nothing to tear down. No environment is provisioned, so no cleanup is required or possible.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**No Environment to Teardown | Context:** No lab environment is provisioned, so teardown is moot. This is not a strength \u2014 it reflects the absence of any deployable product.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 0,
+              "weight": 40,
+              "summary": "Positioning and messaging frameworks (e.g., competitive differentiation, ICP definition, value proposition design) are conceptual and document-driven. They require judgment and iteration, not technical configuration. There is no admin console, no multi-step workflow with real system consequences, and no interoperability surface. Complexity exists in the thinking, not in operating a system \u2014 which is exactly what makes it unsuitable for hands-on lab delivery.",
+              "badges": [
+                {
+                  "name": "Simple UX",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Conceptual Frameworks | Risk:** Positioning and messaging methodology (ICP definition, value proposition design, competitive differentiation) is document-driven and judgment-based \u2014 there is no admin console, no configurable system, and no multi-step workflow with machine-verifiable outcomes. Complexity lives in human thinking, not system operation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 10,
+              "weight": 25,
+              "summary": "Poor positioning and messaging does cause real business harm \u2014 lost deals, slow pipeline, confused buyers. However, the consequence is commercial, not technical, and is not measurable within a lab session. There is no 'misconfiguration' that causes a system failure; errors manifest over weeks in sales outcomes, not immediately in a lab environment.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Commercial Stakes Exist | Context:** Poor positioning and messaging causes real business harm \u2014 lost deals, slow pipeline, confused buyers \u2014 but consequences manifest over weeks in sales outcomes, not immediately within a lab session. This makes the stakes real but not lab-measurable.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 0,
+              "weight": 15,
+              "summary": "An Architecture Challenge lab type is theoretically applicable \u2014 learners could be given a fictional product brief and asked to construct a positioning canvas. However, this is a significant stretch: the output is a document, not a system state, and automated scoring of positioning quality is not feasible without AI Vision at best.",
+              "badges": [
+                {
+                  "name": "Architecture Challenge",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Positioning Canvas Exercise | Risk:** An Architecture Challenge lab type is theoretically applicable \u2014 learners given a fictional product brief and asked to construct a positioning canvas \u2014 but output is a document, not a system state, and automated scoring of positioning quality is not feasible without subjective AI evaluation.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 0,
+              "weight": 20,
+              "summary": "Management consulting services are not a software product category. There is no certification ecosystem, no competitor lab programs, no install base to train, and no category prior that generates hands-on lab demand. The GTM strategy consulting market is served by workshops, coaching, and written frameworks \u2014 not lab environments.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Wrong Category for Labs | Risk:** Management consulting services are not a software product category. No certification ecosystem, no competitor lab programs, no install base to train, and no category prior that generates hands-on lab demand exists for GTM consulting services.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 0,
+              "weight": 25,
+              "summary": "No evidence of a formal training organization, published course catalog, certification program, or dedicated training leadership at EQIQ. The company appears to be a small boutique consulting firm. Research returned pages for unrelated companies (IQ-EQ, Epiq, EITC), suggesting EQIQ has minimal web presence and no documented training infrastructure.",
+              "badges": [
+                {
+                  "name": "Training Culture",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Training Infrastructure Found | Risk:** Research returned pages for unrelated companies (IQ-EQ financial services, Epiq procurement software, EITC emotional intelligence certification), suggesting EQIQ has minimal web presence. No formal training organization, course catalog, certification program, or dedicated training leadership identified.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 0,
+              "weight": 25,
+              "summary": "EQIQ is described as a management consulting firm \u2014 by definition a build-in-house, human-capital-intensive organization. Consulting firms typically do not purchase external lab platforms; they deliver IP through people. No partner ecosystem, no marketplace listing, and no integration maturity signals found.",
+              "badges": [
+                {
+                  "name": "Build vs Buy",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Consulting Firm DNA | Risk:** Management consulting firms deliver IP through people, not platforms. EQIQ is by definition a build-in-house organization \u2014 they are unlikely to purchase an external lab platform when their product IS the human expertise.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 0,
+              "weight": 30,
+              "summary": "No ATP network, no LMS platform, no lab platform, and no delivery infrastructure identified. Consulting engagements are delivered directly by EQIQ consultants to client teams \u2014 there is no scalable digital delivery channel that would consume Skillable lab hours.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Delivery Infrastructure | Blocker:** No ATP network, LMS platform, lab platform, or scalable digital delivery channel identified. Consulting engagements are delivered directly by EQIQ consultants \u2014 there is no mechanism to distribute lab hours at scale.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 0,
+              "weight": 20,
+              "summary": "No content development team, no instructional designers, no technical build team identified. EQIQ's deliverables are consulting frameworks and advisory outputs, not courseware or lab environments.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Content Team Identified | Blocker:** No instructional designers, lab authors, or technical build team found. EQIQ's deliverables are consulting frameworks and advisory outputs \u2014 not courseware or lab environments.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Description"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 5,
+        "pl_score_pre_ceiling": 38,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          },
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 0,
+        "annual_hours_high": 0,
+        "rate_per_hour": 0.0,
+        "acv_low": 0.0,
+        "acv_high": 0.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Training or Head of Customer Education",
+          "title": "Unknown",
+          "role_type": "decision_maker",
+          "linkedin_url": "",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Enablement",
+          "title": "Unknown",
+          "role_type": "influencer",
+          "linkedin_url": "",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Deliverable format \u2014 Find the engagement lead or Principal Consultant who scopes client projects. When you deliver positioning & messaging frameworks to your tech-company clients, is the final output a static document (slide deck, PDF), or do clients ever need to interact with the framework in a live tool\u2014e.g., filling in their own value props against a template in real time?",
+            "Repeatability of methodology \u2014 Find the Head of Consulting Operations or Practice Lead responsible for scaling delivery. Do you have a standardized, step-by-step workshop methodology (with defined inputs, exercises, and outputs at each stage) that you run consistently across engagements, or is each engagement custom-designed from scratch?",
+            "Client enablement gap \u2014 Find the VP of Training or Director of Enablement (if one exists) or whoever handles post-engagement adoption. After you hand off positioning & messaging work, do your clients' sales teams struggle to apply the new messaging consistently\u2014and if so, have you explored interactive practice environments (role-play simulations, scenario-based exercises) as a follow-on offering?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "EQIQ specializes in positioning & messaging consulting \u2014 they likely have internal expertise in GTM strategy but may lack hands-on technical lab capabilities for client deliverables or internal team upskilling",
+            "As a professional services firm, EQIQ probably trains clients on sales enablement and messaging frameworks \u2014 a potential use case for Skillable if they want to offer interactive, hands-on lab experiences alongside their consulting engagements"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Team Leadership & Transformation",
+      "category": "Management Consulting",
+      "subcategory": "Leadership Development & Go-to-Market Advisory",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Business User",
+        "Business Analyst"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [],
+      "poor_match_flags": [
+        "no_api_automation",
+        "saas_only",
+        "multi_tenant_only",
+        "consumer_product"
+      ],
+      "recommendation": [
+        "No viable lab delivery path exists because Team Leadership & Transformation is a management consulting service, not a software product. There is no software to install, no environment to provision, no API to automate, and no interface to simulate. Skillable's entire platform \u2014 Hyper-V, Cloud Slice, Container, Simulation \u2014 requires a software artifact as its foundation. This engagement does not have one.",
+        "No programmatic scoring surface exists. MCQ knowledge checks on leadership frameworks are the only conceivable assessment mechanism, but these do not constitute hands-on lab scoring and do not justify Skillable platform investment. Performance-based testing requires a software environment with observable, validatable learner actions.",
+        "If EQIQ is being evaluated as a potential Skillable customer, the correct question is: 'Does EQIQ resell, implement, or build training content for any software products used by their technology company clients?' If EQIQ helps technology clients build sales enablement or onboarding programs for their own software products, there may be an indirect content development or Professional Services relationship worth exploring \u2014 but EQIQ's own consulting methodology is not a Skillable lab candidate."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Team Leadership & Transformation is a consulting service methodology \u2014 not installable software. There is no deployment artifact, no VM image, no container, no cloud service, and no API surface. No provisioning path exists. Simulation is the only conceivable fallback, but even simulation requires a software interface to replicate, which does not exist here. Capped at 5 by no_api_automation flag.",
+              "badges": [
+                {
+                  "name": "No Deployment Method",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Software Product | Blocker:** EQIQ's Team Leadership & Transformation offering is a management consulting service \u2014 there is no software artifact, deployment package, VM image, container, or cloud service to provision. No lab environment can be stood up because there is nothing to install or configure \u2014 eqiq.com product description.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simulation",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Ceiling | Risk:** Even Skillable Simulations require a software interface to replicate via AI Vision. Leadership transformation consulting has no software UI, no clickable workflow, and no screen state to simulate \u2014 simulation is not a viable fallback for a purely human advisory service \u2014 eqiq.com product description.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No platform accounts, no credentials, no tenant provisioning, and no per-learner isolation mechanism of any kind. There is no software environment for a learner to access.",
+              "badges": [
+                {
+                  "name": "Anti-Automation Controls",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Platform Accounts | Blocker:** There are no user accounts, credentials, tenant provisioning, or per-learner isolation mechanisms because there is no software platform. Automated provisioning is impossible by definition \u2014 eqiq.com product description.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 4,
+              "weight": 15,
+              "summary": "No programmatic scoring surface exists. At best, knowledge-check MCQ questions could assess conceptual understanding of leadership frameworks, but no hands-on validation is possible.",
+              "badges": [
+                {
+                  "name": "MCQ Scorable",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Only | Risk:** The only conceivable scoring mechanism is MCQ-based knowledge checks on leadership frameworks and consulting methodologies. No programmatic, script-based, or API-based scoring surface exists \u2014 inferred from consulting service model.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "No environment to tear down. Teardown is trivially satisfied because nothing is provisioned.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**No Environment to Teardown | Context:** Teardown is trivially satisfied because no environment is provisioned. This dimension scores neutrally \u2014 there is nothing to clean up \u2014 inferred from consulting service model.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 0,
+              "weight": 40,
+              "summary": "Leadership transformation consulting involves frameworks, coaching conversations, and organizational change management \u2014 none of which require hands-on software practice. There is no configuration depth, no CLI, no admin console, and no multi-step technical workflow. The 'product' is a human advisory engagement, not a software system with learnable operational complexity.",
+              "badges": [
+                {
+                  "name": "Simple UX",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Software Interface | Blocker:** Leadership transformation consulting involves frameworks, coaching conversations, and organizational change advisory \u2014 none of which constitute a software interface with configuration depth, CLI access, or learnable operational workflows. There is no 'product' in the software sense \u2014 eqiq.com product description.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 10,
+              "weight": 25,
+              "summary": "Leadership competence genuinely matters \u2014 poor leadership causes attrition, team dysfunction, and missed business outcomes. However, these stakes are addressed through coaching, mentoring, and experiential learning, not hands-on software labs. The mastery path does not map to Skillable's lab delivery model.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Leadership Stakes Exist | Context:** Poor leadership genuinely causes team dysfunction, attrition, and missed revenue targets \u2014 stakes are real. However, these outcomes are addressed through coaching and experiential learning, not hands-on software labs. Stakes do not translate to Skillable's delivery model \u2014 inferred from consulting service category norms.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 0,
+              "weight": 15,
+              "summary": "No applicable lab types. Leadership transformation consulting does not produce scenarios suited to Break/Fix, Incident Response, Architecture Challenge, or any other Skillable lab format. Role-play simulations exist in the L&D world but are not Skillable's delivery model.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Applicable Lab Types | Risk:** None of Skillable's lab format types (Break/Fix, Incident Response, Architecture Challenge, Cyber Range, etc.) apply to a leadership consulting methodology. Role-play and scenario-based learning exist in the L&D world but are outside Skillable's hands-on technical lab model \u2014 inferred from service category.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 0,
+              "weight": 20,
+              "summary": "Management consulting and leadership development is a large market, but demand for hands-on technical labs in this category is negligible. No certification program, no competitor labs, no ATP network, and no install base signal relevant to Skillable's lab delivery model.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Wrong Category for Labs | Risk:** Leadership development and management consulting is a large market, but demand for hands-on technical labs in this category is negligible. No certification program, no competitor labs, and no install base signal relevant to Skillable's lab delivery model \u2014 inferred from category norms.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 0,
+              "weight": 25,
+              "summary": "EQIQ delivers consulting engagements that include enablement components (sales enablement, positioning, team transformation), but there is no formal training organization, no published course catalog, no certification program, and no evidence of a dedicated learning function. Training is incidental to the consulting delivery model.",
+              "badges": [
+                {
+                  "name": "Training Culture",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Consulting Delivery Model | Risk:** EQIQ delivers enablement as part of consulting engagements (sales enablement, team transformation), but there is no formal training organization, published course catalog, or certification program. Training is incidental to consulting delivery, not a standalone business line \u2014 eqiq.com product description.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 2,
+              "weight": 25,
+              "summary": "As a consulting firm, EQIQ works with external clients and partners by definition. However, the firm appears small (boutique go-to-market consultancy), with no evidence of a formal partner ecosystem, marketplace presence, or platform integrations. Ease of engagement is likely high given small size, but there is no strategic alignment with Skillable's platform model.",
+              "badges": [
+                {
+                  "name": "Ease of Engagement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Boutique Consultancy | Context:** EQIQ appears to be a small boutique go-to-market consulting firm serving technology companies. Small size suggests ease of engagement, but also limited budget, no platform procurement infrastructure, and no strategic alignment with Skillable's lab platform model \u2014 eqiq.com company description.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 0,
+              "weight": 30,
+              "summary": "No LMS platform, no ATP network, no lab platform, and no evidence of scaled training delivery infrastructure. EQIQ delivers consulting engagements directly to technology company clients \u2014 not through a training distribution channel that could consume Skillable labs at scale.",
+              "badges": [
+                {
+                  "name": "Lab Platform",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Delivery Infrastructure | Risk:** No LMS platform, no ATP network, no lab platform, and no evidence of scaled training delivery infrastructure. EQIQ delivers consulting engagements directly \u2014 not through a training distribution channel that could consume Skillable labs at scale \u2014 eqiq.com company description.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 0,
+              "weight": 20,
+              "summary": "No content development team, no instructional designers, no lab authors identified. EQIQ's staff are consultants and advisors, not technical content builders. Any lab build would require full Skillable Professional Services engagement \u2014 but there is no viable lab to build.",
+              "badges": [
+                {
+                  "name": "Content Outsourcing",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Content Dev Team | Risk:** No instructional designers, lab authors, or technical content builders identified. EQIQ staff are consultants and advisors. Any lab build would require full external resourcing \u2014 but there is no viable lab to build given the absence of a software product \u2014 eqiq.com company description.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.eqiq.com",
+                      "source_title": "EQIQ Company Website"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 5,
+        "pl_score_pre_ceiling": 38,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          },
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 15,
+            "reason": "Shared multi-tenant \u2014 no learner isolation possible"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 0,
+        "annual_hours_high": 0,
+        "rate_per_hour": 0.0,
+        "acv_low": 0.0,
+        "acv_high": 0.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Training or Head of Customer Education",
+          "title": "Unknown",
+          "role_type": "decision_maker",
+          "linkedin_url": "",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Enablement",
+          "title": "Unknown",
+          "role_type": "influencer",
+          "linkedin_url": "",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Deliverable format \u2014 Find the Director of Enablement or whoever designs the Team Leadership & Transformation program. What is the actual deliverable today \u2014 is it live facilitated workshops, a self-paced digital curriculum, or a blended model, and is any portion delivered through a software platform participants log into?",
+            "Hands-on component viability \u2014 Find the person who owns program design (likely a Principal Consultant or Practice Lead). Are there any interactive exercises, simulations, or tool-based activities in the leadership curriculum that participants complete individually on a computer, or is the entire experience discussion-and-coaching based?",
+            "Scale & repeatability \u2014 Find whoever manages client delivery operations. How many unique cohorts per year run through Team Leadership & Transformation, and is there demand from your clients to offer a self-service or asynchronous version of any module that currently requires a live facilitator?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "EQIQ specializes in team leadership transformation and sales enablement for tech companies \u2014 they're likely running internal training programs and may use labs for client deliverables or internal capability building",
+            "As a professional services firm, they probably lack dedicated hands-on lab infrastructure; worth exploring if they're building simulation-based training for clients and need a platform to scale it"
+          ]
+        }
+      }
+    }
+  ],
+  "briefcase": null,
+  "analyzed_at": "2026-04-06T17:37:01.113521+00:00",
+  "analysis_id": "10ddefbe",
+  "discovery_id": "80f2b886",
+  "total_products_discovered": 4
+}

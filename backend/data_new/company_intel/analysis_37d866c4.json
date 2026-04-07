@@ -2674,11 +2674,3142 @@
           ]
         }
       }
+    },
+    {
+      "name": "Workday Talent & Performance",
+      "category": "ERP/CRM",
+      "subcategory": "Human Capital Management \u2014 Talent & Performance",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Administrator",
+        "Business Analyst",
+        "Business User",
+        "Architect"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Configure a Performance Review Cycle",
+        "Diagnose a Broken Calibration Session",
+        "Build a Succession Pool for a Critical Role",
+        "Audit Performance Documentation for Compliance",
+        "Configure Skills Cloud Taxonomy for a Business Unit"
+      ],
+      "poor_match_flags": [
+        "saas_only",
+        "multi_tenant_only"
+      ],
+      "recommendation": [
+        "Simulation is the only viable delivery path because Workday Talent & Performance runs exclusively on Workday's proprietary cloud with no self-hosted option, no per-learner sandbox API, and tenant provisioning that takes months and costs thousands \u2014 real lab environments are not achievable at training scale. Skillable Simulations can replicate the Workday UI for guided click-through scenarios covering performance review configuration, calibration facilitation, and succession planning workflows. This is a meaningful step down from Skillable's native capabilities but is the correct path given the architecture constraint.",
+        "Simulation scoring via AI Vision is the ceiling for this product \u2014 no programmatic API surface is accessible for validating learner actions in a real Workday tenant. MCQ knowledge checks can supplement for conceptual validation of configuration decisions. Scoring fidelity is significantly limited compared to Skillable's native API or script-based validation; this should be communicated clearly to Workday Education stakeholders before any lab authoring investment begins.",
+        "The single question that unblocks real lab delivery is whether Workday's product team will open a sandbox provisioning API. Your champion in Workday Education should ask the product team: 'Is there a programmatic API or sandbox environment that allows us to provision isolated Workday tenant instances per learner for training purposes, and what is the cost and timeline for access?' The team most likely to own this answer is Workday's Platform Engineering or Developer Experience group. Without a yes to this question, simulation remains the ceiling for all Skillable lab delivery.",
+        "Workday Pro Certification prep is the highest-value program fit \u2014 simulation labs covering configuration scenarios align directly with the certification curriculum and address the documented adoption challenge. However, the willing buyer / unwilling product team pattern is documented for Workday in Skillable's own benchmark data: Skillable invested over a year with engaged training leadership but the product team would not open APIs. Maintain the relationship at low cost and do not invest significant solution engineering time until Workday commits to API openness or a sandbox provisioning path.",
+        "Workday's proprietary cloud architecture is a fundamental blocker for real lab delivery \u2014 this is not a gap Skillable can close unilaterally. It requires Workday's product team to create a sandbox provisioning API with per-learner isolation. The simulation path is viable but delivers significantly lower instructional fidelity than Skillable's native capabilities. Do not position Skillable as a full lab platform for Workday until the API question is resolved."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 29,
+              "weight": 35,
+              "summary": "Workday Talent & Performance runs exclusively on Workday's proprietary cloud with no self-hosted, VM-deployable, or cloud-marketplace path. Tenant provisioning requires months and enterprise contracts. Simulation is the only viable delivery method, scoring +12 with penalties for no NFR license (-2) and effectively infinite provisioning time (-3).",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Deployment Model | Context:** Workday Talent & Performance is a SaaS module on Workday's proprietary cloud with no self-hosted, VM-deployable, or cloud-marketplace path \u2014 Simulation is the only viable Skillable delivery method \u2014 Workday product page (workday.com). Real lab environments are not achievable at training scale without Workday opening a sandbox provisioning API.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No VM Install Path | Blocker:** Workday has no on-premises version, no Docker image, and no Azure/AWS marketplace deployment \u2014 the product cannot be installed in a Skillable datacenter VM or cloud slice \u2014 Workday platform documentation. This eliminates all datacenter and cloud slice orchestration paths.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Hyper-V: Complex Install",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**Tenant Provisioning Cost | Blocker:** Workday tenant provisioning requires enterprise contracts, months of setup time, and costs thousands of dollars \u2014 no free developer or NFR tier exists \u2014 Workday Training and Certifications page (workday.com/training). Per-learner provisioning at training scale is economically and operationally infeasible.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No per-learner isolation mechanism exists. Workday does not offer a sandbox API, developer tenant, or credential pool for training at scale. Simulation bypasses real credential requirements but provides no authentic Workday environment access.",
+              "badges": [
+                {
+                  "name": "High License Cost",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**Enterprise-Only Licensing | Blocker:** Workday has no free trial, no developer sandbox, and no NFR license tier \u2014 access requires a full enterprise subscription agreement \u2014 Workday platform documentation. Per-learner credential provisioning at training scale is not commercially viable.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Anti-Automation Controls",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No Sandbox API | Blocker:** Workday does not expose a per-learner sandbox provisioning API \u2014 tenant creation is a manual, contractual process managed by Workday's implementation team \u2014 Skillable benchmark documentation. Automated account creation and environment configuration are not feasible.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 12,
+              "weight": 15,
+              "summary": "Simulation scoring via AI Vision is the ceiling \u2014 no programmatic API surface is accessible for validating learner actions in a real Workday tenant. MCQ knowledge checks can supplement. Scoring fidelity is significantly limited compared to Skillable's native capabilities.",
+              "badges": [
+                {
+                  "name": "Simulation Scorable",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Scoring Only | Risk:** Without access to a real Workday tenant, scoring is limited to AI Vision evaluation of simulated screen states and MCQ knowledge checks \u2014 no programmatic API surface is accessible \u2014 Skillable benchmark documentation. Scoring fidelity is significantly lower than Skillable's native API or script-based validation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Fallback | Context:** MCQ-based knowledge checks can validate conceptual understanding of Talent & Performance configuration concepts \u2014 Workday Pro Certification curriculum (workday.com/training). This supplements simulation scoring but does not validate hands-on configuration competence.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Simulation environments have no persistent state to clean up. Teardown is effectively automatic \u2014 no orphan risk, no API calls required. Full marks are not awarded because there is no real environment lifecycle to validate.",
+              "badges": [
+                {
+                  "name": "Automatic (VM/Container)",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Simulation Teardown | Context:** Simulation environments have no persistent state \u2014 teardown is automatic with no orphan risk or cleanup API calls required \u2014 Skillable platform architecture. No real Workday tenant is provisioned, so there is nothing to deprovision between learner sessions.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 15
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 3,
+              "weight": 40,
+              "summary": "Workday Talent & Performance has genuine configuration depth \u2014 review template design, rating scale configuration, calibration session management, succession pool setup, and Skills Cloud configuration are all multi-step, consequential workflows. However, the dominant end-user persona (employee completing a review) interacts with a wizard-driven UI, partially offsetting complexity. AI-embedded features (Skills Cloud, Sana AI talent recommendations) add hands-on practice value.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Admin Configuration Depth | Strength:** Workday Talent & Performance requires configuring review templates, rating scales, calibration session rules, succession pool criteria, and Skills Cloud taxonomies \u2014 each with multiple interdependent options \u2014 Workday product configuration courses (workday.com/training). Configuration errors directly affect compensation decisions and succession pipeline integrity.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI Practice Required",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**AI-Embedded Features | Strength:** Workday Skills Cloud uses AI to map employee skills to roles and surface talent gaps; Sana AI provides talent recommendations and automates HR workflows \u2014 Workday platform homepage (workday.com). These AI features require iterative hands-on practice to configure and interpret correctly.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Multi-Persona Workflows | Strength:** Talent & Performance serves distinct workflows for HR administrators (configuration), managers (calibration facilitation, review completion), employees (self-service goals and feedback), and implementation consultants (business process design) \u2014 Workday Training page (workday.com/training). Each persona requires separate training tracks.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simple UX",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**End-User Simplicity | Risk:** The employee-facing performance review and goal-setting interface is wizard-driven and designed for non-technical users \u2014 Workday 'Workday in Action for Business Users' training series (workday.com/training). End-user workflows have limited lab value; complexity is concentrated in the admin and configuration layers.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 25,
+              "weight": 25,
+              "summary": "Misconfigured performance processes directly affect compensation decisions, succession pipeline integrity, and legal documentation for employment actions \u2014 high-stakes outcomes. Workday configuration has a notoriously steep learning curve; implementation consultants spend months achieving competence. Adoption risk is well-documented: Workday talent modules are frequently underutilized due to configuration complexity and change management failures.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Compensation & Legal Impact | Strength:** Misconfigured performance review templates affect compensation calibration outcomes and create legally deficient documentation for employment actions \u2014 Workday product documentation. Errors in succession pool configuration can exclude qualified candidates from leadership pipelines with material business consequences.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Implementation Complexity | Strength:** Workday Pro Certification requires mastering configuration across business processes, security roles, calculated fields, and integration points \u2014 Workday Pro Certification program (workday.com/training). Implementation consultants typically spend months achieving configuration competence; the certification program itself validates this steep curve.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Documented Adoption Challenges | Strength:** Workday Education's Adoption Kit product \u2014 a subscription of customizable training resources specifically designed to 'accelerate employee and manager use of self-service features' \u2014 confirms that adoption failure is a recognized, recurring customer problem \u2014 Workday Training page (workday.com/training). Labs directly address this documented pain point.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 12,
+              "weight": 15,
+              "summary": "Break/Fix scenarios (broken review cycle, stuck calibration workflow, misconfigured succession pool) and Compliance Audit scenarios (validating performance documentation against regulatory requirements) are both applicable and realistic for simulation delivery.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Broken Review Cycle Scenarios | Opportunity:** Simulation labs can present learners with a misconfigured performance review cycle \u2014 stuck workflows, incorrect rating scale mappings, broken calibration session rules \u2014 and require diagnosis and correction \u2014 inferred from Workday configuration complexity. Break/Fix is the highest-value simulation lab type for admin training.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Performance Documentation Audit | Opportunity:** Simulation labs can require learners to validate that performance review configurations meet regulatory documentation requirements (e.g., EEOC defensibility, GDPR data retention) \u2014 inferred from regulated industry customer base. Compliance Audit scenarios are directly relevant to Workday's enterprise HR customer base.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 16,
+              "weight": 20,
+              "summary": "ERP/CRM category with moderate demand prior. Workday has a large enterprise install base (~10,000+ customers), an active Workday Pro Certification program, and AI-embedded features (Skills Cloud, Sana) that require hands-on practice. Growing HCM category with strong enterprise validation.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Large Enterprise Install Base | Strength:** Workday serves thousands of enterprise customers globally across regulated industries including healthcare, finance, and government \u2014 Workday homepage (workday.com). Large install base creates significant training population for Talent & Performance module adoption.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Workday Pro Certification | Strength:** Workday Pro Certification is an active, multi-track program covering platform administration, product configuration, and testing \u2014 Workday Training and Certifications page (workday.com/training). Active certification creates a direct demand signal for hands-on practice labs as certification prep.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "AI-Powered Product",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Sana AI and Skills Cloud | Strength:** Workday has embedded Sana AI (described as 'superintelligence for work') and Skills Cloud AI across HR workflows including talent management \u2014 Workday homepage (workday.com). AI-embedded features require hands-on practice to configure, interpret, and govern responsibly.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "High-Demand Category",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**ERP/CRM Category | Context:** HCM/talent management falls in the ERP/CRM moderate-demand category \u2014 a well-established market with consistent enterprise training investment but not the highest-demand category for hands-on labs \u2014 category prior scoring. Demand is driven by implementation complexity and certification requirements rather than security or infrastructure urgency.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 18,
+              "weight": 25,
+              "summary": "Workday Education is a mature, well-resourced training organization with dedicated programs for customers, partners, and the broader market. Workday Pro Certification is active with multiple tracks. The Learn with Workday program, product configuration courses, and AI training catalog confirm deep training investment. Training leadership is confirmed at organizational scale.",
+              "badges": [
+                {
+                  "name": "Certification Program",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Workday Pro Certification | Strength:** Workday Pro Certification is a comprehensive, active program covering platform administration, product configuration, and testing \u2014 described as validating 'professional expertise' \u2014 Workday Training page (workday.com/training). Active certification with exams is a direct Skillable entry vector for PBT and certification prep labs.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Workday Education Program | Strength:** Workday Education offers dedicated training tracks for customers, partners, and the broader market \u2014 including the Learn with Workday program, Workday Basics Series, AI training, and product configuration courses \u2014 Workday Training page (workday.com/training). This is a mature, multi-tier training organization with confirmed investment.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Culture",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Adoption Kit Product | Strength:** Workday sells an 'Adoption Kit' subscription \u2014 customizable training resources for accelerating employee and manager self-service adoption \u2014 confirming that training is embedded in the product success motion, not just a support function \u2014 Workday Training page (workday.com/training). Training permeates the customer lifecycle.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 14,
+              "weight": 25,
+              "summary": "Workday has a structured Talent Development Partner directory with named university partners (ASU W.P. Carey, Marymount University). The Workday Marketplace confirms integration maturity and platform openness for third-party solutions. Workday is a large enterprise but has structured partner engagement pathways.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Talent Development Partner Directory | Strength:** Workday maintains a structured Talent Development Partner directory with named global university partners (ASU W.P. Carey School of Business, Marymount University) offering Workday Pro certification pathways \u2014 Workday ATP page (workday.com). Formal partner program with global reach confirms ecosystem maturity.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners"
+                    }
+                  ]
+                },
+                {
+                  "name": "Integration Maturity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Workday Marketplace and APIs | Strength:** Workday operates a marketplace for third-party integrations and exposes REST and SOAP APIs for enterprise integrations \u2014 Workday platform homepage (workday.com). Open platform posture suggests willingness to engage with technology partners, though training-specific sandbox APIs are not currently available.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Ease of Engagement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Large Enterprise Engagement Complexity | Context:** Workday is a large, publicly traded enterprise software company \u2014 structured partner programs exist but engagement cycles are long and require navigating multiple stakeholder layers \u2014 Skillable benchmark documentation. The willing buyer / unwilling product team pattern is documented for Workday.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 10,
+              "weight": 30,
+              "summary": "Talent Development Partner network confirmed with global reach. Workday Learning (their own LMS) is the primary delivery vehicle \u2014 not a Skillable partner LMS but a significant channel. No existing lab platform confirmed, representing a greenfield opportunity. Gray market Workday training exists on Udemy and LinkedIn Learning.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**University ATP Network | Strength:** Workday's Talent Development Partner directory includes named university partners offering Workday Pro certification programs globally \u2014 Workday ATP page (workday.com). This ATP network is a confirmed delivery channel for simulation-based labs if Workday pursues the partnership.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners"
+                    }
+                  ]
+                },
+                {
+                  "name": "LMS Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Workday Learning LMS | Context:** Workday operates its own LMS (Workday Learning) as part of the HCM suite \u2014 not a Skillable partner LMS (Docebo, Cornerstone, Skillable TMS) \u2014 Workday product suite (workday.com). Workday Learning is the primary delivery vehicle; Skillable integration would require custom LTI or API connection.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Gray Market Offering",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Third-Party Workday Training | Context:** Workday training content is widely available on Udemy, LinkedIn Learning, and other platforms \u2014 indicating strong market demand for Workday skills training beyond official channels \u2014 inferred from category norms. Gray market activity confirms demand but also means Workday is not fully capturing the training revenue opportunity.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 6,
+              "weight": 20,
+              "summary": "Workday Education has a dedicated content development function producing product configuration courses, AI training, and certification prep. Technical build capacity for hands-on labs is not confirmed \u2014 they do not appear to currently build interactive lab environments, making this a Professional Services opportunity.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Workday Education Content Team | Strength:** Workday Education produces a substantial catalog of product configuration courses, AI training, certification prep, and adoption resources \u2014 Workday Training page (workday.com/training). A dedicated content development function is confirmed at organizational scale.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Content Outsourcing",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Confirmed Lab Build Capability | Risk:** Workday Education does not appear to currently build interactive hands-on lab environments \u2014 their catalog is video, on-demand, and instructor-led \u2014 inferred from training catalog review. Building simulation labs would require either Skillable Professional Services support or significant internal capability development.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 26,
+        "pl_score_pre_ceiling": 66,
+        "technical_fit_multiplier": 0.65,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 15,
+            "reason": "Shared multi-tenant \u2014 no learner isolation possible"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 1000,
+            "population_high": 2000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 2000,
+            "population_high": 5000,
+            "hours_low": 1.0,
+            "hours_high": 1.0,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 5000,
+            "population_high": 10000,
+            "hours_low": 1.0,
+            "hours_high": 1.0,
+            "adoption_pct": 0.2,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 1191,
+        "annual_hours_high": 2690,
+        "rate_per_hour": 0.0,
+        "acv_low": 9528.0,
+        "acv_high": 21520.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Deprioritize",
+        "color": "amber",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or VP of Workday Education",
+          "title": "VP, Workday Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Certification or Director of Partner Enablement",
+          "title": "Director, Workday Pro Certification",
+          "role_type": "influencer",
+          "linkedin_url": "",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Simulation feasibility \u2014 Director of Workday Pro Certification (Partner Enablement or Certification team). For the Talent & Performance module's core workflows (e.g., creating a talent review, configuring a performance review template, calibrating ratings), are those UI flows consistent enough across tenant configurations that a click-through simulation would be representative, or does each customer's configured business process framework make the screens diverge too much for a single simulation path to be credible?",
+            "Sandbox or NFR tenant availability \u2014 VP of Workday Education (Customer Education team). Does Workday Education currently have access to non-production tenants provisioned with sample Talent & Performance data (e.g., via Workday's implementation tenant or a dedicated training tenant) that an external lab platform could screen-capture or API-query for building guided simulations, or is all training content built exclusively in-house on internal infrastructure with no third-party access path?",
+            "API surface for state validation \u2014 Director of Workday Pro Certification or a Principal Engineer on the Workday Extend / Integration team. Does the Workday REST API (or SOAP/RAAS) expose read endpoints for Talent & Performance objects\u2014such as retrieving a completed review or talent pool membership\u2014that could be called programmatically to verify a learner completed a task correctly, or are those objects only queryable through Workday Report Writer with tenant-level credentials?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Workday Pro Certification program in place with dedicated Director role \u2014 they're actively certifying partners and customers on their platform",
+            "VP of Workday Education leading talent & performance training strategy \u2014 signals structured, executive-level commitment to customer education"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Workday Talent & Performance",
+      "category": "Human Capital Management",
+      "subcategory": "Talent Management & Performance",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Administrator",
+        "Business Analyst",
+        "Business User"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Configure a Performance Review Cycle",
+        "Set Up Calibration Sessions",
+        "Build a Succession Plan",
+        "Audit Performance Data for Pay Equity",
+        "Troubleshoot a Stalled Review Process"
+      ],
+      "poor_match_flags": [
+        "saas_only",
+        "no_api_automation",
+        "multi_tenant_only"
+      ],
+      "recommendation": [
+        "Skillable Simulations are the only viable delivery path because Workday Talent & Performance runs exclusively on Workday's proprietary SaaS cloud with no self-hosted option, no Azure/AWS native path, and no per-learner sandbox provisioning API. Simulation labs can replicate the UI workflows for performance review configuration, calibration setup, and succession planning \u2014 providing hands-on practice without requiring a live tenant. This is a meaningful but limited path: simulation labs are lower-fidelity than real environments and cannot validate live system state.",
+        "AI Vision scoring via guided interaction checkpoints is the ceiling for this product \u2014 learner actions within the simulated Workday UI can be validated against expected visual states (e.g., confirming a review template was saved with the correct rating scale). MCQ knowledge checks should supplement for configuration decision validation. Programmatic state validation against a live Workday tenant is not feasible without API access.",
+        "The critical unblock question is whether Workday's product team will open a sandbox or developer tenant API for training purposes. Your champion in Workday Education should ask the product team: 'Does Workday offer a programmatic sandbox provisioning API or a developer tenant program that allows third-party training platforms to spin up isolated per-learner environments for certification and training use cases?' Without a yes to this question, Simulation remains the ceiling and investment in lab development should be minimal.",
+        "Workday Pro Platform Administrator Certification is the highest-value entry point \u2014 if Workday ever opens a sandbox API, PBT components for the certification would be immediately viable and would serve the existing university partner network (ASU W.P. Carey, Marymount University). The Adoption Kit product confirms Workday Education already recognizes that configuration skill gaps drive adoption failure \u2014 simulation labs for new administrator onboarding align directly with this documented need.",
+        "Workday's product team has historically declined to open provisioning APIs for third-party training platforms \u2014 this is the canonical Workday blocker documented in Skillable's own benchmark data. Maintain the relationship with Workday Education at low cost; do not invest significant solution engineering time until Workday commits to API openness. The willing-buyer / unwilling-product-team pattern is confirmed for this account."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Simulation is the only viable path. Workday Talent & Performance runs exclusively on Workday's proprietary SaaS cloud with no self-hosted option, no Azure/AWS native path, and no per-learner sandbox provisioning API. Real tenant provisioning requires months and significant cost. Skillable Simulations can replicate UI workflows for goal-setting, performance review configuration, and calibration scenarios.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Simulation | Context: Workday Talent & Performance runs exclusively on Workday's proprietary SaaS cloud \u2014 no self-hosted option, no Azure/AWS native path, no installable software. Skillable Simulations are the only viable delivery path, replicating UI workflows for performance review configuration, goal management, and calibration without a live tenant. Simulation earns base credit (+12) but caps the provisioning ceiling significantly.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/human-capital-management/talent-management.html",
+                      "source_title": "Workday Talent Management Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Sandbox API",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "Sandbox API | Blocker: No per-learner sandbox provisioning API confirmed. Workday's REST API is an operational API for configured tenants, not a provisioning API for spinning up isolated per-learner environments. Tenant provisioning requires Workday's internal processes \u2014 months of lead time and significant cost. No developer tier or free trial tenant path exists. This is the canonical Workday API blocker documented in Skillable benchmarks.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html",
+                      "source_title": "Workday API Documentation"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 5,
+              "weight": 25,
+              "summary": "No per-learner identity API for isolated tenant provisioning. Training license path exists but requires enterprise sales engagement, months of lead time, and significant cost \u2014 extreme friction. No credential recycling or pool mechanism confirmed for simulation environments.",
+              "badges": [
+                {
+                  "name": "Training License",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "Training License | Risk: Workday does not offer a self-service NFR or developer tenant. Access to a Workday Talent & Performance environment requires enterprise sales engagement, a formal contract, and months of provisioning lead time. Workday Education partners (ASU, Marymount) have tenant access for certification delivery, but this is not a scalable per-learner provisioning path for simulation-adjacent use cases.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Learner Isolation",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "Learner Isolation | Blocker: No per-learner tenant isolation mechanism confirmed. Workday tenants are provisioned at the enterprise level \u2014 there is no API or self-service path to create isolated per-learner sub-environments within a tenant. Shared demo tenants exist for partner use but are multi-tenant with no isolation guarantee.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 6,
+              "weight": 15,
+              "summary": "Simulation Scorable via AI Vision and guided interaction checkpoints. No programmatic state validation against a live Workday tenant is feasible without API access. MCQ knowledge checks can supplement for conceptual validation of configuration decisions.",
+              "badges": [
+                {
+                  "name": "Simulation Scorable",
+                  "color": "amber",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Simulation Scorable | Context: Skillable Simulations support guided interaction scoring via AI Vision \u2014 learner actions within the simulated Workday UI (configuring a performance template, setting calibration distributions, creating a succession plan) can be validated against expected visual states. This is the ceiling for scoring without a live tenant API.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://skillable.com/simulations/",
+                      "source_title": "Skillable Simulations Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scoring",
+                  "color": "amber",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "MCQ Scoring | Context: Knowledge-check questions can validate conceptual understanding of Talent & Performance configuration decisions (e.g., when to use calibration vs. forced distribution, how to structure succession plan eligibility rules). MCQ is the reliable fallback when AI Vision state validation is ambiguous.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Simulation environments are cleaned up automatically by the Skillable platform \u2014 no manual teardown required. No orphaned tenant resources since no real Workday tenant is provisioned.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Datacenter | Strength: Simulation environments are hosted and cleaned up automatically by the Skillable platform \u2014 no manual teardown required between learners. Since no real Workday tenant is provisioned, there are no orphaned resources, accounts, or data to clean up. Teardown is fully automatic.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://skillable.com/simulations/",
+                      "source_title": "Skillable Simulations Overview"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 12,
+              "weight": 40,
+              "summary": "Talent & Performance spans multi-phase HR workflows (goal-setting, mid-year check-in, year-end review, calibration, succession) with distinct admin, manager, and employee roles. Configuration complexity is real \u2014 template design, review cycle orchestration, calibration distribution settings, and succession plan rules require practiced skill. However, end-user tasks are relatively simple, limiting the ceiling.",
+              "badges": [
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Multi-Phase Workflow | Strength: The Talent & Performance cycle spans goal-setting \u2192 continuous feedback \u2192 mid-year check-in \u2192 year-end review \u2192 calibration \u2192 compensation linkage \u2192 succession planning. Each phase requires distinct configuration decisions and involves different stakeholders (employee, manager, HR admin, calibration facilitator). Administrators must understand the full arc to configure it correctly.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/human-capital-management/talent-management.html",
+                      "source_title": "Workday Talent Management Product Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Role Diversity | Opportunity: Four distinct roles interact with Talent & Performance \u2014 System Administrator (configures templates and review cycles), HR Business Partner (manages calibration and succession), Manager (conducts reviews and provides feedback), and Employee (self-assessment and goal tracking). Admin and HRBP roles have the most configuration depth and are the most labable personas.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 12,
+              "weight": 25,
+              "summary": "Misconfigured performance cycles affect thousands of employees simultaneously. Incorrect calibration settings can create legal/compliance exposure (pay equity, EEOC). Succession planning gaps can leave critical roles unfilled. Adoption risk is well-documented in the HCM space \u2014 poor configuration leads to low manager adoption and failed review cycles.",
+              "badges": [
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Adoption Risk | Strength: Misconfigured performance review cycles affect all employees in scope simultaneously \u2014 a single template error can invalidate an entire review cycle for thousands of people. Workday's own Adoption Kit product exists specifically because poor configuration leads to low manager adoption and failed review cycles, confirming this is a documented, known risk.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "High-Stakes Skills | Opportunity: Incorrect calibration distribution settings and succession plan eligibility rules can create legal/compliance exposure \u2014 pay equity audits (EEOC, EU Pay Transparency Directive) increasingly scrutinize how performance ratings are distributed. Errors are recoverable but can require significant rework and legal review.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/human-capital-management/talent-management.html",
+                      "source_title": "Workday Talent Management Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 6,
+              "weight": 15,
+              "summary": "Compliance audit scenarios (configuring and auditing performance processes for pay equity and EEOC compliance) are a natural fit, though the product is not primarily a compliance tool. Standard step-by-step configuration labs are the dominant format.",
+              "badges": [
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Compliance Audit | Opportunity: A simulation lab scenario where learners must configure a performance review cycle to meet pay equity audit requirements \u2014 setting calibration guardrails, enabling audit trails, and validating rating distribution \u2014 is a natural fit for compliance-focused HR administrators. Requires some shoehorning since the product is not primarily a compliance tool.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/human-capital-management/talent-management.html",
+                      "source_title": "Workday Talent Management Product Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 12,
+              "weight": 20,
+              "summary": "Workday HCM serves 10,000+ enterprise customers globally. Talent & Performance is a core module. Gartner Magic Quadrant Leader for Cloud HCM. Active Workday Pro certification program. HCM/talent management is a high-demand enterprise software category with strong training investment signals.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Enterprise Validated | Strength: Workday HCM serves 10,000+ enterprise customers globally including Fortune 500 companies. Talent & Performance is a core module within the HCM suite. Workday is a Gartner Magic Quadrant Leader for Cloud HCM \u2014 confirming enterprise-scale adoption and validation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/newsroom/press-releases/press-release-details.html",
+                      "source_title": "Workday Company Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Active Certification | Strength: Workday Pro Platform Administrator Certification is an active, comprehensive certification program delivered through global university partners (ASU W.P. Carey, Marymount University). The certification covers configuration management, testing, and troubleshooting across the Workday platform including Talent & Performance modules \u2014 confirming market demand for validated administrator skills.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 12,
+              "weight": 25,
+              "summary": "Workday Education is a mature, well-resourced training organization offering the Workday Pro Platform Administrator Certification, product configuration courses, the Learn with Workday on-demand program, and an Adoption Kit for customers. Explicit hands-on configuration training language confirmed. University partnerships (ASU W.P. Carey, Marymount) deliver certification globally.",
+              "badges": [
+                {
+                  "name": "Training Culture",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Training Culture | Strength: Workday Education explicitly offers hands-on configuration training, a multi-tier certification program, and an Adoption Kit for customers. The training page distinguishes between end-user training, administrator training, and partner training \u2014 demonstrating a structured, invested training function with explicit hands-on language ('Master configurations,' 'Product Configuration Courses').",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Certification Program",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Certification Program | Strength: Workday Pro Platform Administrator Certification is active and delivered through formal university partnerships globally. The program covers configuration management, testing, and troubleshooting \u2014 the exact skills that hands-on labs reinforce. This is a direct Skillable entry vector if provisioning barriers are resolved.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 6,
+              "weight": 20,
+              "summary": "Workday Education has a dedicated curriculum team producing configuration courses, certification content, and the Adoption Kit. University partnerships suggest collaborative content development. Content creation infrastructure is mature.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Content Dev Team | Strength: Workday Education has a dedicated curriculum team producing the Workday Basics Series, Product Configuration Courses, Workday Pro certification content, and the Adoption Kit subscription product. The breadth and structure of the catalog \u2014 segmented by audience (everyone, end users, administrators) \u2014 confirms a mature content development function, not ad-hoc production.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "Formal Talent Development Partner program with global university partners (ASU W.P. Carey, Marymount University) delivering Workday Pro certification. No evidence of Skillable or competitor lab platform \u2014 greenfield opportunity. Implementation partner ecosystem (Deloitte, Accenture, IBM) provides additional delivery reach.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "ATP / Learning Partners | Strength: Workday's Talent Development Partner program includes global university partners (ASU W.P. Carey, Marymount University) delivering the Workday Pro Platform Administrator Certification. The program is described as globally available, confirming international delivery reach. Implementation partners (Deloitte, Accenture, IBM) provide additional channel delivery capacity.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "No Lab Platform | Context: No evidence of Skillable or any competitor lab platform (CloudShare, Instruqt, Skytap) in Workday's training delivery stack. Workday Education delivers primarily through on-demand video, instructor-led courses, and university-partner classroom programs \u2014 no hands-on lab infrastructure confirmed. This is a greenfield opportunity if provisioning barriers are resolved.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 8,
+              "weight": 25,
+              "summary": "Formal Talent Development Partner program, large implementation partner ecosystem, and university certification partnerships demonstrate strong partner orientation. Workday builds its own training content but also partners for delivery \u2014 mixed build-vs-buy approach. Large enterprise company with formal processes.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Partner Ecosystem | Strength: Workday operates a formal Talent Development Partner program with global university partners, a large implementation partner ecosystem (Deloitte, Accenture, IBM, KPMG), and a technology partner marketplace. The partner-delivered certification model confirms Workday's willingness to extend training delivery through third parties \u2014 a positive signal for platform partnership.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Build vs Buy",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Build vs Buy | Context: Workday builds its own training content (Workday Education) but partners with universities for certification delivery \u2014 a mixed build-and-partner approach. However, the product team's historical reluctance to open provisioning APIs (per Skillable benchmark) suggests a strong build-in-house culture on the product side that creates friction for third-party lab platform integration.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/education-and-training/training-and-certifications.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 13,
+        "pl_score_pre_ceiling": 45,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 100,
+            "reason": "Classification metadata only \u2014 Sandbox API badge drives the cap"
+          },
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 100,
+            "reason": "Classification metadata only \u2014 Sandbox API badge drives the cap"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 500,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 300,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 500,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 200,
+            "population_high": 350,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 4000,
+            "population_high": 6000,
+            "hours_low": 1.0,
+            "hours_high": 1.0,
+            "adoption_pct": 0.1,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 487,
+        "annual_hours_high": 898,
+        "rate_per_hour": 0.0,
+        "acv_low": 3896.0,
+        "acv_high": 7184.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or Head of Workday Education",
+          "title": "VP of Customer Education / Head of Workday Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Certification or Director of Partner Enablement",
+          "title": "Director of Certification or Director of Partner Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Sandbox provisioning API \u2014 Find a Principal Engineer or Technical Lead on the Workday Education Platform team (Product Engineering). Does Workday Talent & Performance expose an API or CLI to programmatically provision and tear down isolated tenant sandboxes (or training tenants) with pre-seeded employee, goal, and review-cycle data, or is all training environment provisioning handled exclusively through internal ops tickets?",
+            "Scoring surface for performance workflows \u2014 Find a Solution Architect or Senior Engineer on the HCM Platform API team (Engineering). When a learner completes a multi-step talent review or calibration workflow in a training tenant, does the Workday REST API (SOAP or RaaS) return granular state data\u2014such as review-step completion status, goal-alignment scores, or calibration session outcomes\u2014that an external system could poll or subscribe to via webhook for automated scoring?",
+            "NFR licensing for hands-on labs \u2014 Find the Director of Certification or Director of Partner Enablement (Workday Education). What is the current licensing model for non-production training tenants used in customer or partner certification labs\u2014specifically, is there a programmatic NFR or education-tier SKU that permits spinning up short-lived Talent & Performance tenants at scale (e.g., 500+ concurrent learners), or does each tenant require a manual provisioning request with a fixed minimum duration?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Workday uses simulation-based orchestration for their Talent & Performance product training \u2014 potential gap for hands-on lab experiences in partner/customer enablement programs",
+            "Organization has defined roles for VP of Customer Education and Director of Certification, indicating structured training leadership and partner enablement function"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Workday Extend (Platform Extensibility)",
+      "category": "Enterprise Platform Extensibility",
+      "subcategory": "Low-Code / No-Code App Development on ERP",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Developer",
+        "Administrator",
+        "Software Engineer"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Build Your First Workday Extend App",
+        "Diagnose a Broken Extend Integration",
+        "Workday Pro Admin: Configuration Validation",
+        "Design an Extension Architecture"
+      ],
+      "poor_match_flags": [
+        "no_api_automation",
+        "saas_only"
+      ],
+      "recommendation": [
+        "Simulation is the only viable delivery path for Workday Extend today \u2014 Workday's proprietary cloud locks down tenant provisioning APIs, making per-learner environment isolation impossible. Simulation labs can cover conceptual workflows, guided walkthroughs, and break/fix scenarios using AI Vision scoring, but cannot replicate live Extend development. Do not invest significant solution engineering time until Workday's product team commits to opening a sandbox or developer tenant API. The canonical benchmark warning applies: WILLING BUYER / UNWILLING PRODUCT TEAM \u2014 the training organization is engaged, but the product team has historically blocked the API access that would make real labs viable.",
+        "In simulation, AI Vision is the primary scoring method \u2014 validating that learners have navigated to correct screens, completed configuration forms, and followed the right workflow sequence. MCQ knowledge checks validate conceptual understanding of Extend framework architecture and API patterns. Neither method can validate actual app deployment or runtime behavior without a live tenant \u2014 this is a meaningful gap for a developer-focused product where hands-on output is the primary learning artifact.",
+        "The blocking question is whether Workday's product team will expose a lightweight sandbox or developer tenant API for per-learner provisioning. The Workday Education team (training org) is the likely champion \u2014 they have motivation and precedent (Talent Development Partners). The question to send: 'Does Workday Extend have a developer sandbox or trial tenant environment that can be provisioned programmatically via API, without a full enterprise contract?' Direct this to the Workday Education product partnership team or the Workday Developer Relations team.",
+        "If provisioning is ever unlocked, the highest-value entry point is the Workday Pro Platform Administrator Certification \u2014 Skillable's Performance-Based Testing capability maps directly to the certification's configuration and troubleshooting focus. The Talent Development Partner network (ASU, Marymount) provides a ready-made ATP delivery channel. Until then, maintain the relationship at low cost and revisit when Workday signals API openness."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Workday Extend is SaaS-only on Workday's proprietary cloud. No self-hosted option, no Azure/AWS native path, no confirmed per-learner sandbox API. Simulation is the only viable delivery path. The no_api_automation flag caps Product Labability at 5 regardless of dimension scores.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Simulation is the only viable delivery path for Workday Extend \u2014 Workday runs on a proprietary cloud with no self-hosted option, no Azure/AWS native path, and no confirmed per-learner sandbox API. Simulation can demonstrate Extend app development workflows without a live tenant \u2014 Workday Training and Certifications page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Sandbox API",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "No per-learner sandbox or provisioning API confirmed for Workday Extend. Workday's proprietary cloud does not expose tenant provisioning APIs to third parties. The canonical Workday benchmark confirms: 'APIs locked down. No self-hosted option. No Azure/AWS path. No free developer tier. Tenant provisioning takes months and costs thousands.' \u2014 Skillable Benchmark Reference.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No per-learner tenant provisioning API confirmed. Workday does not offer a free developer tier or sandbox environment that can be programmatically provisioned. Training tenants require months of setup and significant cost. No viable automated lab access path exists.",
+              "badges": [
+                {
+                  "name": "Training License",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "No free developer tier, sandbox tenant, or NFR license path confirmed for Workday Extend. Workday tenant provisioning requires enterprise contracts and months of setup \u2014 there is no lightweight evaluation or training tenant that can be spun up per learner \u2014 Workday Training and Certifications page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Learner Isolation",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "Per-learner tenant isolation is not achievable \u2014 Workday does not expose tenant provisioning APIs to third parties, and shared demo tenants cannot be isolated per learner. This is the core labability blocker for all Workday products \u2014 Skillable Benchmark Reference.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 15,
+              "weight": 15,
+              "summary": "In a simulation context, AI Vision can validate visual state (form completion, app configuration screens). MCQ scoring is the fallback for knowledge validation. No programmatic scoring API is accessible without a live Workday tenant.",
+              "badges": [
+                {
+                  "name": "AI Vision",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "In a simulation context, AI Vision can validate visual state \u2014 confirming that a learner has navigated to the correct screen, completed a form, or configured an app component. This is the highest-fidelity scoring method available without a live Workday tenant \u2014 Skillable Platform Capabilities.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scoring",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Knowledge-check questions are the fallback scoring method for Workday Extend simulation labs \u2014 validating conceptual understanding of Extend framework architecture, API patterns, and deployment workflows without requiring live environment state validation.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Simulation environments are cleaned up automatically by the Skillable platform \u2014 no manual teardown required. This is the one dimension where the simulation path performs well.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Simulation environments hosted on Skillable's datacenter fabric are cleaned up automatically at session end \u2014 no manual teardown, no orphaned resources, no per-learner cleanup cost. This is the one dimension where the simulation path performs at full strength \u2014 Skillable Platform Capabilities.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.skillable.com",
+                      "source_title": "Skillable Platform Capabilities"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 18,
+              "weight": 40,
+              "summary": "Workday Extend involves a multi-phase development lifecycle: design app schema, build business logic using Workday's proprietary scripting model, configure REST API integrations, test in sandbox, deploy to production tenant. Role diversity spans developer, admin, and integration specialist. The proprietary framework creates genuine complexity that cannot be learned passively.",
+              "badges": [
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Extend development follows a multi-phase lifecycle: design app schema and data model \u2192 build business logic using Workday's proprietary scripting and orchestration framework \u2192 configure REST API integrations with external systems \u2192 test in sandbox \u2192 deploy to production tenant \u2192 monitor and iterate. Each phase requires distinct skills and cannot be skipped \u2014 Workday Platform Overview.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Extend serves distinct roles: developers building custom app logic, administrators deploying and governing extensions, and integration specialists connecting Extend apps to external systems via REST APIs. The Workday Pro Platform Administrator Certification confirms the admin role as a distinct, testable skill set \u2014 Workday Training and Certifications.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Integration Complexity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Extend apps connect to Workday's core HCM and Finance data via proprietary APIs, and to external systems via REST. Developers must understand Workday's security model, data domains, and business process framework to build integrations correctly \u2014 Workday Platform Overview.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 6,
+              "weight": 25,
+              "summary": "Workday Extend misconfiguration can break HR and finance business processes at enterprise scale \u2014 consequential but recoverable with proper testing. The steep learning curve on Workday's proprietary development model creates real adoption risk: organizations that cannot staff Extend expertise are locked into expensive consulting engagements.",
+              "badges": [
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Extend uses a proprietary development model \u2014 declarative scripting, Workday's business process framework, and platform-specific data domains \u2014 that has no direct analog in standard web or enterprise development. Developers with strong general skills still require significant dedicated ramp time before they can build production-ready Extend apps \u2014 Workday Platform Overview.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Adoption Risk",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "Organizations that cannot staff Workday Extend expertise are locked into expensive consulting engagements for every customization. Workday's Talent Development Partner program (ASU, Marymount) exists specifically to address this skills gap \u2014 confirming that adoption risk is a documented, recognized concern \u2014 Workday Talent Development Partners page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 12,
+              "weight": 15,
+              "summary": "Break/fix scenarios (diagnosing broken Extend apps) and architecture challenge labs (designing extension solutions for specific business requirements) are the most natural lab types. Standard step-by-step guided labs also apply but are not credited here.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Break/fix labs \u2014 presenting learners with a broken Workday Extend app (misconfigured API integration, broken business process logic, deployment error) and requiring diagnosis and repair \u2014 are a natural fit for simulation-based delivery and align with the Workday Pro certification's troubleshooting focus \u2014 Workday Training and Certifications.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Architecture Challenge",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Architecture challenge labs \u2014 presenting a business requirement and asking learners to design the correct Extend app structure, data model, and integration pattern \u2014 test higher-order design skills beyond step-by-step configuration and are well-suited to simulation delivery \u2014 Workday Platform Overview.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 12,
+              "weight": 20,
+              "summary": "Workday serves 10,000+ enterprise customers globally and is a Gartner Magic Quadrant leader for Cloud ERP. Workday Extend is a growing platform capability as customers seek to customize beyond core HCM/Finance. Enterprise validation is strong; the Extend-specific market is narrower than the core platform.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday is a Gartner Magic Quadrant Leader for Cloud ERP for Service-Centric Enterprises (2025) with 10,000+ enterprise customers globally. Workday Extend is positioned as a core platform differentiator for customers who need customization beyond core HCM/Finance \u2014 Workday Homepage.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Enterprise platform extensibility is a growing category as organizations seek to customize ERP/HCM platforms without breaking core functionality. Workday's explicit positioning of Extend as a strategic platform capability \u2014 alongside AI and Data Cloud \u2014 confirms category investment \u2014 Workday Platform Overview.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 12,
+              "weight": 25,
+              "summary": "Workday Education is a mature training organization with a published certification program (Workday Pro Platform Administrator Certification), a multi-tier training catalog (Training for Everyone, Users, Administrators), and explicit hands-on language. The Learn with Workday program and AI-focused training tracks confirm strategic investment in training as a business function.",
+              "badges": [
+                {
+                  "name": "Certification Program",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Pro Platform Administrator Certification is an active, published certification program covering management, testing, and troubleshooting of configurations across the Workday platform \u2014 available to both customers and partners. This is a direct Skillable PBT entry vector if provisioning is ever unlocked \u2014 Workday Training and Certifications.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Education publishes a multi-tier training catalog: Training for Everyone (AI basics, Workday Basics), Training for Users (self-service workflows), and Training for Administrators (Product Configuration Courses, Workday Pro Certification). Explicit hands-on and configuration language confirms investment in skill-building beyond passive content \u2014 Workday Training and Certifications.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 12,
+              "weight": 20,
+              "summary": "Workday Education team is confirmed as a named content development organization. Talent Development Partners (ASU W.P. Carey School of Business, Marymount University) are documented as external content development partners for certification preparation \u2014 confirming both internal and outsourced content creation capacity.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Education is a named, dedicated training organization responsible for developing and publishing the full training catalog \u2014 including certification prep, product configuration courses, and AI training content. The breadth of the catalog confirms a substantial internal content development team \u2014 Workday Training and Certifications.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Content Outsourcing",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday's Talent Development Partner program (ASU W.P. Carey School of Business, Marymount University) is a documented external content development partnership for Workday Pro Platform Administrator Certification preparation \u2014 confirming that Workday actively outsources content creation to academic partners \u2014 Workday Talent Development Partners.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "No confirmed lab platform (Skillable or competitor) \u2014 greenfield opportunity. Talent Development Partners (ASU, Marymount) form a nascent ATP network for certification delivery. Training is delivered through Workday's own education portal and partner university programs. No major flagship conference hands-on track confirmed in research.",
+              "badges": [
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "No lab platform (Skillable or competitor) confirmed in research. Workday Education delivers training through its own portal and partner university programs \u2014 a greenfield opportunity for Skillable if the provisioning blocker is resolved \u2014 Workday Training and Certifications.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday's Talent Development Partner network (ASU W.P. Carey, Marymount University) provides a nascent ATP structure for certification delivery \u2014 globally available programs that could scale hands-on lab delivery if a viable provisioning path were established \u2014 Workday Talent Development Partners.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 0,
+              "weight": 25,
+              "summary": "Workday has a formal partner ecosystem and training partner program. However, the canonical benchmark warning applies: WILLING BUYER / UNWILLING PRODUCT TEAM pattern. The training organization is engaged and motivated; the product team has historically blocked API access for per-learner provisioning. Large enterprise culture creates engagement friction.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "Workday has a formal partner ecosystem and Talent Development Partner program \u2014 the training organization is engaged and partner-friendly. However, the canonical benchmark warning applies: WILLING BUYER / UNWILLING PRODUCT TEAM pattern. Workday's product team has historically blocked API access for per-learner provisioning despite training org interest \u2014 Skillable Benchmark Reference.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners"
+                    }
+                  ]
+                },
+                {
+                  "name": "Build vs Buy",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "Workday's training organization demonstrates buy culture (external Talent Development Partners, published certification programs). However, the product team's refusal to open APIs for third-party provisioning reflects a strong build-in-house / closed-platform culture at the product level \u2014 creating a structural misalignment that blocks lab delivery \u2014 Workday Platform Overview.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/platform.html",
+                      "source_title": "Workday Platform Overview"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 14,
+        "pl_score_pre_ceiling": 49,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          },
+          {
+            "flag": "saas_only",
+            "max_score": 100,
+            "reason": "Classification metadata only \u2014 Sandbox API badge drives the cap"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 500,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 1000,
+            "population_high": 2000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 2000,
+            "population_high": 5000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.3,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 712,
+        "annual_hours_high": 2596,
+        "rate_per_hour": 0.0,
+        "acv_low": 13760.0,
+        "acv_high": 45680.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Workday Education or Head of Customer Education",
+          "title": "VP, Workday Education / Head of Customer Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Partner Enablement or Director of Certification",
+          "title": "Director, Partner Enablement or Director, Certification Programs",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Sandbox provisioning for Extend \u2014 Find the **Director of Partner Enablement or Certification Programs** (Education/Enablement team). Does Workday Extend offer API-driven or template-based provisioning of isolated tenant sandboxes (or Extend-specific dev environments) that a third-party lab platform could spin up and tear down per learner session, or is all Extend development locked to customer-provisioned tenants with no external orchestration path?",
+            "API surface for state validation \u2014 Find a **Principal Engineer or Product Lead on the Workday Extend platform team** (Engineering/Product). Can an external system call Workday Extend APIs (REST or GraphQL) to programmatically read the state of custom objects, orchestrations, and UI pages within a sandbox\u2014enough to validate whether a learner correctly built and deployed an extension\u2014and are those endpoints available in non-production environments without a full customer license?",
+            "NFR / education licensing model \u2014 Find the **VP of Workday Education or Head of Customer Education** (Education org). Does Workday offer not-for-resale or education-tier Extend environments that a training partner could license at scale (e.g., 50+ concurrent sandbox instances) for hands-on certification labs, and if so, what is the current licensing vehicle and approval path?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Workday operates a VP-level Workday Education function, indicating structured internal training and certification programs that likely extend to partner enablement",
+            "Company maintains dedicated Director-level roles in Partner Enablement and Certification Programs, suggesting active partner ecosystem training at scale"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Workday Integration Cloud",
+      "category": "Enterprise Integration Platform",
+      "subcategory": "HR/Finance Integration & Extensibility",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Developer",
+        "Administrator",
+        "Data Engineer",
+        "Software Engineer"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Diagnosing a Failed Workday Integration",
+        "Building an EIB Inbound Integration",
+        "Configuring a Workday Studio Integration",
+        "Workday Pro Certification Readiness Assessment",
+        "Migrating a Legacy Integration to Workday Extend"
+      ],
+      "poor_match_flags": [
+        "saas_only",
+        "no_api_automation",
+        "multi_tenant_only"
+      ],
+      "recommendation": [
+        "Simulation is the only viable delivery path for Workday Integration Cloud because Workday's proprietary SaaS architecture has no self-hosted option, no Azure/AWS path, and no per-learner sandbox provisioning API. Skillable's own benchmark data confirms this: tenant provisioning takes months and costs thousands. Simulation supports guided interaction scoring and MCQ assessment but cannot replicate real hands-on configuration \u2014 learners will not touch a live Workday tenant. This is a meaningful capability gap for a product where hands-on practice is the primary learning modality.",
+        "Scoring is limited to Simulation-based guided interaction (step completion, navigation validation) and MCQ knowledge checks. No programmatic state validation is possible without a real provisioned tenant. For Workday Pro Certification readiness, MCQ assessments aligned to certification objectives are the highest-fidelity option available on this path. Performance-based testing \u2014 validating that a learner actually configured an integration correctly \u2014 is not achievable without API openness from Workday's product team.",
+        "The single question that unlocks real lab delivery is whether Workday's product team will provide a sandbox provisioning API or a developer tenant program with programmatic access. The team most likely to own this answer is Workday's Platform and Product Extensions group, not the Education team. Your champion in Workday Education can send this question: 'Does Workday have a documented API or program that allows a training platform to provision isolated per-learner Workday tenants programmatically \u2014 similar to how Salesforce Trailhead or ServiceNow's developer instance program works?' If the answer is yes, Skillable's entire lab delivery capability opens up. If no, Simulation remains the ceiling.",
+        "Workday Education's training commitment is strong \u2014 mature catalog, active Workday Pro Certification, Talent Development Partners network \u2014 and the relationship is worth maintaining. However, the benchmark explicitly flags the 'WILLING BUYER / UNWILLING PRODUCT TEAM' pattern: Skillable invested over a year with engaged training leadership but Workday's product team will not open APIs. Maintain the relationship at low cost. Do not invest significant solution engineering time until Workday commits to API openness. If that commitment comes, the expansion arc (simulation \u2192 real labs \u2192 certification PBT) is immediately viable given the training infrastructure already in place.",
+        "Workday's proprietary SaaS architecture is a hard provisioning blocker. Unlike Salesforce (developer orgs), ServiceNow (PDI instances), or SAP (sandbox tenants), Workday does not offer a free or low-cost developer/sandbox tenant program with programmatic provisioning. Until Workday's product team opens a sandbox API or developer instance program, real hands-on lab delivery is not possible \u2014 only Simulation. This is a product team decision, not a training team decision, and it has not changed despite sustained engagement."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Workday Integration Cloud runs exclusively on Workday's proprietary SaaS cloud with no self-hosted, Azure, or AWS path. No per-learner sandbox provisioning API exists \u2014 tenant provisioning is a months-long, sales-led process costing thousands of dollars. Simulation is the only viable delivery path, earning base credit of 12.",
+              "badges": [
+                {
+                  "name": "Sandbox API",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "Sandbox API | Blocker: Workday Integration Cloud runs exclusively on Workday's proprietary SaaS cloud with no self-hosted, Azure, or AWS deployment option. No per-learner sandbox provisioning API is documented \u2014 tenant provisioning is a months-long, sales-led process costing thousands of dollars. This is the canonical Workday provisioning blocker confirmed in Skillable's own benchmark data.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Simulation | Context: With all real provisioning paths blocked, Skillable Simulation is the only viable delivery mechanism for Workday Integration Cloud content. Simulation earns base credit and supports guided interaction scoring and MCQ assessment. AI Vision compute overhead applies.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Company Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 5,
+              "weight": 25,
+              "summary": "Workday Education provides training tenants through formal programs, but these are shared environments \u2014 not per-learner isolated instances. No programmatic user provisioning API for sandbox environments. Training license access is gated through Workday's sales and education channels, not freely available.",
+              "badges": [
+                {
+                  "name": "Training License",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "Training License | Risk: Workday Education provides training tenants through formal programs for customers and partners, but these are shared environments managed by Workday \u2014 not per-learner isolated instances provisioned on demand. Access requires enrollment in Workday's education programs, not a freely available developer or NFR license.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Learner Isolation",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "Learner Isolation | Blocker: No per-learner tenant isolation mechanism exists. Workday's training environments are shared multi-tenant instances managed by Workday Education \u2014 there is no API or mechanism to provision isolated per-learner Workday tenants programmatically at lab scale.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 6,
+              "weight": 15,
+              "summary": "No programmatic scoring surface is available for per-learner environments. Simulation-based guided interaction scoring and MCQ knowledge checks are the only viable assessment methods. Rich API scoring is blocked by the same provisioning constraint that blocks the lab itself.",
+              "badges": [
+                {
+                  "name": "Simulation Scorable",
+                  "color": "amber",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Simulation Scorable | Context: Skillable Simulation supports guided interaction scoring for Workday Integration Cloud content \u2014 learners can be assessed on navigation, configuration decisions, and workflow steps within a simulated environment. This is the ceiling for scoring without a real provisioned tenant.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Company Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scoring",
+                  "color": "amber",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "MCQ Scoring | Context: Knowledge-check questions are a viable fallback for assessing conceptual understanding of integration patterns, XSLT transformation logic, and Workday data model concepts. Cannot validate hands-on configuration competence without a real tenant environment.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Simulation path means Skillable hosts the environment entirely. Teardown is automatic via platform cleanup \u2014 no manual intervention required between learners.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Datacenter | Strength: Simulation path means Skillable hosts the entire environment. Teardown is automatic via platform cleanup \u2014 no manual intervention, no orphaned resources, no per-learner cleanup overhead between sessions.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Company Homepage"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 18,
+              "weight": 40,
+              "summary": "Workday Integration Cloud spans multiple distinct tools (Studio, EIB, Extend, REST/SOAP APIs) with a multi-phase development lifecycle and distinct roles. XSLT transformation logic, Workday data model mastery, and connector configuration create genuine depth that cannot be learned by watching.",
+              "badges": [
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Multi-Phase Workflow | Strength: Workday Integration Cloud development spans a full lifecycle \u2014 design (data model mapping, connector selection), build (Studio XML/XSLT authoring, EIB configuration, Extend app development), test (unit and integration testing in sandbox), deploy (promotion across tenants), monitor (integration system logs, error alerts), and troubleshoot (failed transaction diagnosis). Each phase requires distinct skills and cannot be skipped.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Role Diversity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Role Diversity | Strength: Workday Integration Cloud serves distinct practitioner roles \u2014 integration developer (Workday Studio, Extend), system administrator (connector configuration, security domain setup), and data engineer (EIB pipelines, transformation logic). Each role has a different skill set and lab scenario profile, supporting a broad training catalog.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Deep Configuration",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Deep Configuration | Strength: Workday Studio uses a proprietary XML/XSLT dialect tied to Workday's unique object model. Workday Extend requires understanding of Workday's data model, business process framework, and REST API surface. Configuration depth is high \u2014 not transferable from generic integration platform skills.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 12,
+              "weight": 25,
+              "summary": "Integration errors in Workday directly affect payroll, benefits, and financial reporting \u2014 real financial and compliance consequences. Workday Studio uses a proprietary XML/XSLT dialect tied to Workday's unique data model, creating a steep learning curve not transferable from generic integration skills.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "High-Stakes Skills | Strength: Workday Integration Cloud connects HR and Finance systems \u2014 payroll, benefits, financial reporting, and compliance data flows. Integration misconfiguration can cause payroll failures, incorrect financial reporting, broken compliance feeds, and data loss across enterprise systems. Errors in production have real financial and regulatory consequences.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Steep Learning Curve",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Steep Learning Curve | Strength: Workday Studio uses a proprietary XML/XSLT dialect and Workday's unique data model \u2014 skills are not transferable from MuleSoft, Dell Boomi, or other iPaaS platforms. Workday Pro Certification exists specifically because the learning curve is steep enough to warrant formal credentialing. Implementation consultants typically require months of dedicated training before becoming productive.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 12,
+              "weight": 15,
+              "summary": "Break/Fix scenarios (pre-broken XSLT transforms, misconfigured connectors) are a natural and high-value lab type. Migration labs (legacy EIB to Workday Extend REST APIs) represent a documented real-world scenario with strong training demand.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Break/Fix | Strength: Pre-broken integration scenarios \u2014 failed XSLT transforms, misconfigured connectors, broken field mappings, failed EIB loads \u2014 are a natural and high-value lab type for Workday Integration Cloud. Diagnosing and resolving integration failures is a core practitioner skill that maps directly to real-world support and implementation work.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Migration Lab",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Migration Lab | Opportunity: Migrating legacy SOAP/EIB integrations to Workday Extend REST APIs is a documented real-world scenario as Workday pushes customers toward its modern extensibility platform. Migration labs serve the large installed base of customers with legacy integrations who need to modernize.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 18,
+              "weight": 20,
+              "summary": "Workday serves ~10,000+ enterprise customers globally; Integration Cloud is used across virtually all deployments. Active Workday Pro Certification with integration tracks. Enterprise integration is a consistently high-demand skill category. Workday Rising annual conference signals events consumption potential.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Enterprise Validated | Strength: Workday serves over 10,000 enterprise customers globally across HR and Finance. Integration Cloud is used across virtually all enterprise deployments for connecting Workday to downstream systems \u2014 the addressable training population is large and well-defined.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Company Homepage"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Active Certification | Strength: Workday Pro Certification includes integration-specific tracks and is available to both customers and partners. Formal exam-based credentialing with Talent Development Partners (ASU, Marymount) delivering the program globally \u2014 confirms sustained market demand for validated integration skills.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "High-Demand Category",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "High-Demand Category | Strength: Enterprise integration and iPaaS skills are consistently among the highest-demand technical skills in the HR/Finance technology market. Workday-specific integration skills command premium consulting rates and are a top hiring criterion for Workday implementation partners globally.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 18,
+              "weight": 25,
+              "summary": "Workday Education is a mature, well-resourced training organization with explicit configuration and certification programs. Three-tier audience (customers, partners, everyone), formal Workday Pro Certification, and the 'Learn with Workday' program demonstrate sustained investment in structured training.",
+              "badges": [
+                {
+                  "name": "Certification Program",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Certification Program | Strength: Workday Pro Certification is a formal, exam-based credential covering platform administration and integration configuration. Available to customers and partners. Talent Development Partners (ASU W.P. Carey, Marymount University) deliver the program globally \u2014 confirms sustained investment in credentialed skill validation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Training Catalog | Strength: Workday Education offers a tiered training catalog \u2014 end users (Workday Basics, Workday in Action), administrators (Product Configuration Courses, Workday Pro Platform Administrator), and AI/platform tracks (Getting Started with AI). Explicit configuration and hands-on course language across multiple audience tiers.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Customer Enablement | Strength: 'Learn with Workday' program explicitly targets customers at all skill levels with structured onboarding, ongoing enablement, and AI capability training. Adoption Kit subscription for customizable training resources confirms investment in customer-facing enablement as a strategic function.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 12,
+              "weight": 20,
+              "summary": "Workday Education is a named, dedicated content organization producing configuration courses and certification content. Talent Development Partners (ASU, Marymount) deliver certification programs \u2014 documented external content/delivery partnership. Specific lab authoring roles not publicly documented.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Content Dev Team | Strength: Workday Education is a named, dedicated training organization producing configuration courses, certification content, AI training, and onboarding programs across multiple audience tiers. Specific lab authoring or instructional designer roles are not publicly documented, but the breadth of the catalog confirms a substantial content development function.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Content Outsourcing",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Content Outsourcing | Opportunity: Talent Development Partners (ASU W.P. Carey, Marymount University) deliver Workday Pro certification programs globally \u2014 a documented external content and delivery partnership. This pattern suggests Workday is open to platform-buyer relationships for training delivery, which is a positive signal for Skillable engagement.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "Talent Development Partners program (ASU W.P. Carey, Marymount University) constitutes a formal ATP-equivalent delivery network. No confirmed lab platform \u2014 greenfield opportunity. Workday Rising annual conference is a significant events delivery signal.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "ATP / Learning Partners | Strength: Workday's Talent Development Partners program (ASU W.P. Carey, Marymount University) constitutes a formal ATP-equivalent delivery network for Workday Pro certification globally. Partner directory is publicly listed and enrollment is open \u2014 confirms structured partner delivery infrastructure.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Lab Platform | Context: No confirmed lab platform (Skillable or competitor) identified in public research. Workday Education delivers training through its own portal and partner universities \u2014 greenfield opportunity for hands-on lab delivery infrastructure if provisioning constraints are resolved.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Training and Certifications Page"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 12,
+              "weight": 25,
+              "summary": "Workday maintains a formal partner ecosystem and delegates certification delivery to external university partners rather than building all delivery in-house \u2014 a platform buyer signal. Large enterprise scale may create engagement friction. Partner program structure is formal but bureaucratic.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Partner Ecosystem | Opportunity: Workday maintains a formal partner ecosystem including implementation partners, ISVs (Workday Marketplace), and Talent Development Partners for certification delivery. Partner program structure is formal and documented. Large enterprise scale may create engagement friction \u2014 expect longer sales cycles.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                },
+                {
+                  "name": "Build vs Buy",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Build vs Buy | Opportunity: Workday delegates certification delivery to external university partners (ASU, Marymount) rather than building all delivery in-house \u2014 a platform buyer signal for training delivery. This pattern suggests openness to external platform relationships, though Workday's product team has historically resisted API openness for lab provisioning.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certification.html",
+                      "source_title": "Workday Talent Development Partners Page"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 18,
+        "pl_score_pre_ceiling": 45,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 100,
+            "reason": "Classification metadata only \u2014 Sandbox API badge drives the cap"
+          },
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          },
+          {
+            "flag": "multi_tenant_only",
+            "max_score": 100,
+            "reason": "Classification metadata only \u2014 Sandbox API badge drives the cap"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 8000,
+            "population_high": 12000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 500,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 5000,
+            "population_high": 8000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.02,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 300,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 10000,
+            "population_high": 15000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 889,
+        "annual_hours_high": 2025,
+        "rate_per_hour": 0.0,
+        "acv_low": 7112.0,
+        "acv_high": 16200.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or Head of Workday Education",
+          "title": "VP of Customer Education / Head of Workday Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Partner Enablement or Director of Certification",
+          "title": "Director of Partner Enablement or Director of Certification",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Tenant provisioning for labs \u2014 Find the **Principal Engineer or Technical Lead on the Integration Cloud Platform team** (Engineering/Platform org). Does Workday Integration Cloud support programmatic provisioning of isolated sandbox tenants via API (e.g., a REST endpoint that creates a scoped tenant with pre-loaded connectors and sample data), or are all non-production environments manually requested through Workday's internal tenant management process?",
+            "Integration Studio API surface for state validation \u2014 Find the **Senior Engineer or Product Manager for Integration Cloud / Workday Studio** (Product or Engineering). When a learner builds or modifies an integration in Workday Studio, is there a read-only API or webhook that exposes the integration definition state (e.g., transformation mappings, connector configurations, execution status) so an external system could programmatically validate whether specific steps were completed correctly?",
+            "NFR / education-tier licensing for hands-on labs \u2014 Find the **Director of Partner Enablement or Director of Certification** (Education/Alliances org). Does Workday offer a not-for-resale or education-specific licensing tier that would allow a third-party lab platform to spin up short-lived Integration Cloud environments at scale for training or certification purposes, and if so, what is the current process to request that arrangement?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": [
+            "Workday Integration Cloud has so many connection points\u2014SAP, Oracle, Salesforce, custom APIs\u2014that your partners and customers need to actually build and test integrations in a safe environment before they touch production data.",
+            "Most integration mistakes happen because people learn the UI but skip the workflow\u2014they don't practice mapping fields, handling errors, or testing sync schedules until something breaks in the live system."
+          ]
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Workday's customer education strategy relies on simulation-based orchestration rather than hands-on labs \u2014 positioning Skillable as a complementary platform to deepen technical certification depth for their partner ecosystem",
+            "VP of Customer Education and Director of Partner Enablement are key stakeholders \u2014 both roles typically own certification programs and partner readiness, suggesting opportunity to enhance Workday certification tracks with interactive lab environments"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Workday Studio",
+      "category": "Enterprise Integration Development",
+      "subcategory": "Integration IDE / ERP Extension Tooling",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Developer",
+        "Software Engineer",
+        "Administrator"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "Build Your First Studio Integration",
+        "Debug a Broken Integration",
+        "Integration Security Domain Configuration",
+        "Workday Pro Certification Prep \u2014 Integration Concepts"
+      ],
+      "poor_match_flags": [
+        "saas_only",
+        "no_api_automation"
+      ],
+      "recommendation": [
+        "Simulation is the only viable orchestration path for Workday Studio because Workday does not expose a per-learner tenant provisioning API and has no self-hosted option \u2014 the same fundamental blocker as Workday HCM/Finance. The Eclipse-based IDE shell can be simulated, and break/fix integration scenarios can be scripted, but the core learning value (testing integrations against a live tenant) cannot be replicated. Simulation labs are appropriate for procedural knowledge and conceptual understanding but cannot deliver the deep hands-on integration development practice that Studio learners actually need.",
+        "AI Vision scoring via guided simulation interaction is the primary method \u2014 validating that learners complete configuration steps in the correct sequence within the simulated IDE. MCQ knowledge checks cover integration concepts, XSLT patterns, and deployment procedures. No programmatic scoring of real integration artifacts is possible without a live tenant backend. Scoring depth is limited compared to what a real tenant-connected lab would enable.",
+        "The Workday tenant provisioning wall is the hard stop for any meaningful Studio lab. Until Workday exposes a sandbox tenant API or a per-learner trial tenant path, Studio labs are limited to simulation \u2014 which captures procedural steps but not the integration testing and debugging workflows that define Studio competency. Skillable has previously invested significant time with Workday training leadership without the product team opening APIs. Do not invest significant solution engineering time until Workday commits to API openness.",
+        "The question that unblocks everything: 'Does Workday have a roadmap for a sandbox tenant API or per-learner trial tenant provisioning for training use?' The team most likely to own the answer is the Workday Platform Product team (not the Education team). Your champion in Workday Education can escalate this question internally. Verbatim question to send: 'We want to build hands-on Workday Studio labs for our integration developer training program. Is there a sandbox tenant API or a programmatic way to provision isolated Workday tenants per learner for training purposes? Without this, we can only deliver simulation-based labs, which limits the depth of hands-on practice we can offer.'"
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 9,
+              "weight": 35,
+              "summary": "Workday Studio is an Eclipse-based IDE that installs on Windows \u2014 the IDE shell is installable on a Hyper-V VM. However, Studio requires a live Workday tenant connection to perform any meaningful integration work (testing, deployment, debugging). No per-learner tenant provisioning path exists: Workday does not expose a sandbox tenant API, has no self-hosted option, and tenant provisioning takes months and costs thousands. Simulation is the only viable orchestration path \u2014 the IDE interface and integration authoring workflows can be simulated, but the live tenant backend cannot be replicated.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Workday Studio is an Eclipse-based IDE installable on Windows, but requires a live Workday tenant for all meaningful integration work (testing, deployment, debugging). No per-learner tenant provisioning path exists \u2014 Workday does not expose a sandbox tenant API and has no self-hosted option. Simulation of the IDE authoring interface is the only viable orchestration path \u2014 confirmed from Workday benchmark documentation and product architecture research.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Sandbox API",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "Workday does not expose a public provisioning API for per-learner tenant creation. Workday's REST and SOAP APIs require an existing provisioned tenant \u2014 they cannot create tenants. No developer sandbox, free trial tenant, or programmatic tenant provisioning path is documented. Tenant provisioning is a manual, months-long, costly enterprise process \u2014 confirmed from Workday benchmark and product documentation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Documentation"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 0,
+              "weight": 25,
+              "summary": "No per-learner tenant access path exists. Workday does not offer NFR/developer/trial tenants for training use at per-learner scale. No Identity API for tenant user creation. No credential recycling mechanism. The simulation path eliminates credential management overhead but also eliminates real product access \u2014 learners interact with a simulated environment, not a live Workday tenant.",
+              "badges": [
+                {
+                  "name": "Training License",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "No NFR, developer, or training tenant license path exists for per-learner Workday Studio use. Workday tenant provisioning requires enterprise contracts, takes months, and costs thousands of dollars \u2014 confirmed from Workday benchmark. No free developer tier or trial tenant API is available. This is the canonical Workday poor match pattern.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Learner Isolation",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "Per-learner tenant isolation is not achievable \u2014 Workday does not provision isolated tenant environments per learner at training scale. Shared demo tenants exist but are multi-tenant with no programmatic isolation mechanism. Simulation path eliminates the isolation problem by removing the real tenant entirely, but also eliminates real product access.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Architecture"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 12,
+              "weight": 15,
+              "summary": "Simulation Scorable: AI Vision can validate simulated UI interactions (form completion, component configuration steps). MCQ fallback available for knowledge checks on Studio concepts (integration types, XSLT patterns, deployment steps). No programmatic scoring of real integration artifacts is possible without a live tenant \u2014 REST API scoring of actual integration output is not viable on the simulation path.",
+              "badges": [
+                {
+                  "name": "Simulation Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "AI Vision can validate simulated UI interactions within the Studio IDE simulation \u2014 form completion, component selection, configuration steps. Guided interaction scoring is feasible for procedural steps in the integration authoring workflow. However, scoring cannot validate actual integration output (data transformation correctness, API response handling) without a live tenant backend.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scoring",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Knowledge-check questions can assess Studio concepts: integration types (EIB, Core Connector, Studio), XSLT transformation logic, deployment steps, error handling patterns. MCQ is a genuine fallback for conceptual knowledge but cannot validate hands-on integration development skills.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 25,
+              "weight": 25,
+              "summary": "Simulation is Skillable-hosted \u2014 teardown is automatic via platform cleanup. No orphaned tenant resources, no manual cleanup required. Full marks.",
+              "badges": [
+                {
+                  "name": "Datacenter",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Simulation is Skillable-hosted \u2014 teardown is automatic via platform cleanup. No orphaned tenant resources, no manual cleanup steps, no per-learner deprovisioning required. Full teardown credit for the simulation path.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.skillable.com",
+                      "source_title": "Skillable Platform Documentation"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 5
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 12,
+              "weight": 40,
+              "summary": "Workday Studio requires mastery of Workday's proprietary integration framework, XML/XSLT authoring, EIB (Enterprise Interface Builder) design, Core Connector configuration, and multi-phase deploy/test/debug cycles. The workflow spans design \u2192 build \u2192 test \u2192 deploy \u2192 monitor across multiple integration types. However, the full complexity is only accessible with a live tenant \u2014 simulation captures the authoring phase but not the testing and debugging phases that drive the deepest learning.",
+              "badges": [
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Studio integration development spans a multi-phase lifecycle: design (integration architecture, data mapping), build (XML/XSLT authoring, component configuration), test (unit test against tenant, error handling), deploy (promote to production tenant), and monitor (integration logs, error alerts). Each phase requires distinct skills and cannot be learned by watching \u2014 confirmed from Workday Studio documentation and integration developer training materials.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                },
+                {
+                  "name": "Integration Complexity",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Studio requires mastery of Workday's proprietary integration framework, XML/XSLT transformation logic, EIB (Enterprise Interface Builder) design, Core Connector configuration, and Workday's document transformation language. Integration developers must understand Workday's data model, security domain permissions, and tenant configuration \u2014 a steep, specialized skill set with no direct analog in other platforms.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/products/platform-product-extensions/overview.html",
+                      "source_title": "Workday Platform and Product Extensions Overview"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 6,
+              "weight": 25,
+              "summary": "Integration errors in Workday cause payroll miscalculations, HR data corruption, failed financial postings, and compliance audit failures. The stakes for getting integrations wrong are high \u2014 production incidents in Workday HCM/Finance are costly and visible. This drives genuine demand for safe practice environments, even if the simulation path limits the depth of that practice.",
+              "badges": [
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Faulty Workday integrations cause payroll miscalculations, HR data corruption, failed financial postings, and compliance audit failures. Production integration errors in Workday HCM/Finance are costly, visible, and difficult to reverse \u2014 confirmed from Workday implementation partner documentation and community forums. The stakes for getting integrations wrong are among the highest in enterprise software.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://community.workday.com",
+                      "source_title": "Workday Community \u2014 Integration Developer Forums"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 6,
+              "weight": 15,
+              "summary": "Break/fix integration scenarios are a natural fit \u2014 present a broken Studio integration with a specific error and ask the learner to diagnose and repair it. This lab type works in simulation (the error state can be scripted) and maps directly to real-world consultant troubleshooting workflows.",
+              "badges": [
+                {
+                  "name": "Break/Fix",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "Break/fix integration scenarios are a natural fit for Studio simulation \u2014 present a broken integration with a specific error (malformed XSLT, incorrect field mapping, missing security domain permission) and ask the learner to diagnose and repair it. This lab type maps directly to real-world consultant troubleshooting workflows and is achievable in simulation without a live tenant backend.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 12,
+              "weight": 20,
+              "summary": "Workday has a large global install base (~10,000+ enterprise customers) and an active certification ecosystem (Workday Pro). The integration developer role is in high demand across the Workday partner ecosystem. However, the simulation-only path significantly limits the market's willingness to pay for Studio-specific lab content.",
+              "badges": [
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday serves ~10,000+ enterprise customers globally across HCM and Finance \u2014 confirmed from Workday investor relations and annual reports. The Workday integration developer role is in high demand across the partner ecosystem, with hundreds of certified implementation partners requiring Studio-skilled consultants. Workday is a Gartner Magic Quadrant Leader for Cloud ERP for Service-Centric Enterprises (2025).",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/company/investor-relations.html",
+                      "source_title": "Workday Investor Relations"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Pro certification is an active, multi-track certification program covering platform administration, HCM, Finance, and integration configuration. Talent Development Partners (ASU W.P. Carey, Marymount University) deliver certification prep globally. Certification is required for partner status maintenance \u2014 confirmed from Workday training and certifications page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 12,
+              "weight": 25,
+              "summary": "Workday Education is a mature training organization with explicit hands-on language, product configuration courses, and the Workday Pro certification program. The training catalog covers administrators, end users, and partners. Talent Development Partners (ASU W.P. Carey, Marymount University) extend the certification pathway globally. Strong training commitment signal.",
+              "badges": [
+                {
+                  "name": "Certification Program",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Pro certification is an active, multi-track program with explicit hands-on configuration competency requirements. The program covers platform administration, HCM, Finance, and integration tracks. Certification is required for implementation partners to maintain partner status \u2014 a strong commercial driver for training investment. Confirmed from Workday training and certifications page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Catalog",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Education publishes a comprehensive training catalog covering end users, administrators, and partners \u2014 including product configuration courses, AI learning paths, and the Workday Basics Series. The catalog explicitly targets multiple skill levels and roles. Confirmed from Workday training page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 2,
+              "weight": 20,
+              "summary": "Workday Education team exists with documented content development capability. Product configuration courses and certification prep materials are published. However, no explicit lab authoring team or DIY lab evidence is confirmed \u2014 content appears to be primarily video/document-based rather than hands-on lab-based.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Workday Education is a named training organization with documented content development capability \u2014 product configuration courses, certification prep materials, and AI learning paths are published. However, no explicit lab authoring team or DIY hands-on lab evidence is confirmed. Content appears primarily video/document-based rather than hands-on lab-based \u2014 inferred from training catalog structure.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/training-certifications.html",
+                      "source_title": "Workday Training and Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 8,
+              "weight": 30,
+              "summary": "Talent Development Partners (ASU, Marymount University) function as an ATP-like network for certification delivery. Workday Community portal serves as an LMS-equivalent for self-paced content. No confirmed lab platform (Skillable or competitor) \u2014 greenfield opportunity. No flagship conference with hands-on tracks confirmed at scale.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "Workday Talent Development Partners (ASU W.P. Carey School of Business, Marymount University) deliver Workday Pro Platform Administrator Certification globally. This functions as an ATP-like network for certification delivery. Confirmed from Workday Talent Development Partners page.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/services/talent-development-partners.html",
+                      "source_title": "Workday Talent Development Partners"
+                    }
+                  ]
+                },
+                {
+                  "name": "Lab Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "No confirmed lab platform (Skillable or competitor) for Workday Studio training. Workday Community portal serves as an LMS-equivalent for self-paced content delivery. Greenfield opportunity for lab platform adoption \u2014 but the tenant provisioning blocker must be resolved first.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://community.workday.com",
+                      "source_title": "Workday Community"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 2,
+              "weight": 25,
+              "summary": "Workday operates a formal partner program and talent development partner network, indicating some platform-buyer culture. However, the product team's historical API lockdown (confirmed from benchmark) signals a build-in-house, closed-platform tendency that creates friction for external lab delivery partnerships. Engagement with Skillable has been attempted previously with limited success due to API restrictions.",
+              "badges": [
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "Workday operates a formal implementation partner program and talent development partner network, indicating some platform-buyer culture for training delivery. However, the product team's historical API lockdown (confirmed from Workday benchmark) signals a closed-platform tendency that creates friction for external lab delivery partnerships.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com/en-us/partners.html",
+                      "source_title": "Workday Partner Ecosystem"
+                    }
+                  ]
+                },
+                {
+                  "name": "Build vs Buy",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "Workday's product team has historically maintained a closed, proprietary platform with locked APIs \u2014 confirmed from Workday benchmark (Skillable invested over a year with engaged training leadership but product team would not open APIs). This build-in-house culture is a structural risk for any external lab delivery partnership requiring API access.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.workday.com",
+                      "source_title": "Workday Platform Documentation"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 11,
+        "pl_score_pre_ceiling": 46,
+        "technical_fit_multiplier": 0.5,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 100,
+            "reason": "Classification metadata only \u2014 Sandbox API badge drives the cap"
+          },
+          {
+            "flag": "no_api_automation",
+            "max_score": 5,
+            "reason": "No API automation feasible \u2014 manual provisioning only"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 500,
+            "population_high": 750,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 300,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.04,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 200,
+            "population_high": 400,
+            "hours_low": 0.5,
+            "hours_high": 1.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 100,
+            "population_high": 200,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 500,
+            "population_high": 1000,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.3,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 207,
+        "annual_hours_high": 601,
+        "rate_per_hour": 0.0,
+        "acv_low": 5760.0,
+        "acv_high": 15700.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or Head of Workday Education",
+          "title": "VP of Customer Education / Head of Workday Education",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Partner Enablement or Director of Certification",
+          "title": "Director of Partner Enablement / Director of Certification",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/workday/people/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "Sandbox provisioning via API \u2014 Find a Principal Engineer or Technical Lead on the Workday Studio platform team. Does Workday Studio expose any API or CLI to programmatically provision and tear down isolated tenant sandboxes (or Studio project workspaces) with pre-seeded integration configurations, or is all environment provisioning gated through the Workday tenant admin console with no external automation surface?",
+            "NFR / partner lab licensing \u2014 Find the Director of Partner Enablement or Director of Certification in Workday Education. For hands-on training labs where learners need short-lived access to a Studio-connected Workday tenant, does Workday offer NFR or education-tier tenant licenses that permit ephemeral, multi-learner concurrent access \u2014 and if so, what are the per-tenant seat limits and maximum session durations allowed under that licensing model?",
+            "State validation surface for scoring \u2014 Find a Senior Integration Architect on the Workday Studio engineering team. After a learner completes a Studio integration build (e.g., deploys an integration, configures a connector, or triggers a business process), is there a REST or SOAP API endpoint that returns the deployed integration's configuration state and execution status in a machine-readable format we could poll to auto-score lab steps?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "Workday uses simulation-based orchestration for their Studio product \u2014 they're already invested in non-hands-on lab approaches, which may limit receptivity to interactive lab environments",
+            "As a software company, Workday likely runs partner certification and customer education programs \u2014 but their SaaS-only deployment model and low product labability suggest hands-on labs aren't a fit for their current Studio offering"
+          ]
+        }
+      }
     }
   ],
   "briefcase": null,
   "analyzed_at": "2026-04-06T08:02:35.112857+00:00",
   "analysis_id": "37d866c4",
   "discovery_id": "41a8a28a",
-  "total_products_discovered": 40
+  "total_products_discovered": 40,
+  "_scoring_logic_version": "2026-04-06.pillar2-3-rubric"
 }

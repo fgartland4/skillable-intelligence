@@ -2506,6 +2506,656 @@
           ]
         }
       }
+    },
+    {
+      "name": "BoardEffect",
+      "category": "Governance, Risk & Compliance",
+      "subcategory": "Board Management Software",
+      "description": "",
+      "product_url": "",
+      "deployment_model": "saas-only",
+      "orchestration_method": "Simulation",
+      "user_personas": [
+        "Administrator",
+        "Business User",
+        "Business Analyst"
+      ],
+      "lab_highlight": "",
+      "lab_concepts": [
+        "BoardEffect Administrator Setup",
+        "Board Meeting Lifecycle",
+        "Governance Compliance Audit",
+        "New Board Member Onboarding"
+      ],
+      "poor_match_flags": [
+        "saas_only"
+      ],
+      "recommendation": [
+        "BoardEffect is SaaS-only with no installable component, which eliminates Skillable's preferred Hyper-V datacenter path. The most viable delivery approach is Simulation \u2014 building a guided, AI Vision-scored walkthrough of BoardEffect's administrator and board member workflows. A credential pool of pre-provisioned demo accounts is a secondary option, but requires Diligent to provide recyclable lab accounts and an admin reset mechanism, which is unconfirmed. Simulation is the correct starting point because it avoids the provisioning dependency entirely while still delivering hands-on practice value for the governance workflows that matter most.",
+        "Without a public REST API for validating configuration state, AI Vision is the primary scoring mechanism \u2014 evaluating screen state to confirm that committee structures, document permissions, or meeting templates have been correctly set up. MCQ knowledge checks are appropriate for governance concepts (fiduciary duties, conflict-of-interest policies) and serve the board member persona well. Simulation-native scoring handles guided interaction validation. This is a lower-fidelity scoring stack than Skillable's API-driven approach, which limits the depth of performance-based testing.",
+        "The strongest program fit is customer onboarding enablement \u2014 specifically, helping nonprofit and higher-ed board administrators configure BoardEffect correctly from day one. Poor initial configuration is the primary driver of adoption failure and support escalations. A structured onboarding lab (administrator setup + board member orientation) directly reduces time-to-value and support costs, giving Diligent's customer success team a measurable ROI story. The Elevate 2026 conference (April 22-24, Atlanta) is a secondary opportunity for a live hands-on lab track.",
+        "The key technical question that blocks or unblocks this engagement: does Diligent provide recyclable demo/sandbox accounts for BoardEffect with an admin API to reset account state between sessions? The team most likely to own this answer is the BoardEffect Product team or the Customer Success Engineering team. Suggested question for your champion to send: 'Does BoardEffect have a sandbox or demo environment tier that can be provisioned programmatically, and is there an admin API endpoint to reset account state (clear created meetings, documents, and user configurations) between sessions? We're evaluating whether hands-on lab delivery is feasible without a full per-learner tenant.'",
+        "The fundamental blocker is SaaS-only deployment with no confirmed per-learner isolation API. Skillable cannot provision isolated BoardEffect instances per learner the way it can with installable software on Hyper-V. Until Diligent either (a) provides a documented sandbox provisioning API, (b) agrees to supply recyclable demo accounts with reset capability, or (c) approves a simulation-based approach, no lab build should begin. Do not invest significant solution engineering time before vendor confirms one of these three paths."
+      ],
+      "fit_score": {
+        "product_labability": {
+          "name": "Product Labability",
+          "weight": 40,
+          "dimensions": [
+            {
+              "name": "Provisioning",
+              "score": 28,
+              "weight": 35,
+              "summary": "BoardEffect is SaaS-only with no self-hosted or installable deployment option. No per-learner isolated tenant provisioning API is publicly documented. Best viable path is a credential pool of pre-provisioned demo/trial accounts recycled between learners, or simulation. The saas_only ceiling of 18 caps the entire pillar regardless of other dimension scores.",
+              "badges": [
+                {
+                  "name": "Simulation",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Deployment Model | Context:** BoardEffect is a pure SaaS product hosted on Diligent's cloud infrastructure with no self-hosted, on-premises, or installable deployment option documented \u2014 making simulation the most viable lab delivery path. Diligent product pages confirm cloud-only delivery for BoardEffect. This means Skillable cannot provision a per-learner isolated instance through VM or container fabric.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Custom API: Credential Pool",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Credential Recycling | Risk:** No per-learner tenant provisioning API is publicly documented for BoardEffect. A credential pool of pre-provisioned demo or trial accounts recycled between learners is the best realistic provisioning path, but account state reset between sessions would require manual intervention or undocumented admin APIs \u2014 introducing friction and scale risk. Vendor engagement required to confirm feasibility.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Runs in Hyper-V",
+                  "color": "red",
+                  "qualifier": "Blocker",
+                  "evidence": [
+                    {
+                      "claim": "**No VM Install Path | Blocker:** BoardEffect has no installable software component \u2014 there is no Windows or Linux installer, no OVA/OVF appliance, and no Docker image available. The Hyper-V datacenter fabric cannot be used for this product. This eliminates Skillable's preferred delivery path and forces reliance on SaaS credential pools or simulation.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Access",
+              "score": 2,
+              "weight": 25,
+              "summary": "No confirmed full lifecycle API for user provisioning. Trial or demo accounts may be available but no documented per-learner isolation mechanism. Credential recycling is the realistic access path, with manual reset between learners introducing friction. No NFR license tier confirmed.",
+              "badges": [
+                {
+                  "name": "Trial Account",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Demo Access | Risk:** Diligent offers demo requests for BoardEffect but no self-service free trial with documented per-learner isolation. Trial or demo accounts may be recyclable for lab use, but the provisioning process appears sales-assisted rather than API-driven \u2014 creating a bottleneck for scaled lab delivery. Estimated based on standard SaaS demo patterns; vendor confirmation required.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "High License Cost",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Per-Learner Cost | Risk:** BoardEffect is an enterprise SaaS product priced per organization/seat with no documented NFR, developer, or non-production license tier. Per-learner lab provisioning at scale would require either a special lab licensing agreement with Diligent or a shared demo environment \u2014 both require vendor negotiation before lab authoring can begin.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Scoring",
+              "score": 10,
+              "weight": 15,
+              "summary": "No programmatic API surface confirmed for validating learner configuration work. AI Vision is the primary scoring path for this GUI-driven board management tool. MCQ knowledge checks serve as a fallback for governance concepts and workflow knowledge.",
+              "badges": [
+                {
+                  "name": "AI Vision Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**GUI-Only Scoring | Context:** BoardEffect is a browser-based SaaS application with no documented REST API for validating learner configuration state. AI Vision is the primary automated scoring path \u2014 evaluating screen state to confirm that meeting templates, committee structures, or document permissions have been correctly configured. This is a viable but lower-fidelity scoring method compared to API or script-based validation.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "MCQ Scorable",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Knowledge Check Fallback | Context:** Governance concepts, fiduciary obligations, and BoardEffect workflow best practices are well-suited to multiple-choice knowledge checks as a scoring complement to AI Vision. MCQ scoring is appropriate for the board member persona (governance knowledge) while AI Vision covers administrator configuration tasks.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Teardown",
+              "score": 16,
+              "weight": 25,
+              "summary": "SaaS credential pool teardown requires resetting account state between learners \u2014 no automatic snapshot revert. Partial teardown API coverage is possible if Diligent exposes admin reset endpoints, but this is unconfirmed. Manual cleanup between sessions is the likely reality.",
+              "badges": [
+                {
+                  "name": "Teardown APIs (partial)",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**Account Reset | Risk:** SaaS credential pool teardown requires resetting BoardEffect account state between learners \u2014 removing created meetings, documents, committee configurations, and user additions. No admin reset API is publicly documented. Manual cleanup between sessions is the likely reality, which constrains concurrent lab delivery and increases operational overhead.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": 18
+        },
+        "instructional_value": {
+          "name": "Instructional Value",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Product Complexity",
+              "score": 9,
+              "weight": 40,
+              "summary": "BoardEffect has meaningful configuration depth for administrators: committee structures, permission hierarchies, meeting templates, document libraries, voting workflows, and reporting. However, the UX is intentionally guided and wizard-driven for non-technical board members. Admin configuration is the labable surface; end-user workflows are shallow. Integration with SSO, calendar systems, and Zoom adds some complexity.",
+              "badges": [
+                {
+                  "name": "Deep Configuration",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Admin Configuration Depth | Context:** BoardEffect administrators configure committee structures, permission hierarchies, meeting templates, document libraries, voting workflows, survey tools, and onboarding sequences. This is meaningful configuration work with real governance consequences \u2014 not a trivial setup. However, the UX is intentionally guided for non-technical users, limiting the depth of troubleshooting scenarios.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Multi-Phase Workflow",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Meeting Lifecycle Workflow | Context:** BoardEffect covers a multi-phase governance workflow: pre-meeting preparation (agenda building, board book assembly), in-meeting management (voting, annotations, minutes), and post-meeting follow-up (task tracking, minutes approval, document archiving). Each phase has distinct configuration and operational tasks suitable for separate lab modules.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Configuration & Tuning topics",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Permission & Template Config | Strength:** Configuring document access permissions, committee membership rules, meeting notification templates, and voting thresholds requires deliberate administrator skill \u2014 misconfiguration has direct governance consequences. These are hands-on tasks that cannot be adequately learned from documentation alone.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Mastery Stakes",
+              "score": 17,
+              "weight": 25,
+              "summary": "Governance stakes are real: misconfigured document permissions can expose sensitive board materials; poor meeting workflow setup creates compliance gaps for regulated nonprofits and higher-ed institutions. Adoption risk is the primary driver \u2014 board members are often non-technical and resistant to new tools, making structured onboarding labs directly valuable.",
+              "badges": [
+                {
+                  "name": "Adoption Risk",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Board Member Adoption | Strength:** Board members are typically non-technical executives and trustees who resist new technology. Poor BoardEffect adoption forces fallback to email and paper \u2014 undermining the governance investment. Structured onboarding labs directly address this documented adoption challenge, making hands-on training a clear ROI driver for Diligent customers.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "High-Stakes Skills",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Exposure | Context:** Misconfigured document permissions in BoardEffect can expose sensitive board materials (executive compensation, M&A discussions, legal matters) to unauthorized users. For nonprofits and higher-ed institutions with fiduciary obligations, this creates real compliance and reputational risk \u2014 giving administrator training meaningful stakes.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Lab Versatility",
+              "score": 6,
+              "weight": 15,
+              "summary": "Compliance Audit is the strongest lab type fit \u2014 validating that BoardEffect configurations meet governance and fiduciary requirements. Break/Fix scenarios (misconfigured committee permissions, broken meeting workflow) are possible but limited in scope. No adversarial, incident response, or infrastructure lab types apply.",
+              "badges": [
+                {
+                  "name": "Compliance Audit",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Audit Lab | Opportunity:** A compliance audit lab scenario \u2014 validate that a BoardEffect environment is correctly configured to meet nonprofit governance requirements (IRS Form 990 readiness, conflict of interest policy enforcement, minutes retention) \u2014 is a natural fit for the regulated nonprofit and higher-ed customer base. Learners audit a pre-configured environment and identify compliance gaps.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Market Demand",
+              "score": 10,
+              "weight": 20,
+              "summary": "Content Management and Collaboration category priors apply (moderate demand, +4 primary, +2 secondary). BoardEffect serves 1,000+ nonprofits and higher-ed institutions \u2014 a meaningful but niche install base. The board management software category is growing but remains specialized. No active certification program or competitor labs confirmed for this specific product.",
+              "badges": [
+                {
+                  "name": "High-Demand Category",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Content Management Category | Context:** BoardEffect falls within the Content Management and Collaboration category \u2014 moderate demand for hands-on training. The board management software niche is growing as governance regulations tighten for nonprofits and higher-ed, but the total addressable training population is smaller than enterprise IT categories.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Enterprise Validated",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Nonprofit & Higher-Ed Scale | Strength:** BoardEffect is used by 1,000+ nonprofit and higher education organizations, representing a meaningful install base within its niche. Diligent's broader platform serves organizations in 90+ countries, providing a global distribution channel for training content built on BoardEffect.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Active Certification",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Board Education Program | Context:** Diligent maintains a Board Education & Certifications program, indicating investment in credentialing governance professionals. However, this appears focused on governance knowledge (fiduciary duties, ESG, risk oversight) rather than BoardEffect product certification \u2014 limiting the direct PBT opportunity for this specific product.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "customer_fit": {
+          "name": "Customer Fit",
+          "weight": 30,
+          "dimensions": [
+            {
+              "name": "Training Commitment",
+              "score": 6,
+              "weight": 25,
+              "summary": "Diligent has a dedicated Board Education & Certifications page, indicating investment in training content. The Elevate 2026 conference (April 22-24, Atlanta) signals an active events program. However, training appears focused on governance education content rather than a structured technical lab program. No confirmed certification exams with active PBT components.",
+              "badges": [
+                {
+                  "name": "Training Catalog",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Education Content | Context:** Diligent publishes a Board Education & Certifications program with governance-focused content (fiduciary duties, ESG, risk oversight, cybersecurity for boards). This confirms a training investment, but the catalog appears to be governance education content rather than product-specific technical training \u2014 a gap that hands-on BoardEffect labs could fill.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Customer Enablement",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Customer Success Focus | Context:** Diligent's enterprise SaaS model implies a customer success function supporting BoardEffect onboarding and adoption. However, no dedicated customer enablement program with structured lab-based training is publicly documented \u2014 the training investment appears concentrated in governance education rather than product onboarding labs.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Training Leadership",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Elevate Conference | Context:** Diligent's Elevate 2026 conference (April 22-24, Atlanta) is a flagship annual event for GRC professionals \u2014 a potential events consumption motion. The conference signals organizational investment in community and education, though the scale and hands-on lab component for BoardEffect specifically is unconfirmed.",
+                      "confidence_level": "confirmed",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage \u2014 Elevate 2026"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Organizational Dna",
+              "score": 10,
+              "weight": 25,
+              "summary": "Diligent is a SaaS platform company with a partner ecosystem and integration marketplace. They buy platforms rather than build in-house, which is a positive signal for Skillable engagement. SSO and API integrations are documented. Mid-to-large company size makes engagement workable, though the GRC platform complexity means multiple stakeholders.",
+              "badges": [
+                {
+                  "name": "Build vs Buy",
+                  "color": "green",
+                  "qualifier": "Strength",
+                  "evidence": [
+                    {
+                      "claim": "**Platform Buyer | Strength:** Diligent is a SaaS platform company that integrates with external systems (SSO providers, calendar platforms, Zoom) rather than building everything in-house. This platform-buyer orientation is a positive signal for Skillable engagement \u2014 they are accustomed to adopting third-party platforms for capability gaps.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Integration Maturity",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**API & SSO Integrations | Context:** BoardEffect supports SSO integration and calendar/video conferencing integrations (Zoom), indicating some API maturity. However, no public developer API documentation or marketplace listing was found \u2014 integration maturity appears focused on end-user convenience rather than programmatic platform extensibility.",
+                      "confidence_level": "indicated",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/products/boardeffect/",
+                      "source_title": "BoardEffect Product Page \u2014 Diligent"
+                    }
+                  ]
+                },
+                {
+                  "name": "Partner Ecosystem",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Diligent Partner Program | Context:** Diligent maintains a partner program (referenced in site navigation) for resellers and implementation partners across its broader GRC platform. The extent to which this partner ecosystem covers BoardEffect specifically \u2014 and whether partners deliver training \u2014 is unconfirmed from available research.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com",
+                      "source_title": "Diligent Homepage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Delivery Capacity",
+              "score": 2,
+              "weight": 30,
+              "summary": "No confirmed ATP network or authorized training partner program for BoardEffect specifically. Training appears delivered through Diligent's own portal and customer success channels. No confirmed LMS platform partnership with Skillable partners (Docebo, Cornerstone). No existing lab platform detected.",
+              "badges": [
+                {
+                  "name": "ATP / Learning Partners",
+                  "color": "amber",
+                  "qualifier": "Risk",
+                  "evidence": [
+                    {
+                      "claim": "**No Confirmed ATP Network | Risk:** No authorized training partner (ATP) network or channel training program is publicly documented for BoardEffect. Training appears delivered directly by Diligent through customer success and the Board Education portal \u2014 limiting the downstream distribution channel for lab-based content.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "LMS Platform",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**LMS Unknown | Context:** No LMS platform partnership with Skillable partners (Docebo, Cornerstone, Skillable TMS) was identified in available research. Diligent likely delivers training through its own portal or a proprietary LMS \u2014 the integration path for Skillable lab delivery would require direct API or LTI connection.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Build Capacity",
+              "score": 8,
+              "weight": 20,
+              "summary": "A training team is implied by the Board Education & Certifications page, but no evidence of dedicated lab authoring capability or instructional design team focused on hands-on content. Content appears to be governance education (videos, guides) rather than technical lab environments. Professional Services opportunity if Skillable engages.",
+              "badges": [
+                {
+                  "name": "Content Dev Team",
+                  "color": "gray",
+                  "qualifier": "Context",
+                  "evidence": [
+                    {
+                      "claim": "**Governance Content Team | Context:** Diligent's Board Education & Certifications program implies a content development function producing governance education materials (guides, webinars, certifications). However, this team appears focused on thought leadership and governance education content \u2014 not technical lab environment authoring. A Skillable Professional Services engagement would likely be needed to build the first BoardEffect lab.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                },
+                {
+                  "name": "Content Outsourcing",
+                  "color": "green",
+                  "qualifier": "Opportunity",
+                  "evidence": [
+                    {
+                      "claim": "**ProServ Opportunity | Opportunity:** The absence of a confirmed technical lab authoring capability, combined with Diligent's platform-buyer orientation, makes this a strong Professional Services opportunity. Skillable PS could build the first BoardEffect onboarding lab, establishing the template that Diligent's content team could then adapt for additional modules.",
+                      "confidence_level": "inferred",
+                      "confidence_explanation": "",
+                      "source_url": "https://www.diligent.com/board-education-certifications/",
+                      "source_title": "Diligent Board Education & Certifications"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "score_override": null
+        },
+        "total_override": 20,
+        "pl_score_pre_ceiling": 56,
+        "technical_fit_multiplier": 0.65,
+        "ceilings_applied": [
+          {
+            "flag": "saas_only",
+            "max_score": 18,
+            "reason": "Pure SaaS with no per-learner sandbox API"
+          }
+        ]
+      },
+      "acv_potential": {
+        "motions": [
+          {
+            "label": "Customer Onboarding & Enablement",
+            "population_low": 400,
+            "population_high": 600,
+            "hours_low": 1.0,
+            "hours_high": 2.0,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "Authorized Training Partners & Channel Enablement",
+            "population_low": 50,
+            "population_high": 100,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.05,
+            "rationale": ""
+          },
+          {
+            "label": "General Practice & Skilling Experiences",
+            "population_low": 500,
+            "population_high": 800,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.03,
+            "rationale": ""
+          },
+          {
+            "label": "Certification / PBT",
+            "population_low": 0,
+            "population_high": 0,
+            "hours_low": 0.0,
+            "hours_high": 0.0,
+            "adoption_pct": 0.0,
+            "rationale": ""
+          },
+          {
+            "label": "Employee Technical Enablement",
+            "population_low": 100,
+            "population_high": 200,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.08,
+            "rationale": ""
+          },
+          {
+            "label": "Events & Conferences",
+            "population_low": 300,
+            "population_high": 500,
+            "hours_low": 1.0,
+            "hours_high": 1.5,
+            "adoption_pct": 0.4,
+            "rationale": ""
+          }
+        ],
+        "annual_hours_low": 166,
+        "annual_hours_high": 428,
+        "rate_per_hour": 0.0,
+        "acv_low": 4600.0,
+        "acv_high": 12600.0,
+        "acv_tier": "low",
+        "methodology_note": ""
+      },
+      "verdict": {
+        "label": "Poor Fit",
+        "color": "red",
+        "fit_label": "LOW FIT",
+        "acv_label": "LOW ACV"
+      },
+      "owning_org": null,
+      "contacts": [
+        {
+          "name": "Unknown - search for VP of Customer Education or VP of Training",
+          "title": "VP of Customer Education / VP of Training",
+          "role_type": "decision_maker",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/people/",
+          "relevance": ""
+        },
+        {
+          "name": "Unknown - search for Director of Customer Education or Director of Enablement",
+          "title": "Director of Customer Education / Director of Enablement",
+          "role_type": "influencer",
+          "linkedin_url": "https://www.linkedin.com/company/diligent-corporation/people/",
+          "relevance": ""
+        }
+      ],
+      "briefcase": {
+        "key_technical_questions": {
+          "pillar": "Product Labability",
+          "heading": "Key Technical Questions",
+          "bullets": [
+            "API surface for sandbox provisioning \u2014 Find the **Principal Engineer or API Platform Lead on the BoardEffect product team**. Does BoardEffect expose REST APIs for programmatically creating and tearing down isolated tenant workspaces (e.g., demo boards, sample meeting agendas, document libraries), or is all provisioning locked to the production multi-tenant SaaS with no sandbox/ephemeral environment capability?",
+            "NFR or training-tier licensing \u2014 Find the **VP of Product or Commercial Operations lead for BoardEffect**. Is there a not-for-resale or training-specific SKU that allows spinning up short-lived BoardEffect instances for hands-on learner labs, and if so, what are the per-seat or per-instance cost constraints and expiration policies?",
+            "State validation for scoring \u2014 Find the **Senior Engineer or Technical Lead on the BoardEffect integrations team**. Can we programmatically read object state via API \u2014 for example, verifying that a user created a board meeting, uploaded a board book, or assigned a vote \u2014 so we can auto-score learner actions inside a lab, or is the UI the only surface where those actions are observable?"
+          ]
+        },
+        "conversation_starters": {
+          "pillar": "Instructional Value",
+          "heading": "Conversation Starters",
+          "bullets": []
+        },
+        "account_intelligence": {
+          "pillar": "Customer Fit",
+          "heading": "Account Intelligence",
+          "bullets": [
+            "BoardEffect is their board management platform \u2014 likely training customers on governance workflows and board portal features, creating potential need for hands-on lab training",
+            "As a GRC SaaS provider, Diligent probably trains on compliance certifications (SOC 2, ISO 27001) and regulatory frameworks \u2014 areas where interactive labs could demonstrate practical application"
+          ]
+        }
+      }
     }
   ],
   "briefcase": null,

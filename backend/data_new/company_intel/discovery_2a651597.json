@@ -1,0 +1,208 @@
+{
+  "company_name": "SOTI",
+  "company_description": "SOTI is an enterprise mobility management (EMM) software company offering the SOTI ONE Platform \u2014 an integrated suite of products for managing, securing, and optimizing business-critical mobile devices, rugged hardware, printers, and IoT endpoints across industries such as retail, healthcare, transportation, and field services.",
+  "company_url": "https://www.soti.net",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "SOTI ONE Platform",
+      "category": "Technology Platform",
+      "subcategory": "EMM Suite",
+      "description": "An integrated enterprise mobility management suite that provides unified control, visibility, and optimization across all business-critical mobile devices, printers, and IoT endpoints.",
+      "deployment_model": "hybrid",
+      "discovery_score": 78,
+      "priority": 1,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "SOTI MobiControl",
+      "category": "Cybersecurity",
+      "subcategory": "Mobile Device Management",
+      "description": "A comprehensive MDM/EMM solution for enrolling, configuring, securing, and remotely managing smartphones, tablets, rugged devices, and computers across Android, iOS, Windows, and Linux.",
+      "deployment_model": "hybrid",
+      "discovery_score": 82,
+      "priority": 2,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "SOTI XSight",
+      "category": "Data & Analytics",
+      "subcategory": "Device Analytics",
+      "description": "An advanced analytics and diagnostics tool that provides real-time visibility and AI-driven insights into mobile device performance, health, and operational trends \u2014 LEARN AI.",
+      "deployment_model": "hybrid",
+      "discovery_score": 70,
+      "priority": 3,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "SOTI Connect",
+      "category": "Technology Platform",
+      "subcategory": "IoT Device Management",
+      "description": "An IoT device management solution that enables organizations to remotely manage, monitor, and update industrial printers, scanners, and other connected peripherals at scale.",
+      "deployment_model": "hybrid",
+      "discovery_score": 72,
+      "priority": 4,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "SOTI Snap",
+      "category": "Application Development",
+      "subcategory": "Low-Code App Builder",
+      "description": "A low-code mobile application development platform that enables businesses to rapidly build, deploy, and manage enterprise mobile apps without extensive coding.",
+      "deployment_model": "hybrid",
+      "discovery_score": 68,
+      "priority": 5,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "SOTI Identity",
+      "category": "Cybersecurity",
+      "subcategory": "Identity & Access Mgmt",
+      "description": "A centralized identity and access management solution that provides single sign-on (SSO) and authentication services across the SOTI ONE Platform and connected enterprise applications.",
+      "deployment_model": "hybrid",
+      "discovery_score": 65,
+      "priority": 6,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "SOTI Pulse",
+      "category": "Collaboration",
+      "subcategory": "Community & Support",
+      "description": "A community and support hub that connects SOTI customers, partners, and administrators for peer discussion, case logging, and marketplace access.",
+      "deployment_model": "saas-only",
+      "discovery_score": 10,
+      "priority": 7,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "SOTI Stella",
+      "category": "AI/ML Platform",
+      "subcategory": "AI Assistant",
+      "description": "An AI-powered assistant embedded in the SOTI ONE Platform that provides intelligent recommendations and automation for enterprise mobility operations \u2014 LEARN AI.",
+      "deployment_model": "saas-only",
+      "discovery_score": 18,
+      "priority": 8,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "SOTI Aerospace",
+      "category": "Other",
+      "subcategory": "Aerospace Mobility",
+      "description": "A specialized mobility management venture targeting aerospace industry use cases, extending SOTI's EMM capabilities to aviation and aerospace operational environments.",
+      "deployment_model": "hybrid",
+      "discovery_score": 45,
+      "priority": 9,
+      "_tier": "likely",
+      "_tier_label": "Likely"
+    },
+    {
+      "name": "SOTI University",
+      "category": "Training & Certification",
+      "subcategory": "Learning Management",
+      "description": "SOTI's official learning management system offering on-demand, self-paced courses and certifications for mobility professionals working with SOTI products.",
+      "deployment_model": "saas-only",
+      "discovery_score": 0,
+      "priority": 10,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "VMware (Broadcom)",
+      "product_name": "Workspace ONE",
+      "category": "Cybersecurity",
+      "subcategory": "Mobile Device Management",
+      "competitive_context": "Workspace ONE is a leading unified endpoint management (UEM) platform that competes directly with SOTI MobiControl for enterprise mobile and desktop device management."
+    },
+    {
+      "competitor_name": "Microsoft",
+      "product_name": "Microsoft Intune",
+      "category": "Cybersecurity",
+      "subcategory": "Mobile Device Management",
+      "competitive_context": "Microsoft Intune is a cloud-based MDM/MAM solution integrated with Microsoft 365 that competes with SOTI MobiControl for Windows and cross-platform device management."
+    },
+    {
+      "competitor_name": "Jamf",
+      "product_name": "Jamf Pro",
+      "category": "Cybersecurity",
+      "subcategory": "Mobile Device Management",
+      "competitive_context": "Jamf Pro is a leading Apple device management platform that competes with SOTI MobiControl for iOS and macOS enterprise device management."
+    },
+    {
+      "competitor_name": "Ivanti",
+      "product_name": "Ivanti Neurons for MDM",
+      "category": "Cybersecurity",
+      "subcategory": "Mobile Device Management",
+      "competitive_context": "Ivanti Neurons for MDM is a cloud-based unified endpoint management solution that competes with SOTI MobiControl across Android, iOS, and Windows device fleets."
+    },
+    {
+      "competitor_name": "Honeywell",
+      "product_name": "Honeywell Operational Intelligence",
+      "category": "Data & Analytics",
+      "subcategory": "Device Analytics",
+      "competitive_context": "Honeywell's device analytics platform competes with SOTI XSight for operational visibility into rugged mobile device fleets in industrial and logistics environments."
+    },
+    {
+      "competitor_name": "42Gears",
+      "product_name": "SureMDM",
+      "category": "Cybersecurity",
+      "subcategory": "Mobile Device Management",
+      "competitive_context": "SureMDM is a unified endpoint management solution targeting rugged and enterprise mobile devices, competing with SOTI MobiControl especially in field services and retail."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": "SOTI Altitude Partner Program",
+    "channel_program": "SOTI Altitude Program (Reseller, MSP, Distributor, OEM, Platform, Technology Partner tracks)",
+    "ondemand_library": 1,
+    "cert_program": 1,
+    "existing_lab_partner": [],
+    "ilt_vilt": "SOTI University offers on-demand self-paced courses; instructor-led options not confirmed from available data",
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "training_page": "SOTI University: Training for Mobility Professionals | SOTI Products & Solutions Back Products Back SOTI ONE Platform SOTI MobiControl SOTI XSight SOTI Snap SOTI Connect SOTI Identity SOTI Pulse Activate Free Trial Solutions Back Android Management Apple Management Linux Management Windows Management Lockdown Kiosk & SSO SOTI Stella Other Ventures Back SOTI Aerospace Services Back Product Services Back SOTI Premium Service & SOTI Enterprise Service SOTI Professional Services SOTI University SOTI ONE Product Services Support Services Back SOTI Pulse Discussion Log A Case Customer Portal Security & Compliance Product Support Back Product Support Product Support SOTI MobiControl SOTI Snap SOTI XSight SOTI Connect SOTI Identity Visit Support Page Industries Back Emergency Services Retail Transportation & Logistics Field Services Healthcare See all Customer Stories Partners Back Partner Tools Back SOTI Altitude Program Become a SOTI Partner SOTI Pulse Marketplace Partner Portal Login SOTI Fusion Portal SOTI Partners Back Airbus Amazon Web Services Brother Datalogic Honeywell Microsoft Azure Panasonic Samsung SATO TSC Auto ID Zebra ROI Calculator Resources Back SOTI TV Research Hub Blog FAQ Case Studies Newsroom Press Releases ROI Calculator Analyzing the SOTI ONE Platform SOTI TV Tile Back Youtuebe Video Careers About Us Contact Us Language English Deutsch Espa\u00f1ol Francais Italiano Magyar Nederlands Polski Portugu\u00eas Svenska T\u00fcrk\u00e7e \u0420\u0443\u0441\u0441\u043a\u0438\u0439 \u65e5\u672c\u8a9e Book a Demo SOTI University SOTI University SOTI.net - 779X129 Portal Login Accelerate Your Mobility Expertise SOTI University is our learning management system designed to support your success with SOTI solutions and accelerate your mobile strategy. Backed by more than 30 years of enterprise mobility experience, SOTI University provides a growing catalogue of industry-leading courses tailored to your unique learning needs. Click here to view the brochure . Benefits of SOTI University On-Demand Training: Online, self-paced courses enable you and your team to learn at your own speed. Take and revisit courses at any time to reinforce your knowledge of the SOTI ONE Platform. Accelerated Teaching Methodology: Courses are delivered using a proven instructional approach designed to maximize your retention and comprehension. Demonstrations reinforce course material, while quizzes verify that each lesson is understood. Role-Based Curriculum: Become proficient quickly with flexible training for every role on your enterprise mobilit",
+    "partner_portal_page": "Partner Program Products & Solutions Back Products Back SOTI ONE Platform SOTI MobiControl SOTI XSight SOTI Snap SOTI Connect SOTI Identity SOTI Pulse Activate Free Trial Solutions Back Android Management Apple Management Linux Management Windows Management Lockdown Kiosk & SSO SOTI Stella Other Ventures Back SOTI Aerospace Services Back Product Services Back SOTI Premium Service & SOTI Enterprise Service SOTI Professional Services SOTI University SOTI ONE Product Services Support Services Back SOTI Pulse Discussion Log A Case Customer Portal Security & Compliance Product Support Back Product Support Product Support SOTI MobiControl SOTI Snap SOTI XSight SOTI Connect SOTI Identity Visit Support Page Industries Back Emergency Services Retail Transportation & Logistics Field Services Healthcare See all Customer Stories Partners Back Partner Tools Back SOTI Altitude Program Become a SOTI Partner SOTI Pulse Marketplace Partner Portal Login SOTI Fusion Portal SOTI Partners Back Airbus Amazon Web Services Brother Datalogic Honeywell Microsoft Azure Panasonic Samsung SATO TSC Auto ID Zebra ROI Calculator Resources Back SOTI TV Research Hub Blog FAQ Case Studies Newsroom Press Releases ROI Calculator Analyzing the SOTI ONE Platform SOTI TV Tile Back Youtuebe Video Careers About Us Contact Us Language English Deutsch Espa\u00f1ol Francais Italiano Magyar Nederlands Polski Portugu\u00eas Svenska T\u00fcrk\u00e7e \u0420\u0443\u0441\u0441\u043a\u0438\u0439 \u65e5\u672c\u8a9e Book a Demo SOTI Altitude Partner Program Taking your Business to New Heights Join the Program Partner Login Why Partner with SOTI Turn partnership into profitable growth. The SOTI Altitude Partner Program gives you access to the SOTI ONE Platform \u2013 a unique suite of products redefining what customers expect from Enterprise Mobility Management. Choose the track that fits \u2013 Reseller, MSP, Distributor, OEM, Platform or Technology Partner \u2013 and gain the tools, resources and collaboration to grow faster. Join a global ecosystem, accelerate your business and set a new standard for what\u2019s possible. What SOTI Altitude Partner Program does for your Business Start fast, grow faster. Get the training, tools and support you need to hit the ground running. Win the tough deals. Our solutions succeed where competitors fail \u2013 better tech, better support, better results. Sell everywhere. Address customer needs across industries and markets. Partner for the long haul. From integration to deal registration to support, we\u2019re with you every step of the way. Train without limits. Give y",
+    "product_page_1": "SOTI | Enterprise Mobility Solutions Products & Solutions Back Products Back SOTI ONE Platform SOTI MobiControl SOTI XSight SOTI Snap SOTI Connect SOTI Identity SOTI Pulse Activate Free Trial Solutions Back Android Management Apple Management Linux Management Windows Management Lockdown Kiosk & SSO SOTI Stella Other Ventures Back SOTI Aerospace Services Back Product Services Back SOTI Premium Service & SOTI Enterprise Service SOTI Professional Services SOTI University SOTI ONE Product Services Support Services Back SOTI Pulse Discussion Log A Case Customer Portal Security & Compliance Product Support Back Product Support Product Support SOTI MobiControl SOTI Snap SOTI XSight SOTI Connect SOTI Identity Visit Support Page Industries Back Emergency Services Retail Transportation & Logistics Field Services Healthcare See all Customer Stories Partners Back Partner Tools Back SOTI Altitude Program Become a SOTI Partner SOTI Pulse Marketplace Partner Portal Login SOTI Fusion Portal SOTI Partners Back Airbus Amazon Web Services Brother Datalogic Honeywell Microsoft Azure Panasonic Samsung SATO TSC Auto ID Zebra ROI Calculator Resources Back SOTI TV Research Hub Blog FAQ Case Studies Newsroom Press Releases ROI Calculator Analyzing the SOTI ONE Platform SOTI TV Tile Back Youtuebe Video Careers About Us Contact Us Language English Deutsch Espa\u00f1ol Francais Italiano Magyar Nederlands Polski Portugu\u00eas Svenska T\u00fcrk\u00e7e \u0420\u0443\u0441\u0441\u043a\u0438\u0439 \u65e5\u672c\u8a9e Book a Demo Visualize Your Mobile Operations. SOTI XSight Live View - Patent Pending Learn More ROI Calculator Check Out Our New Report, \"Retail Tech Assessment: Opportunities for Enhanced Consumer Experiences\" Learn More The SOTI ONE Platform \u2014 Connecting Everything The SOTI ONE Platform gives you complete control and visibility into all your mobile devices in the field: smartphones, tablets, computers, rugged devices, industrial printers and more. You need an Enterprise Mobility Management solution to handle all your business-critical mobility requirements: app development, managing and securing devices, remotely troubleshooting and resolving mobile device issues, gaining analytical insights into device performance, and managing your IoT deployments. Book a Demo What SOTI Can Do For Your Business SOTI ONE Platform IoT & Mobility Business Solution Simplify Business Mobility The SOTI ONE Platform is an innovative, integrated management solution that maximizes the ROI of your business-critical mobile devices and printers. Learn more SOTI Assist  ",
+    "product_page_0": "SOTI ONE Platform - Connecting Everything | SOTI Products & Solutions Back Products Back SOTI ONE Platform SOTI MobiControl SOTI XSight SOTI Snap SOTI Connect SOTI Identity SOTI Pulse Activate Free Trial Solutions Back Android Management Apple Management Linux Management Windows Management Lockdown Kiosk & SSO SOTI Stella Other Ventures Back SOTI Aerospace Services Back Product Services Back SOTI Premium Service & SOTI Enterprise Service SOTI Professional Services SOTI University SOTI ONE Product Services Support Services Back SOTI Pulse Discussion Log A Case Customer Portal Security & Compliance Product Support Back Product Support Product Support SOTI MobiControl SOTI Snap SOTI XSight SOTI Connect SOTI Identity Visit Support Page Industries Back Emergency Services Retail Transportation & Logistics Field Services Healthcare See all Customer Stories Partners Back Partner Tools Back SOTI Altitude Program Become a SOTI Partner SOTI Pulse Marketplace Partner Portal Login SOTI Fusion Portal SOTI Partners Back Airbus Amazon Web Services Brother Datalogic Honeywell Microsoft Azure Panasonic Samsung SATO TSC Auto ID Zebra ROI Calculator Resources Back SOTI TV Research Hub Blog FAQ Case Studies Newsroom Press Releases ROI Calculator Analyzing the SOTI ONE Platform SOTI TV Tile Back Youtuebe Video Careers About Us Contact Us Language English Deutsch Espa\u00f1ol Francais Italiano Magyar Nederlands Polski Portugu\u00eas Svenska T\u00fcrk\u00e7e \u0420\u0443\u0441\u0441\u043a\u0438\u0439 \u65e5\u672c\u8a9e Book a Demo The SOTI ONE Platform makes mobile-first business operations simple, efficient and reliable. SOTI ONE Platform \u2014 Connecting Everything Your business-critical mobile operations have never been bigger or more important. With more devices, operating systems (OS) and remote workers, everything must be fast, secure and reliable. The SOTI ONE Platform is an innovative, integrated management solution that maximizes the ROI of your business-critical mobile devices and printers. It reduces the cost, complexity and downtime of your mobile operations and delivers actionable insights to help you make data-driven decisions. Workers are more efficient because devices are more reliable and packed with the tools, data and apps needed to get the job done - fast. Manage your essential mobile devices and printers for total control while increasing the effectiveness of your mobile operations with the SOTI ONE Platform. Click here to learn how your business can experience the SOTI ONE Platform. Mobility Management SOTI MobiControl makes Enter"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "2a651597",
+  "created_at": "2026-04-06T10:48:23.406418+00:00",
+  "known_products": [],
+  "_lab_platform_detections": [
+    {
+      "platform": "Hack The Box",
+      "urls": [],
+      "mentions": [
+        "HTB"
+      ],
+      "evidence_type": "mention",
+      "is_skillable": false
+    }
+  ],
+  "_company_badge": "SOFTWARE",
+  "_org_color": "purple"
+}

@@ -17,6 +17,10 @@
             background-size: 48px 48px;
             color: var(--sk-text);
             min-height: 100vh;
+            display: flex; flex-direction: column;
+        }
+        .waiting-page-content {
+            flex: 1;
             display: flex; align-items: center; justify-content: center;
         }
         .card {
@@ -86,6 +90,8 @@
     </style>
 </head>
 <body>
+    {% include '_nav_new.html' %}
+    <div class="waiting-page-content">
     <div class="card">
         <a href="/inspector" class="cancel-btn" title="Cancel">&times;</a>
         <div class="logo">
@@ -107,6 +113,7 @@
             <div class="error-msg" id="errorMsg"></div>
             <a href="/inspector" class="btn-back">&larr; New Search</a>
         </div>
+    </div>
     </div>
 
     <script>

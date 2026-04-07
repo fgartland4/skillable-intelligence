@@ -1,0 +1,560 @@
+{
+  "company_name": "Cohesity",
+  "company_description": "Cohesity is an AI-powered data security and management company offering a unified platform for data protection, cyber resilience, and AI-ready data insights across hybrid cloud, on-premises, and SaaS environments.",
+  "company_url": "https://www.cohesity.com",
+  "organization_type": "software_company",
+  "products": [
+    {
+      "name": "Cohesity Data Cloud",
+      "category": "Data Protection",
+      "subcategory": "Unified Data Platform",
+      "description": "A single, secure platform that protects 1,000+ hybrid cloud and SaaS workloads, integrates threat detection, automates cyber recovery, and unlocks AI-ready data insights across cloud, on-prem, and SaaS environments.",
+      "deployment_model": "hybrid",
+      "discovery_score": 82,
+      "priority": 1,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity DataProtect",
+      "category": "Data Protection",
+      "subcategory": "Backup & Recovery",
+      "description": "Enterprise backup and recovery solution that protects physical, virtual, cloud, and SaaS workloads with 18x faster backups and instant mass VM recovery capabilities.",
+      "deployment_model": "hybrid",
+      "discovery_score": 85,
+      "priority": 2,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity DataHawk",
+      "category": "Cybersecurity",
+      "subcategory": "Threat Detection & Response",
+      "description": "AI-powered data security service that provides threat intelligence, ransomware detection, data classification, and cyber vaulting to strengthen cyber resilience.",
+      "deployment_model": "hybrid",
+      "discovery_score": 80,
+      "priority": 3,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity FortKnox",
+      "category": "Data Protection",
+      "subcategory": "Cyber Vault",
+      "description": "SaaS-delivered cyber vaulting solution that stores an isolated, immutable copy of data off-site to enable rapid recovery from ransomware and other cyberattacks.",
+      "deployment_model": "saas-only",
+      "discovery_score": 22,
+      "priority": 4,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Cohesity DataGovern",
+      "category": "Data & Analytics",
+      "subcategory": "Data Governance",
+      "description": "SaaS-based data security governance service that discovers, classifies, and monitors sensitive data across enterprise environments to reduce compliance risk.",
+      "deployment_model": "saas-only",
+      "discovery_score": 20,
+      "priority": 5,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Cohesity Gaia",
+      "category": "AI/ML Platform",
+      "subcategory": "AI Assistant",
+      "description": "LEARN AI \u2014 AI-powered conversational assistant that enables users to query enterprise backup data using natural language to quickly surface insights and information.",
+      "deployment_model": "hybrid",
+      "discovery_score": 72,
+      "priority": 6,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity SmartFiles",
+      "category": "Data Protection",
+      "subcategory": "File & Object Storage",
+      "description": "Software-defined file and object storage solution that consolidates unstructured data silos, reduces storage costs, and integrates with the Cohesity Data Cloud platform.",
+      "deployment_model": "hybrid",
+      "discovery_score": 75,
+      "priority": 7,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity SiteContinuity",
+      "category": "Data Protection",
+      "subcategory": "Disaster Recovery",
+      "description": "Orchestrated disaster recovery solution that automates failover and failback workflows to minimize downtime and meet recovery time objectives across hybrid environments.",
+      "deployment_model": "hybrid",
+      "discovery_score": 78,
+      "priority": 8,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity CloudSpin",
+      "category": "Data Protection",
+      "subcategory": "Cloud DR",
+      "description": "Enables organizations to spin up workloads directly in public clouds (AWS, Azure, GCP) from Cohesity backups for disaster recovery and cloud migration use cases.",
+      "deployment_model": "hybrid",
+      "discovery_score": 76,
+      "priority": 9,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity CloudArchive",
+      "category": "Data Protection",
+      "subcategory": "Long-term Archival",
+      "description": "Tiered cloud archival solution that moves cold backup data to low-cost cloud storage (AWS S3, Azure Blob, GCP) while maintaining searchability and recoverability.",
+      "deployment_model": "hybrid",
+      "discovery_score": 70,
+      "priority": 10,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity Helios",
+      "category": "Data Protection",
+      "subcategory": "Centralized Management",
+      "description": "SaaS-based global management plane that provides a single pane of glass for monitoring, managing, and operating all Cohesity clusters and cloud deployments.",
+      "deployment_model": "saas-only",
+      "discovery_score": 20,
+      "priority": 11,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Cohesity Data Security Alliance",
+      "category": "Cybersecurity",
+      "subcategory": "Security Ecosystem",
+      "description": "An integrated partner ecosystem connecting Cohesity's data platform with leading security vendors (CrowdStrike, Palo Alto, Splunk, etc.) for unified threat detection and response.",
+      "deployment_model": "hybrid",
+      "discovery_score": 65,
+      "priority": 12,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity ITDR (Identity Threat Detection & Response)",
+      "category": "Cybersecurity",
+      "subcategory": "Identity Security",
+      "description": "Identity threat detection and response capability integrated into the Cohesity platform to detect and respond to identity-based attacks targeting backup infrastructure.",
+      "deployment_model": "hybrid",
+      "discovery_score": 72,
+      "priority": 13,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity Marketplace (Apps)",
+      "category": "Application Development",
+      "subcategory": "App Ecosystem",
+      "description": "An integrated marketplace allowing third-party and custom applications to run natively on the Cohesity Data Cloud platform alongside protected data.",
+      "deployment_model": "hybrid",
+      "discovery_score": 65,
+      "priority": 14,
+      "_tier": "seems_promising",
+      "_tier_label": "Seems Promising"
+    },
+    {
+      "name": "Cohesity Academy",
+      "category": "Training & Certification",
+      "subcategory": "Training Program",
+      "description": "Cohesity's official training and certification program offering instructor-led, self-paced, and lab-based courses covering data protection, security, and AI-ready data management.",
+      "deployment_model": "saas-only",
+      "discovery_score": 0,
+      "priority": 15,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "Veeam",
+      "product_name": "Veeam Data Platform",
+      "category": "Data Protection",
+      "subcategory": "Backup & Recovery",
+      "competitive_context": "Veeam is a leading backup and recovery competitor offering broad workload coverage and a large partner ecosystem."
+    },
+    {
+      "competitor_name": "Rubrik",
+      "product_name": "Rubrik Security Cloud",
+      "category": "Data Protection",
+      "subcategory": "Cyber Resilience",
+      "competitive_context": "Rubrik is Cohesity's closest direct competitor, offering a similar converged data protection and security platform with cyber resilience focus."
+    },
+    {
+      "competitor_name": "Commvault",
+      "product_name": "Commvault Cloud",
+      "category": "Data Protection",
+      "subcategory": "Backup & Recovery",
+      "competitive_context": "Commvault competes with Cohesity in enterprise backup, recovery, and data management across hybrid cloud environments."
+    },
+    {
+      "competitor_name": "Dell Technologies",
+      "product_name": "Dell PowerProtect Data Manager",
+      "category": "Data Protection",
+      "subcategory": "Backup & Recovery",
+      "competitive_context": "Dell's PowerProtect portfolio competes with Cohesity in enterprise data protection and cyber recovery."
+    },
+    {
+      "competitor_name": "Veritas",
+      "product_name": "NetBackup",
+      "category": "Data Protection",
+      "subcategory": "Backup & Recovery",
+      "competitive_context": "Veritas NetBackup is a legacy enterprise backup competitor that Cohesity frequently displaces in modernization deals."
+    },
+    {
+      "competitor_name": "Zerto",
+      "product_name": "Zerto Platform",
+      "category": "Data Protection",
+      "subcategory": "Disaster Recovery",
+      "competitive_context": "Zerto (HPE) competes with Cohesity SiteContinuity in continuous data protection and disaster recovery orchestration."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": "Cohesity Aspire Partner Program",
+    "channel_program": "Cohesity Aspire Partner Program",
+    "ondemand_library": 1,
+    "cert_program": 1,
+    "existing_lab_partner": [],
+    "ilt_vilt": "Cohesity Academy offers ILT via regularly scheduled virtual classes and dedicated on-site team training with hands-on labs",
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "company_homepage": "AI-powered data security and management | Cohesity Loading Missed the data security and AI summit? We have you covered. Catch the keynote highlights and product announcements on-demand. Watch now Because real resilience\u00a0isn\u2019t\u00a0reactive\u2014it\u2019s\u00a0built to protect, recover, and adapt no matter what comes next. BE RESILIENT 13,000 + Global customers 70 % of the Global 500 200 + Exabytes of data protected 2 x R&D of nearest competitor The latest news Press Release Cohesity Launches Enterprise AI Resilience Strategy to Power and Protect AI Initiatives Read the announcement Press Release Cohesity Strengthens Data Protection and Security to Advance Enterprise AI Resilience Read the announcement EBOOK 5 steps to cyber resilience Get the ebook PODCAST Resilience in action\u2014from vision to vigilance. Check out our podcasts Interactive tool How mature is your cyber resilience? Get your score Blog Cohesity levels up identity resilience with ITDR Read the blog Cohesity Data Cloud Where cyber resilience meets the AI-ready enterprise A single, secure platform to protect 1,000+ workloads, accelerate recovery, and\r\n                unlock insights from your data\u2014across cloud, on-prem, and SaaS. Data Insights Improve AI outcomes with secure, trustworthy, AI-ready enterprise data. Data Security Strengthen threat detection, automate cyber recovery, and reduce compliance risk. Data Protection Protect 1,000+ hybrid cloud and SaaS workloads. Data Platform Watch the video Explore the cohesity data cloud Meet the real Resilience Heroes You know that resilience\u00a0isn\u2019t\u00a0just about bouncing\u00a0back.\u00a0It\u2019s\u00a0about being ready. We are with our customers every step of the way. Watch full video Financial Services Nasdaq \"The total Cohesity experience\u2014security options, SaaS model, and support\u2014has been just what we\u2019d hoped for. If we went back in time, we\u2019d make the same decision.\" Healthcare Bethany Childrens Health Center \"With Gaia, teams will be able to pose natural language questions to quickly find information, saving them from having to read through tons of email and documents. We expect Gaia to reduce the burden on our lawyers by helping them find and evaluate information in minutes, not the hours or days it takes today.\u201d Manufacturing Conagra \"My relationship with Cohesity\u2014it still feels like a small company. Having that relationship with the leadership team is important. Knowing that you can help influence the direction is something that doesn\u2019t happen with every organization I work with.\" See al",
+    "training_page": "Cohesity Academy Courses and Certifications Loading Cohesity Academy Courses and Certifications Explore our courses and certifications below. Clear All Class Schedule Start Date End Date Start Time (UTC) End Time (UTC) Geo Delivery Type Empower your career Join Cohesity Academy to sharpen your skills, get professional training, and earn valuable certifications. Start learning Read Academy FAQ Loading",
+    "atp_page": "Cohesity Academy | Cohesity Loading Cohesity Academy Build your future in AI-powered data security and management. Explore Customer Catalog Explore Partner Catalog Interested in Classroom Training? We have opportunties all year across regions! Learn more Accelerate your career Whether you\u2019d like to improve your organization\u2019s agility or advance your personal career, our expertly designed courses and certifications put you on the fast track. Deepen your knowledge of AI-ready data, optimized multicloud compatibility, cyber resilience, enterprise data security, and multicloud data management with our world-class training and certifications. Get Academy details GET CERTIFICATION DETAILS Explore our courses and certifications View courses How training is delivered Instructor-Led Training Instructor-Led Training provides students with an\u00a0opportunity\u00a0to engage with our expert instructors and their peers. Sessions include hands-on labs and exercises to help solidify data management and security knowledge.\u00a0Delivered through regularly scheduled virtual classes. Learn more Dedicated Team Training Private dedicated group training offers hands-on labs and exercises, with demos and activities tailored specifically to the customer's environment. Delivered through virtual sessions, at customer site, or at corporate offices. Learn more Free Self-Paced eCourses Complimentary\u00a0for\u00a0all\u00a0Cohesity customers, free\u00a0online self-directed\u00a0courses\u00a0provide flexible\u00a0and\u00a0on-demand access, available 24/7.\u00a0Every Cohesity Academy learning journey begins with the Platform Foundations eCourse. Learn more Self-Paced eCourses with Labs Self-Paced eCourses with Labs is online, lab-centric training with six months of access to a modular lab environment, activities, and guides. Students follow step-by-step activities to administer, configure, and manage Cohesity products. Learn more Certifications Industry-recognized certifications allow individuals to authenticate, validate, and share their skills. Cohesity Certifications help boost professional productivity and increase confidence with Cohesity products. Learn more Our five learner journeys Are you interested in becoming Cohesity Certified but unsure which courses to pursue? Explore the resources below to identify the training paths that will help you achieve your Cohesity certification goals. Cohesity DataProtect Path Cohesity NetBackup Path Cohesity Cyber Resilience Path Cohesity NetBackup Appliances Path Cohesity SmartFiles Path Join the Cohes",
+    "partner_portal_page": "Technology Partners | Cohesity Loading Technology Partners Cohesity brings together the deepest, broadest partner ecosystem for data and apps. Become a partner Partner portal login We Are Committed to Being Your Best Partner Customers turn to Cohesity and our Technology Partners to help them reduce complexity, drive innovation, and stay competitive. Together, we are building a technology platform, and solution ecosystem that is solving the most critical data management challenges in the market. How can we help you on your journey? Grow Revenue Access a $60B data and apps market with one web-scale platform for multiple use cases. Deepen Engagement Leverage innovative solutions to solve customer pain points while future-proofing for tomorrow. Customer Obsession Earn high margins by taking advantage of Cohesity's generous enablement and incentives. Our Technology Partners Filter By: Partner Type Sort By: View all Most recent A - Z Z - A Energy Clear All Unlock Growth with the new Cohesity Aspire Partner Program Join Cohesity's Mike Walkey and Kit Beall for a behind-the-scenes look at how we're transforming partner-led growth with a unified portfolio, streamlined GTM, and the new Cohesity Aspire\u00a0Partner Program. Watch the video Read the press release Become a Technology Partner Join now Loading",
+    "product_page_1": "Cloud Data Security and Management Platform | Cohesity Data Cloud Loading Join the Cohesity Community Connect with peers, share expertise, build skills, and enhance your product knowledge in the new Cohesity Community. Learn more The Cohesity Data Cloud: Secure, AI-ready data platform Protect, secure, and gain insights into your enterprise data, no matter where it lives. Watch the video Read the solution brief Overview Editions Product portfolio Testimonials Resources Watch a demo Free trial Menu Overview Editions Product portfolio Testimonials Resources Watch a demo Free trial Overview Where cyber resilience meets the AI-ready enterprise One unified platform for data protection, security, and AI\u2014built to strengthen cyber resilience and unlock the value of your data. Protection is the foundation Protect 1,000+ hybrid cloud and SaaS workloads. Security integrated at the data layer Strengthen threat detection, automate cyber recovery, and reduce compliance risk. Secure AI at enterprise scale Improve AI outcomes with secure, trustworthy, AI-ready enterprise data. Optimize data management costs Reduce TCO as much as 70% and yearly maintenance costs by 50% Outcomes 13,000+ customers rely on us for their cyber resilience Security Built-in zero-trust principles and AI-powered threat detection, and immutability. Smart Improve your AI outcomes with protected enterprise data Speed 18x faster backups, 2x faster restores,\u00a0recover 1000 VMs instantly Savings 50% lower TCO to secure and manage your data--for organizations of all sizes, across all industries. Scale Some of the largest\u00a0data protection estates run on Cohesity Simplicity One platform, one interface for managing all data, any workload, anywhere One platform. Three available editions. 1 Coming soon Brochure Why protection, security, and AI must converge Learn why unifying data protection, security, and AI builds a trusted foundation for cyber resilience and AI-driven insights. Read the brochure Product portfolio Cohesity Data Cloud DataProtect Simplify data protection, ensure recovery, and defend against ransomware with a modern, hyperscale solution. Learn more Threat protection Protect and recover\u00a0against\u00a0ransomware. Find malware before it spreads\u00a0using AI-powered threat detection. Learn more NetBackup Enterprise data protection and security solution. Learn more NetBackup Appliances Turnkey, cyber-hardened data protection. Learn more Cohesity Gaia Make smarter business decisions faster with AI-powered convers",
+    "product_page_0": "AI-powered data security and management | Cohesity Loading Missed the data security and AI summit? We have you covered. Catch the keynote highlights and product announcements on-demand. Watch now Because real resilience\u00a0isn\u2019t\u00a0reactive\u2014it\u2019s\u00a0built to protect, recover, and adapt no matter what comes next. BE RESILIENT 13,000 + Global customers 70 % of the Global 500 200 + Exabytes of data protected 2 x R&D of nearest competitor The latest news Press Release Cohesity Launches Enterprise AI Resilience Strategy to Power and Protect AI Initiatives Read the announcement Press Release Cohesity Strengthens Data Protection and Security to Advance Enterprise AI Resilience Read the announcement EBOOK 5 steps to cyber resilience Get the ebook PODCAST Resilience in action\u2014from vision to vigilance. Check out our podcasts Interactive tool How mature is your cyber resilience? Get your score Blog Cohesity levels up identity resilience with ITDR Read the blog Cohesity Data Cloud Where cyber resilience meets the AI-ready enterprise A single, secure platform to protect 1,000+ workloads, accelerate recovery, and\r\n                unlock insights from your data\u2014across cloud, on-prem, and SaaS. Data Insights Improve AI outcomes with secure, trustworthy, AI-ready enterprise data. Data Security Strengthen threat detection, automate cyber recovery, and reduce compliance risk. Data Protection Protect 1,000+ hybrid cloud and SaaS workloads. Data Platform Watch the video Explore the cohesity data cloud Meet the real Resilience Heroes You know that resilience\u00a0isn\u2019t\u00a0just about bouncing\u00a0back.\u00a0It\u2019s\u00a0about being ready. We are with our customers every step of the way. Watch full video Financial Services Nasdaq \"The total Cohesity experience\u2014security options, SaaS model, and support\u2014has been just what we\u2019d hoped for. If we went back in time, we\u2019d make the same decision.\" Healthcare Bethany Childrens Health Center \"With Gaia, teams will be able to pose natural language questions to quickly find information, saving them from having to read through tons of email and documents. We expect Gaia to reduce the burden on our lawyers by helping them find and evaluate information in minutes, not the hours or days it takes today.\u201d Manufacturing Conagra \"My relationship with Cohesity\u2014it still feels like a small company. Having that relationship with the leadership team is important. Knowing that you can help influence the direction is something that doesn\u2019t happen with every organization I work with.\" See al"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "073435fd",
+  "created_at": "2026-04-06T16:06:49.606832+00:00",
+  "known_products": [],
+  "_company_badge": "SOFTWARE",
+  "_org_color": "purple",
+  "_scraped_families": [
+    {
+      "name": "Platform",
+      "url": "https://www.cohesity.com/platform/"
+    },
+    {
+      "name": "Cohesity Data Cloud",
+      "url": "https://www.cohesity.com/platform/"
+    },
+    {
+      "name": "Cohesity for Midsize Business",
+      "url": "https://www.cohesity.com/buy/essentials/"
+    },
+    {
+      "name": "Data Cloud packaging",
+      "url": "https://www.cohesity.com/resource-assets/reference-guide/cohesity-data-cloud-packaging.pdf"
+    },
+    {
+      "name": "Certified platforms",
+      "url": "https://www.cohesity.com/platform/certified-platforms/"
+    },
+    {
+      "name": "Backup & Recovery",
+      "url": "https://www.cohesity.com/solutions/backup-and-recovery/"
+    },
+    {
+      "name": "Cloud Data Protection",
+      "url": "http://www.cohesity.com/solutions/cloud/"
+    },
+    {
+      "name": "Cloud App Recovery",
+      "url": "https://www.cohesity.com/platform/cloud-rebuild/"
+    },
+    {
+      "name": "SaaS Data Protection",
+      "url": "https://www.cohesity.com/platform/cloud-protection-services/"
+    },
+    {
+      "name": "Unstructured Data Protection",
+      "url": "https://www.cohesity.com/solutions/nas/"
+    },
+    {
+      "name": "Cyber Resilience",
+      "url": "https://www.cohesity.com/solutions/cyber-resilience/"
+    },
+    {
+      "name": "Zero Trust Security",
+      "url": "https://www.cohesity.com/solutions/data-security/"
+    },
+    {
+      "name": "Archive & Long-Term Retention",
+      "url": "https://www.cohesity.com/solutions/long-term-retention-and-archival/"
+    },
+    {
+      "name": "Disaster Recovery",
+      "url": "https://www.cohesity.com/solutions/disaster-recovery/"
+    },
+    {
+      "name": "Identity Resilience",
+      "url": "https://www.cohesity.com/solutions/active-directory-entra-id/"
+    },
+    {
+      "name": "Ransomware Anomaly Detection",
+      "url": "https://www.cohesity.com/solutions/ransomware/"
+    },
+    {
+      "name": "Threat Protection",
+      "url": "https://www.cohesity.com/platform/threat-protection/"
+    },
+    {
+      "name": "Data Security Posture Management",
+      "url": "https://www.cohesity.com/platform/data-security-posture-management/"
+    },
+    {
+      "name": "Data Classification",
+      "url": "http://www.cohesity.com/platform/data-classification/"
+    },
+    {
+      "name": "Cyber Vaulting",
+      "url": "https://www.cohesity.com/platform/fortknox/"
+    },
+    {
+      "name": "Cyber Recovery Orchestration",
+      "url": "https://www.cohesity.com/platform/recoveryagent/"
+    },
+    {
+      "name": "Clean Room Solution",
+      "url": "https://www.cohesity.com/solutions/clean-room/"
+    },
+    {
+      "name": "AI Conversational Search",
+      "url": "https://www.cohesity.com/solutions/ai-conversational-search/"
+    },
+    {
+      "name": "Reporting & IT Insights",
+      "url": "https://www.cohesity.com/platform/netbackup-it-analytics/"
+    },
+    {
+      "name": "Global Search",
+      "url": "https://www.cohesity.com/solutions/global-search/"
+    },
+    {
+      "name": "Solutions",
+      "url": "https://www.cohesity.com/solutions/"
+    },
+    {
+      "name": "View all solutions",
+      "url": "https://www.cohesity.com/solutions/"
+    },
+    {
+      "name": "Learn more",
+      "url": "https://www.cohesity.com/forms/ebook/5-steps-to-improve-cyber-resilience/"
+    },
+    {
+      "name": "Microsoft 365 Protection",
+      "url": "https://www.cohesity.com/solutions/microsoft-365/"
+    },
+    {
+      "name": "AWS",
+      "url": "https://www.cohesity.com/solutions/aws/"
+    },
+    {
+      "name": "Azure",
+      "url": "https://www.cohesity.com/solutions/azure/"
+    },
+    {
+      "name": "Google Cloud",
+      "url": "https://www.cohesity.com/solutions/google/"
+    },
+    {
+      "name": "Google Workspace",
+      "url": "https://www.veritas.com/content/dam/www/en_us/documents/data-sheet/DS_veritas_alta_saas_protetion_google_workspace_backup_V1519.pdf"
+    },
+    {
+      "name": "Slack",
+      "url": "https://www.veritas.com/content/dam/www/en_us/documents/data-sheet/DS_backup_for_slack_V1293.pdf"
+    },
+    {
+      "name": "Active Directory & Entra ID",
+      "url": "https://www.cohesity.com/solutions/active-directory-entra-id/"
+    },
+    {
+      "name": "Hyper-V",
+      "url": "https://www.cohesity.com/solutions/microsoft-hyper-v/"
+    },
+    {
+      "name": "Kubernetes",
+      "url": "https://www.cohesity.com/solutions/kubernetes/"
+    },
+    {
+      "name": "IBM",
+      "url": "https://www.cohesity.com/solutions/ibm-cloud/"
+    },
+    {
+      "name": "MongoDB",
+      "url": "https://www.cohesity.com/solutions/mongodb/"
+    },
+    {
+      "name": "MS SQL Server",
+      "url": "https://www.cohesity.com/solutions/microsoft-sql-server/"
+    },
+    {
+      "name": "NAS",
+      "url": "https://www.cohesity.com/solutions/nas/"
+    },
+    {
+      "name": "NoSQL & Hadoop",
+      "url": "https://www.cohesity.com/solutions/nosql-and-hadoop/"
+    },
+    {
+      "name": "Nutanix",
+      "url": "https://www.cohesity.com/solutions/nutanix-ahv/"
+    },
+    {
+      "name": "Oracle",
+      "url": "https://www.cohesity.com/solutions/oracle/"
+    },
+    {
+      "name": "Red Hat",
+      "url": "https://www.cohesity.com/solutions/red-hat/"
+    },
+    {
+      "name": "SAP HANA",
+      "url": "https://www.cohesity.com/solutions/sap-hana/"
+    },
+    {
+      "name": "VMware",
+      "url": "https://www.cohesity.com/solutions/vmware/"
+    },
+    {
+      "name": "Financial services",
+      "url": "https://www.cohesity.com/solutions/finance/"
+    },
+    {
+      "name": "Healthcare and life sciences",
+      "url": "https://www.cohesity.com/solutions/healthcare/"
+    },
+    {
+      "name": "Manufacturing and logistics",
+      "url": "https://www.cohesity.com/solutions/manufacturing-and-logistics/"
+    },
+    {
+      "name": "Federal government",
+      "url": "https://www.cohesity.com/solutions/federal-government/"
+    },
+    {
+      "name": "State, local government, and education",
+      "url": "https://www.cohesity.com/solutions/state-and-local-government/"
+    },
+    {
+      "name": "Retail and hospitality",
+      "url": "https://www.cohesity.com/solutions/retail-and-hospitality/"
+    },
+    {
+      "name": "Energy and utilities",
+      "url": "https://www.cohesity.com/solutions/energy-and-utilities/"
+    },
+    {
+      "name": "Telecom",
+      "url": "https://www.cohesity.com/solutions/telecom/"
+    },
+    {
+      "name": "Technology",
+      "url": "https://www.cohesity.com/solutions/technology/"
+    },
+    {
+      "name": "Media and Entertainment",
+      "url": "https://www.cohesity.com/solutions/media-and-entertainment/"
+    },
+    {
+      "name": "Corporate Overview",
+      "url": "https://www.cohesity.com/resource-assets/solution-brief/cohesity-corporate-overview.pdf"
+    },
+    {
+      "name": "Professional Services",
+      "url": "https://www.cohesity.com/professional-services/"
+    },
+    {
+      "name": "Cohesity Academy",
+      "url": "https://www.cohesity.com/academy/"
+    },
+    {
+      "name": "Trust Center",
+      "url": "https://www.cohesity.com/trust/"
+    },
+    {
+      "name": "Cohesity REDLab",
+      "url": "https://www.cohesity.com/trust/redlab/"
+    },
+    {
+      "name": "Partners",
+      "url": "https://www.cohesity.com/partners/"
+    },
+    {
+      "name": "Partners Overview",
+      "url": "https://www.cohesity.com/partners/"
+    },
+    {
+      "name": "Channel Partners",
+      "url": "https://www.cohesity.com/partners/channel-partners/"
+    },
+    {
+      "name": "Global System Integrators",
+      "url": "https://www.cohesity.com/partners/global-system-integrators/"
+    },
+    {
+      "name": "Security Partners",
+      "url": "https://www.cohesity.com/partners/security-partners/"
+    },
+    {
+      "name": "Cloud Alliances",
+      "url": "https://www.cohesity.com/partners/cloud-alliances/"
+    },
+    {
+      "name": "Technology Partners",
+      "url": "https://www.cohesity.com/partners/technology-partners/"
+    },
+    {
+      "name": "Managed Service Providers",
+      "url": "https://www.cohesity.com/partners/service-providers/"
+    },
+    {
+      "name": "Data Security Alliance",
+      "url": "https://www.cohesity.com/company/data-security-alliance/"
+    },
+    {
+      "name": "Join Cohesity Aces",
+      "url": "https://www.cohesity.com/partners/cohesity-aces/"
+    },
+    {
+      "name": "Alta",
+      "url": "https://alta.us.veritas.com/"
+    },
+    {
+      "name": "Product Documentation",
+      "url": "https://my.cohesity.com/s/?target=product"
+    },
+    {
+      "name": "Academy",
+      "url": "https://my.cohesity.com/s/?target=academy"
+    },
+    {
+      "name": "Free Trial",
+      "url": "https://www.cohesity.com/dm/free-trial/"
+    }
+  ]
+}

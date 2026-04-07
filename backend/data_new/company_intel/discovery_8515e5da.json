@@ -1,0 +1,421 @@
+{
+  "company_name": "Epiq",
+  "company_description": "Epiq is a global legal services and technology company providing solutions for eDiscovery, bankruptcy administration, class action and mass tort management, legal operations, and compliance \u2014 serving Fortune 100 companies, AmLaw 100 law firms, and government entities for over 30 years.",
+  "company_url": "https://www.epiqglobal.com",
+  "organization_type": "professional_services",
+  "products": [
+    {
+      "name": "Epiq Discover\u2122",
+      "category": "Legal Tech",
+      "subcategory": "eDiscovery Platform",
+      "description": "A cloud-based eDiscovery platform that automates workflows for data processing, analysis, and review \u2014 including Early Case Assessment, Continuous Active Learning (CAL), and production \u2014 delivering up to 50% time savings and 70% platform cost savings. LEARN AI via embedded Epiq Assist\u2122.",
+      "deployment_model": "saas-only",
+      "discovery_score": 22,
+      "priority": 1,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Epiq Assist\u2122",
+      "category": "Legal Tech",
+      "subcategory": "AI Legal Assistant",
+      "description": "An AI-powered natural language query tool embedded within Epiq Discover that enables users to interrogate entire datasets, prepare deposition memos, identify key topics and custodians, and accelerate case strategy. LEARN AI.",
+      "deployment_model": "saas-only",
+      "discovery_score": 15,
+      "priority": 2,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Epiq Service Cloud",
+      "category": "Legal Tech",
+      "subcategory": "Legal Ops Platform",
+      "description": "A unified legal technology platform that integrates Epiq's suite of legal services and third-party partner tools with federated single sign-on access via Epiq Access.",
+      "deployment_model": "saas-only",
+      "discovery_score": 14,
+      "priority": 3,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Epiq AI\u2122",
+      "category": "AI/ML Platform",
+      "subcategory": "AI Advisory & Integration",
+      "description": "An AI practice group and advisory offering that helps legal and compliance organizations evaluate, implement, and build trust in AI models for legal workflows. CREATE AI / LEARN AI.",
+      "deployment_model": "saas-only",
+      "discovery_score": 12,
+      "priority": 4,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Epiq Bankruptcy Technologies",
+      "category": "Legal Tech",
+      "subcategory": "Bankruptcy Administration",
+      "description": "A suite of technology tools and managed services for modernizing bankruptcy case administration, claims management, and noticing for debtors, trustees, and creditors.",
+      "deployment_model": "saas-only",
+      "discovery_score": 13,
+      "priority": 5,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Epiq Class Action & Mass Tort Technologies",
+      "category": "Legal Tech",
+      "subcategory": "Settlement Administration",
+      "description": "Technology platform supporting class action and mass tort case management, claims administration, settlement distribution, and claimant communications.",
+      "deployment_model": "saas-only",
+      "discovery_score": 12,
+      "priority": 6,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Epiq Access",
+      "category": "Legal Tech",
+      "subcategory": "Identity & SSO",
+      "description": "A federated single sign-on access layer that provides unified authentication across Epiq Service Cloud and integrated third-party partner tools.",
+      "deployment_model": "saas-only",
+      "discovery_score": 10,
+      "priority": 7,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    },
+    {
+      "name": "Epiq Discover\u2122 End User Certification",
+      "category": "Training & Certification",
+      "subcategory": "Legal Tech Certification",
+      "description": "A named certification program validating proficiency in Epiq Discover platform administration, collection, processing, review workflows, and production.",
+      "deployment_model": "saas-only",
+      "discovery_score": 0,
+      "priority": 8,
+      "_tier": "unlikely",
+      "_tier_label": "Unlikely"
+    }
+  ],
+  "competitive_products": [
+    {
+      "competitor_name": "Relativity",
+      "product_name": "RelativityOne",
+      "category": "Legal Tech",
+      "subcategory": "eDiscovery Platform",
+      "competitive_context": "RelativityOne is the dominant cloud eDiscovery platform competing directly with Epiq Discover for law firm and corporate legal department review workflows."
+    },
+    {
+      "competitor_name": "Reveal",
+      "product_name": "Reveal AI",
+      "category": "Legal Tech",
+      "subcategory": "AI-Powered eDiscovery",
+      "competitive_context": "Reveal AI competes with Epiq Discover and Epiq Assist on AI-driven document review and early case assessment capabilities."
+    },
+    {
+      "competitor_name": "Nuix",
+      "product_name": "Nuix Investigate",
+      "category": "Legal Tech",
+      "subcategory": "eDiscovery & Investigations",
+      "competitive_context": "Nuix provides data processing and investigation tools that compete with Epiq Discover's processing and ECA capabilities."
+    },
+    {
+      "competitor_name": "Everlaw",
+      "product_name": "Everlaw",
+      "category": "Legal Tech",
+      "subcategory": "eDiscovery Platform",
+      "competitive_context": "Everlaw is a cloud-native eDiscovery and litigation platform competing with Epiq Discover for corporate and law firm clients."
+    },
+    {
+      "competitor_name": "Consilio",
+      "product_name": "Consilio eDiscovery Services",
+      "category": "Legal Tech",
+      "subcategory": "Managed eDiscovery",
+      "competitive_context": "Consilio competes with Epiq's managed eDiscovery and legal operations services for large enterprise and law firm clients."
+    },
+    {
+      "competitor_name": "Stretto",
+      "product_name": "Stretto Bankruptcy Platform",
+      "category": "Legal Tech",
+      "subcategory": "Bankruptcy Administration",
+      "competitive_context": "Stretto competes directly with Epiq's bankruptcy administration technology and claims management services."
+    },
+    {
+      "competitor_name": "Kroll",
+      "product_name": "Kroll Settlement Administration",
+      "category": "Legal Tech",
+      "subcategory": "Settlement Administration",
+      "competitive_context": "Kroll's settlement administration practice competes with Epiq's class action and mass tort technology and services."
+    }
+  ],
+  "partnership_signals": {
+    "atp_program": null,
+    "channel_program": "Epiq Legal Solutions Partner Program",
+    "ondemand_library": 0,
+    "cert_program": 1,
+    "existing_lab_partner": [],
+    "ilt_vilt": null,
+    "gray_market": null
+  },
+  "academic_signals": {
+    "engineering_school_name": null,
+    "tech_program_areas": [],
+    "virtual_infrastructure": null,
+    "student_tech_population": null
+  },
+  "training_programs": [],
+  "atp_signals": [],
+  "training_catalog": [],
+  "partner_ecosystem": [],
+  "partner_portal": [],
+  "cs_signals": [],
+  "lms_signals": [],
+  "org_contacts": [],
+  "page_contents": {
+    "company_homepage": "Technology | The Future of Legal and Business | Epiq Skip to Content (custom) Technology and Applications Developments in cloud-based technology are paving the way for innovation within law. With capabilities that span across digital design, data and document management, and cloud services and enablement, Epiq empowers its clients to take full advantage of the latest in law tech innovation. Get in touch with Epiq and get answers to your questions and find out how our technology service offerings can help your firm or business. Contact Us \u00d7 Close For more than 30 years, Epiq has worked with organizations ranging from Fortune 100 companies to AmLaw 100 law firms and G7 government departments. In that time, the standard of technology has rapidly increased in complexity and only continues to evolve as time passes. In response, our team works to continuously assess and evaluate the quality of new software as it is introduced to the industry. When combined with proprietary Epiq technologies, this ensures that our clients can dedicate their personnel and infrastructure to focusing on their daily business operations instead of attempting to make sense of all of the options on the market, while simultaneously enjoying the advantages associated with employing the latest and most powerful legal technology available to organizations. Explore our depth of technology offerings below. Bankruptcy Technologies Bankruptcy Technology. Years of experience. A trusted partner.\u00a0Epiq is a market leader and only company of its kind fully dedicated to modernizing the business of bankruptcy. Class Action and Mass Tort Technologies Epiq brings clarity and trust to technology for class action and mass tort cases. Epiq AI\u2122 To assist you in deciding where to integrate AI into your legal and compliance work, Epiq has a fully staffed AI Practice Group.\u00a0 Our team will help you make informed decisions and build trust in the AI models you implement. Epiq Service Cloud Utilize a unified legal technology and services platform for your business of law digital transformation. Implement the use case automation you need when you need it. Legal Solutions Technology As the longstanding leader in legal services, Epiq is now paving the way in legal technology solutions. Featured Experts Aideen Gaffney Vice President, Class Action and Mass Tort Solutions READ BIO Bishan Yang Vice President, Epiq AI Labs READ BIO Deirdre O\u2019Connor Managing Director, Corporate Restructuring READ BIO Igor Labutov Vice Pres",
+    "product_page_1": "eDiscovery Software | Epiq Discover\u2122 | Epiq Skip to Content (custom) Epiq Discover\u2122 Simplify, accelerate, and reduce the cost of discovery while maintaining quality and defensibility. Access critical information faster by processing, analyzing, and reviewing data with an eDiscovery platform that automates workflows, surfaces deeper insights, and scales to handle matters of all sizes. Talk to an Expert Download Solution Brief Achieve up to 50% time savings from collection to production Up to 7x faster processing Realize up to 70% platform cost savings Accelerate Insight. Improve Outcomes. Corporations Law Firms Government Entities Internal investigations Identify critical facts faster using Epiq Assist\u2122 to ask natural language queries across the dataset. HR, Employment and Compliance Matters Reduce cost and reliance on external resources with an easy\u2011to\u2011use platform that manages and analyzes large data volumes efficiently. Early Case Assessment (ECA) Understand your risk exposure, lower costs, and shape matter strategy early by using expedited processing, filtering, and analysis tools with Epiq Assist\u2122 to clarify custodians and concepts, and reduce downstream review. eDiscovery Review Reduce review time and cost while improving consistency and defensibility using Continuous Active Learning (CAL) that adapts to reviewer decisions over time. eDiscovery Review Reduce manual effort and speed up case resolution through automated, repeatable document review workflows. Early Case Assessment (ECA) Shape case strategy earlier by using expedited processing, filtering, and analysis tools with Epiq Assist\u2122 to analyze custodians, concepts, and data volumes before review. Deposition Preparation Prepare deposition memos and questions up to five times faster using Epiq Assist\u2122 to identify key topics, communications, events, and documents. Internal Investigations Identify critical facts faster using Epiq Assist\u2122 by asking limitless questions of your entire dataset. Ensure compliance with state and local regulations through customizable document review tagging and categorization. Build public trust with fast and accurate public record responses, including redactions. Support defensible investigations and regulatory outcomes with accurate and transparent document review. Improve departmental productivity using simplified eDiscovery tools with AI and automation capabilities. Key Features Collect and Prepare Data Efficiently Process Automation Produce consistent, defensible res",
+    "partner_portal_page": "Legal Solutions Partners | Epiq Skip to Content (custom) Key partners \u00d7 Close Legal Solutions Partners Epiq Legal Solutions works with a wide variety of best-in-class technology partners to meet the varied needs of our clients. In addition to proven expertise, workflows, and advice, these tools are fully integrated within our technology platform, the Epiq Service Cloud, and are often available with federated, single sign on access via Epiq Access. Featured Partners CLM Implementation Partners Take the First Steps with Speak to a Consultant",
+    "product_page_0": "Technology | The Future of Legal and Business | Epiq Skip to Content (custom) Technology and Applications Developments in cloud-based technology are paving the way for innovation within law. With capabilities that span across digital design, data and document management, and cloud services and enablement, Epiq empowers its clients to take full advantage of the latest in law tech innovation. Get in touch with Epiq and get answers to your questions and find out how our technology service offerings can help your firm or business. Contact Us \u00d7 Close For more than 30 years, Epiq has worked with organizations ranging from Fortune 100 companies to AmLaw 100 law firms and G7 government departments. In that time, the standard of technology has rapidly increased in complexity and only continues to evolve as time passes. In response, our team works to continuously assess and evaluate the quality of new software as it is introduced to the industry. When combined with proprietary Epiq technologies, this ensures that our clients can dedicate their personnel and infrastructure to focusing on their daily business operations instead of attempting to make sense of all of the options on the market, while simultaneously enjoying the advantages associated with employing the latest and most powerful legal technology available to organizations. Explore our depth of technology offerings below. Bankruptcy Technologies Bankruptcy Technology. Years of experience. A trusted partner.\u00a0Epiq is a market leader and only company of its kind fully dedicated to modernizing the business of bankruptcy. Class Action and Mass Tort Technologies Epiq brings clarity and trust to technology for class action and mass tort cases. Epiq AI\u2122 To assist you in deciding where to integrate AI into your legal and compliance work, Epiq has a fully staffed AI Practice Group.\u00a0 Our team will help you make informed decisions and build trust in the AI models you implement. Epiq Service Cloud Utilize a unified legal technology and services platform for your business of law digital transformation. Implement the use case automation you need when you need it. Legal Solutions Technology As the longstanding leader in legal services, Epiq is now paving the way in legal technology solutions. Featured Experts Aideen Gaffney Vice President, Class Action and Mass Tort Solutions READ BIO Bishan Yang Vice President, Epiq AI Labs READ BIO Deirdre O\u2019Connor Managing Director, Corporate Restructuring READ BIO Igor Labutov Vice Pres",
+    "training_page": "Epiq Discover Certification | Epiq Skip to Content (custom) Epiq Discover\u2122 End User Certification End User Certification Overview This certification validates proficiency in managing administrative tasks, navigating the Epiq Discover platform, and using collection and processing tools. It also provides an understanding of review options and workflows required to create and export productions successfully. Certification Training Resources As preparation for the certification, it is recommended to take an Epiq Discover Pre-Certification Course. Exam Details 65 questions Multiple choice and true or false type questions 70 minutes to complete Passing score of eighty-five percent or higher Additional Training Resources Getting Started Video Training Center Epiq Discover Help Page"
+  },
+  "lab_platform_signals": [],
+  "discovery_id": "8515e5da",
+  "created_at": "2026-04-06T18:08:10.135131+00:00",
+  "known_products": [],
+  "_company_badge": "PROFESSIONAL SERVICES",
+  "_org_color": "warm_blue",
+  "_scraped_families": [
+    {
+      "name": "Solutions",
+      "url": "https://www.epiqglobal.com/en-us/services"
+    },
+    {
+      "name": "Industries",
+      "url": "https://www.epiqglobal.com/en-us/industries"
+    },
+    {
+      "name": "Technologies",
+      "url": "https://www.epiqglobal.com/en-us/technologies"
+    },
+    {
+      "name": "Resources",
+      "url": "https://www.epiqglobal.com/en-us/resource-center"
+    },
+    {
+      "name": "Discovery Services",
+      "url": "https://www.epiqglobal.com/en-us/services/ediscovery-litigation-investigation-services"
+    },
+    {
+      "name": "Litigation Advisory",
+      "url": "https://www.epiqglobal.com/en-us/services/ediscovery-litigation-investigation-services/litigation-advisory"
+    },
+    {
+      "name": "Forensics and Collections",
+      "url": "https://www.epiqglobal.com/en-us/services/ediscovery-litigation-investigation-services/forensics-collections"
+    },
+    {
+      "name": "Document Review",
+      "url": "https://www.epiqglobal.com/en-us/services/ediscovery-litigation-investigation-services/document-review"
+    },
+    {
+      "name": "Managed Services",
+      "url": "https://www.epiqglobal.com/en-us/services/ediscovery-litigation-investigation-services/ediscovery-services/managed-services"
+    },
+    {
+      "name": "Corporate and M&A",
+      "url": "https://www.epiqglobal.com/en-us/services/corporate-and-m-a"
+    },
+    {
+      "name": "Antitrust and Competition Services",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/global-investigations/antitrust-and-competition"
+    },
+    {
+      "name": "Divestiture Services",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/information-governance/divestiture"
+    },
+    {
+      "name": "Compliance and Cyber",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance"
+    },
+    {
+      "name": "Global Investigations Advisory",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/global-investigations-advisory"
+    },
+    {
+      "name": "Global Investigations",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/global-investigations"
+    },
+    {
+      "name": "Information Governance Advisory",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/information-governance-advisory"
+    },
+    {
+      "name": "Information Governance",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/information-governance"
+    },
+    {
+      "name": "Compliance Advisory and Technology",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/compliance-advisory-and-technology"
+    },
+    {
+      "name": "Cyber Incident Response",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/cyber-breach-response"
+    },
+    {
+      "name": "Contracts Solutions",
+      "url": "https://www.epiqglobal.com/en-us/services/commercial"
+    },
+    {
+      "name": "Contracts Advisory",
+      "url": "https://www.epiqglobal.com/en-us/services/commercial/contracts-process-advisory"
+    },
+    {
+      "name": "Contracts Review and Analysis",
+      "url": "https://www.epiqglobal.com/en-us/services/commercial/contracts-review-and-analysis"
+    },
+    {
+      "name": "CLM Selection",
+      "url": "https://www.epiqglobal.com/en-us/services/commercial/clm-selection-and-optimization"
+    },
+    {
+      "name": "CLM Implementation and Optimization",
+      "url": "https://www.epiqglobal.com/en-us/services/commercial/clm-implementation-and-optimization"
+    },
+    {
+      "name": "CLM Implementation Partners",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners/clm-implementation-partners"
+    },
+    {
+      "name": "Law Firm Advisory",
+      "url": "https://www.epiqglobal.com/en-us/services/business-of-law-services/epiq-advisory/law-firm-advisory"
+    },
+    {
+      "name": "Epiq Counsel",
+      "url": "https://www.epiqglobal.com/en-us/services/business-of-law-services/epiq-counsel"
+    },
+    {
+      "name": "Business Transformation",
+      "url": "https://www.epiqglobal.com/en-us/services/global-business-transformation-solutions"
+    },
+    {
+      "name": "Class Action and Mass Tort",
+      "url": "https://www.epiqglobal.com/en-us/services/class-action-mass-tort"
+    },
+    {
+      "name": "Class Action Administration",
+      "url": "https://www.epiqglobal.com/en-us/services/class-action-mass-tort/class-action-administration"
+    },
+    {
+      "name": "Mass Tort Solutions",
+      "url": "https://www.epiqglobal.com/en-us/services/class-action-mass-tort/mass-torts"
+    },
+    {
+      "name": "Recall Solutions",
+      "url": "https://www.epiqglobal.com/en-us/services/class-action-mass-tort/recall-solutions"
+    },
+    {
+      "name": "Regulatory and Voluntary Remediation",
+      "url": "https://www.epiqglobal.com/en-us/services/regulatory-compliance/regulatory-and-voluntary-remediation"
+    },
+    {
+      "name": "Payments",
+      "url": "https://www.epiqglobal.com/en-us/services/class-action-mass-tort/payments"
+    },
+    {
+      "name": "Bankruptcy Services",
+      "url": "https://www.epiqglobal.com/en-us/services/bankruptcy-and-trustee-services"
+    },
+    {
+      "name": "Corporate Restructuring",
+      "url": "https://www.epiqglobal.com/en-us/services/restructuring-bankruptcy"
+    },
+    {
+      "name": "Trustee Services",
+      "url": "https://www.epiqglobal.com/en-us/services/bankruptcy-and-trustee-services/specialty-trustee-services"
+    },
+    {
+      "name": "Epiq AACER",
+      "url": "https://www.epiqglobal.com/en-us/technologies/bankruptcy/epiq-aacer"
+    },
+    {
+      "name": "Epiq Bankruptcy Analytics",
+      "url": "https://www.epiqglobal.com/en-us/technologies/bankruptcy/epiq-bankruptcy-analytics"
+    },
+    {
+      "name": "Automotive",
+      "url": "https://www.epiqglobal.com/en-us/industries/automotive"
+    },
+    {
+      "name": "Energy",
+      "url": "https://www.epiqglobal.com/en-us/industries/energy"
+    },
+    {
+      "name": "Financial Services",
+      "url": "https://www.epiqglobal.com/en-us/industries/financial-services"
+    },
+    {
+      "name": "Healthcare",
+      "url": "https://www.epiqglobal.com/en-us/industries/healthcare-pharma"
+    },
+    {
+      "name": "Insurance",
+      "url": "https://www.epiqglobal.com/en-us/industries/insurance"
+    },
+    {
+      "name": "Law Firms",
+      "url": "https://www.epiqglobal.com/en-us/industries/law-firms"
+    },
+    {
+      "name": "Pharmaceuticals",
+      "url": "https://www.epiqglobal.com/en-us/industries/pharma"
+    },
+    {
+      "name": "Technology",
+      "url": "https://www.epiqglobal.com/en-us/industries/technology"
+    },
+    {
+      "name": "Epiq Service Cloud",
+      "url": "https://www.epiqglobal.com/en-us/technologies/epiq-service-cloud"
+    },
+    {
+      "name": "Client Portal",
+      "url": "https://www.epiqglobal.com/en-us/technologies/epiq-service-cloud/client-portal"
+    },
+    {
+      "name": "Data, AI, and Analytics Platform",
+      "url": "https://www.epiqglobal.com/en-us/technologies/epiq-service-cloud/data-ai-and-analytics-platform"
+    },
+    {
+      "name": "Application and Services",
+      "url": "https://www.epiqglobal.com/en-us/technologies/epiq-service-cloud/application-and-services"
+    },
+    {
+      "name": "Infrastructure",
+      "url": "https://www.epiqglobal.com/en-us/technologies/epiq-service-cloud/infrastructure"
+    },
+    {
+      "name": "Our Partners",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners"
+    },
+    {
+      "name": "Amazon Web Services",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners/aws"
+    },
+    {
+      "name": "Microsoft",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners/microsoft"
+    },
+    {
+      "name": "Relativity",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners/relativity"
+    },
+    {
+      "name": "Litera",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners/experience-management"
+    },
+    {
+      "name": "WorkFusion",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners/workfusion"
+    },
+    {
+      "name": "Partners",
+      "url": "https://www.epiqglobal.com/en-us/technologies/partners"
+    }
+  ]
+}
