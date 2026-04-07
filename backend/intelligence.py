@@ -469,14 +469,28 @@ def recompute_analysis(analysis: dict) -> None:
     # math runs against the unified Customer Fit data and produces
     # identical Pillar 3 scores. Per Frank's 2026-04-07 directive.
     #
-    # Phase F (in progress 2026-04-07): the proper architecture stores the
-    # unified CF on discovery["_customer_fit"] and reads it from there. For
-    # now this still does the analysis-level merge, which gives the same
-    # user-visible result. The new helpers _build_unified_customer_fit and
-    # _apply_customer_fit_to_products are wired here as a refactor of the
-    # old single-function approach; the discovery-level storage will be
-    # added in the second half of the Phase F change.
-    _phase_f_unified_cf = _build_unified_customer_fit(analysis.get("products") or [])
+    # Phase F (2026-04-07): Customer Fit is owned by the discovery
+    # (discovery["_customer_fit"]) — the shared Intelligence layer's single
+    # source of truth, so Inspector / Prospector / Designer all read from
+    # one place. Lookup order:
+    #
+    #   1. discovery["_customer_fit"] — the canonical Phase F home, written
+    #      by intelligence.score() at every save boundary via
+    #      aggregate_customer_fit_to_discovery()
+    #   2. _build_unified_customer_fit(products) — fallback for any analysis
+    #      whose parent discovery hasn't been stamped yet (legacy data, or
+    #      during the score() pre-save window)
+    #
+    # If either source produces a unified CF, broadcast it onto every
+    # product so the per-product math loop sees identical Pillar 3 input.
+    _phase_f_unified_cf: dict | None = None
+    discovery_id = analysis.get("discovery_id")
+    if discovery_id:
+        discovery = load_discovery(discovery_id)
+        if discovery:
+            _phase_f_unified_cf = discovery.get("_customer_fit")
+    if _phase_f_unified_cf is None:
+        _phase_f_unified_cf = _build_unified_customer_fit(analysis.get("products") or [])
     if _phase_f_unified_cf is not None:
         _apply_customer_fit_to_products(analysis.get("products") or [], _phase_f_unified_cf)
 
@@ -786,6 +800,13 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     if existing and not new_to_score:
         log.info("Intelligence.score: ALL selected products cached — returning existing analysis %s",
                  existing.get("analysis_id"))
+        # Phase F: backfill the unified Customer Fit onto the discovery if
+        # it isn't there yet. Cheap no-op when the discovery already has it.
+        try:
+            aggregate_customer_fit_to_discovery(existing)
+        except Exception:
+            log.exception("Phase F aggregate_customer_fit_to_discovery failed for %s",
+                          existing.get("analysis_id"))
         return existing.get("analysis_id"), []
 
     new_product_names = []
@@ -834,6 +855,15 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             _save(existing_dict)
             log.info("Intelligence.score: appended %d new products to analysis %s",
                      len(new_product_dicts), existing_dict.get("analysis_id"))
+        # Phase F: write the unified Customer Fit onto the discovery so
+        # every tool reads it from one canonical place. Runs on cache-and-
+        # append paths (including the no-new-products fast-return below
+        # via the early-return path — handled there separately).
+        try:
+            aggregate_customer_fit_to_discovery(existing_dict)
+        except Exception:
+            log.exception("Phase F aggregate_customer_fit_to_discovery failed for %s",
+                          existing_dict.get("analysis_id"))
         return existing_dict.get("analysis_id"), new_product_names
 
     # First-ever analysis for this discovery — save fresh with all new products
@@ -850,6 +880,13 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     analysis_id = save_analysis(fresh_dict)
     log.info("Intelligence.score: created new analysis %s with %d products",
              analysis_id, len(new_analysis.products))
+    # Phase F: write the unified Customer Fit onto the discovery so every
+    # tool (Inspector, Prospector, Designer) reads it from one canonical
+    # place instead of recomputing per analysis.
+    try:
+        aggregate_customer_fit_to_discovery(fresh_dict)
+    except Exception:
+        log.exception("Phase F aggregate_customer_fit_to_discovery failed for %s", analysis_id)
     return analysis_id, new_product_names
 
 
