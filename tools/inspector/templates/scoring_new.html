@@ -22,64 +22,108 @@
         .waiting-page-content {
             flex: 1;
             display: flex; align-items: center; justify-content: center;
+            padding: 32px 16px;
         }
         .card {
             background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 20px; padding: 52px 48px;
-            text-align: center; max-width: 520px; width: 90%;
+            border-radius: 20px; padding: 36px 40px 28px;
+            text-align: center; max-width: 560px; width: 92%;
             box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 30px 80px rgba(0,0,0,0.5);
             position: relative;
         }
-        .logo { margin-bottom: 32px; }
-        .logo img { height: 32px; }
         .eyebrow {
             font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--sk-accent); margin-bottom: 12px;
+            text-transform: uppercase; color: var(--sk-accent); margin-bottom: 8px;
         }
         .company-name {
             font-size: 1.6rem; font-weight: 800; color: var(--sk-text);
-            margin-bottom: 8px; letter-spacing: -0.02em;
+            margin-bottom: 4px; letter-spacing: -0.02em;
         }
         .product-count {
-            font-size: 0.82rem; color: var(--sk-text-muted); margin-bottom: 32px;
+            font-size: 0.8rem; color: var(--sk-text-muted); margin-bottom: 22px;
         }
-        .status {
-            color: var(--sk-text-muted); font-size: 0.9rem;
-            min-height: 22px; margin-bottom: 28px;
+
+        /* Compact step list */
+        .steps { text-align: left; margin: 0 auto 18px; max-width: 440px; }
+        .step {
+            display: flex; align-items: center; gap: 11px;
+            padding: 6px 0;
         }
-        .dots { display: flex; justify-content: center; gap: 8px; }
-        .dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--sk-accent);
-            animation: pulse 1.4s ease-in-out infinite;
+        .step-icon {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--sk-bg); border: 1px solid var(--sk-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; flex-shrink: 0; color: var(--sk-text-dim);
+            transition: all 0.3s; position: relative;
         }
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
-            40% { transform: scale(1); opacity: 1; }
+        .step-icon.active {
+            border-color: rgba(36,237,155,0.4); color: var(--sk-accent);
+            box-shadow: 0 0 0 3px rgba(36,237,155,0.08);
         }
+        .step-icon.active::after {
+            content: '';
+            position: absolute; inset: -3px; border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: var(--sk-accent);
+            border-right-color: rgba(36,237,155,0.35);
+            animation: spin 0.85s linear infinite;
+        }
+        .step-icon.done {
+            background: rgba(36,237,155,0.12);
+            border-color: var(--sk-accent); color: var(--sk-accent);
+        }
+        .step-label {
+            color: var(--sk-text-dim); font-size: 0.82rem;
+            line-height: 1.35; transition: color 0.3s;
+        }
+        .step-label.active { color: var(--sk-text); font-weight: 500; }
+        .step-label.done { color: var(--sk-text-muted); }
+        .step-hint {
+            font-size: 0.7rem; color: var(--sk-text-dim);
+            margin-top: 2px; min-height: 0.9rem;
+            transition: opacity 0.4s;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Bottom: progress bar + ill/check mark */
+        .bottom-row {
+            display: flex; align-items: center; gap: 14px;
+            margin-top: 18px; padding-top: 18px;
+            border-top: 1px solid var(--sk-border);
+        }
+        .bottom-left { flex: 1; text-align: left; }
         .progress-track {
             width: 100%; height: 3px; background: var(--sk-border);
-            border-radius: 2px; overflow: hidden; margin: 28px 0 10px;
+            border-radius: 2px; overflow: hidden; margin-bottom: 8px;
         }
         .progress-fill {
             height: 100%; width: 0%; background: var(--sk-accent);
-            border-radius: 2px; transition: width 1.2s ease;
+            border-radius: 2px; transition: width 0.6s ease;
         }
         .timer {
-            font-size: 0.78rem; color: var(--sk-text-dim); margin-bottom: 16px;
+            font-size: 0.74rem; color: var(--sk-text-dim);
         }
-        .error-state { display: none; margin-top: 24px; }
+        .mark-svg {
+            flex-shrink: 0; width: 32px; height: 54px;
+        }
+        .mark-el { transition: fill 0.45s ease; }
+        @keyframes mark-pulse {
+            0%, 100% { opacity: 0.25; }
+            50% { opacity: 1; }
+        }
+        .mark-active { animation: mark-pulse 1.2s ease-in-out infinite; }
+
+        .error-state { display: none; margin-top: 18px; }
         .error-msg {
-            color: var(--sk-score-low-soft); font-size: 0.9rem; line-height: 1.6;
+            color: var(--sk-score-low-soft); font-size: 0.88rem; line-height: 1.55;
             background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2);
-            border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+            border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
         }
         .btn-back {
-            display: inline-block; padding: 11px 28px;
+            display: inline-block; padding: 10px 26px;
             background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.25);
-            color: var(--sk-accent); border-radius: 10px; font-size: 0.9rem;
+            color: var(--sk-accent); border-radius: 10px; font-size: 0.88rem;
             font-weight: 600; cursor: pointer; text-decoration: none;
         }
         .btn-back:hover { background: rgba(36,237,155,0.15); }
@@ -89,21 +133,60 @@
     {% include '_nav_new.html' %}
     <div class="waiting-page-content">
     <div class="card">
-        <div class="logo">
-            <img src="/static/img/skillable-logo.svg" alt="Skillable"
-                 onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'; this.onerror=null;">
-        </div>
         <div class="eyebrow">Deep Dive</div>
         <div class="company-name">{{ company_name }}</div>
         <div class="product-count">Scoring {{ product_count }} product{{ 's' if product_count != 1 else '' }}</div>
-        <div class="status" id="status">Starting deep research...</div>
-        <div class="dots" id="dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+
+        <div class="steps">
+            <div class="step">
+                <div class="step-icon active" id="icon-tech">⟳</div>
+                <div class="step-label active" id="label-tech">Scouring technical docs, APIs &amp; deployment guides</div>
+            </div>
+            <div class="step">
+                <div class="step-icon" id="icon-train">⟳</div>
+                <div class="step-label" id="label-train">Finding training (ATP, gray market) &amp; certification programs</div>
+            </div>
+            <div class="step">
+                <div class="step-icon" id="icon-ai">⟳</div>
+                <div class="step-label" id="label-ai">Researching product focus, AI features &amp; target personas</div>
+            </div>
+            <div class="step">
+                <div class="step-icon" id="icon-partner">⟳</div>
+                <div class="step-label" id="label-partner">Analyzing channel partners, enablement &amp; hands-on events</div>
+            </div>
+            <div class="step">
+                <div class="step-icon" id="icon-contacts">⟳</div>
+                <div class="step-label" id="label-contacts">Identifying training/enablement orgs &amp; key contacts</div>
+            </div>
+            <div class="step">
+                <div class="step-icon" id="icon-claude">⟳</div>
+                <div>
+                    <div class="step-label" id="label-claude">Scoring with Claude AI &amp; generating report</div>
+                    <div class="step-hint" id="hint-claude"></div>
+                </div>
+            </div>
         </div>
-        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="timer" id="timer">scoring has been running for <strong>0:00</strong></div>
+
+        <div class="bottom-row">
+            <div class="bottom-left">
+                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+                <div class="timer" id="timer">running for <strong>0:00</strong></div>
+            </div>
+            <svg class="mark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="28.5 -0.5 21.5 38.5">
+                <path id="mark-i" class="mark-el mark-active"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M31.8203 36.3587H35.4225V22.8284H31.8203V36.3587Z"/>
+                <path id="mark-l1" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M38.511 36.3587H42.118V17.5439H38.511V36.3587Z"/>
+                <path id="mark-l2" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M45.2032 36.3586H48.8134V10.2878H45.2032V36.3586Z"/>
+                <path id="mark-check" class="mark-el"
+                    fill-rule="evenodd" clip-rule="evenodd"
+                    d="M45.8683 0L33.957 13.3398L32.3133 11.8098L29.9446 14.4504L33.9397 18.3333L48.2779 2.34634L45.8683 0Z"/>
+            </svg>
+        </div>
 
         <div class="error-state" id="errorState">
             <div class="error-msg" id="errorMsg"></div>
@@ -114,20 +197,129 @@
 
     <script>
     (function() {
+        // Theme-driven mark colors (read once from CSS variables on body)
+        const css = getComputedStyle(document.body);
+        const COLOR_DIM    = css.getPropertyValue('--sk-border').trim();
+        const COLOR_ON     = css.getPropertyValue('--sk-text').trim();
+        const COLOR_ACCENT = css.getPropertyValue('--sk-accent').trim();
+
+        // Initialize all mark paths to dim
+        ['mark-i','mark-l1','mark-l2','mark-check'].forEach(id => {
+            document.getElementById(id).setAttribute('fill', COLOR_DIM);
+        });
+        // First letter starts active (white, pulsing)
+        document.getElementById('mark-i').setAttribute('fill', COLOR_ON);
+
+        function litMark(id, color) {
+            const el = document.getElementById(id);
+            el.classList.remove('mark-active');
+            el.setAttribute('fill', color);
+        }
+        function activeMark(id, color) {
+            const el = document.getElementById(id);
+            el.setAttribute('fill', color);
+            el.classList.add('mark-active');
+        }
+
+        // Step orchestration
+        const researchSteps = [
+            { icon: 'icon-tech',     label: 'label-tech'     },
+            { icon: 'icon-train',    label: 'label-train'    },
+            { icon: 'icon-ai',       label: 'label-ai'       },
+            { icon: 'icon-partner',  label: 'label-partner'  },
+            { icon: 'icon-contacts', label: 'label-contacts' },
+        ];
+        const claudeStep = { icon: 'icon-claude', label: 'label-claude' };
+        const totalSteps = 6;
+
+        let sseResearchIndex = 0;
+        let scoringStarted = false;
+        let claudeHintTimer = null;
+
+        function setProgress(n) {
+            document.getElementById('progressFill').style.width =
+                Math.round((n / totalSteps) * 100) + '%';
+        }
+        function markDone(step) {
+            const i = document.getElementById(step.icon);
+            i.className = 'step-icon done';
+            i.textContent = '✓';
+            document.getElementById(step.label).className = 'step-label done';
+        }
+        function markActive(step) {
+            const i = document.getElementById(step.icon);
+            i.className = 'step-icon active';
+            i.textContent = '';
+            document.getElementById(step.label).className = 'step-label active';
+        }
+
+        const claudeHints = [
+            "Evaluating technical deployment signals…",
+            "Calibrating against Skillable benchmarks…",
+            "Assessing training commitment & delivery capacity…",
+            "Scoring labability & instructional value…",
+            "Mapping market fit & strategic alignment…",
+            "Identifying key contacts & org structure…",
+            "Generating recommendations…",
+        ];
+        let hintIndex = 0;
+        function startClaudeHints() {
+            const el = document.getElementById('hint-claude');
+            el.textContent = claudeHints[0];
+            claudeHintTimer = setInterval(() => {
+                hintIndex++;
+                el.style.opacity = 0;
+                setTimeout(() => {
+                    el.textContent = claudeHints[hintIndex % claudeHints.length];
+                    el.style.opacity = 1;
+                }, 400);
+            }, 7000);
+        }
+
+        function startScoring() {
+            if (scoringStarted) return;
+            scoringStarted = true;
+            researchSteps.forEach(markDone);
+            markActive(claudeStep);
+            setProgress(5);
+            litMark('mark-i',  COLOR_ON);
+            litMark('mark-l1', COLOR_ON);
+            activeMark('mark-l2', COLOR_ON);
+            startClaudeHints();
+        }
+        function finishClaude() {
+            clearInterval(claudeHintTimer);
+            document.getElementById('hint-claude').textContent = '';
+            litMark('mark-l2', COLOR_ON);
+            activeMark('mark-check', COLOR_ACCENT);
+        }
+
         const source = new EventSource("/inspector/score/progress/{{ job_id }}");
 
         source.onmessage = function(e) {
             const msg = e.data;
             if (msg.startsWith("status:")) {
-                document.getElementById("status").textContent = msg.slice(7);
+                const text = msg.slice(7);
+                if (text.toLowerCase().includes("scoring")) {
+                    startScoring();
+                } else if (text.toLowerCase().includes("generating")) {
+                    finishClaude();
+                } else if (sseResearchIndex < researchSteps.length) {
+                    if (sseResearchIndex > 0) markDone(researchSteps[sseResearchIndex - 1]);
+                    markActive(researchSteps[sseResearchIndex]);
+                    setProgress(sseResearchIndex);
+                    if (sseResearchIndex === 1) { litMark('mark-i', COLOR_ON); activeMark('mark-l1', COLOR_ON); }
+                    if (sseResearchIndex === 3) { litMark('mark-l1', COLOR_ON); }
+                    sseResearchIndex++;
+                }
             } else if (msg.startsWith("done:")) {
                 source.close();
-                document.getElementById("status").textContent = "Complete — loading Full Analysis...";
-                document.getElementById("progressFill").style.width = "100%";
+                finishClaude();
                 setTimeout(function() {
-                    // Use replace() so this transient waiting page does NOT stay
-                    // in browser history — back from Full Analysis goes to
-                    // Product Selection, not to this dead waiting page.
+                    markDone(claudeStep);
+                    setProgress(6);
+                    litMark('mark-check', COLOR_ACCENT);
+                    // replace() so the waiting page is removed from history
                     window.location.replace("/inspector/analysis/" + msg.slice(5));
                 }, 1500);
             } else if (msg.startsWith("error:")) {
@@ -138,7 +330,6 @@
 
         source.onerror = function() {
             // Poll fallback — SSE connection dropped
-            document.getElementById("status").textContent = "Still working — checking status...";
             const pollInterval = setInterval(function() {
                 fetch("/inspector/score/status/{{ job_id }}")
                     .then(r => r.json())
@@ -146,13 +337,13 @@
                         if (d.status === "done") {
                             clearInterval(pollInterval);
                             source.close();
-                            document.getElementById("status").textContent = "Complete — loading Full Analysis...";
-                            document.getElementById("progressFill").style.width = "100%";
+                            finishClaude();
+                            markDone(claudeStep);
+                            setProgress(6);
+                            litMark('mark-check', COLOR_ACCENT);
                             setTimeout(function() {
-                                // Use replace() so the waiting page is removed
-                                // from history — see note in the SSE handler above.
                                 window.location.replace("/inspector/analysis/" + d.result_id);
-                            }, 1500);
+                            }, 1200);
                         } else if (d.status === "error") {
                             clearInterval(pollInterval);
                             source.close();
@@ -164,26 +355,18 @@
         };
 
         function showError(message) {
-            document.getElementById("status").style.display = "none";
-            document.getElementById("dots").style.display = "none";
-            document.getElementById("timer").style.display = "none";
+            document.querySelector('.steps').style.display = 'none';
+            document.querySelector('.bottom-row').style.display = 'none';
             document.getElementById("errorMsg").textContent = message;
             document.getElementById("errorState").style.display = "block";
         }
-
-        // Progress bar
-        let pct = 0;
-        setInterval(function() {
-            pct = Math.min(pct + 0.25, 85);
-            document.getElementById("progressFill").style.width = pct + "%";
-        }, 300);
 
         // Timer
         const t0 = Date.now();
         setInterval(function() {
             const s = Math.floor((Date.now() - t0) / 1000);
             document.getElementById("timer").innerHTML =
-                'scoring has been running for <strong>' +
+                'running for <strong>' +
                 Math.floor(s/60) + ':' + String(s%60).padStart(2,'0') + '</strong>';
         }, 1000);
     })();
