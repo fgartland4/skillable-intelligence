@@ -320,10 +320,20 @@
         source.onmessage = function(e) {
             const msg = e.data;
             if (msg.startsWith("status:")) {
-                const text = msg.slice(7);
-                if (text.toLowerCase().includes("scoring")) {
+                const text = msg.slice(7).toLowerCase();
+                // SUBTLE BUG FIXED 2026-04-07: don't match "scoring" alone
+                // because the FIRST research stage message is "Scouring
+                // technical docs..." and "scouring" contains "scoring" as
+                // a substring. That triggered startScoring() on the first
+                // message, prematurely marking all research stages done
+                // and activating Claude — which then got re-stomped by
+                // subsequent research messages, leaving the visible state
+                // with random stages spinning + checkmarked. Match the
+                // unique full phrase from the backend status message
+                // instead. Same care needed for any future status pushes.
+                if (text.includes("scoring with")) {
                     startScoring();
-                } else if (text.toLowerCase().includes("generating")) {
+                } else if (text.includes("generating")) {
                     finishClaude();
                 } else if (sseResearchIndex < researchSteps.length) {
                     if (sseResearchIndex > 0) markDone(researchSteps[sseResearchIndex - 1]);

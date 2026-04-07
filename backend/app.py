@@ -363,9 +363,15 @@ def inspector_product_selection(discovery_id: str):
                     or fam_lower in p.get("category", "").lower()
                     or fam_lower in p.get("subcategory", "").lower()
                 )
-            families = sorted(scraped,
-                              key=lambda f: f.get("product_count", 0),
-                              reverse=True)
+            # Filter to families that actually match at least one discovered
+            # product. The scraper grabs every nav link from the company's
+            # homepage and many of those (Newsroom, Healthcare, "View All
+            # Products", marketing taglines, etc.) aren't real product
+            # families — they just got into the scraped list because they
+            # were prominent links. If a "family" name doesn't match a
+            # single product, it's noise and should not be picked.
+            families = [f for f in scraped if f.get("product_count", 0) > 0]
+            families.sort(key=lambda f: f.get("product_count", 0), reverse=True)
         else:
             # Fallback: group by category
             family_counts: dict[str, int] = {}

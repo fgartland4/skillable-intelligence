@@ -249,11 +249,74 @@ def detect_lab_platforms_in_html(html_content: str) -> list[dict]:
 # Product Family Scraping (for large portfolios)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+_FAMILY_SKIP_EXACT = {
+    # Generic site nav buttons that pass the product_keywords filter
+    # because they're inside a product mega-menu, but aren't product
+    # families themselves.
+    "view all products", "all products", "view all", "see all", "browse all",
+    "products", "solutions", "platform", "platforms", "services", "software",
+    "search tips", "search", "clear", "filter", "filters", "sort",
+    "demo", "request demo", "request a demo", "free trial", "get started",
+    "learn more", "read more", "contact sales", "talk to sales",
+    "sign in", "sign up", "log in", "log out",
+}
+
+_FAMILY_SKIP_TOKENS = {
+    # Industry verticals — not product families
+    "newsroom", "news", "press", "media",
+    "government", "healthcare", "finance", "financial services", "retail",
+    "manufacturing", "education", "energy", "utilities", "telecom",
+    "industries", "verticals", "use cases",
+    # Corporate / not-product
+    "advanced research", "research center", "guardians", "professional services",
+}
+
+
+def _looks_like_product_family(text: str) -> bool:
+    """Defensive filter for scraped homepage nav links.
+
+    Returns True if `text` is plausibly a product family name. Filters out
+    marketing copy, industry vertical labels, generic nav buttons, and
+    long taglines that get scraped from product mega-menus.
+
+    The route also filters out families with zero product matches as a
+    second line of defense — see app.inspector_product_selection.
+    """
+    if not text:
+        return False
+    t = text.strip()
+    # Length sanity — real family names are 1–4 words, ~2–35 chars
+    if len(t) < 3 or len(t) > 45:
+        return False
+    if len(t.split()) > 5:
+        return False
+    # Marketing taglines often contain digits or percent signs
+    if any(c.isdigit() for c in t) or "%" in t:
+        return False
+    # Exact-match denylist
+    tl = t.lower()
+    if tl in _FAMILY_SKIP_EXACT:
+        return False
+    # Token denylist (industry verticals, news labels, etc)
+    for token in _FAMILY_SKIP_TOKENS:
+        if token in tl:
+            return False
+    return True
+
+
 def scrape_product_families(company_name: str) -> list[dict]:
     """Scrape company website navigation to extract product families.
 
     Returns [{"name": "Family Name", "url": "https://...", "product_count": N}].
     Used for large-portfolio companies to present a family picker.
+
+    Two-stage filtering:
+      1. Per-link sanity (_looks_like_product_family) catches obvious
+         non-family text — marketing taglines, industry verticals, generic
+         nav buttons. Runs in this scraper.
+      2. Zero-product-match filter in the route discards any "family" that
+         doesn't match a single discovered product. Runs in
+         app.inspector_product_selection.
     """
     results = _search_web(f"{company_name} official website", num_results=3)
     homepage_url = None
@@ -288,7 +351,7 @@ def scrape_product_families(company_name: str) -> list[dict]:
         for link in nav.find_all("a", href=True):
             text = link.get_text(strip=True)
             href = link.get("href", "").lower()
-            if not text or len(text) < 3 or len(text) > 60:
+            if not _looks_like_product_family(text):
                 continue
             if any(kw in href for kw in skip_keywords) or any(kw in text.lower() for kw in skip_keywords):
                 continue
