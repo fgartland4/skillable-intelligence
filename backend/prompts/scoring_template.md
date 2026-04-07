@@ -231,7 +231,10 @@ The rubric model exists so you can name badges with **the actual subject matter*
 | `Compliance Audit` | `SOX Audit Lab`, `HIPAA Compliance Audit`, `SOC 2 Walkthrough`, `Board Meeting Audit Trail` |
 | `Enterprise Validated` | `Fortune 500 Boards`, `Top 10 Banks`, `19,000+ Organizations`, `~700K Users` |
 | `Partner Ecosystem` | `~500 Resellers`, `Strong Channel`, `Big-4 Implementation Partners` |
-| `Build vs Buy` | `Platform Buyer`, `Closed SaaS Architecture`, `In-House Build Culture` |
+| `Build vs Buy` | `Platform Buyer`, `Closed SaaS Architecture`, `In-House Builder` |
+| `DIY Labs` | `Already Lab-Building`, `Light DIY Labs`, `No DIY Lab Evidence` |
+| `Content Dev Team` | `Strong Content Org`, `Light Content Dev`, `Few Tech SMEs` |
+| `Ease of Engagement` | `Mid-Size Workable`, `Long RFP Process`, `Hard to Engage` |
 
 **The rule:** at LEAST one badge per Pillar 2 dimension MUST reference the product's actual subject matter, not just its structural shape. If you find yourself emitting only generic templates ("Multi-Phase Workflow", "Role Diversity"), you're not doing the rubric model — you're doing canonical naming with extra steps.
 
@@ -275,6 +278,36 @@ Same architecture as Pillar 2: variable badge names, strength grading, signal_ca
 - **Strength grading discipline** — don't hedge to moderate. If the company has documented training infrastructure, certification programs, partner networks, content team, or events, grade `strong`. The Diligent Boards Build Capacity issue (3/20 because Content Dev Team was graded amber when "Board Education & Certifications team" exists) is the textbook hedging failure.
 - **Subject-matter-specific badge names** — same rule. `~500 Resellers` over `Partner Ecosystem`. `Closed SaaS Architecture` over `Build vs Buy`. `Elevate 2026 Conference (Atlanta)` over folding events into `Lab Platform` evidence. The conference is its OWN badge in Delivery Capacity, not buried inside another badge's evidence.
 - **Emit gap badges when grading low** — same rule. Build Capacity at 3/20 with no visible red is a UX trust failure. Add explicit red gap badges (`No Lab Authors`, `No Tech Writer Team`, etc.) so the seller can see WHY the score is low.
+
+### Pillar 3 badges must convey JUDGMENT, not describe categories — HARD RULE
+
+A Pillar 3 badge label is a **finding about this specific customer**. It is NOT the name of the underlying signal category. The signal category structures your thinking; the badge label communicates the verdict to the seller.
+
+**Read the test out loud:** can a seller glance at this badge and immediately know *what's true about this customer and whether it helps or hurts the deal*? If the answer is "no, it just names a topic," the badge is wrong.
+
+**FORBIDDEN PILLAR 3 BADGE NAMES — NEVER EMIT THESE VERBATIM:**
+
+| ❌ Forbidden (describes the topic) | ✅ Required form (states the finding) |
+|---|---|
+| `Build vs Buy` | `Platform Buyer` (green), `Mixed Build/Buy` (gray), `In-House Builder` (amber) |
+| `DIY Labs` | `Already Lab-Building` (green), `Light DIY Labs` (amber), `No DIY Lab Evidence` (red) |
+| `Content Dev Team` | `Strong Content Org`, `Light Content Dev`, `Few Tech SMEs`, `No Lab Authors` |
+| `Partner Ecosystem` | `~500 Resellers`, `Big-4 Partners`, `Thin Channel`, `Direct-Only` |
+| `Integration Maturity` | `Open Platform APIs`, `Closed SaaS`, `Limited APIs` |
+| `Ease of Engagement` | `Mid-Size Workable`, `Long RFP Process`, `Hard to Engage` |
+| `Lab Platform` (as a label) | The actual platform name: `Skillable`, `CloudShare`, `No Lab Platform`, `DIY Lab Platform` |
+| `Training Culture` | `Hands-On Culture`, `Slide-Deck Culture`, `Soft-Skills Focus` |
+| `Certification Program` | `Named Cert Program (with name)`, `Cert in Development`, `No Cert Program` |
+| `Training Catalog` | The catalog count or scope: `200+ Courses`, `Thin Catalog`, `Compliance-Only Catalog` |
+
+**The pattern:** every Pillar 3 badge name is one of three shapes —
+1. **A counted/named specific** (`~500 ATPs`, `Elevate 2026`, `Skillable`, `Series D $200M`)
+2. **A judgment phrase** (`Light Content Dev`, `Few Tech SMEs`, `Long RFP Process`, `Soft Skills Focus`, `Slide-Deck Culture`, `Compliance-Only Training`)
+3. **An explicit gap** (`No Lab Authors`, `No DIY Lab Evidence`, `No Documented ATPs`, `No Tech Writer Team`)
+
+**If you cannot produce one of those three shapes for a dimension's evidence, you do not understand the evidence well enough to emit a badge for it. Re-read the dossier.**
+
+**Why this is a hard rule:** the seller doesn't need to know the badge category exists — they need to know what's true. "Build vs Buy" tells them nothing. "Platform Buyer" tells them this customer buys instead of builds, which is a green signal for Skillable. "DIY Labs" tells them nothing. "Light Content Dev" tells them Skillable Lab Services has an opening. Names that don't convey judgment are noise.
 
 ### Naming rules for Pillar 3 variable badges
 
