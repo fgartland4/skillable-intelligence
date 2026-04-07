@@ -339,6 +339,12 @@ def discover_products(company_name: str, known_products: Optional[list[str]] = N
         ("cs_signals", f"{company_name} customer success enablement onboarding"),
         ("lms_signals", f"{company_name} LMS learning management system Docebo Cornerstone"),
         ("org_contacts", f"{company_name} VP training education enablement certification LinkedIn"),
+        # API presence at discovery — binary signal that bumps SaaS-only products
+        # out of automatic Unlikely tier when the vendor has a public API surface.
+        # Two queries (company-level developer portal + REST API surface) so the
+        # discovery prompt has something to ground against for tier assignment.
+        ("api_presence", f"{company_name} developer portal API documentation"),
+        ("rest_api_check", f"{company_name} REST API public reference"),
     ]
 
     # Lab platform detection — Skillable + all competitors
@@ -446,6 +452,17 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
             (f"openapi_{name}", f"{name} OpenAPI swagger API specification"),
             (f"api_auth_{name}", f"{name} API authentication SSO SAML Entra OAuth"),
             (f"api_lifecycle_{name}", f"{name} API create delete provision tenant account"),
+            # Learner Isolation signals — per-user / per-tenant isolation capability.
+            # Independent of SaaS classification; even SaaS products can have rich
+            # per-user provisioning APIs that pass the isolation gate.
+            (f"per_tenant_{name}", f"{name} per-tenant provisioning API multi-tenant create endpoint"),
+            (f"sandbox_tenant_{name}", f"{name} sandbox tenant developer account isolated"),
+            # Identity API signal — vendor API for user/role creation per learner.
+            (f"identity_{name}", f"{name} user provisioning API role assignment RBAC"),
+            # Cred Recycling signal — credentials reset and reusable between learners.
+            (f"cred_recycle_{name}", f"{name} credential reset reuse account recycling"),
+            # Training License signal — NFR / training / eval / dev license tier.
+            (f"training_license_{name}", f"{name} NFR training license eval developer non-production tier"),
         ])
 
         # ── Scoring (Dimension 1.3) ──
@@ -457,6 +474,23 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
         # ── Teardown (Dimension 1.4) ──
         all_queries.extend([
             (f"sandbox_{name}", f"{name} sandbox environment teardown cleanup delete API"),
+        ])
+
+        # ── Provisioning friction signals ──
+        # Detect specific friction conditions that warrant friction badges
+        # alongside the green canonical: GPU requirements, slow cluster init
+        # (Pre-Instancing opportunity), nested virtualization (ESX evidence).
+        all_queries.extend([
+            (f"gpu_{name}", f"{name} GPU requirement CUDA hardware acceleration"),
+            (f"init_time_{name}", f"{name} initialization time first launch cluster startup performance"),
+            (f"nested_virt_{name}", f"{name} nested virtualization hypervisor ESX vSphere"),
+        ])
+
+        # ── Cloud preference signal (when product runs on Azure AND AWS) ──
+        # Detect vendor preference between clouds so the AI can pick the right
+        # canonical badge. Defaults to Azure when no preference signal found.
+        all_queries.extend([
+            (f"cloud_pref_{name}", f"{name} Azure AWS preferred cloud partnership marketplace"),
         ])
 
         # ── Product Complexity (Dimension 2.1) ──

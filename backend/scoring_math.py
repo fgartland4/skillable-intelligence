@@ -167,10 +167,38 @@ def compute_dimension_score(dim_key: str,
 
     for name_lower, (raw_name, color) in best_by_name.items():
         if name_lower in signal_lookup:
-            signals_matched.append({
-                "name": raw_name.strip(),
-                "points": signal_lookup[name_lower],
-            })
+            # Signal credit is COLOR-AWARE. Multi-state canonical badges
+            # (Sandbox API, Training License, Scoring API, Teardown API,
+            # Learner Isolation, etc.) use the same canonical name across
+            # green/amber/red states. Crediting the full signal value
+            # regardless of color would let a red gatekeeper badge earn the
+            # same points as a green confirmation, which is structurally
+            # wrong.
+            #
+            # Rule:
+            #   green or empty → full signal value
+            #   gray            → full signal value (e.g., Simulation gray
+            #                     Context as the chosen path)
+            #   amber           → half signal value (uncertain / partial coverage)
+            #   red             → fall back to color points (-3) — negative
+            #                     finding does NOT credit the positive signal
+            signal_pts = signal_lookup[name_lower]
+            if color == "red":
+                color_contributions.append({
+                    "name": raw_name.strip(),
+                    "color": color,
+                    "points": cfg.BADGE_COLOR_POINTS.get(color, fallback),
+                })
+            elif color == "amber":
+                signals_matched.append({
+                    "name": raw_name.strip(),
+                    "points": signal_pts // 2,  # magic-allowed: half-credit for amber/uncertain signal
+                })
+            else:  # green, gray, or no color
+                signals_matched.append({
+                    "name": raw_name.strip(),
+                    "points": signal_pts,
+                })
         elif name_lower in penalty_lookup:
             penalties_applied.append({
                 "name": raw_name.strip(),

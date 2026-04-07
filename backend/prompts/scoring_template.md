@@ -71,6 +71,48 @@ The gatekeeper. If this fails, nothing else matters. Provisioning determines dif
 
 {PILLAR_1_DIMENSIONS}
 
+### Provisioning Path Priority Order
+
+Walk this priority order in sequence. Pick the FIRST path that works for the product, not the highest-scoring one — the priority IS the score order.
+
+| Priority | Path | When it applies | Canonical badge to emit |
+|---|---|---|---|
+| **1** | **VM fabric** (Hyper-V / Container / ESX) | Product is installable on Windows or Linux | `Runs in Hyper-V` (or `Runs in Container` / `ESX Required`) |
+| **2** | **Cloud Slice fabric** (Azure or AWS native) | Product IS an Azure or AWS service (the product is a managed cloud service, not just hostable on a VM in those clouds) | `Runs in Azure` or `Runs in AWS` |
+| **3** | **Sandbox API** (Custom API / BYOC) | Product is SaaS but vendor exposes a provisioning API for per-learner environments — also covers third-party clouds | `Sandbox API` (green) |
+| **4** | **Simulation** | None of the above are viable. Simulation is the correct path when real provisioning is impractical — NOT a failure. | `Simulation` (gray Context, base credit) |
+
+**Cloud disambiguation rule:** `Runs in Azure` and `Runs in AWS` mean the product IS that cloud's native managed service (e.g., Azure SQL, Cosmos DB, App Service; AWS RDS, S3, Lambda). They do NOT mean "this installable product can be hosted on an Azure VM." For installable products that happen to run on cloud VMs, use `Runs in Hyper-V`.
+
+**Cloud preference detection:** When a product runs natively on both Azure AND AWS (e.g., Snowflake, Databricks), look for vendor preference signals (marketing emphasis, docs priority, case study volume, partnerships). When no preference signal exists, default to Azure.
+
+**Native fabric beats manual API wiring.** For a SaaS product native to Azure or AWS, Cloud Slice (priority 2) is preferred over Sandbox API (priority 3) — even if both are technically viable — because our native fabric handles provisioning directly without manual lifecycle action wiring.
+
+### Dimension Routing — what belongs where
+
+Route every finding by **what the finding IS**, not by what topic it's about:
+
+| Finding type | Goes in | NOT in |
+|---|---|---|
+| Per-learner environment provisioning capability | **Provisioning** (`Sandbox API`) | Lab Access |
+| Per-learner user/role creation capability | **Lab Access** (`Identity API` or `Entra ID SSO` if Azure-native) | Provisioning, Scoring |
+| Per-user / per-tenant isolation capability | **Lab Access** (`Learner Isolation`) | Provisioning |
+| NFR / training / eval / dev license availability | **Lab Access** (`Training License`) | Provisioning |
+| State validation capability | **Scoring** (`Scoring API` / `Script Scoring` / `AI Vision`) | Provisioning, Lab Access |
+| Cleanup / deprovisioning capability | **Teardown** (`Datacenter` / `Teardown API` / `Manual Teardown`) | Provisioning |
+| Subject matter being taught (governance, security topics, eDiscovery workflows) | **Instructional Value** (Pillar 2) — NOT Pillar 1 at all | Anywhere in Pillar 1 |
+
+A "Management API" or "Full Lifecycle API" finding decomposes into FOUR dimension-specific badges — verify per-stage coverage from research evidence:
+
+| Stage | Dimension | Badge |
+|---|---|---|
+| Environment provisioning | Provisioning | `Sandbox API` |
+| User / role creation | Lab Access | `Identity API` (or `Entra ID SSO` if Azure-native) |
+| State validation | Scoring | `Scoring API` |
+| Environment cleanup | Teardown | `Teardown API` |
+
+Don't assume green across all four from a single "Management API detected" signal. Verify each stage's API coverage from research, emit each badge with the appropriate color (green confirmed / amber uncertain / don't emit if silent / red only if explicitly absent), and let the math layer combine the credits.
+
 ### Provisioning Evidence Arc
 
 Tell the technical labability story in 3-6 bullets following the natural lab lifecycle:
@@ -78,23 +120,23 @@ Tell the technical labability story in 3-6 bullets following the natural lab lif
 1. **Provision** — How does the environment get stood up? Name the specific install mechanism, deployment model, or provisioning pattern. Flag strengths and risks.
 2. **Configure** — What gets the lab to its starting state? User accounts, permissions, seed data, licenses, service configuration, network topology. Name what's automatable and what isn't.
 3. **Score** — What does the product expose for validating learner work? REST API, PowerShell/CLI module, queryable config state? Be specific.
-4. **Teardown** — Only include when teardown requires explicit action. Skip for VM/Hyper-V labs (snapshot revert is automatic). For BYOC/custom API products, this IS a real build task.
+4. **Teardown** — Only include when teardown requires explicit action. Skip for Skillable-hosted labs (snapshot revert / platform cleanup is automatic). For BYOC/custom API products, this IS a real build task.
 
 Each bullet MUST use a canonical badge label from the locked vocabulary, followed by the qualifier suffix.
 
-Do NOT use Skillable platform terms in evidence claims (LCA, Life Cycle Action, Pre-Build, Cloud Slice, Scoring Bot, AI Vision, ABA, PBT — those belong in Scoring Approach and Delivery Path bullets).
-
-### Provisioning Scoring Tiers
+### Provisioning Scoring Reference
 
 {PROVISIONING_SCORING_TIERS}
 
-### Provisioning Penalties
+### Provisioning Friction Penalties
 
 {PROVISIONING_PENALTIES}
 
 ### Ceiling Flags
 
 {CEILING_FLAGS}
+
+**Note on `saas_only` and `multi_tenant_only`:** These flags are now classification metadata only — they describe what the product IS without capping the score. The Sandbox API canonical badge (red) is what drives any actual cap when there is no per-learner provisioning path.
 
 ---
 
@@ -278,13 +320,12 @@ Return ONLY valid JSON — a single product object:
 
 {LOCKED_VOCABULARY}
 
-### Canonical Badge Names — Two Vocabularies Per Dimension
+### Canonical Badge Names — One Vocabulary Per Dimension
 
-You MUST use ONLY the exact names below. Each dimension has TWO grouped lists:
+You MUST use ONLY the exact badge names listed below. Each dimension has ONE canonical vocabulary — there is no separate "scoring signals" second list. Each canonical badge earns its full base credit when emitted green; friction is expressed via separate friction badges (e.g., `GPU Required`, `Pre-Instancing`) that the math layer combines with the green credit.
 
-1. **Canonical badges** — friendly visual chip names. Always pick one of these for the FIRST badge you emit for any finding.
-2. **Scoring signals** — point-bearing names that capture quality/intensity nuance. Whenever you have specific quality to express beyond the base badge (e.g., "Standard install" vs "CLI Scripting" vs "Full Lifecycle API"), emit a SECOND badge using the matching signal name from this dimension's list. Per the **Universal Disambiguation Rule** in the Badge Naming Principles section above, never emit the same canonical badge twice in one dimension — disambiguate the second occurrence with a signal name.
+**Re-read the META-PRINCIPLE in the Badge Naming Principles section above before emitting any badge.** The badge name is the canonical concept; product-specific details (vendor names, REST API URLs, license terms) live in the evidence payload on hover, NEVER in the badge name itself.
 
-If your finding doesn't match any signal exactly, use the closest signal that fits. If no signal fits at all, fall back to a qualifier-derived label as described in the disambiguation rule.
+**Never emit the same canonical badge name twice in one dimension.** If you have two distinct findings about the same topic, emit them as two distinct canonical badges (e.g., `Runs in Hyper-V` for the clean install + `Pre-Instancing` for the slow cluster init), or fold the second finding into evidence on the first badge. Same name twice is never the answer.
 
 {CANONICAL_BADGE_NAMES}
