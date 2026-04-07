@@ -2064,6 +2064,46 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# SCORING LOGIC VERSION
+#
+# Bumped manually whenever scoring math, rubrics, ceiling flags, or canonical
+# badge vocabulary change in a way that would invalidate cached analyses.
+# Storage layer stamps this on every saved analysis/discovery; cache loaders
+# treat older versions as stale and force a re-score on next access.
+#
+# Bump format: "YYYY-MM-DD.short-description"
+# Bump policy: any commit that touches scoring_config.py (badges, signals,
+# rubrics, ceiling flags), scoring_math.py (math behavior), or the rubric
+# tiers in the prompts/scoring_template.md should bump this. Comment-only
+# changes don't require a bump.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+SCORING_LOGIC_VERSION = "2026-04-06.pillar2-3-rubric"
+
+
+def is_cached_logic_current(cached_data: dict | None) -> bool:
+    """Check whether a cached analysis or discovery was scored with the
+    current scoring logic version.
+
+    Returns:
+        True  if cached_data is None (caller handles None separately as a
+              cache miss), OR if cached_data carries the current
+              SCORING_LOGIC_VERSION.
+        False if cached_data is a dict missing the version field, OR if
+              the version field is older than the current version.
+
+    Used by intelligence_new.discover() and intelligence_new.score() to
+    invalidate cached analyses after scoring logic changes — closes the
+    cache versioning gap that allowed stale Cohesity/Trellix analyses
+    to render with degraded scores after the Pillar 1/2/3 refactors.
+    """
+    if cached_data is None:
+        return True  # Caller handles None separately as a cache miss
+    cached_version = cached_data.get("_scoring_logic_version", "")
+    return cached_version == SCORING_LOGIC_VERSION
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # VALIDATION
 #
 # Automated checks that run on import.  Ensures the configuration is
@@ -2093,6 +2133,8 @@ def validate() -> list[str]:
     8. Lab type menu has exactly 12 entries
     9. Category priors have valid demand levels
     10. Consumption motions have valid adoption ceilings
+    11. Architecture invariant — Pillar 1 dims have NO rubric (canonical model);
+        Pillar 2 + Pillar 3 dims DO have a rubric (rubric model)
     """
     issues: list[str] = []
 
@@ -2201,6 +2243,59 @@ def validate() -> list[str]:
     multiplier_ranges = sorted(TECHNICAL_FIT_MULTIPLIERS, key=lambda m: m.score_min)
     if multiplier_ranges[0].score_min != 0:
         issues.append("Technical Fit Multiplier does not start at score 0")
+
+    # 12. Architecture invariant — two scoring architectures across pillars
+    # Pillar 1 (Product Labability) uses the canonical model: name-matched
+    # signal/penalty lookup, NO rubric.
+    # Pillar 2 (Instructional Value) and Pillar 3 (Customer Fit) use the
+    # rubric model: variable badge names, strength grading, signal_category
+    # tags, AND a rubric defined per dimension.
+    # This invariant catches a future maintainer accidentally adding a rubric
+    # to Pillar 1 or removing one from Pillar 2/3 — would silently change
+    # how badges score and break the cross-architecture contract.
+    if PILLAR_PRODUCT_LABABILITY.dimensions:
+        for dim in PILLAR_PRODUCT_LABABILITY.dimensions:
+            if dim.rubric is not None:
+                issues.append(
+                    f"Architecture invariant violated: Pillar 1 dimension "
+                    f"'{dim.name}' has a rubric defined. Pillar 1 uses the "
+                    f"canonical model (name-matched signal lookup), not the "
+                    f"rubric model. Remove the rubric or move the dimension."
+                )
+    for pillar in (PILLAR_INSTRUCTIONAL_VALUE, PILLAR_CUSTOMER_FIT):
+        for dim in pillar.dimensions:
+            if dim.rubric is None:
+                issues.append(
+                    f"Architecture invariant violated: {pillar.name} dimension "
+                    f"'{dim.name}' is missing a rubric. Pillar 2 and Pillar 3 "
+                    f"dimensions use the rubric model — every dimension must "
+                    f"define a Rubric with strength tiers, IS/IS NOT boundaries, "
+                    f"and signal_categories."
+                )
+            else:
+                # Validate rubric structure
+                if not dim.rubric.tiers:
+                    issues.append(
+                        f"Rubric for {pillar.name} > {dim.name} has no tiers"
+                    )
+                if not dim.rubric.signal_categories:
+                    issues.append(
+                        f"Rubric for {pillar.name} > {dim.name} has no "
+                        f"signal_categories — empty signal_category list "
+                        f"defeats the analytics hedge"
+                    )
+                # Each rubric should have exactly the three canonical strength tiers
+                strength_names = {t.strength for t in dim.rubric.tiers}
+                expected_strengths = {"strong", "moderate", "weak"}
+                if strength_names != expected_strengths:
+                    missing = expected_strengths - strength_names
+                    extra = strength_names - expected_strengths
+                    msg = f"Rubric for {pillar.name} > {dim.name} has unexpected strength tiers"
+                    if missing:
+                        msg += f" (missing: {missing})"
+                    if extra:
+                        msg += f" (extra: {extra})"
+                    issues.append(msg)
 
     if issues:
         raise ConfigValidationError(

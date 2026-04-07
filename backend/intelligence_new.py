@@ -100,14 +100,28 @@ def discover(company_name: str, known_products: list[str] | None = None,
     """Web research + Claude product identification.
 
     Returns the discovery dict (including discovery_id). Saves to storage.
-    Hits the 45-day cache unless force_refresh=True.
+    Hits the 45-day cache unless force_refresh=True OR the cached discovery
+    was scored with an older SCORING_LOGIC_VERSION (in which case it's
+    treated as stale and re-run automatically — closes the cache versioning
+    gap so customers don't see degraded scores after scoring logic changes).
     """
+    import scoring_config as cfg
+
     if not force_refresh:
         cached = find_discovery_by_company_name(company_name)
         if cached and cache_is_fresh(cached.get("created_at", "")):
-            log.info("Intelligence.discover: cache hit for %s → %s",
-                     company_name, cached.get("discovery_id"))
-            return cached
+            if not cfg.is_cached_logic_current(cached):
+                log.info(
+                    "Intelligence.discover: cached discovery for %s is stale "
+                    "(logic version %r vs current %r) — re-running",
+                    company_name,
+                    cached.get("_scoring_logic_version", "<missing>"),
+                    cfg.SCORING_LOGIC_VERSION,
+                )
+            else:
+                log.info("Intelligence.discover: cache hit for %s → %s",
+                         company_name, cached.get("discovery_id"))
+                return cached
 
     log.info("Intelligence.discover: running research for %s", company_name)
 
@@ -191,6 +205,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
       briefcases ONLY for new products (cached ones keep their cached briefcase).
     """
     from storage_new import find_analysis_by_discovery_id, save_analysis as _save
+    import scoring_config as cfg
 
     if not discovery_data:
         discovery_data = load_discovery(discovery_id) or {}
@@ -199,10 +214,26 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     existing = find_analysis_by_discovery_id(discovery_id)
     existing_product_names = set()
     if existing:
-        for p in existing.get("products", []):
-            existing_product_names.add(p.get("name", ""))
-        log.info("Intelligence.score: existing analysis %s has %d products cached",
-                 existing.get("analysis_id"), len(existing_product_names))
+        # Cache versioning — if the existing analysis was scored with an
+        # older SCORING_LOGIC_VERSION, treat ALL its products as stale and
+        # force re-score. The analysis_id is preserved (stable URL principle)
+        # but every product gets fresh scoring against the current logic.
+        if not cfg.is_cached_logic_current(existing):
+            log.info(
+                "Intelligence.score: existing analysis %s has stale logic version "
+                "(%r vs current %r) — re-scoring all %d cached products",
+                existing.get("analysis_id"),
+                existing.get("_scoring_logic_version", "<missing>"),
+                cfg.SCORING_LOGIC_VERSION,
+                len(existing.get("products", [])),
+            )
+            # Empty existing_product_names so the splitter below treats every
+            # selected product as new-to-score.
+        else:
+            for p in existing.get("products", []):
+                existing_product_names.add(p.get("name", ""))
+            log.info("Intelligence.score: existing analysis %s has %d products cached",
+                     existing.get("analysis_id"), len(existing_product_names))
 
     # Split selected products into cached vs new
     new_to_score = [p for p in selected_products if p.get("name") not in existing_product_names]

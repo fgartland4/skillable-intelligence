@@ -72,10 +72,17 @@ def _read_json(filepath: str) -> Optional[dict]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def save_discovery(discovery_id: str, data: dict) -> str:
-    """Save a discovery record. Returns the discovery_id."""
+    """Save a discovery record. Returns the discovery_id.
+
+    Stamps the cached record with the current SCORING_LOGIC_VERSION so the
+    cache loader can detect stale data after scoring logic changes (closes
+    the cache versioning gap — see scoring_config.is_cached_logic_current).
+    """
+    import scoring_config as cfg
+    data["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
     filepath = os.path.join(_COMPANY_DIR, f"discovery_{discovery_id}.json")
     _atomic_write(filepath, data)
-    log.info("Saved discovery %s", discovery_id)
+    log.info("Saved discovery %s (logic version %s)", discovery_id, cfg.SCORING_LOGIC_VERSION)
     return discovery_id
 
 
@@ -112,8 +119,14 @@ def find_discovery_by_company_name(company_name: str) -> Optional[dict]:
 def save_analysis(analysis) -> str:
     """Save an analysis record. Accepts CompanyAnalysis or dict.
 
+    Stamps the cached record with the current SCORING_LOGIC_VERSION so the
+    cache loader can detect stale data after scoring logic changes (closes
+    the cache versioning gap — see scoring_config.is_cached_logic_current).
+
     Returns the analysis_id.
     """
+    import scoring_config as cfg
+
     if hasattr(analysis, "__dataclass_fields__"):
         # Convert dataclass to dict for JSON serialization
         import dataclasses
@@ -128,9 +141,11 @@ def save_analysis(analysis) -> str:
         analysis_id = str(uuid.uuid4())[:8]
         data["analysis_id"] = analysis_id
 
+    data["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
+
     filepath = os.path.join(_COMPANY_DIR, f"analysis_{analysis_id}.json")
     _atomic_write(filepath, data)
-    log.info("Saved analysis %s", analysis_id)
+    log.info("Saved analysis %s (logic version %s)", analysis_id, cfg.SCORING_LOGIC_VERSION)
     return analysis_id
 
 
