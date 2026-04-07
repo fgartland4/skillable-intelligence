@@ -480,11 +480,39 @@ _scoring_badges = (
 )
 
 _scoring_signals = (
-    ScoringSignal("Scoring API", 14, "Vendor REST API for state validation — green tier"),
-    ScoringSignal("Script Scoring", 12, "Strong script-based validation"),
-    ScoringSignal("AI Vision", 11, "AI Vision is the right tool for this GUI-heavy product — green tier (peer to API/Script, not a fallback)"),
+    # Recalibrated 2026-04-07 per Frank's "Scoring is about OPTIONS" rule.
+    # The Scoring dimension uses a SPECIAL CAP rule on top of these point
+    # values — see _SCORING_BREADTH_CAP in scoring_math.py. Numbers below
+    # are the standalone values (single method only); the breadth rule
+    # caps full marks at 15 only when AI Vision is paired with Script
+    # Scoring (VM context) OR Scoring API (cloud context).
+    #
+    #   MCQ Scoring     → 0 pts. Anyone can do MCQs. It's not lab work.
+    #                     Display as gray Context so the seller sees the
+    #                     fallback option, but earns nothing.
+    #   AI Vision alone → 10 pts. Real differentiator (Skillable's AI
+    #                     vision is rare in the lab platform space and
+    #                     has only existed for ~1 year), but not enough
+    #                     for high-stakes scoring like a certification
+    #                     exam. Caps at 10 standalone.
+    #   Scoring API alone → 12 pts. Real programmatic surface, but a
+    #                     sparse API caps at less than 12; the standalone
+    #                     ceiling is 12 (rich suite). Cloud products
+    #                     need API since there's no shell access.
+    #   Script Scoring alone → 15 pts. VM context where you have shell
+    #                     access — you can write whatever Bash/PS script
+    #                     you need. No artificial cap.
+    #   Grand Slam      → 15 pts. AI Vision + (Script for VM OR API for
+    #                     cloud). The breadth rule below enforces that
+    #                     full marks require AI Vision PLUS one of the
+    #                     two programmatic methods, except in the
+    #                     Script-alone case where 15 is reachable on
+    #                     its own.
+    ScoringSignal("Scoring API", 12, "Vendor REST API for state validation — caps standalone at 12 (rich suite); needs AI Vision pairing for full marks"),
+    ScoringSignal("Script Scoring", 15, "Bash/PowerShell scripts for state validation — VM context, full standalone capability"),
+    ScoringSignal("AI Vision", 10, "Skillable's AI observes the GUI to validate state — strong differentiator, caps standalone at 10"),
     ScoringSignal("Simulation Scorable", 8, "Simulation scoring via guided interaction"),
-    ScoringSignal("MCQ Scoring", 4, "Knowledge-check questions only — the genuine fallback"),
+    ScoringSignal("MCQ Scoring", 0, "Knowledge-check questions — display only, zero credit (Frank 2026-04-07: anyone can do MCQs, not lab work)"),
 )
 
 _scoring_dimension = Dimension(
@@ -500,8 +528,11 @@ _scoring_dimension = Dimension(
 _teardown_badges = (
     # NEW canonicals from the architecture sharpening:
     Badge("Datacenter", (
-        BadgeColor("green", "Skillable hosts the environment (Hyper-V, ESX, Container, OR Simulation) — teardown is automatic via snapshot revert or platform cleanup"),
-    ), notes="Renamed from 'Automatic (VM/Container)'. Cleaner name. Fires green for ANY Skillable-hosted path including Simulation (Frank: simulation runs in our infra, teardown is automatic there too)."),
+        BadgeColor("green", "Skillable hosts a real environment (Hyper-V, ESX, OR Container) — teardown is automatic via snapshot revert or container destroy. Does NOT apply to Simulation (use Simulation Reset instead)."),
+    ), notes="Renamed from 'Automatic (VM/Container)'. Cleaner name. As of 2026-04-07 (Diligent review), explicitly EXCLUDES Simulation — a Simulation lab for a SaaS web app doesn't have anything to 'tear down' in the operational sense, so earning the full Datacenter credit was misleading. Simulation paths now use the new Simulation Reset badge instead, which is gray Context for 0 points."),
+    Badge("Simulation Reset", (
+        BadgeColor("gray", "Simulation environment ends when the session ends — no teardown work, no operational cost. Earns ZERO Teardown points (per Frank 2026-04-07)."),
+    ), notes="NEW 2026-04-07 (Diligent review). For Simulation-only paths. Replaces the historical mistake of letting Datacenter green fire for Simulation. Frank's call: Simulation labs don't really have a teardown story (the simulation IS the lab; ending the session ends everything), so this badge is display-only with zero credit. Kept as a visible badge so the seller sees Teardown was considered."),
     Badge("Teardown API", (
         BadgeColor("green", "Vendor API covers environment cleanup and deprovisioning"),
         BadgeColor("amber", "Some teardown API coverage but gaps remain"),
@@ -515,7 +546,8 @@ _teardown_badges = (
 )
 
 _teardown_signals = (
-    ScoringSignal("Datacenter", 25, "Skillable-hosted environment teardown — automatic via snapshot revert or platform cleanup"),
+    ScoringSignal("Datacenter", 25, "Skillable-hosted environment teardown — automatic via snapshot revert or container destroy. VM/ESX/Container ONLY, NOT Simulation."),
+    ScoringSignal("Simulation Reset", 0, "Simulation session ends with the session — display-only, zero credit (Frank 2026-04-07)."),
     ScoringSignal("Teardown API", 22, "Vendor API covers cleanup — green tier"),
 )
 
@@ -1497,6 +1529,54 @@ AMBER_RISK_CAP_REDUCTION = 3
 RED_RISK_CAP_REDUCTION = 8
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# SCORING DIMENSION BREADTH CAPS — Frank 2026-04-07 ("Scoring is about OPTIONS")
+#
+# The Scoring dimension uses a special "Grand Slam" cap rule on top of the
+# normal signal point lookup. Full marks (15/15) require AI Vision PLUS
+# at least one programmatic method (Script Scoring for VM context OR
+# Scoring API for cloud context). Single-method-alone caps below 15.
+#
+# These caps reflect Frank's mental model of what it actually takes to
+# score lab work credibly:
+#
+#   AI Vision alone           → cap at 10
+#   Scoring API alone         → cap at 12 (sparse APIs ding it; even rich
+#                                          APIs alone don't earn full marks)
+#   Script Scoring alone      → cap at 15 (VM context = anything goes —
+#                                          you have shell access, you can
+#                                          write whatever validation script
+#                                          you want)
+#   AI Vision + Script        → cap at 15 (Grand Slam, VM)
+#   AI Vision + API           → cap at 15 (Grand Slam, cloud)
+#   MCQ Scoring               → 0 (display only, anyone can do MCQs)
+#
+# scoring_math._compute_signal_penalty_dimension() reads these to enforce
+# the breadth rule when computing the Scoring dimension specifically.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+SCORING_AI_VISION_ALONE_CAP = 10
+SCORING_API_ALONE_CAP = 12
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SANDBOX API RED PILLAR 1 CAPS — SE-4, Frank 2026-04-07
+#
+# When a product has no real provisioning path AND its Sandbox API badge is
+# red, the entire Pillar 1 should reflect that gap. The other dimensions
+# can't independently rack up points on a product that essentially can't be
+# provisioned. Two cap tiers based on whether Simulation is at least viable:
+#
+#   Sandbox API red + Simulation viable    → Pillar 1 capped at 25
+#   Sandbox API red + nothing viable       → Pillar 1 capped at  5
+#
+# scoring_math.detect_sandbox_api_red_cap() reads these.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+SANDBOX_API_RED_CAP_SIM_VIABLE = 25
+SANDBOX_API_RED_CAP_NOTHING_VIABLE = 5
+
+
 CEILING_FLAGS: dict[str, dict] = {
     # When the AI emits any of these flags, Product Labability cannot exceed
     # the listed max_score regardless of how the dimension math came out.
@@ -2124,7 +2204,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.risk-cap-reduction-and-cf-merge"
+SCORING_LOGIC_VERSION = "2026-04-07.diligent-five-fixes"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

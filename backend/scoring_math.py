@@ -259,14 +259,68 @@ def compute_dimension_score(dim_key: str,
     else:
         effective_cap = cap
 
+    # ── Scoring dimension breadth cap (Frank 2026-04-07) ────────────────────
+    # The Scoring dimension specifically uses a "Grand Slam" rule: full marks
+    # (15/15) require AI Vision PLUS at least one programmatic method
+    # (Script Scoring for VM context OR Scoring API for cloud context).
+    # Any single method alone caps at less:
+    #   - AI Vision alone           → cap at 10
+    #   - Scoring API alone         → cap at 12 (sparse APIs ding it)
+    #   - Script Scoring alone      → cap at 15 (VM = anything goes)
+    #   - AI Vision + Script        → cap at 15 (Grand Slam, VM)
+    #   - AI Vision + API           → cap at 15 (Grand Slam, cloud)
+    #   - MCQ Scoring               → 0 points (display only, anyone can MCQ)
+    #
+    # Implementation: when this is the Scoring dimension, count how many
+    # distinct positive scoring methods are present (excluding MCQ since
+    # it earns 0 anyway), and cap based on the combination.
+    scoring_breadth_cap = None
+    if dim.name == "Scoring":
+        present_methods = set()
+        for name_lower, (_, color) in best_by_name.items():
+            if color == "red":
+                continue  # red methods don't count toward breadth
+            nm = name_lower
+            if nm == "ai vision":
+                present_methods.add("ai_vision")
+            elif nm == "scoring api":
+                present_methods.add("scoring_api")
+            elif nm == "script scoring":
+                present_methods.add("script_scoring")
+        has_ai_vision = "ai_vision" in present_methods
+        has_api = "scoring_api" in present_methods
+        has_script = "script_scoring" in present_methods
+        # Grand Slam: AI Vision + (Script OR API) hits the full cap (15)
+        if has_ai_vision and (has_script or has_api):
+            scoring_breadth_cap = cap  # full marks possible
+        # Script Scoring alone: VM context, can do whatever — full cap
+        elif has_script:
+            scoring_breadth_cap = cap
+        # Scoring API alone: cloud context, max from cfg
+        elif has_api:
+            scoring_breadth_cap = cfg.SCORING_API_ALONE_CAP
+        # AI Vision alone: max from cfg
+        elif has_ai_vision:
+            scoring_breadth_cap = cfg.SCORING_AI_VISION_ALONE_CAP
+        # No positive methods (only MCQ or nothing): cap at 0
+        else:
+            scoring_breadth_cap = 0
+        # Combine with the risk-cap reduction (whichever is tighter wins)
+        if scoring_breadth_cap < effective_cap:
+            effective_cap = scoring_breadth_cap
+
     score = raw_total
     capped = False
     floored = False
     risk_capped = False
+    breadth_capped = False
     if score > effective_cap:
+        breadth_capped = (scoring_breadth_cap is not None
+                          and effective_cap == scoring_breadth_cap
+                          and scoring_breadth_cap < cap)
         score = effective_cap
         capped = True
-        if effective_cap < cap:
+        if effective_cap < cap and not breadth_capped:
             risk_capped = True
     if score < floor:
         score = floor
@@ -287,6 +341,8 @@ def compute_dimension_score(dim_key: str,
         "risk_knockdown": int(risk_knockdown),
         "amber_risk_count": amber_count,
         "red_risk_count": red_count,
+        "breadth_capped": breadth_capped,
+        "scoring_breadth_cap": scoring_breadth_cap,
         "unknown_badges": unknown,
     }
 
@@ -442,6 +498,93 @@ def compute_pillar_score(pillar_key: str, dimension_scores: dict[str, int]) -> i
 # Ceiling flag enforcement
 # ─────────────────────────────────────────────────────────────────────────────
 
+def detect_sandbox_api_red_cap(badges_by_dimension: dict[str, list]) -> tuple[int | None, str | None]:
+    """Detect when a red Sandbox API badge should cap Pillar 1 at a low value.
+
+    SE-4 from the deep code review backlog. Frank's directive 2026-04-07
+    after Diligent review: when there's no per-learner provisioning API
+    (Sandbox API red), the entire Pillar 1 should reflect that gap —
+    Lab Access / Scoring / Teardown shouldn't independently rack up points
+    on a product that essentially can't be provisioned.
+
+    Cap values (Frank 2026-04-07):
+      - Sandbox API red + Simulation viable     → cap PL at 25
+      - Sandbox API red + nothing else viable   → cap PL at 5
+
+    "Simulation viable" is detected by the presence of the Simulation badge
+    in Provisioning (gray Context = chosen path) or the Simulation Reset
+    badge in Teardown.
+
+    Returns:
+        (cap_value, reason) — both None if no cap applies.
+    """
+    prov_badges = badges_by_dimension.get("provisioning") or []
+    teardown_badges = badges_by_dimension.get("teardown") or []
+
+    # Find Sandbox API badge state
+    sandbox_color = None
+    for b in prov_badges:
+        if not isinstance(b, dict):
+            continue
+        if (b.get("name") or "").strip().lower() == "sandbox api":
+            sandbox_color = (b.get("color") or "").strip().lower()
+            break
+
+    if sandbox_color != "red":
+        return None, None
+
+    # Sandbox API is red — check if any other path is viable
+    # Real provisioning paths: Runs in Hyper-V, Runs in Container, Runs in Azure,
+    # Runs in AWS, ESX Required (all green/amber). If any of these is present
+    # (not red), the product DOES have a real provisioning path and Sandbox API
+    # red is just one of many findings — no cap needed.
+    real_path_canonicals = {
+        "runs in hyper-v", "runs in container", "runs in azure", "runs in aws",
+        "esx required",
+    }
+    for b in prov_badges:
+        if not isinstance(b, dict):
+            continue
+        nm = (b.get("name") or "").strip().lower()
+        col = (b.get("color") or "").strip().lower()
+        if nm in real_path_canonicals and col != "red":
+            return None, None  # there's a real path; Sandbox API red doesn't cap
+
+    # Sandbox API is red AND no real path is present.
+    # Now check if Simulation is at least viable.
+    simulation_viable = False
+    for b in prov_badges:
+        if not isinstance(b, dict):
+            continue
+        if (b.get("name") or "").strip().lower() == "simulation":
+            col = (b.get("color") or "").strip().lower()
+            if col != "red":
+                simulation_viable = True
+                break
+    # Also check Teardown for Simulation Reset (alternative signal)
+    if not simulation_viable:
+        for b in teardown_badges:
+            if not isinstance(b, dict):
+                continue
+            if (b.get("name") or "").strip().lower() == "simulation reset":
+                simulation_viable = True
+                break
+
+    if simulation_viable:
+        return cfg.SANDBOX_API_RED_CAP_SIM_VIABLE, (
+            f"Sandbox API red + Simulation viable: no per-learner provisioning "
+            f"API and no real fabric path. Simulation is the only viable lab "
+            f"delivery method. Pillar 1 capped at {cfg.SANDBOX_API_RED_CAP_SIM_VIABLE}."
+        )
+    else:
+        return cfg.SANDBOX_API_RED_CAP_NOTHING_VIABLE, (
+            f"Sandbox API red + nothing viable: no per-learner provisioning "
+            f"API, no real fabric path, no Simulation viable. The product "
+            f"cannot be labbed in any meaningful way. Pillar 1 capped at "
+            f"{cfg.SANDBOX_API_RED_CAP_NOTHING_VIABLE}."
+        )
+
+
 def apply_ceiling_flags(pl_score: int, ceiling_flags: Iterable[str]) -> tuple[int, list[dict]]:
     """Apply Product Labability ceiling flags to the PL score.
 
@@ -536,10 +679,20 @@ def compute_fit_score(pl_score: int, iv_score: int, cf_score: int,
       2. The Technical Fit Multiplier scales DOWNSTREAM pillars (IV + CF) —
          a weak PL means strong instructional/organizational signals can't
          fully compensate.
-      3. **Product Labability is the floor.** The Fit Score is never less
-         than the PL score itself. Strong IV/CF can pull the Fit Score
-         ABOVE the PL score, but they can NEVER push it below.
-         If PL is 5, Fit cannot be lower than 5.
+      3. **Pure 70/30 weighted sum.** No PL floor anymore — Pillars 2 and
+         3 can drag the Fit Score below the PL score when the product
+         lacks instructional value or the company isn't a training buyer.
+         A perfectly labable product with zero training case isn't a
+         high Fit Score.
+
+    HISTORY: Earlier versions of this function used `max(weighted_sum, pl_score)`
+    so PL acted as a floor — IV/CF could only LIFT the score, never drag it
+    down. Removed 2026-04-07 after Frank's Diligent review surfaced the
+    case where Diligent Boards had PL=66 (technically labable) but IV=33
+    (thin instructional case) and CF=23 (no training maturity), and the
+    floor pinned the Fit Score at 66 (Solid Prospect) instead of 43 (Keep
+    Watch — the honest signal). The framework's 70/30 product/org weighting
+    is the right formula; the floor was fighting the framework.
 
     Args:
         pl_score: Product Labability pillar score (0-100, post-ceilings).
@@ -563,10 +716,7 @@ def compute_fit_score(pl_score: int, iv_score: int, cf_score: int,
 
     weighted_sum = pl_contrib + iv_contrib + cf_contrib
 
-    # PL is the floor. IV and CF can pull the fit UP above PL but never below.
-    fit = max(weighted_sum, pl_score)
-
-    return max(0, min(100, round(fit)))
+    return max(0, min(100, round(weighted_sum)))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -612,7 +762,26 @@ def compute_all(badges_by_dimension: dict[str, list[str]],
     iv_score = compute_pillar_score("instructional_value", dim_scores)
     cf_score = compute_pillar_score("customer_fit", dim_scores)
 
+    # SE-4: Sandbox API red cap. When the product has no real provisioning
+    # path and no per-learner provisioning API, cap Pillar 1 low so the
+    # other dimensions can't independently run up the score on a product
+    # that essentially can't be labbed. Per Frank's directive 2026-04-07
+    # after Diligent review.
+    sandbox_red_cap, sandbox_red_reason = detect_sandbox_api_red_cap(badges_by_dimension)
+    if sandbox_red_cap is not None and pl_pre > sandbox_red_cap:
+        log.info("compute_all: Sandbox API red cap applied — PL %d → %d (%s)",
+                 pl_pre, sandbox_red_cap, sandbox_red_reason)
+        pl_pre = sandbox_red_cap
+
     pl_score, ceilings_applied = apply_ceiling_flags(pl_pre, ceiling_flags)
+    if sandbox_red_cap is not None:
+        # Add the sandbox-api-red cap to the audit trail so the dossier can
+        # surface it like any other ceiling.
+        ceilings_applied = list(ceilings_applied) + [{
+            "flag": "sandbox_api_red",
+            "max_score": sandbox_red_cap,
+            "reason": sandbox_red_reason,
+        }]
     multiplier = get_technical_fit_multiplier(pl_score, orchestration_method)
     fit_score = compute_fit_score(pl_score, iv_score, cf_score, multiplier)
 

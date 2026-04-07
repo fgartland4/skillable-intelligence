@@ -19,6 +19,14 @@ Each Pillar scores out of 100 internally (the sum of its dimension scores), then
 
 **The 70/30 Split:** 70% of the Fit Score is about the product (Product Labability + Instructional Value). 30% is about the organization (Customer Fit). The product is the center of everything.
 
+**Fit Score formula (updated 2026-04-07):** pure weighted sum of three pillars, with the Technical Fit Multiplier scaling down the IV+CF contribution when Pillar 1 is weak:
+
+```
+fit = PL × 0.40 + IV × 0.30 × multiplier + CF × 0.30 × multiplier
+```
+
+The previous version had a `max(weighted_sum, PL)` floor — Pillars 2/3 could only LIFT the score above PL, never drag it below. That floor was removed after Frank's Diligent review surfaced the case where Diligent Boards had PL=66 (technically labable) but IV=33 (thin instructional case) and CF=23 (no training maturity), and the floor pinned the Fit Score at 66 (Solid Prospect) instead of 43 (Keep Watch — the honest signal). The framework's 70/30 product/org weighting is the right formula; the floor was fighting the framework.
+
 ---
 
 ## Badge System
@@ -341,23 +349,38 @@ Penalties retired in the 2026-04-06 sharpening: `GUI-only setup` (once the image
 
 *Can we assess what they did, and how granularly?*
 
+The Scoring dimension uses a special **"Grand Slam" breadth rule** on top of the normal signal point lookup. Per Frank 2026-04-07 ("Scoring is about OPTIONS"): full marks (15/15) require **AI Vision PLUS at least one programmatic method** — Script Scoring for VM context OR Scoring API for cloud context. Single-method-alone caps below 15.
+
+The dichotomy: **Script Scoring** is what you write when you have shell access to a VM (Bash/PowerShell that runs INSIDE the VM). **Scoring API** is what cloud products require — cloud services don't give you shell access, so you need an API to invoke validation work remotely. They're the same kind of work (writing a state validation script) in different orchestration contexts.
+
 | Canonical | Green | Amber | Notes |
 |---|---|---|---|
-| **Scoring API** | Vendor REST API for state validation — rich coverage | API exists but coverage uncertain or partial | Replaces historical `API Scorable (rich/partial)`. Product-specific REST API details (vendor URLs, OpenAPI specs) live in evidence on hover. |
-| **Script Scoring** | PowerShell / CLI / Bash scripts can validate config state comprehensively | Scriptable surface exists but with gaps | Two states (Frank: don't flatten this one). |
-| **AI Vision** | GUI-driven product where state is visually evident — AI Vision is the right tool. **Peer to API/Script, NOT a fallback.** | AI Vision usable but visual state ambiguous | Renamed from `AI Vision Scorable`. The "fallback" framing has been retired everywhere. |
+| **Scoring API** | Vendor REST API for state validation — rich coverage | API exists but coverage uncertain or partial | Cloud products use this. Replaces historical `API Scorable (rich/partial)`. Product-specific REST API details live in evidence on hover. |
+| **Script Scoring** | Bash/PowerShell scripts can validate config state comprehensively | Scriptable surface exists but with gaps | VM products use this. Direct shell access = anything goes. Two states (Frank: don't flatten this one). |
+| **AI Vision** | GUI-driven product where state is visually evident — AI Vision is the right tool. **Peer to API/Script, NOT a fallback.** Real Skillable differentiator (rare in lab platform space, only ~1 year old). | AI Vision usable but visual state ambiguous | Renamed from `AI Vision Scorable`. The "fallback" framing has been retired everywhere. |
 | **Simulation Scorable** | — | Simulation environment supports scoring via guided interaction | SE clarification pending: when can/can't we score in a simulation; should this ever be red? |
-| **MCQ Scoring** | — | No programmatic surface — knowledge-check questions only | The genuine fallback. Used when no environment state is available to validate. |
+| **MCQ Scoring** | — (display only) | No programmatic surface — knowledge-check questions only | **0 points** (Frank 2026-04-07: anyone can do MCQs, it's not lab work). Display as gray Context so the seller sees the option, but earns nothing. |
 
-#### Scoring Base Credits
+#### Scoring Base Credits (recalibrated 2026-04-07)
 
-| Canonical | Green base credit |
+| Canonical | Standalone cap | Notes |
+|---|---|---|
+| `Scoring API` | **+12 (alone)** | Sparse APIs cap below 12. Rich suite needed for the standalone ceiling. Pairs with AI Vision to hit Grand Slam (15). |
+| `Script Scoring` | **+15 (alone)** | VM context = anything goes. Standalone full marks possible. |
+| `AI Vision` | **+10 (alone)** | Strong but not enough for high-stakes scoring (cert exams need more rigor). Pairs with Script or API to hit Grand Slam (15). |
+| `Simulation Scorable` | +8 | (Existing — pending SE-3 clarification) |
+| `MCQ Scoring` | **0** | Display only. No credit. |
+
+**The Grand Slam rule (enforced in `scoring_math._compute_signal_penalty_dimension`):**
+
+| Methods present (excluding MCQ) | Effective cap |
 |---|---|
-| `Scoring API` | +14 |
-| `Script Scoring` | +12 |
-| `AI Vision` | +11 |
-| `Simulation Scorable` | +8 |
-| `MCQ Scoring` | +4 |
+| AI Vision + Script Scoring | **15** (Grand Slam, VM) |
+| AI Vision + Scoring API | **15** (Grand Slam, cloud) |
+| Script Scoring alone | **15** (VM context) |
+| Scoring API alone | **12** (sourced from `cfg.SCORING_API_ALONE_CAP`) |
+| AI Vision alone | **10** (sourced from `cfg.SCORING_AI_VISION_ALONE_CAP`) |
+| Nothing (only MCQ or zero methods) | **0** |
 
 **Routing rule for Scoring:** the Scoring dimension is about HOW we assess (API / Script / AI Vision / MCQ). Subject matter / what's being learned (governance, security topics, eDiscovery workflows) belongs in **Instructional Value (Pillar 2)**, NOT Scoring.
 
@@ -378,11 +401,12 @@ When research surfaces a vendor "Management API" or "Full Lifecycle API," it dec
 
 *Can we clean it up when it's over?*
 
-For Skillable-hosted labs (Hyper-V / Container / ESX / Simulation), teardown is automatic and scores full marks. Badges only surface when there's a finding.
+For real Skillable-hosted environments (Hyper-V / Container / ESX), teardown is automatic and scores full marks via the Datacenter badge. **Simulation paths use a separate Simulation Reset badge worth ZERO points** — a Simulation lab for a SaaS web app doesn't have anything to "tear down" in the operational sense, so the historical "Datacenter green for Simulation" rule was misleading and earned 25/25 for teardown work that didn't happen.
 
 | Canonical | Green | Amber | Red |
 |---|---|---|---|
-| **Datacenter** | Skillable hosts the environment (Hyper-V, ESX, Container, OR Simulation) — teardown is automatic via snapshot revert or platform cleanup | — | — |
+| **Datacenter** | Skillable hosts a REAL environment (Hyper-V, ESX, OR Container) — teardown is automatic via snapshot revert or container destroy. **Does NOT apply to Simulation.** | — | — |
+| **Simulation Reset** | (gray Context only) — Simulation session ends with the user session. No teardown work. **Earns ZERO Teardown points** (Frank 2026-04-07). | — | — |
 | **Teardown API** | Vendor API covers environment cleanup and deprovisioning | Some teardown API coverage but gaps remain | — |
 | **Manual Teardown** | — | — | No teardown mechanism — manual cleanup required between learners |
 | **Orphan Risk** | — | Incomplete teardown may leave orphaned resources / accounts even when API exists | — |
@@ -391,16 +415,30 @@ For Skillable-hosted labs (Hyper-V / Container / ESX / Simulation), teardown is 
 
 | Canonical | Green base credit |
 |---|---|
-| `Datacenter` | +25 (full marks) |
+| `Datacenter` | +25 (full marks) — VM/ESX/Container ONLY |
+| `Simulation Reset` | **0** — display-only |
 | `Teardown API` | +22 |
 | `Manual Teardown` | -10 (penalty) |
 | `Orphan Risk` | -5 (penalty) |
 
-**Datacenter rule:** fires green for ANY Skillable-hosted path including Simulation. Simulation runs in our infra so teardown is automatic there too.
+**Datacenter rule (updated 2026-04-07):** fires green for VM-fabric, ESX, or Container paths only. **Simulation paths use Simulation Reset instead** — a SaaS Sim lab has no operational teardown work, and earning the full 25 was misleading. The seller should see Teardown was considered (via the gray Simulation Reset badge) but not earn credit for work that doesn't happen.
 
 **Distinct from Manual Teardown:** `Orphan Risk` fires alongside `Teardown API` amber when there's API coverage but with gaps that could leave residue. Both can fire on the same product.
 
 #### Teardown Floor: 0
+
+### Sandbox API Red Pillar 1 Cap (SE-4)
+
+When a product has **no real provisioning path** (no Runs in Hyper-V / Azure / AWS / Container / ESX) AND its Sandbox API badge is red, the entire Pillar 1 is capped low. The other dimensions (Lab Access, Scoring, Teardown) can't independently rack up points on a product that essentially can't be provisioned. Per Frank 2026-04-07 after Diligent review.
+
+| Condition | Pillar 1 cap | Why |
+|---|---|---|
+| Sandbox API red + Simulation viable | **25** (`cfg.SANDBOX_API_RED_CAP_SIM_VIABLE`) | Simulation is the only viable lab delivery — capped at 25 to reflect that real provisioning isn't there |
+| Sandbox API red + nothing viable | **5** (`cfg.SANDBOX_API_RED_CAP_NOTHING_VIABLE`) | The product cannot be labbed at all — capped at 5 (Workday-style dead end) |
+
+Detection lives in `scoring_math.detect_sandbox_api_red_cap()`. Applied in `compute_all()` before the existing ceiling flag pass. Surfaces in the dossier's `ceilings_applied` list as `sandbox_api_red`.
+
+**Why this matters:** before this rule shipped, Diligent Boards (SaaS, Sandbox API red, Simulation gray) scored 9/35 Provisioning + 17/25 Lab Access + 15/15 Scoring + 25/25 Teardown = 66/100 Pillar 1. The 17, 15, and 25 were essentially fictional — they were dimension scores for things that don't really exist on a SaaS web app with no per-learner provisioning. Now Pillar 1 caps at 25, the seller sees the cap with the reason `sandbox_api_red` in the audit trail, and the Fit Score honestly reflects "this product can't be labbed."
 
 ### Risk Cap Reduction (applies to ALL Pillar 1 dimensions)
 

@@ -113,6 +113,34 @@ A "Management API" or "Full Lifecycle API" finding decomposes into FOUR dimensio
 
 Don't assume green across all four from a single "Management API detected" signal. Verify each stage's API coverage from research, emit each badge with the appropriate color (green confirmed / amber uncertain / don't emit if silent / red only if explicitly absent), and let the math layer combine the credits.
 
+### Learner Isolation is a Lab Access gatekeeper — ALWAYS emit it
+
+`Learner Isolation` is the only Pillar 1 canonical that you MUST emit on every product. It's a gatekeeper signal: "can each learner work in their own isolated environment without stepping on each other?"
+
+**Color rules:**
+
+| State | Color | When |
+|---|---|---|
+| **green** | per-user / per-tenant isolation confirmed via documented API or deployment evidence | The vendor docs explicitly support per-learner sandboxes/tenants/orgs |
+| **amber** | research can't confirm either way | Vendor has some isolation language but coverage is unclear |
+| **red** | explicitly absent — confirmed shared multi-tenant with no isolation mechanism | The vendor's docs make clear there's no per-learner isolation, OR the product is SaaS-only with no sandbox provisioning API documented |
+
+**The routing rule that gets violated most:** if you find evidence about learner isolation INSIDE Sandbox API's evidence text — for example, "no endpoint for creating isolated per-learner sandbox tenants is documented" — that finding belongs in **Lab Access as a red Learner Isolation badge**, NOT buried in Sandbox API's evidence body. The badge IS the finding. The evidence in Sandbox API stays focused on the provisioning API surface itself.
+
+Worked example for a SaaS product with no per-learner provisioning API:
+
+❌ WRONG (Diligent before the 2026-04-07 fix):
+- Provisioning: `Sandbox API` red, evidence claim: *"No endpoint for creating isolated per-learner sandbox tenants — without tenant provisioning API, real lab environments cannot be spun up per learner..."*
+- Lab Access: only `Identity API` and `Training License` (no Learner Isolation badge — the seller can't see the isolation gap)
+
+✅ RIGHT:
+- Provisioning: `Sandbox API` red, evidence claim: *"No tenant provisioning API documented for the developer.diligent.com surface. The REST API covers board operations and user management within an existing tenant only."*
+- Lab Access: `Learner Isolation` red, evidence claim: *"No per-learner tenant isolation mechanism documented. SaaS-only deployment with shared tenancy means learners cannot work in independent environments."*
+- Lab Access: `Identity API` (whatever color matches the user-management API surface)
+- Lab Access: `Training License` (whatever color matches the license path)
+
+The seller now sees the isolation gap as a visible red badge in Lab Access — not buried inside Sandbox API's evidence text where it competes for attention with the API surface story.
+
 ### Provisioning Evidence Arc
 
 Tell the technical labability story in 3-6 bullets following the natural lab lifecycle:
@@ -171,17 +199,61 @@ So Pillar 2 uses a different model from Pillar 1:
 | **Subject matter terminology is encouraged** | The whole point of Pillar 2 variable names is to capture domain-specific concepts |
 | **NO product names of the company being scored** | The dossier header has the company name — don't repeat it in badges |
 
-### Strength grading discipline
+### Strength grading discipline — DON'T HEDGE
 
-The AI MUST explicitly grade each badge against the dimension's rubric. Don't default to strong. The rubric's three tiers exist to create real spread between products:
+The AI MUST explicitly grade each badge against the dimension's rubric. The rubric's three tiers exist to create real spread between products:
 
 | Strength | When to pick it |
 |---|---|
-| **strong** | Evidence is unambiguous and the criterion clearly applies |
-| **moderate** | Evidence is partial, narrower scope, or the criterion applies with some shoehorning |
+| **strong** | Evidence is unambiguous and the criterion clearly applies. **Default to strong when the evidence supports it.** |
+| **moderate** | Evidence is partial, narrower scope, or the criterion applies with some shoehorning. **Use sparingly** — moderate is for genuinely partial evidence, not for "I'm not sure how confident to be." |
 | **weak** | DO NOT EMIT a badge for weak evidence — it's not worth the seller's attention |
 
+**Stop hedging.** A common failure pattern is grading everything as `moderate` to seem cautious. That's wrong. If the evidence supports strong, grade strong. The rubric tier is supposed to reflect the EVIDENCE, not your confidence in your own judgment.
+
+**Forcing functions for strong:**
+
+- **Mastery Stakes**: if the product's domain has documented real-world consequences (financial loss, regulatory action, breach, malpractice, data exposure, fiduciary failure, compliance violation), grade `strong`. Board governance software, cybersecurity products, healthcare records, banking software, legal practice tools, compliance platforms — all default to STRONG for harm severity. Don't hedge to moderate just because you don't see specific incident counts.
+- **Product Complexity**: if the product spans 3+ distinct user roles AND multiple workflow phases, grade Multi-Phase Workflow and Role Diversity as STRONG. Don't hedge.
+- **Market Demand**: if the product has documented enterprise validation at scale (named Fortune 500 customers, large user counts in the hundreds of thousands or millions, established certification ecosystem), grade `strong`. Don't hedge.
+
 Fewer sharp badges beats more diluted ones (same principle as Pillar 1 friction badges).
+
+### Subject-matter-specific badge names — the WHOLE POINT of the rubric model
+
+The rubric model exists so you can name badges with **the actual subject matter**, not generic structural labels. Generic structural names defeat the purpose.
+
+| ❌ Generic structural (defeat the rubric model) | ✅ Subject-matter specific (the rubric model in action) |
+|---|---|
+| `Multi-Phase Workflow` | `Board Meeting Lifecycle`, `Patient Encounter Flow`, `Settlement Reconciliation`, `Incident Response Phases` |
+| `Role Diversity` | `Director / Secretary / Counsel Roles`, `Nurse / Physician / Coder Roles`, `Trader / Risk / Compliance Roles` |
+| `High-Stakes Skills` | `Fiduciary Decision Stakes`, `Patient Safety Risk`, `Trade Settlement Liability`, `SEC Disclosure Compliance` |
+| `Compliance Audit` | `SOX Audit Lab`, `HIPAA Compliance Audit`, `SOC 2 Walkthrough`, `Board Meeting Audit Trail` |
+| `Enterprise Validated` | `Fortune 500 Boards`, `Top 10 Banks`, `19,000+ Organizations`, `~700K Users` |
+| `Partner Ecosystem` | `~500 Resellers`, `Strong Channel`, `Big-4 Implementation Partners` |
+| `Build vs Buy` | `Platform Buyer`, `Closed SaaS Architecture`, `In-House Build Culture` |
+
+**The rule:** at LEAST one badge per Pillar 2 dimension MUST reference the product's actual subject matter, not just its structural shape. If you find yourself emitting only generic templates ("Multi-Phase Workflow", "Role Diversity"), you're not doing the rubric model — you're doing canonical naming with extra steps.
+
+For Pillar 3, the same rule applies but with organizational/quantitative specifics: counts (`~500 ATPs`), platform names (`Skillable`, `CloudShare`), conference names (`Cohesity Connect 5K`), funding signals (`Series D $200M`).
+
+### Emit gap badges when grading low — show the JUDGMENT
+
+When a dimension's overall evidence is thin (you'd grade it weak overall, OR you only have one moderate signal in a dimension that has many possible signal_categories), you MUST emit explicit **red gap badges** naming what's MISSING. Don't just emit what you found — also emit what you didn't find.
+
+**Why this exists:** the user sees the score and the badges. If the score is low (e.g., 3/20 Build Capacity) but all the visible badges are green or amber, the user can't tell WHY the score is low. The judgment is invisible. Emit red gap badges so the WHY is visible.
+
+**Format:** name the missing signal directly, color = red. Examples for a Pillar 3 product with thin Build Capacity evidence:
+
+| Dimension | Existing badges | Add these gap badges |
+|---|---|---|
+| Build Capacity (Diligent) | `Content Dev Team` (whatever color matches what you found) | `No Lab Authors` red, `No Tech Writer Team` red, `No DIY Lab Evidence` red |
+| Delivery Capacity (Diligent) | `Lab Platform` (whatever color), `ATP / Learning Partners` (whatever color) | `No Documented ATPs` red (if true), `No Skillable Customer` red, `Elevate 2026 Conference` GREEN STRONG (this exists — surface it as its own badge, not folded into Lab Platform) |
+| Organizational DNA | `Partner Ecosystem` (variable name) | `Hard to Engage` red (only if documented evidence supports it — DO NOT invent) |
+
+**The rule:** if you have less than 2 signal_categories surfaced for a dimension AND the dimension's score will be below 30% of cap, emit at least one red gap badge naming the most important missing signal. The seller needs to see WHY, not just WHAT.
+
+**Be honest about what you actually found.** Don't emit `No Lab Authors` red if you didn't actually look for lab authors. The gap badges are for signals you LOOKED FOR and FOUND ABSENT, not for signals you ignored.
 
 ### Pillar 2 dimension rubrics
 
@@ -198,6 +270,11 @@ Everything about the organization in one Pillar. 30% of the Fit Score — meanin
 ### Pillar 3 also uses the RUBRIC model
 
 Same architecture as Pillar 2: variable badge names, strength grading, signal_category tags. The only difference is what kinds of variable details show up in the badge name — for Pillar 3 it's organizational details (counts, platform names, conferences).
+
+**All Pillar 2 rules also apply to Pillar 3:**
+- **Strength grading discipline** — don't hedge to moderate. If the company has documented training infrastructure, certification programs, partner networks, content team, or events, grade `strong`. The Diligent Boards Build Capacity issue (3/20 because Content Dev Team was graded amber when "Board Education & Certifications team" exists) is the textbook hedging failure.
+- **Subject-matter-specific badge names** — same rule. `~500 Resellers` over `Partner Ecosystem`. `Closed SaaS Architecture` over `Build vs Buy`. `Elevate 2026 Conference (Atlanta)` over folding events into `Lab Platform` evidence. The conference is its OWN badge in Delivery Capacity, not buried inside another badge's evidence.
+- **Emit gap badges when grading low** — same rule. Build Capacity at 3/20 with no visible red is a UX trust failure. Add explicit red gap badges (`No Lab Authors`, `No Tech Writer Team`, etc.) so the seller can see WHY the score is low.
 
 ### Naming rules for Pillar 3 variable badges
 
