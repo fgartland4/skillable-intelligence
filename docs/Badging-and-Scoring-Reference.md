@@ -206,63 +206,91 @@ The gatekeeper. If this fails, nothing else matters. Provisioning determines dif
 | SCORING | 15 | Can we assess what they did, and how granularly? |
 | TEARDOWN | 25 | Can we clean it up when it's over? |
 
+### Meta-Principle for Pillar 1 Badging
+
+**Badge name = canonical vocabulary entry. Product-specific details (vendor names, REST API URLs, license terms, install paths) live in the evidence payload on hover, NEVER in the badge name itself.**
+
+Universal rules that apply to every Pillar 1 dimension:
+
+| Rule | What it means |
+|---|---|
+| **No product names in badge names** | `ePO Admin Credential` → wrong. `Cred Recycling` → right (with ePO details in evidence). |
+| **No topic labels as badge names** | `Deployment Model`, `REST API Surface` → wrong. The badge is the *finding*, not the *category*. |
+| **No invented badge names** | Stay strictly within the canonical vocabulary listed below. |
+| **No positive canonical for negative finding** | `Runs in Azure \| Risk: No Marketplace Listing` is a polarity error. Negative findings need negative-named badges. |
+| **One badge per finding — never duplicate canonical names** | Two distinct findings about the same topic use two distinct canonicals (e.g., `Runs in Hyper-V` + `Pre-Instancing` for "clean install + slow init"). Same name twice is never the answer. |
+| **Flat-tier scoring** | No `Hyper-V: Standard` / `Moderate` / `Weak` modifiers. Each canonical earns its full base credit when emitted green. Friction is expressed via separate friction badges. |
+
 ### 1.1 Provisioning (35 pts)
 
 *How do we get this product into Skillable?*
 
-#### Scoring — VM and Container
+#### Path Priority Order
 
-| Method | Strong | Moderate | Weak |
+Walk in sequence. The priority IS the score order — pick the FIRST viable path, not the highest-scoring.
+
+| Priority | Path | When | Canonical |
 |---|---|---|---|
-| **Hyper-V** (default) | 30-35 | 21-30 | 14-21 |
-| **ESX** (4-5 pts lower) | 26-31 | 17-26 | 12-17 |
-| **Container** | 21-28 | 14-21 | — |
+| 1 | **VM fabric** | Installable on Windows / Linux | `Runs in Hyper-V` (default), `Runs in Container` (singular), `ESX Required` (4-pt discount) |
+| 2 | **Cloud Slice fabric** | Product IS an Azure or AWS native managed service | `Runs in Azure` or `Runs in AWS` |
+| 3 | **Sandbox API** (Custom API / BYOC) | SaaS but vendor exposes provisioning API for per-learner environments | `Sandbox API` (green) |
+| 4 | **Simulation** | Nothing else viable. NOT a fallback — a real fabric. | `Simulation` (gray Context, base credit) |
 
-Container disqualifiers: (1) dev-use image only; (2) Windows GUI required; (3) multi-VM network complexity; (4) not genuinely container-native.
+**Cloud disambiguation:** `Runs in Azure` / `Runs in AWS` mean the product IS that cloud's native managed service, NOT "hostable on a VM in that cloud." For installable products that happen to run on cloud VMs, use `Runs in Hyper-V`.
 
-#### Scoring — Cloud and Other
+**Cloud preference:** When a product runs natively on Azure AND AWS, detect vendor preference signals (marketing emphasis, docs priority, partnerships). When no preference signal exists, default to Azure.
 
-| Method | Strong | Moderate | Weak |
-|---|---|---|---|
-| **Azure Cloud Slice** | 28-33 | 16-28 | 5-16 |
-| **AWS Cloud Slice** | 28-33 | 16-28 | 5-16 |
-| **Custom API (BYOC)** | 19-25 | 10-19 | 5-10 |
-| **Simulation** | 7-14 | — | — |
+**Native fabric beats manual API wiring.** A SaaS product native to Azure or AWS uses Cloud Slice (Path 2), not Sandbox API (Path 3) — even if both are technically viable.
 
-Simulation is a provisioning method, not a fallback. Correct when real provisioning is cost-prohibitive, time-impractical, or all paths are blocked. Does not rescue the score.
-
-#### Provisioning Badges
+#### Provisioning Canonical Badges
 
 | Badge | Green | Amber | Red |
 |---|---|---|---|
 | **Runs in Hyper-V** | Clean VM install confirmed | Installs with complexity | — |
-| **Runs in Azure** | Supported Azure service | Azure path with friction | — |
-| **Runs in AWS** | Supported AWS service | AWS path with friction | — |
-| **Requires GCP** | — | No native Skillable GCP path | — |
-| **Runs in Containers** | Container-native confirmed | Image exists but disqualifiers | — |
-| **ESX Required** | — | Nested virt or socket licensing | — |
-| **Simulation** | — | No real lab path viable | — |
+| **Runs in Azure** | Azure-native managed service | Azure path with friction | — |
+| **Runs in AWS** | AWS-native managed service | AWS path with friction | — |
+| **Runs in Container** (singular) | Container-native confirmed, no disqualifiers | Image exists but disqualifiers OR research uncertain | — |
+| **ESX Required** | — | Nested virt or socket licensing forces ESX (details in evidence) | — |
+| **Simulation** | — | — (gray Context when chosen path) | — |
+| **Sandbox API** (gatekeeper) | Vendor has rich provisioning / sandbox / management API for per-learner environments | API exists but coverage uncertain or partial | No provisioning API confirmed |
+| **Pre-Instancing** | Slow first-launch mitigated by Skillable Pre-Instancing — feature opportunity | — | — |
+| **Multi-VM Lab** | Multiple VMs working together — Skillable strength | — | — |
+| **Complex Topology** | Real network complexity (routers / switches / firewalls / segmentation) — networking AND cybersecurity | — | — |
+| **Large Lab** | Single environment with big footprint (RAM, CPU, GPU, datasets) | — | — |
+| **GPU Required** | — | Forces cloud VM with GPU instance — slower, more expensive | — |
 | **Bare Metal Required** | — | — | Physical hardware required |
-| **No Deployment Method** | — | — | Cannot be provisioned or simulated |
+| **No Deployment Method** | — | — | Ultimate dead end — neither real provisioning NOR Simulation viable |
+| **Requires GCP** | — | No native Skillable GCP path | — |
 
-#### Provisioning Penalties (deduct from base)
+**Flat-tier scoring:** each canonical badge earns its full base credit when emitted green. The math layer is color-aware — amber gives half credit, red falls back to color points (negative).
+
+| Canonical | Green base credit |
+|---|---|
+| `Runs in Hyper-V`, `Runs in Azure`, `Runs in AWS`, `Runs in Container` | +30 |
+| `ESX Required` | +26 (4-pt discount for Broadcom licensing operational cost) |
+| `Sandbox API` | +22 |
+| `Simulation` | +12 |
+| `Multi-VM Lab`, `Complex Topology`, `Large Lab`, `Pre-Instancing` | +0 (drives ACV rate tier upward) |
+
+**Mutually exclusive:** `Multi-VM Lab` and `Large Lab` describe overlapping ideas — pick whichever better describes the primary nature of the scale, not both. Max 2 of the three strength badges (`Multi-VM Lab`, `Complex Topology`, `Large Lab`) per product.
+
+#### Provisioning Friction Penalties
 
 | Penalty | Deduction |
 |---|---|
-| GPU required | -5 |
-| GUI-only setup | -5 |
-| Provisioning time >30 min | -3 |
-| No NFR / dev license | -2 |
-| Socket licensing (ESX) + >24 vCPUs | -2 |
+| `GPU Required` | -5 |
+| `Socket licensing (ESX) >24 vCPUs` | -2 (surfaces as evidence on the `ESX Required` badge) |
 
-#### Ceiling Flags
+Penalties retired in the 2026-04-06 sharpening: `GUI-only setup` (once the image is built, the learner doesn't experience the GUI install — not friction worth surfacing), `Provisioning time over 30 min` (replaced by the green `Pre-Instancing` opportunity badge), `No NFR / dev license` (moved to Lab Access via `Training License`).
+
+#### Ceiling Flags (Provisioning)
 
 | Flag | Effect |
 |---|---|
-| `bare_metal_required` | Caps at Monitor (>=20) or Pass (<20) |
-| `no_api_automation` | Same |
-| `saas_only` | Same |
-| `multi_tenant_only` | Same |
+| `bare_metal_required` | Hard cap: Product Labability ≤ 5 |
+| `no_api_automation` | Hard cap: Product Labability ≤ 5 |
+| `saas_only` | Classification metadata only — does NOT cap. The `Sandbox API` canonical badge (red) drives any actual cap. |
+| `multi_tenant_only` | Classification metadata only — does NOT cap. |
 
 ---
 
@@ -270,24 +298,42 @@ Simulation is a provisioning method, not a fallback. Correct when real provision
 
 *Can we get people in with their own identity, reliably, at scale?*
 
-#### Lab Access Scoring (base + penalties)
+#### Lab Access Canonical Badges
 
-| Item | Score | Color |
-|---|---|---|
-| Full Lifecycle API | +21 to +25 | Green |
-| Entra ID SSO | +18 to +22 | Green |
-| Credential Pool | +16 to +20 | Green |
-| NFR Accounts Available | +14 to +18 | Green |
-| Manual SSO | +10 to +14 | Amber |
-| Trial Account | +5 to +10 | Amber |
-| Credit Card Required | -10 | Red |
-| MFA Required | -10 | Red |
-| Anti-Automation Controls | -5 | Red |
-| Rate Limits | -5 | Red |
-| Tenant Provisioning Lag | -5 | Red |
-| High License Cost | -5 | Red |
+| Badge | Green | Amber | Red |
+|---|---|---|---|
+| **Full Lifecycle API** | Complete API for user provisioning and management | — | — |
+| **Identity API** | Vendor API can create users and assign roles per learner | API exists but coverage uncertain | — |
+| **Entra ID SSO** | App pre-configured to use Entra ID tenant — zero credential management. **Azure-native applications only.** Preempts `Identity API` for Azure products. | — | — |
+| **Cred Recycling** | Customer credentials can be reset and recycled between learners — low operational overhead | Recycling exists but coverage uncertain | — |
+| **Credential Pool** | Pre-provisioned consumable credential pool — operationally painful but works (distinct from `Cred Recycling`) | — | — |
+| **Training License** (consolidated) | NFR / training / eval / dev license path confirmed, low friction | License exists with friction (sales call, cost, short trial, enterprise-only) | License is effectively blocked (credit card + high cost + no negotiation path) |
+| **Learner Isolation** (gatekeeper, always emit) | Per-user / per-tenant isolation confirmed via API evidence | Research can't confirm either way | Explicitly absent — confirmed shared multi-tenant with no isolation mechanism |
+| **Manual SSO** | — | Azure SSO but requires manual learner login (distinct from `Identity API`) | — |
+| **MFA Required** | — | — | Multi-factor authentication blocks automated provisioning |
+| **Anti-Automation Controls** | — | — | Platform actively blocks automated account creation (CAPTCHA, bot detection) |
+| **Rate Limits** | — | — | API rate limits constrain concurrent learner provisioning |
 
-Floor: 0. Badges name the solution (e.g., "NFR Accounts Available" not "Account Creation"). Penalties are red badges.
+**Training License consolidation note:** The consolidated `Training License` canonical replaces the historical `NFR Accounts Available`, `Trial Account`, `Credit Card Required`, `High License Cost` badges. One canonical, three states, one source of truth.
+
+**Cred Recycling vs Credential Pool:** Two distinct canonicals.
+- **`Credential Pool`** = Customer hands over a batch of credentials, we deplete the pool, when we run low we ask for more. Operationally painful.
+- **`Cred Recycling`** = Customer hands over one set, we clean up after each learner and put it back in the pool. Self-sustaining.
+
+#### Lab Access Scoring
+
+| Canonical | Green base credit |
+|---|---|
+| `Full Lifecycle API` | +23 |
+| `Entra ID SSO` | +20 |
+| `Identity API` | +19 |
+| `Cred Recycling` | +18 |
+| `Credential Pool`, `Training License` | +16 |
+| `Manual SSO` | +12 |
+| `MFA Required`, `Rate Limits` (penalties) | -10, -5 |
+| `Anti-Automation Controls` | -5 |
+
+#### Lab Access Floor: 0
 
 ---
 
@@ -295,17 +341,36 @@ Floor: 0. Badges name the solution (e.g., "NFR Accounts Available" not "Account 
 
 *Can we assess what they did, and how granularly?*
 
-| Item | Score | Color |
-|---|---|---|
-| API Scorable (rich) | +13 to +15 | Green |
-| API Scorable (partial) | +9 to +13 | Amber |
-| Script Scorable (strong) | +11 to +14 | Green |
-| Script Scorable (partial) | +7 to +11 | Amber |
-| Simulation Scorable | +7 to +10 | Amber |
-| AI Vision Scorable | +5 to +8 | Amber |
-| MCQ Scorable | +3 to +5 | Amber |
+| Canonical | Green | Amber | Notes |
+|---|---|---|---|
+| **Scoring API** | Vendor REST API for state validation — rich coverage | API exists but coverage uncertain or partial | Replaces historical `API Scorable (rich/partial)`. Product-specific REST API details (vendor URLs, OpenAPI specs) live in evidence on hover. |
+| **Script Scoring** | PowerShell / CLI / Bash scripts can validate config state comprehensively | Scriptable surface exists but with gaps | Two states (Frank: don't flatten this one). |
+| **AI Vision** | GUI-driven product where state is visually evident — AI Vision is the right tool. **Peer to API/Script, NOT a fallback.** | AI Vision usable but visual state ambiguous | Renamed from `AI Vision Scorable`. The "fallback" framing has been retired everywhere. |
+| **Simulation Scorable** | — | Simulation environment supports scoring via guided interaction | SE clarification pending: when can/can't we score in a simulation; should this ever be red? |
+| **MCQ Scoring** | — | No programmatic surface — knowledge-check questions only | The genuine fallback. Used when no environment state is available to validate. |
 
-Scoring always has a fallback (AI Vision, MCQ). The score reflects the quality of the method.
+#### Scoring Base Credits
+
+| Canonical | Green base credit |
+|---|---|
+| `Scoring API` | +14 |
+| `Script Scoring` | +12 |
+| `AI Vision` | +11 |
+| `Simulation Scorable` | +8 |
+| `MCQ Scoring` | +4 |
+
+**Routing rule for Scoring:** the Scoring dimension is about HOW we assess (API / Script / AI Vision / MCQ). Subject matter / what's being learned (governance, security topics, eDiscovery workflows) belongs in **Instructional Value (Pillar 2)**, NOT Scoring.
+
+#### Management API Decomposition
+
+When research surfaces a vendor "Management API" or "Full Lifecycle API," it decomposes into FOUR dimension-specific badges. Verify each stage's coverage independently — don't assume green across all four from a single signal.
+
+| Stage | Dimension | Badge |
+|---|---|---|
+| Environment provisioning | Provisioning | `Sandbox API` |
+| User / role creation | Lab Access | `Identity API` (or `Entra ID SSO` if Azure-native) |
+| State validation | Scoring | `Scoring API` |
+| Environment cleanup | Teardown | `Teardown API` |
 
 ---
 
@@ -313,17 +378,29 @@ Scoring always has a fallback (AI Vision, MCQ). The score reflects the quality o
 
 *Can we clean it up when it's over?*
 
-For VM/container labs, teardown is automatic and scores full marks. Badges only surface when there's a finding.
+For Skillable-hosted labs (Hyper-V / Container / ESX / Simulation), teardown is automatic and scores full marks. Badges only surface when there's a finding.
 
-| Item | Score | Color |
-|---|---|---|
-| Automatic (VM/Container) | +25 | Green |
-| Teardown APIs (full) | +20 to +25 | Green |
-| Teardown APIs (partial) | +12 to +20 | Amber |
-| No Teardown API | -10 | Red |
-| Orphan Risk | -5 | Red |
+| Canonical | Green | Amber | Red |
+|---|---|---|---|
+| **Datacenter** | Skillable hosts the environment (Hyper-V, ESX, Container, OR Simulation) — teardown is automatic via snapshot revert or platform cleanup | — | — |
+| **Teardown API** | Vendor API covers environment cleanup and deprovisioning | Some teardown API coverage but gaps remain | — |
+| **Manual Teardown** | — | — | No teardown mechanism — manual cleanup required between learners |
+| **Orphan Risk** | — | Incomplete teardown may leave orphaned resources / accounts even when API exists | — |
 
-Floor: 0.
+#### Teardown Base Credits
+
+| Canonical | Green base credit |
+|---|---|
+| `Datacenter` | +25 (full marks) |
+| `Teardown API` | +22 |
+| `Manual Teardown` | -10 (penalty) |
+| `Orphan Risk` | -5 (penalty) |
+
+**Datacenter rule:** fires green for ANY Skillable-hosted path including Simulation. Simulation runs in our infra so teardown is automatic there too.
+
+**Distinct from Manual Teardown:** `Orphan Risk` fires alongside `Teardown API` amber when there's API coverage but with gaps that could leave residue. Both can fire on the same product.
+
+#### Teardown Floor: 0
 
 ### Technical Fit Multiplier
 
