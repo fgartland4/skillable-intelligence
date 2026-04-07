@@ -742,17 +742,56 @@ def test_recompute_against_a_minimal_synthetic_analysis() -> None:
 
     product = analysis["products"][0]
     fs = product["fit_score"]
-    assert fs["total"] == 0, (
-        f"Empty-badge product produced non-zero fit score "
-        f"({fs['total']}) — math layer is not honoring the no-evidence "
-        f"contract."
+
+    # NEW CONTRACT (2026-04-07 posture rewrite):
+    # Empty-badge Pillar 1 still produces zero (canonical model — no
+    # baseline, pure signal-sum scoring).  Pillars 2 and 3 now apply
+    # default-positive category/org-type baselines, so empty-badge IV
+    # and CF dimensions score at their Unknown fallback baselines —
+    # NOT zero.  This is the default-positive posture per Frank's
+    # 2026-04-07 directive.  An empty-badge product with no
+    # classification data falls into the Unknown bucket, which
+    # produces the neutral fallback baseline AND raises the
+    # classification_review_needed flag on the product.
+
+    # Pillar 1 should still be zero (no baseline, no signals)
+    for dim in fs["product_labability"]["dimensions"]:
+        assert dim["score"] == 0, (
+            f"product_labability.{dim['name']} produced non-zero score "
+            f"({dim['score']}) on a product with no badges — Pillar 1 "
+            f"uses the canonical (non-baseline) model and should be 0."
+        )
+
+    # Pillars 2 and 3 should match the Unknown baseline
+    unknown_iv = cfg.IV_CATEGORY_BASELINES[cfg.UNKNOWN_CLASSIFICATION]
+    unknown_cf = cfg.CF_ORG_BASELINES[cfg.UNKNOWN_CLASSIFICATION]
+
+    for dim in fs["instructional_value"]["dimensions"]:
+        dim_key = dim["name"].lower().replace(" ", "_")
+        expected = unknown_iv.get(dim_key, 0)
+        assert dim["score"] == expected, (
+            f"instructional_value.{dim['name']} expected Unknown baseline "
+            f"{expected}, got {dim['score']}"
+        )
+
+    for dim in fs["customer_fit"]["dimensions"]:
+        dim_key = dim["name"].lower().replace(" ", "_")
+        expected = unknown_cf.get(dim_key, 0)
+        assert dim["score"] == expected, (
+            f"customer_fit.{dim['name']} expected Unknown baseline "
+            f"{expected}, got {dim['score']}"
+        )
+
+    # The classification review flag must be raised — empty context
+    # falls back to Unknown on both category and org_type.
+    assert product.get("classification_review_needed") is True, (
+        "Empty-badge product with no classification data should raise "
+        "classification_review_needed = True"
     )
-    for pkey in ("product_labability", "instructional_value", "customer_fit"):
-        for dim in fs[pkey]["dimensions"]:
-            assert dim["score"] == 0, (
-                f"{pkey}.{dim['name']} produced non-zero score "
-                f"({dim['score']}) on a product with no badges"
-            )
+
+    # Fit Score must still be bounded and numeric
+    assert isinstance(fs["total"], int)
+    assert 0 <= fs["total"] <= 100
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -802,7 +841,16 @@ def test_adversarial_product_missing_fit_score_field() -> None:
 
 def test_adversarial_empty_dimensions_list() -> None:
     """A product with `fit_score` present but every dimension missing
-    badges must produce a Fit Score of 0 (not crash, not negative).
+    badges must not crash and must stay bounded.
+
+    Under the 2026-04-07 posture rewrite, empty badges no longer produce
+    Fit Score = 0. Pillars 2 and 3 apply category-aware / org-type-aware
+    baselines (falling back to the neutral Unknown baseline when no
+    classification data is provided), so the honest score for an
+    empty-badge product is the sum of those baselines weighted by the
+    Technical Fit Multiplier. The contract is now "bounded, not
+    negative, never crash, and flag classification for review" — NOT
+    "must be zero."
     """
     import intelligence
     analysis = {
@@ -819,7 +867,17 @@ def test_adversarial_empty_dimensions_list() -> None:
         ],
     }
     intelligence.recompute_analysis(analysis)
-    assert analysis["products"][0]["fit_score"]["total"] == 0
+    product = analysis["products"][0]
+    fs = product["fit_score"]
+
+    # Fit Score stays bounded
+    assert isinstance(fs["total"], int)
+    assert 0 <= fs["total"] <= 100
+
+    # Classification review flag must fire — no classification data
+    # was provided, so both product_category and org_type fall back to
+    # Unknown.
+    assert product.get("classification_review_needed") is True
 
 
 def test_adversarial_duplicate_named_badges_merge() -> None:

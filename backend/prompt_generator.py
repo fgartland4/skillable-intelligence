@@ -269,6 +269,102 @@ def _format_category_priors() -> str:
     return "\n".join(lines)
 
 
+def _format_iv_master_category_list() -> str:
+    """Format the master category list for Pillar 2 baseline lookup.
+
+    Derived from `cfg.IV_CATEGORY_BASELINES.keys()` — the AUTHORITATIVE
+    source for the master category taxonomy.  Any add / rename in
+    scoring_config.py propagates to the AI prompt automatically.  This
+    is the Define-Once seam between the scoring math layer and the AI
+    prompt: they read from the same config data at generation time.
+    """
+    # Ordered buckets for readability — Unknown last, Social/Entertainment
+    # just before it.  Every other category is alphabetized within its
+    # natural group.  Order is cosmetic only; the AI may emit any key.
+    all_categories = list(cfg.IV_CATEGORY_BASELINES.keys())
+    unknown_label = cfg.UNKNOWN_CLASSIFICATION
+
+    # Split off the special fallbacks
+    special = [c for c in all_categories if c == unknown_label or "Social" in c]
+    regular = [c for c in all_categories if c not in special]
+
+    lines = [
+        "| Category | Use for |",
+        "|---|---|",
+    ]
+    for cat in regular:
+        lines.append(f"| `{cat}` | Products in the {cat} space |")
+    for cat in special:
+        if cat == unknown_label:
+            lines.append(f"| `{cat}` | Genuinely novel or multi-category products — triggers the classification review flag |")
+        else:
+            lines.append(f"| `{cat}` | Consumer social / entertainment platforms with no professional training market (Facebook, Instagram, TikTok, Netflix, Spotify) |")
+    return "\n".join(lines)
+
+
+def _format_org_type_values() -> str:
+    """Format the AI-emitted organization_type values.
+
+    The AI must emit one of these lowercase snake_case strings.  The math
+    layer normalizes to the human-readable baseline keys via
+    `cfg.ORG_TYPE_NORMALIZATION`.  Both directions of the mapping come
+    from the same config dict.
+    """
+    lines = [
+        "| `organization_type` (emit this) | Normalizes to | Example companies |",
+        "|---|---|---|",
+    ]
+    example_by_key = {
+        "ENTERPRISE SOFTWARE": "Microsoft, SAP, Oracle, Salesforce, Workday, Cisco",
+        "SOFTWARE": "Category-specific vendors (Trellix, Cohesity, Nutanix, Hyland)",
+        "TRAINING ORG": "CompTIA, SANS, EC-Council, Cybrary, ISACA, Skillsoft",
+        "ACADEMIC": "Universities, community colleges, WGU, SLU",
+        "SYSTEMS INTEGRATOR": "Deloitte, Accenture, Cognizant, TCS, Infosys",
+        "PROFESSIONAL SERVICES": "Consultancies with training practices",
+        "CONTENT DEVELOPMENT": "GP Strategies, el-Training firms",
+        "LMS PROVIDER": "Cornerstone, Docebo, SAP SuccessFactors Learning",
+        "TECH DISTRIBUTOR": "Ingram, CDW, Arrow, Synnex",
+    }
+    # Use insertion order of ORG_TYPE_NORMALIZATION to produce a stable table.
+    for raw, normalized in cfg.ORG_TYPE_NORMALIZATION.items():
+        example = example_by_key.get(normalized, "")
+        lines.append(f"| `{raw}` | {normalized} | {example} |")
+    return "\n".join(lines)
+
+
+def _format_cf_penalty_signals() -> str:
+    """Format all CF penalty signal categories as reference tables.
+
+    Derived from `cfg.CF_PENALTY_SIGNALS`.  The AI reads these tables to
+    know which negative signal categories are valid for each CF dimension
+    and what the exact penalty hit is.  Grouped by dimension for clarity.
+    """
+    # Group penalties by dimension key
+    by_dimension: dict[str, list[cfg.PenaltySignal]] = {}
+    for p in cfg.CF_PENALTY_SIGNALS:
+        by_dimension.setdefault(p.dimension, []).append(p)
+
+    # Friendly dimension labels for the headings — derived from cfg.PILLARS
+    dim_labels: dict[str, str] = {}
+    for pillar in cfg.PILLARS:
+        for dim in pillar.dimensions:
+            dim_labels[dim.name.lower().replace(" ", "_")] = dim.name
+
+    lines: list[str] = []
+    for dim_key, penalties in by_dimension.items():
+        label = dim_labels.get(dim_key, dim_key)
+        lines.append(f"**{label} penalties:**")
+        lines.append("")
+        lines.append("| signal_category | Color | Hit | Badge label | When to fire |")
+        lines.append("|---|---|---|---|---|")
+        for p in penalties:
+            lines.append(
+                f"| `{p.category}` | {p.color} | −{p.hit} | `{p.badge_name}` | {p.description} |"
+            )
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
 def _format_market_demand_ai_signals() -> str:
     """Format AI signal table from Market Demand dimension."""
     md_dim = cfg.PILLAR_INSTRUCTIONAL_VALUE.dimensions[3]  # Market Demand
@@ -675,6 +771,18 @@ def _build_placeholder_map() -> dict[str, str]:
         # Category priors and market demand
         "CATEGORY_PRIORS": _format_category_priors(),
         "MARKET_DEMAND_AI_SIGNALS": _format_market_demand_ai_signals(),
+
+        # Pillar 2 master category taxonomy (Define-Once from
+        # cfg.IV_CATEGORY_BASELINES)
+        "IV_MASTER_CATEGORY_LIST": _format_iv_master_category_list(),
+
+        # Pillar 3 organization type values (Define-Once from
+        # cfg.ORG_TYPE_NORMALIZATION)
+        "CF_ORG_TYPE_VALUES": _format_org_type_values(),
+
+        # Pillar 3 CF penalty signal tables (Define-Once from
+        # cfg.CF_PENALTY_SIGNALS)
+        "CF_PENALTY_SIGNALS": _format_cf_penalty_signals(),
 
         # Partner and platform lists
         "SKILLABLE_PARTNER_LMS_LIST": ", ".join(partner_lms_names),

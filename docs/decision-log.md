@@ -4,6 +4,102 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-07 overnight — Pillar 2 + Pillar 3 posture rewrite (default-positive baselines, penalty signals, cross-pillar compounding)
+
+A multi-hour rewrite of every Instructional Value and Customer Fit dimension — doc, code, prompt, tests, and dossier UX — driven by Frank's observation that Trellix GTI scored 12/40 on Product Complexity despite being a multi-VM threat-intelligence platform. The framework's default-pessimistic posture was punishing the right companies for the wrong reasons. This session replaces that posture with a default-positive model across Pillars 2 and 3.
+
+### The insight that triggered the rewrite — posture is wrong, not the math
+- **OBSERVED:** On the Trellix dossier, Product Complexity returned 12/40 while three visible green badges were present. Frank's reaction: "a multi-VM threat-intel platform should peg Product Complexity." The diagnosis: Pillar 2 and Pillar 3 dimensions started from zero and required the AI to *earn* credit through evidence. Missing evidence = zero score. That produced pessimistic outputs even for categories where instructional value is *definitional*.
+- **Frank's reframe:** "Most software has instructional value for the right audience. The question isn't 'is there evidence of instructional value' — it's 'is there any reason this product would NOT have instructional value.'" The framework should be **default-positive**. Missing evidence means baseline, not zero.
+- **Posture applied universally** to all four IV dimensions AND all four CF dimensions.
+
+### IV (Pillar 2) — category-aware baselines per dimension
+- **DECIDED:** Every IV dimension starts from a **baseline derived from the product's top-level category**. Findings move the score up (positive signals) or down (explicit negatives). Missing evidence means baseline.
+- **Master category list (locked 2026-04-07):** Cybersecurity · Cloud Infrastructure · Networking/SDN · Data Science & Engineering · Data & Analytics · DevOps · **AI Platforms & Tooling (new)** · Data Protection · **ERP (split from ERP/CRM)** · **CRM (split from ERP/CRM)** · Healthcare IT · FinTech · Legal Tech · Industrial/OT · Infrastructure/Virtualization · App Development · Collaboration · Content Management · **Social / Entertainment (replaces Consumer)** · Unknown (fallback).
+- **Retired:** `Simple SaaS` (SaaS is a delivery mechanism, not a content area). `Consumer` (replaced by `Social / Entertainment` for the true no-training-market case — QuickBooks and similar consumer-but-professional tools now belong in FinTech, not a consumer bucket).
+- **Calibration (per Frank's directive):** Cybersecurity / Cloud / Networking / Data Sci / Data Analytics / DevOps / AI Platforms at 32 Product Complexity (80% of cap 40). Data Protection at 30. ERP/CRM/Healthcare/FinTech/Legal/Industrial/Infra/App Dev at 28. Collaboration/Content Management at 24 (SharePoint has real depth but less than enterprise business systems). Social/Entertainment at 4. Unknown at 22.
+- **Mastery Stakes bumped aggressively** — Cybersecurity / Healthcare / FinTech / Legal / Data Sci / AI Platforms at 22 (88% of cap 25). ERP at 20, CRM at 16 (Frank's split: "if a contact record isn't updated, that's not the end of the world — CRM is less stakes than ERP by a long shot").
+- **Data Science reframed as high stakes:** "major organizations spend millions based on what the data says — garbage in, garbage out compounds everywhere downstream." Data Sci & Eng Mastery Stakes = 22.
+- **Market Demand reframed as specialist-population intersection:** Market Demand ≈ Product Complexity × Mastery Stakes × specialist population size. Cybersecurity / Cloud / AI Platforms at 17 (massive specialist populations who all need hands-on skills). CRM at 10 ("Salesforce Trailhead is big but per-company admin population is 3 out of 5,000 users"). Consumer / Social Ent at 0.
+- **Data structure:** `IV_CATEGORY_BASELINES: dict[str, dict[str, int]]` in `scoring_config.py` — single source of truth, consumed by both `scoring_math` and `prompt_generator`.
+
+### CF (Pillar 3) — organization-type baselines per dimension
+- **DECIDED:** Every CF dimension starts from a **baseline derived from the organization's type** (identified during discovery via the company classification). The org types: ENTERPRISE SOFTWARE, SOFTWARE (category-specific), TRAINING ORG, ACADEMIC, SYSTEMS INTEGRATOR, PROFESSIONAL SERVICES, CONTENT DEVELOPMENT, LMS PROVIDER, TECH DISTRIBUTOR, Unknown.
+- **Training Commitment — "heart for teaching" framing:** the dimension asks whether the organization genuinely cares that its learners become competent, not whether it has lab infrastructure (that's Build Capacity) or delivery mechanisms (Delivery Capacity). Breadth across audiences (employees + customers + partners) is a strong signal.
+- **Training Commitment baseline calibration:** TRAINING ORG at 23/25 (training IS their business). ACADEMIC at 22 ("teaching is the mission — top of the list on heart for teaching"). CONTENT DEVELOPMENT at 22. Enterprise Software / Professional Services at 18. LMS PROVIDER at 11 ("they host others' training, not commit to it themselves"). TECH DISTRIBUTOR at 9 ("trying to become value-added resellers with training, but historically not great at it").
+- **Build Capacity — middle baselines + cautious penalties (research asymmetry):** Build Capacity is inward-facing and hard to verify from outside the firewall. Baselines cluster in the middle (50-65% of cap 20) across org types because the AI can't reliably detect internal authoring capacity. **Penalties fire ONLY on positive evidence of outsourcing** — absence of evidence ≠ evidence of absence. Per Frank: "if you can't find IDs or curriculum developers, that's a weak signal; what you *can* find is 'we use Pluralsight' and that IS a signal."
+- **Delivery Capacity — start higher, penalize missing public signals aggressively:** Delivery Capacity is outward-facing. ATPs, events, course calendars, partner networks are all public. TRAINING ORG / LMS PROVIDER at 24. ENTERPRISE SOFTWARE / TECH DISTRIBUTOR at 22 (distribution reach IS core for distributors). Penalties fire aggressively when a software vendor has no visible partners / no classroom delivery / no independent training market.
+- **Organizational DNA — retire `Build vs Buy` as a badge:** the old `Build vs Buy` badge was a topic label whose color carried three different findings (Platform Buyer / Mixed / Builds In-House). That violated the finding-as-name discipline. **New canonicals:** `Platform Buyer` (positive), `Builds Everything` (negative penalty), `Multi-Type Partnerships`, `Strategic Alliance Program`, `Long RFP Process`, `Heavy Procurement`, `Hard to Engage`. Same retirement treatment for `Partner Ecosystem`, `Integration Maturity`, `Ease of Engagement` — all were topic labels, replaced with finding-named badges.
+- **Data structure:** `CF_ORG_BASELINES: dict[str, dict[str, int]]` in `scoring_config.py`.
+
+### Cross-Pillar Evidence Compounding — same fact fires in multiple pillars
+- **DECIDED:** Certain facts legitimately answer more than one question. The prompt template instructs the AI to emit corresponding badges in BOTH source and target pillars. Registered rules in `scoring_config.CROSS_PILLAR_RULES`:
+  - `Multi-VM Lab` (P1 Provisioning) → `multi_vm_architecture` (P2 Product Complexity) — same evidence, different question
+  - `Complex Topology` (P1 Provisioning) → `complex_networking` (P2 Product Complexity)
+  - `Large Lab` (P1 Provisioning) → `deep_configuration` or `state_persistence` (P2 Product Complexity)
+  - `atp_network` (P3 Delivery Capacity) → `atp_network` (P2 Market Demand) — "nobody becomes a training partner for a product with no skill demand"
+  - `cert_delivery_infrastructure` (P3) → `cert_ecosystem` (P2 Market Demand)
+  - `training_events_scale` (P3) → `flagship_event` (P2 Market Demand)
+  - `no_independent_training_market` (P3 Delivery Capacity negative) → `no_independent_training_market` (P2 Market Demand negative) — "no open-market courses means both weak delivery reach AND weak skill appetite"
+- **Why:** Frank's insight — "if you search Coursera for a product and find very few courses, that's a signal for Market Demand AND Delivery Capacity."
+
+### CF Penalty Signal Categories — diagnostic absences
+- **DECIDED:** Customer Fit is diagnosed as much by what's *missing* as what's present. New `PenaltySignal` dataclass + `CF_PENALTY_SIGNALS` tuple in `scoring_config.py`. The math layer detects penalty signal_category emissions and subtracts the configured hit from the dimension raw total.
+- **Delivery Capacity penalties (aggressive — outward-facing):** `no_training_partners` (red, -10), `no_classroom_delivery` (red, -10), `no_independent_training_market` (amber, -4), `single_region_only` (amber, -3), `gray_market_only` (amber, -2).
+- **Build Capacity penalties (cautious — inward-facing):** `confirmed_outsourcing` (amber, -3), `no_authoring_roles_found` (amber, -3), `review_only_smes` (amber, -2). Only fires on positive evidence of absence.
+- **Training Commitment penalties:** `no_customer_training` (amber, -4), `thin_cert_program` (amber, -3), `no_customer_success_team` (amber, -3), `minimal_training_language` (amber, -2).
+- **Organizational DNA penalties:** `long_rfp_process` (amber, -4), `heavy_procurement` (amber, -3), `build_everything_culture` (amber, -4), `closed_platform_culture` (amber, -3), `hard_to_engage` (red, -6).
+- **Badge naming discipline for penalties:** the badge label describes the customer's reality, NOT the research methodology. `No Independent Training` ✓, `Few Pluralsight Courses` ✗. The methodology lives in the evidence text.
+
+### Unknown Classification Review Flag
+- **DECIDED:** When the discovery phase fails to confidently classify a product's category OR an organization's type, the scoring context falls back to `UNKNOWN_CLASSIFICATION` (a single-source-of-truth constant in `scoring_config.py`). The math layer applies neutral Unknown baselines AND sets `classification_review_needed: true` on the product result. The dossier UX surfaces a small amber `⚠ Review Classification` indicator next to the product name.
+- **Why:** for products that genuinely span multiple categories (NVIDIA — networking + compute + AI) or are genuinely novel (quantum compute, emerging AI agent frameworks), silently forcing a classification is worse than flagging for human review. The flag tells the user "verify this classification before trusting the numbers."
+- **Fire condition:** fires when either `product_category` or `org_type` match `UNKNOWN_CLASSIFICATION`. Tracks through `scoring_math.compute_all` → `scorer._parse_product` → `Product.classification_review_needed` → `intelligence.recompute_analysis` → dossier template.
+
+### Seller's Briefcase prompt sharpening
+- **DECIDED:** All three briefcase section prompts (Key Technical Questions / Conversation Starters / Account Intelligence) are updated with three tweaks per Frank's directive:
+  1. **Every bullet starts with a specific action verb.** Not passive observations — concrete CTAs the seller can execute. "Determine whether...", "Ensure...", "Find the head of...", "Validate...", "Pitch...", "Pursue..."
+  2. **Non-empty guarantee.** Every section must return at least ONE bullet — never an empty list. If scoring evidence is thin, surface the single most important unknown/angle/signal. An empty box is a research failure, not a valid result.
+  3. **Account Intelligence priority order:** customer and partner events are HIGHEST priority. Already using a lab platform (Skillable or competitor) is EQUALLY critical — surface it immediately as an expansion / displacement / greenfield play. Then named training leadership, certification programs, strategic press signals.
+
+### Zero Hardcodes — Define-Once discipline audit + fixes
+- **Frank's directive:** "THERE SHOULD BE ZERO HARD-CODES in the system. We have proactively searched the entire codebase for them a couple times."
+- **Self-audit during the rewrite found 5 issues:**
+  1. `scoring_math.py` hardcoded dimension key sets → now derived from `cfg.PILLAR_INSTRUCTIONAL_VALUE` and `cfg.PILLAR_CUSTOMER_FIT` at module load time via `_dimension_keys_for_pillar(pillar)`.
+  2. Dead `_is_iv_or_cf_dimension` helper → removed.
+  3. `scorer.py` and `intelligence.py` each had their own `_build_scoring_context` — consolidated into `cfg.build_scoring_context(raw_org_type, raw_product_category)`. Single Define-Once seam.
+  4. `scoring_template.md` hardcoded the master category list, org type values, and CF penalty tables → replaced with `{IV_MASTER_CATEGORY_LIST}`, `{CF_ORG_TYPE_VALUES}`, `{CF_PENALTY_SIGNALS}` placeholders generated at runtime by `prompt_generator.py` from `cfg.IV_CATEGORY_BASELINES`, `cfg.ORG_TYPE_NORMALIZATION`, `cfg.CF_PENALTY_SIGNALS`. Vocabulary drift between code and AI prompt is now impossible.
+  5. `CATEGORY_PRIORS` vs `IV_CATEGORY_BASELINES` — confirmed `CATEGORY_PRIORS` is still used for ACV rate priors (separate purpose). Added explicit comment in `scoring_config.py` clarifying the distinction so future editors know both structures exist and why.
+- **New `UNKNOWN_CLASSIFICATION` constant** — single source of truth for the fallback label. Used as the dict key in `IV_CATEGORY_BASELINES` and `CF_ORG_BASELINES` and as the fallback value in `build_scoring_context`. No literal `"Unknown"` strings in the scoring code path.
+
+### Tests — 48 new + 2 updated for the new contract
+- **New test file:** `backend/tests/test_pillar_2_3_baselines.py` — 48 tests covering:
+  - `UNKNOWN_CLASSIFICATION` constant exists and is used as the fallback key
+  - Every category in `IV_CATEGORY_BASELINES` has all four IV dimensions
+  - Every org type in `CF_ORG_BASELINES` has all four CF dimensions
+  - No baseline exceeds its dimension cap
+  - Calibration spot-checks (Cybersecurity top tier, Social/Ent floor, AI Platforms present, ERP/CRM split)
+  - `ORG_TYPE_NORMALIZATION` targets are all valid baseline keys
+  - `build_scoring_context` normalization, Unknown fallback, empty-string handling
+  - IV baseline application (Cybersecurity PC baseline = 32, empty findings, capping behavior)
+  - CF baseline application (TRAINING ORG near-max, TECH DISTRIBUTOR lowest commitment)
+  - CF penalty subtraction (no_training_partners red -10, confirmed_outsourcing amber -3, multiple penalties stacking, penalty on wrong dimension does nothing)
+  - Cross-pillar rule registration (Multi-VM Lab, ATP network)
+  - Unknown classification review flag behavior in `compute_all` (fires on Unknown category, fires on Unknown org, false on clean classification, false without context)
+  - CF penalty signal structural sanity (valid dimensions, valid colors, positive hits)
+- **Updated tests:** `test_creative_invariants.py` — two tests (`test_recompute_against_a_minimal_synthetic_analysis`, `test_adversarial_empty_dimensions_list`) asserted the old "no badges → score 0" contract. Updated to the new default-positive contract: empty-badge products now score at the Unknown baseline and raise `classification_review_needed`.
+- **Full backend suite:** 145 passed / 0 failed / 46 skipped.
+
+### Documentation sync
+- **`docs/Badging-and-Scoring-Reference.md`:** Pillar 2 intro rewritten with posture + master category list; Pillar 3 intro rewritten with org-type baselines + research asymmetry; every IV and CF dimension section rewritten with the new format (question → What the Dimension Measures → What It Does NOT Measure → Posture → Category or Org-Type Baseline → Strength Tiers → Signal Categories → Badge Naming → Worked Examples → Typical Spread). Worked examples use current baseline values. Typical Spread tables recalibrated.
+- **`docs/Platform-Foundation.md`:** Pillar 2 and Pillar 3 sections updated with the new dimension questions, posture paragraphs, master category list reference, research asymmetry note, and retired `Build vs Buy` badge note.
+- **`docs/collaboration-with-frank.md`:** Added "Location and time zone" (Arizona / Pacific time) and "Session Rhythm" section ("never recommend splitting work across sessions based on how long it has run — Frank knows his own rhythm").
+
+### Version bump
+- **DECIDED:** `SCORING_LOGIC_VERSION = "2026-04-07.pillars-2-3-posture-rewrite"` — triggers smart cache invalidation per GP5 so existing analyses re-score against the new posture on next access.
+
+---
+
 ## Session: 2026-04-07 evening — Pillar 1 risk caps, CF unification, prompt sharpening, Phase F, Phase 4 tests
 
 A long late-night session covering scoring math refinements, prompt sharpening for Pillars 2/3 + the Sales Briefcase, the Customer Fit centralization (Phase F), and the creative test strategy (Category 11). Commits referenced inline.

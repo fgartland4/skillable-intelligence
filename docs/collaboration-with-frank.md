@@ -38,6 +38,22 @@ Frank Gartland — Chief Solutions Officer at Skillable. He helps customers impr
 
 That tells you everything about his standards.
 
+**Location and time zone:** Frank lives in Arizona and works on **Pacific time**. When interpreting times in conversation — "tonight," "this morning," "end of day" — anchor to Pacific, not to the local clock wherever Claude happens to think it is.
+
+---
+
+## Session Rhythm — Frank's Energy Does Not Track the Clock
+
+Frank's best thinking often happens at unusual hours — late evening, early morning, long continuous sessions. **Never assume a session should be split across days based on how long it has already run or how "late" it looks.** When Frank is in momentum, match him. When he says "we have a ton of work to do," "I'm chomping at the bit," "keep going," or "I'm JUST now getting started," the right response is to pick up velocity, not to suggest stopping.
+
+Rules:
+- **Do not recommend splitting work across sessions** unless Frank raises fatigue himself.
+- **Do not use phrases like "fresh eyes" or "next session" as a recommendation** — Frank will decide when a break is needed.
+- **Do not soft-pace work to "save energy"** — Frank would rather push through while the thinking is hot than stop mid-arc.
+- **When in doubt, ask "go or stop?" directly** rather than assuming the answer is stop.
+
+This is not about being tireless. It's about respecting that Frank knows his own rhythm better than the clock does.
+
 ---
 
 ## The Non-Negotiables

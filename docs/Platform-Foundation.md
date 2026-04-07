@@ -463,45 +463,57 @@ The gatekeeper. If this fails, nothing else matters. Measures whether Skillable 
 ### Pillar 2: Instructional Value (30%)
 *Does this product have instructional value for hands-on training?*
 
-The commercial case. Measures whether this product genuinely warrants hands-on lab experiences.
+The commercial case. Measures whether this product genuinely warrants hands-on lab experiences. For operational detail on tier values, signal categories, badge naming, baselines, and penalty signals, see `Badging-and-Scoring-Reference.md` → Pillar 2.
 
 | Dimension | Weight | Question |
 |---|---|---|
-| **Product Complexity** | 40 | Is this product hard enough to require hands-on practice? |
-| **Mastery Stakes** | 25 | How much does competence matter? |
-| **Lab Versatility** | 15 | What kinds of hands-on experiences can we build? |
-| **Market Demand** | 20 | Does the broader market validate the need? |
+| **Product Complexity** | 40 | Is this product hard enough that someone needs repeated hands-on practice to become competent? |
+| **Mastery Stakes** | 25 | What are the consequences of getting it wrong? |
+| **Lab Versatility** | 15 | What kinds of high-value hands-on skill development and skill validation experiences could be designed and delivered on Skillable for this product? |
+| **Market Demand** | 20 | How big is the worldwide population of people who need to learn this product at hands-on depth? |
 
-**AI as a market demand signal has two distinct forms:**
+**Posture — default-positive, category-aware baselines.** Every Pillar 2 dimension starts from a baseline derived from the product's top-level category. The baseline is the realistic starting point for a typical product in that category; findings move the score up (specific positive evidence) or down (explicit negative evidence like `Consumer Grade` or `Simple UX`). Missing evidence means baseline, not zero. The question shifts from *"is there evidence of instructional value?"* to *"is there any reason this product would NOT have instructional value?"*
 
-| Signal | What it means |
-|---|---|
-| **Learning AI-embedded features** | The product has AI features users need to learn — hands-on practice with AI-powered capabilities |
-| **Creating AI** | The product IS an AI platform — labs teach people to build, train, deploy AI models |
+**Category master list** (shared across all four Pillar 2 dimensions and with Pillar 3 for cross-pillar compounding): Cybersecurity · Cloud Infrastructure · Networking/SDN · Data Science & Engineering · Data & Analytics · DevOps · AI Platforms & Tooling · Data Protection · ERP · CRM · Healthcare IT · FinTech · Legal Tech · Industrial/OT · Infrastructure/Virtualization · App Development · Collaboration · Content Management · Social/Entertainment · Unknown (fallback with classification review flag). Social/Entertainment replaces the old ambiguous "Consumer" bucket and captures only true no-training-market cases (Facebook, Instagram, TikTok, Netflix, Spotify).
 
-**Lab Versatility** connects directly to Designer. The lab type signals identified here (Red vs Blue, Break/Fix, Simulated Attack, Team Handoff, etc.) feed into Designer as starting points for program recommendations. In Inspector, they provide conversational competence for sellers — specific, product-relevant talking points about what kinds of hands-on experiences are possible.
+**Market Demand is derivative.** Market Demand approximates Product Complexity × Mastery Stakes × Specialist Population Size. Complex products with high stakes AND a large specialist population (cybersecurity professionals, cloud engineers, AI developers) score at the top. Popular consumer products with no specialist training population score near zero. Salesforce admins are a real population but smaller per company than cyber pros, so CRM trails cybersecurity in Market Demand.
+
+**Cross-pillar evidence compounding.** Certain facts legitimately fire in multiple pillars. `Multi-VM Lab` in Pillar 1 Provisioning also fires `multi_vm_architecture` in Pillar 2 Product Complexity. `~500 ATPs globally` in Pillar 3 Delivery Capacity also fires as positive Market Demand evidence (partners don't exist without skill demand). `Active cert exam` fires in both Delivery Capacity and Market Demand. The prompt template instructs the AI to cross-reference evidence between pillars at badge-emission time.
+
+**Lab Versatility** connects directly to Designer. The lab type signals identified here (Red vs Blue, Break/Fix, Simulated Attack, Team Handoff, Incident Response, CTF, etc.) feed into Designer as starting points for program recommendations. In Inspector, they provide conversational competence for sellers — specific, product-relevant talking points about what kinds of hands-on experiences could be designed and delivered on Skillable.
 
 ---
 
 ### Pillar 3: Customer Fit (30%)
 *Is this organization a good match for Skillable?*
 
-Everything about the organization in one Pillar. Combines training commitment, organizational character, delivery capacity, and build capability. 30% of the Fit Score — meaningful but never overriding the product truth.
+Everything about the organization in one Pillar. Combines training commitment, build capacity, delivery capacity, and organizational DNA. 30% of the Fit Score — meaningful but never overriding the product truth. For operational detail on tier values, signal categories, badge naming, baselines, and penalty signals, see `Badging-and-Scoring-Reference.md` → Pillar 3.
 
 | Dimension | Weight | Question |
 |---|---|---|
-| **Training Commitment** | 25 | Have they invested in training? What's the evidence? |
-| **Organizational DNA** | 25 | Are they the kind of company that partners and builds training programs? |
-| **Delivery Capacity** | 30 | Can they get labs to learners at scale? |
-| **Build Capacity** | 20 | Can they create the labs? |
+| **Training Commitment** | 25 | Are you committed to helping your people become genuinely competent — not just checking a training box? |
+| **Build Capacity** | 20 | Are you tailoring what you need, or just buying generic training? Are you actually building the hands-on content for your audience? |
+| **Delivery Capacity** | 30 | Once labs exist — whether you built them or Skillable ProServ did — does your organization have the infrastructure and network to get them to learners at scale? |
+| **Organizational DNA** | 25 | Are you the kind of company that partners strategically with outside platforms to build strategic assets — or are you a "we build everything here" culture? |
 
-**Training Commitment** badges are evidence of organizational commitment across three motivation categories (product adoption, skill development, compliance & risk). The three motivations also serve as a **framing variable** that shapes how recommendations are communicated — not just a score, a conversation shaper.
+**Posture — default-realistic, organization-type baselines.** Every Pillar 3 dimension starts from a baseline derived from the organization's type (identified during discovery via the company classification: ENTERPRISE SOFTWARE, SOFTWARE category-specific, TRAINING ORG, ACADEMIC, SYSTEMS INTEGRATOR, PROFESSIONAL SERVICES, CONTENT DEVELOPMENT, LMS PROVIDER, TECH DISTRIBUTOR, Unknown). The baseline reflects the realistic starting point for a typical organization of that type; findings move the score up (positive evidence) or down (penalty signals on explicit absence).
 
-**Organizational DNA** is the character of the organization — do they partner or build in-house? Are they easy or hard to do business with? Badges are variable-driven: Partner Ecosystem, Build vs Buy, Integration Maturity, Ease of Engagement.
+**Research asymmetry is baked into the penalty design.** Not all CF dimensions are equally verifiable from outside the firewall:
 
-**Delivery Capacity** is weighted highest within Customer Fit because having labs = cost, delivering labs = value. Without delivery channels, labs never reach learners and there is no business impact.
+| Dimension | Verifiability | Penalty philosophy |
+|---|---|---|
+| **Delivery Capacity** | Easy (outward-facing — ATPs, events, course calendars, cert infrastructure are public) | **Penalize aggressively** when signals are absent |
+| **Build Capacity** | Hard (inward-facing — internal authoring roles, content teams are mostly invisible) | **Penalize cautiously** — only when research finds direct positive evidence of outsourcing, not for absence of evidence |
+| **Training Commitment** | Moderate | Penalize on missing customer-facing signals, be cautious about employee-only evidence |
+| **Organizational DNA** | Moderate | Penalize confidently on well-documented signals (RFP processes, build-everything culture), cautiously on inferred signals |
 
-**Build Capacity** is weighted lowest because Skillable Professional Services or partners can fill this gap. Low Build Capacity + strong Delivery Capacity = **Professional Services Opportunity**.
+**Training Commitment** is about *philosophical investment* — does the organization have a heart for teaching? It's not about lab infrastructure (Build Capacity) or delivery mechanisms (Delivery Capacity). Strong signals include customer enablement teams, active certification programs, and breadth across audiences (employees + customers + partners). The multi-audience signal is particularly important — an organization that trains all three audiences shows the deepest commitment.
+
+**Build Capacity** is about whether the organization tailors its own training or buys generic off-the-shelf content. The strongest signal is `DIY Labs` — already building hands-on labs today. ProServ can fill a Build Capacity gap, which is why Build Capacity is weighted lowest (20). Baselines cluster centrally because internal capacity is hard to verify from outside.
+
+**Delivery Capacity** is weighted highest (30) because of a share-of-wallet reality — having labs = cost, delivering labs to learners = value. Without delivery infrastructure, labs are a cost center that never reaches learners. Geographic reach matters (Indiana < US < Western Hemisphere < Global), as do ATP networks, flagship events, and certification delivery infrastructure. **Low Build Capacity + strong Delivery Capacity + strong Training Commitment = Professional Services Opportunity** — Skillable can build for them.
+
+**Organizational DNA** measures the cultural pattern around partnerships — **does this organization see outside platforms as strategic assets or as procurement line items to squeeze?** The old `Build vs Buy` badge is retired (it was a topic label whose color carried the finding — a GP4 violation). The new canonicals are `Platform Buyer`, `Builds Everything`, `Multi-Type Partnerships`, `Strategic Alliance Program`, `Long RFP Process`, `Heavy Procurement`, `Hard to Engage`, and similar finding-named badges. IBM-style "we build everything here" culture is a real penalty. Companies that use Salesforce, Workday, and Okta rather than building their own are signaling platform-buyer DNA.
 
 ---
 

@@ -1623,33 +1623,434 @@ CEILING_FLAGS: dict[str, dict] = {
 # ═══════════════════════════════════════════════════════════════════════════════
 # CATEGORY PRIORS
 #
-# Product categories and their default demand ratings.  The category sets
-# the floor for Market Demand scoring.  Company-specific signals come first,
-# product signals second, category as the fallback.
+# Product categories and their default demand ratings.
+#
+# ╔═══════════════════════════════════════════════════════════════════════╗
+# ║  RELATIONSHIP TO IV_CATEGORY_BASELINES — read this before editing     ║
+# ╠═══════════════════════════════════════════════════════════════════════╣
+# ║                                                                       ║
+# ║  CATEGORY_PRIORS has a DIFFERENT purpose than IV_CATEGORY_BASELINES:  ║
+# ║                                                                       ║
+# ║    CATEGORY_PRIORS → Market Demand ACV RATE PRIORS                    ║
+# ║      The `points` field (8 / 4 / 0) is a rough demand hint fed to     ║
+# ║      the AI prompt via the {CATEGORY_PRIORS} placeholder.  It         ║
+# ║      guides the AI's per-motion population / adoption estimates       ║
+# ║      for the ACV calculation.  It does NOT drive the scoring math.   ║
+# ║                                                                       ║
+# ║    IV_CATEGORY_BASELINES → SCORING MATH BASELINES                     ║
+# ║      Per-dimension baselines (Product Complexity, Mastery Stakes,     ║
+# ║      Lab Versatility, Market Demand) applied by scoring_math.py       ║
+# ║      BEFORE the AI's findings are added.  This is the default-        ║
+# ║      positive posture Frank directed on 2026-04-07.                   ║
+# ║                                                                       ║
+# ║  Market Demand shows up in BOTH structures, at different scales:     ║
+# ║    - CATEGORY_PRIORS: 0 / 4 / 8 (demand hint for ACV consumption)     ║
+# ║    - IV_CATEGORY_BASELINES.market_demand: 0-17 (scoring baseline)     ║
+# ║                                                                       ║
+# ║  When you add or rename a category, update BOTH structures.  The      ║
+# ║  category names should stay in sync.                                  ║
+# ╚═══════════════════════════════════════════════════════════════════════╝
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CATEGORY_PRIORS: tuple[CategoryPrior, ...] = (
-    # High demand (+8)
+    # High demand (+8) — large global specialist populations, active cert ecosystems
     CategoryPrior("Cybersecurity", 8, "high"),
     CategoryPrior("Cloud Infrastructure", 8, "high"),
     CategoryPrior("Networking/SDN", 8, "high"),
     CategoryPrior("Data Science & Engineering", 8, "high"),
     CategoryPrior("Data & Analytics", 8, "high"),
     CategoryPrior("DevOps", 8, "high"),
+    CategoryPrior("AI Platforms & Tooling", 8, "high"),
     # Moderate demand (+4)
     CategoryPrior("Data Protection", 4, "moderate"),
     CategoryPrior("Infrastructure/Virtualization", 4, "moderate"),
     CategoryPrior("App Development", 4, "moderate"),
-    CategoryPrior("ERP/CRM", 4, "moderate"),
+    CategoryPrior("ERP", 4, "moderate"),
+    CategoryPrior("CRM", 4, "moderate"),
     CategoryPrior("Healthcare IT", 4, "moderate"),
     CategoryPrior("FinTech", 4, "moderate"),
     CategoryPrior("Collaboration", 4, "moderate"),
     CategoryPrior("Content Management", 4, "moderate"),
     CategoryPrior("Legal Tech", 4, "moderate"),
     CategoryPrior("Industrial/OT", 4, "moderate"),
-    # Low demand (+0)
-    CategoryPrior("Simple SaaS", 0, "low"),
-    CategoryPrior("Consumer", 0, "low"),
+    # Low demand (+0) — no professional training market
+    CategoryPrior("Social / Entertainment", 0, "low"),
+)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UNKNOWN CLASSIFICATION — canonical fallback label
+#
+# Single source of truth for the "Unknown" fallback used in both IV category
+# baselines and CF organization-type baselines.  Every module that needs to
+# reference the Unknown fallback reads this constant — NO hardcoded "Unknown"
+# literal anywhere else in the codebase.  Define-Once.
+#
+# When the discovery phase fails to classify a product's category or a
+# company's organization type, the scoring context falls back to this label.
+# The math layer applies a neutral baseline for Unknown and sets
+# `classification_review_needed = True` on the product result so the dossier
+# UX surfaces a "Review Classification" flag for human follow-up.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+UNKNOWN_CLASSIFICATION = "Unknown"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PILLAR 2 / INSTRUCTIONAL VALUE — CATEGORY-AWARE BASELINES
+#
+# Each IV dimension starts from a baseline derived from the product's
+# top-level category.  Findings move the score up (positive signals) or down
+# (explicit negatives like `Consumer Grade`).  Missing evidence means
+# baseline, not zero.  Default-positive posture.
+#
+# Baseline values are in dimension-native units (Product Complexity cap 40,
+# Mastery Stakes cap 25, Lab Versatility cap 15, Market Demand cap 20).
+#
+# Per Frank's calibration 2026-04-07:
+#   - Cybersecurity-tier bumped to 32 (Product Complexity 80% cap)
+#   - Data Protection at 30 (special high)
+#   - ERP/CRM/Healthcare/FinTech/Legal/Industrial/Infra/App Dev at 28
+#   - Collaboration/Content Management at 24 (SharePoint-level)
+#   - Social/Entertainment floor at 4 (no professional training market)
+#
+# Canonical source: docs/Badging-and-Scoring-Reference.md Pillar 2 sections.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Shape: category_name -> {dimension_key: baseline}
+# The UNKNOWN_CLASSIFICATION constant is used as the fallback dict key so
+# callers reference the canonical label without re-typing the literal.
+IV_CATEGORY_BASELINES: dict[str, dict[str, int]] = {
+    # Top tier — technical / specialist categories with deep multi-system work
+    "Cybersecurity": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 17},
+    "Cloud Infrastructure": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 17},
+    "Networking/SDN": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 16},
+    "Data Science & Engineering": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 13, "market_demand": 15},
+    "Data & Analytics": {"product_complexity": 32, "mastery_stakes": 18, "lab_versatility": 12, "market_demand": 14},
+    "DevOps": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 16},
+    "AI Platforms & Tooling": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 17},
+
+    # Very high
+    "Data Protection": {"product_complexity": 30, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 11},
+
+    # High — enterprise business systems with real depth and stakes
+    "ERP": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 12},
+    "CRM": {"product_complexity": 28, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 10},
+    "Healthcare IT": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 12},
+    "FinTech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 12},
+    "Legal Tech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 11, "market_demand": 11},
+    "Industrial/OT": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 12},
+    "Infrastructure/Virtualization": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 12},
+    "App Development": {"product_complexity": 28, "mastery_stakes": 14, "lab_versatility": 12, "market_demand": 13},
+
+    # Moderate — collaboration and content with real but bounded depth
+    "Collaboration": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 10},
+    "Content Management": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 10},
+
+    # No professional training market
+    "Social / Entertainment": {"product_complexity": 4, "mastery_stakes": 2, "lab_versatility": 1, "market_demand": 0},
+
+    # Neutral fallback — flagged for classification review in UX.
+    # Keyed by the canonical UNKNOWN_CLASSIFICATION constant (Define-Once).
+    UNKNOWN_CLASSIFICATION: {"product_complexity": 22, "mastery_stakes": 14, "lab_versatility": 11, "market_demand": 11},
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PILLAR 3 / CUSTOMER FIT — ORGANIZATION-TYPE BASELINES
+#
+# Each CF dimension starts from a baseline derived from the organization's
+# type, identified during discovery via the company classification.  Positive
+# findings raise the score; negative findings (penalties) lower it.  Missing
+# evidence means baseline.
+#
+# Baseline values are in dimension-native units (Training Commitment cap 25,
+# Build Capacity cap 20, Delivery Capacity cap 30, Organizational DNA cap 25).
+#
+# Research asymmetry:
+#   - Delivery Capacity is outward-facing, easy to verify, penalize aggressively
+#   - Build Capacity is inward-facing, hard to verify, penalize cautiously
+#     (only on positive evidence of outsourcing, not on absence of evidence)
+#   - Training Commitment and Organizational DNA fall in between
+#
+# Per Frank's calibration 2026-04-07:
+#   - TRAINING ORG near-max on commitment, strong on delivery
+#   - ACADEMIC and CONTENT DEVELOPMENT top tier on commitment
+#   - LMS PROVIDER lower on commitment (they host, not teach themselves)
+#   - TECH DISTRIBUTOR lowest on commitment (historically weak at training)
+#   - Build Capacity baselines cluster in the middle (hard to verify)
+#   - Delivery Capacity baselines lean higher (start higher, penalize absence)
+#   - Organizational DNA baselines lean higher (most orgs partner in some form)
+#
+# Canonical source: docs/Badging-and-Scoring-Reference.md Pillar 3 sections.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Maps the AI-emitted organization_type strings (lowercase snake_case) to
+# the CF_ORG_BASELINES keys (uppercase human-readable).  The AI output format
+# comes from the scoring_template.md prompt; the baselines use the format
+# that renders cleanly in docs and the dossier UX.  This is the Define-Once
+# seam — both scorer.py and intelligence.py normalize via this dict.
+# UNKNOWN_CLASSIFICATION is defined at the top of the baselines section
+# (before IV_CATEGORY_BASELINES) so both baseline dicts can reference it
+# as a dict key.  Single source of truth — see that definition for full docs.
+
+ORG_TYPE_NORMALIZATION: dict[str, str] = {
+    "software_company": "SOFTWARE",
+    "enterprise_software": "ENTERPRISE SOFTWARE",
+    "training_organization": "TRAINING ORG",
+    "academic_institution": "ACADEMIC",
+    "systems_integrator": "SYSTEMS INTEGRATOR",
+    "technology_distributor": "TECH DISTRIBUTOR",
+    "professional_services": "PROFESSIONAL SERVICES",
+    "content_development": "CONTENT DEVELOPMENT",
+    "lms_company": "LMS PROVIDER",
+    "lms_provider": "LMS PROVIDER",
+}
+
+
+def build_scoring_context(raw_org_type: str | None, raw_product_category: str | None) -> dict:
+    """Build the scoring context dict used by `scoring_math.compute_all`.
+
+    Normalizes raw AI-emitted values into the canonical baseline lookup keys.
+    Missing or unrecognized values fall back to `UNKNOWN_CLASSIFICATION`,
+    which both applies the neutral fallback baseline and raises the
+    classification review flag.
+
+    This is the Define-Once seam for scoring context construction — both
+    `scorer._parse_product` (direct AI output path) and
+    `intelligence.recompute_analysis` (cached analysis path) MUST use this
+    helper so the two scoring paths produce identical context dicts.
+
+    Args:
+        raw_org_type: AI-emitted organization_type string (e.g., "software_company")
+                      or None.  Normalized via ORG_TYPE_NORMALIZATION.
+        raw_product_category: AI-emitted product_category string (e.g.,
+                              "Cybersecurity") or None.  Kept as-is (the
+                              master category list uses human-readable
+                              casing).
+
+    Returns:
+        A dict with shape:
+          {"product_category": str, "org_type": str}
+        Both fields are always populated — UNKNOWN_CLASSIFICATION is used
+        as the fallback.  No hardcoded literals.
+    """
+    category = (raw_product_category or "").strip() or UNKNOWN_CLASSIFICATION
+
+    normalized_org = ORG_TYPE_NORMALIZATION.get(
+        (raw_org_type or "").strip().lower(), ""
+    ) or UNKNOWN_CLASSIFICATION
+
+    return {
+        "product_category": category,
+        "org_type": normalized_org,
+    }
+
+
+# Shape: org_type -> {dimension_key: baseline}
+CF_ORG_BASELINES: dict[str, dict[str, int]] = {
+    "TRAINING ORG": {"training_commitment": 23, "build_capacity": 12, "delivery_capacity": 24, "organizational_dna": 19},
+    "ACADEMIC": {"training_commitment": 22, "build_capacity": 12, "delivery_capacity": 16, "organizational_dna": 15},
+    "CONTENT DEVELOPMENT": {"training_commitment": 22, "build_capacity": 14, "delivery_capacity": 14, "organizational_dna": 19},
+    "ENTERPRISE SOFTWARE": {"training_commitment": 18, "build_capacity": 11, "delivery_capacity": 22, "organizational_dna": 17},
+    "PROFESSIONAL SERVICES": {"training_commitment": 18, "build_capacity": 12, "delivery_capacity": 18, "organizational_dna": 18},
+    "SOFTWARE": {"training_commitment": 16, "build_capacity": 10, "delivery_capacity": 16, "organizational_dna": 16},
+    "SYSTEMS INTEGRATOR": {"training_commitment": 16, "build_capacity": 11, "delivery_capacity": 20, "organizational_dna": 18},
+    "LMS PROVIDER": {"training_commitment": 11, "build_capacity": 9, "delivery_capacity": 24, "organizational_dna": 16},
+    "TECH DISTRIBUTOR": {"training_commitment": 9, "build_capacity": 9, "delivery_capacity": 22, "organizational_dna": 17},
+    # Keyed by the canonical UNKNOWN_CLASSIFICATION constant (Define-Once).
+    UNKNOWN_CLASSIFICATION: {"training_commitment": 13, "build_capacity": 10, "delivery_capacity": 16, "organizational_dna": 15},
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PENALTY SIGNAL CATEGORIES — PILLAR 3 CUSTOMER FIT
+#
+# Customer Fit is diagnosed as much by what's missing as by what's present.
+# These penalty signal categories define the negative findings the AI can
+# emit for each CF dimension.  The scoring math applies the hit as a
+# subtraction from (baseline + positive findings), flooring at 0.
+#
+# Research asymmetry is encoded here: Delivery Capacity penalties fire
+# aggressively on absence of evidence; Build Capacity penalties fire only on
+# positive evidence of outsourcing.  The prompt template teaches the AI this
+# distinction explicitly.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class PenaltySignal:
+    """A negative finding category for Customer Fit dimensions.
+
+    The AI emits these when it finds positive evidence of a negative
+    condition (e.g., confirmed outsourcing) or, for outward-facing
+    dimensions, when research fails to find evidence that should exist
+    (e.g., no partner network for a scaled software vendor).
+    """
+    category: str        # signal_category key (e.g., "no_training_partners")
+    dimension: str       # dimension key (e.g., "delivery_capacity")
+    color: str           # "amber" or "red"
+    hit: int             # Points subtracted (positive integer — the math layer negates)
+    badge_name: str      # Finding-as-name badge label shown to the user
+    description: str     # Plain-English description of when this fires
+
+
+# Delivery Capacity penalties — outward-facing, penalize aggressively on absence
+DELIVERY_CAPACITY_PENALTIES: tuple[PenaltySignal, ...] = (
+    PenaltySignal(
+        "no_training_partners", "delivery_capacity", "red", 10, "No Training Partners",
+        "Software vendor with zero ATP / reseller / channel training network where partners should exist. Hard signal the vendor hasn't invested in delivery.",
+    ),
+    PenaltySignal(
+        "no_classroom_delivery", "delivery_capacity", "red", 10, "No Classroom Delivery",
+        "Zero evidence of instructor-led training, bootcamps, workshops, or a published course calendar. Nobody teaches the product.",
+    ),
+    PenaltySignal(
+        "no_independent_training_market", "delivery_capacity", "amber", 4, "No Independent Training",
+        "The open market hasn't built training on this product. Evidence: fewer than 3 courses found on Coursera, Pluralsight, LinkedIn Learning, or Udemy combined. Cross-pillar signal — also fires as Market Demand negative.",
+    ),
+    PenaltySignal(
+        "single_region_only", "delivery_capacity", "amber", 3, "Single-Region Reach",
+        "Delivery presence limited to one state or country. Real ceiling on reach.",
+    ),
+    PenaltySignal(
+        "gray_market_only", "delivery_capacity", "amber", 2, "Gray Market Only",
+        "Training exists only from unaffiliated third parties. The vendor hasn't invested in delivery.",
+    ),
+)
+
+# Build Capacity penalties — inward-facing, penalize CAUTIOUSLY (positive evidence only)
+BUILD_CAPACITY_PENALTIES: tuple[PenaltySignal, ...] = (
+    PenaltySignal(
+        "confirmed_outsourcing", "build_capacity", "amber", 3, "Outsourced Content",
+        "Research finds explicit statements or case studies documenting that the organization buys off-the-shelf content (Pluralsight, Udemy, generic e-learning vendors) and has no internal authoring mandate. Only fires on positive evidence of outsourcing.",
+    ),
+    PenaltySignal(
+        "no_authoring_roles_found", "build_capacity", "amber", 3, "No Content Authors",
+        "After thorough LinkedIn/job-posting/company-page research, zero evidence of Instructional Designer, Curriculum Developer, Lab Author, or Tech Writer roles. Combined with explicit buying language.",
+    ),
+    PenaltySignal(
+        "review_only_smes", "build_capacity", "amber", 2, "Review-Only SMEs",
+        "SMEs mentioned only in review / accuracy-validation roles, never as authors.",
+    ),
+)
+
+# Training Commitment penalties
+TRAINING_COMMITMENT_PENALTIES: tuple[PenaltySignal, ...] = (
+    PenaltySignal(
+        "no_customer_training", "training_commitment", "amber", 4, "No Customer Training",
+        "Research finds zero evidence of training offered to customers — no customer courses, no enablement programs, no cert paths, no published training calendar for external learners.",
+    ),
+    PenaltySignal(
+        "thin_cert_program", "training_commitment", "amber", 3, "Thin Cert Program",
+        "Certification program is absent or present only as one or two nominal offerings with no tested exam pass rates or career value.",
+    ),
+    PenaltySignal(
+        "no_customer_success_team", "training_commitment", "amber", 3, "No Customer Success Team",
+        "No named customer success, customer enablement, or customer onboarding team. Training is not organizationally owned.",
+    ),
+    PenaltySignal(
+        "minimal_training_language", "training_commitment", "amber", 2, "Training Not Prioritized",
+        "Vendor website, marketing, and investor materials barely mention training, enablement, certification, or customer success.",
+    ),
+)
+
+# Organizational DNA penalties
+ORGANIZATIONAL_DNA_PENALTIES: tuple[PenaltySignal, ...] = (
+    PenaltySignal(
+        "long_rfp_process", "organizational_dna", "amber", 4, "Long RFP Process",
+        "Documented 9+ month vendor engagement cycles, exhaustive RFP committees, multiple approval gates. Direct evidence from press, case studies, or vendor complaints.",
+    ),
+    PenaltySignal(
+        "heavy_procurement", "organizational_dna", "amber", 3, "Heavy Procurement",
+        "Large vendor management bureaucracy; vendors treated as cost centers to extract value from rather than strategic relationships.",
+    ),
+    PenaltySignal(
+        "build_everything_culture", "organizational_dna", "amber", 4, "Builds Everything",
+        "Explicit 'we build it ourselves' posture documented (IBM pattern). Outside platforms treated as inferior by default.",
+    ),
+    PenaltySignal(
+        "closed_platform_culture", "organizational_dna", "amber", 3, "Closed Platform",
+        "Proprietary everything — no public APIs, no ecosystem investment, no developer community.",
+    ),
+    PenaltySignal(
+        "hard_to_engage", "organizational_dna", "red", 6, "Hard to Engage",
+        "Documented hostility or legendary bureaucratic slowness toward outside partners. Direct evidence required.",
+    ),
+)
+
+# All CF penalty signals, consolidated for easy lookup
+CF_PENALTY_SIGNALS: tuple[PenaltySignal, ...] = (
+    DELIVERY_CAPACITY_PENALTIES
+    + BUILD_CAPACITY_PENALTIES
+    + TRAINING_COMMITMENT_PENALTIES
+    + ORGANIZATIONAL_DNA_PENALTIES
+)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CROSS-PILLAR EVIDENCE COMPOUNDING
+#
+# Certain facts legitimately fire in multiple pillars.  The prompt template
+# teaches the AI to cross-reference evidence between pillars at badge-
+# emission time.  This list is the single source of truth for which signals
+# propagate across pillars.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True)
+class CrossPillarRule:
+    """A rule specifying that a finding in one pillar should also credit
+    another pillar's dimension.
+
+    The AI is instructed to emit a corresponding badge in the second pillar
+    when it emits a badge matching the source signal in the first pillar.
+    """
+    source_pillar: str           # e.g., "pillar_1"
+    source_dimension: str        # e.g., "provisioning"
+    source_badge: str            # e.g., "Multi-VM Lab"
+    target_pillar: str           # e.g., "pillar_2"
+    target_dimension: str        # e.g., "product_complexity"
+    target_signal_category: str  # e.g., "multi_vm_architecture"
+    rationale: str               # Why this cross-credit is legitimate
+
+
+CROSS_PILLAR_RULES: tuple[CrossPillarRule, ...] = (
+    # Pillar 1 -> Pillar 2 Product Complexity
+    CrossPillarRule(
+        "pillar_1", "provisioning", "Multi-VM Lab",
+        "pillar_2", "product_complexity", "multi_vm_architecture",
+        "A product that requires multiple VMs working together is inherently more complex to operate and teach.",
+    ),
+    CrossPillarRule(
+        "pillar_1", "provisioning", "Complex Topology",
+        "pillar_2", "product_complexity", "complex_networking",
+        "Real network complexity (routers, switches, segmentation) is learned only through manipulation.",
+    ),
+    CrossPillarRule(
+        "pillar_1", "provisioning", "Large Lab",
+        "pillar_2", "product_complexity", "state_persistence",
+        "Large stateful environments imply configuration depth and persistent-state complexity.",
+    ),
+    # Pillar 3 -> Pillar 2 Market Demand (positive compounding)
+    CrossPillarRule(
+        "pillar_3", "delivery_capacity", "atp_network",
+        "pillar_2", "market_demand", "atp_network",
+        "Nobody becomes a training partner for a product with no skill demand. ATP networks prove Market Demand exists.",
+    ),
+    CrossPillarRule(
+        "pillar_3", "delivery_capacity", "cert_delivery_infrastructure",
+        "pillar_2", "market_demand", "cert_ecosystem",
+        "Active certification delivery implies active learner appetite for the cert.",
+    ),
+    CrossPillarRule(
+        "pillar_3", "delivery_capacity", "training_events_scale",
+        "pillar_2", "market_demand", "flagship_event",
+        "Flagship training events don't scale to 30K attendees without real skill demand.",
+    ),
+    # Pillar 3 -> Pillar 2 Market Demand (negative compounding)
+    CrossPillarRule(
+        "pillar_3", "delivery_capacity", "no_independent_training_market",
+        "pillar_2", "market_demand", "no_independent_training_market",
+        "If the open market hasn't built courses on the product, that's both a delivery reach problem AND a skill demand problem.",
+    ),
 )
 
 
@@ -2143,8 +2544,14 @@ PRODUCT_SUBCATEGORIES = {
         "CI/CD", "Infrastructure as Code", "Monitoring & Observability",
         "Configuration Management",
     ),
-    "ERP/CRM": (
+    "AI Platforms & Tooling": (
+        "LLM Platforms", "Agent Frameworks", "Vector Databases",
+        "LLMOps", "Fine-Tuning Platforms", "AI Dev Tools",
+    ),
+    "ERP": (
         "Financial Management", "HR & HCM", "Supply Chain",
+    ),
+    "CRM": (
         "Sales & Marketing", "Customer Service",
     ),
 }
@@ -2204,7 +2611,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.diligent-five-fixes"
+SCORING_LOGIC_VERSION = "2026-04-07.pillars-2-3-posture-rewrite"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

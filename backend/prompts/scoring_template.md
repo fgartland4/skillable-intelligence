@@ -174,6 +174,22 @@ Each bullet MUST use a canonical badge label from the locked vocabulary, followe
 
 The commercial case. Measures whether this product genuinely warrants hands-on lab experiences.
 
+### Posture — default-positive, category-aware baselines
+
+**Most software has instructional value for the right audience.** Microsoft Excel has instructional value for financial analysts. Outlook has instructional value for power users. Cybersecurity, data science, cloud, DevOps, networking, specialist business software — for the right learner, hands-on practice is almost always valuable. The framework reflects this reality by **starting each Pillar 2 dimension from a baseline derived from the product's top-level category**, then moving the score up or down based on specific findings.
+
+**The question you are answering is NOT** *"is there evidence this product has instructional value?"* **The question IS** *"is there any reason this product would NOT have instructional value for its typical audience?"*
+
+Baselines are applied by the math layer automatically. Your job: emit the `product_category` field (top-level) so the baseline lookup fires, and emit positive findings that lift the score and negative findings (`Consumer Grade`, `Simple UX`, `Wizard Driven`) that push it down. Missing evidence means baseline — do not penalize silence.
+
+**You MUST emit a `product_category` field in the output for EVERY product.** Pick the single best-fit top-level category from the master list. When the product genuinely spans categories (e.g., NVIDIA spans networking + cloud + AI), pick the dominant category for this specific product and note the ambiguity in evidence. Unrecognized or genuinely novel products → emit `product_category: "Unknown"` (the math layer applies a neutral fallback baseline and the dossier UX surfaces a "Review Classification" flag for human review).
+
+**Master category list** (use EXACTLY these strings — case and punctuation matter for the baseline lookup):
+
+{IV_MASTER_CATEGORY_LIST}
+
+**Do NOT use**: `Simple SaaS` (retired — SaaS is a delivery mechanism, not a content area), `Consumer` (retired — replaced by `Social / Entertainment` for the no-training-market case; QuickBooks and similar consumer-but-professional tools belong in `FinTech`).
+
 ### Pillar 2 uses the RUBRIC model — read this carefully
 
 Pillar 2 dimensions measure **interpretive subject-matter complexity**, which varies by domain. Networking, cybersecurity, legal, banking, healthcare each have their own terminology. Forcing canonical badge names here loses the domain-specific nuance that makes badges useful to the seller.
@@ -183,10 +199,26 @@ So Pillar 2 uses a different model from Pillar 1:
 | Field | Required for Pillar 2 badges | What it does |
 |---|---|---|
 | **`badge`** (visible chip name) | Variable, AI-synthesized, domain-specific (e.g., `Outside Counsel Dependency`, `Lateral Movement Detection`, `Settlement Reconciliation`) | Compelling product-specific phrase the seller sees on the chip |
-| **`strength`** | `strong` / `moderate` / `weak` — REQUIRED, AI grades against the dimension's rubric | Math layer credits points by `(dimension, strength)` lookup |
+| **`strength`** | `strong` / `moderate` / `weak` — REQUIRED, AI grades against the dimension's rubric | Math layer credits points by `(dimension, strength)` lookup, added on top of the category baseline |
 | **`signal_category`** | One value from the dimension's `signal_categories` list — REQUIRED | Hidden tag for cross-product analytics and auditability |
 | **`color`** | green / amber / red | Visual rendering + mirrors strength (green ≈ strong, amber ≈ moderate, red = hard negative only) |
 | **`evidence`** | Sentence-level context (existing field) | Hover popover |
+
+### Cross-Pillar Evidence Compounding — fire the SAME fact in multiple pillars
+
+**Certain facts legitimately fire in more than one pillar.** When you find evidence that supports both a Pillar 1 finding and a Pillar 2 finding, **emit corresponding badges in BOTH pillars.** The math layer will credit them independently. This is not duplication — it is honest recognition that one piece of evidence answers two different questions.
+
+| If this fires... | ...also emit this |
+|---|---|
+| `Multi-VM Lab` in Pillar 1 Provisioning | A strong badge in Pillar 2 Product Complexity with signal_category `multi_vm_architecture` — variable name like `Multi-VM Deployment` or `Cluster Architecture` |
+| `Complex Topology` in Pillar 1 Provisioning | A strong badge in Pillar 2 Product Complexity with signal_category `complex_networking` — variable name like `Segmented Zones` or `Multi-Subnet Architecture` |
+| `Large Lab` in Pillar 1 Provisioning | A strong badge in Pillar 2 Product Complexity with signal_category `deep_configuration` or `state_persistence` |
+| `~500 ATPs` or similar partner network in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `atp_network` — partners don't exist without skill demand |
+| Active certification exam in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `cert_ecosystem` |
+| Flagship event at scale (Cisco Live, Cohesity Connect) in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `flagship_event` |
+| `No Independent Training Market` penalty in Pillar 3 Delivery Capacity | A matching amber badge in Pillar 2 Market Demand with signal_category `no_independent_training_market` — no open-market courses means both weak delivery reach AND weak skill appetite |
+
+**The principle:** the same fact can legitimately answer multiple questions. ATPs in Delivery Capacity answer "can you reach learners"; ATPs in Market Demand answer "is there skill appetite." Both are true. Emit both.
 
 ### Naming rules for Pillar 2 variable badges
 
@@ -270,14 +302,51 @@ When a dimension's overall evidence is thin (you'd grade it weak overall, OR you
 
 Everything about the organization in one Pillar. 30% of the Fit Score — meaningful but never overriding the product truth.
 
+### Posture — default-realistic, organization-type baselines
+
+Customer Fit follows the same default-positive philosophy as Instructional Value: **most organizations that reach the Inspector dossier are serious about training in some form**, so each CF dimension starts from a baseline derived from the organization's type. Positive findings lift the score; negative findings (penalty signals) push it down. Missing evidence means baseline, not zero.
+
+**You MUST emit an `organization_type` field using ONE of these exact snake_case values.** The math layer normalizes this to the baseline lookup key automatically.
+
+{CF_ORG_TYPE_VALUES}
+
+If the company genuinely does not fit any of these, leave it unset — the math layer falls back to the Unknown baseline and raises a classification review flag for human follow-up.
+
+### Research asymmetry — penalize Delivery Capacity aggressively, Build Capacity cautiously
+
+**Not all CF dimensions are equally verifiable from outside the firewall.** This matters for how you emit penalty signals:
+
+| Dimension | Verifiability | Penalty posture |
+|---|---|---|
+| **Delivery Capacity** | **Easy** — ATPs, events, course calendars, cert infrastructure are all public | **Penalize aggressively** on absence of public evidence. A software vendor with no visible partner network, no published training calendar, and no events really doesn't have them — that's an honest signal. |
+| **Build Capacity** | **Hard** — internal authoring roles, content team structure, instructional designers are inward-facing | **Penalize CAUTIOUSLY.** Absence of public evidence ≠ evidence of absence. Only emit Build Capacity penalties when you find **direct positive evidence** of outsourcing — e.g., "we use Pluralsight" stated publicly, or explicit case studies documenting that content comes from a named external firm. If the research is inconclusive on internal authoring roles, DEFAULT TO BASELINE — do not penalize. |
+| **Training Commitment** | Moderate — customer-facing training is public, employee training is harder | Penalize when external training evidence is missing; be cautious about employee-only training evidence. |
+| **Organizational DNA** | Moderate — partnerships are public, RFP processes and culture take inference | Penalize confidently on well-documented signals (heavy procurement, IBM-style build-everything culture, long RFP timelines from case studies); be cautious on inferred signals. |
+
 ### Pillar 3 also uses the RUBRIC model
 
-Same architecture as Pillar 2: variable badge names, strength grading, signal_category tags. The only difference is what kinds of variable details show up in the badge name — for Pillar 3 it's organizational details (counts, platform names, conferences).
+Same architecture as Pillar 2: variable badge names, strength grading, signal_category tags. The only difference is what kinds of variable details show up in the badge name — for Pillar 3 it's organizational details (counts, platform names, conferences) and penalty signals (absence findings).
 
 **All Pillar 2 rules also apply to Pillar 3:**
 - **Strength grading discipline** — don't hedge to moderate. If the company has documented training infrastructure, certification programs, partner networks, content team, or events, grade `strong`. The Diligent Boards Build Capacity issue (3/20 because Content Dev Team was graded amber when "Board Education & Certifications team" exists) is the textbook hedging failure.
-- **Subject-matter-specific badge names** — same rule. `~500 Resellers` over `Partner Ecosystem`. `Closed SaaS Architecture` over `Build vs Buy`. `Elevate 2026 Conference (Atlanta)` over folding events into `Lab Platform` evidence. The conference is its OWN badge in Delivery Capacity, not buried inside another badge's evidence.
-- **Emit gap badges when grading low** — same rule. Build Capacity at 3/20 with no visible red is a UX trust failure. Add explicit red gap badges (`No Lab Authors`, `No Tech Writer Team`, etc.) so the seller can see WHY the score is low.
+- **Subject-matter-specific badge names** — same rule. `~500 Resellers` over `Partner Ecosystem`. `Platform Buyer` over `Build vs Buy`. `Elevate 2026 Conference (Atlanta)` over folding events into `Lab Platform` evidence. The conference is its OWN badge in Delivery Capacity, not buried inside another badge's evidence.
+- **Emit penalty signals when evidence supports them** — the CF rubric includes negative signal categories with specific penalty hits. Emit them as amber or red badges with the matching signal_category; the math layer will subtract the hit.
+- **Emit gap badges ONLY when appropriate** — for Delivery Capacity (outward-facing), absence of evidence IS the signal, so penalty badges fire aggressively. For Build Capacity, penalty badges fire only on positive evidence of outsourcing — see research asymmetry above.
+
+### CF Penalty Signal Categories — emit these as penalty badges when evidence supports
+
+The math layer recognizes specific negative signal categories and subtracts a penalty hit when the AI emits a badge with one of these categories. Badge names must follow the finding-as-name discipline (name the customer reality, not the research methodology).
+
+{CF_PENALTY_SIGNALS}
+
+**Badge naming for penalties: describe the customer, not the research.** "No Independent Training" is a finding about the customer's delivery reality. "Few Pluralsight Courses" is a description of how we researched it. The methodology belongs in the evidence text; the badge is the conclusion.
+
+| ✗ Wrong (methodology) | ✓ Right (finding) |
+|---|---|
+| `Few Pluralsight Courses` | `No Independent Training` |
+| `No Evidence of Events` | `No Flagship Events` |
+| `Research Found No Partners` | `No Training Partners` |
+| `Unable to Find ILT` | `No Classroom Delivery` |
 
 ### Pillar 3 badges must convey JUDGMENT, not describe categories — HARD RULE
 
@@ -289,16 +358,17 @@ A Pillar 3 badge label is a **finding about this specific customer**. It is NOT 
 
 | ❌ Forbidden (describes the topic) | ✅ Required form (states the finding) |
 |---|---|
-| `Build vs Buy` | `Platform Buyer` (green), `Mixed Build/Buy` (gray), `In-House Builder` (amber) |
-| `DIY Labs` | `Already Lab-Building` (green), `Light DIY Labs` (amber), `No DIY Lab Evidence` (red) |
-| `Content Dev Team` | `Strong Content Org`, `Light Content Dev`, `Few Tech SMEs`, `No Lab Authors` |
-| `Partner Ecosystem` | `~500 Resellers`, `Big-4 Partners`, `Thin Channel`, `Direct-Only` |
-| `Integration Maturity` | `Open Platform APIs`, `Closed SaaS`, `Limited APIs` |
-| `Ease of Engagement` | `Mid-Size Workable`, `Long RFP Process`, `Hard to Engage` |
+| `Build vs Buy` | **RETIRED** — use `Platform Buyer` (positive via signal_category `platform_buyer_behavior`) OR `Builds Everything` (negative via signal_category `build_everything_culture` — fires as amber penalty) |
+| `DIY Labs` (as a badge name) | `DIY Lab Authoring` (green strong, signal_category `diy_labs`) — the badge says what's true about the customer |
+| `Content Dev Team` (as a badge name) | The specific team name or count: `~30 Lab Authors`, `Workday Education Team`, `Tech Writer Team` (green) OR `Outsourced Content` (amber penalty via `confirmed_outsourcing`) |
+| `Partner Ecosystem` | **RETIRED** — use `Multi-Type Partnerships`, `~500 Resellers`, `Strategic Alliance Program`, `Partner-Friendly` |
+| `Integration Maturity` | **RETIRED** — use `Open Platform Culture`, `Closed Platform` (penalty via `closed_platform_culture`) |
+| `Ease of Engagement` | **RETIRED** — use `Partner-Friendly` (positive) OR `Hard to Engage` (red penalty via `hard_to_engage`) OR `Long RFP Process` (amber penalty via `long_rfp_process`) OR `Heavy Procurement` (amber penalty via `heavy_procurement`) |
 | `Lab Platform` (as a label) | The actual platform name: `Skillable`, `CloudShare`, `No Lab Platform`, `DIY Lab Platform` |
 | `Training Culture` | `Hands-On Culture`, `Slide-Deck Culture`, `Soft-Skills Focus` |
-| `Certification Program` | `Named Cert Program (with name)`, `Cert in Development`, `No Cert Program` |
+| `Certification Program` | `Active Cert Exam`, `Cert in Development`, `Thin Cert Program` (penalty via `thin_cert_program`) |
 | `Training Catalog` | The catalog count or scope: `200+ Courses`, `Thin Catalog`, `Compliance-Only Catalog` |
+| `Training Commitment` | A specific finding: `Customer Enablement Team`, `Multi-Audience Programs`, `Cisco Live 30K`, OR `No Customer Training` (penalty via `no_customer_training`) |
 
 **The pattern:** every Pillar 3 badge name is one of three shapes —
 1. **A counted/named specific** (`~500 ATPs`, `Elevate 2026`, `Skillable`, `Series D $200M`)

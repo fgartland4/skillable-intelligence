@@ -577,7 +577,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
       <table class="product-table">
         {% for p in analysis.products %}
         <tr>
-          <td class="pt-name"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span></td>
+          <td class="pt-name"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span>{% if p.classification_review_needed %} <span class="badge badge-amber" title="This product or its organization classification landed in Unknown — review and reclassify before trusting the scores.">⚠ Review Classification</span>{% endif %}</td>
           <td class="pt-sub">{% if p.subcategory %}<span class="badge badge-purple">{{ p.subcategory | clean_subcategory }}</span>{% endif %}</td>
           <td class="pt-score {{ (p.fit_score.total or p.fit_score._total or 0) | score_color }}">{{ p.fit_score.total or p.fit_score._total or 0 }}</td>
           <td class="pt-doc"><span class="doc-icon" title="Export report (Word)">{{ doc_svg() }}</span></td>

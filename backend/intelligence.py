@@ -522,11 +522,24 @@ def recompute_analysis(analysis: dict) -> None:
         # docstring for the history of why this matters.
         badges_by_dim = badge_normalization.collect_badges_for_math(p, dim_key_to_pillar_key)
 
+        # ── Build the rubric model scoring context ──
+        # IV dimensions use product_category for baseline lookup; CF
+        # dimensions use org_type.  Missing values fall back to
+        # UNKNOWN_CLASSIFICATION which triggers the classification review
+        # flag in the UX.  Define-Once — both scorer.py and intelligence.py
+        # call cfg.build_scoring_context so the two scoring paths produce
+        # identical context dicts.
+        scoring_context = cfg.build_scoring_context(
+            raw_org_type=analysis.get("organization_type"),
+            raw_product_category=p.get("product_category") or p.get("category"),
+        )
+
         # ── Run the math — single source of truth ──
         result = scoring_math.compute_all(
             badges_by_dimension=badges_by_dim,
             ceiling_flags=p.get("poor_match_flags") or [],
             orchestration_method=p.get("orchestration_method") or "",
+            context=scoring_context,
         )
 
         # ── Write computed scores back into the saved dict in place ──
@@ -559,6 +572,13 @@ def recompute_analysis(analysis: dict) -> None:
         fs["pl_score_pre_ceiling"] = result["pillar_labability_pre_ceiling"]
         fs["ceilings_applied"] = result["ceilings_applied"]
         fs["technical_fit_multiplier"] = result["technical_fit_multiplier"]
+
+        # Classification review flag — surfaced in the dossier UX when the
+        # product_category or org_type landed in "Unknown" during scoring.
+        # The flag lives on the product dict so per-product indicators can
+        # be rendered independently (some products in a dossier may be
+        # classified cleanly while others need review).
+        p["classification_review_needed"] = bool(result.get("classification_review_needed", False))
 
         # ── Recompute ACV from motions × deterministic rate ──
         # The AI's job is to estimate per-motion population, adoption %,

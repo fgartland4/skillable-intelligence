@@ -71,20 +71,103 @@ _PILLAR_LOOKUP = _build_pillar_lookup()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Baseline + penalty lookups for the rubric model (Pillars 2 + 3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _dimension_keys_for_pillar(pillar: cfg.Pillar) -> set[str]:
+    """Return the set of dimension keys for a Pillar object.
+
+    Takes a Pillar object directly (not a name string) so there is NO
+    hardcoded pillar name anywhere in this module.  Derived from
+    `scoring_config.PILLARS` at module load time so renames in the config
+    propagate automatically.  Define-Once.
+    """
+    return {dim.name.lower().replace(" ", "_") for dim in pillar.dimensions}
+
+
+# Which dimension keys belong to Instructional Value (category-aware baselines)
+# and Customer Fit (organization-type baselines).  Built from the Pillar
+# objects in scoring_config.py — no hardcoded pillar names, no hardcoded
+# dimension key strings.
+_IV_DIMENSION_KEYS: set[str] = _dimension_keys_for_pillar(cfg.PILLAR_INSTRUCTIONAL_VALUE)
+_CF_DIMENSION_KEYS: set[str] = _dimension_keys_for_pillar(cfg.PILLAR_CUSTOMER_FIT)
+
+
+def _get_dimension_baseline(dim_key: str, context: dict | None) -> int:
+    """Look up the baseline for a dimension given the scoring context.
+
+    IV dimensions (Product Complexity, Mastery Stakes, Lab Versatility,
+    Market Demand) use per-category baselines from `IV_CATEGORY_BASELINES`
+    keyed by the product's top-level category.
+
+    CF dimensions (Training Commitment, Build Capacity, Delivery Capacity,
+    Organizational DNA) use per-organization-type baselines from
+    `CF_ORG_BASELINES` keyed by the company classification.
+
+    Returns 0 if no baseline is configured or context is missing — the
+    caller treats missing baselines as "no posture shift applied."
+    """
+    if not context:
+        return 0
+
+    if dim_key in _IV_DIMENSION_KEYS:
+        category = (context.get("product_category") or "").strip()
+        if not category:
+            return 0
+        lookup = cfg.IV_CATEGORY_BASELINES.get(category)
+        if lookup is None:
+            # Fall back to the canonical Unknown baseline — neutral,
+            # with the classification review flag raised in compute_all.
+            lookup = cfg.IV_CATEGORY_BASELINES.get(cfg.UNKNOWN_CLASSIFICATION, {})
+        return int(lookup.get(dim_key, 0))
+
+    if dim_key in _CF_DIMENSION_KEYS:
+        org_type = (context.get("org_type") or "").strip()
+        if not org_type:
+            return 0
+        lookup = cfg.CF_ORG_BASELINES.get(org_type)
+        if lookup is None:
+            lookup = cfg.CF_ORG_BASELINES.get(cfg.UNKNOWN_CLASSIFICATION, {})
+        return int(lookup.get(dim_key, 0))
+
+    return 0
+
+
+def _build_cf_penalty_lookup() -> dict[tuple[str, str], cfg.PenaltySignal]:
+    """Map (dimension_key, signal_category) -> PenaltySignal for CF penalties.
+
+    The AI emits a badge with one of the penalty signal_category values
+    defined in the CF_PENALTY_SIGNALS list.  The math layer detects these
+    and applies the hit as a subtraction (positive integer in the
+    PenaltySignal.hit field, negated when applied).
+    """
+    out: dict[tuple[str, str], cfg.PenaltySignal] = {}
+    for pen in cfg.CF_PENALTY_SIGNALS:
+        out[(pen.dimension, pen.category)] = pen
+    return out
+
+
+_CF_PENALTY_LOOKUP = _build_cf_penalty_lookup()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Dimension score computation
 # ─────────────────────────────────────────────────────────────────────────────
 
 def compute_dimension_score(dim_key: str,
-                            badges: Iterable) -> dict:
+                            badges: Iterable,
+                            context: dict | None = None) -> dict:
     """Compute the score for one dimension from the badges the AI emitted.
 
     THREE scoring patterns are supported and chosen automatically:
 
     1. **Rubric pattern** (Pillar 2 Instructional Value, Pillar 3 Customer Fit):
        the dimension defines a `rubric` with strength tiers (strong/moderate/weak).
-       Each badge carries a `strength` field; the math credits points by
-       (dimension, strength) lookup. Variable badge names are expected and
-       supported — no name matching against canonicals.
+       Scoring applies a **posture baseline** derived from the product's
+       category (IV) or the organization's type (CF), then adds positive
+       findings (rubric credits) and subtracts penalty-signal hits and red
+       color contributions.  Default-positive posture: missing evidence
+       means baseline, not zero.
 
     2. **Signal/penalty pattern** (Pillar 1 Product Labability): the dimension
        defines explicit `scoring_signals` and `penalties`. Each badge name is
@@ -102,6 +185,13 @@ def compute_dimension_score(dim_key: str,
         badges: Iterable of either bare badge name strings (legacy callers) OR
                 dicts with "name", "color", optional "strength" (rubric), and
                 optional "signal_category" fields.
+        context: Optional dict with scoring context used by the rubric model:
+                 - "product_category" — top-level category from discovery,
+                   used for IV dimension baseline lookup
+                 - "org_type" — organization classification from discovery,
+                   used for CF dimension baseline lookup
+                 Missing context values fall back to zero baseline (legacy
+                 behavior) so callers can be upgraded incrementally.
 
     Returns:
         A dict with the score breakdown so the result is auditable:
@@ -109,8 +199,9 @@ def compute_dimension_score(dim_key: str,
             "score": int,
             "weight": int,
             "model": "rubric" | "signal_penalty",
+            "baseline": int (rubric model only),
             "signals_matched": [...] (signal/penalty model),
-            "penalties_applied": [...] (signal/penalty model),
+            "penalties_applied": [...] (signal/penalty model + CF rubric penalties),
             "rubric_credits": [...] (rubric model — name + strength + points + category),
             "color_contributions": [...],
             "raw_total": int,
@@ -124,6 +215,7 @@ def compute_dimension_score(dim_key: str,
         log.warning("compute_dimension_score: unknown dimension '%s'", dim_key)
         return {
             "score": 0, "weight": 0, "model": "unknown",
+            "baseline": 0,
             "signals_matched": [], "penalties_applied": [], "rubric_credits": [],
             "color_contributions": [],
             "raw_total": 0, "capped": False, "floored": False,
@@ -133,7 +225,7 @@ def compute_dimension_score(dim_key: str,
     # Rubric model (Pillar 2 + Pillar 3) — branch early so the rest of this
     # function only handles signal/penalty dimensions.
     if dim.rubric is not None:
-        return _compute_rubric_dimension_score(dim, badges)
+        return _compute_rubric_dimension_score(dim, dim_key, badges, context)
 
     signal_lookup = _build_signal_lookup(dim)
     penalty_lookup = _build_penalty_lookup(dim)
@@ -347,7 +439,10 @@ def compute_dimension_score(dim_key: str,
     }
 
 
-def _compute_rubric_dimension_score(dim: cfg.Dimension, badges: Iterable) -> dict:
+def _compute_rubric_dimension_score(dim: cfg.Dimension,
+                                    dim_key: str,
+                                    badges: Iterable,
+                                    context: dict | None) -> dict:
     """Rubric-based scoring for Pillar 2 + Pillar 3 dimensions.
 
     Each badge carries:
@@ -356,15 +451,35 @@ def _compute_rubric_dimension_score(dim: cfg.Dimension, badges: Iterable) -> dic
       - strength (strong / moderate / weak — required, math driver)
       - signal_category (one of the dimension's fixed category list — for analytics)
 
-    The math credits points by (dimension, strength) lookup against the
-    dimension's rubric tiers. Color is preserved for visual rendering and
-    used as a fallback when strength is missing.
+    **Scoring flow (updated 2026-04-07):**
+
+      raw_total = baseline + rubric_credits + color_contributions + penalty_hits
+      score     = clamp(raw_total, floor, cap)
+
+    Where:
+
+      - **baseline** comes from `IV_CATEGORY_BASELINES[product_category]` for
+        IV dimensions or `CF_ORG_BASELINES[org_type]` for CF dimensions.
+        The baseline is the realistic starting point for a typical product
+        in this category or a typical organization of this type.  Missing
+        context falls back to zero baseline for backward compatibility.
+
+      - **rubric credits** are positive contributions from strong/moderate
+        badges the AI emitted, graded against the dimension's rubric tiers.
+
+      - **color contributions** include explicit hard negatives (red badges
+        like `Consumer Grade`) and legacy fallbacks when strength is missing.
+
+      - **penalty hits** are subtractions triggered by badges whose
+        signal_category matches an entry in `CF_PENALTY_SIGNALS` (Customer
+        Fit only).  These represent diagnostic absences — no training
+        partners, no classroom delivery, long RFP process, etc.  Research
+        asymmetry matters: Delivery Capacity penalties fire on absence of
+        public evidence; Build Capacity penalties fire only on positive
+        evidence of outsourcing (taught in the prompt template).
 
     Strength → color cross-check (when both present):
       green ↔ strong, amber ↔ moderate, red ↔ hard negative (uses color points)
-
-    Mitigation #1 (anti-inflation): the AI must explicitly grade each badge
-    against the rubric. Missing strength field falls back to color points.
     """
     rubric = dim.rubric
     assert rubric is not None  # caller already checked
@@ -377,9 +492,14 @@ def _compute_rubric_dimension_score(dim: cfg.Dimension, badges: Iterable) -> dic
 
     rubric_credits: list[dict] = []
     color_contributions: list[dict] = []
+    penalties_applied: list[dict] = []
     unknown: list[str] = []
 
     fallback = cfg.BADGE_UNKNOWN_COLOR_SCORE_FALLBACK
+
+    # Apply the category-aware or org-type baseline first.  Zero if no
+    # context is provided — legacy callers still work with old behavior.
+    baseline = _get_dimension_baseline(dim_key, context)
 
     for badge in badges:
         if not badge:
@@ -396,6 +516,22 @@ def _compute_rubric_dimension_score(dim: cfg.Dimension, badges: Iterable) -> dic
             category = ""
 
         if not raw_name:
+            continue
+
+        # CF penalty signals: if the badge's signal_category matches a
+        # PenaltySignal for this dimension, apply the penalty hit instead
+        # of normal rubric credit.  This is the mechanism for
+        # "No Training Partners", "No Classroom Delivery", "Long RFP
+        # Process", "Builds Everything", "Hard to Engage", etc.
+        penalty = _CF_PENALTY_LOOKUP.get((dim_key, category))
+        if penalty is not None:
+            penalties_applied.append({
+                "name": raw_name.strip(),
+                "signal_category": category,
+                "color": penalty.color,
+                "badge_name": penalty.badge_name,
+                "deduction": -penalty.hit,
+            })
             continue
 
         # Red color = hard negative — uses color points (-3) regardless of strength.
@@ -431,10 +567,11 @@ def _compute_rubric_dimension_score(dim: cfg.Dimension, badges: Iterable) -> dic
         else:
             unknown.append(raw_name.strip())
 
-    # Compute raw total
+    # Compute raw total: baseline + positives + negatives + penalties
     rubric_total = sum(c["points"] for c in rubric_credits)
     color_total = sum(c["points"] for c in color_contributions)
-    raw_total = rubric_total + color_total
+    penalty_total = sum(p["deduction"] for p in penalties_applied)
+    raw_total = baseline + rubric_total + color_total + penalty_total
 
     # Apply cap (defaults to dimension weight) and floor (defaults to 0)
     cap = dim.cap if dim.cap is not None else dim.weight
@@ -454,8 +591,9 @@ def _compute_rubric_dimension_score(dim: cfg.Dimension, badges: Iterable) -> dic
         "score": int(score),
         "weight": dim.weight,
         "model": "rubric",
+        "baseline": int(baseline),
         "signals_matched": [],   # not used in rubric model
-        "penalties_applied": [],  # not used in rubric model
+        "penalties_applied": penalties_applied,
         "rubric_credits": rubric_credits,
         "color_contributions": color_contributions,
         "raw_total": int(raw_total),
@@ -725,7 +863,8 @@ def compute_fit_score(pl_score: int, iv_score: int, cf_score: int,
 
 def compute_all(badges_by_dimension: dict[str, list[str]],
                 ceiling_flags: Iterable[str],
-                orchestration_method: str) -> dict:
+                orchestration_method: str,
+                context: dict | None = None) -> dict:
     """Compute the full scoring breakdown for one product.
 
     Args:
@@ -734,6 +873,17 @@ def compute_all(badges_by_dimension: dict[str, list[str]],
             (e.g., "lab_access", "product_complexity").
         ceiling_flags: Flags the AI emitted (e.g., {"saas_only"}).
         orchestration_method: e.g., "Hyper-V", "Azure Cloud Slice", etc.
+        context: Optional scoring context dict carrying metadata used by
+            the rubric model to apply category-aware baselines:
+              - "product_category" — top-level category from discovery
+                (used for IV dimension baselines: Product Complexity,
+                Mastery Stakes, Lab Versatility, Market Demand)
+              - "org_type" — company classification from discovery
+                (used for CF dimension baselines: Training Commitment,
+                Build Capacity, Delivery Capacity, Organizational DNA)
+            Missing keys fall back to zero baseline.  The presence of
+            "Unknown" as product_category or org_type triggers the
+            classification review flag in the dossier UX.
 
     Returns:
         A dict with the full breakdown:
@@ -748,13 +898,28 @@ def compute_all(badges_by_dimension: dict[str, list[str]],
             "ceilings_applied": [...],
             "technical_fit_multiplier": float,
             "fit_score": int,
+            "classification_review_needed": bool,
         }
     """
     dim_results: dict[str, dict] = {}
     dim_scores: dict[str, int] = {}
 
+    # Detect the Unknown classification flag once up front so the scorer
+    # can surface "Review Classification" in the dossier UX.  This fires
+    # whenever the product category or organization type matches the
+    # canonical UNKNOWN_CLASSIFICATION constant (from a failed or
+    # low-confidence classification upstream).  Define-Once — no hardcoded
+    # "Unknown" literal anywhere in this module.
+    classification_review_needed = False
+    if context:
+        unknown_label = cfg.UNKNOWN_CLASSIFICATION
+        if (context.get("product_category") or "").strip() == unknown_label:
+            classification_review_needed = True
+        if (context.get("org_type") or "").strip() == unknown_label:
+            classification_review_needed = True
+
     for dim_key, badges in badges_by_dimension.items():
-        result = compute_dimension_score(dim_key, badges)
+        result = compute_dimension_score(dim_key, badges, context)
         dim_results[dim_key] = result
         dim_scores[dim_key] = result["score"]
 
@@ -796,6 +961,7 @@ def compute_all(badges_by_dimension: dict[str, list[str]],
         "ceilings_applied": ceilings_applied,
         "technical_fit_multiplier": multiplier,
         "fit_score": fit_score,
+        "classification_review_needed": classification_review_needed,
     }
 
 

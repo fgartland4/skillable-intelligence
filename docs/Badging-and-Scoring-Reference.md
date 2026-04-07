@@ -517,85 +517,588 @@ The three Pillars differ along **three orthogonal architectural properties**. Ea
 
 The commercial case. Measures whether this product genuinely warrants hands-on lab experiences. Combined with Product Labability, these two product-level pillars represent 70% of the Fit Score.
 
-Pillar 2 uses the **rubric model**. Each badge the AI emits carries:
-- `name` — variable, AI-synthesized, domain-specific (the visible chip)
+### The Posture — Default-Positive, Not Prove-It
+
+**Most software has instructional value for the right audience.** Microsoft Excel has instructional value for financial analysts. Outlook has instructional value for power users. Cybersecurity, data science, cloud, DevOps, networking, specialist business software — for the right learner, hands-on practice is almost always valuable. The framework used to start at zero and ask the AI to *earn* Instructional Value through evidence; that produced absurd results where a multi-VM cybersecurity platform would score 41/100 because positive signals couldn't overcome a pessimistic default.
+
+**The new posture is realistic by default.** Every Instructional Value dimension starts from a baseline derived from the product's category — most categories start above the median, reflecting the reality that most real software warrants hands-on practice. Findings move the score up (specific positive signals) or down (explicit negatives like consumer-grade). Missing evidence means "baseline," not "zero."
+
+**The question shifts from** *"is there evidence of instructional value?"* **to** *"is there any reason this product would NOT have instructional value?"*
+
+### Rubric Model Architecture
+
+Pillar 2 uses the **rubric model** (intentionally different from Pillar 1's canonical model — see "Three Architectural Properties Across Pillars" above). Each badge the AI emits carries:
+- `name` — variable, AI-synthesized, domain-specific (the visible chip) — **the name IS the finding, never a topic label**
 - `strength` — `strong` / `moderate` / `weak` — REQUIRED, drives the math
 - `signal_category` — one of the dimension's fixed category list — REQUIRED, hidden, for analytics
 - `color` — green / amber / red (mirrors strength; red is reserved for hard negatives only)
 - `evidence` — sentence-level context (existing field, hover popover)
 
+### Dimensions
+
 | Dimension | Weight | Question |
 |---|---|---|
-| PRODUCT COMPLEXITY | 40 | Is this product hard enough to require hands-on practice? |
-| MASTERY STAKES | 25 | How much does competence matter? |
-| LAB VERSATILITY | 15 | What kinds of hands-on experiences can we build? |
-| MARKET DEMAND | 20 | Does the broader market validate the need? |
+| PRODUCT COMPLEXITY | 40 | Is this product hard enough that someone needs hands-on practice to become competent? |
+| MASTERY STAKES | 25 | What are the consequences of getting it wrong? |
+| LAB VERSATILITY | 15 | What kinds of high-value hands-on experiences can we build? |
+| MARKET DEMAND | 20 | Is this a topic people actively want to learn? |
+
+---
 
 ### 2.1 Product Complexity (cap 40)
 
-*Is this product hard enough to require hands-on practice?*
+*Is this product hard enough that someone needs **repeated hands-on practice** to become competent with it?*
+
+#### What the Product Complexity Dimension Measures
+
+Product Complexity asks a single question: **does becoming good at using this product require practice that can't be done by reading a manual or watching a video?** Complexity here is not about abstract sophistication — it's about whether hands-on repetition, experimentation, and real-environment interaction are the difference between someone who can use the product and someone who can't.
+
+A product is complex in the sense this dimension measures when **any** of the following are true:
+
+- It requires **configuring** multiple interrelated components where wrong choices cause cascading problems
+- It has **multi-phase workflows** where each phase depends on the previous (design → deploy → operate → troubleshoot)
+- It involves **multiple distinct personas** (admin vs operator vs end user vs developer) who each need different hands-on skills
+- It requires **troubleshooting real failure scenarios** that can't be simulated in a static document
+- It has **AI features that require iterative practice** — prompting, tuning, verifying — where watching is not enough
+- It has **networking topology** that must be understood through manipulation, not description
+- It has **integration complexity** where the product's real work happens through external systems
+
+Complexity is measured **relative to the audience who would learn this product**, not absolutely. Enterprise software for insurance claims operations is "simple" to a software engineer but "genuinely complex" to the claims adjuster who needs to use it every day. The question is always: **for the people who would take a lab on this product, is the product hard enough that they need to practice?**
+
+#### What This Dimension Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| Whether the product is **easy or hard to provision** | Pillar 1 Provisioning |
+| Whether labs can be **scored** on this product | Pillar 1 Scoring |
+| How much **mastery matters** — the consequences of getting it wrong | **Pillar 2 Mastery Stakes** |
+| Whether there's a **market** of people who want to learn this | Pillar 2 Market Demand |
+| Whether the company has **training infrastructure** | Pillar 3 |
+
+Product Complexity is about the product's intrinsic difficulty. Mastery Stakes is about the cost of failure. Both can be high or low independently. A simple product with high stakes (don't press the big red button) is different from a complex product with low stakes (tuning a CI/CD pipeline where mistakes cost time but not money).
+
+#### Category-Aware Baseline
+
+Applied **before** any findings. The AI looks up the baseline by the product's top-level category (from `CATEGORY_PRIORS` in `scoring_config.py`), adds strong/moderate finding credits, subtracts any explicit negative findings, caps at 40 / floors at 0.
+
+| Category | Baseline | Rationale |
+|---|---|---|
+| **Cybersecurity** | **32 / 40 (80%)** | Multi-system, cross-role, deep configuration — cybersecurity products are almost always hands-on-appropriate |
+| **Cloud Infrastructure** | **32 / 40 (80%)** | Compute, networking, storage, containers, serverless, databases — inherently multi-component |
+| **Networking / SDN** | **32 / 40 (80%)** | Topology, routing, segmentation — impossible to learn without hands-on |
+| **Data Science & Engineering** | **32 / 40 (80%)** | Pipelines, tuning, iteration — practice is the only way |
+| **Data & Analytics** | **32 / 40 (80%)** | Modeling, query tuning, real datasets |
+| **DevOps** | **32 / 40 (80%)** | CI/CD, IaC, monitoring, configuration management — hands-on by nature |
+| **AI Platforms & Tooling** | **32 / 40 (80%)** | Anthropic, OpenAI, Hugging Face, LangChain, LlamaIndex, Pinecone, Weaviate, agent frameworks, LLMOps, fine-tuning platforms — iterative prompt + verify + tune cycles, multi-component pipelines |
+| **Data Protection** | **30 / 40 (75%)** | Backup, DR, archive, data management — complex multi-layer systems with real operational depth |
+| **ERP** | **28 / 40 (70%)** | Financial management, HR/HCM, supply chain — deep configuration, cross-module workflows, multi-role |
+| **CRM** | **28 / 40 (70%)** | Salesforce, Dynamics, HubSpot — deep customization, workflow automation, integration depth |
+| **Healthcare IT** | **28 / 40 (70%)** | EMR / EHR / clinical systems — regulated workflows, multi-role, real depth |
+| **FinTech** | **28 / 40 (70%)** | Trading, settlement, reconciliation — real multi-phase workflows with depth |
+| **Legal Tech** | **28 / 40 (70%)** | Matter management, e-discovery, document workflows — real depth and role diversity |
+| **Industrial / OT** | **28 / 40 (70%)** | SCADA, control systems, PLC programming — real technical complexity |
+| **Infrastructure / Virtualization** | **28 / 40 (70%)** | VMware, Hyper-V, container platforms — real operational depth |
+| **App Development** | **28 / 40 (70%)** | Developer tools, SDKs, CI platforms, IDEs — meaningful depth, real hands-on value |
+| **Collaboration** | **24 / 40 (60%)** | SharePoint, Microsoft 365, Teams — meaningful administrative and workflow depth, especially at the development / automation level, but less intense than core enterprise systems |
+| **Content Management** | **24 / 40 (60%)** | Documentum, Alfresco, Box Enterprise — real workflow, permission, and metadata depth |
+| **Social / Entertainment** *(e.g., Facebook, Instagram, TikTok, Netflix, Spotify)* | **4 / 40 (10%)** | No professional training market — these are personal / entertainment platforms, not content areas |
+| **Unknown / uncategorized** | **22 / 40 (55%)** | Neutral fallback — findings drive the score |
+
+**Note — "Simple SaaS" removed.** SaaS is a delivery mechanism, not a content area. Products are classified by what they *do* (cybersecurity, ERP, data protection, etc.), not by how they're delivered. There's no training market for "SaaS" as a category.
+
+**Note — ERP and CRM are separate categories.** ERP (Financial, HR/HCM, Supply Chain) and CRM (Sales, Marketing, Customer Service) were historically bundled but are meaningfully different on both complexity and stakes. They're split throughout every Pillar 2 dimension.
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +6 | Deep multi-system, multi-phase workflows; multiple distinct admin/operator roles; rich troubleshooting paths; OR genuine AI requiring iterative practice |
-| **moderate** | +3 | Some depth or some complexity but limited scope — single-phase, narrow role set, light troubleshooting |
-| **weak** | don't emit | Thin documentation, mostly straightforward, single-stage workflow |
+| **strong** | +6 | The finding **alone** could justify a hands-on lab — deep multi-system work, multi-phase workflows with real state transitions, genuine troubleshooting against realistic failure modes, AI requiring iterative practice, multi-VM or networking topology requirements, integration as the primary workflow |
+| **moderate** | +3 | The finding **adds** to the case — some depth or complexity but limited scope, single-phase, narrower role set, meaningful but not dominant |
+| **weak** | don't emit | Too thin to carry its own badge — not worth the noise |
 
-**signal_category list** (the AI picks ONE per badge): `deep_configuration` · `multi_phase_workflow` · `role_diversity` · `troubleshooting_depth` · `complex_networking` · `integration_complexity` · `ai_practice_required` · `consumer_grade` (red) · `simple_ux` (red)
+**The baseline is doing most of the work.** Three strong badges (6×3=18) on top of a cybersecurity baseline (28) = 46, capped at 40. A finding-hungry prompt can safely emit 4-5 badges without blowing cap, and a thin product with few findings still reflects its real category baseline.
 
-**Hard negatives (red — fall back to color points):** `Consumer Grade` · `Simple UX` — fire only when the product is genuinely too trivial for labs.
+#### Signal Categories
 
-**Typical spread:** 6 strong = 36/40. Moderate complexity → 3-5 moderate → 9-15.
+The AI picks **one** `signal_category` per badge from this fixed list (hidden from UX, used for analytics and cross-product comparison):
+
+| Signal category | What it means |
+|---|---|
+| `multi_vm_architecture` | Product requires multiple VMs working together — **cross-pillar with P1 Multi-VM Lab** |
+| `deep_configuration` | Many interrelated settings with real consequences |
+| `multi_phase_workflow` | Distinct lifecycle phases: design → build → deploy → operate → troubleshoot |
+| `role_diversity` | Multiple personas each needing hands-on skills |
+| `troubleshooting_depth` | Rich fault modes requiring practice against realistic broken states |
+| `complex_networking` | VLANs, routing, multi-network topology — learned only by manipulation |
+| `integration_complexity` | External systems ARE the primary workflow |
+| `ai_practice_required` | AI features where prompting/tuning/verifying requires iteration |
+| `state_persistence` | Stateful systems where wrong state cascades over time |
+| `compliance_depth` | Regulated workflows (SOX, HIPAA, PCI) with audit implications |
+| `consumer_grade` **(negative)** | Red — product is genuinely consumer-facing, not lab-appropriate |
+| `simple_ux` **(negative)** | Red — intentionally simple interface, minimal lab value |
+| `wizard_driven` **(negative)** | Amber/red — primary UX is a sequential wizard with few real decisions |
+
+#### Cross-Pillar Evidence Compounding
+
+Certain Product Complexity findings should **automatically be considered** based on Pillar 1 findings:
+
+| If this fires in P1... | ...then this should fire in P2 Product Complexity |
+|---|---|
+| `Multi-VM Lab` (Provisioning) | `multi_vm_architecture` signal_category |
+| `Complex Topology` (Provisioning) | `complex_networking` signal_category |
+| `Large Lab` (Provisioning) | `deep_configuration` or `state_persistence` |
+
+**This is a prompt instruction, not a math rule.** The AI is told to cross-reference Pillar 1 findings when evaluating Product Complexity. The same fact legitimately credits both pillars because they answer different questions about the same evidence.
+
+#### Worked Examples
+
+**Example 1 — Trellix Global Threat Intelligence (Cybersecurity):**
+
+| Step | Value |
+|---|---|
+| Baseline (Cybersecurity) | **28** |
+| `Multi-Correlation Engine` (strong, `deep_configuration`) | +6 |
+| `IOC Pivoting Workflow` (strong, `multi_phase_workflow`) | +6 |
+| `Analyst + Automation Split` (strong, `role_diversity`) | +6 |
+| `SIEM + EDR + Ticketing Chain` (strong, `integration_complexity`) | +6 |
+| Raw total | 52 |
+| **Final score** | **40 / 40** (capped) |
+
+**Example 2 — Diligent Boards (Content Management / Governance):**
+
+| Step | Value |
+|---|---|
+| Baseline (Content Management) | **24** |
+| `Agenda + Voting Workflow` (moderate, `multi_phase_workflow`) | +3 |
+| `Committee Role Separation` (moderate, `role_diversity`) | +3 |
+| `Document Permission Tree` (moderate, `deep_configuration`) | +3 |
+| **Final score** | **33 / 40** |
+
+**Example 3 — Microsoft Excel (Collaboration):**
+
+| Step | Value |
+|---|---|
+| Baseline (Collaboration) | **24** |
+| `Power Query Workflow` (strong, `multi_phase_workflow`) | +6 |
+| `Formula + Pivot Modeling` (moderate, `deep_configuration`) | +3 |
+| `Simple UX for basic tasks` (amber, `simple_ux`) | -3 |
+| **Final score** | **30 / 40** |
+
+**Example 4 — Instagram (Social / Entertainment):**
+
+| Step | Value |
+|---|---|
+| Baseline (Social / Entertainment) | **4** |
+| `Consumer Grade` (red, `consumer_grade`) | -4 |
+| **Final score** | **0 / 40** |
+
+#### Typical Spread
+
+| Product type | Expected Product Complexity |
+|---|---|
+| Multi-system cybersecurity / cloud / DevOps / AI platforms with real depth | **36-40** |
+| Data Protection, real enterprise software, regulated-industry platforms | **32-40** |
+| ERP, CRM, Healthcare IT, FinTech, Legal Tech, Industrial/OT | **28-36** |
+| Collaboration / Content Management | **24-32** |
+| Social / Entertainment | **0-4** |
 
 ---
 
 ### 2.2 Mastery Stakes (cap 25)
 
-*How much does competence matter? What happens if they get it wrong?*
+*What are the consequences of getting it wrong? How much does competence matter?*
+
+#### What the Mastery Stakes Dimension Measures
+
+Mastery Stakes asks: **what are the consequences of getting it wrong?** The dimension measures the real-world cost of incompetence — breach, data loss, compliance failure, malpractice, downtime, reputation damage, regulatory sanction, physical harm. High stakes create a commercial case for hands-on training that goes beyond "it's hard to learn" — it becomes "they *must* be competent before they touch production."
+
+High Mastery Stakes exist when the product operates in an environment where:
+
+- **Security failures** expose data, credentials, or systems to attack
+- **Compliance failures** trigger regulatory action, fines, or audit exposure (HIPAA, PCI, SOX, GDPR, SOC 2)
+- **Data integrity failures** corrupt records, break reporting, or poison downstream systems
+- **Business continuity failures** cause outages, missed SLAs, or customer-facing incidents
+- **Safety failures** create physical, medical, or financial harm to end users
+- **Legal failures** expose the organization to malpractice, privilege breaches, or liability
+- **Reputational failures** are public, permanent, or cause customer churn
+
+Mastery Stakes is NOT about how hard the product is. It's about the cost of failing to use it correctly.
+
+#### What This Dimension Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| How hard the product is to learn | **Pillar 2 Product Complexity** |
+| Whether labs can be scored | Pillar 1 Scoring |
+| Whether the company runs compliance training programs | Pillar 3 Training Commitment |
+| Whether the market cares about this skill | Pillar 2 Market Demand |
+
+#### Posture: Default-Positive for Specialist Software
+
+Most specialist software has real stakes — that's why it's specialist software. The old framework undercredited this by firing only one or two badges per product. The new framework starts from a category-aware baseline that reflects the reality that most serious software operates in environments where mistakes matter.
+
+#### Category-Aware Baseline
+
+| Category | Baseline | Rationale |
+|---|---|---|
+| **Cybersecurity** | **22 / 25 (88%)** | Breach = headlines. Stakes are definitional, not situational. |
+| **Healthcare IT** | **22 / 25 (88%)** | Patient safety, HIPAA, clinical liability — definitional. |
+| **FinTech** | **22 / 25 (88%)** | Money, SOX, PCI, AML, regulatory exposure — definitional. |
+| **Legal Tech** | **22 / 25 (88%)** | Malpractice, privilege, documented liability — definitional. |
+| **Data Science & Engineering** | **22 / 25 (88%)** | Snowflake, Databricks, data warehouses and pipelines — **garbage in, garbage out**. Millions in decisions ride on the data layer being correct. |
+| **AI Platforms & Tooling** | **22 / 25 (88%)** | Model errors at scale compound — wrong outputs flow into every downstream decision or product experience. Stakes are definitional for production AI systems. |
+| **ERP** | **20 / 25 (80%)** | Financial records, SOX audit, business continuity — top-of-business stakes |
+| **Data Protection** | **20 / 25 (80%)** | Data loss, DR failures — often irreversible |
+| **Industrial / OT** | **20 / 25 (80%)** | SCADA, physical safety, control systems |
+| **Cloud Infrastructure** | **20 / 25 (80%)** | Downtime, data exposure, misconfigured security groups — real incidents at scale |
+| **Networking / SDN** | **20 / 25 (80%)** | Routing and segmentation errors take down production or expose data |
+| **DevOps** | **20 / 25 (80%)** | Production deploys, pipeline failures, config drift — high stakes in live systems |
+| **Infrastructure / Virtualization** | **20 / 25 (80%)** | Host failures, VM sprawl, hypervisor misconfig — real operational stakes |
+| **Data & Analytics** | **18 / 25 (72%)** | Tableau, Power BI, Looker, BI layers — business-skills layer. Dashboards drive decisions; mistakes mislead executives even when the underlying data is clean. |
+| **CRM** | **16 / 25 (64%)** | Real consequences (pricing, contracts, GDPR/CCPA, revenue recognition), but fewer regulated-industry audits than ERP |
+| **Content Management** | **16 / 25 (64%)** | Document workflow errors, permission gaps, records-retention mistakes — real but usually recoverable |
+| **Collaboration** | **16 / 25 (64%)** | SharePoint, Teams, Microsoft 365 — administrative mistakes affect real business operations; development/automation layer raises the stakes further |
+| **App Development** | **14 / 25 (56%)** | Stakes depend entirely on what's being built — neutral-moderate baseline |
+| **Unknown / uncategorized** | **14 / 25 (56%)** | Neutral fallback — see "Unknown Classification Flag" below |
+| **Social / Entertainment** *(e.g., Facebook, Instagram, TikTok, Netflix, Spotify)* | **2 / 25 (8%)** | No professional training market — no professional stakes |
+
+**Unknown Classification Flag.** When a product lands in `Unknown / uncategorized`, the scorer sets a `classification_review_needed: true` flag on the product result, and the dossier + caseboard surface a small amber "Review Classification" indicator. This fires in two scenarios:
+
+| Scenario | Example |
+|---|---|
+| **True unknown** — AI can't pick any existing category | Novel quantum compute platform, emerging AI agent framework |
+| **Multi-category dominant** — multiple categories fit and the AI's pick is low-confidence | NVIDIA (networking + compute + AI), Cloudflare (networking + security + edge), Databricks (data sci + cloud infra) |
+
+The flag is a signal for human review, not a scoring penalty. The neutral Unknown baselines (defined in `scoring_config.py` → `IV_CATEGORY_BASELINES[UNKNOWN_CLASSIFICATION]` and `CF_ORG_BASELINES[UNKNOWN_CLASSIFICATION]`) keep the score honest while the flag tells the user "verify this classification before trusting the numbers." Logs capture Unknown classifications so patterns (e.g., five hardware/compute products in a row) can trigger adding a new category to the taxonomy.
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +9 | Misconfiguration causes breach, data loss, compliance failure, sanctions, malpractice, downtime — real and consequential harm |
-| **moderate** | +5 | Errors are visible and create rework / reputation cost but are recoverable |
+| **strong** | +9 | Misconfiguration causes breach, data loss, compliance failure, sanctions, malpractice, material downtime, or physical harm — **real and consequential** |
+| **moderate** | +5 | Errors are visible and create rework, reputation cost, or business friction but are recoverable |
 | **weak** | don't emit | Mostly inconvenience — easily fixed, no lasting consequences |
 
-**signal_category list:** `harm_severity` · `learning_curve` · `adoption_risk` · `compliance_consequences`
+#### Signal Categories
 
-**Typical spread:** 3 strong = 27 → capped at 25 (max). 2 strong + 1 moderate = 23. Mostly moderate = 10.
+| Signal category | What it means |
+|---|---|
+| `breach_exposure` | Security mistakes cause data exposure, credential theft, or attack surface growth |
+| `compliance_consequences` | Regulatory framework (HIPAA, PCI, SOX, GDPR, SOC 2, etc.) creates direct audit/fine exposure |
+| `data_integrity` | Errors corrupt data, break reporting, poison downstream systems |
+| `business_continuity` | Failures cause outages, SLA breaches, missed transactions |
+| `safety_regulated` | Safety-critical environment — physical harm, patient safety, OT systems |
+| `legal_liability` | Malpractice, privilege, contractual exposure, document handling errors |
+| `reputation_damage` | Public-facing errors that cause customer churn or permanent reputation impact |
+| `financial_impact` | Direct dollar impact from incorrect transactions, pricing errors, reconciliation failures |
+
+#### Badge Naming — Finding-as-Name
+
+| ✗ Wrong | ✓ Right |
+|---|---|
+| `High Stakes` | `HIPAA Exposure` |
+| `Compliance Risk` | `PCI-DSS Audit` |
+| `Data Loss Risk` | `Irreversible Data Loss` |
+| `Breach Risk` | `Credential Theft Path` |
+| `Harm Severity` | `Patient Safety Critical` |
+
+Domain examples: `Ransomware Recovery`, `Material Financial Impact`, `Audit Trail Gap`, `Production Outage`, `Misrouted Patient Data`.
+
+#### Worked Examples
+
+**Trellix GTI (Cybersecurity):**
+
+| Step | Value |
+|---|---|
+| Baseline (Cybersecurity) | **22** |
+| `Breach Detection Gap` (strong, `breach_exposure`) | +9 |
+| **Final score** | **25 / 25** (capped from 31) |
+
+**Diligent Boards (Content Management / Governance):**
+
+| Step | Value |
+|---|---|
+| Baseline (Content Management) | **16** |
+| `Board Privilege Exposure` (strong, `legal_liability`) | +9 |
+| **Final score** | **25 / 25** (capped from 25) |
+
+**Microsoft Excel (Collaboration):**
+
+| Step | Value |
+|---|---|
+| Baseline (Collaboration) | **16** |
+| `Material Financial Impact` (moderate, `financial_impact`) — for analysts building models | +5 |
+| **Final score** | **21 / 25** |
+
+#### Typical Spread
+
+| Product type | Expected Mastery Stakes |
+|---|---|
+| Cybersecurity, healthcare, fintech, legal, data science, AI platforms | **22-25** |
+| ERP, data protection, industrial/OT, cloud, networking, DevOps, infra/virt | **20-25** |
+| Data & analytics, CRM, content mgmt, collaboration, app dev | **14-22** |
+| Social / Entertainment | **0-4** |
 
 ---
 
 ### 2.3 Lab Versatility (cap 15)
 
-*What kinds of high-value, hands-on experiences can we build for this product?*
+*What kinds of high-value hands-on skill development and skill validation experiences could be designed and delivered on Skillable for this product?*
+
+#### What the Lab Versatility Dimension Measures
+
+Lab Versatility asks: **what lab types could be designed and delivered on Skillable for this product?** This is about the *platform's capability* — what kinds of hands-on skill development and skill validation experiences could be created on Skillable for this product, regardless of *who* actually builds them (Skillable Professional Services, the customer's own team, or a content partner). It's the dimension that connects Inspector to Designer — the lab types identified here feed directly into Designer's program recommendations, and they give sellers specific conversational competence points about *what kinds of labs* are possible.
+
+Lab Versatility is measured against the **Lab Type Menu** (defined in `scoring_config.py` as `LAB_TYPE_MENU`):
+
+- **Red vs Blue** — adversarial team scenarios (cybersecurity EDR/SIEM/network security)
+- **Simulated Attack** — realistic attack, learner responds (any defensive product)
+- **Incident Response** — production down, diagnose under pressure (infrastructure, security, cloud, databases)
+- **Break/Fix** — something's broken, figure it out (any product with complex failure modes)
+- **Team Handoff** — multi-person sequential workflow (DevOps, data engineering, SDLC)
+- **Bug Bounty** — find the flaws (development platforms, security)
+- **Cyber Range** — full realistic network, live threats (network security, SOC ops)
+- **Performance Tuning** — system works but needs optimization (databases, infrastructure, cloud, data)
+- **Migration Lab** — move from A to B (enterprise software, cloud, infrastructure)
+- **Architecture Challenge** — design under constraints
+- **Compliance Audit** — walk through a regulatory check
+- **Disaster Recovery** — practice the recovery plan
+- **CTF (Capture The Flag)** — cybersecurity skill hunts
+
+A product with Lab Versatility doesn't need to support ALL lab types — it needs to support **some lab type naturally**, where "naturally" means the lab type fits the product's real workflow without shoehorning.
+
+#### What This Dimension Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| Whether the product is complex | **Pillar 2 Product Complexity** |
+| Whether the lab can be scored | Pillar 1 Scoring |
+| Whether Skillable can provision the product | Pillar 1 Provisioning |
+
+#### Posture: Default-Positive for Most Real Software
+
+Most real software supports at least one lab type naturally. The old framework used to return 0/15 for products where the AI couldn't identify a perfect match — that's the wrong read. Almost any serious product supports *some* hands-on learning experience, even if it's just "Break/Fix" or "Architecture Challenge." The new posture starts from a baseline reflecting what lab types are *typically* natural for each category.
+
+#### Category-Aware Baseline
+
+| Category | Baseline | Natural lab types |
+|---|---|---|
+| **Cybersecurity** | **14 / 15 (93%)** | Red vs Blue, Simulated Attack, Incident Response, Cyber Range, CTF, Break/Fix |
+| **Cloud Infrastructure** | **14 / 15 (93%)** | Migration, Performance Tuning, Incident Response, Architecture Challenge, DR |
+| **Networking / SDN** | **14 / 15 (93%)** | Cyber Range, Incident Response, Troubleshooting, Performance Tuning |
+| **DevOps** | **14 / 15 (93%)** | CI/CD Team Handoff, Break/Fix, Architecture Challenge, Performance Tuning |
+| **AI Platforms & Tooling** | **14 / 15 (93%)** | Prompt-tune-verify cycles, Bug Bounty on models, Architecture Challenge, Team Handoff |
+| **Data Science & Engineering** | **13 / 15 (87%)** | Pipeline building, Performance Tuning, Architecture, Break/Fix |
+| **Data Protection** | **12 / 15 (80%)** | DR, Compliance Audit, Break/Fix |
+| **Industrial / OT** | **12 / 15 (80%)** | Incident Response, Break/Fix, Architecture |
+| **Infrastructure / Virtualization** | **12 / 15 (80%)** | Break/Fix, Migration, Performance Tuning |
+| **Data & Analytics** | **12 / 15 (80%)** | Performance Tuning, Modeling, Troubleshooting |
+| **App Development** | **12 / 15 (80%)** | Architecture Challenge, Bug Bounty, Team Handoff |
+| **ERP** | **12 / 15 (80%)** | Workflow, Migration, Configuration, Team Handoff |
+| **Healthcare IT** | **12 / 15 (80%)** | Workflow, Compliance Audit, Incident Response |
+| **FinTech** | **12 / 15 (80%)** | Workflow, Compliance Audit, Incident Response |
+| **Legal Tech** | **11 / 15 (73%)** | Workflow, Compliance Audit |
+| **CRM** | **11 / 15 (73%)** | Workflow, Migration, Configuration |
+| **Collaboration** | **11 / 15 (73%)** | Workflow, Power-User, Team Handoff, Configuration |
+| **Content Management** | **11 / 15 (73%)** | Workflow, Migration, Permission Modeling |
+| **Unknown / uncategorized** | **11 / 15 (73%)** | Neutral fallback — flag for classification review |
+| **Social / Entertainment** *(e.g., Facebook, Instagram, TikTok, Netflix, Spotify)* | **1 / 15 (7%)** | Rarely fits any lab type |
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +5 | Clear high-value lab type fits naturally — Cyber Range, Red vs Blue, Performance Tuning, Migration Lab, Compliance Audit, Incident Response, etc. |
-| **moderate** | +3 | Lab type is adaptable to the product but requires some shoehorning |
-| **weak** | don't emit | Lab type doesn't fit — most simple products get nothing in this dimension |
+| **strong** | +5 | A clear high-value lab type fits naturally — Red vs Blue, Cyber Range, Incident Response, Performance Tuning, Migration Lab, Compliance Audit, Break/Fix — and the product's real workflow supports it without shoehorning |
+| **moderate** | +3 | A lab type is adaptable to the product but requires some shoehorning — workflows can be recreated but aren't the natural lab format |
+| **weak** | don't emit | Lab type doesn't fit; the product doesn't support hands-on in any recognizable form |
 
-**signal_category list:** `adversarial_scenario` · `incident_response` · `break_fix` · `team_handoff` · `cyber_range` · `performance_tuning` · `migration_lab` · `architecture_challenge` · `compliance_audit` · `disaster_recovery` · `bug_bounty`
+#### Signal Categories
 
-**Typical spread:** 3 strong = 15 (max). Most products get 1-2 entries. Dual purpose: conversational competence in Inspector, program recommendations in Designer.
+Maps directly to `LAB_TYPE_MENU` entries:
+
+| Signal category | Lab type |
+|---|---|
+| `adversarial_scenario` | Red vs Blue |
+| `simulated_attack` | Simulated Attack |
+| `incident_response` | Incident Response |
+| `break_fix` | Break/Fix |
+| `team_handoff` | Team Handoff |
+| `bug_bounty` | Bug Bounty |
+| `cyber_range` | Cyber Range |
+| `performance_tuning` | Performance Tuning |
+| `migration_lab` | Migration Lab |
+| `architecture_challenge` | Architecture Challenge |
+| `compliance_audit` | Compliance Audit |
+| `disaster_recovery` | Disaster Recovery |
+| `ctf` | CTF / Capture The Flag |
+
+#### Badge Naming — Finding-as-Name
+
+The badge name should be the **specific lab type** applied to the product, not the category:
+
+| ✗ Wrong | ✓ Right |
+|---|---|
+| `Lab Versatility` | `Red vs Blue` |
+| `Adversarial Scenario` | `EDR Threat Hunting` |
+| `Incident Response Type` | `SOC Alert Triage` |
+| `Performance Tuning Type` | `Query Plan Optimization` |
+
+#### Worked Example — Trellix GTI
+
+| Step | Value |
+|---|---|
+| Baseline (Cybersecurity) | **14** |
+| `SOC Alert Triage` (strong, `incident_response`) | +5 |
+| **Final score** | **15 / 15** (capped from 19) |
+
+#### Typical Spread
+
+| Product type | Expected Lab Versatility |
+|---|---|
+| Cybersecurity, cloud, networking, DevOps, AI platforms, data science | **14-15** |
+| Data platforms, infrastructure, business software with workflow depth | **12-15** |
+| Collaboration, content management, CRM, legal tech | **11-14** |
+| Social / Entertainment | **0-2** |
 
 ---
 
 ### 2.4 Market Demand (cap 20)
 
-*Does the broader market validate the need for hands-on training on this product?*
+*How big is the worldwide population of people who need to learn this product at hands-on depth?*
+
+#### What the Market Demand Dimension Measures
+
+Market Demand asks: **how big is the worldwide population of people who need to learn this product at hands-on depth?** It's the intersection of three things:
+
+1. **Is there something to learn?** (derived from Product Complexity)
+2. **Do consequences drive employers to invest in training?** (derived from Mastery Stakes)
+3. **How large is the specialist population** — how many people hold roles that actually need this skill at depth, not just casual end-user use?
+
+**Important distinction — user population ≠ training population.** A product with 2 billion casual users and 200 administrators has a small Market Demand. A product with 5 million specialist professionals who all need deep skills has a massive Market Demand. Salesforce Trailhead exists because admins need training — but the admin population per company is tiny compared to cybersecurity professionals per company. Cybersecurity, cloud, networking, and DevOps dominate Market Demand because **the specialist population is large AND every person in it needs hands-on skills**. CRM, SharePoint, and ERP specialists are real populations, just smaller.
+
+**Market Demand is naturally derivative of Product Complexity × Mastery Stakes × Specialist Population.** A simple popular product (Instagram) has near-zero Market Demand. A complex niche product has moderate Market Demand. Complex + high-stakes + large specialist population = maximum Market Demand.
+
+Strong Market Demand signals:
+
+- **Active certification ecosystem** — the product (or category) has recognized certs that people pursue for career advancement
+- **ATP / training partner networks** — third parties exist who sell training for this product, which is definitional proof that demand exists (why would a partner exist without buyers?)
+- **Scaled install base in a specialist context** — not raw user count, but *learner-eligible* user count
+- **High-demand category** — cybersecurity, cloud, data science, AI are categories where people actively seek skills
+- **Recognized skill in job markets** — the skill appears in job postings, LinkedIn searches, recruiter language
+- **Conference and event presence** — the product has its own conference or hands-on tracks at major events
+- **Growth and funding signals** — IPO, Series funding, enterprise adoption at scale
+
+Market Demand is the **legitimacy check** — does the outside world validate that training on this product is worth delivering? If an ATP network exists, yes. If there's an active cert exam, yes. If the category is cybersecurity, yes almost by definition. If it's a niche internal tool for one bank, no.
+
+#### What This Dimension Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| How many learners the CUSTOMER has — internal employees, customers, partners | That's the *company's* scale, not the market's appetite for the skill. Company scale is Pillar 3 considerations (Delivery Capacity, Org DNA). |
+| Whether the product is complex | Pillar 2 Product Complexity |
+| Whether the product has real stakes | Pillar 2 Mastery Stakes |
+| Whether the company has an ATP network | That's **Delivery Capacity**, but the existence of an ATP network is also a cross-pillar signal that Market Demand is real (someone's buying training or they wouldn't be partners) |
+
+#### Cross-Pillar Evidence Compounding
+
+The **same fact** can legitimately credit both Delivery Capacity (Pillar 3) AND Market Demand (Pillar 2):
+
+| Fact | Pillar 3 Delivery Capacity credits | Pillar 2 Market Demand credits |
+|---|---|---|
+| `~500 ATPs globally` | Strong Delivery Capacity — they can reach learners | Strong Market Demand — nobody becomes a partner for a product with no demand |
+| `Active cert exam with published pass rates` | Moderate Delivery Capacity (indirectly — the exam creates demand for training) | Strong Market Demand — cert existence IS active skill demand |
+| `Major flagship event (e.g., Cohesity Connect, Cisco Live)` | Strong Delivery Capacity — delivery channel at scale | Strong Market Demand — nobody attends a training-heavy conference if there's no appetite |
+
+**The AI is instructed to emit cross-pillar badges for these facts** — a single piece of evidence can land in two pillars with appropriate strength tiers in each.
+
+#### Posture: Default-Positive for Categories with Real Skill Demand
+
+High-demand categories (cybersecurity, cloud, DevOps, data science, AI platforms) have near-universal Market Demand because the specialist population is large AND every person in it needs hands-on skills. Moderate categories (ERP, healthcare IT, fintech, legal tech) have real but narrower demand — the specialist population per company is smaller. Categories like CRM, collaboration, and content management have small per-company admin populations even when aggregate user counts are huge, which lowers Market Demand proportionally. Social / Entertainment has no professional training market at all.
+
+#### Category-Aware Baseline
+
+| Category | Baseline | Rationale |
+|---|---|---|
+| **Cybersecurity** | **17 / 20 (85%)** | Massive global specialist population — every cyber pro needs hands-on skills. Active cert ecosystems (CompTIA, CISSP, vendor certs). Enormous ATP networks. |
+| **Cloud Infrastructure** | **17 / 20 (85%)** | Massive specialist population — AWS/Azure/GCP certs are career-defining, millions of cloud engineers globally. |
+| **AI Platforms & Tooling** | **17 / 20 (85%)** | Surging specialist population — prompt engineering, agent development, LLMOps, fine-tuning are the most-requested skills in the market. |
+| **Networking / SDN** | **16 / 20 (80%)** | Large specialist population — network engineers globally. Cisco, Juniper, etc. — long-established cert ecosystems (CCNA/CCNP/CCIE remain career-defining). |
+| **DevOps** | **16 / 20 (80%)** | Large specialist population — Kubernetes, Terraform, Docker, CI/CD engineers. Recognized career skills with active cert ecosystems. |
+| **Data Science & Engineering** | **15 / 20 (75%)** | Large specialist population — growing certs (Databricks, Snowflake, dbt), widespread job postings. |
+| **Data & Analytics** | **14 / 20 (70%)** | Real specialist market (Tableau, Power BI, Snowflake, Databricks BI) — broad but not as deep-hands-on as data engineering. |
+| **App Development** | **13 / 20 (65%)** | Language and framework-specific skill markets (Java, .NET, Python, React) — large but fragmented. |
+| **ERP** | **12 / 20 (60%)** | SAP, Workday, Oracle, NetSuite — specialist consultant population worldwide, but far smaller than the cyber or cloud pro population. |
+| **Infrastructure / Virtualization** | **12 / 20 (60%)** | VMware VCP, Nutanix, Citrix — established but maturing. Smaller specialist pool than cloud or cyber. |
+| **Healthcare IT** | **12 / 20 (60%)** | Specialist demand (Epic, Cerner, Meditech) — niche but highly valued, certification-gated access. |
+| **FinTech** | **12 / 20 (60%)** | Trading platforms, Bloomberg, banking systems — specialist demand, compliance-driven. |
+| **Industrial / OT** | **12 / 20 (60%)** | Niche but real — PLC, SCADA, Rockwell, Siemens skills in specific industries. |
+| **Data Protection** | **11 / 20 (55%)** | Vendor-specific cert programs (Cohesity, Veeam, Rubrik) — smaller specialist admin population per company. |
+| **Legal Tech** | **11 / 20 (55%)** | Relativity Certified User, e-discovery platforms — niche professional demand. |
+| **Unknown / uncategorized** | **11 / 20 (55%)** | Neutral fallback — flag for classification review |
+| **CRM** | **10 / 20 (50%)** | Salesforce Trailhead is big in aggregate but the admin/developer population per company is small — 5,000 users, 3 admins. Training market exists but is narrower than cyber or cloud. |
+| **Collaboration** | **10 / 20 (50%)** | Microsoft 365 admin certs, SharePoint development — real but narrow admin population per company. |
+| **Content Management** | **10 / 20 (50%)** | Documentum, Alfresco, Box — specialist admin population per company is small. |
+| **Social / Entertainment** *(e.g., Facebook, Instagram, TikTok, Netflix, Spotify)* | **0 / 20 (0%)** | No professional training market |
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +5 | Clear scale signal — large install base, active certification ecosystem, AI platform, enterprise validation at scale, high-demand category, IPO/major funding |
-| **moderate** | +3 | Moderate signal — growing category, mid-size install base, emerging certification, regional presence |
-| **weak** | don't emit | Thin signal — small install base, niche category, no certification |
+| **strong** | +5 | Clear scale signal — active certification ecosystem, ATP network at scale, AI platform at the product level, enterprise validation with named reference customers, high-demand category, major IPO/funding, flagship event at scale |
+| **moderate** | +3 | Moderate signal — growing category, mid-size install base, emerging certification, regional training partner presence |
+| **weak** | don't emit | Thin signal — small install base, niche category with no cert market, no training partner ecosystem |
 
-**signal_category list:** `install_base_scale` · `geographic_reach` · `cert_ecosystem` · `funding_growth` · `category_demand` · `competitor_labs` · `ai_signal` · `enterprise_validation`
+#### Signal Categories
 
-**Variable badge name examples:** `~2M Users` · `Series D $200M` · `IPO 2024` · `Cisco Live 30K` · `Active Cert Exam` · `~500 ATPs` · `Global` · `AI Platform` · `Fortune 100 Clients`
+| Signal category | What it means |
+|---|---|
+| `skill_appetite` | Recognized skill people actively seek (job postings, career paths, recruiter language) |
+| `cert_ecosystem` | Active certification program with published exams, pass rates, career value |
+| `atp_network` | Authorized training partner network exists — **cross-pillar with Delivery Capacity** |
+| `install_base_scale` | Large learner-eligible user base (not raw users — specialists who might train) |
+| `geographic_reach` | Global presence — not Indiana-only |
+| `funding_growth` | IPO, Series D, major enterprise momentum |
+| `category_demand` | High-demand parent category (cybersecurity, cloud, data, DevOps, AI) |
+| `enterprise_validation` | Named Fortune 500 / Global 2000 customers |
+| `flagship_event` | Major conference or event with hands-on tracks — **cross-pillar with Delivery Capacity** |
+| `ai_signal` | Product IS or heavily features AI — surging skill demand |
+| `competitor_labs` | Competitors already sell training for this product — demand is proven |
 
-**Typical spread:** 4 strong = 20 (max). Mostly moderate = 9-12.
+#### Badge Naming — Finding-as-Name
+
+| ✗ Wrong | ✓ Right |
+|---|---|
+| `Market Demand` | `~500 ATPs` |
+| `Certification Ecosystem` | `Active Cert Exam` |
+| `High Demand Category` | `Cybersecurity Skill` |
+| `Install Base` | `~2M Users` |
+| `Flagship Event` | `Cisco Live 30K` |
+| `AI Platform` | `AI Training Platform` |
+
+Domain examples: `Fortune 100 Clients`, `Series D $200M`, `IPO 2024`, `Global ATP Net`, `Azure Marketplace`, `Top 3 EDR`.
+
+#### Worked Example — Trellix GTI
+
+| Step | Value |
+|---|---|
+| Baseline (Cybersecurity) | **17** |
+| `Top 5 Threat Intel` (strong, `install_base_scale`) | +5 |
+| `Active Cert Track` (strong, `cert_ecosystem`) | +5 |
+| `ATP Network` (strong, `atp_network`) — cross-pillar, also credits Delivery Capacity | +5 |
+| **Final score** | **20 / 20** (capped from 32) |
+
+#### Typical Spread
+
+| Product type | Expected Market Demand |
+|---|---|
+| Cybersecurity, cloud, AI platforms | **17-20** |
+| Networking / SDN, DevOps, data science | **16-20** |
+| Data & Analytics | **14-18** |
+| ERP, app development, infrastructure, healthcare IT, FinTech, industrial / OT | **12-17** |
+| Data Protection, legal tech | **11-15** |
+| CRM, collaboration, content management | **10-15** |
+| Unknown (pending classification review) | **11 baseline** |
+| Social / Entertainment | **0-3** |
 
 ---
 
@@ -604,10 +1107,12 @@ Pillar 2 uses the **rubric model**. Each badge the AI emits carries:
 | Rule | |
 |---|---|
 | **2-3 words preferred, 4 words absolute max** | Only 4 if every word is short |
+| **The name IS the finding, never a topic label** | `SIEM + EDR Integration` (finding) ✓ · `Integration Complexity` (topic) ✗ |
 | **Use abbreviations and numerals aggressively** | `Cert` (not Certification), `Config` (not Configuration), `Admin` (not Administrator), `Ops` (not Operations), `Dev` (not Development), `Auth` (not Authentication), `Docs`, `Repo`, `Perf`, `Env`, `Prod`, `App` |
-| **Standard industry acronyms — never spell out** | API, CLI, GUI, AI, MFA, NFR, ATP, LMS, RBAC, IDP, IPO, PBT, MCQ, SSO |
+| **Standard industry acronyms — never spell out** | API, CLI, GUI, AI, MFA, NFR, ATP, LMS, RBAC, IDP, IPO, PBT, MCQ, SSO, SIEM, EDR, SOC, PBT |
 | **Subject matter terminology is encouraged** | The whole point of Pillar 2 variable names is to capture domain-specific concepts — `Outside Counsel Dependency`, `Lateral Movement Detection`, `Settlement Reconciliation` |
 | **NO product names of the company being scored** | The dossier header has the company name — don't repeat it in badges |
+| **NO signal_category names as badge names** | `deep_configuration` is the category, not the badge. The badge is `180+ Detection Rules` or similar — the *finding* that belongs in that category |
 
 ---
 
@@ -617,7 +1122,26 @@ Pillar 2 uses the **rubric model**. Each badge the AI emits carries:
 
 Everything about the organization in one Pillar. Combines training commitment, build capacity, delivery capacity, and organizational DNA. 30% of the Fit Score — meaningful but never overriding the product truth.
 
-Pillar 3 uses the **rubric model**, same architecture as Pillar 2.
+### The Posture — Default-Realistic, Organization-Type Baselines
+
+Customer Fit follows the same default-positive philosophy as Instructional Value: **most real organizations that reach the Inspector dossier are serious about training in some form**, so the framework starts from a reasonable baseline and sculpts up or down based on specific findings. The old framework started dimensions at zero and demanded the AI prove commitment from evidence — that produced pessimistic scores even for vendors with clearly mature training functions.
+
+**The new posture is centered on organization type.** The discovery phase classifies every company into an organization type (ENTERPRISE SOFTWARE, SOFTWARE category-specific, TRAINING ORG, ACADEMIC, SYSTEMS INTEGRATOR, PROFESSIONAL SERVICES, CONTENT DEVELOPMENT, LMS PROVIDER, TECH DISTRIBUTOR). **Each Customer Fit dimension has an organization-type baseline** — a realistic starting point for a company of that type. Positive findings raise the score; negative findings (penalties) lower it. Missing evidence means baseline, not zero.
+
+### Research Asymmetry — Critical for CF Dimensions
+
+Not all Customer Fit dimensions are equally easy to research from outside the firewall. This asymmetry matters for how the AI should apply penalties:
+
+| Dimension | Research difficulty | Penalty philosophy |
+|---|---|---|
+| **Training Commitment** | Moderate — customer-facing training is public, employee training is harder to see | Penalize when external training evidence is missing, be cautious about employee-only training |
+| **Build Capacity** | Hard — internal authoring roles and content team structures are inward-facing | **Cautious penalties only.** Absence of public evidence ≠ evidence of absence. Only penalize when research finds *positive* evidence of outsourcing or confirmed absence of authoring roles. |
+| **Delivery Capacity** | Easy — ATPs, events, course calendars, cert infrastructure are all public | **Penalize aggressively.** Absence of public evidence *is* strong evidence of absence. A software vendor with no visible partner network or training calendar really doesn't have one. |
+| **Organizational DNA** | Moderate — partnerships are public, RFP processes and internal culture take more inference | Penalize with confidence on well-documented signals (IBM-style build-everything culture, heavy procurement), be cautious on inferred signals |
+
+This asymmetry is baked into the penalty design for each dimension and explicitly taught to the AI in the prompt template.
+
+Pillar 3 uses the **rubric model**, same architecture as Pillar 2. Each badge carries `name`, `strength`, `signal_category`, `color`, and `evidence`. Variable AI-synthesized badge names, fixed signal_category lists, finding-as-name discipline — nothing architectural changes from Pillar 2.
 
 ### Customer Fit is the same for every product in a company
 
@@ -661,108 +1185,620 @@ This order is the **single source of truth** — defined once in `scoring_config
 
 ### 3.1 Training Commitment (cap 25)
 
-*Have they invested in training? What's the evidence?*
+*Are you committed to helping your people become genuinely competent — not just checking a training box?*
+
+#### What the Training Commitment Dimension Measures
+
+Training Commitment asks a simple question: **does this organization have a heart for teaching?** It's not about lab infrastructure or delivery mechanisms — those belong to Build Capacity and Delivery Capacity. Training Commitment is about philosophical investment. Does the organization genuinely care that its learners become competent? A training catalog that exists is a start. A named customer enablement team, senior training leadership, and programs across multiple audiences show deeper commitment.
+
+The dimension measures commitment along two axes:
+
+**Breadth of audiences served:**
+- **Employees** — do they invest in their own people's skills? (Pluralsight / Udemy / LinkedIn Learning contracts and internal programs count here)
+- **Customers** — do they invest in their customers' success and competence?
+- **Partners** — do they enable the channel, the ATPs, the resellers?
+- **End-users at scale** — do they run learner-facing programs that reach millions?
+
+An organization that trains ONE audience is making some commitment. An organization that trains customers AND partners AND employees is operating at the highest level of Training Commitment. Breadth of audience is as important as depth within any one audience.
+
+**Depth of investment within each audience:**
+- Formal customer enablement programs with named teams
+- Active certification ecosystems with tested exam pass rates
+- Senior training leadership (VP of Education, Chief Learning Officer) — level, not name
+- Flagship training events (Cisco Live, Cohesity Connect, Microsoft Ignite with learning tracks)
+- Explicit hands-on / lab / interactive / scenario-based language in published programs
+- Formal onboarding programs with clear learning outcomes
+- Compliance training programs (for regulated industries)
+
+#### What Training Commitment Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| Whether they can BUILD labs themselves | **Pillar 3 Build Capacity** |
+| Whether they have the delivery infrastructure to reach learners at scale | **Pillar 3 Delivery Capacity** |
+| Whether they partner with outside platforms for strategic assets | **Pillar 3 Organizational DNA** |
+| Whether the product itself warrants training | Pillar 2 |
+
+**Training Commitment is philosophical, not operational.** An organization can have a deeply committed training culture with limited in-house build capacity — they care about their learners but outsource the heavy lifting. That's captured correctly in the dimension split: high Training Commitment, lower Build Capacity. The two aren't the same thing.
+
+#### Organization-Type Baseline
+
+Applied **before** any findings. The baseline is derived from the organization's type (identified during discovery via the company classification badge). Findings add strong or moderate credits on top; explicit negatives subtract. Capped at 25 / floored at 0.
+
+| Organization Type | Baseline | Rationale |
+|---|---|---|
+| **TRAINING ORG** *(CompTIA, EC-Council, SANS, Cybrary, Skillsoft, ISACA)* | **23 / 25 (92%)** | Training IS their business. Philosophical commitment is definitional. |
+| **ACADEMIC** *(Universities, community colleges, WGU, SLU)* | **22 / 25 (88%)** | Teaching is the mission. Top of the list on heart for teaching — about whether they want people to be good at this, not about labs. |
+| **CONTENT DEVELOPMENT** *(GP Strategies and similar)* | **22 / 25 (88%)** | Their whole business is committed to training others. Same tier as training orgs. |
+| **ENTERPRISE SOFTWARE** *(Microsoft, SAP, Oracle, Salesforce, Workday)* | **18 / 25 (72%)** | Big vendors invest heavily in training — enablement is core to retention and expansion. Customer + partner + employee programs are the norm. |
+| **PROFESSIONAL SERVICES** *(consultancies with training practices)* | **18 / 25 (72%)** | Most professional services firms build training directly into their service offerings — training is part of their value proposition. |
+| **SOFTWARE** *(category-specific — Trellix, Cohesity, Nutanix, Hyland, etc.)* | **16 / 25 (64%)** | Specialist vendors generally invest in training, with varying breadth and depth |
+| **SYSTEMS INTEGRATOR** *(Deloitte, Accenture, Cognizant, TCS, Infosys)* | **16 / 25 (64%)** | Most SIs build training into their delivery motion for both their consultants and their clients |
+| **Unknown / uncategorized** | **13 / 25 (52%)** | Neutral fallback — flag for classification review |
+| **LMS PROVIDER** *(Cornerstone, Docebo, SAP SuccessFactors Learning)* | **11 / 25 (44%)** | LMS providers are great at licensing deals and hosting *other people's* training, but often not committed to training themselves or their own learners at depth |
+| **TECH DISTRIBUTOR** *(Ingram, CDW, Arrow, Synnex)* | **9 / 25 (36%)** | Distribution-first. Trying to become value-added resellers with training, but historically not great at it |
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +6 | **Explicit hands-on / lab / interactive / scenario-based language** in published programs · Active cert with tested exam pass rates · Major flagship training events · Senior training leadership with mandate (level only — never name the person) · Strong regulated-industry compliance training |
-| **moderate** | +3 | Catalog of training exists but mostly content-only · Documented programs without scale evidence · Director-level training leader · Some compliance training |
-| **weak** | don't emit | Single training mention with no detail |
+| **strong** | +6 | Named customer enablement team · Active certification program with tested exam pass rates · Formal onboarding with learning outcomes · Senior training leadership (VP Education, Chief Learning Officer) · Flagship training event at scale · Explicit hands-on / lab / interactive / scenario-based language in published programs · Strong compliance training program · **Multi-audience commitment** (employees + customers + partners) |
+| **moderate** | +3 | Training catalog exists with real substance · Documented programs without scale evidence · Director-level training leader · Some compliance training · Single-audience focus (employees via Pluralsight / Udemy / LinkedIn Learning) · Partner program with modest depth · Customer onboarding without formal learning outcomes |
+| **weak** | don't emit | Generic "we offer training" with no detail · No named programs or leaders |
 
-**signal_category list:** `hands_on_commitment` · `cert_exam_active` · `training_catalog` · `training_leadership_level` · `compliance_program` · `training_events` · `product_training_partnership`
+**Note on weak signals:** a training catalog with no substance isn't worth firing a badge for, but it's captured in the baseline — the baseline is the "something exists at this org type" floor. Strong and moderate findings earn credit *on top* of the baseline.
 
-**The hands-on / lab / interactive language pattern is the strongest single signal.** When the AI finds explicit references to hands-on labs, interactive exercises, scenario-based training in the vendor's published programs, that's the highest-value Training Commitment finding — credit it as strong.
+#### Signal Categories — Positive
 
-**Example badge names:** `Hands-on Lab Commitment` · `Active Cert Exam` · `Cohesity Connect 5K` · `Compliance Training Mandate` · `VP-Level Training` · `~200 Course Catalog`
+| Signal | What it means |
+|---|---|
+| `customer_enablement_team` | Named customer enablement / customer education team |
+| `partner_enablement_program` | Formal partner / channel training program |
+| `employee_learning_investment` | Internal employee L&D investment (Pluralsight / Udemy / LinkedIn Learning seats, internal programs) |
+| `multi_audience_commitment` | Programs targeting employees AND customers AND partners — **breadth signal** |
+| `cert_exam_active` | Active certification program with tested exam pass rates |
+| `onboarding_program` | Formal customer onboarding with learning outcomes |
+| `customer_success_investment` | Dedicated CS team with explicit learning / enablement mandate |
+| `training_leadership_level` | Senior training leadership (VP Education, Chief Learning Officer) — level, not name |
+| `training_events_at_scale` | Flagship events (Cisco Live, Cohesity Connect, Microsoft Ignite with learning tracks) |
+| `hands_on_learning_language` | Explicit hands-on / lab / interactive / scenario-based language in published programs |
+| `compliance_training_program` | Regulated-industry compliance training (healthcare, finance, legal) |
+| `training_catalog_present` | Training catalog with real substance |
+
+#### Signal Categories — Negative (penalties)
+
+Training Commitment is philosophical — absence of training investment is as diagnostic as presence of it. A vendor that barely talks about training, has no customer enablement, and has no active certification isn't committed, and the score should reflect that.
+
+| Signal | Color | Hit | When it fires |
+|---|---|---|---|
+| `no_customer_training` | **Amber Risk** | **−4** | **Badge: `No Customer Training`**. Research finds zero evidence of training offered to customers — no customer courses, no enablement programs, no cert paths, no published training calendar. The vendor is not investing in customer competence. |
+| `thin_cert_program` | **Amber Risk** | **−3** | **Badge: `Thin Cert Program`**. Certification program is absent entirely, or present only as one or two nominal offerings with no active exam pass rates or career value. |
+| `no_customer_success_team` | **Amber Risk** | **−3** | **Badge: `No Customer Success Team`**. No named customer success, customer enablement, or customer onboarding team. Training is not organizationally owned. |
+| `minimal_training_language` | **Amber Context** | **−2** | **Badge: `Training Not Prioritized`**. Vendor website, marketing, and investor materials barely mention training, enablement, certification, or customer success. Training is an afterthought, not part of the commercial motion. |
+
+**Penalty math:** penalties subtract from the baseline after positive findings are applied. Dimension score is floored at 0. A specialist software vendor with baseline 16, no customer training, thin certs, and minimal training language could land at 16 − 4 − 3 − 2 = **7 / 25** — a harsh but honest read.
+
+#### Badge Naming — Finding-as-Name
+
+| ✗ Wrong | ✓ Right |
+|---|---|
+| `Training Commitment` | `Customer Enablement Team` |
+| `Certification` | `Active Cert Exam` |
+| `Training Leadership` | `VP of Education` |
+| `Events` | `Cisco Live 30K` |
+| `Hands-on` | `Hands-on Lab Commitment` |
+
+Variable badge name examples: `~200 Course Catalog`, `Cohesity Connect 5K`, `Partner Academy`, `Customer Success Team`, `Multi-Audience Programs`, `Employee LinkedIn Learning`.
+
+#### Worked Examples
+
+**Example 1 — Trellix (SOFTWARE — cybersecurity specialist):**
+
+| Step | Value |
+|---|---|
+| Baseline (SOFTWARE category-specific) | **16** |
+| `Partner Academy` (strong, `partner_enablement_program`) | +6 |
+| `Customer Enablement Team` (strong, `customer_enablement_team`) | +6 |
+| `Multi-Audience Programs` (strong, `multi_audience_commitment`) | +6 |
+| **Final score** | **25 / 25** (capped from 34) |
+
+**Example 2 — CompTIA (TRAINING ORG):**
+
+| Step | Value |
+|---|---|
+| Baseline (TRAINING ORG) | **23** |
+| `Active Cert Exam` (strong, `cert_exam_active`) | +6 |
+| **Final score** | **25 / 25** (capped from 29) |
+
+**Example 3 — Cornerstone (LMS PROVIDER):**
+
+| Step | Value |
+|---|---|
+| Baseline (LMS PROVIDER) | **11** |
+| `Training Catalog` (moderate, `training_catalog_present`) | +3 |
+| **Final score** | **14 / 25** |
+
+Honest outcome: Cornerstone hosts others' training but isn't deeply committed to training *their own* learners — they facilitate, they don't teach.
+
+#### Typical Spread
+
+| Org type | Expected Training Commitment |
+|---|---|
+| Training orgs, academic institutions, content development firms | **22-25** |
+| Enterprise software, professional services, systems integrators | **18-25** |
+| Software vendors (category-specific) | **16-25** (with multi-audience findings) |
+| LMS providers, tech distributors | **10-18** |
+| Unknown (pending classification review) | **13 baseline** |
 
 ---
 
 ### 3.2 Build Capacity (cap 20)
 
-*Can they create the labs?*
+*Are you tailoring what you need, or just buying generic training? Are you actually building the hands-on content for your audience?*
+
+#### What the Build Capacity Dimension Measures
+
+Build Capacity asks: **does this organization tailor and build its own training content, or does it consume off-the-shelf content from somewhere else?** The strongest signal is evidence that the organization is actively *creating* technical training — especially hands-on training. The weakest signal is "they buy seats from Pluralsight and call it a training program." Everything else lives between those two poles.
+
+Build Capacity is about **CREATE roles**, not delivery roles. An instructor who teaches is not Build Capacity — an instructor who also authors labs is. An SME who reviews content for accuracy is not Build Capacity — an SME who writes content is. A training department that runs workshops is not Build Capacity — a training department with named Lab Authors, Instructional Designers, and Tech Writers is.
+
+**The strongest possible signal: "they're already building labs."** If the research shows a company has DIY lab authoring happening today — meaning they're already doing what Skillable would help them do better — that's a near-max finding. These companies understand the value of hands-on training and are investing in it. They're the easiest customers to sell to because the premise is already proven.
+
+**Skillable Professional Services can fill a Build Capacity gap.** A company with low Build Capacity but strong Delivery Capacity and Training Commitment is a **Professional Services opportunity** — Skillable can build for them. This is why Build Capacity is weighted lowest within Customer Fit (20 vs. 30 for Delivery Capacity). It's important but not as structurally blocking as Delivery Capacity.
+
+#### What Build Capacity Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| Delivery infrastructure (ATPs, LMS, events) | **Pillar 3 Delivery Capacity** |
+| Whether they buy Pluralsight / Udemy seats for employees | **Pillar 3 Training Commitment** (employee enablement signal) |
+| Whether they run training (workshops, instructors, bootcamps) | **Pillar 3 Delivery Capacity** — delivering is not building |
+| SMEs whose role is review or accuracy validation only | Not captured — these are not authors |
+| Pure delivery instructors, trainers, workshop leaders | **Pillar 3 Delivery Capacity** |
+
+**Default routing for instructors: Delivery Capacity.** Build Capacity only fires for instructors when research finds explicit dual-role authoring evidence (instructor as lab author, tech writer, or content developer).
+
+#### Organization-Type Baseline — Centered by Design
+
+**Important:** Build Capacity baselines cluster in the middle because **Build Capacity is inward-facing and genuinely hard to verify from external research.** The AI can find partial evidence (job postings, conference talks, Trailblazer Community posts, vendor university branding) but the absence of public evidence doesn't mean internal capacity isn't there. The baselines reflect this uncertainty — most real organizations start in a middle band, and the **positive findings do most of the differentiation** as the AI surfaces evidence of actual authoring roles, named content teams, or DIY lab work.
+
+| Organization Type | Baseline | Rationale |
+|---|---|---|
+| **CONTENT DEVELOPMENT** *(GP Strategies, el-Training firms)* | **14 / 20 (70%)** | Building training content IS their business — high confidence in some build capacity |
+| **ACADEMIC** *(Universities, colleges)* | **12 / 20 (60%)** | Curriculum design is part of the faculty mission, though hands-on lab authoring varies |
+| **TRAINING ORG** *(CompTIA, SANS, EC-Council)* | **12 / 20 (60%)** | Strong in-house content is typical, but varies — CompTIA builds, Skillsoft mostly licenses |
+| **PROFESSIONAL SERVICES** | **12 / 20 (60%)** | Most build training into engagements, but practice-dependent |
+| **SYSTEMS INTEGRATOR** *(Deloitte, Accenture, Cognizant)* | **11 / 20 (55%)** | Often build training into delivery but scale and consistency vary widely |
+| **ENTERPRISE SOFTWARE** *(Microsoft, SAP, Oracle, Salesforce)* | **11 / 20 (55%)** | Big vendors typically have dedicated education teams, but hands-on content depth varies |
+| **SOFTWARE** *(category-specific)* | **10 / 20 (50%)** | Varies widely — positive findings are what differentiates the genuine builders |
+| **Unknown / uncategorized** | **10 / 20 (50%)** | Neutral fallback — flag for classification review |
+| **LMS PROVIDER** *(Cornerstone, Docebo)* | **9 / 20 (45%)** | LMS providers facilitate others' content; rarely build hands-on content themselves |
+| **TECH DISTRIBUTOR** *(Ingram, CDW, Arrow)* | **9 / 20 (45%)** | Distribution-first; content building is not historically their strength |
+
+**Why the centered distribution?** Under the old, more extreme baselines (17 for Content Development, 6 for Tech Distributor) the baseline *itself* was doing too much of the work. But Build Capacity is hard to verify — we can't really know from outside research whether a given company has 30 Instructional Designers on staff. Centering the baselines and letting positive findings lift or negative findings push down is more honest. A Cisco with documented Lab Author roles should hit 17-20 from positive findings on top of the 11 baseline. A bank with explicit third-party content outsourcing stays near baseline or drops slightly via cautious penalties.
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +5 | Named education / curriculum / content team explicitly responsible for content creation · IDs, Lab Authors, Tech Writers / Editors documented · Product-Training partnership documented as collaborative content development · Strong DIY lab evidence · Documented content development partnerships |
+| **strong** | +5 | **DIY lab authoring evidence (already building labs today)** · Named content team with explicit lab / tech writer / curriculum mandate · Named Instructional Designers · Named Lab Authors · Named Tech Writers / Editors · Product-Training partnership documented as collaborative content development · Documented content development partnerships with external firms |
 | **moderate** | +3 | SME participation in content development mentioned · Named training department with some authoring signals · Third-party content firm engagement · Instructors with **explicit dual-role** authoring evidence |
-| **weak** | don't emit | Just "training department exists" with no creation evidence · Plain instructor headcount (those route to Delivery Capacity) · SMEs whose role is review/accuracy only |
+| **weak** | don't emit | Just "training department exists" with no creation evidence · Plain instructor headcount · SMEs whose role is review or accuracy only · Buying off-the-shelf content (Pluralsight, Udemy, LinkedIn Learning) without any tailoring |
 
-**signal_category list:** `content_team_named` · `instructional_designers` · `lab_authors` · `tech_writers` · `product_training_partnership` · `content_partnership` · `diy_labs` · `instructor_authors_dual_role`
+#### Signal Categories — Positive
 
-**CRITICAL distinction — Build Capacity is about CREATE roles, not delivery:**
-
-| ✅ Build Capacity | ❌ NOT Build Capacity |
+| Signal | What it means |
 |---|---|
-| Instructional Designers (IDs) | Pure delivery instructors / trainers / workshop leaders |
-| Content Developers | Generic "training department" without creation evidence |
-| Lab Authors | Lab infrastructure (that's Delivery Capacity) |
-| Tech Writers / Editors | Training catalog SIZE (that's Training Commitment) |
-| SMEs **explicitly paired with content authoring** | SMEs whose role is review or accuracy only |
-| Instructors **with explicit dual-role authoring evidence** | Plain instructor headcount |
+| `diy_labs` | **Already building labs today** — the strongest signal |
+| `content_team_named` | Named education / curriculum / content team explicitly responsible for content creation |
+| `instructional_designers` | Named ID role(s) in the organization |
+| `lab_authors` | Named lab author role(s) or lab creation practice |
+| `tech_writers` | Named tech writer / tech editor role(s) with content creation mandate |
+| `product_training_partnership` | Documented collaborative content development between product and training teams |
+| `content_partnership` | Documented partnership with external content development firm |
+| `instructor_authors_dual_role` | Instructors with explicit dual-role authoring evidence |
+| `sme_content_authoring` | SMEs explicitly paired with content authoring (not review-only) |
 
-**Default routing for instructors:** Delivery Capacity. Build Capacity only fires when the AI finds explicit dual-role evidence (instructor as lab author, tech writer, content developer, etc.).
+#### Signal Categories — Negative (penalties — cautious by design)
 
-**Example badge names:** `Workday Education Team` · `~30 Lab Authors` · `IDs On Staff` · `Tech Writer Team` · `Content Co-Authoring` · `DIY Lab Authoring` · `University Content Partnership`
+**Research asymmetry matters here.** Unlike Delivery Capacity (outward-facing, where absence of evidence is strong evidence of absence), Build Capacity is inward-facing. The absence of public evidence does NOT prove the absence of internal capacity. **Only penalize when there is positive evidence of outsourcing or positive evidence that authoring roles don't exist** — not when research simply fails to find evidence.
+
+| Signal | Color | Hit | When it fires |
+|---|---|---|---|
+| `confirmed_outsourcing` | **Amber Risk** | **−3** | **Badge: `Outsourced Content`**. Research finds explicit statements, case studies, or press releases documenting that the organization buys off-the-shelf content (Pluralsight, Udemy, generic e-learning vendors) and has no internal authoring mandate. The key is *explicit* — vendor partnerships referenced by the company itself. |
+| `no_authoring_roles_found` | **Amber Risk** | **−3** | **Badge: `No Content Authors`**. After thorough research (LinkedIn, job postings, company pages), zero evidence of Instructional Designer, Curriculum Developer, Lab Author, or Tech Writer roles. Combined with explicit "we use Pluralsight" language, this becomes diagnostic. |
+| `review_only_smes` | **Amber Context** | **−2** | **Badge: `Review-Only SMEs`**. SMEs are mentioned in content processes but only in review / accuracy-validation roles, never as authors. Weak signal of build capacity — they have subject matter expertise but aren't applying it to content creation. |
+
+**Cautious penalty philosophy — the prompt will tell the AI:**
+
+> *When evaluating Build Capacity penalties, be cautious. Do not penalize for absence of evidence — only penalize when you have direct, explicit evidence of outsourcing or of the organization buying off-the-shelf training exclusively. If research is inconclusive on whether internal authoring roles exist, default to baseline and do not penalize. The dimension is inward-facing and internal capacity is genuinely hard to verify from outside.*
+
+The research asymmetry between Delivery Capacity (easy to verify) and Build Capacity (hard to verify) is intentional and documented. Delivery penalties fire aggressively on missing public evidence. Build penalties fire only on direct positive evidence of the negative.
+
+#### Badge Naming — Finding-as-Name
+
+| ✗ Wrong | ✓ Right |
+|---|---|
+| `Build Capacity` | `DIY Lab Authoring` |
+| `Content Team` | `Workday Education Team` |
+| `Lab Authors` | `~30 Lab Authors` |
+| `Instructional Designers` | `IDs On Staff` |
+| `Tech Writers` | `Tech Writer Team` |
+| `Content Partnership` | `University Content Partnership` |
+
+#### Worked Examples
+
+**Example 1 — Trellix (SOFTWARE — cybersecurity specialist):**
+
+| Step | Value |
+|---|---|
+| Baseline (SOFTWARE category-specific) | **10** |
+| `Trellix Education Team` (strong, `content_team_named`) | +5 |
+| `DIY Lab Authoring` (strong, `diy_labs`) | +5 |
+| **Final score** | **20 / 20** (capped) |
+
+**Example 2 — A Bank (buyer-style org, classified SYSTEMS INTEGRATOR for internal IT training practice):**
+
+| Step | Value |
+|---|---|
+| Baseline (SYSTEMS INTEGRATOR) | **12** |
+| No named content team, no DIY labs, buys Pluralsight | no emissions |
+| **Final score** | **12 / 20** |
+
+Honest outcome: The bank has moderate Build Capacity baseline reflecting that SIs *generally* build training, but with no findings the specific bank lands at the baseline — suggesting they should be reclassified or that they're a weak Build Capacity fit. Combined with the classification flag, this gives the seller the honest read: "ProServ opportunity."
+
+**Example 3 — GP Strategies (CONTENT DEVELOPMENT):**
+
+| Step | Value |
+|---|---|
+| Baseline (CONTENT DEVELOPMENT) | **17** |
+| `Tech Writer Team` (strong, `tech_writers`) | +5 |
+| **Final score** | **20 / 20** (capped from 22) |
+
+#### Typical Spread
+
+| Org type | Expected Build Capacity |
+|---|---|
+| Content development firms, training orgs with strong in-house content | **17-20** |
+| Enterprise software, professional services, academic institutions | **12-20** |
+| Category-specific software vendors | **10-20** (depending on in-house investment) |
+| LMS providers | **6-14** |
+| Tech distributors | **4-12** |
+| Unknown (pending classification review) | **10 baseline** |
 
 ---
 
 ### 3.3 Delivery Capacity (cap 30)
 
-*Can they get labs to learners at scale?*
+*Once labs exist — whether the customer built them or Skillable Professional Services built them — does the organization have the infrastructure and network to get them to learners at scale?*
 
-Weighted highest within Customer Fit because having labs = cost, delivering labs = value. Without delivery channels, labs never reach learners.
+#### What the Delivery Capacity Dimension Measures
+
+Delivery Capacity asks: **can this organization actually reach learners at scale with training?** It's measured by the *size and reach* of their delivery infrastructure, not whether they have it at all. Everyone "offers training" in some form — the question is whether the reach is Indiana, the US, the Western Hemisphere, or truly global.
+
+Delivery Capacity is weighted highest within Customer Fit (30 out of 100) because of a **share-of-wallet** reality: having labs = cost, delivering labs to learners = value. Without delivery infrastructure, labs are a cost center that never reaches the audience that would benefit. A customer can have perfect Training Commitment and excellent Build Capacity, but if they have no channel to get the content in front of learners, the commercial case collapses. **Delivery Capacity is where commercial value lives.**
+
+Strong Delivery Capacity signals:
+
+- **ATP / Authorized Training Partner networks** — the bigger the global network, the higher the reach
+- **Skillable-partner LMS platforms already in place** — Docebo, Cornerstone, Skillable TMS
+- **Flagship training events at scale** — Cohesity Connect, Cisco Live, Microsoft Ignite with hands-on tracks
+- **Existing lab platform** — Skillable (expansion), competitor (displacement), or `DIY Lab Platform` (replacement)
+- **Instructor-led delivery network at scale** — internal instructors, certified trainers, bootcamp faculty
+- **Global geographic reach** — presence in NAMER + EMEA + APAC vs. one region
+- **Certification delivery infrastructure** — Pearson VUE, Certiport, PSI integration
+
+A customer with ATPs spanning 80 countries and a flagship conference with 30K attendees has maximum Delivery Capacity. A customer with a regional training program in a single state does not.
+
+#### Cross-Pillar Compounding with Market Demand
+
+**Certain facts legitimately fire in BOTH Pillar 2 Market Demand AND Pillar 3 Delivery Capacity** — the AI should emit cross-pillar badges when the evidence supports it:
+
+| Fact | Delivery Capacity credits | Market Demand (Pillar 2) credits |
+|---|---|---|
+| `~500 ATPs globally` | Strong Delivery Capacity — scaled reach | Strong Market Demand — partners don't exist without skill demand |
+| `Active cert exam with tested pass rates` | Strong Delivery Capacity — cert delivery infrastructure | Strong Market Demand — certs exist because learners want them |
+| `Flagship event (Cisco Live 30K, Cohesity Connect 5K)` | Strong Delivery Capacity — delivery at scale | Strong Market Demand — events attract because demand is real |
+
+The prompt instructs the AI to cross-reference these facts between pillars when emitting badges.
+
+#### What Delivery Capacity Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| Content creation roles (IDs, Lab Authors, Tech Writers) | **Pillar 3 Build Capacity** |
+| Whether they *care* about training | **Pillar 3 Training Commitment** |
+| Whether they partner culturally | **Pillar 3 Organizational DNA** |
+| Whether the content itself is good | Not captured in scoring — content quality is a Designer concern |
+
+#### Organization-Type Baseline
+
+| Organization Type | Baseline | Rationale |
+|---|---|---|
+| **TRAINING ORG** *(CompTIA, SANS, EC-Council, Skillsoft)* | **24 / 30 (80%)** | Delivery IS their business. Global ATP networks, cert delivery, events are definitional. |
+| **LMS PROVIDER** *(Cornerstone, Docebo)* | **24 / 30 (80%)** | They ARE a delivery platform — scaled reach is their product |
+| **ENTERPRISE SOFTWARE** *(Microsoft, SAP, Oracle, Salesforce, Cisco)* | **22 / 30 (73%)** | Global partner networks, major events, cert programs, established delivery channels |
+| **TECH DISTRIBUTOR** *(Ingram, CDW, Arrow, Synnex)* | **22 / 30 (73%)** | Distribution reach IS their core strength, even if training is newer |
+| **SYSTEMS INTEGRATOR** *(Deloitte, Accenture, Cognizant, TCS)* | **20 / 30 (67%)** | Global reach via consultant networks, though training delivery is secondary |
+| **PROFESSIONAL SERVICES** | **18 / 30 (60%)** | Varies by firm — some have strong delivery networks, some are regional |
+| **SOFTWARE** *(category-specific)* | **16 / 30 (53%)** | Specialist vendors vary widely — some have global channels, some are regional |
+| **ACADEMIC** | **16 / 30 (53%)** | Strong institutional reach to students, but limited external delivery infrastructure |
+| **Unknown / uncategorized** | **16 / 30 (53%)** | Neutral fallback — flag for classification review |
+| **CONTENT DEVELOPMENT** *(GP Strategies)* | **14 / 30 (47%)** | They build content but typically rely on clients' channels for delivery |
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +8 | Existing lab platform (Skillable = expansion, competitor name = displacement) · Large ATP / learning partner network at scale · Skillable-partner LMS already in place (Docebo, Cornerstone) · Major flagship events with hands-on tracks at scale · Instructor-led delivery network at scale |
-| **moderate** | +4 | `No Lab Platform` (greenfield — opportunity, NOT deficiency) · `DIY Lab Platform` (replacement opportunity) · Limited ATP network · Other LMS in place · Moderate instructor delivery network · Smaller events |
-| **weak** | don't emit | Plain "they offer training" with no delivery infrastructure named |
+| **strong** | +8 | Existing lab platform (Skillable = expansion, competitor name = displacement) · **Large global ATP / learning partner network at scale** · Skillable-partner LMS already in place (Docebo, Cornerstone, Skillable TMS) · Major flagship events with hands-on tracks at scale (10K+ attendees) · Scaled instructor-led delivery network · Certification delivery infrastructure (Pearson VUE, Certiport integration) |
+| **moderate** | +4 | `No Lab Platform` (greenfield — opportunity, NOT deficiency) · `DIY Lab Platform` (replacement opportunity) · Regional ATP network · Other LMS in place · Moderate instructor delivery network · Smaller events · Single-region delivery presence |
+| **weak** | don't emit | Plain "they offer training" with no named delivery infrastructure |
 
-**signal_category list:** `lab_platform` (variable) · `atp_network` · `lms_partner` · `lms_other` · `instructor_delivery_network` · `training_events_scale` · `gray_market`
+#### Signal Categories — Positive
 
-#### Lab Platform naming convention
+| Signal | What it means |
+|---|---|
+| `lab_platform` *(variable — platform name)* | Existing lab platform — Skillable (expansion), competitor (displacement), DIY (replacement), or `No Lab Platform` (greenfield) |
+| `atp_network` | Authorized training partner network — variable-sized (`~500 ATPs`, `Regional ATP Network`, etc.) |
+| `lms_partner` | Skillable-partner LMS in place (Docebo, Cornerstone, Skillable TMS) |
+| `lms_other` | Other LMS in place — still delivery infrastructure, just not Skillable-native |
+| `instructor_delivery_network` | Scaled instructor / trainer network |
+| `training_events_scale` | Flagship event with attendance at scale (e.g., Cisco Live, Cohesity Connect) |
+| `cert_delivery_infrastructure` | Pearson VUE / Certiport / PSI / Certiverse integration — cert delivery reach |
+| `geographic_reach` *(variable)* | Global, NAMER+EMEA, regional — captures delivery footprint |
+| `published_course_calendar` | Vendor has a public course registration page / training calendar — real evidence of active ILT delivery |
+| `gray_market` | Third-party training exists for the product — demand legitimized, conversation starter |
 
-The lab platform badge IS the platform name. **No `Lab Platform:` prefix.**
+#### Signal Categories — Negative (penalties)
+
+Customer Fit is diagnosed as much by what's *missing* as by what's present. Delivery Capacity should crater when a software vendor has no delivery infrastructure at all.
+
+| Signal | Color | Hit | When it fires |
+|---|---|---|---|
+| `no_training_partners` | **Red Blocker** | **−10** | **Badge: `No Training Partners`**. Software vendor with zero ATP / reseller / channel training network. Fires when research finds no evidence of *any* training partners where partners *should* exist (Microsoft, SAP, Cisco, and peers all have them). A hard signal the vendor hasn't invested in delivery. |
+| `no_classroom_delivery` | **Red Blocker** | **−10** | **Badge: `No Classroom Delivery`**. Zero evidence of instructor-led training, bootcamps, workshops, or a published course calendar. If nobody — internal OR external — is teaching the product, Delivery Capacity doesn't exist. |
+| `no_independent_training_market` | **Amber Risk** | **−4** | **Badge: `No Independent Training`**. The open market hasn't built training on this product. Evidence: fewer than 3 courses found on Coursera, Pluralsight, LinkedIn Learning, or Udemy combined. **Cross-pillar signal** — also fires in Pillar 2 Market Demand as a negative. No independent training = limited delivery reach AND weak skill appetite. |
+| `single_region_only` | **Amber Risk** | **−3** | **Badge: `Single-Region Reach`**. Delivery presence limited to one state or country. Real ceiling on reach. |
+| `gray_market_only` | **Amber Context** | **−2** | **Badge: `Gray Market Only`**. Training exists only from unaffiliated third parties — the vendor hasn't invested in delivery and has left it to others. Not a blocker, but a signal. |
+
+**Penalty math:** penalties subtract from the baseline after positive findings are applied. Dimension score is floored at 0 — a badly-penalized software vendor can legitimately score 0 / 30 Delivery Capacity, and that's the honest answer.
+
+**Badge naming discipline for penalties.** The badge name describes what's *true about the customer*, not what search we did to prove it. "No Independent Training" is a finding about the customer's delivery reality. "Few Pluralsight Courses" is a description of our research methodology. The methodology lives in the evidence / hover text; the badge is the conclusion.
+
+| ✗ Describes research methodology | ✓ Describes customer reality |
+|---|---|
+| `Few Pluralsight Courses` | `No Independent Training` |
+| `No Evidence of Events` | `No Flagship Events` |
+| `Research Found No Partners` | `No Training Partners` |
+| `Unable to Find ILT` | `No Classroom Delivery` |
+
+#### Cross-Pillar Compounding — Negatives Too
+
+The cross-pillar insight works in both directions:
+
+| Fact | Pillar 3 Delivery Capacity hit | Pillar 2 Market Demand hit |
+|---|---|---|
+| `~500 ATPs globally` | +8 (strong positive) | Strong positive — partners don't exist without skill demand |
+| `Active cert exam` | +8 (strong positive) | Strong positive — certs exist because learners want them |
+| `Cisco Live 30K` | +8 (strong positive) | Strong positive — events attract because demand is real |
+| **Fewer than 3 courses on Coursera/Pluralsight/LinkedIn Learning for this product** | **−4 (amber)** | **−3 (amber)** — no open-market training = no skill appetite |
+| **No ATP network for a scaled vendor** | **−10 (red)** | **−5 (amber)** — absence of partners suggests absence of demand too |
+
+#### Lab Platform Naming Convention
+
+The lab platform badge **IS** the platform name. No `Lab Platform:` prefix.
 
 | State | Badge name | Color | Strength |
 |---|---|---|---|
 | Skillable customer (expansion) | `Skillable` | green | strong |
 | Competitor (displacement) | `CloudShare`, `Instruqt`, `Skytap`, `Kyndryl`, `ReadyTech`, etc. | amber | strong |
-| Greenfield (no platform yet) | `No Lab Platform` | gray Context | moderate |
+| Greenfield (no incumbent) | `No Lab Platform` | gray Context | moderate |
 | Built their own | `DIY Lab Platform` | gray Context | moderate |
 
-**`No Lab Platform` is moderate, not weak.** From a Skillable seller's perspective, no incumbent means greenfield opportunity — no competitor to displace, just need to sell the hands-on premise.
+**`No Lab Platform` is moderate, not weak.** Greenfield means no competitor to displace — just sell the hands-on premise. That's an opportunity.
 
-**Example badge names:** `Skillable` · `CloudShare` · `No Lab Platform` · `~500 ATPs` · `Docebo Public` · `Cohesity Connect 5K` · `~200 Trainers`
+#### Badge Naming — Finding-as-Name
+
+Variable examples: `Skillable` · `CloudShare` · `No Lab Platform` · `~500 ATPs` · `Docebo Public` · `Cornerstone Internal` · `Cisco Live 30K` · `Cohesity Connect 5K` · `~200 Trainers` · `Global Reach` · `NAMER+EMEA`.
+
+#### Worked Examples
+
+**Example 1 — Trellix (SOFTWARE — cybersecurity specialist):**
+
+| Step | Value |
+|---|---|
+| Baseline (SOFTWARE category-specific) | **16** |
+| `No Lab Platform` (moderate, greenfield) | +4 |
+| `Global Channel Network` (strong, `atp_network`) | +8 |
+| `Compliance Training Partners` (moderate, `instructor_delivery_network`) | +4 |
+| **Final score** | **30 / 30** (capped from 32) |
+
+**Example 2 — Bank of America (no training org classification, treated as SOFTWARE fallback):**
+
+| Step | Value |
+|---|---|
+| Baseline (fallback) | **16** |
+| No external delivery infrastructure named | no emissions |
+| **Final score** | **16 / 30** |
+
+Honest outcome: internal-only delivery audience. The bank reaches its employees, but there's no scaled external learner audience for Skillable to monetize.
+
+**Example 3 — CompTIA (TRAINING ORG):**
+
+| Step | Value |
+|---|---|
+| Baseline (TRAINING ORG) | **24** |
+| `Pearson VUE Partnership` (strong, `cert_delivery_infrastructure`) | +8 |
+| **Final score** | **30 / 30** (capped from 32) |
+
+#### Typical Spread
+
+| Org type | Expected Delivery Capacity |
+|---|---|
+| Training orgs, LMS providers, major enterprise software vendors | **22-30** |
+| Tech distributors, systems integrators, professional services | **18-30** |
+| Category-specific software vendors | **16-30** (depending on channel reach) |
+| Academic institutions, content development firms | **12-20** |
+| Unknown (pending classification review) | **16 baseline** |
 
 ---
 
 ### 3.4 Organizational DNA (cap 25)
 
-*Are they the kind of company that partners and builds training programs?*
+*Are you the kind of company that partners strategically with outside platforms to build strategic assets — or are you a "we build everything here" culture?*
+
+#### What the Organizational DNA Dimension Measures
+
+Organizational DNA asks the most consequential partnership question: **if Skillable proposes a strategic relationship to power your hands-on training, will you see it as a strategic partnership or as a procurement line item to squeeze?** Some companies see outside platforms as strategic assets — they happily adopt Salesforce for CRM, Workday for HR, Okta for identity, because building those themselves would be foolish and partnering is part of how they operate. Other companies see every outside vendor as a cost to control, every engagement as an RFP to run, and every partnership as a compliance checkpoint. The first kind of company makes a great Skillable customer. The second kind makes a painful one.
+
+Organizational DNA is the cultural version of this question. It's not about whether they *have* partnerships — most companies have some. It's about whether partnerships are a **strategic competency** of the organization or an exception to the "build everything here" norm.
+
+Strong DNA signals:
+- **Multiple kinds of partnerships** — not just one channel program, but technology alliances, delivery partners, content partnerships, integration partners, co-marketing partners
+- **Strategic asset partnerships documented** — the company says things like "we partnered with X to build Y" or "our platform integrates deeply with our alliance ecosystem"
+- **Platform adoption patterns** — they use Salesforce rather than building their own CRM; Workday rather than building their own HCM; Okta rather than building their own IAM. This is evidence they understand the value of external platforms for non-core work.
+- **Formal partner program** — tiered structure, partner certifications, clear value exchange, named alliance leadership
+- **Nimble engagement** — accessible contact paths, documented fast decision-making, partner-friendly posture
+- **Named partnership leadership** — VP of Partnerships, Head of Alliances, Chief Alliance Officer
+
+Weak DNA patterns (these get penalized):
+- **Long RFP processes** — every vendor engagement takes 9+ months, multiple committees, exhaustive questionnaires
+- **Heavy procurement orgs** — large vendor management bureaucracy, vendors treated as cost centers to squeeze
+- **"We build everything here" culture** — IBM-style, where outside platforms are seen as inferior by default
+- **Closed architecture culture** — proprietary everything, no public APIs, no ecosystem investment
+- **Hard to engage** — no accessible partner contact paths, bureaucratic slowness at legendary levels
+
+#### What Organizational DNA Does NOT Measure
+
+| Not this | That belongs to... |
+|---|---|
+| Technical architecture of their PRODUCT (API openness, modularity) | **Pillar 1** — this is a historical routing failure we caught on Trellix |
+| "Open Platform Architecture" as a technical claim about the product | **Pillar 1** — not DNA |
+| Whether their software is cloud-native vs on-prem | Classification metadata (not scoring) |
+| Partnership existence in general — "they have partners" | Too shallow — DNA is about the *cultural pattern*, not the presence of any partnership |
+| Whether their training programs are good | **Pillar 3 Training Commitment** |
+| Whether they have the network to deliver at scale | **Pillar 3 Delivery Capacity** |
+
+#### Organization-Type Baseline
+
+Per the directive "start in a pretty good place," Organizational DNA baselines lean higher — most real organizations have *some* form of partnership culture, and strongly centralized "we build everything here" cultures are the exception.
+
+| Organization Type | Baseline | Rationale |
+|---|---|---|
+| **TRAINING ORG** *(CompTIA, SANS, EC-Council)* | **19 / 25 (76%)** | Training organizations operate on partnerships by nature — test centers, content partners, delivery networks |
+| **CONTENT DEVELOPMENT** *(GP Strategies)* | **19 / 25 (76%)** | Client-based business — partnerships with clients and platform providers are the model |
+| **PROFESSIONAL SERVICES** | **18 / 25 (72%)** | Consultancies partner constantly — alliances with software vendors are core to the model |
+| **SYSTEMS INTEGRATOR** *(Deloitte, Accenture, Cognizant)* | **18 / 25 (72%)** | Delivery IS partnership — SIs live on platform alliances |
+| **ENTERPRISE SOFTWARE** *(Microsoft, SAP, Oracle, Salesforce)* | **17 / 25 (68%)** | Most big vendors have mature partner ecosystems (though some — IBM-style — are exceptions) |
+| **TECH DISTRIBUTOR** *(Ingram, CDW, Arrow)* | **17 / 25 (68%)** | Distribution IS partnership by definition |
+| **SOFTWARE** *(category-specific)* | **16 / 25 (64%)** | Varies widely — some have strong partner cultures, some are closed |
+| **ACADEMIC** | **15 / 25 (60%)** | Universities partner with industry but institutional bureaucracy creates friction |
+| **LMS PROVIDER** *(Cornerstone, Docebo)* | **16 / 25 (64%)** | Platform providers with licensing ecosystems — partnership-dependent |
+| **Unknown / uncategorized** | **15 / 25 (60%)** | Neutral fallback — flag for classification review |
+
+#### Strength Tiers
 
 | Strength | Worth | Criterion |
 |---|---|---|
-| **strong** | +6 | Strong partner ecosystem (e.g., `~500 ATPs`, formal channel program with technical certification) · Platform Buyer culture (uses external platforms vs builds in-house) · Accessible / partner-friendly engagement |
-| **moderate** | +3 | Mixed approach — some partner, some build in-house · Moderate partner engagement · Some channel structure · Larger but workable |
-| **weak** | don't emit | Generic "they're an organization" with no specific patterns |
+| **strong** | +6 | Multiple kinds of partnerships documented (technology + channel + delivery + content) · Strategic asset partnerships (company publicly describes partnering to build something strategic) · Platform buyer evidence (uses Salesforce / Workday / Okta / external platforms instead of building) · Formal partner program with tiers and certifications · Named VP-level partnership leadership · Nimble engagement posture documented |
+| **moderate** | +3 | Single partner program (channel OR content but not multiple kinds) · Mixed buyer-builder posture · Some alliance leadership below VP level · Moderate partner friendliness |
+| **weak** | don't emit | Generic "they have partners" with no specifics — don't emit |
 
-**Hard negative (red — fall back to color points):** `Hard to Engage` — fires only when documented evidence shows the org is bureaucratic, slow, or hostile to partners.
+#### Signal Categories — Positive
 
-**signal_category list:** `partner_pattern` · `build_vs_buy_culture` · `engagement_ease` · `channel_structure`
-
-#### Organizational DNA IS / IS NOT — read carefully (this dimension has a routing failure history)
-
-| ✅ Organizational DNA IS about | ❌ Organizational DNA is NOT about |
+| Signal | What it means |
 |---|---|
-| How the COMPANY operates as a business | The technical architecture of their products (Pillar 1) |
-| Partnership patterns and ecosystem strength | API openness, platform extensibility, integration maturity (Pillar 1) |
-| Build-in-house vs buy-from-outside culture | Whether their software is technically modular (Pillar 1) |
-| Ease of doing business — accessible vs hard to engage | Cloud-native vs on-prem deployment shape (classification) |
-| Cultural patterns — bureaucratic vs nimble | Their product line structure (this is about the ORG, not products) |
-| Channel program structure | "Open Platform Architecture" — mis-routing pattern caught on Trellix |
+| `many_partnership_types` | Multiple distinct kinds of partnerships (technology, channel, delivery, content, integration) — breadth signal |
+| `strategic_asset_partnerships` | Documented examples of partnering to build something strategic together |
+| `platform_buyer_behavior` | Uses external platforms for things companies might build in-house (Salesforce for CRM, Workday for HR, Okta for IAM) |
+| `formal_channel_program` | Structured partner program with tiers, certifications, incentives, published value exchange |
+| `nimble_engagement` | Accessible contacts, fast decision-making posture, documented partner-friendly culture |
+| `named_alliance_leadership` | VP of Partnerships, Head of Alliances, Chief Alliance Officer — level, not name |
 
-**Example badge names:** `~500 ATPs` · `Strong Channel` · `Platform Buyer` · `Partner-Friendly` · `Mixed Build/Buy` · `Hard to Engage` (red)
+#### Signal Categories — Negative (penalties)
+
+| Signal | Color | Hit | When it fires |
+|---|---|---|---|
+| `long_rfp_process` | **Amber Risk** | **−4** | **Badge: `Long RFP Process`**. Documented 9+ month vendor engagement cycles, exhaustive RFP committees, multiple approval gates. Real evidence (press, case studies, vendor complaints) that getting in takes forever. |
+| `heavy_procurement` | **Amber Risk** | **−3** | **Badge: `Heavy Procurement`**. Large vendor management bureaucracy; vendors are treated as line items to extract value from rather than strategic relationships. |
+| `build_everything_culture` | **Amber Risk** | **−4** | **Badge: `Builds Everything`**. Explicit "we build it ourselves" posture documented — the IBM pattern where outside platforms are treated as inferior by default. |
+| `closed_platform_culture` | **Amber Risk** | **−3** | **Badge: `Closed Platform`**. Proprietary everything — no public APIs, no ecosystem investment, no developer community. Their technical culture matches their partnership culture. |
+| `hard_to_engage` | **Red Blocker** | **−6** | **Badge: `Hard to Engage`**. Documented hostility or legendary bureaucratic slowness toward outside partners. Fires only with direct evidence — vendor complaints, analyst reports, or public friction. |
+
+**Important — Build vs Buy is retired as a badge.** Historically, `Build vs Buy` was a single badge whose color carried three different findings (Platform Buyer / Mixed / Builds In-House). That violated the finding-as-name discipline — the badge label communicated nothing without a color legend. **The new canonicals are:**
+
+| Old badge | New badge(s) |
+|---|---|
+| `Build vs Buy` (green) | `Platform Buyer` (positive) — via `platform_buyer_behavior` |
+| `Build vs Buy` (gray) | Don't emit — "mixed" is the absence of a strong signal |
+| `Build vs Buy` (amber) | `Builds Everything` (negative) — via `build_everything_culture` |
+
+Similarly retired: `Partner Ecosystem` as a topic-labeled single badge, `Integration Maturity` as a topic label, `Ease of Engagement` as a topic label. Their replacements are finding-named (`Multi-Type Partnerships`, `Alliance Program`, `Partner-Friendly`, `Hard to Engage`, etc.).
+
+#### Badge Naming — Finding-as-Name
+
+| ✗ Wrong (topic label) | ✓ Right (finding) |
+|---|---|
+| `Build vs Buy` | `Platform Buyer` / `Builds Everything` |
+| `Partner Ecosystem` | `Multi-Type Partnerships` |
+| `Integration Maturity` | `Open Platform Culture` |
+| `Ease of Engagement` | `Partner-Friendly` / `Hard to Engage` |
+| `Channel Structure` | `500+ Channel Partners` / `Formal Alliance Program` |
+
+Variable badge name examples: `Multi-Type Partnerships`, `~500 Channel Partners`, `Strategic Alliance Program`, `Platform Buyer`, `VP of Alliances`, `Partner-Friendly`, `Long RFP Process`, `Builds Everything`, `Heavy Procurement`, `Hard to Engage`.
+
+#### Worked Examples
+
+**Example 1 — Trellix (SOFTWARE specialist, open partner culture):**
+
+| Step | Value |
+|---|---|
+| Baseline (SOFTWARE category-specific) | **16** |
+| `Multi-Type Partnerships` (strong, `many_partnership_types`) | +6 |
+| `Strategic Alliance Program` (strong, `formal_channel_program`) | +6 |
+| **Final score** | **25 / 25** (capped from 28) |
+
+**Example 2 — IBM (ENTERPRISE SOFTWARE, closed pattern):**
+
+| Step | Value |
+|---|---|
+| Baseline (ENTERPRISE SOFTWARE) | **17** |
+| `Builds Everything` (amber, `build_everything_culture`) | −4 |
+| `Closed Platform` (amber, `closed_platform_culture`) | −3 |
+| **Final score** | **10 / 25** |
+
+Honest outcome: IBM has technology alliances but the "we build everything here" culture means a Skillable partnership would be fighting the organization's instincts.
+
+**Example 3 — A Bank (fallback SOFTWARE classification):**
+
+| Step | Value |
+|---|---|
+| Baseline (fallback) | **16** |
+| `Long RFP Process` (amber, `long_rfp_process`) | −4 |
+| `Heavy Procurement` (amber, `heavy_procurement`) | −3 |
+| **Final score** | **9 / 25** |
+
+Honest outcome: banks have partnerships, but every engagement is a procurement cycle. Organizational DNA correctly flags the cultural friction.
+
+**Example 4 — Deloitte (SYSTEMS INTEGRATOR):**
+
+| Step | Value |
+|---|---|
+| Baseline (SYSTEMS INTEGRATOR) | **18** |
+| `Multi-Type Partnerships` (strong, `many_partnership_types`) | +6 |
+| `Platform Buyer` (strong, `platform_buyer_behavior`) | +6 |
+| **Final score** | **25 / 25** (capped from 30) |
+
+#### Typical Spread
+
+| Org type | Expected Organizational DNA |
+|---|---|
+| Training orgs, professional services, systems integrators, content development | **18-25** |
+| Open-culture enterprise software vendors (Microsoft, Salesforce, Cisco) | **20-25** |
+| Category-specific software vendors with healthy partner cultures | **16-25** |
+| Closed-culture enterprise software (IBM pattern) | **8-14** |
+| Banks, healthcare systems, government (heavy procurement, long RFPs) | **6-14** |
+| Unknown (pending classification review) | **15 baseline** |
 
 ---
 

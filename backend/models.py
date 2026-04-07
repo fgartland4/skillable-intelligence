@@ -312,6 +312,12 @@ class Product:
     acv_potential: ACVPotential = field(default_factory=ACVPotential)
     verdict: Optional[Verdict] = None
 
+    # Classification review flag — raised when the product category or
+    # organization type landed in "Unknown" during scoring.  The math layer
+    # applies a neutral fallback baseline and surfaces this flag so the
+    # dossier UX can prompt a human to verify the classification.
+    classification_review_needed: bool = False
+
     # People
     owning_org: Optional[OrgUnit] = None
     contacts: list[Contact] = field(default_factory=list)

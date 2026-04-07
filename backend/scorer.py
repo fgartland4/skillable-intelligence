@@ -494,6 +494,11 @@ def _parse_verdict(raw: dict) -> Verdict:
     )
 
 
+# Scoring context construction lives in scoring_config.build_scoring_context
+# (Define-Once seam). scorer.py and intelligence.py both call that helper —
+# this module no longer carries its own copy.
+
+
 def _parse_product(data: dict) -> Product:
     """Parse a complete product from AI scoring output into the new model.
 
@@ -508,6 +513,17 @@ def _parse_product(data: dict) -> Product:
     evidence_dict = data.get("evidence", {})
     poor_match_flags = data.get("poor_match_flags", []) or []
     orchestration_method = data.get("orchestration_method", "") or ""
+
+    # ─── Build scoring context for the rubric model baselines ────────────
+    # Pillar 2 (IV) dimensions look up category-aware baselines via
+    # product_category. Pillar 3 (CF) dimensions look up organization-type
+    # baselines via org_type. Missing values fall back to UNKNOWN_CLASSIFICATION
+    # which triggers the classification review flag in the dossier UX.
+    import scoring_config as _cfg_for_context
+    scoring_context = _cfg_for_context.build_scoring_context(
+        raw_org_type=data.get("organization_type"),
+        raw_product_category=data.get("product_category") or data.get("category"),
+    )
 
     # ─── Build badges_by_dimension from the AI's evidence output ─────────
     # Each evidence entry has a "badge" name and a "color". We pass both to
@@ -540,6 +556,7 @@ def _parse_product(data: dict) -> Product:
         badges_by_dimension=badges_by_dimension,
         ceiling_flags=poor_match_flags,
         orchestration_method=orchestration_method,
+        context=scoring_context,
     )
 
     if math_result.get("ceilings_applied"):
@@ -624,6 +641,7 @@ def _parse_product(data: dict) -> Product:
         fit_score=fit,
         acv_potential=_parse_consumption(cp_raw) if cp_raw else ACVPotential(),
         verdict=_parse_verdict(verdict_raw) if verdict_raw else None,
+        classification_review_needed=bool(math_result.get("classification_review_needed", False)),
         owning_org=owning_org,
         contacts=contacts,
     )
@@ -697,8 +715,13 @@ Output JSON with this structure:
 }
 
 Rules:
-- 2-3 bullets maximum
-- Every bullet starts with a sharp label (e.g., "Provisioning path", "NFR licensing", "Identity model")
+- 2-3 bullets maximum — **but at least ONE bullet always. Never return an empty list.** If scoring evidence is thin, surface the single most important unknown you can identify (API surface, identity model, NFR licensing, etc.) and ask the clearest answerable question you can.
+- **Every bullet STARTS with a specific action verb** that tells the seller exactly what to do. Examples of correct openers:
+  * *"Determine whether Trellix GTI exposes a REST API for IOC DELETE operations by connecting an API Platform Lead with a Skillable SE..."*
+  * *"Ensure Skillable SEs have NFR license keys for a POC proving per-learner sandboxing works by contacting the Trellix Customer Onboarding Engineer..."*
+  * *"Confirm the identity model supports tenant-scoped users by asking the Principal Engineer on the API team..."*
+  * *"Pursue a written answer to 'does the teardown API reliably deprovision resources under concurrent load' from the Platform Engineering Lead..."*
+  The action verb pattern makes each bullet a clear CTA that the seller can execute. No bullet should read as a passive observation.
 - Every bullet identifies a TECHNICAL role from the list above
 - Every bullet contains a VERBATIM question the engineer can answer in 1-2 sentences
 - Every bullet is specific to THIS product and THIS company — never generic
@@ -741,7 +764,12 @@ Output JSON with this structure:
 }
 
 Rules:
-- 2-3 bullets maximum
+- 2-3 bullets maximum — **but at least ONE bullet always. Never return an empty list.** If there's nothing strong to say about this product's complexity or stakes, pivot to an adjacent strategic angle (recent press release, executive hire, flagship product release, market timing) — something the seller can legitimately open with.
+- **Every bullet STARTS with a specific action verb** that gives the seller a clear CTA. Examples of correct openers:
+  * *"Pitch the VP of Customer Education on why Trellix GTI's multi-correlation workflow requires hands-on practice — analysts who only read documentation never develop pivot intuition..."*
+  * *"Open the VP conversation with the $200M breach cost anchor — Trellix GTI sits exactly where hands-on threat-hunting practice reduces mean-time-to-detect..."*
+  * *"Connect the Director of Customer Success with the Skillable outcomes data showing PBT-trained analysts reduce false positives by 40% — ask whether that maps to their retention goals..."*
+  The action verb pattern makes each bullet a strategic CTA the seller can execute in a conversation — not a passive talking point.
 - Each bullet is a complete, conversational sentence the seller could say out loud TO A VP
 - Each bullet ties THIS product's complexity, stakes, regulatory exposure, customer outcomes,
   or workflows to why hands-on training matters at the STRATEGIC level (not the API level)
@@ -769,7 +797,13 @@ Output JSON with this structure:
 
 ═══ Rules ═══
 
-- 2-3 bullets maximum
+- 2-3 bullets maximum — **but at least ONE bullet always. Never return an empty list.** If there's no strong scoring signal, find ANYTHING real from the company research to anchor a bullet: a recent press release, a newly hired executive, a product launch, an earnings-call mention of training, an industry event they sponsor. Something. An empty Account Intelligence box is a research failure, not a valid result.
+- **Every bullet STARTS with a specific action verb** that gives the seller a clear CTA. Examples of correct openers:
+  * *"Find the head of Elevate 2026 (Atlanta, April 22-24) and pitch a hands-on governance audit lab track..."*
+  * *"Research the new VP of Customer Education at Cohesity (hired Q1 2026 per LinkedIn) before the first call — their mandate from the hiring announcement mentions..."*
+  * *"Validate the Skillable displacement angle by asking how much time the current CloudShare environment takes to provision..."*
+  * *"Identify the ~500 Trellix ATPs in NAMER and propose a partner-enablement lab pilot..."*
+  The action verb pattern makes each bullet a concrete next step the seller can execute this week.
 - Each bullet surfaces a SPECIFIC organizational signal anchored to a named entity:
   * Named LMS (Cornerstone, Docebo, etc.)
   * Named certification program (specific cert name, exam, recent updates)
@@ -780,6 +814,23 @@ Output JSON with this structure:
 - Never generic ("they care about training") — always anchored to a named entity
 - If a piece of intel is missing from the scoring data, do NOT invent it
 - Lead with the most actionable signal — the one a seller would actually open with
+
+═══ PRIORITY ORDER — what to surface FIRST ═══
+
+The Account Intelligence section has a strict priority order. The FIRST bullet must come from the highest-priority category that has real evidence in the scoring data. Only drop to a lower category when the higher one has no supporting evidence:
+
+1. **Customer and partner events are HUGE — top priority.** Any named conference, flagship event, training summit, partner summit, community event, or customer conference with dates (even approximate ones) is the highest-value Account Intelligence signal. Events are Skillable's lowest-friction consumption motion: defined audience, defined timeline, defined opportunity. If the scoring evidence mentions ANY customer or partner event (Cisco Live, Cohesity Connect, Elevate, Dreamforce, Trailblazer Community events, RSA, Ignite, etc.), that bullet is FIRST.
+
+2. **Already using a lab platform — equally critical.** If the scoring evidence shows the customer already uses Skillable or a competitor lab platform, surface this IMMEDIATELY as its own bullet (second at latest). This is the single most commercially consequential piece of Account Intelligence:
+   - Skillable incumbent → **expansion play**, lead with "Find the account owner for the existing Skillable relationship and align on expansion into {product} training..."
+   - Competitor incumbent (CloudShare, Instruqt, Skytap, Kyndryl, ReadyTech) → **displacement play**, lead with "Validate the displacement angle by asking the Director of Customer Education where the current {competitor} environment falls short on {specific gap}..."
+   - No incumbent → **greenfield play**, lead with "Pitch Skillable as the first lab platform in their stack — no displacement work required..."
+
+3. **Named training leader, department, or competitive intelligence** — VP-level training leadership, named Customer Education team, recent strategic hires.
+
+4. **Active certification program or product launch** — named cert with exam details, recently updated cert, new flagship product release.
+
+5. **Strategic press signals** — earnings calls mentioning training investment, recent M&A relevant to training footprint, investor mentions of enablement.
 
 ═══ Time-bounded opportunities are GOLD — surface them HARD ═══
 
