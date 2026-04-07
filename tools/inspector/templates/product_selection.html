@@ -27,13 +27,13 @@
         .page { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
 
         /* ── Back link ── */
-        .btn-back {
-            display: inline-block; font-size: 0.78rem; color: var(--sk-text-muted);
-            background: rgba(36,237,155,0.06); border: 1px solid rgba(36,237,155,0.18);
-            padding: 5px 12px; border-radius: 7px; margin-bottom: 20px;
-            transition: color 0.15s, border-color 0.15s;
-        }
-        .btn-back:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+        /* Header back-nav — matches the pattern on full_analysis.html so
+           Inspector pages share one navigation idiom: small text-only links
+           in the upper-right of the header, stacked vertically. Per Frank's
+           2026-04-07 directive: "standardize on page navigation". */
+        .header-nav { margin-top: 6px; font-size: 0.7rem; line-height: 1.6; text-align: right; }
+        .header-nav a { color: var(--sk-accent-soft); text-decoration: none; }
+        .header-nav a:hover { text-decoration: underline; }
 
         /* ── Header ── sticky so Deep Dive button stays visible (sits below shared nav) */
         .header {
@@ -255,12 +255,6 @@
 
 <div class="page">
 
-    {# ── Back links ── #}
-    <a href="/inspector" class="btn-back">← Back to Company Search</a>
-    {% if request.args.getlist('family') %}
-    <a href="/inspector/product-selection/{{ discovery.discovery_id }}" class="btn-back" style="margin-left: 8px;">← Change Product Family</a>
-    {% endif %}
-
     {# ── Header ── #}
     <div class="header">
         <div class="header-left">
@@ -283,6 +277,15 @@
                 <div class="sel-status" id="selStatus">0 of {{ non_tc_prods | length }} products selected</div>
                 <div class="sel-cached-hint" id="selCachedHint">&nbsp;</div>
             </form>
+            {# Back navigation — same pattern as full_analysis.html so all
+               Inspector pages share one navigation idiom in the upper-right
+               of the header. Per Frank's 2026-04-07 standardization directive. #}
+            <div class="header-nav">
+                {% if request.args.getlist('family') %}
+                  <a href="/inspector/product-selection/{{ discovery.discovery_id }}">← Change Product Family</a><br>
+                {% endif %}
+                <a href="/inspector">← Search Another Company</a>
+            </div>
         </div>
     </div>
 

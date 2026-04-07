@@ -61,13 +61,23 @@
   position: relative;
 }
 .search-modal-cancel {
-  position: absolute; top: 14px; right: 18px;
-  background: none; border: none;
-  color: var(--sk-text-dim);
-  font-size: 1.4rem; cursor: pointer;
-  line-height: 1; padding: 4px 8px;
+  position: absolute; top: 12px; right: 14px;
+  background: var(--sk-bg);
+  border: 1px solid var(--sk-border);
+  color: var(--sk-text-muted);
+  font-size: 1.3rem; cursor: pointer;
+  line-height: 1;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit;
+  transition: all 0.15s ease;
 }
-.search-modal-cancel:hover { color: var(--sk-text-muted); }
+.search-modal-cancel:hover {
+  color: var(--sk-text);
+  background: var(--sk-surface);
+  border-color: var(--sk-text-muted);
+}
 
 /* Top section — eyebrow + target name */
 .search-modal-eyebrow {
