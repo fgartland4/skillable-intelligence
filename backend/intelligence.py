@@ -82,6 +82,94 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def hydrate_analysis(analysis: dict) -> None:
+    """Idempotently backfill company-context fields on an analysis dict from
+    its parent discovery.
+
+    Mutates the analysis dict in place. Sets only fields that aren't already
+    populated:
+      - company_description
+      - competitive_products
+      - _company_badge
+      - _org_color
+
+    Why this exists: analyses don't store the company-level context fields
+    directly — those live on the parent discovery. The dossier UI needs them
+    to render the company header widget consistently with the Product
+    Selection page (Define-Once: one source of truth for company context,
+    both pages display identical name + badge + description).
+
+    HIGH-2 in code-review-2026-04-07.md: this backfill used to live inline
+    in the inspector_full_analysis route. Moving it to the intelligence
+    layer means Prospector and Designer can hydrate analyses the same way
+    when they need company context, without duplicating the load+backfill
+    walk in their own route handlers.
+
+    No-op if discovery_id is missing or the discovery file can't be loaded.
+    Idempotent — calling on an already-hydrated analysis touches nothing.
+    """
+    discovery_id = analysis.get("discovery_id")
+    if not discovery_id:
+        return
+    disc = load_discovery(discovery_id)
+    if not disc:
+        return
+    if not analysis.get("company_description"):
+        analysis["company_description"] = disc.get("company_description", "")
+    if not analysis.get("competitive_products"):
+        analysis["competitive_products"] = disc.get("competitive_products", [])
+    if not analysis.get("_company_badge"):
+        analysis["_company_badge"] = disc.get("_company_badge", "")
+    if not analysis.get("_org_color"):
+        analysis["_org_color"] = disc.get("_org_color", "")
+
+
+def enrich_discovery(discovery: dict) -> None:
+    """Idempotently add tier / badge / color fields to a discovery dict.
+
+    Mutates the discovery dict in place. Sets:
+      - per-product `_tier` and `_tier_label`
+      - top-level `_company_badge` (e.g. "ENTERPRISE SOFTWARE", "TRAINING ORG")
+      - top-level `_org_color` (purple / teal / slate-blue group)
+
+    This function is the SINGLE place these fields get computed across the
+    platform. Inspector, Prospector, and Designer all call it. discover()
+    calls it on every fresh discovery before save. Route handlers that load
+    cached discoveries call it after load to ensure old caches get enriched
+    too. The implementation is idempotent — re-running on an already-enriched
+    discovery is a no-op (the values are deterministic given the same inputs).
+
+    HIGH-1 in code-review-2026-04-07.md: this enrichment used to be computed
+    inline in inspector_product_selection() in app.py — a Layer Discipline
+    violation. Prospector and Designer would have either had to duplicate
+    the logic or import from the Inspector Flask app file.
+
+    Bug-fix note: the previous version of this enrichment in discover() called
+    company_classification_label with an empty product list. The route called
+    it with the actual products. The route was right — for software companies
+    the function needs to inspect product categories to compute the badge.
+    The new helper passes the actual products consistently.
+    """
+    from models import Product
+
+    for p in discovery.get("products", []) or []:
+        score = p.get("discovery_score", 0)
+        if not p.get("_tier"):
+            p["_tier"] = discovery_tier(score)
+        if not p.get("_tier_label"):
+            p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
+
+    org_type = discovery.get("organization_type", "software_company")
+    if not discovery.get("_company_badge"):
+        product_objs = [
+            Product(name=p.get("name", ""), category=p.get("category", ""))
+            for p in discovery.get("products", []) or []
+        ]
+        discovery["_company_badge"] = company_classification_label(org_type, product_objs)
+    if not discovery.get("_org_color"):
+        discovery["_org_color"] = org_badge_color_group(org_type)
+
+
 def recompute_analysis(analysis: dict) -> None:
     """Re-run the deterministic scoring math against a saved analysis dict.
 
@@ -320,12 +408,6 @@ def discover(company_name: str, known_products: list[str] | None = None,
     # created_at + version stamp set explicitly via _stamp_for_save right
     # before save below — see CRIT-10 in code-review-2026-04-07.md.
 
-    # Assign discovery tiers using new labels
-    for p in discovery.get("products", []):
-        score = p.get("discovery_score", 0)
-        p["_tier"] = discovery_tier(score)
-        p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
-
     # Domain-based lab platform detection — already done by researcher
     lab_detections = findings.get("lab_platform_detections", [])
     if lab_detections:
@@ -333,16 +415,13 @@ def discover(company_name: str, known_products: list[str] | None = None,
         log.info("Intelligence.discover: detected %d lab platform(s) for %s",
                  len(lab_detections), company_name)
 
-    # Company classification
-    discovery["_company_badge"] = company_classification_label(
-        discovery.get("organization_type", "software_company"), []
-    )
-    discovery["_org_color"] = org_badge_color_group(
-        discovery.get("organization_type", "software_company")
-    )
-
     if scraped_families:
         discovery["_scraped_families"] = scraped_families
+
+    # Add tier / badge / color fields via the shared enrichment helper.
+    # Single source of truth — Inspector, Prospector, and Designer all call
+    # the same function. See HIGH-1 in code-review-2026-04-07.md.
+    enrich_discovery(discovery)
 
     _progress("Categorizing offerings against Skillable taxonomy…")
     # Stamp the discovery with version + created_at right before save.

@@ -2078,7 +2078,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.phase-a-stamp-atomicity"
+SCORING_LOGIC_VERSION = "2026-04-07.phase-c-layer-discipline"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
@@ -2170,6 +2170,20 @@ def validate() -> list[str]:
         Pillar 2 + Pillar 3 dims DO have a rubric (rubric model)
     """
     issues: list[str] = []
+
+    # 0. Exactly 3 pillars (HIGH-9 in code-review-2026-04-07.md)
+    # Multiple files (models.FitScore, app.py templates, the 70/30 split logic)
+    # assume exactly 3 pillars. If anyone adds a 4th, the assumption breaks
+    # silently in subtle places. Assert explicitly so the failure mode is loud.
+    if len(PILLARS) != 3:
+        issues.append(
+            f"Expected exactly 3 pillars, found {len(PILLARS)}. "
+            f"Pillars: {[p.name for p in PILLARS]}. "
+            f"Multiple files (models.FitScore, the 70/30 split, the dossier "
+            f"templates) assume exactly 3 pillars — adding a 4th will break "
+            f"them in subtle places. If this is intentional, audit every "
+            f"caller of cfg.PILLARS first."
+        )
 
     # 1. Pillar weights must sum to 100
     pillar_weight_sum = sum(p.weight for p in PILLARS)

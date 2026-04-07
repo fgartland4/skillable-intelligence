@@ -116,6 +116,42 @@ class PillarScore:
 # Fit Score — the composite of three Pillars
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
+def _build_default_pillar(pillar_key: str) -> "PillarScore":
+    """Build a default PillarScore for a FitScore field, sourced from
+    scoring_config.PILLARS — the single Define-Once source of truth for
+    pillar weights, dimension names, and dimension weights.
+
+    pillar_key is the FitScore field name (e.g. "product_labability"),
+    which matches the lowercase-snake form of the Pillar name in
+    scoring_config.PILLARS.
+
+    Lazy import on scoring_config to avoid a circular import at module
+    load time. Called only at FitScore instantiation, never at import.
+
+    CRIT-8 in code-review-2026-04-07.md: this replaces the previous
+    pattern where every pillar/dimension weight was hardcoded in the
+    FitScore default factories, duplicating values from scoring_config.
+    """
+    import scoring_config as cfg
+    for pillar in cfg.PILLARS:
+        pkey = pillar.name.lower().replace(" ", "_")
+        if pkey == pillar_key:
+            return PillarScore(
+                name=pillar.name,
+                weight=pillar.weight,
+                dimensions=[
+                    DimensionScore(name=dim.name, weight=dim.weight)
+                    for dim in pillar.dimensions
+                ],
+            )
+    raise ValueError(
+        f"_build_default_pillar: no pillar in scoring_config.PILLARS matches "
+        f"key {pillar_key!r}. Expected one of: "
+        f"{[p.name.lower().replace(' ', '_') for p in cfg.PILLARS]}"
+    )
+
+
 @dataclass
 class FitScore:
     """The composite Fit Score — three Pillars weighted 40/30/30.
@@ -131,33 +167,24 @@ class FitScore:
       - `technical_fit_multiplier` — the multiplier applied to IV + CF.
       - `ceilings_applied` — list of flags that capped Product Labability.
     """
-    product_labability: PillarScore = field(default_factory=lambda: PillarScore(
-        name="Product Labability", weight=40,
-        dimensions=[
-            DimensionScore(name="Provisioning", weight=35),
-            DimensionScore(name="Lab Access", weight=25),
-            DimensionScore(name="Scoring", weight=15),
-            DimensionScore(name="Teardown", weight=25),
-        ]
-    ))
-    instructional_value: PillarScore = field(default_factory=lambda: PillarScore(
-        name="Instructional Value", weight=30,
-        dimensions=[
-            DimensionScore(name="Product Complexity", weight=40),
-            DimensionScore(name="Mastery Stakes", weight=25),
-            DimensionScore(name="Lab Versatility", weight=15),
-            DimensionScore(name="Market Demand", weight=20),
-        ]
-    ))
-    customer_fit: PillarScore = field(default_factory=lambda: PillarScore(
-        name="Customer Fit", weight=30,
-        dimensions=[
-            DimensionScore(name="Training Commitment", weight=25),
-            DimensionScore(name="Organizational DNA", weight=25),
-            DimensionScore(name="Delivery Capacity", weight=30),
-            DimensionScore(name="Build Capacity", weight=20),
-        ]
-    ))
+    # CRIT-8 in code-review-2026-04-07.md: pillar/dimension structure is
+    # built dynamically from scoring_config.PILLARS at instantiation time.
+    # Previously this dataclass hardcoded every pillar weight and every
+    # dimension weight, duplicating values that already lived in the
+    # config — the worst Define-Once violation in the codebase. Now there
+    # are zero literal weight values in this file. If scoring_config.PILLARS
+    # changes (e.g., a dimension weight is tweaked), every freshly-created
+    # FitScore reflects it automatically.
+    #
+    # _build_default_pillar() is the helper. It takes the pillar key
+    # (matching the field name) and returns a PillarScore built from
+    # cfg.PILLARS. Imported lazily inside the lambda to avoid a circular
+    # import (scoring_config doesn't import models, but models is imported
+    # by scorer at module load time and we want this to resolve at
+    # instantiation, not import time).
+    product_labability: PillarScore = field(default_factory=lambda: _build_default_pillar("product_labability"))
+    instructional_value: PillarScore = field(default_factory=lambda: _build_default_pillar("instructional_value"))
+    customer_fit: PillarScore = field(default_factory=lambda: _build_default_pillar("customer_fit"))
     total_override: Optional[int] = None
     pl_score_pre_ceiling: Optional[int] = None
     technical_fit_multiplier: float = 1.0

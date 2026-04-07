@@ -314,22 +314,13 @@ def inspector_product_selection(discovery_id: str):
     if not disc:
         return error_response("Discovery not found.", 404)
 
-    # Assign discovery tiers
-    for p in disc.get("products", []):
-        score_val = p.get("discovery_score", 0)
-        p["_tier"] = discovery_tier(score_val)
-        p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
-
-    # Company classification — pass products so category can be derived
-    from models import Product
-    product_objs = [Product(name=p.get("name", ""), category=p.get("category", ""))
-                    for p in disc.get("products", [])]
-    disc["_company_badge"] = company_classification_label(
-        disc.get("organization_type", "software_company"), product_objs
-    )
-    disc["_org_color"] = org_badge_color_group(
-        disc.get("organization_type", "software_company")
-    )
+    # Enrich the discovery with tier / badge / color fields. Idempotent —
+    # only sets fields that aren't already there. discover() also calls this
+    # at creation, so cached discoveries already have the fields. This call
+    # exists to backfill any older cached discovery that pre-dates the
+    # shared enrichment helper. See HIGH-1 in code-review-2026-04-07.md.
+    from intelligence import enrich_discovery
+    enrich_discovery(disc)
 
     import scoring_config as cfg
 
@@ -658,23 +649,13 @@ def inspector_full_analysis(analysis_id: str):
     if not analysis:
         return error_response("Analysis not found.", 404)
 
-    # Backfill company_description, competitive_products, and the
-    # classification badge fields from discovery (analyses don't store these
-    # directly — they live on the discovery). The badge backfill ensures the
-    # Full Analysis page renders the same Company Header widget as the
-    # Product Selection page (Define-Once: one source of truth for the
-    # widget content, both pages display identical name + badge + description).
-    if analysis.get("discovery_id"):
-        disc = load_discovery(analysis["discovery_id"])
-        if disc:
-            if not analysis.get("company_description"):
-                analysis["company_description"] = disc.get("company_description", "")
-            if not analysis.get("competitive_products"):
-                analysis["competitive_products"] = disc.get("competitive_products", [])
-            if not analysis.get("_company_badge"):
-                analysis["_company_badge"] = disc.get("_company_badge", "")
-            if not analysis.get("_org_color"):
-                analysis["_org_color"] = disc.get("_org_color", "")
+    # Hydrate the analysis with company-context fields from its parent
+    # discovery (company_description, competitive_products, _company_badge,
+    # _org_color). Idempotent — only sets missing fields. Lives in the
+    # intelligence layer so Prospector and Designer can hydrate the same way.
+    # See HIGH-2 in code-review-2026-04-07.md.
+    from intelligence import hydrate_analysis
+    hydrate_analysis(analysis)
 
     # Cache version check — if the cached analysis was scored with an older
     # SCORING_LOGIC_VERSION than the current one, the page should prompt the
