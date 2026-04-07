@@ -62,6 +62,8 @@ SKIP_PATHS = [
     "docs/Designer-Session-Prep.md",        # references legacy terms when identifying conflicts
     "docs/Test-Plan.md",                    # test descriptions reference legacy terms as examples of what to reject
     "docs/decision-log.md",                 # historical record — legitimately references legacy terms in superseded entries
+    "docs/code-review-2026-04-07.md",      # code review findings — references legacy terms when documenting violations
+    "docs/next-session-todo.md",           # session backlog — references legacy terms in historical context
     "backend/tests/",                       # test code legitimately references legacy terms to verify they're NOT used
     ".git/",
     "__pycache__/",
