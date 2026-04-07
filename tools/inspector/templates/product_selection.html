@@ -439,7 +439,12 @@
 
 <script>
 (function() {
-    const MAX_SEL = 6;  // Configurable — will be pulled from config
+    // MAX_NEW caps how many *new* (uncached) products can be added per Deep Dive.
+    // Cached products are free — they reuse existing scores and trigger zero
+    // new Claude calls — so they always come along and never count against
+    // the cap. With cap=4, a company with 6 cached products can run a Deep
+    // Dive with all 6 cached + up to 4 new = 10 total selected.
+    const MAX_NEW = 4;
     const form        = document.getElementById('diveForm');
     const btn         = document.getElementById('diveBtn');
     const status      = document.getElementById('selStatus');
@@ -460,26 +465,32 @@
         // fresh scoring; cached ones re-use the existing analysis.
         const cachedSelected = checked.filter(cb => cb.dataset.cached === '1').length;
         const newSelected    = n - cachedSelected;
+        const atNewCap       = newSelected >= MAX_NEW;
 
         btn.disabled = n === 0;
 
+        // Top status line — focuses on the cap (new products only).
         if (n === 0) {
-            status.textContent = `0 of ${TOTAL} products selected`;
+            status.textContent = `Select products to deep dive`;
             status.classList.remove('has-selection');
-        } else if (n < MAX_SEL) {
-            status.textContent = `${n} of ${TOTAL} selected`;
+        } else if (newSelected === 0) {
+            // All-cached selection — no cap applies, instant rerun
+            status.textContent = `${cachedSelected} cached selected — instant rerun`;
+            status.classList.add('has-selection');
+        } else if (atNewCap) {
+            status.textContent = `${MAX_NEW} of ${MAX_NEW} new — uncheck one to add another`;
             status.classList.add('has-selection');
         } else {
-            status.textContent = `${MAX_SEL} of ${MAX_SEL} — uncheck one to swap`;
+            status.textContent = `${newSelected} of ${MAX_NEW} new selected`;
             status.classList.add('has-selection');
         }
 
-        // Cached/new hint + estimated time
+        // Sub-hint: cached/new split + estimated time
         if (cachedHint) {
             if (n === 0) {
                 cachedHint.innerHTML = '&nbsp;';
             } else if (newSelected === 0) {
-                cachedHint.textContent = `${cachedSelected} cached — instant`;
+                cachedHint.innerHTML = '&nbsp;';
             } else {
                 const secs = newSelected * EST_SECONDS_PER_NEW_PRODUCT;
                 const mm = Math.floor(secs / 60);
@@ -488,18 +499,21 @@
                     ? `~${mm}m ${ss}s`
                     : `~${ss}s`;
                 if (cachedSelected > 0) {
-                    cachedHint.textContent = `${cachedSelected} cached + ${newSelected} new (${timeStr})`;
+                    cachedHint.textContent = `+ ${cachedSelected} cached coming along free (${timeStr})`;
                 } else {
-                    cachedHint.textContent = `${newSelected} new (${timeStr})`;
+                    cachedHint.textContent = `${timeStr}`;
                 }
             }
         }
 
+        // Card dimming — only dim NEW unchecked cards when new-cap is reached.
+        // Cached cards remain selectable since they don't count against the cap.
         const cards = document.querySelectorAll('.product-card:not(.comp-card)');
         cards.forEach(card => {
             const cb = card.querySelector('.product-cb');
             if (!cb) return;
-            if (n >= MAX_SEL && !cb.checked) {
+            const isCached = cb.dataset.cached === '1';
+            if (atNewCap && !cb.checked && !isCached) {
                 card.classList.add('card-dimmed');
                 cb.disabled = true;
             } else {

@@ -17,6 +17,42 @@ The "verify SOTI re-score" task in §1 below is now PARTIALLY OBSOLETE — the u
 
 ---
 
+## §0b — Product Selection limit applies to NEW products only (raised 2026-04-06 evening)
+
+The Product Selection page caps how many products can be selected per Deep Dive. The cap exists to control how many fresh Claude calls one Deep Dive triggers — **cached products are free to include**, since they don't trigger new scoring work.
+
+**Today (wrong):** the cap is on total selected products. If a company has 6 cached products and the cap is 4, the user can't select all 6 cached even though doing so triggers zero new work.
+
+**Should be:** the cap counts only NEW (uncached) products. Cached products always come along for free. So with cap=4:
+- 6 cached + 0 new: ✅ allowed (zero new Claude calls)
+- 6 cached + 4 new: ✅ allowed (4 new Claude calls)
+- 6 cached + 5 new: ❌ blocked (5 new Claude calls > cap)
+- 0 cached + 4 new: ✅ allowed
+- 0 cached + 5 new: ❌ blocked
+
+**UX:** the counter chip should reflect "X of N new products selected" rather than "X of N selected." Cached products should show their cached chip and be selectable without counting against the cap.
+
+**SHIPPED 2026-04-06 evening:** see the relevant commit in the Shipped section. Status of cap-counting + UX update.
+
+---
+
+## §0a — Product Family Picker (raised 2026-04-06 evening)
+
+**Spec source:** `docs/archive/inspector.md` line 50 — the canonical rule.
+
+> Product Family Selection applies when discovery identifies a large portfolio (20+ products). Companies like Oracle, Microsoft, IBM, and SAP have hundreds of products — too many to display on a single caseboard. Instead of showing all products at once, Inspector scrapes the company's website navigation to extract their product families (the vendor's own portfolio organization), then presents a family picker modal. The user selects a family (e.g., "Oracle Database" or "Microsoft Azure"), and a focused discovery runs against just that family's products.
+
+**Current state:** the picker exists in code but is wrong vs spec on two counts.
+
+1. **Threshold is 30, should be 20.** `inspector_routes.py:195` has `FAMILY_THRESHOLD = 30`. Drop to 20 per Frank's 2026-04-06 directive (spec doc says 15 — outdated). Update both code and spec doc to 20.
+2. **Picker renders ON Caseboard, should be a separate interstitial step BETWEEN discovery completion and Caseboard.** Today it's surfaced as a `product_families` block on the same page; the spec calls for a modal interstitial that runs a focused discovery against the chosen family's products before landing on Caseboard.
+3. **Scraped families come from `_scraped_families` (vendor nav).** That part is already wired correctly via `researcher_new.scrape_product_families`. Don't break it.
+4. **The "focused discovery" step doesn't exist yet.** Today picking a family just filters the existing discovery's products. The spec implies a *second* discovery pass scoped to the family. Decide whether to: (a) implement focused-discovery pass, or (b) keep filter-only behavior and update the spec to match. Frank has not weighed in on this — ask.
+
+**Where to put the picker UX:** between Discovery completion and Product Selection. Either as its own route (`/inspector/family-picker/<discovery_id>`) or as a modal that opens on Product Selection load when families ≥ 15. Frank's instinct is "in the search flow" — most consistent reading is interstitial route, not modal-on-caseboard.
+
+---
+
 ## §0 — Frank's Backlog (added 2026-04-06 afternoon, post Pillar 2/3 ship)
 
 These 7 items came out of Frank's QA pass while reviewing the dossier UX. Concrete, ready to pick up. None are blocked on SE clarifications.
