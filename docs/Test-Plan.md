@@ -281,6 +281,33 @@ Closes the long-standing roadmap "Cache versioning" gap. Cached analyses scored 
 
 ---
 
+## Category 11: Creative End-to-End Invariants (Phase 4)
+
+**File:** `backend/tests/test_creative_invariants.py`
+
+**Guiding Principles:** GP3 (Explainably Trustworthy), GP4 (Self-Evident Design), Layer Discipline
+
+**Purpose:** Catch CRIT-class bug-classes that the structural tests in Categories 1–10 cannot. The 88 structural tests assert config shape; these tests assert runtime guarantees that span layers — config → parser → normalizer → math → render → storage. Designed by `docs/code-review-2026-04-07.md` after the deep code review surfaced 61 findings the existing tests would not have caught.
+
+Tests run against real saved analyses on disk (`data/company_intel/`), automatically filtering out any file whose `_scoring_logic_version` is stale — those are already queued for re-score by the cache versioning gate, so it isn't fair to enforce current architectural rules against them. Synthetic-fixture tests run alongside, against in-memory analyses.
+
+| Test Class | What it validates |
+|---|---|
+| **Class 1 — Round-trip badge identity** | Recompute does not mutate badge names. Phase 2 normalization is allowed to merge duplicates and color-promote, but no surviving badge may have a name that wasn't in the saved input. Pillar 3 (Customer Fit) is exempt because Phase F unification intentionally broadcasts CF badges across products. |
+| **Class 2 — Recompute idempotence** | Running recompute twice produces identical Fit Scores and dimension scores. Catches hidden-state bugs in normalization, CF unification, or score writeback that would make page reloads non-deterministic. Plus a synthetic minimal-analysis test that confirms empty badges produce zero scores end-to-end. |
+| **Class 3 — Vocabulary closure** | Every badge color is one of the four canonical colors. Every Pillar 2/3 badge that carries a `signal_category` uses a value drawn from its dimension's rubric `signal_categories` list — catches the case where the AI invents a signal_category the rubric model can't credit. |
+| **Class 4 — Bold prefix doesn't leak** | Phase 1 normalization (`normalize_for_scoring`) strips bold `**Label \| Qualifier:**` prefixes from every evidence claim. Tests against the recomputed view (what the user actually sees), not raw saved JSON, because normalization runs at render time by design. |
+| **Class 5 — Cache stamp truth** | Any analysis stamped with a `_scoring_logic_version` must contain at least one product. Catches the pre-stamp-then-wipe pattern from the 2026-04-06 evening Trellix incident, where an analysis ended up version-stamped but empty — silently lying about its freshness. |
+| **Class 6 — Pillar isolation** | Pillar 1 badges have empty `strength` and `signal_category` (canonical signal/penalty model — no rubric). Pillar 2/3 non-red badges always have a valid strength (`strong`/`moderate`/`weak`) and a non-empty `signal_category` (rubric model). Catches architecture leaks in either direction. |
+| **Class 7 — Polarity invariants** | Every saved dimension score is in `[0, dim.weight]`. Every Fit Score is in `[0, 100]`. Direct math-layer test confirms `compute_all` with empty badges produces non-negative scores and `technical_fit_multiplier` is always `≤ 1.0` (multipliers only DAMPEN, never amplify). |
+| **Class 8 — Adversarial fixtures** | Hand-crafted edge cases: product missing `fit_score` field; empty dimensions list; duplicate-named badges that merge; stale logic version classification; zero-product analysis. None may crash recompute. The duplicate-named-badge case asserts Phase 2 normalization actually collapses the duplicates. |
+| **Class 9 — Layer Discipline (AST)** | AST inspection of `backend/app.py` confirms no Inspector route handler calls `scoring_math.compute_all`, `scoring_math.compute_acv_potential`, `scoring_math.compute_fit_score`, or `core.assign_verdict` directly. All scoring work must go through `intelligence.recompute_analysis()` so Prospector and Designer share the same path. The structural lock for the principle from the 2026-04-07 deep code review. |
+| **Class 10 — Define-Once enforcement (string constants)** | High-value scoring_config STRING constants (`SCORING_LOGIC_VERSION`, `DEFAULT_RATE_TIER_NAME`) are not inlined as literals anywhere in the active backend. Numeric constants are intentionally excluded — small integers like 3/8 collide with array indices and version numbers, so numeric enforcement lives in `test_no_hardcoding.py`'s AST-based magic-number scan. |
+
+**Why Category 11 is the most important architectural test category:** Categories 1–10 catch shape bugs. Category 11 catches the integration bugs that hide between layers. Every CRIT-class finding from the 2026-04-07 deep code review would have been caught by one of these test classes if they had existed before the bugs landed. The pre-commit hook runs them on every commit.
+
+---
+
 ## GP Traceability Matrix
 
 | Category | GP1 | GP2 | GP3 | GP4 | GP5 | Define-Once | End-to-End |
@@ -295,3 +322,4 @@ Closes the long-standing roadmap "Cache versioning" gap. Cached analyses scored 
 | 8. Intelligence Compounds | | | | | X | | |
 | 9. UX Consistency | X | | | X | | | |
 | 10. Anti-Hardcoding | | | | X | | X | |
+| 11. Creative Invariants | | | X | X | | X | X |
