@@ -402,6 +402,43 @@ For Skillable-hosted labs (Hyper-V / Container / ESX / Simulation), teardown is 
 
 #### Teardown Floor: 0
 
+### Risk Cap Reduction (applies to ALL Pillar 1 dimensions)
+
+A Pillar 1 dimension can never be at full cap when there's a known risk badge. Even if the green canonical badges overflow the cap, an amber Risk or red Blocker visibly reduces the dimension score so the user sees the friction. **Per Frank's directive 2026-04-07** after reviewing Trellix Endpoint Security · Lab Access at 25/25 with a Training License Risk badge — the perfect score hid a real concern.
+
+| Risk type | Cap reduction per badge | Rationale |
+|---|---|---|
+| **Amber Risk** | **-3 from cap** | "Strong with friction to manage." A dimension with one amber risk still reads well above 50%. |
+| **Red Blocker** | **-8 from cap** | "Must be resolved before we can ship." A dimension with one red lands in mid-amber verdict territory — can't be ignored. |
+
+**How it works:**
+1. Compute `raw_total` normally (canonical signals + penalties + color contributions). Amber half-credit and red color-fallback already apply at this stage.
+2. Count visible risk badges in the dimension: `amber_count` (badges with color amber), `red_count` (badges with color red).
+3. Compute the knockdown: `(amber_count × 3) + (red_count × 8)`.
+4. `effective_cap = max(dim.weight - knockdown, dim.floor or 0)`.
+5. `score = min(raw_total, effective_cap)`.
+
+**This is a CAP REDUCTION, not a deduction.** If `raw_total` is already below the lowered cap, the knockdown has no further effect — there's no double-counting with the half-credit and color-fallback rules that apply at the raw stage.
+
+**Linear compounding.** Each risk knocks more off. Two ambers = -6, three reds = -24. Hard floor at the dimension's existing floor (0 for most) prevents pathological negatives.
+
+**Worked example — Trellix Endpoint Security · Lab Access:**
+
+| Badge | Color | Math credit |
+|---|---|---|
+| Identity API | green | +19 (full canonical credit) |
+| Cred Recycling | green | +18 (full canonical credit) |
+| Training License | amber | +8 (half-credit per amber rule) |
+| **Raw total** | | **45** |
+| Original cap | | 25 |
+| Risk knockdown | | -3 (one amber) |
+| **Effective cap** | | **22** |
+| **Score** | | **22/25** |
+
+Without the risk cap reduction, the score would be capped at 25/25 and the Training License Risk badge would have no visible impact. With the rule, the dimension reads "strong but with one risk to manage" — accurate.
+
+**Does NOT apply to the rubric model (Pillar 2 / Pillar 3).** Strength tiers (`strong` / `moderate` / `weak`) already encode friction in the rubric model. Adding a cap reduction there would double-count what the strength grading already captures.
+
 ### Technical Fit Multiplier
 
 Applied after scoring Product Labability:

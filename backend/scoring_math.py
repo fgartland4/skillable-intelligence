@@ -232,12 +232,42 @@ def compute_dimension_score(dim_key: str,
     cap = dim.cap if dim.cap is not None else dim.weight
     floor = dim.floor if dim.floor is not None else 0
 
+    # ── Risk cap reduction (Pillar 1 only) ─────────────────────────────────
+    # A dimension can never be at full cap when there's a known risk badge.
+    # Count visible risk badges (amber or red color) in the dimension and
+    # lower the effective cap by AMBER_RISK_CAP_REDUCTION per amber and
+    # RED_RISK_CAP_REDUCTION per red. This is a CAP REDUCTION, not a
+    # deduction — if raw_total is already below the lowered cap, there's
+    # no further effect (no double-counting with the half-credit and
+    # color-fallback rules that already apply above).
+    #
+    # Linear compounding: each risk knocks more off. Hard floor at the
+    # dimension's existing floor prevents pathological negatives.
+    #
+    # See scoring_config.AMBER_RISK_CAP_REDUCTION docstring for the full
+    # rationale and calibration. Per Frank's 2026-04-07 directive after
+    # reviewing Trellix Endpoint Security · Lab Access at 25/25 despite
+    # a Training License Risk badge.
+    amber_count = sum(1 for _, color in best_by_name.values() if color == "amber")
+    red_count = sum(1 for _, color in best_by_name.values() if color == "red")
+    risk_knockdown = (
+        amber_count * cfg.AMBER_RISK_CAP_REDUCTION
+        + red_count * cfg.RED_RISK_CAP_REDUCTION
+    )
+    if risk_knockdown > 0:
+        effective_cap = max(cap - risk_knockdown, floor)
+    else:
+        effective_cap = cap
+
     score = raw_total
     capped = False
     floored = False
-    if score > cap:
-        score = cap
+    risk_capped = False
+    if score > effective_cap:
+        score = effective_cap
         capped = True
+        if effective_cap < cap:
+            risk_capped = True
     if score < floor:
         score = floor
         floored = True
@@ -253,6 +283,10 @@ def compute_dimension_score(dim_key: str,
         "raw_total": int(raw_total),
         "capped": capped,
         "floored": floored,
+        "risk_capped": risk_capped,
+        "risk_knockdown": int(risk_knockdown),
+        "amber_risk_count": amber_count,
+        "red_risk_count": red_count,
         "unknown_badges": unknown,
     }
 

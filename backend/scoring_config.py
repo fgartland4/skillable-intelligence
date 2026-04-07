@@ -1451,6 +1451,52 @@ BADGE_COLOR_DISPLAY_PRIORITY: dict[str, int] = {
 BADGE_UNKNOWN_COLOR_SCORE_FALLBACK = -2
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# RISK CAP REDUCTIONS — a Pillar 1 dimension can never be at full cap when
+# there's a known risk. Even if the green canonical badges overflow the cap,
+# an amber Risk or red Blocker should visibly reduce the dimension score so
+# the user can see the friction. Per Frank's 2026-04-07 directive after
+# reviewing Trellix Endpoint Security · Lab Access at 25/25 with a Training
+# License Risk badge.
+#
+# How it works (signal_penalty model only — Pillar 1):
+#   1. Compute the raw_total normally (canonical signals, penalties, color
+#      contributions). Amber half-credit and red color-fallback already
+#      apply at this stage.
+#   2. Count visible risk badges in the dimension:
+#        amber_count = badges with color "amber"
+#        red_count   = badges with color "red"
+#   3. Compute the knockdown:
+#        knockdown = amber_count * AMBER_RISK_CAP_REDUCTION
+#                  + red_count   * RED_RISK_CAP_REDUCTION
+#   4. effective_cap = max(dim.weight - knockdown, dim.floor or 0)
+#   5. score = min(raw_total, effective_cap)
+#
+# This is a CAP REDUCTION, not a deduction — if the raw is already below
+# the lowered cap, there's no further effect (no double-counting with the
+# half-credit / color-fallback that already applied).
+#
+# Linear compounding: each risk knocks more off. Two ambers = -6, three
+# reds = -24, etc. Hard floor at the dimension's existing floor (0 for
+# most) prevents pathological negatives.
+#
+# DOES NOT apply to the rubric model (Pillar 2 / Pillar 3) — strength
+# tiers there already encode "moderate / weak" friction. Adding this
+# knockdown would double-count.
+#
+# Calibration:
+#   - Amber Risk: -3 from cap (~9-20% reduction depending on dim weight)
+#     A dimension with one amber risk reads as "strong with friction to
+#     manage" (still well above 50%).
+#   - Red Blocker: -8 from cap (~23-53% reduction)
+#     A dimension with one red reads as "this needs to be resolved before
+#     we can ship" (mid-amber verdict territory, can't be ignored).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+AMBER_RISK_CAP_REDUCTION = 3
+RED_RISK_CAP_REDUCTION = 8
+
+
 CEILING_FLAGS: dict[str, dict] = {
     # When the AI emits any of these flags, Product Labability cannot exceed
     # the listed max_score regardless of how the dimension math came out.
@@ -2078,7 +2124,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.phase-e-polish"
+SCORING_LOGIC_VERSION = "2026-04-07.risk-cap-reduction"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
