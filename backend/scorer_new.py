@@ -380,7 +380,13 @@ def _parse_evidence(raw: dict) -> Evidence:
 
 
 def _parse_badges_for_dimension(dim_name: str, evidence_dict: dict) -> list[Badge]:
-    """Parse badges from the evidence section for a specific dimension."""
+    """Parse badges from the evidence section for a specific dimension.
+
+    Carries the rubric fields (strength + signal_category) through onto the
+    persisted Badge object so the dossier UX can render them and downstream
+    analytics can group by signal_category. For Pillar 1 dimensions both
+    fields will be empty strings — that's expected and not an error.
+    """
     key = dim_name.lower().replace(" ", "_")
     raw_items = evidence_dict.get(key, [])
     badges = []
@@ -390,6 +396,8 @@ def _parse_badges_for_dimension(dim_name: str, evidence_dict: dict) -> list[Badg
             color=item.get("color", "gray"),
             qualifier=item.get("qualifier", ""),
             evidence=[_parse_evidence(item)],
+            strength=(item.get("strength") or "").strip().lower(),
+            signal_category=(item.get("signal_category") or "").strip(),
         )
         badges.append(badge)
     return badges
@@ -509,8 +517,19 @@ def _parse_product(data: dict) -> Product:
     for dim_key, items in evidence_dict.items():
         if not isinstance(items, list):
             continue
+        # Carry the Pillar 2/3 rubric fields (strength + signal_category)
+        # through to the math layer. scoring_math._compute_rubric_dimension_score
+        # reads `badge.get("strength")` and `badge.get("signal_category")` from
+        # these dicts to credit points by (dimension, strength) lookup. Dropping
+        # them here was the root cause of the rubric architecture being non-
+        # functional from f46dcc9 through bf930d0.
         badge_objs = [
-            {"name": item.get("badge", ""), "color": item.get("color", "")}
+            {
+                "name": item.get("badge", ""),
+                "color": item.get("color", ""),
+                "strength": item.get("strength", ""),
+                "signal_category": item.get("signal_category", ""),
+            }
             for item in items
             if isinstance(item, dict) and item.get("badge")
         ]

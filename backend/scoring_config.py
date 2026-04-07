@@ -2078,7 +2078,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-06.pillar2-3-rubric"
+SCORING_LOGIC_VERSION = "2026-04-06.rubric-fields-wired"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

@@ -237,16 +237,24 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         # force re-score. The analysis_id is preserved (stable URL principle)
         # but every product gets fresh scoring against the current logic.
         if not cfg.is_cached_logic_current(existing):
+            stale_count = len(existing.get("products", []) or [])
             log.info(
                 "Intelligence.score: existing analysis %s has stale logic version "
-                "(%r vs current %r) — re-scoring all %d cached products",
+                "(%r vs current %r) — wiping %d legacy products",
                 existing.get("analysis_id"),
                 existing.get("_scoring_logic_version", "<missing>"),
                 cfg.SCORING_LOGIC_VERSION,
-                len(existing.get("products", [])),
+                stale_count,
             )
-            # Empty existing_product_names so the splitter below treats every
-            # selected product as new-to-score.
+            # CRITICAL: wipe the legacy products list so they don't survive
+            # the cache-and-append below. Previously this code only blanked
+            # existing_product_names, leaving the legacy products in place
+            # to be appended onto by new scores — that's how Trellix ended
+            # up with 11 products (7 unique + 4 duplicates) all stamped with
+            # a current version they were never actually scored under.
+            # See investigation 2026-04-06 evening for the full root cause.
+            existing["products"] = []
+            existing["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
         else:
             for p in existing.get("products", []):
                 existing_product_names.add(p.get("name", ""))

@@ -42,11 +42,20 @@ class Badge:
     """A scored finding that surfaces as a visual indicator in the UX.
 
     Color = the assessment. Evidence = the basis. Together they're complete.
+
+    Pillar 2/3 RUBRIC fields (strength, signal_category) are required for
+    rubric-model dimensions and ignored elsewhere. They MUST be carried
+    through from Claude's output via scorer_new._parse_badges_for_dimension
+    so the math layer can credit points by (dimension, strength) lookup
+    against the dimension's rubric tiers.
     """
     name: str
     color: str                     # "green" | "gray" | "amber" | "red"
     qualifier: str = ""            # "Strength" | "Opportunity" | "Context" | "Risk" | "Blocker"
     evidence: list[Evidence] = field(default_factory=list)
+    # Pillar 2/3 rubric fields — empty string for Pillar 1 / non-rubric badges
+    strength: str = ""             # "strong" | "moderate" | "weak" — math driver
+    signal_category: str = ""      # one of the dimension's signal_categories — analytics tag
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

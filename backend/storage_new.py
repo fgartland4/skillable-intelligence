@@ -143,6 +143,24 @@ def save_analysis(analysis) -> str:
 
     data["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
 
+    # Belt-and-braces: dedupe products by name on every save, keeping the
+    # LAST occurrence (which is the freshest score from the cache-and-append
+    # flow). The intelligence_new.score() stale-version path now wipes the
+    # legacy list before appending, so duplicates shouldn't get created in
+    # the first place — but this dedup pass closes any other code path that
+    # might mutate the products list and hand it back here.
+    products = data.get("products") or []
+    if products:
+        seen: dict[str, dict] = {}
+        for p in products:
+            nm = (p.get("name") or "").strip()
+            if nm:
+                seen[nm] = p   # last write wins
+        if len(seen) != len(products):
+            log.info("save_analysis %s: deduped %d products → %d unique",
+                     analysis_id, len(products), len(seen))
+            data["products"] = list(seen.values())
+
     filepath = os.path.join(_COMPANY_DIR, f"analysis_{analysis_id}.json")
     _atomic_write(filepath, data)
     log.info("Saved analysis %s (logic version %s)", analysis_id, cfg.SCORING_LOGIC_VERSION)
