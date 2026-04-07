@@ -444,7 +444,10 @@
     // new Claude calls — so they always come along and never count against
     // the cap. With cap=4, a company with 6 cached products can run a Deep
     // Dive with all 6 cached + up to 4 new = 10 total selected.
-    const MAX_NEW = 4;
+    //
+    // Single source of truth: scoring_config.DEEP_DIVE_MAX_NEW_PRODUCTS,
+    // injected by the route via the deep_dive_max_new context var.
+    const MAX_NEW = {{ deep_dive_max_new }};
     const form        = document.getElementById('diveForm');
     const btn         = document.getElementById('diveBtn');
     const status      = document.getElementById('selStatus');

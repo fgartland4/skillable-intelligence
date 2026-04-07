@@ -2104,6 +2104,28 @@ def is_cached_logic_current(cached_data: dict | None) -> bool:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# DEEP DIVE — SELECTION TUNABLES
+#
+# Caps and thresholds that govern the Product Selection page on Inspector.
+# Centralized here so the value is the single source of truth — the template
+# reads it through the Flask context, no hardcoded magic numbers in JS.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Maximum number of NEW (uncached) products that can be added to a single
+# Deep Dive run. Cached products reuse existing scores and never count
+# against this cap — they always come along free. With cap=4, a company
+# with 6 cached products can run a Deep Dive with all 6 cached + up to 4
+# new = 10 total selected, triggering only 4 fresh Claude scoring calls.
+#
+# Bump this when:
+#   - Claude throughput improves enough that more parallel scores are safe
+#   - Frank decides Deep Dive should accept larger batches
+# Don't bump it for one-off needs — the cap exists to keep one Deep Dive
+# from monopolizing the API budget.
+DEEP_DIVE_MAX_NEW_PRODUCTS = 4
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # VALIDATION
 #
 # Automated checks that run on import.  Ensures the configuration is

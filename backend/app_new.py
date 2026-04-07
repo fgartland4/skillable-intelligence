@@ -346,10 +346,13 @@ def inspector_product_selection(discovery_id: str):
             if n:
                 cached_product_names.add(n)
 
+    import scoring_config as cfg
+
     return render_template("product_selection.html",
                           discovery=disc,
                           existing_analysis=existing,
-                          cached_product_names=cached_product_names)
+                          cached_product_names=cached_product_names,
+                          deep_dive_max_new=cfg.DEEP_DIVE_MAX_NEW_PRODUCTS)
 
 
 @app.route("/inspector/score", methods=["POST"])
