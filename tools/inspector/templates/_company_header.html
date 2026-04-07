@@ -1,0 +1,79 @@
+{# Company Header Widget — shared partial used by Product Selection and Full Analysis pages.
+
+   Three elements bundled as ONE Define-Once widget:
+     1. Company name
+     2. Classification badge (the concatenated label like "ENTERPRISE SOFTWARE", "TRAINING ORG")
+     3. Company description (3 lines max with ellipsis)
+
+   The widget renders identically on every page that uses it. Layout
+   position can vary by page (right side of Deep Dive hero, more centered
+   on Product Selection) but the widget itself is one component.
+
+   USAGE:
+     {% import '_company_header.html' as ch %}
+
+     <!-- Inside <style> block (once per page) -->
+     {{ ch.styles() }}
+
+     <!-- In the markup where the widget should render -->
+     {{ ch.render(name='Cohesity', badge='ENTERPRISE SOFTWARE', badge_color='green',
+                  description='Cohesity is a leading data security and management company...') }}
+
+   Defines its own CSS classes (.company-header-*) so the widget is
+   self-contained and doesn't rely on the page's existing class system. #}
+
+{% macro styles() %}
+/* ── Company Header Widget — shared across Product Selection + Full Analysis ── */
+.company-header { display: flex; flex-direction: column; gap: 6px; max-width: 720px; }
+.company-header-title { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.company-header-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--sk-text-strong);
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.company-header-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--sk-badge-purple-bg);
+  color: var(--sk-classify-purple);
+  border: 1px solid var(--sk-badge-purple-bdr);
+}
+.company-header-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sk-text-body);
+  /* Three lines max with ellipsis — same on every page */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Reserve space for 3 lines so the layout doesn't jump for shorter
+     descriptions, but max 3 (line-clamp handles overflow). */
+}
+{% endmacro %}
+
+
+{% macro render(name='', badge='', badge_color='', description='') %}
+<div class="company-header">
+  <div class="company-header-title">
+    <span class="company-header-name">{{ name }}</span>
+    {% if badge %}
+      <span class="company-header-badge {{ badge_color or '' }}">{{ badge }}</span>
+    {% endif %}
+  </div>
+  {% if description %}
+    <p class="company-header-desc">{{ description }}</p>
+  {% endif %}
+</div>
+{% endmacro %}
+</content>
+</invoke>

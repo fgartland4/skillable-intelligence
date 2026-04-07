@@ -856,8 +856,12 @@ def inspector_full_analysis(analysis_id: str):
     if not analysis:
         return error_response("Analysis not found.", 404)
 
-    # Backfill company_description and competitive_products from discovery
-    # (analyses don't store these directly — they live on the discovery)
+    # Backfill company_description, competitive_products, and the
+    # classification badge fields from discovery (analyses don't store these
+    # directly — they live on the discovery). The badge backfill ensures the
+    # Full Analysis page renders the same Company Header widget as the
+    # Product Selection page (Define-Once: one source of truth for the
+    # widget content, both pages display identical name + badge + description).
     if analysis.get("discovery_id"):
         disc = load_discovery(analysis["discovery_id"])
         if disc:
@@ -865,6 +869,10 @@ def inspector_full_analysis(analysis_id: str):
                 analysis["company_description"] = disc.get("company_description", "")
             if not analysis.get("competitive_products"):
                 analysis["competitive_products"] = disc.get("competitive_products", [])
+            if not analysis.get("_company_badge"):
+                analysis["_company_badge"] = disc.get("_company_badge", "")
+            if not analysis.get("_org_color"):
+                analysis["_org_color"] = disc.get("_org_color", "")
 
     _prepare_analysis_for_render(analysis)
 

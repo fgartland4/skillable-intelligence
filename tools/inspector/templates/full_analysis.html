@@ -2,6 +2,7 @@
   Full Analysis page — rebuilt from wireframe.html (pixel-perfect).
   Data source: analysis dict prepared by inspector_full_analysis() in app_new.py.
 #}
+{% import '_company_header.html' as ch %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -173,6 +174,7 @@ document.addEventListener('mouseleave', function(e) {
 </script>
 <style>
 {% include '_theme_new.html' %}
+{{ ch.styles() }}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe UI', Calibri, sans-serif; min-width: 900px; }
 /* Page content sits below the shared nav and gets the side/top padding */
@@ -180,9 +182,9 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 
 .header { padding-bottom: 14px; margin-bottom: 16px; }
 .header-top { display: flex; align-items: flex-start; justify-content: space-between; }
-.company-title { display: flex; align-items: flex-end; gap: 12px; }
-.company-name { font-size: 1.8rem; font-weight: 700; color: var(--sk-text-strong); line-height: 1; }
-.company-badge { font-size: 0.6rem; letter-spacing: 2px; padding: 3px 10px; border: 1px solid var(--sk-badge-purple-bdr); color: var(--sk-classify-purple); background: var(--sk-badge-purple-bg); border-radius: 3px; margin-bottom: 2px; text-transform: uppercase; }
+/* Legacy .company-title, .company-name, .company-badge, .company-desc styles
+   deleted — replaced by the shared Company Header Widget partial
+   (_company_header.html, ch.styles() injected above). */
 .header-right { text-align: right; }
 .header-cache { font-size: 0.7rem; color: var(--sk-text-muted); line-height: 1.6; white-space: nowrap; }
 .header-cache a { color: var(--sk-text-muted); text-decoration: none; border-bottom: 1px dotted var(--sk-text-dim); }
@@ -190,16 +192,6 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .header-nav { margin-top: 10px; font-size: 0.7rem; line-height: 1.6; }
 .header-nav a { color: var(--sk-accent-soft); text-decoration: none; }
 .header-nav a:hover { text-decoration: underline; }
-.company-desc {
-    color: var(--sk-text-muted); font-size: 0.82rem; margin-top: 8px;
-    max-width: 52%; line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
 .hero { display: flex; align-items: flex-start; justify-content: center; gap: 0; padding: 16px 0 20px 0; margin-bottom: 16px; }
 .hero-verdict { min-width: 220px; text-align: center; margin-left: 40px; }
@@ -304,7 +296,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 /* Briefcase */
 .briefcase { display: flex; gap: 16px; margin-top: 8px; margin-bottom: 24px; }
 .briefcase-product { flex: 7; display: flex; gap: 16px; }
-.briefcase-org { flex: 3; }
+.briefcase-org { flex: 3; display: flex; }   /* display:flex so the single child .briefcase-card-org stretches to match KTQ/Conv Starters height */
 .briefcase-card { background: var(--sk-bg-card-soft); border: 1px solid var(--sk-border-card); border-top: 2px solid var(--sk-classify-purple); border-radius: 0 0 8px 8px; padding: 12px 18px; flex: 1; }
 .briefcase-card-org { background: var(--sk-bg-card-org-soft); border: 1px solid var(--sk-border-card-org); border-top: 2px solid var(--sk-classify-purple-light); border-radius: 0 0 8px 8px; padding: 12px 18px; flex: 1; }
 .briefcase-title { font-size: 0.65rem; letter-spacing: 1.5px; color: var(--sk-classify-purple); text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
@@ -601,15 +593,12 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 <div class="header">
   <div class="header-top">
     <div>
-      <div class="company-title">
-        <span class="company-name">{{ analysis.company_name }}</span>
-        {% if analysis.organization_type %}
-          <span class="company-badge">{{ analysis.organization_type | replace('_', ' ') }}</span>
-        {% endif %}
-      </div>
-      {% if analysis.company_description %}
-        <div class="company-desc">{{ analysis.company_description }}</div>
-      {% endif %}
+      {{ ch.render(
+          name=analysis.company_name,
+          badge=analysis._company_badge,
+          badge_color=analysis._org_color,
+          description=analysis.company_description
+      ) }}
     </div>
     <div class="header-right">
       <div class="header-cache">
@@ -758,8 +747,12 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 
 {% else %}
 <div class="header">
-  <div class="company-title"><span class="company-name">{{ analysis.company_name }}</span></div>
-  <div class="company-desc">No products were scored for this analysis.</div>
+  {{ ch.render(
+      name=analysis.company_name,
+      badge=analysis._company_badge,
+      badge_color=analysis._org_color,
+      description='No products were scored for this analysis.'
+  ) }}
 </div>
 {% endif %}
 

@@ -1,3 +1,4 @@
+{% import '_company_header.html' as ch %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,7 @@
     <title>Product Selection — {{ discovery.company_name }} — Skillable Intelligence</title>
     <style>
         {% include '_theme_new.html' %}
+        {{ ch.styles() }}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, label { font-family: inherit; }
         body {
@@ -43,14 +45,9 @@
             border-bottom: 1px solid var(--sk-border);
         }
         .header-left { flex: 1 1 auto; min-width: 0; max-width: calc(100% - 320px); }
-        .company-title {
-            font-size: 1.9rem; font-weight: 800; color: var(--sk-text);
-            letter-spacing: -0.02em; line-height: 1.2;
-        }
-        .header-desc {
-            color: var(--sk-text-muted); margin-top: 6px; font-size: 0.84rem;
-            line-height: 1.55;
-        }
+        /* Legacy .company-title and .header-desc styles deleted —
+           replaced by the shared Company Header Widget partial
+           (_company_header.html, ch.styles() injected above). */
 
         /* ── Header right: actions ── */
         .header-right { flex-shrink: 0; text-align: right; }
@@ -255,13 +252,12 @@
     {# ── Header ── #}
     <div class="header">
         <div class="header-left">
-            <h1 class="company-title">
-                {{ discovery.company_name }}
-                <span class="org-badge {{ discovery._org_color }}">{{ discovery._company_badge }}</span>
-            </h1>
-            {% if discovery.company_description %}
-            <p class="header-desc">{{ discovery.company_description }}</p>
-            {% endif %}
+            {{ ch.render(
+                name=discovery.company_name,
+                badge=discovery._company_badge,
+                badge_color=discovery._org_color,
+                description=discovery.company_description
+            ) }}
         </div>
 
         <div class="header-right">

@@ -87,7 +87,9 @@ This document reflects best current thinking. As thinking evolves, this document
 
 **Guiding Principles:** GP3 (Explainably Trustworthy)
 
-**Purpose:** Verify that the scoring math produces correct results — dimension rollups, pillar weighting, Fit Score calculation, verdict assignment, and ACV calculation.
+**Purpose:** Verify that the scoring math produces correct results — dimension rollups, pillar weighting, Fit Score calculation, verdict assignment, and ACV calculation. Also covers the dual-architecture scoring model (canonical for Pillar 1, rubric-driven for Pillars 2 and 3) and the cache versioning gate.
+
+### 4a. Core scoring math (original tests)
 
 | Test | What it validates |
 |---|---|
@@ -98,6 +100,40 @@ This document reflects best current thinking. As thinking evolves, this document
 | Dimension scores don't exceed their max weight | Provisioning can't exceed 35, Lab Access can't exceed 25, etc. |
 | ACV calculation follows the formula | Population x Adoption Rate x Hours x Rate — verified against hand-calculated examples |
 | Adoption ceilings are enforced | Events max 0.80, all other motions max 0.20 |
+
+### 4b. Rubric model — Pillar 2 and Pillar 3 (added 2026-04-06)
+
+The Pillar 2/3 architectural sharpening introduced a rubric-driven scoring model where badge names are variable (AI-synthesized to capture domain-specific terminology) and scoring is driven by an explicit `strength` field (`strong` / `moderate` / `weak`) graded against a per-dimension rubric. Pillar 1 keeps the canonical signal/penalty model. These tests cover both architectures and their interaction.
+
+| Test | What it validates |
+|---|---|
+| Product Complexity rubric — three strong badges | 3 × 6 = 18/40 (correct strong-tier credit) |
+| Mastery Stakes rubric — caps at 25 | 3 strong (3 × 9 = 27) capped at the dimension cap of 25 |
+| Lab Versatility rubric — two strong badges | 2 × 5 = 10/15 |
+| Market Demand rubric — caps at 20 | 4 strong (4 × 5 = 20) hits the dimension cap exactly |
+| Training Commitment rubric — `Hands-on Lab Commitment` is a strong-tier signal | 4 strong = 24/25 (the framework's hands-on signal is the top-tier criterion per Frank) |
+| Build Capacity rubric — caps at 20 | 4 strong (4 × 5 = 20) hits the cap |
+| Delivery Capacity rubric — caps at 30 | 4 strong (4 × 8 = 32) capped at 30 |
+| `No Lab Platform` is moderate, not weak | Greenfield is an opportunity per Frank — moderate tier credit, not weak |
+| Organizational DNA rubric — just under cap | 4 strong = 24/25 |
+| Hard negative red falls to color points, not rubric | Red badges (e.g., `Hard to Engage`, `Consumer Grade`) score via color points (-3), not via positive rubric tier value |
+| Missing strength field falls to color points | Defensive — handles cached data and AI emissions that omit the strength field |
+| Mixed strengths sum correctly | Strong + moderate combination produces correct sum (e.g., 6 + 3 = 9) |
+| **Pillar 1 regression** — canonical signal/penalty model unchanged | `Runs in Hyper-V` green = 30/35 via name-matched signal lookup, `model = signal_penalty` |
+| **Architecture invariant — Pillar 1 dims have NO rubric** | All Provisioning / Lab Access / Scoring / Teardown dimensions have `rubric is None` |
+| **Architecture invariant — Pillar 2 + 3 dims all have rubrics** | Every dimension in Instructional Value and Customer Fit has a rubric with the canonical `strong / moderate / weak` tier set and a non-empty `signal_categories` list |
+
+### 4c. Cache versioning (added 2026-04-06)
+
+Closes the long-standing roadmap "Cache versioning" gap. Cached analyses scored with an older `SCORING_LOGIC_VERSION` are now automatically treated as stale and re-scored on next access — preserves the analysis_id (stable URL) but refreshes the products inside.
+
+| Test | What it validates |
+|---|---|
+| `SCORING_LOGIC_VERSION` constant exists | The version constant is defined as a non-empty string in `scoring_config.py` and bumped on breaking changes |
+| `is_cached_logic_current()` — current version | Returns True for cached data carrying the current `SCORING_LOGIC_VERSION` |
+| `is_cached_logic_current()` — older version | Returns False for cached data with an older version string |
+| `is_cached_logic_current()` — missing version field | Returns False (treats missing field as stale) |
+| `is_cached_logic_current()` — None input | Returns True (caller treats None as cache miss separately) |
 
 ---
 
@@ -197,6 +233,8 @@ This document reflects best current thinking. As thinking evolves, this document
 | Product selection limit is configurable | Not hardcoded — pulled from config |
 | No forbidden page names in user-facing text | No "Seller Action Plan", "Dossier", "Caseboard" visible to users |
 | All classification badges use group color, not scoring color | Classification colors (purple/teal/warm blue) never overlap with scoring colors (green/amber/red) |
+| **Company Header Widget renders identically on every page** | The shared `_company_header.html` partial (macro `ch.render(name, badge, badge_color, description)`) is used by every page that surfaces the company header (Product Selection, Full Analysis, fallback no-products view). Every page imports the same macro. No page reimplements its own company-name / badge / description layout. |
+| **`_company_badge` and `_org_color` are backfilled from discovery on the analysis dict** | The Full Analysis route backfills these fields from the source discovery so the widget content (classification badge text + color) is identical across pages. Define-Once: discovery is the single source of truth for the classification label. |
 
 ---
 
