@@ -94,8 +94,8 @@ The platform is built on a clear architectural separation: **three thin tools si
 
 | Layer | What lives here | Examples |
 |---|---|---|
-| **Intelligence layer** (shared) | Research, discovery, scoring math, badge normalization, cache versioning, validation, briefcase generation, model definitions, prompt assembly, locked vocabulary, classification, verdicts, ACV computation | `intelligence_new.py`, `scorer_new.py`, `scoring_math.py`, `scoring_config.py`, `storage_new.py`, `models_new.py`, `prompt_generator.py`, `researcher_new.py`, `core_new.py` |
-| **Inspector** (tool) | Inspector-specific routes, request parsing, template selection, view orchestration | `app_new.py` Inspector route handlers, `tools/inspector/templates/*.html` |
+| **Intelligence layer** (shared) | Research, discovery, scoring math, badge normalization, cache versioning, validation, briefcase generation, model definitions, prompt assembly, locked vocabulary, classification, verdicts, ACV computation | `intelligence.py`, `scorer.py`, `scoring_math.py`, `scoring_config.py`, `storage.py`, `models.py`, `prompt_generator.py`, `researcher.py`, `core.py`, `badge_normalization.py` |
+| **Inspector** (tool) | Inspector-specific routes, request parsing, template selection, view orchestration | `app.py` Inspector route handlers, `tools/inspector/templates/*.html` |
 | **Prospector** (tool) | Prospector-specific routes, batch orchestration, lookalikes UI, HubSpot integration glue | (future) Prospector routes + templates |
 | **Designer** (tool) | Designer-specific routes, program design pipeline UX, customer-facing views | (future) Designer routes + templates |
 
@@ -120,7 +120,7 @@ The platform is built on a clear architectural separation: **three thin tools si
 | **GP5** — Intelligence Compounds | One persistent analysis per company · cache sharpens, never wipes · prompt changes trigger smart invalidation · every analysis enriches what came before |
 | **End-to-End** | Same Pillar / Dimension / Requirement model shapes research, storage, scoring, display — no translation step |
 | **Define-Once** | All framework variables in one config · referenced everywhere · change once, propagate everywhere |
-| **Layer Discipline** | Intelligence logic lives in the shared Intelligence layer (`intelligence_new`, `scorer_new`, `scoring_math`, `scoring_config`, `storage_new`, `models_new`, `prompt_generator`, `researcher_new`, `core_new`). Tools (Inspector, Prospector, Designer) own URL handlers, request parsing, template selection — nothing more. When in doubt, default to shared. |
+| **Layer Discipline** | Intelligence logic lives in the shared Intelligence layer (`intelligence`, `scorer`, `scoring_math`, `scoring_config`, `storage`, `models`, `prompt_generator`, `researcher`, `core`, `badge_normalization`). Tools (Inspector, Prospector, Designer) own URL handlers, request parsing, template selection — nothing more. When in doubt, default to shared. |
 
 ---
 
@@ -603,7 +603,7 @@ The AI scoring prompt is not a static text file. It is **generated at runtime** 
 
 | Input | What it is | Where it lives | Who updates it |
 |---|---|---|---|
-| **Company Research** | What we know about THEM — products, training programs, partner ecosystem, delivery infrastructure, org structure, contacts | `data_new/company_intel/` — gathered by the researcher, stored per company, organized by dimension | Updated automatically every time research runs |
+| **Company Research** | What we know about THEM — products, training programs, partner ecosystem, delivery infrastructure, org structure, contacts | `data/company_intel/` — gathered by the researcher, stored per company, organized by dimension | Updated automatically every time research runs |
 | **Skillable Knowledge** | What WE can do — platform capabilities, delivery patterns, supported services, competitor positioning, contact guidance | `backend/knowledge/` — JSON files, human-readable, updatable without code changes | Product team, SEs, sales leadership — as the platform evolves |
 | **Scoring Framework** | The RULES — how to evaluate, what to score, what weights to apply, what badges to assign, what evidence standards to enforce | `backend/scoring_config.py` — the single source of truth for all framework variables | Platform architects — when the framework itself changes |
 

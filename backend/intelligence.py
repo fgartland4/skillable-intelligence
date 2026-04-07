@@ -135,51 +135,39 @@ def _badge_is_stronger(new_badge: dict, existing: dict) -> bool:
     return new_ev_len > old_ev_len
 
 
-def _unify_customer_fit_across_products(analysis: dict) -> None:
-    """Merge Customer Fit across every product in an analysis into ONE
-    company-level reading. Customer Fit is a property of the ORGANIZATION,
-    not the product — it must not vary from product to product.
+def _build_unified_customer_fit(products: list[dict]) -> dict | None:
+    """Build the company-level Customer Fit block by aggregating the best
+    evidence across every product in an analysis.
 
-    Frank's directive (2026-04-07): the AI scores per-product, which means
-    Pillar 3 ends up with subtle differences across products of the same
-    company. Trellix Threat Intelligence Exchange showed Partner Ecosystem
-    amber while Trellix Endpoint Security showed Partner Ecosystem green
-    on the same Trellix discovery. The organization is the organization —
-    one source of truth.
+    Customer Fit is a property of the ORGANIZATION, not the product — every
+    product from the same company gets the same Pillar 3 reading. This
+    function builds that one canonical reading from whatever per-product CF
+    data the AI produced; the result is then stored on the discovery dict
+    (Phase F: discovery["_customer_fit"]) so Inspector, Prospector, and
+    Designer can all read it from one place.
 
-    Implementation:
+    Returns the unified customer_fit dict, or None if there's nothing to
+    aggregate (zero products, or no products with CF data).
+
+    Pure function — does NOT mutate the products list. The caller decides
+    where to store the result.
+
+    Aggregation logic ("best info wins" per Frank's 2026-04-07 directive):
       1. Collect every Customer Fit badge from every product
       2. Group by signal_category (the rubric-model "what this measures" tag)
-      3. Per signal_category, pick the strongest badge via _badge_is_stronger:
-           - Red beats everything else (hard negatives stick)
-           - Then strongest strength tier wins (strong > moderate > weak)
+      3. Per signal_category, pick the best badge via _badge_is_stronger:
+           - Strongest strength tier wins (strong > moderate > weak)
+           - Within same strength, prefer the most-positive color
+             (sourced from cfg.BADGE_COLOR_POINTS — Define-Once)
            - Tiebreak by evidence length
-      4. Build a unified customer_fit block from those best-of-each-category
-         badges, preserving the canonical dimension order from the first
-         product
-      5. Deep-copy the unified block onto every product in the analysis
-      6. The math loop in recompute_analysis() then produces identical
-         Pillar 3 scores across products
-
-    Mutates the analysis dict in place. Idempotent — running on an
-    already-unified analysis is a no-op.
-
-    Does NOT touch Pillar 1 (Product Labability — genuinely per-product)
-    or Pillar 2 (Instructional Value — mostly per-product). Pillar 3 is
-    the only fully-organizational pillar.
+      4. Build a unified customer_fit block in the canonical dimension order
     """
-    import copy
+    products = products or []
+    if not products:
+        return None
 
-    products = analysis.get("products", []) or []
-    if len(products) < 2:
-        return  # nothing to merge with one or zero products
-
-    # Per dimension: signal_category -> best badge so far
     dim_best: dict[str, dict[str, dict]] = {}
-    # Per dimension: canonical metadata (name, weight)
     dim_meta: dict[str, dict] = {}
-    # Track dimension order from the first product so the unified block
-    # matches the canonical Pillar 3 dimension order from scoring_config
     canonical_dim_order: list[str] = []
 
     for idx, p in enumerate(products):
@@ -204,8 +192,7 @@ def _unify_customer_fit_across_products(analysis: dict) -> None:
                 if not isinstance(b, dict):
                     continue
                 # Group key — prefer signal_category (rubric-model canonical
-                # tag); fall back to badge name for any non-rubric badge
-                # that somehow ended up in Pillar 3.
+                # tag); fall back to badge name for any non-rubric badge.
                 cat = (b.get("signal_category") or b.get("name") or "").strip()
                 if not cat:
                     continue
@@ -219,9 +206,8 @@ def _unify_customer_fit_across_products(analysis: dict) -> None:
             canonical_dim_order.append(dname)
 
     if not canonical_dim_order:
-        return  # nothing to unify
+        return None
 
-    # Build the unified customer_fit block
     unified_dims = []
     for dname in canonical_dim_order:
         unified_dims.append({
@@ -239,20 +225,79 @@ def _unify_customer_fit_across_products(analysis: dict) -> None:
             pillar_weight = cf["weight"]
             break
 
-    unified_cf = {
+    return {
         "name": "Customer Fit",
         "weight": pillar_weight,
         "dimensions": unified_dims,
         "score": 0,  # recomputed by recompute_analysis
     }
 
-    # Apply unified Customer Fit to every product. Deep-copy so each product
-    # has its own reference and the per-product math loop can mutate scores
-    # independently without aliasing.
+
+def _apply_customer_fit_to_products(products: list[dict], customer_fit: dict) -> None:
+    """Apply a pre-built unified Customer Fit block to every product in an
+    analysis. Deep-copies so each product has its own reference and the
+    per-product math loop can mutate scores independently without aliasing.
+
+    Used by recompute_analysis() to broadcast the company-level CF (read
+    from discovery["_customer_fit"] in the Phase F architecture) onto every
+    product so the math loop produces identical Pillar 3 scores across
+    products.
+
+    Mutates the products list in place.
+    """
+    import copy
+    if not customer_fit or not products:
+        return
     for p in products:
         if not isinstance(p.get("fit_score"), dict):
             p["fit_score"] = {}
-        p["fit_score"]["customer_fit"] = copy.deepcopy(unified_cf)
+        p["fit_score"]["customer_fit"] = copy.deepcopy(customer_fit)
+
+
+def aggregate_customer_fit_to_discovery(analysis: dict) -> bool:
+    """Build the unified company-level Customer Fit from an analysis's
+    products and store it on the parent discovery as `_customer_fit`.
+
+    This is the Phase F architectural fix (2026-04-07): Customer Fit lives
+    in ONE place — on the discovery dict, owned by the shared Intelligence
+    layer — so Inspector, Prospector, and Designer can all read it without
+    duplication. The previous interim merged-per-product approach is now
+    just a fallback for legacy analyses without discovery._customer_fit.
+
+    Called by intelligence.score() at the end of every score boundary
+    (both fresh and cache-and-append paths). Loads the discovery, builds
+    the unified CF from the analysis's just-scored products, writes it to
+    discovery["_customer_fit"], and re-saves the discovery (preserving the
+    existing version stamp + created_at).
+
+    Returns True if a CF was built and stored, False otherwise.
+    """
+    import scoring_config as cfg
+
+    discovery_id = analysis.get("discovery_id")
+    if not discovery_id:
+        return False
+
+    products = analysis.get("products") or []
+    unified = _build_unified_customer_fit(products)
+    if unified is None:
+        return False
+
+    discovery = load_discovery(discovery_id)
+    if not discovery:
+        return False
+
+    discovery["_customer_fit"] = unified
+    # Preserve the original created_at + scoring logic version on re-save —
+    # adding a derived field is not a re-discovery, so the discovery cache
+    # remains valid for its original 45-day window.
+    if not discovery.get("_scoring_logic_version"):
+        discovery["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
+    save_discovery(discovery_id, discovery)
+    log.info("Customer Fit aggregated to discovery %s (%d signal categories)",
+             discovery_id,
+             sum(len(d.get("badges", []) or []) for d in unified.get("dimensions", []) or []))
+    return True
 
 
 def _compute_dominant_color(badges: list[dict]) -> str:
@@ -422,9 +467,18 @@ def recompute_analysis(analysis: dict) -> None:
     # product from the same company must show the same Pillar 3 reading.
     # This must run BEFORE the per-product math loop so each product's
     # math runs against the unified Customer Fit data and produces
-    # identical Pillar 3 scores. Per Frank's 2026-04-07 directive after
-    # Trellix CF inconsistency.
-    _unify_customer_fit_across_products(analysis)
+    # identical Pillar 3 scores. Per Frank's 2026-04-07 directive.
+    #
+    # Phase F (in progress 2026-04-07): the proper architecture stores the
+    # unified CF on discovery["_customer_fit"] and reads it from there. For
+    # now this still does the analysis-level merge, which gives the same
+    # user-visible result. The new helpers _build_unified_customer_fit and
+    # _apply_customer_fit_to_products are wired here as a refactor of the
+    # old single-function approach; the discovery-level storage will be
+    # added in the second half of the Phase F change.
+    _phase_f_unified_cf = _build_unified_customer_fit(analysis.get("products") or [])
+    if _phase_f_unified_cf is not None:
+        _apply_customer_fit_to_products(analysis.get("products") or [], _phase_f_unified_cf)
 
     # Map each pillar's dict-key to its Pillar object — once, not per product
     pillar_key_to_obj: dict[str, cfg.Pillar] = {}

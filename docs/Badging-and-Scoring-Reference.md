@@ -579,12 +579,17 @@ Pillar 3 uses the **rubric model**, same architecture as Pillar 2.
 
 **Customer Fit measures the organization, not the product.** Every product from the same company shows the same Pillar 3 reading. The Trellix Customer Fit is the Trellix Customer Fit — it does not change when you switch from Trellix Endpoint Security to Trellix Threat Intelligence Exchange in the dossier dropdown.
 
-This is enforced at render time via `intelligence._unify_customer_fit_across_products()` which runs at the start of every `recompute_analysis()` call. The unification is a post-processing merge of existing AI output (no new Claude calls) — Claude scores per-product as it always has, but the merged result becomes the canonical company-level Customer Fit and overwrites every product's `customer_fit` block.
+The unification is enforced in the Intelligence layer by two helpers in `intelligence.py`:
+
+- `_build_unified_customer_fit(products)` — pure function, returns the unified Customer Fit dict from a list of per-product CF blocks
+- `_apply_customer_fit_to_products(products, customer_fit)` — broadcasts the unified block onto every product (deep-copied so the per-product math loop has independent refs)
+
+Both are called at the start of every `intelligence.recompute_analysis()` call so the per-product math runs against the unified data and produces identical Pillar 3 scores across products. The unification is a post-processing merge of existing AI output (no new Claude calls) — Claude scores per-product as it always has, but the merged result becomes the canonical company-level Customer Fit.
 
 **Merge rule** — per `signal_category` (the rubric-model "what this measures" tag), pick the best badge across all products using "best showing wins" priority:
 
 1. **Strongest strength tier wins.** `strong` > `moderate` > `weak`. If one product's research found a strong-tier badge for a signal_category and another found moderate, the strong wins.
-2. **Within the same strength tier, prefer the most-positive color.** `green` > `gray` > `amber` > `red`. If two products both surfaced a strong-tier badge but one is green and one is amber, the green wins.
+2. **Within the same strength tier, prefer the most-positive color.** Sourced from `cfg.BADGE_COLOR_POINTS` — higher numeric value means more positive (`green` > `gray` > `amber` > `red`). Define-Once: no hardcoded color order anywhere in the merge logic.
 3. **Tiebreak by evidence length.** Within the same strength and color, the badge with longer evidence text wins (more grounding = better evidence).
 
 **The rationale:** Customer Fit is the company-level "best evidence we have" reading. If one product's research dug deeper and surfaced stronger/more-positive evidence about an organizational signal, that evidence is the most accurate read of the company. Per Frank's directive: "apply the best of the best and make the best showing for customer fit possible." This trades off some risk-signal preservation for consistency and a generous read of the company.
@@ -592,6 +597,10 @@ This is enforced at render time via `intelligence._unify_customer_fit_across_pro
 **Why this exists:** Frank reviewed Trellix Threat Intelligence Exchange and Trellix Endpoint Security on 2026-04-07 and saw Customer Fit drift between them — Partner Ecosystem amber on one, green on the other; Content Dev Team different across products. The organization is the organization. One source of truth.
 
 **Pillar 1 and Pillar 2 stay per-product.** Product Labability is genuinely about the product. Most of Instructional Value (Product Complexity, Mastery Stakes, Lab Versatility) is also per-product. Only Pillar 3 is fully organizational.
+
+#### In progress: store the unified CF on the discovery (next architectural step)
+
+The current implementation merges per-product CF blocks at render time. The next step is to store the unified Customer Fit ONCE on the parent discovery as `discovery["_customer_fit"]` so Inspector, Prospector, and Designer can read it from a single source without needing an analysis. The new helper `intelligence.aggregate_customer_fit_to_discovery(analysis)` is in place; wiring it into `intelligence.score()` and switching `recompute_analysis()` to read from the discovery first is the remaining work.
 
 ### Dimension order (chronological reading order)
 
