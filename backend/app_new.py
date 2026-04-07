@@ -499,24 +499,28 @@ _EVIDENCE_LABEL_RE = re.compile(r'^\*\*([^*|]+?)\s*\|\s*([^*]+?):\*\*\s*')
 def _normalize_badges_for_scoring(p: dict) -> None:
     """Phase 1 of badge normalization — runs BEFORE the scoring math.
 
-    Decision-log principle (2026-04-06): visual changes must NEVER affect
-    scoring. This function does ONLY the transforms that legitimately
-    change what the math sees:
+    Strips the `**Label | Qualifier:**` bold prefix from each evidence
+    claim so the popover text doesn't show a parallel non-canonical
+    label competing with the canonical badge.name. NEVER replaces
+    badge.name itself — that's canonical from Claude's output and the
+    math layer matches it against scoring_config.SCORING_SIGNALS to
+    credit points.
 
-    Embedded label split — The AI sometimes groups multiple distinct
-    signals under one umbrella badge with each evidence item carrying its
-    own `**Label | Qualifier:**` prefix that names the actual signal.
-    Fix: when a badge's evidence items each carry an embedded label,
-    split into N badges — one per evidence — using the embedded label as
-    the new badge name and the embedded qualifier as the new badge
-    qualifier. The prefix is stripped from the claim text since the badge
-    name now carries it.
+    Why this exists: Claude consistently produces bold prefix labels in
+    evidence claims (e.g. `**Client-Side VM Path | Strength:** ...`).
+    Without stripping, those labels render in the badge hover popover
+    and compete visually with the canonical chip name. They look like
+    a second badge name and confuse the reader.
 
-    The historical "No Learner Isolation" synthetic injection (2026-04-06)
-    has been retired (2026-04-06+). The new `Learner Isolation` canonical
-    badge in Lab Access is a gatekeeper — the AI emits it from research
-    evidence about per-user provisioning capability rather than the math
-    layer synthesizing it from a deployment-model proxy.
+    HISTORY: A previous version of this function "split" any badge whose
+    evidence items all carried embedded labels into N new badges —
+    using the embedded label as the new badge.name. That destroyed the
+    canonical name BEFORE the math layer ran, causing every product to
+    fall back to color-points scoring (3 green × 6 = 18 instead of the
+    real canonical credits). The bug surfaced 2026-04-06 evening when
+    Frank reviewed Devolutions and saw legacy-looking badge labels with
+    18/35 Provisioning scores. The fix is this version: never replace
+    badge.name, only strip the prefix from claim text.
 
     Mutates the product dict in place. Display-only transforms (merging
     same-named badges, color promotion) live in
@@ -532,47 +536,24 @@ def _normalize_badges_for_scoring(p: dict) -> None:
         for dim_dict in pillar_dict.get("dimensions", []) or []:
             if not isinstance(dim_dict, dict):
                 continue
-            old_badges = dim_dict.get("badges", []) or []
-            new_badges = []
-            for b in old_badges:
+            for b in dim_dict.get("badges", []) or []:
                 if not isinstance(b, dict):
-                    new_badges.append(b)
                     continue
                 ev_list = b.get("evidence", []) or []
-                if not ev_list:
-                    new_badges.append(b)
-                    continue
-
-                # Inspect each evidence claim for an embedded label prefix
-                parsed = []
+                cleaned_ev = []
                 for ev in ev_list:
                     if not isinstance(ev, dict):
+                        cleaned_ev.append(ev)
                         continue
                     claim = ev.get("claim", "") or ""
                     m = _EVIDENCE_LABEL_RE.match(claim)
                     if m:
-                        label = m.group(1).strip()
-                        qualifier = m.group(2).strip()  # magic-allowed: regex capture group index
                         new_ev = dict(ev)
-                        new_ev["claim"] = claim[m.end():]
-                        parsed.append((label, qualifier, new_ev))
+                        new_ev["claim"] = claim[m.end():].lstrip()
+                        cleaned_ev.append(new_ev)
                     else:
-                        parsed.append((None, None, ev))
-
-                # If every evidence carries an embedded label, split into N badges
-                if parsed and all(label is not None for label, _, _ in parsed):
-                    for label, qualifier, ev in parsed:
-                        new_badges.append({
-                            "name": label,
-                            "color": b.get("color", ""),
-                            "qualifier": qualifier or b.get("qualifier", ""),
-                            "evidence": [ev],
-                        })
-                else:
-                    # Mixed or no labels — leave the badge alone
-                    new_badges.append(b)
-
-            dim_dict["badges"] = new_badges
+                        cleaned_ev.append(ev)
+                b["evidence"] = cleaned_ev
 
 
 def _normalize_badges_for_display(p: dict) -> None:
@@ -698,8 +679,13 @@ def _prepare_analysis_for_render(analysis: dict) -> None:
         _normalize_badges_for_scoring(p)
 
         # ── Collect badges per dimension from the saved evidence ──
-        # Pass dicts with name + color so the math layer can apply
-        # color-based fallback scoring for badge-presence dimensions.
+        # Pass dicts with name + color + rubric fields so the math layer
+        # can do canonical-name credit (Pillar 1) AND rubric-tier credit
+        # (Pillar 2/3) on the same call. Dropping strength + signal_category
+        # here would force every Pillar 2/3 dimension into the color-points
+        # fallback at render time, even when the saved JSON has correct
+        # rubric data — that was a render-side mirror of the scorer_new.py
+        # bug fixed in commit e5c95c7.
         badges_by_dim: dict[str, list] = {}
         for pillar_key, pillar_obj in pillar_key_to_obj.items():
             pillar_dict = fs.get(pillar_key, {})
@@ -716,6 +702,8 @@ def _prepare_analysis_for_render(analysis: dict) -> None:
                         badge_objs.append({
                             "name": b["name"],
                             "color": b.get("color", ""),
+                            "strength": b.get("strength", ""),
+                            "signal_category": b.get("signal_category", ""),
                         })
                 badges_by_dim[dim_key] = badge_objs
 
