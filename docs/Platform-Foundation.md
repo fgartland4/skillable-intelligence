@@ -88,6 +88,23 @@ All UX elements must meet WCAG AA contrast standards (4.5:1 for normal text, 3.0
 
 All Pillar names, dimension names, weights, thresholds, badge names, and vocabulary are defined **once** in a configuration layer and referenced everywhere — code, prompts, UX templates, documentation. Nothing is hard-coded. If a name or weight changes, it changes in one place and propagates through the entire system. No find-and-replace across files. No drift. This is how Self-Evident Design (GP4) works at the code level.
 
+### The Layer Discipline Principle
+
+The platform is built on a clear architectural separation: **three thin tools sit on top of one shared Intelligence layer.** The tools are Inspector, Prospector, and Designer. The Intelligence layer is everything that knows about products, companies, scoring, research, evidence, and the framework.
+
+| Layer | What lives here | Examples |
+|---|---|---|
+| **Intelligence layer** (shared) | Research, discovery, scoring math, badge normalization, cache versioning, validation, briefcase generation, model definitions, prompt assembly, locked vocabulary, classification, verdicts, ACV computation | `intelligence_new.py`, `scorer_new.py`, `scoring_math.py`, `scoring_config.py`, `storage_new.py`, `models_new.py`, `prompt_generator.py`, `researcher_new.py`, `core_new.py` |
+| **Inspector** (tool) | Inspector-specific routes, request parsing, template selection, view orchestration | `app_new.py` Inspector route handlers, `tools/inspector/templates/*.html` |
+| **Prospector** (tool) | Prospector-specific routes, batch orchestration, lookalikes UI, HubSpot integration glue | (future) Prospector routes + templates |
+| **Designer** (tool) | Designer-specific routes, program design pipeline UX, customer-facing views | (future) Designer routes + templates |
+
+**The discipline rule:** if a function does intelligence work — scoring, normalizing, validating, computing, classifying, recomputing, deciding what color a badge should be, deciding how to combine evidence — it belongs in the **Intelligence layer** where ALL three tools can call it. If it does view work — rendering a template, parsing a query string, redirecting, picking a default product index — it stays in the **tool layer**.
+
+**The litmus test:** "would Prospector or Designer also need this if they were calling it?" If yes, shared. If no, tool. **When in doubt, default to shared.** Prospector batch scoring + lookalikes are real work coming next, and Designer needs product intelligence (with the hard wall against company intelligence). Three tools cannot have three drifted copies of the same scoring logic. The shared layer is the only way GP5 (Intelligence Compounds) actually compounds — drift across tools means each tool's intelligence is its own silo.
+
+**Architectural enforcement:** intelligence functions in tool files are a **bug class**, not a stylistic choice. They are graded with the same severity as cache version lies and vocabulary drift. When the platform finds them, they get moved to the Intelligence layer or explicitly justified as tool-private with a comment.
+
 ---
 
 ## How the GPs Show Up in the Platform
@@ -103,6 +120,7 @@ All Pillar names, dimension names, weights, thresholds, badge names, and vocabul
 | **GP5** — Intelligence Compounds | One persistent analysis per company · cache sharpens, never wipes · prompt changes trigger smart invalidation · every analysis enriches what came before |
 | **End-to-End** | Same Pillar / Dimension / Requirement model shapes research, storage, scoring, display — no translation step |
 | **Define-Once** | All framework variables in one config · referenced everywhere · change once, propagate everywhere |
+| **Layer Discipline** | Intelligence logic lives in the shared Intelligence layer (`intelligence_new`, `scorer_new`, `scoring_math`, `scoring_config`, `storage_new`, `models_new`, `prompt_generator`, `researcher_new`, `core_new`). Tools (Inspector, Prospector, Designer) own URL handlers, request parsing, template selection — nothing more. When in doubt, default to shared. |
 
 ---
 

@@ -79,6 +79,7 @@ This is a collaboration, not a task queue. Frank wants to think through problems
 |---|---|
 | **Proactively engage** | Surface suggestions for improvement. Do not wait to be asked. But proactive does not mean unsolicited walls of text. |
 | **Look for patterns** | In code, UX, data, requirements. Flag when something breaks a pattern or could be unified. |
+| **Watch the layer line** | Inspector / Prospector / Designer are thin tools on top of a shared **Intelligence layer**. When you find intelligence logic — scoring math, normalization, validation, classification, recompute, cache versioning — living in a tool file (today that's mostly `app_new.py`), flag it and propose moving it to the shared layer. Prospector and Designer cannot be built on top of an Inspector that hides intelligence. See `Platform-Foundation.md` → "The Layer Discipline Principle" and `CLAUDE.md` → "Layer Discipline". When in doubt, default to shared. |
 | **Recommend refactoring** | If a better path exists, flag it first, get alignment, then act. |
 | **Recommend, then ask** | Frame suggestions and wait for alignment before executing. This is the default mode. |
 

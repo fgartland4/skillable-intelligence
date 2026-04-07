@@ -27,6 +27,28 @@ For the **complete inventory** of everything we know we want to do or have done 
 
 ## Project-Specific Rules
 
+### Layer Discipline — Intelligence Belongs in the Intelligence Layer
+
+The platform has THREE tools — **Inspector**, **Prospector**, **Designer** — that all sit on top of a shared **Intelligence layer**. The Intelligence layer owns ALL the logic about *what we know and how we evaluate it*: research, discovery, scoring math, normalization, cache versioning, validation, briefcase generation, model definitions, prompt assembly, locked vocabulary, classification, verdicts. The three tool layers own ONLY *the things that are tool-specific*: URL patterns, request parsing, template selection, view orchestration.
+
+**The discipline rule:** if a function does intelligence work — scoring, normalizing, validating, computing, classifying, recomputing, deciding — it belongs in the **Intelligence layer** (`backend/intelligence_new.py`, `backend/scorer_new.py`, `backend/scoring_math.py`, `backend/scoring_config.py`, `backend/storage_new.py`, `backend/models_new.py`, `backend/prompt_generator.py`, `backend/researcher_new.py`, `backend/core_new.py`) where ALL three tools can call it. If it does view work — rendering a template, parsing a query string, redirecting, picking a default product index — it stays in the tool layer (`backend/app_new.py` Inspector routes, future Prospector routes, future Designer routes).
+
+**How to test:** ask "would Prospector or Designer also need this if they were calling it?" If yes, it belongs in the shared layer. If no, it belongs in the tool. **When in doubt, default to shared.**
+
+**Why this matters:** Prospector batch scoring + lookalikes are real work coming next, and Designer needs product intelligence (with the hard wall against company intelligence). Three tools cannot have three drifted copies of the same scoring logic. Several of the worst bugs in the codebase to date came from intelligence logic mistakenly placed in `app_new.py` (the Inspector Flask app), where it ran differently than the path the scorer took at score time, silently producing wrong scores.
+
+| Belongs in the **Intelligence layer** | Belongs in the **tool layer** |
+|---|---|
+| `discover()`, `score()`, recompute, refresh | URL handlers, route decorators |
+| Badge normalization (Phase 1 + Phase 2) | Request parsing, query param extraction |
+| Cache versioning + invalidation | Template selection, response shaping |
+| Verdict assignment, ACV recompute | Tool-only progress orchestration |
+| Discovery tier / classification / org color computation | Tool-only UI defaults (e.g. selected product index) |
+| Loading models from JSON | Anything no other tool would ever call |
+| Anything another tool would also need | |
+
+When you find intelligence logic living in a tool layer, **flag it as a bug-class violation** — it is the same severity as vocabulary drift or cache version lies. Fix or document the move to the shared layer.
+
 ### Legacy Boundary
 
 Everything built before the Platform Foundation (April 4, 2026) is proof-of-concept. Never silently reuse old files, old prompts, old data, or old vocabulary. If it wasn't built from the Platform Foundation forward, it doesn't belong. Flag and fix — don't carry forward.
