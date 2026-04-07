@@ -42,6 +42,7 @@
         .status {
             color: var(--sk-text-muted); font-size: 0.92rem;
             min-height: 22px; margin-bottom: 16px;
+            transition: opacity 0.45s ease;
         }
         .dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 6px; }
         .dot {
@@ -187,13 +188,47 @@
             el.classList.add('mark-check-flash');
         }
 
+        // Cycling status hints — tell a richer story about what discovery is
+        // doing while the (sparse) backend SSE status messages catch up.
+        // A real SSE status message wins for ~5s, then the cycle resumes.
+        const statusHints = [
+            "Locating the company website…",
+            "Identifying the product portfolio…",
+            "Extracting product families &amp; categories…",
+            "Detecting deployment models &amp; tech stack…",
+            "Finding training, certifications &amp; partner programs…",
+            "Mapping competitive products &amp; vendor landscape…",
+            "Pulling pricing, packaging &amp; tier signals…",
+            "Categorizing offerings against Skillable taxonomy…",
+        ];
+        const statusEl = document.getElementById("status");
+        let hintIdx = 0;
+        let pinnedUntil = 0; // timestamp until which an SSE message stays pinned
+
+        function showHint(text) {
+            statusEl.style.opacity = 0;
+            setTimeout(function() {
+                statusEl.innerHTML = text;
+                statusEl.style.opacity = 1;
+            }, 400);
+        }
+        // Start cycle
+        statusEl.innerHTML = statusHints[0];
+        setInterval(function() {
+            if (Date.now() < pinnedUntil) return; // SSE message still pinned
+            hintIdx = (hintIdx + 1) % statusHints.length;
+            showHint(statusHints[hintIdx]);
+        }, 4500);
+
         const source = new EventSource("/inspector/discover/progress/{{ discovery_id }}");
         let doneResultId = null;
 
         source.onmessage = function(e) {
             const msg = e.data;
             if (msg.startsWith("status:")) {
-                document.getElementById("status").textContent = msg.slice(7);
+                // Pin a real backend status message for 5 seconds, then resume cycling
+                showHint(msg.slice(7));
+                pinnedUntil = Date.now() + 5000;
             } else if (msg.startsWith("done:")) {
                 source.close();
                 doneResultId = msg.slice(5);
