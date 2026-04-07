@@ -264,7 +264,7 @@ class Product:
     description: str = ""
     product_url: str = ""
     deployment_model: str = ""     # "installable" | "hybrid" | "cloud" | "saas-only"
-    orchestration_method: str = "" # e.g., "Hyper-V: Standard", "Azure Cloud Slice: Full Lifecycle API"
+    orchestration_method: str = "" # e.g., "Hyper-V", "Azure Cloud Slice", "Custom API", "Simulation"
     user_personas: list[str] = field(default_factory=list)
     lab_highlight: str = ""        # Why this is a great hands-on candidate
     lab_concepts: list[str] = field(default_factory=list)

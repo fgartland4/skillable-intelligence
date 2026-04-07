@@ -428,32 +428,28 @@ def _normalize_badges_for_scoring(p: dict) -> None:
     scoring. This function does ONLY the transforms that legitimately
     change what the math sees:
 
-    Bug 1 — The AI groups multiple distinct signals under one umbrella badge.
-    Each evidence item starts with its own `**Label | Qualifier:**` prefix
-    that names the actual signal. Fix: when a badge's evidence items each
-    carry an embedded label, split into N badges — one per evidence —
-    using the embedded label as the new badge name and the embedded
-    qualifier as the new badge qualifier. The prefix is stripped from the
-    claim text since the badge name now carries it.
+    Embedded label split — The AI sometimes groups multiple distinct
+    signals under one umbrella badge with each evidence item carrying its
+    own `**Label | Qualifier:**` prefix that names the actual signal.
+    Fix: when a badge's evidence items each carry an embedded label,
+    split into N badges — one per evidence — using the embedded label as
+    the new badge name and the embedded qualifier as the new badge
+    qualifier. The prefix is stripped from the claim text since the badge
+    name now carries it.
 
-    Bug 2 — The "No Learner Isolation" badge is sometimes missing on
-    products where it should always appear (multi_tenant_only or saas_only
-    ceiling flags set). Fix: ensure the badge exists in the Lab Access
-    dimension when the relevant ceiling flag is present. This is a
-    deterministic injection from the deployment model.
+    The historical "No Learner Isolation" synthetic injection (2026-04-06)
+    has been retired (2026-04-06+). The new `Learner Isolation` canonical
+    badge in Lab Access is a gatekeeper — the AI emits it from research
+    evidence about per-user provisioning capability rather than the math
+    layer synthesizing it from a deployment-model proxy.
 
     Mutates the product dict in place. Display-only transforms (merging
     same-named badges, color promotion) live in
     _normalize_badges_for_display() and run AFTER the math.
     """
-    import scoring_config as cfg
-
     fs = p.get("fit_score")
     if not isinstance(fs, dict):
         return
-
-    flags = set(p.get("poor_match_flags") or [])
-    needs_isolation_badge = bool(cfg.ISOLATION_BLOCKING_CEILING_FLAGS & flags)
 
     for pillar_key, pillar_dict in fs.items():
         if not isinstance(pillar_dict, dict):
@@ -502,42 +498,6 @@ def _normalize_badges_for_scoring(p: dict) -> None:
                     new_badges.append(b)
 
             dim_dict["badges"] = new_badges
-
-            # Bug 2 enforcement: ensure the synthetic No Learner Isolation
-            # badge exists in the Lab Access dimension when the deployment
-            # model demands it. This is a real signal the math should see,
-            # not a display tweak. All metadata reads from cfg.SYNTHETIC_BADGES
-            # — Define-Once for the badge name, color, qualifier, and claim.
-            if needs_isolation_badge and dim_dict.get("name") == cfg.LAB_ACCESS_DIMENSION_NAME:
-                synth = cfg.SYNTHETIC_BADGES["no_learner_isolation"]
-                synth_name_lower = synth["name"].lower()
-                already_present = any(
-                    (b.get("name", "") or "").strip().lower() == synth_name_lower
-                    for b in dim_dict["badges"] if isinstance(b, dict)
-                )
-                if not already_present:
-                    # Pick the friendly flag label. Priority order is the
-                    # insertion order of synth["flag_labels"] in scoring_config
-                    # (dicts preserve order in Python 3.7+) — the first entry
-                    # listed there is the most specific case and wins when
-                    # multiple flags are set on the same product.
-                    flag_labels = synth["flag_labels"]
-                    chosen_flag = next(
-                        (f for f in flag_labels.keys() if f in flags),
-                        "",
-                    )
-                    flag_label_text = flag_labels.get(chosen_flag, "")
-                    dim_dict["badges"].append({
-                        "name": synth["name"],
-                        "color": synth["color"],
-                        "qualifier": synth["qualifier"],
-                        "evidence": [{
-                            "claim": synth["claim_template"].format(flag_label=flag_label_text),
-                            "confidence_level": synth["confidence_level"],
-                            "source_url": "",
-                            "source_title": synth["source_title"],
-                        }],
-                    })
 
 
 def _normalize_badges_for_display(p: dict) -> None:

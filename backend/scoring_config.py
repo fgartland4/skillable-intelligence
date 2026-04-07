@@ -1080,37 +1080,13 @@ CEILING_FLAGS: dict[str, dict] = {
     },
 }
 
-# Subset of CEILING_FLAGS that imply the product cannot offer per-learner
-# isolation. Historically used by the render-time normalizer to inject a
-# synthetic "No Learner Isolation" badge.
-#
-# RETIRED in the in-progress refactor: the `Learner Isolation` canonical
-# badge in Lab Access (added below) now carries this signal directly,
-# emitted by the AI based on research evidence rather than synthesized
-# from a deployment-model proxy. Frozenset is empty so the synthetic
-# injection short-circuits without removing the call site.
-ISOLATION_BLOCKING_CEILING_FLAGS: frozenset[str] = frozenset()
-
-# Dimension that hosts the No Learner Isolation badge — derived at module
-# import time so it tracks any future renames in the Pillar definitions
-# below. Read by app_new._normalize_badges_for_scoring.
-LAB_ACCESS_DIMENSION_NAME = "Lab Access"
-
-# Synthetic badges injected by the render-time normalizer when the AI
-# fails to emit a badge that the deployment model demands. Each entry
-# is a complete badge dict with a `claim_template` whose {flag_label}
-# placeholder gets the human-readable ceiling flag name at render time.
-#
-# RETIRED in the in-progress refactor: the No Learner Isolation synthetic
-# injection was a proxy mechanism that fired whenever saas_only or
-# multi_tenant_only was set. It is replaced by the new `Learner Isolation`
-# canonical badge in Lab Access (green/amber/red gatekeeper, always emit).
-# The canonical fires from research evidence about per-user provisioning
-# capability rather than from a deployment-model proxy.
-#
-# Dict left empty (not removed) so the call site in scoring_math /
-# render-time normalizer continues to compile and short-circuits cleanly.
-SYNTHETIC_BADGES: dict[str, dict] = {}
+# The historical render-time synthetic-injection machinery — empty
+# ISOLATION_BLOCKING_CEILING_FLAGS frozenset, LAB_ACCESS_DIMENSION_NAME
+# constant, and SYNTHETIC_BADGES dict — has been removed entirely. The
+# `Learner Isolation` canonical badge in Lab Access (gatekeeper, green/
+# amber/red, always emit) now carries this signal directly, sourced from
+# research evidence about per-user provisioning capability. The call sites
+# in app_new._normalize_badges_for_scoring have been removed.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

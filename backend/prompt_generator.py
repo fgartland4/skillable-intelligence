@@ -200,26 +200,52 @@ def _format_confidence_levels() -> str:
 
 
 def _format_badge_naming_principles() -> str:
-    """Bullet list of badge naming principles derived from config patterns."""
+    """Badge naming principles, including the universal META-PRINCIPLE
+    that badge names must be canonical vocabulary entries with
+    product-specific details living in the evidence payload on hover.
+    """
     return "\n".join([
-        "- Badge names are short noun phrases (2-4 words)",
-        "- Use the canonical badge name exactly as listed — no synonyms, abbreviations, or variations",
+        "## META-PRINCIPLE — read this first, apply it everywhere",
+        "",
+        "**Badge name = canonical vocabulary entry. Product-specific details live in the evidence payload on hover, NEVER in the badge name itself.**",
+        "",
+        "Examples of the rule in action:",
+        "",
+        "| ❌ WRONG (product-specific, AI-invented, or topic-label) | ✅ RIGHT (canonical name + evidence on hover) |",
+        "|---|---|",
+        "| `ePO Admin Credential` | Badge: `Cred Recycling` · Evidence: 'ePO administrator credentials can be recycled between learners...' |",
+        "| `ePO API Scoring` | Badge: `Scoring API` · Evidence: 'ePO REST API enables programmatic state validation...' |",
+        "| `REST API Surface` | Badge: `Scoring API` · Evidence: 'Diligent publishes a REST API at developer.diligent.com...' |",
+        "| `No Sandbox API` (AI-invented) | Badge: `Sandbox API` (red) · Evidence: 'No public REST API documented for per-learner provisioning...' |",
+        "| `Deployment Model` (topic label) | (don't emit — deployment model is discovery metadata, not a badge) |",
+        "| `Shared Tenant Cleanup` | Badge: `Manual Teardown` (red) · Evidence: 'No vendor cleanup API; tenant state must be manually reset...' |",
+        "",
+        "**The rule:**",
+        "",
+        "- **NEVER put a product name in a badge name** (Trellix, Workday, Cohesity, ePO, Diligent — any vendor or product noun). Product names live in evidence on hover.",
+        "- **NEVER use a topic label as a badge name** (`Deployment Model`, `REST API Surface`, `Self Hosted Option`). The badge is the *finding*, not the *category*.",
+        "- **NEVER invent a badge name** that's not in the canonical vocabulary listed below. If the finding doesn't fit any canonical, the right move is usually to put the finding in evidence on a related canonical, or skip emitting a badge for it.",
+        "- **NEVER use a positive canonical name for a negative finding** (`Runs in Azure | Risk: No Marketplace Listing` is a polarity error — `Runs in Azure` is for confirmed Azure-native viability, not its absence).",
+        "",
+        "## Standard naming",
+        "",
+        "- Badge names are short noun phrases (2-4 words) drawn from the canonical vocabulary listed below, by dimension.",
+        "- Use the canonical badge name exactly as listed — no synonyms, abbreviations, variations, or pluralization changes.",
         "- Qualifier labels (Strength, Opportunity, Risk, Blocker, Context) are appended after a pipe: `Badge Name | Qualifier`",
-        "- Never create new badge names — if a signal does not match a canonical badge, use the closest match",
-        "- Variable-driven badges include context after the qualifier (e.g., `Partner Ecosystem | Strength: ~500 ATPs`)",
+        "- Variable-driven badges include the variable in the evidence text after the qualifier (e.g., `Partner Ecosystem | Strength:` followed by '~500 ATPs across 50 countries...').",
         "",
-        "**UNIVERSAL DISAMBIGUATION RULE — read carefully**",
+        "## One badge per finding — never duplicate canonical names",
         "",
-        "When you have **more than one badge to emit for the same canonical name**, you must give every badge a unique name. Never emit the same canonical badge twice in one dimension.",
+        "If you have two distinct findings about the same topic (e.g., 'clean Hyper-V install' AND 'cluster init time exceeds 30 min'), emit them as **two distinct canonical badges**, not two badges with the same name:",
         "",
-        "- **First occurrence**: keep the canonical badge name as-is (e.g., `Runs in Hyper-V`).",
-        "- **Subsequent occurrences**: rename them using a more specific variable from the dimension's vocabulary, in this priority order:",
-        "  1. **PREFERRED — pick a matching scoring signal name** from the dimension's `Scoring Signals` list (e.g., `Hyper-V: Standard`, `Hyper-V: CLI Scripting`, `Azure Cloud Slice: Entra ID SSO`). These names carry real point values and lift the score appropriately.",
-        "  2. **FALLBACK — derive a specific label** from the qualifier and the actual finding (e.g., `Install Complexity`, `Multi-VM Topology`, `License Friction`). These don't lift the score but they prevent visual duplicates and make the evidence specific.",
+        "- ✅ `Runs in Hyper-V` (green) + `Pre-Instancing` (green opportunity for the slow init)",
+        "- ❌ `Runs in Hyper-V` (green) + `Runs in Hyper-V` (amber)",
         "",
-        "**Why this matters**: the math layer credits scoring-signal names with real point values (e.g., `Hyper-V: Standard` = +30 in Provisioning) and falls back to color points for everything else. When you have a clean Hyper-V install at standard quality, you should emit `Runs in Hyper-V` AS THE FIRST BADGE plus `Hyper-V: Standard` AS A SECOND BADGE — that gives the user the friendly chip AND credits the +30 signal value.",
+        "If you can't find a second canonical that fits, fold the second finding into the evidence on the first badge. Never emit the same canonical name twice in one dimension.",
         "",
-        "**Each dimension's scoring signals are listed in the dimension section below** under `Scoring Signals`. Use the EXACT signal name from that list when emitting a second badge. If no signal matches your finding, use the qualifier-derived fallback.",
+        "## Flat-tier scoring",
+        "",
+        "There are no quality tier modifiers (`Hyper-V: Standard`, `Hyper-V: Moderate`, `Hyper-V: Weak`) — those have been retired. Each canonical badge earns its full base credit when emitted green. Friction is expressed via SEPARATE friction badges (`GPU Required`, `Pre-Instancing`, etc.) that the math layer combines with the green credit. The user sees one clean canonical chip, not two badges that look the same.",
     ])
 
 
@@ -375,41 +401,32 @@ def _format_locked_vocabulary() -> str:
 
 
 def _format_canonical_badge_names() -> str:
-    """Two grouped lists of allowed badge names per dimension:
+    """Per-dimension list of the canonical badge vocabulary.
 
-    - **Canonical badges** — visual chip vocabulary (e.g., `Runs in Hyper-V`).
-      The AI should always use one of these as the FIRST badge for any given
-      finding to keep the UI consistent.
-    - **Scoring signals** — point-bearing names that map to a specific
-      quality/intensity within a dimension (e.g., `Hyper-V: Standard` = +30).
-      The AI should emit a SECOND badge using one of these whenever there's
-      specific quality nuance to capture for scoring.
+    Each dimension surfaces the exact set of badge names the AI is
+    allowed to emit. There is ONE vocabulary per dimension — no separate
+    'scoring signals' second-vocabulary. The flat-tier sharpening retired
+    the two-badge pattern (canonical + signal); each canonical badge now
+    earns its base credit when emitted green, with friction expressed via
+    separate friction badges.
 
-    Grouping per-dimension makes it obvious which signals belong to which
-    canonical badge, and the AI can pair them naturally.
+    The math layer reads each badge name and either matches it as a
+    scoring signal (full credit), as a penalty (deduction), or falls back
+    to color points. The badge name in the config and the signal/penalty
+    name in the config MUST match exactly so the math wires through.
     """
     sections: list[str] = []
     seen_badges: set[str] = set()
-    seen_signals: set[str] = set()
 
     for pillar in cfg.PILLARS:
         for dim in pillar.dimensions:
             badge_names = [b.name for b in dim.badges if b.name not in seen_badges]
-            signal_names = [s.name for s in dim.scoring_signals if s.name not in seen_signals]
-            if not badge_names and not signal_names:
+            if not badge_names:
                 continue
-            section = [f"#### {dim.name}"]
-            if badge_names:
-                section.append("Canonical badges (use as the FIRST badge):")
-                for n in badge_names:
-                    section.append(f"- {n}")
-                    seen_badges.add(n)
-            if signal_names:
-                section.append("")
-                section.append("Scoring signals (use as a SECOND badge for nuance):")
-                for n in signal_names:
-                    section.append(f"- {n}")
-                    seen_signals.add(n)
+            section = [f"#### {dim.name}", "Allowed badge names (use EXACTLY as listed — no variations):"]
+            for n in badge_names:
+                section.append(f"- {n}")
+                seen_badges.add(n)
             sections.append("\n".join(section))
 
     return "\n\n".join(sections)
