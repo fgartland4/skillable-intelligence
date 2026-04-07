@@ -96,7 +96,8 @@ _TIER_ORDER = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def discover(company_name: str, known_products: list[str] | None = None,
-             force_refresh: bool = False) -> dict:
+             force_refresh: bool = False,
+             progress_cb=None) -> dict:
     """Web research + Claude product identification.
 
     Returns the discovery dict (including discovery_id). Saves to storage.
@@ -104,8 +105,19 @@ def discover(company_name: str, known_products: list[str] | None = None,
     was scored with an older SCORING_LOGIC_VERSION (in which case it's
     treated as stale and re-run automatically — closes the cache versioning
     gap so customers don't see degraded scores after scoring logic changes).
+
+    progress_cb: optional callable accepting a single status string. Invoked
+    at each phase boundary so callers (e.g. the SSE route) can stream real
+    progress to the discovering page instead of relying on cycling hints.
     """
     import scoring_config as cfg
+
+    def _progress(msg: str) -> None:
+        if progress_cb:
+            try:
+                progress_cb(msg)
+            except Exception:
+                log.exception("progress_cb raised — ignoring")
 
     if not force_refresh:
         cached = find_discovery_by_company_name(company_name)
@@ -124,19 +136,24 @@ def discover(company_name: str, known_products: list[str] | None = None,
                 return cached
 
     log.info("Intelligence.discover: running research for %s", company_name)
+    _progress("Locating the company website…")
 
     from concurrent.futures import ThreadPoolExecutor
     from researcher_new import scrape_product_families
     with ThreadPoolExecutor(max_workers=2) as pool:
         family_future = pool.submit(scrape_product_families, company_name)
+        _progress("Identifying the product portfolio…")
         findings = discover_products(company_name, known_products)
+        _progress("Extracting product families & categories…")
         scraped_families = []
         try:
             scraped_families = family_future.result(timeout=10)
         except Exception as e:
             log.warning("Product family scrape failed for %s: %s", company_name, e)
 
+    _progress("Detecting deployment models & tech stack…")
     discovery = discover_products_with_claude(findings)
+    _progress("Mapping competitive products & vendor landscape…")
 
     # Preserve raw research signals alongside Claude output
     for key in ("training_programs", "atp_signals", "training_catalog",
@@ -173,6 +190,7 @@ def discover(company_name: str, known_products: list[str] | None = None,
     if scraped_families:
         discovery["_scraped_families"] = scraped_families
 
+    _progress("Categorizing offerings against Skillable taxonomy…")
     save_discovery(discovery["discovery_id"], discovery)
     log.info("Intelligence.discover: saved discovery %s for %s",
              discovery["discovery_id"], company_name)

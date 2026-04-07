@@ -84,16 +84,20 @@ def discover():
 
     def run_discovery():
         try:
-            _push(discovery_id, "status:Searching for products...")
-            # Intelligence handles research, Claude call, and storage
+            # Pass a progress callback through to intel_discover so each phase
+            # of research pushes a real status message to the SSE queue. The
+            # discovering page treats these as authoritative and pins them
+            # over its own cycling-hint fallback.
+            def _on_progress(msg: str) -> None:
+                _push(discovery_id, f"status:{msg}")
+
+            _on_progress("Searching for products…")
             discovery = intel_discover(company_name, known_products=known_products,
-                                       force_refresh=force_refresh)
-            # Restamp the ID we allocated so the SSE completion message matches
-            # the discovery_id the progress page is polling on.
+                                       force_refresh=force_refresh,
+                                       progress_cb=_on_progress)
             # (intel_discover may have returned a cached record with a different ID —
             #  in that case the cached path above already redirected; we only reach
             #  here when a fresh discovery ran, so its ID matches what we allocated.)
-            _push(discovery_id, "status:Analyzing product portfolio...")
             _push(discovery_id, f"done:{discovery['discovery_id']}")
         except Exception as e:
             log.exception("Discovery failed for %s", company_name)
@@ -353,7 +357,7 @@ def score():
             )
 
             # If any products came from cache, inject them into the new analysis
-            # and recompute the composite score across the full set.
+            # and recompute the company score across the full set.
             if fresh_cached_products:
                 data = load_analysis(analysis_id)
                 if data:
