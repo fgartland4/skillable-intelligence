@@ -340,7 +340,17 @@ class CompanyAnalysis:
     organization_type: str = "software_company"
     products: list[Product] = field(default_factory=list)
     briefcase: Optional[SellerBriefcase] = None
-    analyzed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    # CRIT-6 in code-review-2026-04-07: analyzed_at MUST NOT be set at
+    # dataclass instantiation. Setting it via default_factory means the
+    # timestamp reflects when the Python object was created (deep inside
+    # the parser), NOT when the analysis was actually finalized and saved.
+    # In cache-and-append flows, the existing timestamp would survive
+    # untouched even when new products were added. The intelligence layer
+    # (intelligence_new.score / discover) is responsible for stamping this
+    # field at the right boundary, and save_analysis updates it on every
+    # write so the persisted timestamp always reflects when the file was
+    # actually written.
+    analyzed_at: str = ""
     analysis_id: str = ""
     discovery_id: str = ""
     total_products_discovered: int = 0

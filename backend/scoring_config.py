@@ -2078,7 +2078,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-06.rubric-fields-wired"
+SCORING_LOGIC_VERSION = "2026-04-07.phase-a-stamp-atomicity"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

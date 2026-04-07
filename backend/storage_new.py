@@ -74,15 +74,25 @@ def _read_json(filepath: str) -> Optional[dict]:
 def save_discovery(discovery_id: str, data: dict) -> str:
     """Save a discovery record. Returns the discovery_id.
 
-    Stamps the cached record with the current SCORING_LOGIC_VERSION so the
-    cache loader can detect stale data after scoring logic changes (closes
-    the cache versioning gap — see scoring_config.is_cached_logic_current).
+    CONTRACT: the caller MUST set `_scoring_logic_version` and `created_at`
+    on the data before calling save_discovery. The storage layer no longer
+    auto-stamps either field — see save_analysis docstring for the rationale.
     """
-    import scoring_config as cfg
-    data["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
+    if not data.get("_scoring_logic_version"):
+        raise ValueError(
+            f"save_discovery({discovery_id}): _scoring_logic_version is missing. "
+            f"The intelligence layer (intelligence_new.discover) must stamp "
+            f"this field before calling save_discovery."
+        )
+    if not data.get("created_at"):
+        raise ValueError(
+            f"save_discovery({discovery_id}): created_at is missing. "
+            f"The intelligence layer must set this on every discovery boundary."
+        )
     filepath = os.path.join(_COMPANY_DIR, f"discovery_{discovery_id}.json")
     _atomic_write(filepath, data)
-    log.info("Saved discovery %s (logic version %s)", discovery_id, cfg.SCORING_LOGIC_VERSION)
+    log.info("Saved discovery %s (logic version %s, created_at %s)",
+             discovery_id, data["_scoring_logic_version"], data["created_at"])
     return discovery_id
 
 
@@ -119,14 +129,24 @@ def find_discovery_by_company_name(company_name: str) -> Optional[dict]:
 def save_analysis(analysis) -> str:
     """Save an analysis record. Accepts CompanyAnalysis or dict.
 
-    Stamps the cached record with the current SCORING_LOGIC_VERSION so the
-    cache loader can detect stale data after scoring logic changes (closes
-    the cache versioning gap — see scoring_config.is_cached_logic_current).
+    CONTRACT: the caller MUST set `_scoring_logic_version` and `analyzed_at`
+    on the data before calling save_analysis. The storage layer no longer
+    auto-stamps either field — that allowed save_analysis to lie about
+    when an analysis was actually scored (CRIT-6 / CRIT-10 in code-review-
+    2026-04-07.md). The intelligence layer (intelligence_new.score and
+    discover) is the only place that should set these stamps, and it does
+    so atomically with the actual scoring work via the _stamp_for_save
+    helper.
+
+    Briefcase generation correctly preserves existing stamps because it
+    loads an analysis from disk (which already has both stamps set from
+    its previous scoring) and never overwrites them.
+
+    save_analysis will REJECT any write that doesn't have both stamps set
+    on the dict, with a clear error message pointing at the contract.
 
     Returns the analysis_id.
     """
-    import scoring_config as cfg
-
     if hasattr(analysis, "__dataclass_fields__"):
         # Convert dataclass to dict for JSON serialization
         import dataclasses
@@ -141,7 +161,22 @@ def save_analysis(analysis) -> str:
         analysis_id = str(uuid.uuid4())[:8]
         data["analysis_id"] = analysis_id
 
-    data["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
+    # Enforce the contract — both stamps must be set by the caller.
+    if not data.get("_scoring_logic_version"):
+        raise ValueError(
+            f"save_analysis({analysis_id}): _scoring_logic_version is missing. "
+            f"The intelligence layer (intelligence_new.score / discover) must "
+            f"stamp this field via _stamp_for_save before calling save_analysis. "
+            f"If this is a briefcase save, the loaded analysis dict should already "
+            f"have the stamp from its previous scoring — verify the load path."
+        )
+    if not data.get("analyzed_at"):
+        raise ValueError(
+            f"save_analysis({analysis_id}): analyzed_at is missing. "
+            f"The intelligence layer must set this on every score boundary. "
+            f"Briefcase saves should preserve the existing analyzed_at from the "
+            f"loaded dict (briefcase generation does not bump the scoring timestamp)."
+        )
 
     # Belt-and-braces: dedupe products by name on every save, keeping the
     # LAST occurrence (which is the freshest score from the cache-and-append
@@ -163,7 +198,8 @@ def save_analysis(analysis) -> str:
 
     filepath = os.path.join(_COMPANY_DIR, f"analysis_{analysis_id}.json")
     _atomic_write(filepath, data)
-    log.info("Saved analysis %s (logic version %s)", analysis_id, cfg.SCORING_LOGIC_VERSION)
+    log.info("Saved analysis %s (logic version %s, analyzed_at %s)",
+             analysis_id, data["_scoring_logic_version"], data["analyzed_at"])
     return analysis_id
 
 

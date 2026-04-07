@@ -624,6 +624,15 @@ def _normalize_badges_for_display(p: dict) -> None:
                         "color": b.get("color", ""),
                         "qualifier": b.get("qualifier", ""),
                         "evidence": list(b.get("evidence") or []),
+                        # Carry the Pillar 2/3 rubric fields through the merge.
+                        # CRIT-1 in code-review-2026-04-07: dropping these on
+                        # merge silently broke rubric scoring on next page load
+                        # because _prepare_analysis_for_render reads them back
+                        # to feed scoring_math.compute_all. Same shape as the
+                        # bugs fixed in commits e5c95c7 and 120e3c9, in a
+                        # third location.
+                        "strength": b.get("strength", ""),
+                        "signal_category": b.get("signal_category", ""),
                     }
                     ordered_names.append(name)
                 else:
@@ -631,7 +640,19 @@ def _normalize_badges_for_display(p: dict) -> None:
                     # Promote color to the worst (highest-priority) of the two
                     if color_priority.get(b.get("color", ""), 0) > color_priority.get(existing["color"], 0):
                         existing["color"] = b.get("color", "")
-                        existing["qualifier"] = b.get("qualifier", "")
+                        # MED-1: only overwrite qualifier if the new one is
+                        # non-empty — otherwise the merge silently loses the
+                        # existing badge's qualifier context.
+                        new_qualifier = b.get("qualifier", "")
+                        if new_qualifier:
+                            existing["qualifier"] = new_qualifier
+                    # Preserve rubric fields from whichever badge has them
+                    # populated. If the first badge had empty rubric fields
+                    # and the second has them, take the second's.
+                    if not existing.get("strength") and b.get("strength"):
+                        existing["strength"] = b.get("strength", "")
+                    if not existing.get("signal_category") and b.get("signal_category"):
+                        existing["signal_category"] = b.get("signal_category", "")
                     existing["evidence"].extend(b.get("evidence") or [])
             dim_dict["badges"] = [merged_by_name[n] for n in ordered_names]
 
@@ -819,10 +840,12 @@ def inspector_refresh_cache(analysis_id: str):
     if not selected:
         return jsonify({"ok": False, "error": "no_products_to_refresh"}), 400
 
-    # Wipe the current analysis's products so they re-score fresh (force_refresh)
-    analysis["products"] = []
-    from storage_new import save_analysis as _save
-    _save(analysis)
+    # CRIT-7 in code-review-2026-04-07.md: do NOT pre-save a wiped state
+    # with the old analyzed_at stamp. Instead, pass force_refresh=True to
+    # intelligence_new.score(), which now atomically wipes the existing
+    # products and re-scores them within the same save boundary. The user
+    # sees the previous analysis until the new score completes, which is
+    # honest — no glitchy "0 products with old date" intermediate state.
 
     job_id = str(uuid.uuid4())[:8]
 
@@ -833,6 +856,7 @@ def inspector_refresh_cache(analysis_id: str):
                 disc.get("company_name", ""),
                 selected, discovery_id,
                 discovery_data=disc,
+                force_refresh=True,
             )
             push(job_id, f"done:{new_analysis_id}")
             if new_product_names:

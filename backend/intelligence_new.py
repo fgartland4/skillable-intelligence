@@ -82,6 +82,28 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _stamp_for_save(data: dict, timestamp_field: str = "analyzed_at") -> dict:
+    """Stamp an analysis or discovery dict with the current SCORING_LOGIC_VERSION
+    and a fresh timestamp.
+
+    The intelligence layer is the ONLY place that should ever set the version
+    stamp + the scoring/discovery timestamp. Storage layer (save_analysis,
+    save_discovery) now requires both fields to be present and rejects writes
+    that don't have them.
+
+    This helper exists so the score() and discover() functions stamp the same
+    way every time and can never accidentally save a record with a stale or
+    missing stamp. Briefcase generation does NOT call this — briefcase preserves
+    the existing stamps from the loaded dict because it isn't a scoring change.
+
+    timestamp_field: "analyzed_at" for analyses, "created_at" for discoveries.
+    """
+    import scoring_config as cfg
+    data["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
+    data[timestamp_field] = _now_iso()
+    return data
+
+
 # Discovery tier ordering for discrepancy detection
 _TIER_ORDER = {
     "seems_promising": 0,
@@ -163,8 +185,9 @@ def discover(company_name: str, known_products: list[str] | None = None,
         discovery[key] = findings.get(key, [])
 
     discovery["discovery_id"] = _new_id()
-    discovery["created_at"] = _now_iso()
     discovery["known_products"] = known_products or []
+    # created_at + version stamp set explicitly via _stamp_for_save right
+    # before save below — see CRIT-10 in code-review-2026-04-07.md.
 
     # Assign discovery tiers using new labels
     for p in discovery.get("products", []):
@@ -191,6 +214,9 @@ def discover(company_name: str, known_products: list[str] | None = None,
         discovery["_scraped_families"] = scraped_families
 
     _progress("Categorizing offerings against Skillable taxonomy…")
+    # Stamp the discovery with version + created_at right before save.
+    # save_discovery will reject the write if either field is missing.
+    _stamp_for_save(discovery, timestamp_field="created_at")
     save_discovery(discovery["discovery_id"], discovery)
     log.info("Intelligence.discover: saved discovery %s for %s",
              discovery["discovery_id"], company_name)
@@ -236,15 +262,17 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         # older SCORING_LOGIC_VERSION, treat ALL its products as stale and
         # force re-score. The analysis_id is preserved (stable URL principle)
         # but every product gets fresh scoring against the current logic.
-        if not cfg.is_cached_logic_current(existing):
+        # Same behavior when the caller explicitly asks for force_refresh.
+        if force_refresh or not cfg.is_cached_logic_current(existing):
             stale_count = len(existing.get("products", []) or [])
+            reason = "force_refresh requested" if force_refresh else (
+                f"stale logic version "
+                f"({existing.get('_scoring_logic_version', '<missing>')!r} "
+                f"vs current {cfg.SCORING_LOGIC_VERSION!r})"
+            )
             log.info(
-                "Intelligence.score: existing analysis %s has stale logic version "
-                "(%r vs current %r) — wiping %d legacy products",
-                existing.get("analysis_id"),
-                existing.get("_scoring_logic_version", "<missing>"),
-                cfg.SCORING_LOGIC_VERSION,
-                stale_count,
+                "Intelligence.score: existing analysis %s — %s — wiping %d products",
+                existing.get("analysis_id"), reason, stale_count,
             )
             # CRITICAL: wipe the legacy products list so they don't survive
             # the cache-and-append below. Previously this code only blanked
@@ -254,7 +282,9 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             # a current version they were never actually scored under.
             # See investigation 2026-04-06 evening for the full root cause.
             existing["products"] = []
-            existing["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
+            # Don't pre-stamp here — _stamp_for_save below at the actual
+            # save boundary is the only place that should set the stamps.
+            # Pre-stamping here would lie about when the data was scored.
         else:
             for p in existing.get("products", []):
                 existing_product_names.add(p.get("name", ""))
@@ -311,6 +341,11 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                 reverse=True,
             )
             existing_dict["total_products_discovered"] = len(discovery_data.get("products", []))
+            # Stamp the just-modified analysis. analyzed_at gets bumped because
+            # the analysis WAS just modified by appending new scored products.
+            # See HIGH-7 in code-review-2026-04-07.md — this fixes the gap
+            # where cache-and-append left a stale timestamp on the parent.
+            _stamp_for_save(existing_dict)
             _save(existing_dict)
             log.info("Intelligence.score: appended %d new products to analysis %s",
                      len(new_product_dicts), existing_dict.get("analysis_id"))
@@ -321,7 +356,13 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     new_analysis.total_products_discovered = len(discovery_data.get("products", []))
     score_products_and_sort(new_analysis)
     new_analysis.briefcase = None  # Briefcase moved to product level
-    analysis_id = save_analysis(new_analysis)
+    # Convert to dict + stamp before save. The dataclass no longer carries
+    # analyzed_at via default_factory (CRIT-6) so this is the canonical
+    # moment to set both stamps for a fresh analysis.
+    from dataclasses import asdict
+    fresh_dict = asdict(new_analysis)
+    _stamp_for_save(fresh_dict)
+    analysis_id = save_analysis(fresh_dict)
     log.info("Intelligence.score: created new analysis %s with %d products",
              analysis_id, len(new_analysis.products))
     return analysis_id, new_product_names
