@@ -2124,7 +2124,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.risk-cap-reduction"
+SCORING_LOGIC_VERSION = "2026-04-07.risk-cap-reduction-and-cf-merge"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

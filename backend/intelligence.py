@@ -82,6 +82,179 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _badge_is_stronger(new_badge: dict, existing: dict) -> bool:
+    """Decide whether `new_badge` should replace `existing` in the unified
+    Customer Fit merge across products of the same company.
+
+    Rule (Frank's "best showing wins" preference, 2026-04-07):
+      1. Strongest strength tier wins (strong > moderate > weak).
+      2. Within the same strength tier, prefer the most-positive color
+         (green > gray > amber > red), sourced from the canonical color
+         scoring values in scoring_config.BADGE_COLOR_POINTS — higher
+         numeric value means more positive.
+      3. Tiebreak by evidence length (more text = more grounding).
+
+    Rationale: Customer Fit is the company-level "best evidence we have"
+    reading. If one product's research found a strong-tier badge for a
+    signal_category and another product's research surfaced a weaker
+    or more-negative reading, the deeper/stronger research wins. Per
+    Frank: "apply the best of the best and make the best showing for
+    customer fit possible."
+
+    Returns True if new_badge replaces existing.
+    """
+    import scoring_config as cfg
+
+    strength_order = {"strong": 3, "moderate": 2, "weak": 1, "": 0}
+    new_strength = strength_order.get((new_badge.get("strength") or "").lower(), 0)
+    old_strength = strength_order.get((existing.get("strength") or "").lower(), 0)
+    if new_strength != old_strength:
+        return new_strength > old_strength
+
+    # Same strength tier — prefer the most-positive color, using the
+    # canonical points table (higher score = more positive = "best showing")
+    fallback = cfg.BADGE_UNKNOWN_COLOR_SCORE_FALLBACK
+    new_color_score = cfg.BADGE_COLOR_POINTS.get(
+        (new_badge.get("color") or "").lower(), fallback
+    )
+    old_color_score = cfg.BADGE_COLOR_POINTS.get(
+        (existing.get("color") or "").lower(), fallback
+    )
+    if new_color_score != old_color_score:
+        return new_color_score > old_color_score
+
+    # Same strength + same color — tiebreak by evidence length
+    new_ev_len = sum(
+        len((e.get("claim") or "")) for e in (new_badge.get("evidence") or [])
+        if isinstance(e, dict)
+    )
+    old_ev_len = sum(
+        len((e.get("claim") or "")) for e in (existing.get("evidence") or [])
+        if isinstance(e, dict)
+    )
+    return new_ev_len > old_ev_len
+
+
+def _unify_customer_fit_across_products(analysis: dict) -> None:
+    """Merge Customer Fit across every product in an analysis into ONE
+    company-level reading. Customer Fit is a property of the ORGANIZATION,
+    not the product — it must not vary from product to product.
+
+    Frank's directive (2026-04-07): the AI scores per-product, which means
+    Pillar 3 ends up with subtle differences across products of the same
+    company. Trellix Threat Intelligence Exchange showed Partner Ecosystem
+    amber while Trellix Endpoint Security showed Partner Ecosystem green
+    on the same Trellix discovery. The organization is the organization —
+    one source of truth.
+
+    Implementation:
+      1. Collect every Customer Fit badge from every product
+      2. Group by signal_category (the rubric-model "what this measures" tag)
+      3. Per signal_category, pick the strongest badge via _badge_is_stronger:
+           - Red beats everything else (hard negatives stick)
+           - Then strongest strength tier wins (strong > moderate > weak)
+           - Tiebreak by evidence length
+      4. Build a unified customer_fit block from those best-of-each-category
+         badges, preserving the canonical dimension order from the first
+         product
+      5. Deep-copy the unified block onto every product in the analysis
+      6. The math loop in recompute_analysis() then produces identical
+         Pillar 3 scores across products
+
+    Mutates the analysis dict in place. Idempotent — running on an
+    already-unified analysis is a no-op.
+
+    Does NOT touch Pillar 1 (Product Labability — genuinely per-product)
+    or Pillar 2 (Instructional Value — mostly per-product). Pillar 3 is
+    the only fully-organizational pillar.
+    """
+    import copy
+
+    products = analysis.get("products", []) or []
+    if len(products) < 2:
+        return  # nothing to merge with one or zero products
+
+    # Per dimension: signal_category -> best badge so far
+    dim_best: dict[str, dict[str, dict]] = {}
+    # Per dimension: canonical metadata (name, weight)
+    dim_meta: dict[str, dict] = {}
+    # Track dimension order from the first product so the unified block
+    # matches the canonical Pillar 3 dimension order from scoring_config
+    canonical_dim_order: list[str] = []
+
+    for idx, p in enumerate(products):
+        cf = (p.get("fit_score") or {}).get("customer_fit") or {}
+        if not isinstance(cf, dict):
+            continue
+        for dim in cf.get("dimensions", []) or []:
+            if not isinstance(dim, dict):
+                continue
+            dname = dim.get("name", "")
+            if not dname:
+                continue
+            if dname not in dim_meta:
+                dim_meta[dname] = {
+                    "name": dname,
+                    "weight": dim.get("weight", 0),
+                }
+                dim_best[dname] = {}
+                if idx == 0:
+                    canonical_dim_order.append(dname)
+            for b in dim.get("badges", []) or []:
+                if not isinstance(b, dict):
+                    continue
+                # Group key — prefer signal_category (rubric-model canonical
+                # tag); fall back to badge name for any non-rubric badge
+                # that somehow ended up in Pillar 3.
+                cat = (b.get("signal_category") or b.get("name") or "").strip()
+                if not cat:
+                    continue
+                existing = dim_best[dname].get(cat)
+                if existing is None or _badge_is_stronger(b, existing):
+                    dim_best[dname][cat] = b
+
+    # Append any dimensions found on later products that weren't on product 0
+    for dname in dim_meta:
+        if dname not in canonical_dim_order:
+            canonical_dim_order.append(dname)
+
+    if not canonical_dim_order:
+        return  # nothing to unify
+
+    # Build the unified customer_fit block
+    unified_dims = []
+    for dname in canonical_dim_order:
+        unified_dims.append({
+            "name": dname,
+            "weight": dim_meta[dname]["weight"],
+            "badges": list(dim_best[dname].values()),
+            "score": 0,  # recomputed by the math loop in recompute_analysis
+        })
+
+    # Pull the pillar-level metadata from the first product that has it
+    pillar_weight = 30  # default Pillar 3 weight from cfg.PILLARS
+    for p in products:
+        cf = (p.get("fit_score") or {}).get("customer_fit") or {}
+        if isinstance(cf, dict) and cf.get("weight"):
+            pillar_weight = cf["weight"]
+            break
+
+    unified_cf = {
+        "name": "Customer Fit",
+        "weight": pillar_weight,
+        "dimensions": unified_dims,
+        "score": 0,  # recomputed by recompute_analysis
+    }
+
+    # Apply unified Customer Fit to every product. Deep-copy so each product
+    # has its own reference and the per-product math loop can mutate scores
+    # independently without aliasing.
+    for p in products:
+        if not isinstance(p.get("fit_score"), dict):
+            p["fit_score"] = {}
+        p["fit_score"]["customer_fit"] = copy.deepcopy(unified_cf)
+
+
 def _compute_dominant_color(badges: list[dict]) -> str:
     """Pick the worst-of-group color for a list of badges, for the dimension
     score bar. Returns one of: red, amber, green, gray.
@@ -243,6 +416,15 @@ def recompute_analysis(analysis: dict) -> None:
     import scoring_config as cfg
     import badge_normalization
     from core import assign_verdict
+
+    # ── Unify Customer Fit across products FIRST ───────────────────────────
+    # Customer Fit is a property of the organization, not the product. Every
+    # product from the same company must show the same Pillar 3 reading.
+    # This must run BEFORE the per-product math loop so each product's
+    # math runs against the unified Customer Fit data and produces
+    # identical Pillar 3 scores. Per Frank's 2026-04-07 directive after
+    # Trellix CF inconsistency.
+    _unify_customer_fit_across_products(analysis)
 
     # Map each pillar's dict-key to its Pillar object — once, not per product
     pillar_key_to_obj: dict[str, cfg.Pillar] = {}

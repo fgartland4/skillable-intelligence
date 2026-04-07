@@ -575,6 +575,24 @@ Everything about the organization in one Pillar. Combines training commitment, b
 
 Pillar 3 uses the **rubric model**, same architecture as Pillar 2.
 
+### Customer Fit is the same for every product in a company
+
+**Customer Fit measures the organization, not the product.** Every product from the same company shows the same Pillar 3 reading. The Trellix Customer Fit is the Trellix Customer Fit — it does not change when you switch from Trellix Endpoint Security to Trellix Threat Intelligence Exchange in the dossier dropdown.
+
+This is enforced at render time via `intelligence._unify_customer_fit_across_products()` which runs at the start of every `recompute_analysis()` call. The unification is a post-processing merge of existing AI output (no new Claude calls) — Claude scores per-product as it always has, but the merged result becomes the canonical company-level Customer Fit and overwrites every product's `customer_fit` block.
+
+**Merge rule** — per `signal_category` (the rubric-model "what this measures" tag), pick the best badge across all products using "best showing wins" priority:
+
+1. **Strongest strength tier wins.** `strong` > `moderate` > `weak`. If one product's research found a strong-tier badge for a signal_category and another found moderate, the strong wins.
+2. **Within the same strength tier, prefer the most-positive color.** `green` > `gray` > `amber` > `red`. If two products both surfaced a strong-tier badge but one is green and one is amber, the green wins.
+3. **Tiebreak by evidence length.** Within the same strength and color, the badge with longer evidence text wins (more grounding = better evidence).
+
+**The rationale:** Customer Fit is the company-level "best evidence we have" reading. If one product's research dug deeper and surfaced stronger/more-positive evidence about an organizational signal, that evidence is the most accurate read of the company. Per Frank's directive: "apply the best of the best and make the best showing for customer fit possible." This trades off some risk-signal preservation for consistency and a generous read of the company.
+
+**Why this exists:** Frank reviewed Trellix Threat Intelligence Exchange and Trellix Endpoint Security on 2026-04-07 and saw Customer Fit drift between them — Partner Ecosystem amber on one, green on the other; Content Dev Team different across products. The organization is the organization. One source of truth.
+
+**Pillar 1 and Pillar 2 stay per-product.** Product Labability is genuinely about the product. Most of Instructional Value (Product Complexity, Mastery Stakes, Lab Versatility) is also per-product. Only Pillar 3 is fully organizational.
+
 ### Dimension order (chronological reading order)
 
 The dimensions are presented in chronological reading order — how a seller naturally thinks about a customer's training maturity:
