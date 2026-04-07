@@ -81,6 +81,18 @@
         }
         .mark-active { animation: mark-pulse 1.2s ease-in-out infinite; }
 
+        /* Checkmark celebration: 3 flashes then stays solid */
+        @keyframes check-flash {
+            0%   { opacity: 0; }
+            15%  { opacity: 1; }
+            30%  { opacity: 0; }
+            45%  { opacity: 1; }
+            60%  { opacity: 0; }
+            75%  { opacity: 1; }
+            100% { opacity: 1; }
+        }
+        .mark-check-flash { animation: check-flash 1.4s ease-in-out forwards; }
+
         .error-state { display: none; margin-top: 18px; }
         .error-msg {
             color: var(--sk-score-low-soft); font-size: 0.9rem; line-height: 1.55;
@@ -167,8 +179,16 @@
             el.setAttribute('fill', color);
             el.classList.add('mark-active');
         }
+        function celebrateCheck() {
+            const el = document.getElementById('mark-check');
+            el.classList.remove('mark-active');
+            el.setAttribute('fill', COLOR_ACCENT);
+            void el.getBoundingClientRect();
+            el.classList.add('mark-check-flash');
+        }
 
         const source = new EventSource("/inspector/discover/progress/{{ discovery_id }}");
+        let doneResultId = null;
 
         source.onmessage = function(e) {
             const msg = e.data;
@@ -176,13 +196,18 @@
                 document.getElementById("status").textContent = msg.slice(7);
             } else if (msg.startsWith("done:")) {
                 source.close();
+                doneResultId = msg.slice(5);
                 document.getElementById("status").textContent = "Complete — loading products...";
                 document.getElementById("progressFill").style.width = "100%";
-                litMark('mark-i', COLOR_ON);
+                // Make sure all three bars are lit before the check celebrates
+                litMark('mark-i',  COLOR_ON);
                 litMark('mark-l1', COLOR_ON);
                 litMark('mark-l2', COLOR_ON);
-                litMark('mark-check', COLOR_ACCENT);
-                window.location.replace("/inspector/product-selection/" + msg.slice(5));
+                celebrateCheck();
+                // 1.4s flash + ~2s solid green = 3.4s before redirect
+                setTimeout(function() {
+                    window.location.replace("/inspector/product-selection/" + doneResultId);
+                }, 3400);
             } else if (msg.startsWith("error:")) {
                 source.close();
                 showError(msg.slice(6));
@@ -202,13 +227,27 @@
             document.getElementById("errorState").style.display = "block";
         }
 
-        // Progress bar + mark advance
+        // Progress bar + mark advance — bars sequence cleanly:
+        // 0-28%   → left bar (i) pulsing
+        // 28-56%  → left lit, middle (l1) pulsing
+        // 56-85%  → left + middle lit, right (l2) pulsing
+        // (done event handles the checkmark celebration)
+        activeMark('mark-i', COLOR_ON);
         let pct = 0;
+        let stage = 0; // 0 = i pulsing, 1 = l1 pulsing, 2 = l2 pulsing
         setInterval(function() {
             pct = Math.min(pct + 0.4, 85);
             document.getElementById("progressFill").style.width = pct + "%";
-            if (pct > 30) { litMark('mark-i', COLOR_ON); activeMark('mark-l1', COLOR_ON); }
-            if (pct > 60) { litMark('mark-l1', COLOR_ON); activeMark('mark-l2', COLOR_ON); }
+            if (stage === 0 && pct >= 28) {
+                litMark('mark-i', COLOR_ON);
+                activeMark('mark-l1', COLOR_ON);
+                stage = 1;
+            }
+            if (stage === 1 && pct >= 56) {
+                litMark('mark-l1', COLOR_ON);
+                activeMark('mark-l2', COLOR_ON);
+                stage = 2;
+            }
         }, 300);
 
         // Timer

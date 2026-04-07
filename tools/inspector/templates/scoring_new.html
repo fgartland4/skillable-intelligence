@@ -114,6 +114,18 @@
         }
         .mark-active { animation: mark-pulse 1.2s ease-in-out infinite; }
 
+        /* Checkmark celebration: 3 flashes then stays solid */
+        @keyframes check-flash {
+            0%   { opacity: 0; }
+            15%  { opacity: 1; }
+            30%  { opacity: 0; }
+            45%  { opacity: 1; }
+            60%  { opacity: 0; }
+            75%  { opacity: 1; }
+            100% { opacity: 1; }
+        }
+        .mark-check-flash { animation: check-flash 1.4s ease-in-out forwards; }
+
         .error-state { display: none; margin-top: 18px; }
         .error-msg {
             color: var(--sk-score-low-soft); font-size: 0.88rem; line-height: 1.55;
@@ -282,16 +294,25 @@
             researchSteps.forEach(markDone);
             markActive(claudeStep);
             setProgress(5);
+            // All three bars lit while Claude scoring runs.
+            // Check stays dim until done — it's the celebration moment.
             litMark('mark-i',  COLOR_ON);
             litMark('mark-l1', COLOR_ON);
-            activeMark('mark-l2', COLOR_ON);
+            litMark('mark-l2', COLOR_ON);
             startClaudeHints();
         }
         function finishClaude() {
             clearInterval(claudeHintTimer);
             document.getElementById('hint-claude').textContent = '';
             litMark('mark-l2', COLOR_ON);
-            activeMark('mark-check', COLOR_ACCENT);
+        }
+        function celebrateCheck() {
+            const el = document.getElementById('mark-check');
+            el.classList.remove('mark-active');
+            el.setAttribute('fill', COLOR_ACCENT);
+            // Force reflow then add the flash class so it animates fresh
+            void el.getBoundingClientRect();
+            el.classList.add('mark-check-flash');
         }
 
         const source = new EventSource("/inspector/score/progress/{{ job_id }}");
@@ -308,20 +329,25 @@
                     if (sseResearchIndex > 0) markDone(researchSteps[sseResearchIndex - 1]);
                     markActive(researchSteps[sseResearchIndex]);
                     setProgress(sseResearchIndex);
-                    if (sseResearchIndex === 1) { litMark('mark-i', COLOR_ON); activeMark('mark-l1', COLOR_ON); }
-                    if (sseResearchIndex === 3) { litMark('mark-l1', COLOR_ON); }
+                    // 5 research steps map to 3 bars: left (i) → middle (l1) → right (l2)
+                    // step 0,1 → bar i ; step 2,3 → bar l1 ; step 4 → bar l2
+                    if (sseResearchIndex === 0) { activeMark('mark-i', COLOR_ON); }
+                    if (sseResearchIndex === 2) { litMark('mark-i', COLOR_ON); activeMark('mark-l1', COLOR_ON); }
+                    if (sseResearchIndex === 4) { litMark('mark-l1', COLOR_ON); activeMark('mark-l2', COLOR_ON); }
                     sseResearchIndex++;
                 }
             } else if (msg.startsWith("done:")) {
                 source.close();
                 finishClaude();
+                markDone(claudeStep);
+                setProgress(6);
+                celebrateCheck();
+                // 1.4s for the 3-flash animation + ~2s of solid green = 3.4s total
+                // before redirecting, so the user actually sees the celebration land.
                 setTimeout(function() {
-                    markDone(claudeStep);
-                    setProgress(6);
-                    litMark('mark-check', COLOR_ACCENT);
                     // replace() so the waiting page is removed from history
                     window.location.replace("/inspector/analysis/" + msg.slice(5));
-                }, 1500);
+                }, 3400);
             } else if (msg.startsWith("error:")) {
                 source.close();
                 showError(msg.slice(6));
@@ -340,10 +366,10 @@
                             finishClaude();
                             markDone(claudeStep);
                             setProgress(6);
-                            litMark('mark-check', COLOR_ACCENT);
+                            celebrateCheck();
                             setTimeout(function() {
                                 window.location.replace("/inspector/analysis/" + d.result_id);
-                            }, 1200);
+                            }, 3400);
                         } else if (d.status === "error") {
                             clearInterval(pollInterval);
                             source.close();
