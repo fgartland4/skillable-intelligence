@@ -1,15 +1,66 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-06 (extended through afternoon — Pillar 1 architecture refactor shipped)
+**Last updated:** 2026-04-06 (extended through afternoon — Pillar 1 architecture refactor + Pillar 2/3 rubric architecture both shipped)
 **Read this first when you sit down for the next session.**
 
 ---
 
-## Heads-up — major Pillar 1 refactor shipped 2026-04-06 afternoon
+## Heads-up — major Pillar 1 + Pillar 2/3 refactors shipped 2026-04-06 afternoon
 
-A long collaboration session with Frank produced a complete architectural sharpening of Pillar 1 (Product Labability). Four commits landed: `4e56133`, `45a1678`, `b133b10`, `498ad04`. Every Pillar 1 sharpening is in the code, the prompt, the math layer, and `Badging-and-Scoring-Reference.md`. **Read those commit messages before doing any Pillar 1 work** — they capture every decision (new canonicals, retired vocabulary, ceiling flag changes, color-aware math, meta-principle).
+A long collaboration session with Frank produced two complete architectural sharpenings:
+
+**Pillar 1 — Product Labability** (canonical model). Five commits landed: `4e56133`, `45a1678`, `b133b10`, `498ad04`, `68989a9`. Every Pillar 1 sharpening is in the code, the prompt, the math layer, and `Badging-and-Scoring-Reference.md`. **Read those commit messages before doing any Pillar 1 work** — they capture every decision (new canonicals, retired vocabulary, ceiling flag changes, color-aware math, meta-principle).
+
+**Pillar 2 (Instructional Value) + Pillar 3 (Customer Fit) — rubric model** (variable badge names + strength grading + signal_category tags). One big commit: `f46dcc9`. The two pillars use a fundamentally different scoring architecture from Pillar 1, by design — see the new "Two Architectures Across Pillars" section in `Badging-and-Scoring-Reference.md` for the rationale. Pillar 3 dimensions also reordered to chronological reading order: Training Commitment → Build Capacity → Delivery Capacity → Organizational DNA.
 
 The "verify SOTI re-score" task in §1 below is now PARTIALLY OBSOLETE — the universal variable-badge rule was retired in favor of flat-tier scoring. SOTI should still be re-run to verify the new vocabulary fires correctly with the live AI, but the expected mechanism is different from what §1 describes.
+
+---
+
+## §0 — Frank's Backlog (added 2026-04-06 afternoon, post Pillar 2/3 ship)
+
+These 7 items came out of Frank's QA pass while reviewing the dossier UX. Concrete, ready to pick up. None are blocked on SE clarifications.
+
+### 0.1 — M365 Provisioning in Product Labability
+
+The M365 tenant provisioning capability (E3 / E5 / E7 — see `skillable_capabilities.json` `m365_tenants` block) is currently underrepresented in Provisioning scoring. M365-dependent products (Microsoft 365, Defender for Office 365, Purview, Copilot, etc.) should benefit from a clean canonical or scoring path that recognizes Skillable's automated M365 tenant provisioning via Azure Cloud Slice. **Today the AI doesn't know to credit M365-tenant-dependent products for this Skillable strength.** Investigate where to land it: a new Provisioning canonical badge (e.g., `M365 Tenant`) or a refinement of the existing `Runs in Azure` to recognize M365 as a first-class case.
+
+### 0.2 — Product in-cache indicator on Product Selection page
+
+When a product has already been scored (cached), the Product Selection page should visually indicate that with a small chip or icon. Today the seller has to click in to discover whether a product is already scored or needs a fresh Deep Dive. A small "cached" indicator with a timestamp tooltip would make the state visible at a glance and help the seller pick the right path (re-use cached vs force refresh).
+
+### 0.3 — Company Description field consistency (Product Selection + Deep Dive)
+
+The Company Description field renders differently on the Product Selection page vs the Full Analysis (Deep Dive) page — different font, different position, possibly different content. Should be consistent: same field, same source of truth, same rendering treatment, same prominence. Audit both pages and unify.
+
+### 0.4 — Sales Briefcase: box size consistency / alignment
+
+The three Sales Briefcase boxes (Key Technical Questions / Conversation Starters / Account Intelligence) don't render with consistent box sizes or alignment. They should match each other in width, height (or min-height), padding, and vertical alignment. Affects visual polish and seller credibility.
+
+### 0.5 — Sales Briefcase: standard for bolding and phrasing
+
+The three Sales Briefcase sections use inconsistent bolding patterns and phrasing styles. Need a documented standard for what gets bolded (entity names? action items? vendor terms?) and how each section's bullets are phrased (sentence length, tone, opening pattern). Land the standard in the prompt template for each of the three briefcase generators (Opus KTQ, Haiku Conv, Haiku Intel) so they produce consistent output.
+
+### 0.6 — Bottom three boxes: full consistency pass
+
+The three boxes in the bottom-row of the Full Analysis page (Scored Products / Competitive / ACV by Use Case) need a consistency pass: font, font size, vertical spacing, column spacing, padding, alignment. They should feel like one designed row, not three independent components. Audit all three and unify.
+
+### 0.7 — ACV Table bottom — names below, audience size logic, lab rate per hour logic
+
+The ACV by Use Case table needs three things landed together:
+
+- **Motion names below the row** (instead of as the leftmost column), or as a clearer label treatment so the seller can scan the row easily
+- **Logic for audience size** — better grounding for the AI's per-motion population estimates, anchored to vendor scale signals (links into the deferred §5.5 ACV review)
+- **Logic for lab rate per hour** — the rate selection logic should be transparent and auditable, with a clear mapping from orchestration method to rate tier
+
+The five motions are:
+1. Customer training / enablement (direct)
+2. Training partner programs
+3. Certification programs
+4. Employee enablement
+5. Events & Conference
+
+(Note: this list overlaps with the existing `CONSUMPTION_MOTIONS` in `scoring_config.py` but uses slightly different labels. Worth reconciling — Frank's labels here may be the better naming.)
 
 ---
 
