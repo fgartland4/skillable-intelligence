@@ -178,19 +178,22 @@ def save_analysis(analysis) -> str:
             f"loaded dict (briefcase generation does not bump the scoring timestamp)."
         )
 
-    # Belt-and-braces: dedupe products by name on every save, keeping the
-    # LAST occurrence (which is the freshest score from the cache-and-append
-    # flow). The intelligence.score() stale-version path now wipes the
-    # legacy list before appending, so duplicates shouldn't get created in
-    # the first place — but this dedup pass closes any other code path that
-    # might mutate the products list and hand it back here.
+    # Belt-and-braces: dedupe products by (name, category) on every save,
+    # keeping the LAST occurrence (which is the freshest score from the
+    # cache-and-append flow). MED-6 in code-review-2026-04-07.md: deduping
+    # by name alone would lose legitimate same-name-different-category
+    # products like "Azure DevOps" (cloud) vs "Azure DevOps Server" (on-prem),
+    # or distinct e-learning vs ILT versions of the same training program.
+    # The (name, category) tuple is narrow enough to keep distinct products
+    # apart while still catching true duplicates from re-score collisions.
     products = data.get("products") or []
     if products:
-        seen: dict[str, dict] = {}
+        seen: dict[tuple[str, str], dict] = {}
         for p in products:
             nm = (p.get("name") or "").strip()
+            cat = (p.get("category") or "").strip()
             if nm:
-                seen[nm] = p   # last write wins
+                seen[(nm, cat)] = p   # last write wins
         if len(seen) != len(products):
             log.info("save_analysis %s: deduped %d products → %d unique",
                      analysis_id, len(products), len(seen))

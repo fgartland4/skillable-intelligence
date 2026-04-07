@@ -95,7 +95,8 @@ def tier_label_filter(tier_key: str) -> str:
 
 @app.template_filter("tier_class")
 def tier_class_filter(tier_key: str) -> str:
-    return {"seems_promising": "t-sp", "likely": "t-l", "uncertain": "t-u", "unlikely": "t-ul"}.get(tier_key, "")
+    import scoring_config as cfg
+    return cfg.TIER_CSS_CLASSES.get(tier_key, "")
 
 
 @app.template_filter("badge_color_class")
@@ -129,7 +130,8 @@ def deployment_display_filter(model: str) -> str:
 
 @app.template_filter("deployment_color")
 def deployment_color_filter(model: str) -> str:
-    return {"installable": "badge-deploy-green", "hybrid": "badge-deploy-gray", "cloud": "badge-deploy-green", "saas-only": "badge-deploy-amber"}.get(model, "")
+    import scoring_config as cfg
+    return cfg.DEPLOYMENT_MODEL_BADGE_CLASSES.get(model, "")
 
 
 @app.template_filter("org_color")

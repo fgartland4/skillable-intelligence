@@ -2100,7 +2100,31 @@ def is_cached_logic_current(cached_data: dict | None) -> bool:
     if cached_data is None:
         return True  # Caller handles None separately as a cache miss
     cached_version = cached_data.get("_scoring_logic_version", "")
-    return cached_version == SCORING_LOGIC_VERSION
+    if cached_version == SCORING_LOGIC_VERSION:
+        return True
+    # HIGH-8 in code-review-2026-04-07.md: log the mismatch with enough
+    # context that the breadcrumb survives in production logs. The previous
+    # version returned False silently — when investigation needed to figure
+    # out WHY a record was rejected, there was no trail.
+    import logging
+    _log = logging.getLogger(__name__)
+    record_id = (
+        cached_data.get("analysis_id")
+        or cached_data.get("discovery_id")
+        or "<unknown>"
+    )
+    if not cached_version:
+        _log.info(
+            "is_cached_logic_current: record %s has NO _scoring_logic_version "
+            "stamp — treating as stale (current version %r)",
+            record_id, SCORING_LOGIC_VERSION,
+        )
+    else:
+        _log.info(
+            "is_cached_logic_current: record %s stamped with %r, current is %r — stale",
+            record_id, cached_version, SCORING_LOGIC_VERSION,
+        )
+    return False
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2123,6 +2147,29 @@ def is_cached_logic_current(cached_data: dict | None) -> bool:
 # Don't bump it for one-off needs — the cap exists to keep one Deep Dive
 # from monopolizing the API budget.
 DEEP_DIVE_MAX_NEW_PRODUCTS = 4
+
+# CSS class mapping for discovery tier labels (HIGH-11 in code-review-2026-04-07).
+# Used by the tier_class Jinja filter in app.py. Centralized here so the
+# template's CSS classes and the tier vocabulary stay in sync — if a new
+# tier is added to DISCOVERY_TIER_LABELS, its CSS class lives next to it
+# rather than buried in a hardcoded dict in the route file.
+TIER_CSS_CLASSES = {
+    "seems_promising": "t-sp",
+    "likely": "t-l",
+    "uncertain": "t-u",
+    "unlikely": "t-ul",
+}
+
+# CSS class mapping for deployment model badges (HIGH-10 in code-review-2026-04-07).
+# Used by the deployment_color Jinja filter in app.py. Adding a new
+# deployment model means adding it here AND to the canonical deployment
+# model vocabulary, in one place.
+DEPLOYMENT_MODEL_BADGE_CLASSES = {
+    "installable": "badge-deploy-green",
+    "hybrid": "badge-deploy-gray",
+    "cloud": "badge-deploy-green",
+    "saas-only": "badge-deploy-amber",
+}
 
 # Threshold above which the Product Family picker activates on the Product
 # Selection page. When a discovery returns this many or more non-TC products
