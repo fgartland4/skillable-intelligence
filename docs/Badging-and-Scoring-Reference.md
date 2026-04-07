@@ -453,17 +453,23 @@ Applied after scoring Product Labability:
 
 ---
 
-## Two Architectures Across Pillars — read this first
+## Three Architectural Properties Across Pillars — read this first
 
-The three Pillars use **two different scoring architectures** because the three Pillars measure fundamentally different kinds of things. This is intentional. Future maintainers: do not collapse them into one model.
+The three Pillars differ along **three orthogonal architectural properties**. Each combination is intentional and reflects what the pillar actually measures. Future maintainers: do not collapse them into one model.
 
-| Pillar | Nature | Architecture | Why |
+| Pillar | Scoring model | Scoring scope | Nature of measurement |
 |---|---|---|---|
-| **1 — Product Labability** | Technical fact-finding. Hyper-V either supports the install or it doesn't. APIs exist or they don't. **Concrete and binary.** | **Canonical model.** Fixed badge vocabulary. Math credits points by name-matched signal lookup. Color-aware (green = full, amber = half, red = color fallback). | The technical fabric concepts are universal — `Runs in Hyper-V`, `Sandbox API`, `Datacenter` mean the same thing across every product. Canonical names work cleanly. |
-| **2 — Instructional Value** | Domain-specific judgment. Subject matter complexity for legal, cybersecurity, banking, healthcare etc. is genuinely different. **Subjective and contextual.** | **Rubric model.** Variable, AI-synthesized badge names. Math credits points by `(dimension, strength)` lookup against a per-dimension rubric. Each badge carries a `signal_category` tag for cross-product analytics. | Forcing canonical names here loses the domain-specific terminology that makes badges useful to the seller. The rubric grades evidence strength so the math is still deterministic. |
-| **3 — Customer Fit** | Organizational pattern recognition. Mostly universal concepts but the specific evidence varies (counts, platforms, conferences). **Mostly universal, somewhat interpretive.** | **Rubric model.** Same as Pillar 2. Variable badge names with concrete data + rubric grading. | Per-product specifics like `~500 ATPs` or `Skillable` or `Cohesity Connect 5K` are exactly what makes the chip useful — generic names like `Partner Ecosystem` are abstract. Rubric handles the strength grading. |
+| **1 — Product Labability** | **Canonical model.** Fixed badge vocabulary. Math credits points by name-matched signal lookup. Color-aware (green = full, amber = half, red = color fallback). | **Per-product.** Each product has its own Pillar 1 reading because each product has its own technical fabric. | Technical fact-finding. Hyper-V either supports the install or it doesn't. APIs exist or they don't. **Concrete and binary.** |
+| **2 — Instructional Value** | **Rubric model.** Variable, AI-synthesized badge names. Math credits points by `(dimension, strength)` lookup against a per-dimension rubric. Each badge carries a `signal_category` tag for cross-product analytics. | **Per-product.** Product complexity, mastery stakes, lab versatility, and market demand are all properties of THIS product. | Domain-specific judgment. Subject matter complexity for legal, cybersecurity, banking, healthcare etc. is genuinely different. **Subjective and contextual.** |
+| **3 — Customer Fit** | **Rubric model.** Same as Pillar 2 — variable badge names with concrete data + rubric grading. | **Per-COMPANY.** Customer Fit measures the ORGANIZATION, not the product. Every product from the same company gets the same Pillar 3 reading. The Trellix Customer Fit is the Trellix Customer Fit — it does not change when you switch from Trellix Endpoint Security to Trellix Threat Intelligence Exchange in the dossier dropdown. | Organizational pattern recognition. Training maturity, build capacity, delivery channels, partner culture — these are properties of the COMPANY, not any single product. |
 
-**The two-architecture decision was made deliberately on 2026-04-06** after walking the Pillar 1 implementation and discovering that the same approach didn't fit Pillars 2 and 3. See decision log for the full rationale.
+**Key takeaways:**
+
+1. **Two scoring models, not one.** Canonical (Pillar 1) and Rubric (Pillars 2 + 3) are intentionally different because they measure different kinds of things. Don't unify them.
+2. **Two scoring scopes, not one.** Per-product (Pillars 1 + 2) and per-company (Pillar 3) reflect the distinction between product properties and organizational properties. The company-level scope for Pillar 3 is enforced via the unification helpers documented in the Pillar 3 section below.
+3. **Pillar 3 is the only fully-organizational pillar.** Even Pillar 2 Market Demand has product-specific aspects. Only Pillar 3 is purely about the company.
+
+**Decision history:** the two-scoring-model architecture was decided on 2026-04-06 after walking the Pillar 1 implementation and discovering the same approach didn't fit Pillars 2 and 3. The company-level scope for Pillar 3 was decided on 2026-04-07 after Frank reviewed Trellix and saw Customer Fit drift between products of the same company. Both are in the decision log.
 
 ---
 
