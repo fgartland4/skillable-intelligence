@@ -18,20 +18,11 @@
   {%- endif -%}
 {%- endmacro %}
 
-{% macro dominant_color(dim) -%}
-  {%- set ns = namespace(green=0, amber=0, red=0, gray=0) -%}
-  {%- for b in dim.badges or [] -%}
-    {%- if b.color == 'green' -%}{%- set ns.green = ns.green + 1 -%}
-    {%- elif b.color == 'amber' -%}{%- set ns.amber = ns.amber + 1 -%}
-    {%- elif b.color == 'red' -%}{%- set ns.red = ns.red + 1 -%}
-    {%- else -%}{%- set ns.gray = ns.gray + 1 -%}{%- endif -%}
-  {%- endfor -%}
-  {%- if ns.red > 0 and ns.red >= ns.green -%}red
-  {%- elif ns.amber > ns.green -%}amber
-  {%- elif ns.green > 0 -%}green
-  {%- else -%}gray
-  {%- endif -%}
-{%- endmacro %}
+{# dominant_color macro retired 2026-04-07 — the value is now precomputed
+   in Python by intelligence.recompute_analysis() and lives at
+   dim.dominant_color. Two implementations of the same rule in two
+   languages was a guaranteed drift point. See HIGH-3 in
+   docs/code-review-2026-04-07.md. #}
 
 {% macro evidence_data(badge) -%}
 <div class='ev-title'>{{ badge.name | e }}</div>
@@ -46,9 +37,12 @@
 {%- endmacro %}
 
 {% macro render_dimension(dim) %}
-  {% set max_score = dim.weight or 1 %}
-  {% set pct = ((dim.score or 0) * 100 / max_score) | round(0, 'floor') | int %}
-  {% set dcolor = dominant_color(dim) %}
+  {# dim.score_percentage and dim.dominant_color are precomputed by
+     intelligence.recompute_analysis() — see HIGH-3 in
+     docs/code-review-2026-04-07.md. Falls back to inline math for any
+     legacy dimension dict that hasn't been through recompute yet. #}
+  {% set pct = dim.score_percentage if dim.score_percentage is defined else (((dim.score or 0) * 100 / (dim.weight or 1)) | round(0, 'floor') | int) %}
+  {% set dcolor = dim.dominant_color or 'gray' %}
   <div class="dimension">
     <div class="dim-row">
       <span class="dim-name">{{ dim.name | dim_caps }}</span>

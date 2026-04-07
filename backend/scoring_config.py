@@ -2078,7 +2078,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.phase-c-layer-discipline"
+SCORING_LOGIC_VERSION = "2026-04-07.phase-e-polish"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
@@ -2170,6 +2170,111 @@ DEPLOYMENT_MODEL_BADGE_CLASSES = {
     "cloud": "badge-deploy-green",
     "saas-only": "badge-deploy-amber",
 }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DOSSIER INFO MODAL CONTENT
+#
+# Why-What-How explanations for each Pillar and the ACV by Use Case widget.
+# Surfaces in the dossier when the user clicks the (?) icon. Lives here in
+# scoring_config rather than in the template JavaScript so:
+#   1. Pillar weight references (40%, 30%, 30%) are computed dynamically
+#      from PILLARS instead of hardcoded — they can never drift if you
+#      change a pillar weight in this file.
+#   2. Prospector and Designer can render the same explanations from the
+#      same source when they need to.
+#   3. Non-engineers can edit the explanatory copy without touching JS.
+#
+# HIGH-4 in code-review-2026-04-07.md.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _build_modal_content() -> dict:
+    """Build the dossier info modal content from current pillar weights.
+
+    Eyebrow strings reference PILLARS dynamically so the weight numbers
+    in the user-facing explanations can never drift from the actual config.
+    """
+    pl = next(p for p in PILLARS if p.name == "Product Labability")
+    iv = next(p for p in PILLARS if p.name == "Instructional Value")
+    cf = next(p for p in PILLARS if p.name == "Customer Fit")
+
+    return {
+        "product_labability": {
+            "eyebrow": f"PILLAR · GATEKEEPER · {pl.weight}% OF FIT SCORE",
+            "title": pl.name,
+            "sections": [
+                {
+                    "label": "Why this matters",
+                    "body": "Product Labability answers the most fundamental question: <strong>can we actually build a hands-on lab for this product?</strong> If we can't provision it, give every learner an isolated environment, automatically score what they do, and tear it down between sessions, no amount of instructional value or customer demand changes that. <em>Product Labability is the gatekeeper</em> — it caps the entire Fit Score. A perfect 100 here lets the other pillars contribute fully; a low score here means the deal can't work no matter how much the customer loves training.",
+                },
+                {
+                    "label": "What we measure",
+                    "body": "<strong>Provisioning</strong> — can we deploy the product in our infrastructure (Hyper-V, ESX, Docker, Cloud Slice, BYOC)? <strong>Lab Access</strong> — can each learner get an isolated environment without sharing credentials or stepping on each other? <strong>Scoring</strong> — can we automatically validate learner work via API, CLI, PowerShell, Resource Graph, or AI Vision? <strong>Teardown</strong> — can we cleanly reset between learner sessions without orphaned data or accounts?",
+                },
+                {
+                    "label": "How we score it",
+                    "body": "Each dimension earns points from positive badges (REST API, Docker image, marketplace listing, NFR program, sandbox tenant API) and loses points from negative ones. <strong>Ceiling flags</strong> hard-cap the pillar regardless of other badges. The pillar score is then used as the floor for the overall Fit Score — a great Instructional Value or Customer Fit can pull the total <em>up</em> a little, but never below the Product Labability score.",
+                },
+            ],
+        },
+        "instructional_value": {
+            "eyebrow": f"PILLAR · {iv.weight}% OF FIT SCORE",
+            "title": iv.name,
+            "sections": [
+                {
+                    "label": "Why this matters",
+                    "body": "A product can be perfectly labable and still be a bad lab investment. Instructional Value asks: <strong>is there enough depth here that hands-on practice is the best way to learn it?</strong> Shallow workflows, trivial configurations, and \"click these three buttons\" UIs don't justify the cost of building and maintaining labs. The best lab products are the ones where reading the docs leaves you stuck and only practice gets you over the hump.",
+                },
+                {
+                    "label": "What we measure",
+                    "body": "<strong>Product Complexity</strong> — depth of features, configuration surface area, role diversity, AI capabilities that require iterative practice. <strong>Mastery Stakes</strong> — what's the cost of doing it wrong in production? Security breaches, compliance failures, financial loss, customer impact. <strong>Lab Versatility</strong> — how many distinct lab scenarios does the product support across difficulty levels and personas? <strong>Market Demand</strong> — are people actively looking for training? Certifications, partner training, search volume, course catalogs.",
+                },
+                {
+                    "label": "How we score it",
+                    "body": "We weight evidence of <strong>depth over breadth</strong> — a product with five distinct admin workflows scores higher than one with twenty trivial features. AI features get an extra lift because hands-on practice is the only way to build fluency. Mastery Stakes scores higher when failures have visible blast radius (security, compliance, money). Market Demand draws from documented certification programs, ATP partners, and existing training catalogs. Instructional Value contributes to Fit Score through the <em>Technical Fit Multiplier</em> — its impact is scaled by how labable the product actually is.",
+                },
+            ],
+        },
+        "customer_fit": {
+            "eyebrow": f"PILLAR · {cf.weight}% OF FIT SCORE",
+            "title": cf.name,
+            "sections": [
+                {
+                    "label": "Why this matters",
+                    "body": "A product can be labable AND have huge instructional value, but if the company doesn't sell training, doesn't have a partner channel, and doesn't talk to learners, the deal economics don't work. Customer Fit asks: <strong>is this organization actually a likely Skillable customer?</strong> The pillar is about the company, not the product — it captures the organizational signals that turn a good product fit into a closeable deal.",
+                },
+                {
+                    "label": "What we measure",
+                    "body": "<strong>Training Commitment</strong> — has the company invested in training? Certifications, ATP programs, learning partners, on-demand catalogs. <strong>Build Capacity</strong> — can they actually create the labs themselves, or do they need help? <strong>Delivery Capacity</strong> — partner networks, resellers, system integrators, training delivery partners — these multiply our reach. <strong>Organizational DNA</strong> — are they the kind of company that partners and builds training programs, or do they keep everything in-house?",
+                },
+                {
+                    "label": "How we score it",
+                    "body": "We look for <em>concrete</em> training signals — a published certification, a named ATP program, an on-demand training catalog, partner delivery networks. Stated intent without execution scores low. We weight existing training infrastructure heavily because it means the company already understands the value of training and has the org muscle to buy it. Like Instructional Value, Customer Fit contributes through the Technical Fit Multiplier — the strongest training story in the world doesn't close a deal if the underlying product can't actually be lab-delivered.",
+                },
+            ],
+        },
+        "acv_use_case": {
+            "eyebrow": "WIDGET · DEAL STORY BY MOTION",
+            "title": "ACV by Use Case",
+            "sections": [
+                {
+                    "label": "Why this matters",
+                    "body": "A single ACV range hides the real story. <strong>Where does the deal actually live?</strong> Is it driven by partner channel training? Annual conference events? Certification PBT? Internal employee enablement? The use cases that make up the total are not interchangeable — sellers need to know which motion to talk to the customer about first, which one is the volume driver, and which one is the long-tail upside. This widget gives you that breakdown at a glance.",
+                },
+                {
+                    "label": "What we measure",
+                    "body": "For each use case (motion) we capture: <strong>Audience</strong> — the realistic population of learners who could consume labs through this motion. <strong>Adoption %</strong> — the percentage of that audience we expect to actually engage in any given year. <strong>Hours per Learner</strong> — how many hands-on hours one engaged learner consumes. <em>Estimated Hours / Year</em> per row is the product: <em>Audience × Adoption × Hours</em>. The total row sums every motion and converts to a dollar range using the platform's realized rate.",
+                },
+                {
+                    "label": "How we score it",
+                    "body": "Each motion is sized from concrete signals discovered during research — partner program size, conference attendance, certification volume, employee count, customer base. Conservative on the low end, ambitious on the high end. <em>Adoption percentages reflect realistic engagement</em>, not theoretical reach — we don't assume every employee in a 100,000-person company is a target lab learner. The total row should match the ACV Potential range shown in the hero. If a row looks wrong, the underlying audience or adoption assumption needs adjustment, not the widget itself.",
+                },
+            ],
+        },
+    }
+
+
+MODAL_CONTENT = _build_modal_content()
 
 # Threshold above which the Product Family picker activates on the Product
 # Selection page. When a discovery returns this many or more non-TC products

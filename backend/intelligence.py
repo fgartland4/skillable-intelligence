@@ -82,6 +82,38 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _compute_dominant_color(badges: list[dict]) -> str:
+    """Pick the worst-of-group color for a list of badges, for the dimension
+    score bar. Returns one of: red, amber, green, gray.
+
+    Rule (matches the historical Jinja macro):
+      - red wins if any red and red >= green count
+      - amber wins if amber count > green count
+      - else green if any green
+      - else gray
+
+    HIGH-3 in code-review-2026-04-07.md: this used to be a Jinja macro
+    in tools/inspector/templates/_macros.html, re-implementing the same
+    logic the Python display normalizer applies. Two implementations of
+    the same rule in two languages — guaranteed to drift. Now lives once
+    in Python and the template just reads dim.dominant_color.
+    """
+    from collections import defaultdict
+    counts: dict[str, int] = defaultdict(int)
+    for b in badges:
+        if not isinstance(b, dict):
+            continue
+        c = b.get("color") or "gray"
+        counts[c] += 1
+    if counts["red"] > 0 and counts["red"] >= counts["green"]:
+        return "red"
+    if counts["amber"] > counts["green"]:
+        return "amber"
+    if counts["green"] > 0:
+        return "green"
+    return "gray"
+
+
 def hydrate_analysis(analysis: dict) -> None:
     """Idempotently backfill company-context fields on an analysis dict from
     its parent discovery.
@@ -262,6 +294,13 @@ def recompute_analysis(analysis: dict) -> None:
                 dim_result = result["dimensions"].get(dim_key)
                 if dim_result is not None:
                     dim_dict["score"] = dim_result["score"]
+                # Compute dimension percentage and dominant color in Python so
+                # the template doesn't re-implement the same rules in Jinja.
+                # HIGH-3 in code-review-2026-04-07.md.
+                dim_weight = dim_dict.get("weight") or 1
+                dim_score = dim_dict.get("score") or 0
+                dim_dict["score_percentage"] = int((dim_score * 100) / dim_weight)
+                dim_dict["dominant_color"] = _compute_dominant_color(dim_dict.get("badges") or [])
             pillar_dict["score"] = result["pillars"].get(pillar_key, 0)
 
         # Top-level fit_score audit fields
@@ -726,6 +765,14 @@ def generate_briefcase_for_analysis(analysis_id: str,
         current = _load(analysis_id) or analysis_dict
         try:
             current["products"][idx]["briefcase"] = briefcase_dict
+            # Per-product briefcase timestamp (HIGH-5 in code-review-2026-04-07.md).
+            # Lets the dossier polling JS distinguish "briefcase still
+            # generating" from "briefcase complete" on a per-product basis,
+            # and gives an audit trail for when each briefcase was last
+            # refreshed. NOT the analysis-level analyzed_at — briefcase
+            # generation is intentionally NOT a scoring change, so the
+            # parent analysis stamp is preserved.
+            current["products"][idx]["briefcase_generated_at"] = _now_iso()
             _save(current)
             analysis_dict = current
             log.info("Briefcase: saved for product %d (%s) of analysis %s",

@@ -139,9 +139,12 @@ def _fit_label(score: int) -> str:
     """Generate the fit label (e.g., 'HIGH FIT') from score.
 
     Uses the green threshold from config as the HIGH FIT boundary.
+    Strict reads — if SCORE_THRESHOLDS is missing the expected keys,
+    that's a config bug we want to surface immediately, not paper over
+    with a silent fallback. MED-9 in code-review-2026-04-07.md.
     """
-    green_threshold = cfg.SCORE_THRESHOLDS.get("green", 65)
-    amber_threshold = cfg.SCORE_THRESHOLDS.get("light_amber", 45)
+    green_threshold = cfg.SCORE_THRESHOLDS["green"]
+    amber_threshold = cfg.SCORE_THRESHOLDS["light_amber"]
     if score >= green_threshold:
         return "HIGH FIT"
     elif score >= amber_threshold:
@@ -158,17 +161,20 @@ def discovery_tier(score: int) -> str:
     """Assign a discovery tier label based on initial assessment score.
 
     These communicate confidence at discovery depth — not conclusions.
-    Thresholds derived from scoring config (Define-Once).
+    Thresholds derived from scoring config (Define-Once). Strict reads —
+    if SCORE_THRESHOLDS is missing the expected keys, that's a config
+    bug we want to surface immediately. MED-9 in code-review-2026-04-07.md.
+
+    Tier-to-threshold mapping (MED-10 — was previously documented only in
+    comments, now expressed as code):
+      seems_promising  →  >= green        (e.g. 65+)
+      likely           →  >= light_amber  (e.g. 45+)
+      uncertain        →  >= amber        (e.g. 25+)
+      unlikely         →  below amber
     """
-    thresholds = sorted(cfg.SCORE_THRESHOLDS.values(), reverse=True)
-    # Map config thresholds to discovery tiers:
-    # dark_green(80) + green(65) → seems_promising (use green threshold)
-    # light_amber(45) → likely
-    # amber(25) → uncertain
-    # red(0) → unlikely
-    green_threshold = cfg.SCORE_THRESHOLDS.get("green", 65)
-    amber_threshold = cfg.SCORE_THRESHOLDS.get("light_amber", 45)
-    red_threshold = cfg.SCORE_THRESHOLDS.get("amber", 25)
+    green_threshold = cfg.SCORE_THRESHOLDS["green"]
+    amber_threshold = cfg.SCORE_THRESHOLDS["light_amber"]
+    red_threshold = cfg.SCORE_THRESHOLDS["amber"]
 
     if score >= green_threshold:
         return "seems_promising"

@@ -702,11 +702,18 @@ def inspector_full_analysis(analysis_id: str):
     default_idx = _select_default_product_index(analysis, request.args.get("selected"))
     selected_product = products[default_idx] if products else None
 
+    import json
+    import scoring_config as cfg
     return render_template("full_analysis.html",
                           analysis=analysis,
                           selected_product=selected_product,
                           default_index=default_idx,
-                          is_cache_stale=is_cache_stale)
+                          is_cache_stale=is_cache_stale,
+                          # Modal content lives in scoring_config so the
+                          # pillar weights inside the eyebrows can never
+                          # drift from the actual config. HIGH-4 in
+                          # code-review-2026-04-07.md.
+                          modal_content_json=json.dumps(cfg.MODAL_CONTENT))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
