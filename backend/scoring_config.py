@@ -231,76 +231,97 @@ _provisioning_badges = (
         BadgeColor("amber", "Installs with complexity"),
     )),
     Badge("Runs in Azure", (
-        BadgeColor("green", "Supported Azure service"),
+        BadgeColor("green", "Azure-native service — viable for Azure Cloud Slice fabric"),
         BadgeColor("amber", "Azure path with friction"),
-    )),
+    ), notes="Means the product IS an Azure service viable for Cloud Slice fabric — NOT 'can be hosted on an Azure VM.' For installable products that happen to run on Azure VMs, use Runs in Hyper-V."),
     Badge("Runs in AWS", (
-        BadgeColor("green", "Supported AWS service"),
+        BadgeColor("green", "AWS-native service — viable for AWS Cloud Slice fabric"),
         BadgeColor("amber", "AWS path with friction"),
-    )),
+    ), notes="Means the product IS an AWS service viable for Cloud Slice fabric — NOT 'can be hosted on an AWS VM.'"),
     Badge("Requires GCP", (
         BadgeColor("amber", "No native Skillable GCP path"),
     )),
-    Badge("Runs in Containers", (
-        BadgeColor("green", "Container-native confirmed"),
-        BadgeColor("amber", "Image exists but disqualifiers apply"),
-    )),
+    Badge("Runs in Container", (
+        BadgeColor("green", "Container-native confirmed, no disqualifiers"),
+        BadgeColor("amber", "Image exists but disqualifiers apply or research uncertain"),
+    ), notes="Singular. Defaults to green when container-native confirmed. Don't emit if definitively not container-viable. Scores ~equivalent to Hyper-V Standard."),
     Badge("ESX Required", (
-        BadgeColor("amber", "Nested virtualization or socket licensing requires ESX"),
+        BadgeColor("amber", "Nested virtualization or socket licensing requires ESX (details in evidence)"),
     )),
     Badge("Simulation", (
-        BadgeColor("amber", "No real lab path viable — simulation is the correct approach"),
-    )),
+        BadgeColor("gray", "Simulation is the chosen path — viable when real provisioning is impractical"),
+    ), notes="Gray Context (not amber Risk) when Simulation is correctly chosen as the path. Carries base credit (+7 to +14 per the framework). Simulation is a real fabric, not a fallback."),
+    Badge("Sandbox API", (
+        BadgeColor("green", "Vendor has rich provisioning / sandbox / management API for per-learner environments"),
+        BadgeColor("amber", "API exists but coverage uncertain or partial"),
+        BadgeColor("red", "No provisioning API confirmed — no path to per-learner environments via vendor API"),
+    ), notes="Gatekeeper canonical for the 'can we provision per learner via the vendor's API?' question. Replaces the older Custom API (BYOC) signal name. Always emit (gatekeeper) — green/amber/red based on evidence."),
+    Badge("Pre-Instancing", (
+        BadgeColor("green", "Slow first-launch or cluster init mitigated by Skillable Pre-Instancing — Skillable feature opportunity"),
+    ), notes="Green opportunity badge when product has long initial provisioning time. Frames the slowness as a Skillable feature win (Pre-Instancing pre-builds warm instances), not friction."),
+    Badge("Multi-VM Lab", (
+        BadgeColor("green", "Multiple VMs working together — Skillable strength (competitors struggle here)"),
+    ), notes="Skillable competitive advantage. Typical for cybersecurity (attacker + target + SIEM), data engineering pipelines, enterprise stacks. Drives ACV rate tier upward. Mutually exclusive with Large Lab."),
+    Badge("Complex Topology", (
+        BadgeColor("green", "Real network complexity — routers, switches, firewalls, segmentation, routing protocols"),
+    ), notes="Skillable strength. Applies to networking vendors (Cisco, Juniper, Palo Alto, F5) AND cybersecurity products with real network-layer complexity. Can pair with Multi-VM Lab or Large Lab."),
+    Badge("Large Lab", (
+        BadgeColor("green", "Single environment with big footprint — RAM, CPU, GPU, datasets — Skillable strength"),
+    ), notes="Skillable strength for products that need big single-machine resources (data science, AI/ML, GPU-heavy workloads). Mutually exclusive with Multi-VM Lab — pick whichever better describes the primary nature of the scale."),
+    Badge("GPU Required", (
+        BadgeColor("amber", "Product requires GPU — forces cloud VM with GPU instance, slower launch and higher cost"),
+    ), notes="Genuine friction. Standard Hyper-V doesn't have GPU; routes to Azure/AWS with GPU instance via Compute Gallery. Was a hidden penalty; promoted to a visible badge so SEs see the warning."),
     Badge("Bare Metal Required", (
         BadgeColor("red", "Physical hardware required — no virtualization path"),
     )),
     Badge("No Deployment Method", (
         BadgeColor("red", "Cannot be provisioned or simulated in any software environment"),
-    )),
+    ), notes="Ultimate dead-end blocker. Only fires when no real provisioning path AND Simulation is also blocked. Diligent-style products where Simulation is viable do NOT get this badge — they get Sandbox API red + Simulation gray."),
 )
 
 _provisioning_signals = (
-    ScoringSignal("Hyper-V: Full Lifecycle API", 35, "VM + rich APIs for outcome validation (35-40 range)"),
-    ScoringSignal("Hyper-V: CLI Scripting", 34, "VM + admin console + scripting/CLI (32-36 range)"),
-    ScoringSignal("Hyper-V: Standard", 30, "VM + meaningful admin workflows (28-32 range)"),
-    ScoringSignal("Hyper-V: Limited", 26, "VM + limited interaction (24-28 range)"),
-    ScoringSignal("Hyper-V: Complex Install", 20, "GPU farm, 100GB+, mainframe (16-24 range)"),
-    ScoringSignal("ESX: Full Lifecycle API", 32, "Socket-based licensing, 4-5 pts lower than Hyper-V (30-35 range)"),
-    ScoringSignal("ESX: CLI Scripting", 29, "ESX with CLI scripting (27-31 range)"),
-    ScoringSignal("ESX: Standard", 25, "ESX with standard workflows (23-27 range)"),
-    ScoringSignal("ESX: Limited", 21, "ESX with limited interaction (19-23 range)"),
-    ScoringSignal("ESX: Complex Install", 17, "ESX with complex constraints (14-20 range)"),
-    ScoringSignal("Container: Container Native", 28, "Genuinely container-native, public registry, clean pull-and-run (24-32 range)"),
-    ScoringSignal("Container: Container Limited", 20, "Meaningful constraints — large image, proprietary registry, limited API (16-24 range)"),
-    ScoringSignal("Azure Cloud Slice: Full Lifecycle API", 35, "Rich APIs + full resource lifecycle (32-38 range)"),
-    ScoringSignal("Azure Cloud Slice: Entra ID SSO", 31, "App pre-configured to use Entra ID tenant (28-35 range)"),
-    ScoringSignal("Azure Cloud Slice: Credential Pool", 27, "Credential pool recyclable (24-30 range)"),
-    ScoringSignal("Azure Cloud Slice: Manual SSO", 21, "Azure SSO but requires manual learner login (18-24 range)"),
-    ScoringSignal("Azure Cloud Slice: Trial Account", 14, "Trial accounts, no credit card friction (11-18 range)"),
-    ScoringSignal("Azure Cloud Slice: Credit Card Required", 8, "Trial requiring credit card (6-11 range)"),
-    ScoringSignal("AWS Cloud Slice: Full Lifecycle API", 35, "Rich APIs + full resource lifecycle (32-38 range)"),
-    ScoringSignal("AWS Cloud Slice: Credential Pool", 27, "Credential pool recyclable (24-30 range)"),
-    ScoringSignal("AWS Cloud Slice: Trial Account", 14, "Trial accounts (11-18 range)"),
-    ScoringSignal("AWS Cloud Slice: Credit Card Required", 8, "Trial requiring credit card (6-11 range)"),
-    ScoringSignal("Custom API: Full Lifecycle API", 25, "Rich APIs for all lifecycle phases, isolated instance per learner (22-28 range)"),
-    ScoringSignal("Custom API: Credential Pool", 19, "Credential pool recyclable, no per-learner isolation (16-22 range)"),
-    ScoringSignal("Custom API: SSO Only", 14, "SSO only, no per-learner instance (11-18 range)"),
-    ScoringSignal("Custom API: Trial Account", 9, "Trial accounts (6-12 range)"),
-    ScoringSignal("Custom API: No Isolation", 3, "No isolation mechanism (1-6 range)"),
-    ScoringSignal("Simulation", 12, "Simulation provisioning method (8-16 range)"),
+    # FLAT-TIER scoring per the architecture sharpening:
+    # The historical Hyper-V/ESX/Cloud Slice/Custom API tier modifiers
+    # (Standard / Moderate / Weak) have been retired. Each canonical badge
+    # earns its full base credit when emitted green, and friction is
+    # expressed via SEPARATE friction badges (GPU Required, Multi-VM Lab as
+    # a strength, ESX Required with evidence, etc.). The math layer sums
+    # the green credit + the friction adjustments — no hidden tier modifier.
+    #
+    # Each scoring signal name below MATCHES the canonical badge name above
+    # so the math layer credits the canonical badge directly. No more
+    # "emit two badges to get the points" hack.
+    ScoringSignal("Runs in Hyper-V", 30, "Clean Hyper-V install — full base credit"),
+    ScoringSignal("Runs in Azure", 30, "Azure-native service via Cloud Slice fabric"),
+    ScoringSignal("Runs in AWS", 30, "AWS-native service via Cloud Slice fabric"),
+    ScoringSignal("Runs in Container", 30, "Container-native confirmed — equivalent to Hyper-V Standard"),
+    ScoringSignal("ESX Required", 26, "ESX path — 4 points below Hyper-V due to operational cost (Broadcom licensing)"),
+    ScoringSignal("Sandbox API", 22, "Vendor provisioning API (BYOC) — viable per-learner provisioning, scored below native fabrics"),
+    ScoringSignal("Simulation", 12, "Simulation as the chosen path — base credit when real provisioning is impractical"),
+    # Strength badges (do not score in Provisioning directly — they drive
+    # the ACV rate tier upward and add seller-relevant context)
+    ScoringSignal("Multi-VM Lab", 0, "Skillable competitive strength — drives ACV rate tier"),
+    ScoringSignal("Complex Topology", 0, "Skillable competitive strength — drives ACV rate tier"),
+    ScoringSignal("Large Lab", 0, "Skillable competitive strength — drives ACV rate tier"),
+    ScoringSignal("Pre-Instancing", 0, "Skillable feature opportunity — mitigates slow init"),
 )
 
 _provisioning_penalties = (
-    Penalty("GPU required", -5, "gpu_required",
+    # GPU Required is now also a visible amber badge above (GPU Required)
+    # — the penalty stays for backward compatibility with cached data and
+    # for the math contribution. The badge is the visible warning to the SE.
+    Penalty("GPU Required", -5, "gpu_required",
             "Forces Azure/AWS VM via Compute Gallery; significantly slower launch and higher cost"),
-    Penalty("GUI-only setup", -5, "gui_only_setup",
-            "Initial configuration can only be done through a GUI; no automation path"),
-    Penalty("Provisioning time over 30 min", -3, "long_provisioning",
-            "Meaningful UX degradation; Pre-Instancing required to mitigate"),
-    Penalty("No NFR / dev license", -2, "no_nfr_license",
-            "No non-production license tier found; vendor engagement required before lab authoring"),
+    # GUI-only setup penalty RETIRED per Frank (2026-04-06): once the image
+    # is built, the learner doesn't experience the GUI install. Not friction
+    # worth surfacing.
+    # Provisioning time over 30 min penalty RETIRED — replaced by the
+    # Pre-Instancing green opportunity badge that frames slow init as a
+    # Skillable feature win, not friction.
+    # No NFR / dev license penalty RETIRED — moves to Lab Access via the
+    # Training License canonical badge.
     Penalty("Socket licensing (ESX) >24 vCPUs", -2, "socket_licensing_high",
-            "VMs split across 2 sockets above 24 vCPUs, doubling per-socket license cost"),
+            "VMs split across 2 sockets above 24 vCPUs — surfaces as evidence on the ESX Required badge"),
 )
 
 _provisioning_dimension = Dimension(
@@ -318,66 +339,70 @@ _provisioning_dimension = Dimension(
 
 
 _lab_access_badges = (
+    # NEW canonicals from the architecture sharpening (2026-04-06+):
+    Badge("Identity API", (
+        BadgeColor("green", "Vendor API can create users and assign roles per learner"),
+        BadgeColor("amber", "API exists but coverage uncertain or partial"),
+    ), notes="The user/identity/role-management piece of a Management API. When Entra ID SSO is supported on an Azure-native product, that preempts Identity API (native fabric integration beats manual API wiring)."),
+    Badge("Cred Recycling", (
+        BadgeColor("green", "Customer credentials can be reset and recycled between learners — low operational overhead"),
+        BadgeColor("amber", "Recycling exists but coverage uncertain"),
+    ), notes="Distinct from Credential Pool. Credential Pool = batch of consumable credentials that need replenishment. Cred Recycling = credentials that can be reset and reused. Scores between Entra ID SSO and Credential Pool."),
+    Badge("Training License", (
+        BadgeColor("green", "NFR / training / eval / dev license path confirmed, low friction"),
+        BadgeColor("amber", "License exists with friction — sales call, cost, short trial, enterprise-only"),
+        BadgeColor("red", "License is effectively blocked — credit card required + high cost + no negotiation path"),
+    ), notes="CONSOLIDATED canonical. Replaces the historical NFR Accounts, Trial Account, Credit Card Required, High License Cost badges/penalties. One canonical, three states, one source of truth for the 'can learners get into the product without prohibitive licensing friction?' question."),
+    Badge("Learner Isolation", (
+        BadgeColor("green", "Per-user / per-tenant isolation confirmed via API evidence"),
+        BadgeColor("amber", "Research can't confirm either way"),
+        BadgeColor("red", "Explicitly absent — confirmed shared multi-tenant with no isolation mechanism"),
+    ), notes="Gatekeeper canonical — always emit (green/amber/red), never 'don't emit.' Determined from API evidence about per-user provisioning capability, NOT a proxy for SaaS-only deployment. Replaces the synthetic 'No Learner Isolation' injection."),
+    # EXISTING canonicals — kept (Frank confirmed each one is distinct):
     Badge("Full Lifecycle API", (
         BadgeColor("green", "Full lifecycle API for user provisioning and management"),
-    )),
+    ), notes="Historical umbrella canonical. The Management API decomposition pattern means a comprehensive vendor API surfaces as four dimension-specific badges (Sandbox API in Provisioning, Identity API + Cred Recycling here in Lab Access, Scoring API in Scoring, Teardown API in Teardown). Full Lifecycle API stays as a single-badge shorthand for the rare case where a vendor truly has it all."),
     Badge("Entra ID SSO", (
         BadgeColor("green", "App pre-configured to use Entra ID tenant — zero credential management"),
-    )),
+    ), notes="Scope is AZURE-NATIVE APPLICATIONS ONLY. Not a generic SSO badge. For non-Azure products with SAML/OAuth, use Identity API or Manual SSO as appropriate."),
     Badge("Credential Pool", (
-        BadgeColor("green", "Credential pool recyclable between learners"),
-    )),
-    Badge("NFR Accounts Available", (
-        BadgeColor("green", "Non-production license tier available for lab authoring"),
-    )),
+        BadgeColor("green", "Pre-provisioned pool of credentials, distributed to learners (not recycled)"),
+    ), notes="Distinct from Cred Recycling. This is the consumable-pool model: customer hands over a batch of licenses, we distribute them to learners, when we run low we have to ask for more. Operationally painful but works."),
     Badge("Manual SSO", (
         BadgeColor("amber", "Azure SSO but requires manual learner login steps"),
-    )),
-    Badge("Trial Account", (
-        BadgeColor("amber", "Trial accounts available but with friction"),
-    )),
-    Badge("Credit Card Required", (
-        BadgeColor("red", "Trial accounts require credit card — hard blocker for scale"),
-    )),
+    ), notes="Distinct from Identity API. Manual SSO means SSO works but the learner has to type credentials. Identity API means we can provision per-learner identities programmatically."),
     Badge("MFA Required", (
         BadgeColor("red", "Multi-factor authentication blocks automated provisioning"),
-    )),
+    ), notes="Visible warning badge for SEs. Big penalty. Promoted to its own badge (already was) so the warning is unmissable."),
     Badge("Anti-Automation Controls", (
         BadgeColor("red", "Platform actively blocks automated account creation"),
-    )),
+    ), notes="Distinct from Learner Isolation. Anti-Automation = active blocking (CAPTCHA, bot detection, enforced rate limits). Learner Isolation = whether per-user provisioning is even possible."),
     Badge("Rate Limits", (
         BadgeColor("red", "API rate limits constrain concurrent learner provisioning"),
-    )),
-    Badge("Tenant Provisioning Lag", (
-        BadgeColor("red", "Tenant provisioning takes hours — Pre-Instancing required"),
-    )),
-    Badge("High License Cost", (
-        BadgeColor("red", "Per-learner license cost is prohibitively high for lab scale"),
-    )),
+    ), notes="Stays as its own visible badge — SE warning signal."),
 )
 
 _lab_access_signals = (
-    ScoringSignal("Full Lifecycle API", 23, "Complete API for user provisioning and management (+21 to +25)"),
-    ScoringSignal("Entra ID SSO", 20, "App uses Entra ID tenant for automatic authentication (+18 to +22)"),
-    ScoringSignal("Credential Pool", 18, "Credentials recyclable between learners (+16 to +20)"),
-    ScoringSignal("NFR Accounts Available", 16, "Non-production license tier confirmed (+14 to +18)"),
+    ScoringSignal("Full Lifecycle API", 23, "Complete API for user provisioning and management (+21 to +25) — historical umbrella, see Identity API + Cred Recycling for the decomposed badges"),
+    ScoringSignal("Entra ID SSO", 20, "App uses Entra ID tenant for automatic authentication — Azure-native applications only (+18 to +22)"),
+    ScoringSignal("Identity API", 19, "Vendor API can create users and assign roles per learner — slightly below Entra ID SSO because it requires manual API wiring vs native fabric integration"),
+    ScoringSignal("Cred Recycling", 18, "Credentials reset and recycled between learners — low operational overhead (between Entra ID SSO and Credential Pool)"),
+    ScoringSignal("Credential Pool", 16, "Pre-provisioned consumable credential pool — operationally painful but works (+14 to +18)"),
+    ScoringSignal("Training License", 16, "NFR / training / eval / dev license path confirmed — green state of the consolidated badge (+14 to +18)"),
     ScoringSignal("Manual SSO", 12, "SSO available but manual login steps required (+10 to +14)"),
-    ScoringSignal("Trial Account", 7, "Trial accounts available with some friction (+5 to +10)"),
 )
 
 _lab_access_penalties = (
-    Penalty("Credit Card Required", -10, "credit_card_required",
-            "Trial accounts require credit card — fundamentally constrains scale"),
     Penalty("MFA Required", -10, "mfa_required",
             "Blocks automated task scoring; falls back to MCQ/AI Vision only"),
     Penalty("Anti-Automation Controls", -5, "anti_automation",
             "Platform actively blocks automated account creation"),
     Penalty("Rate Limits", -5, "rate_limits",
             "API rate limits constrain concurrent learner provisioning"),
-    Penalty("Tenant Provisioning Lag", -5, "tenant_lag",
-            "Tenant provisioning takes hours; Pre-Instancing required"),
-    Penalty("High License Cost", -5, "high_license_cost",
-            "Per-learner license cost is prohibitively high for lab scale"),
+    # Credit Card Required, Tenant Provisioning Lag, High License Cost
+    # penalties removed — folded into Training License (red state) and
+    # Sandbox API (amber state) as evidence on the consolidated canonical
+    # badges. The visible badges carry both the user warning and the math.
 )
 
 _lab_access_dimension = Dimension(
@@ -392,37 +417,32 @@ _lab_access_dimension = Dimension(
 
 
 _scoring_badges = (
-    Badge("API Scorable (rich)", (
-        BadgeColor("green", "Rich API surface for validating learner work programmatically"),
-    )),
-    Badge("API Scorable (partial)", (
-        BadgeColor("amber", "Some API surface but incomplete coverage"),
-    )),
-    Badge("Script Scorable (strong)", (
+    Badge("Scoring API", (
+        BadgeColor("green", "Vendor REST API for validating learner work programmatically — rich state validation"),
+        BadgeColor("amber", "API exists but coverage uncertain or partial"),
+    ), notes="Canonical name (replaces 'API Scorable (rich)' / 'API Scorable (partial)' which were dimension-confusing). When emitted, the product-specific REST API details (Diligent's developer.diligent.com, Cohesity's REST API v2, etc.) live in evidence on hover, NEVER in the badge name."),
+    Badge("Script Scoring", (
         BadgeColor("green", "PowerShell/CLI/Bash scripts can validate config state comprehensively"),
-    )),
-    Badge("Script Scorable (partial)", (
         BadgeColor("amber", "Some scriptable surface but gaps in coverage"),
-    )),
+    ), notes="Frank: don't flatten this one. Two states (green/amber) reflecting whether the product has rich scripting surface or limited."),
+    Badge("AI Vision", (
+        BadgeColor("green", "GUI-driven product where state is visually evident — AI Vision is the right tool"),
+        BadgeColor("amber", "AI Vision usable but visual state ambiguous"),
+    ), notes="Renamed from 'AI Vision Scorable' (drop 'Scorable' suffix — already in Scoring dimension, no need to repeat). AI Vision is a PEER scoring method, not a fallback. Green when it's the right tool for a GUI-heavy product. Retire 'fallback' language everywhere."),
     Badge("Simulation Scorable", (
         BadgeColor("amber", "Simulation environment supports scoring via guided interaction"),
-    )),
-    Badge("AI Vision Scorable", (
-        BadgeColor("amber", "GUI-only product — AI Vision evaluates screen state"),
-    )),
-    Badge("MCQ Scorable", (
+    ), notes="SE clarification pending: when can/can't we score within a simulation? Should this ever be red? Frank flagged for SE input."),
+    Badge("MCQ Scoring", (
         BadgeColor("amber", "No programmatic surface — knowledge-check questions only"),
-    )),
+    ), notes="The genuine fallback. Used when no environment state is available to validate (knowledge-only assessment)."),
 )
 
 _scoring_signals = (
-    ScoringSignal("API Scorable (rich)", 14, "Rich API for validating learner work (+13 to +15)"),
-    ScoringSignal("API Scorable (partial)", 11, "Partial API surface (+9 to +13)"),
-    ScoringSignal("Script Scorable (strong)", 12, "Strong script-based validation (+11 to +14)"),
-    ScoringSignal("Script Scorable (partial)", 9, "Partial script surface (+7 to +11)"),
-    ScoringSignal("Simulation Scorable", 8, "Simulation scoring via guided interaction (+7 to +10)"),
-    ScoringSignal("AI Vision Scorable", 6, "AI Vision evaluates screen state (+5 to +8)"),
-    ScoringSignal("MCQ Scorable", 4, "Knowledge-check questions only (+3 to +5)"),
+    ScoringSignal("Scoring API", 14, "Vendor REST API for state validation — green tier"),
+    ScoringSignal("Script Scoring", 12, "Strong script-based validation"),
+    ScoringSignal("AI Vision", 11, "AI Vision is the right tool for this GUI-heavy product — green tier (peer to API/Script, not a fallback)"),
+    ScoringSignal("Simulation Scorable", 8, "Simulation scoring via guided interaction"),
+    ScoringSignal("MCQ Scoring", 4, "Knowledge-check questions only — the genuine fallback"),
 )
 
 _scoring_dimension = Dimension(
@@ -436,32 +456,30 @@ _scoring_dimension = Dimension(
 
 
 _teardown_badges = (
-    Badge("Automatic (VM/Container)", (
-        BadgeColor("green", "Snapshot revert is automatic — teardown is never a concern"),
-    )),
-    Badge("Teardown APIs (full)", (
-        BadgeColor("green", "Complete API for environment cleanup and deprovisioning"),
-    )),
-    Badge("Teardown APIs (partial)", (
+    # NEW canonicals from the architecture sharpening:
+    Badge("Datacenter", (
+        BadgeColor("green", "Skillable hosts the environment (Hyper-V, ESX, Container, OR Simulation) — teardown is automatic via snapshot revert or platform cleanup"),
+    ), notes="Renamed from 'Automatic (VM/Container)'. Cleaner name. Fires green for ANY Skillable-hosted path including Simulation (Frank: simulation runs in our infra, teardown is automatic there too)."),
+    Badge("Teardown API", (
+        BadgeColor("green", "Vendor API covers environment cleanup and deprovisioning"),
         BadgeColor("amber", "Some teardown API coverage but gaps remain"),
-    )),
-    Badge("No Teardown API", (
-        BadgeColor("red", "No programmatic teardown — manual cleanup required"),
-    )),
+    ), notes="CONSOLIDATED. Replaces 'Teardown APIs (full)' + 'Teardown APIs (partial)' — one canonical, two color states. Per the meta-principle (one badge, color carries the nuance)."),
+    Badge("Manual Teardown", (
+        BadgeColor("red", "No teardown mechanism — manual cleanup required between learners"),
+    ), notes="NEW red blocker badge. Replaces the hidden 'No Teardown API' penalty so SEs see the warning. When this fires, the seller knows teardown is going to be a real build task."),
     Badge("Orphan Risk", (
-        BadgeColor("red", "Incomplete teardown may leave orphaned resources or accounts"),
-    )),
+        BadgeColor("amber", "Incomplete teardown may leave orphaned resources or accounts even when API exists"),
+    ), notes="Frank: keep this. Even Azure has services with orphan risk. Distinct from Manual Teardown — Orphan Risk fires alongside Teardown API amber when there's coverage but with gaps."),
 )
 
 _teardown_signals = (
-    ScoringSignal("Automatic (VM/Container)", 25, "VM/container labs tear down automatically (+25)"),
-    ScoringSignal("Teardown APIs (full)", 22, "Complete teardown API coverage (+20 to +25)"),
-    ScoringSignal("Teardown APIs (partial)", 16, "Partial teardown API coverage (+12 to +20)"),
+    ScoringSignal("Datacenter", 25, "Skillable-hosted environment teardown — automatic via snapshot revert or platform cleanup"),
+    ScoringSignal("Teardown API", 22, "Vendor API covers cleanup — green tier"),
 )
 
 _teardown_penalties = (
-    Penalty("No Teardown API", -10, "no_teardown_api",
-            "No programmatic teardown available — manual cleanup between learners"),
+    Penalty("Manual Teardown", -10, "manual_teardown",
+            "No programmatic teardown — manual cleanup required between learners"),
     Penalty("Orphan Risk", -5, "orphan_risk",
             "Incomplete teardown may leave orphaned resources, accounts, or data"),
 )
@@ -1032,6 +1050,18 @@ CEILING_FLAGS: dict[str, dict] = {
     # When the AI emits any of these flags, Product Labability cannot exceed
     # the listed max_score regardless of how the dimension math came out.
     # The math layer enforces this — the AI cannot bypass it.
+    #
+    # Architecture sharpening (in-progress refactor): `saas_only` and
+    # `multi_tenant_only` were historically scoring caps. They are now
+    # CLASSIFICATION METADATA ONLY — they describe what the product IS
+    # (deployment shape) without capping the score. The scoring cap for
+    # SaaS products comes from the new `Sandbox API` canonical badge: when
+    # research confirms there is no provisioning API, the math layer applies
+    # a cap based on whether Simulation is still viable.
+    #
+    # Both flags remain in POOR_MATCH_FLAGS so existing reporting and
+    # filtering keeps working. Their max_score is set to 100 (no effective
+    # cap) so old cached analyses don't suddenly drop in score.
     "bare_metal_required": {
         "max_score": 5,
         "reason": "Physical hardware required — no virtualization path",
@@ -1041,22 +1071,25 @@ CEILING_FLAGS: dict[str, dict] = {
         "reason": "No API automation feasible — manual provisioning only",
     },
     "saas_only": {
-        "max_score": 18,
-        "reason": "Pure SaaS with no per-learner sandbox API",
+        "max_score": 100,
+        "reason": "Classification metadata only — Sandbox API badge drives the cap",
     },
     "multi_tenant_only": {
-        "max_score": 15,
-        "reason": "Shared multi-tenant — no learner isolation possible",
+        "max_score": 100,
+        "reason": "Classification metadata only — Sandbox API badge drives the cap",
     },
 }
 
 # Subset of CEILING_FLAGS that imply the product cannot offer per-learner
-# isolation. Used by the render-time badge normalizer to deterministically
-# inject a "No Learner Isolation" badge when the AI didn't emit one.
-ISOLATION_BLOCKING_CEILING_FLAGS: frozenset[str] = frozenset({
-    "saas_only",
-    "multi_tenant_only",
-})
+# isolation. Historically used by the render-time normalizer to inject a
+# synthetic "No Learner Isolation" badge.
+#
+# RETIRED in the in-progress refactor: the `Learner Isolation` canonical
+# badge in Lab Access (added below) now carries this signal directly,
+# emitted by the AI based on research evidence rather than synthesized
+# from a deployment-model proxy. Frozenset is empty so the synthetic
+# injection short-circuits without removing the call site.
+ISOLATION_BLOCKING_CEILING_FLAGS: frozenset[str] = frozenset()
 
 # Dimension that hosts the No Learner Isolation badge — derived at module
 # import time so it tracks any future renames in the Pillar definitions
@@ -1067,27 +1100,17 @@ LAB_ACCESS_DIMENSION_NAME = "Lab Access"
 # fails to emit a badge that the deployment model demands. Each entry
 # is a complete badge dict with a `claim_template` whose {flag_label}
 # placeholder gets the human-readable ceiling flag name at render time.
-SYNTHETIC_BADGES: dict[str, dict] = {
-    "no_learner_isolation": {
-        "name": "No Learner Isolation",
-        "color": "red",
-        "qualifier": "Blocker",
-        "confidence_level": "indicated",
-        "source_title": "Derived from product deployment model",
-        "claim_template": (
-            "This product is {flag_label} with no per-learner sandbox or "
-            "tenant provisioning mechanism — there is no path to isolate "
-            "learner activity, which is the foundational requirement for "
-            "hands-on labs."
-        ),
-        # Friendly labels for the {flag_label} placeholder, keyed by which
-        # ISOLATION_BLOCKING_CEILING_FLAGS triggered the injection
-        "flag_labels": {
-            "multi_tenant_only": "multi-tenant SaaS",
-            "saas_only":         "SaaS-only",
-        },
-    },
-}
+#
+# RETIRED in the in-progress refactor: the No Learner Isolation synthetic
+# injection was a proxy mechanism that fired whenever saas_only or
+# multi_tenant_only was set. It is replaced by the new `Learner Isolation`
+# canonical badge in Lab Access (green/amber/red gatekeeper, always emit).
+# The canonical fires from research evidence about per-user provisioning
+# capability rather than from a deployment-model proxy.
+#
+# Dict left empty (not removed) so the call site in scoring_math /
+# render-time normalizer continues to compile and short-circuits cleanly.
+SYNTHETIC_BADGES: dict[str, dict] = {}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1567,26 +1590,24 @@ DEPLOYMENT_MODELS = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 POOR_MATCH_FLAGS = (
+    # Hard blockers / ceilings
     "bare_metal_required",
     "no_api_automation",
+    # Classification metadata (no longer scoring caps — see CEILING_FLAGS notes)
     "saas_only",
     "multi_tenant_only",
+    # Friction badges with math impact
     "gpu_required",
     "mfa_required",
-    "credit_card_required",
-    "pii_required",
-    "consumer_product",
-    "no_scoring_api",
-    "no_nfr_license",
-    "gui_only_setup",
-    "long_provisioning",
-    "socket_licensing_high",
     "anti_automation",
     "rate_limits",
-    "tenant_lag",
-    "high_license_cost",
+    "socket_licensing_high",
+    # Pillar 2 / instructional flags
+    "pii_required",
+    "consumer_product",
+    # Teardown flags
     "orphan_risk",
-    "no_teardown_api",
+    "manual_teardown",
 )
 
 
