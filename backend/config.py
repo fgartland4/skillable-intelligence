@@ -41,7 +41,6 @@ def _get_framework_last_modified() -> str:
     """
     framework_files = [
         _Path(__file__).parent / "scoring_config.py",
-        _Path(__file__).parent / "prompts" / "scoring_template.md",
         _Path(__file__).parent / "prompts" / "discovery.txt",
         _Path(__file__).parent / "knowledge" / "skillable_capabilities.json",
         _Path(__file__).parent / "knowledge" / "delivery_patterns.json",
@@ -78,15 +77,10 @@ def validate_startup() -> None:
     if not os.path.exists(_BENCHMARKS_PATH):
         errors.append(f"benchmarks_new.json not found at {_BENCHMARKS_PATH}")
 
-    # Discovery prompt (still a static file — not part of Prompt Generation System)
+    # Discovery prompt (used by scorer.discover_products_with_claude)
     discovery_path = os.path.join(_PROMPTS_DIR, "discovery.txt")
     if not os.path.exists(discovery_path):
         errors.append(f"Discovery prompt not found: {discovery_path}")
-
-    # Scoring template (part of Prompt Generation System)
-    template_path = os.path.join(_PROMPTS_DIR, "scoring_template.md")
-    if not os.path.exists(template_path):
-        errors.append(f"Scoring template not found: {template_path}")
 
     # Validate scoring_config loads without error
     try:
