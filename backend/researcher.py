@@ -21,9 +21,15 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urljoin
+
+from models import (
+    LabAccessFacts, ProductLababilityFacts, ProvisioningFacts,
+    ScoringFacts, TeardownFacts,
+)
 
 log = logging.getLogger(__name__)
 
@@ -591,12 +597,302 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
 
     page_contents = _fetch_pages_parallel(pages_to_fetch)
 
+    # ── Step 2 (2026-04-08): Research → Store layer for Pillar 1 ────────────
+    # Run structured fact extraction per product in parallel.  This populates
+    # the ProductLababilityFacts drawer with truth-only typed primitives that
+    # the Pillar 1 scorer (Step 3) will read.  The legacy monolithic scoring
+    # call still runs in scorer.py until Step 5 — both paths coexist during
+    # the rebuild so we never have a half-broken system.
+    product_facts: dict[str, ProductLababilityFacts] = {}
+    with ThreadPoolExecutor(max_workers=min(len(selected_products), 5) or 1) as ex:
+        futures = {
+            ex.submit(
+                extract_product_labability_facts,
+                p.get("name", ""),
+                search_results,
+                page_contents,
+            ): p.get("name", "")
+            for p in selected_products
+        }
+        for future in as_completed(futures, timeout=120):
+            name = futures[future]
+            try:
+                product_facts[name] = future.result()
+            except Exception as e:
+                log.warning("Pillar 1 fact extraction failed for %s: %s", name, e)
+                product_facts[name] = ProductLababilityFacts()
+
     return {
         "company_name": company_name,
         "selected_products": selected_products,
         "search_results": search_results,
         "page_contents": page_contents,
+        "product_labability_facts": product_facts,
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Pillar 1 Fact Extraction — Research → Store layer
+#
+# Truth-only structured extraction.  Reads raw search results + fetched pages
+# for one product and produces a ProductLababilityFacts dataclass.  No
+# scoring, no badging, no Skillable interpretation — just typed primitives
+# describing what the product IS.
+#
+# Per Frank 2026-04-07: "We're storing facts that have enough context to be
+# scored later."  The prompt below describes the schema and demands JSON
+# matching it exactly; downstream Pillar 1 scoring (Step 3) is a pure-Python
+# lookup against these primitives.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_PRODUCT_LABABILITY_FACTS_PROMPT = """You are a research analyst extracting structured facts about a software product so they can be scored later by a separate system.
+
+Your job is TRUTH ONLY.  You are not scoring, not classifying as good/bad, not picking winners.  You are extracting typed facts about how the product can be deployed, how learners log in, how state can be validated, and how cleanup works.
+
+Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no markdown):
+
+{
+  "provisioning": {
+    "description": "<1-3 sentence narrative of the product's deployment shape>",
+    "runs_as_installable": <bool>,
+    "runs_as_azure_native": <bool>,
+    "runs_as_aws_native": <bool>,
+    "runs_as_container": <bool>,
+    "runs_as_saas_only": <bool>,
+    "supported_host_os": [<"windows" and/or "linux">],
+    "has_sandbox_api": <bool>,
+    "sandbox_api_granularity": "<rich|partial|none>",
+    "is_multi_vm_lab": <bool>,
+    "has_complex_topology": <bool>,
+    "is_large_lab": <bool>,
+    "has_pre_instancing_opportunity": <bool>,
+    "needs_gpu": <bool>,
+    "needs_bare_metal": <bool>,
+    "needs_gcp": <bool>
+  },
+  "lab_access": {
+    "description": "<1-3 sentence narrative of how learners actually authenticate>",
+    "user_provisioning_api_granularity": "<rich|partial|none>",
+    "auth_model": "<entra_native_tenant|entra_msft_id|sso_saml|sso_oidc|oauth|product_credentials|api_key|none>",
+    "credential_lifecycle": "<recyclable|pool_only|none>",
+    "learner_isolation": "<confirmed|unknown|absent>",
+    "training_license": "<low_friction|medium_friction|blocked|none>",
+    "has_mfa_blocker": <bool>,
+    "has_anti_automation": <bool>,
+    "has_rate_limit_blocker": <bool>
+  },
+  "scoring": {
+    "description": "<1-3 sentence narrative of state-validation surfaces>",
+    "state_validation_api_granularity": "<rich|partial|none>",
+    "scriptable_via_shell_granularity": "<full|partial|none>",
+    "gui_state_visually_evident_granularity": "<full|partial|none>",
+    "simulation_scoring_viable": <bool>
+  },
+  "teardown": {
+    "description": "<1-3 sentence narrative of vendor-side cleanup capabilities>",
+    "vendor_teardown_api_granularity": "<rich|partial|none>",
+    "has_orphan_risk": <bool>
+  }
+}
+
+═══ FIELD GUIDANCE ═══
+
+provisioning.runs_as_*: how the product can ACTUALLY be deployed.  Multiple may be true (a product that ships as both an installable and a Docker image is both runs_as_installable AND runs_as_container).  If the only way to use the product is the vendor's hosted service, runs_as_saas_only is true and the others are false.
+
+provisioning.sandbox_api_granularity: does the product expose an API that can spin up an isolated sandbox/tenant on demand?
+  - "rich"    = full create/configure/delete cycle
+  - "partial" = some endpoints but missing pieces (e.g. create works, delete doesn't)
+  - "none"    = no documented sandbox provisioning API
+
+provisioning.has_pre_instancing_opportunity: true ONLY when documentation explicitly indicates slow first-launch, slow cluster initialization, or slow tenant warm-up that would benefit from pre-warming environments.
+
+lab_access.auth_model: how the END USER authenticates to the running product.
+  - "entra_native_tenant" — Skillable provisions in a controlled Entra tenant; in-lab username + password are displayed
+  - "entra_msft_id"       — Product accepts the learner's own personal/work Microsoft account
+  - "sso_saml" / "sso_oidc" — Generic SAML / OIDC SSO
+  - "oauth"               — OAuth flow (rare for human login)
+  - "product_credentials" — Product manages its own user database; per-learner accounts are created inside the product
+  - "api_key"             — Auth is via API key (developer-tool products)
+  - "none"                — No documented auth model
+
+lab_access.user_provisioning_api_granularity: does the vendor expose an API to create per-learner users / roles?  Same rich/partial/none ladder.
+
+lab_access.credential_lifecycle:
+  - "recyclable" — credentials can be reset and reused between learners
+  - "pool_only"  — a pool of accounts must be reused; no per-learner reset
+  - "none"       — no documented lifecycle
+
+lab_access.learner_isolation: can two learners run side-by-side without seeing each other's data?
+  - "confirmed" — explicitly documented
+  - "unknown"   — not documented either way
+  - "absent"    — explicitly shared / single-tenant only
+
+lab_access.training_license: what's the friction to get a non-production / NFR / training license?
+  - "low_friction"    — public NFR / dev tier / free trial available
+  - "medium_friction" — partner / signup required
+  - "blocked"         — no path documented
+  - "none"            — N/A (e.g. open-source)
+
+scoring.*_granularity: state-validation surfaces.  rich/full means broad coverage; partial means some areas; none means absent.  These are PRODUCT capabilities — not whether a particular lab uses them.
+
+scoring.simulation_scoring_viable: would a simulation-based lab be a credible alternative for this product (true ONLY for products where the real thing is impossible to provision and the workflows could be faithfully reproduced).
+
+teardown.vendor_teardown_api_granularity: only relevant when the product runs as SaaS / cloud-only.  For installable / container / Hyper-V products, datacenter snapshot teardown handles cleanup automatically and this field can be "none" without penalty downstream.
+
+teardown.has_orphan_risk: true when there's documented risk of resources being left behind (orphaned tenants, dangling licenses, unbilled resources) after a learner session ends.
+
+═══ TRUTH DISCIPLINE ═══
+
+If the research doesn't say, use the conservative neutral value (false / "none" / "unknown").  Do not guess.  Do not apply your own knowledge of the product — use ONLY the research provided.  If a field cannot be determined from the research, leave it at the neutral default rather than fabricating.
+
+Return ONLY the JSON object.  No prose, no markdown, no code fence."""
+
+
+def _build_pillar_1_fact_context(name: str, search_results: dict, page_contents: dict) -> str:
+    """Build the per-product research context for Pillar 1 fact extraction.
+
+    Mirrors `scorer._build_product_context` shape so the AI sees the same
+    raw research the legacy scoring path sees — but only the search keys
+    relevant to Pillar 1 dimensions (provisioning, lab access, scoring,
+    teardown).  Pillar 2 / Pillar 3 keys are intentionally excluded.
+    """
+    lines = [f"# Research for: {name}"]
+
+    pillar_1_keys = [
+        f"tech_{name}", f"deploy_{name}", f"docker_{name}", f"nfr_{name}",
+        f"api_{name}", f"openapi_{name}", f"api_auth_{name}", f"api_lifecycle_{name}",
+        f"per_tenant_{name}", f"sandbox_tenant_{name}", f"identity_{name}",
+        f"cred_recycle_{name}", f"training_license_{name}",
+        f"api_state_{name}", f"cli_{name}",
+        f"sandbox_{name}",
+        f"gpu_{name}", f"init_time_{name}", f"nested_virt_{name}", f"cloud_pref_{name}",
+    ]
+    for key in pillar_1_keys:
+        for r in search_results.get(key, []):
+            title = r.get("title", "")
+            url = r.get("url", "")
+            snippet = r.get("snippet", "")
+            lines.append(f"- **{title}** ({url}): {snippet}")
+
+    page_key_labels = [
+        (name, "Documentation"),
+        (f"api_{name}", "API Reference"),
+        (f"openapi_{name}", "OpenAPI / Swagger Spec"),
+        (f"api_lifecycle_{name}", "API Lifecycle Docs"),
+        (f"docs_{name}", "Docs Page"),
+    ]
+    for key, label in page_key_labels:
+        if key in page_contents:
+            lines.append(f"\n### {label}:")
+            lines.append(page_contents[key])
+
+    return "\n".join(lines)
+
+
+def _coerce_facts_dict_to_dataclass(raw: dict) -> ProductLababilityFacts:
+    """Parse the JSON the model returned into the typed dataclass.
+
+    Defensive: drops unknown keys, supplies neutral defaults for missing
+    keys, never raises on field-shape mismatch.  This keeps a single bad
+    Claude response from blowing up the whole research run.
+    """
+    def _str(v) -> str: return str(v) if v is not None else ""
+    def _bool(v) -> bool: return bool(v) if v is not None else False
+    def _list_str(v) -> list:
+        return [str(x) for x in v] if isinstance(v, list) else []
+
+    prov_raw = raw.get("provisioning", {}) or {}
+    provisioning = ProvisioningFacts(
+        description=_str(prov_raw.get("description")),
+        runs_as_installable=_bool(prov_raw.get("runs_as_installable")),
+        runs_as_azure_native=_bool(prov_raw.get("runs_as_azure_native")),
+        runs_as_aws_native=_bool(prov_raw.get("runs_as_aws_native")),
+        runs_as_container=_bool(prov_raw.get("runs_as_container")),
+        runs_as_saas_only=_bool(prov_raw.get("runs_as_saas_only")),
+        supported_host_os=_list_str(prov_raw.get("supported_host_os")),
+        has_sandbox_api=_bool(prov_raw.get("has_sandbox_api")),
+        sandbox_api_granularity=_str(prov_raw.get("sandbox_api_granularity")),
+        is_multi_vm_lab=_bool(prov_raw.get("is_multi_vm_lab")),
+        has_complex_topology=_bool(prov_raw.get("has_complex_topology")),
+        is_large_lab=_bool(prov_raw.get("is_large_lab")),
+        has_pre_instancing_opportunity=_bool(prov_raw.get("has_pre_instancing_opportunity")),
+        needs_gpu=_bool(prov_raw.get("needs_gpu")),
+        needs_bare_metal=_bool(prov_raw.get("needs_bare_metal")),
+        needs_gcp=_bool(prov_raw.get("needs_gcp")),
+    )
+
+    la_raw = raw.get("lab_access", {}) or {}
+    lab_access = LabAccessFacts(
+        description=_str(la_raw.get("description")),
+        user_provisioning_api_granularity=_str(la_raw.get("user_provisioning_api_granularity")),
+        auth_model=_str(la_raw.get("auth_model")),
+        credential_lifecycle=_str(la_raw.get("credential_lifecycle")),
+        learner_isolation=_str(la_raw.get("learner_isolation")),
+        training_license=_str(la_raw.get("training_license")),
+        has_mfa_blocker=_bool(la_raw.get("has_mfa_blocker")),
+        has_anti_automation=_bool(la_raw.get("has_anti_automation")),
+        has_rate_limit_blocker=_bool(la_raw.get("has_rate_limit_blocker")),
+    )
+
+    sc_raw = raw.get("scoring", {}) or {}
+    scoring = ScoringFacts(
+        description=_str(sc_raw.get("description")),
+        state_validation_api_granularity=_str(sc_raw.get("state_validation_api_granularity")),
+        scriptable_via_shell_granularity=_str(sc_raw.get("scriptable_via_shell_granularity")),
+        gui_state_visually_evident_granularity=_str(sc_raw.get("gui_state_visually_evident_granularity")),
+        simulation_scoring_viable=_bool(sc_raw.get("simulation_scoring_viable")),
+    )
+
+    td_raw = raw.get("teardown", {}) or {}
+    teardown = TeardownFacts(
+        description=_str(td_raw.get("description")),
+        vendor_teardown_api_granularity=_str(td_raw.get("vendor_teardown_api_granularity")),
+        has_orphan_risk=_bool(td_raw.get("has_orphan_risk")),
+    )
+
+    return ProductLababilityFacts(
+        provisioning=provisioning,
+        lab_access=lab_access,
+        scoring=scoring,
+        teardown=teardown,
+    )
+
+
+def extract_product_labability_facts(
+    product_name: str,
+    search_results: dict,
+    page_contents: dict,
+) -> ProductLababilityFacts:
+    """Extract Pillar 1 facts for one product from raw research.
+
+    Builds a focused context (Pillar 1 search keys + relevant fetched
+    pages), calls Claude with the truth-only fact-extraction prompt, and
+    parses the JSON response into a ProductLababilityFacts dataclass.
+
+    On any failure (API error, parse error, missing fields), returns an
+    empty ProductLababilityFacts so the research run never crashes — the
+    Pillar 1 scorer (Step 3) will treat empty fields as neutral defaults
+    and surface that as a low-confidence dimension downstream.
+
+    NOTE: imports `_call_claude` from scorer at call time to avoid an
+    import cycle that would otherwise form once Step 5 lands.  Both
+    modules are in the Intelligence layer per CLAUDE.md, and `_call_claude`
+    is shared infrastructure — see Step 5 follow-up to extract it to a
+    dedicated llm_client module if the cycle bites.
+    """
+    from scorer import _call_claude  # local import to avoid early cycle
+    context = _build_pillar_1_fact_context(product_name, search_results, page_contents)
+    log.info("Pillar 1 fact extraction starting for %s", product_name)
+    try:
+        raw = _call_claude(
+            _PRODUCT_LABABILITY_FACTS_PROMPT,
+            context,
+            max_tokens=4000,
+        )
+    except Exception as e:
+        log.warning("Pillar 1 fact extraction Claude call failed for %s: %s", product_name, e)
+        return ProductLababilityFacts()
+    return _coerce_facts_dict_to_dataclass(raw)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

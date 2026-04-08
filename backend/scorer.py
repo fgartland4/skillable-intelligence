@@ -293,7 +293,15 @@ def _build_product_context(name: str, all_results: dict, page_contents: dict) ->
 
 def _score_single_product(company_name: str, product: dict, product_context: str,
                           company_context: str, benchmarks_text: str) -> dict:
-    """Score one product via Claude. Returns raw dict from AI."""
+    """Score one product via Claude. Returns raw dict from AI.
+
+    max_tokens raised from 16000 to 32000 2026-04-07 after Trellix
+    Wise + Trellix Endpoint Security hit the 16K ceiling mid-output
+    on a 6-product scoring run.  Claude Opus 4.6 supports 32K output
+    tokens; giving the full scoring prompt headroom avoids the
+    defensive "Analysis too large" raise path when the answer-format
+    badge vocabulary + all three pillars produce long JSON.
+    """
     user_content = "\n".join([
         f"# Score this product for: {company_name}",
         f"Product: {product.get('name', '')}",
@@ -301,7 +309,7 @@ def _score_single_product(company_name: str, product: dict, product_context: str
         company_context,
         benchmarks_text,
     ])
-    return _call_claude(SCORING_PROMPT, user_content, max_tokens=16000)
+    return _call_claude(SCORING_PROMPT, user_content, max_tokens=32000)
 
 
 def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis:
@@ -372,12 +380,23 @@ def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis
         )
 
     first = next(iter(successful.values()))
+    # Attach the Pillar 1 fact drawer extracted by researcher.research_products().
+    # Research → Store layer output flows onto each Product here so downstream
+    # Pillar 1 scoring (Step 3) can read typed primitives instead of re-parsing
+    # Claude's interpretive JSON.  Missing facts are silently left at defaults —
+    # fact extraction is best-effort and never fails the whole scoring run.
+    facts_by_product = research.get("product_labability_facts", {}) or {}
+
     products = []
     for p in selected:
         result = product_results.get(p["name"], {})
         if "_error" in result:
             continue
-        products.append(_parse_product(result))
+        parsed = _parse_product(result)
+        facts = facts_by_product.get(p["name"])
+        if facts is not None:
+            parsed.product_labability_facts = facts
+        products.append(parsed)
 
     return CompanyAnalysis(
         company_name=company_name,
