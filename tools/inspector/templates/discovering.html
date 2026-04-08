@@ -1,3 +1,23 @@
+{# ────────────────────────────────────────────────────────────────────────
+   Discovering — product search progress page
+
+   Renders the Standard Search Modal (see _search_modal.html) as an overlay
+   on a minimal page.  All long-running search flows in Inspector use the
+   SAME shared modal — there is ONE progress UI in the platform, not a
+   per-page custom implementation.
+
+   Frank 2026-04-07: "We should not have multiple search. There should be
+   one search modal, and the middle is the part that should be different."
+   This page was a pre-Platform-Foundation legacy custom page until it was
+   migrated here.  DO NOT reintroduce page-specific progress CSS / JS /
+   markup on this page — reuse the shared macros from _search_modal.html.
+
+   SSE contract: /inspector/discover/progress/<discovery_id> publishes
+     'status:<text>'  → appears as the modal status line
+     'done:<id>'      → triggers redirect to /inspector/product-selection/<id>
+     'error:<msg>'    → shows an error state inside the shared modal
+   ──────────────────────────────────────────────────────────────────────── #}
+{% import '_search_modal.html' as sm %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +27,7 @@
     <title>Researching {{ company_name }}... — Skillable Intelligence</title>
     <style>
         {% include '_theme.html' %}
+        {{ sm.styles() }}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -17,282 +38,37 @@
             background-size: 48px 48px;
             color: var(--sk-text);
             min-height: 100vh;
-            display: flex; flex-direction: column;
         }
-        .waiting-page-content {
-            flex: 1;
-            display: flex; align-items: center; justify-content: center;
-            padding: 32px 16px;
-        }
-        .card {
-            background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 20px; padding: 40px 44px 28px;
-            text-align: center; max-width: 520px; width: 92%;
-            box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 30px 80px rgba(0,0,0,0.5);
-            position: relative;
-        }
-        .eyebrow {
-            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--sk-accent); margin-bottom: 10px;
-        }
-        .company-name {
-            font-size: 1.7rem; font-weight: 800; color: var(--sk-text);
-            margin-bottom: 22px; letter-spacing: -0.02em;
-        }
-        .status {
-            color: var(--sk-text-muted); font-size: 0.92rem;
-            min-height: 22px; margin-bottom: 16px;
-            transition: opacity 0.45s ease;
-        }
-        .dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 6px; }
-        .dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--sk-accent);
-            animation: pulse 1.4s ease-in-out infinite;
-        }
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse {
-            0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Bottom: progress bar + ill/check mark */
-        .bottom-row {
-            display: flex; align-items: center; gap: 14px;
-            margin-top: 22px; padding-top: 18px;
-            border-top: 1px solid var(--sk-border);
-        }
-        .bottom-left { flex: 1; text-align: left; }
-        .progress-track {
-            width: 100%; height: 3px; background: var(--sk-border);
-            border-radius: 2px; overflow: hidden; margin-bottom: 8px;
-        }
-        .progress-fill {
-            height: 100%; width: 0%; background: var(--sk-accent);
-            border-radius: 2px; transition: width 1.2s ease;
-        }
-        .timer { font-size: 0.74rem; color: var(--sk-text-dim); }
-
-        .mark-svg { flex-shrink: 0; width: 32px; height: 54px; }
-        .mark-el { transition: fill 0.45s ease; }
-        @keyframes mark-pulse {
-            0%, 100% { opacity: 0.25; }
-            50% { opacity: 1; }
-        }
-        .mark-active { animation: mark-pulse 1.2s ease-in-out infinite; }
-
-        /* Checkmark celebration: 3 flashes then stays solid */
-        @keyframes check-flash {
-            0%   { opacity: 0; }
-            15%  { opacity: 1; }
-            30%  { opacity: 0; }
-            45%  { opacity: 1; }
-            60%  { opacity: 0; }
-            75%  { opacity: 1; }
-            100% { opacity: 1; }
-        }
-        .mark-check-flash { animation: check-flash 1.4s ease-in-out forwards; }
-
-        .error-state { display: none; margin-top: 18px; }
-        .error-msg {
-            color: var(--sk-score-low-soft); font-size: 0.9rem; line-height: 1.55;
-            background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.2);
-            border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
-        }
-        .btn-back {
-            display: inline-block; padding: 10px 26px;
-            background: rgba(36,237,155,0.08); border: 1px solid rgba(36,237,155,0.25);
-            color: var(--sk-accent); border-radius: 10px; font-size: 0.88rem;
-            font-weight: 600; cursor: pointer; text-decoration: none;
-        }
-        .btn-back:hover { background: rgba(36,237,155,0.15); }
-        .cancel-btn {
-            position: absolute; top: 14px; right: 18px;
-            background: none; border: none; color: var(--sk-text-dim);
-            font-size: 1.4rem; cursor: pointer; text-decoration: none;
-            line-height: 1; padding: 4px;
-        }
-        .cancel-btn:hover { color: var(--sk-text-muted); }
     </style>
 </head>
 <body>
     {% include '_nav.html' %}
-    <div class="waiting-page-content">
-    <div class="card">
-        <a href="/inspector" class="cancel-btn" title="Cancel">&times;</a>
-        <div class="eyebrow">Researching</div>
-        <div class="company-name">{{ company_name }}</div>
-        <div class="status" id="status">Searching for products...</div>
-        <div class="dots" id="dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
 
-        <div class="bottom-row">
-            <div class="bottom-left">
-                <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-                <div class="timer" id="timer">running for <strong>0:00</strong></div>
-            </div>
-            <svg class="mark-svg" xmlns="http://www.w3.org/2000/svg" viewBox="28.5 -0.5 21.5 38.5">
-                <path id="mark-i" class="mark-el mark-active"
-                    fill-rule="evenodd" clip-rule="evenodd"
-                    d="M31.8203 36.3587H35.4225V22.8284H31.8203V36.3587Z"/>
-                <path id="mark-l1" class="mark-el"
-                    fill-rule="evenodd" clip-rule="evenodd"
-                    d="M38.511 36.3587H42.118V17.5439H38.511V36.3587Z"/>
-                <path id="mark-l2" class="mark-el"
-                    fill-rule="evenodd" clip-rule="evenodd"
-                    d="M45.2032 36.3586H48.8134V10.2878H45.2032V36.3586Z"/>
-                <path id="mark-check" class="mark-el"
-                    fill-rule="evenodd" clip-rule="evenodd"
-                    d="M45.8683 0L33.957 13.3398L32.3133 11.8098L29.9446 14.4504L33.9397 18.3333L48.2779 2.34634L45.8683 0Z"/>
-            </svg>
-        </div>
+    {# Shared modal markup — the modal is the page's only UI; body underneath
+       is just the background grid + nav. #}
+    {{ sm.markup() }}
 
-        <div class="error-state" id="errorState">
-            <div class="error-msg" id="errorMsg"></div>
-            <a href="/inspector" class="btn-back">&larr; New Search</a>
-        </div>
-    </div>
-    </div>
+    <script>
+    {{ sm.js() }}
+    </script>
 
     <script>
     (function() {
-        const css = getComputedStyle(document.body);
-        const COLOR_DIM    = css.getPropertyValue('--sk-border').trim();
-        const COLOR_ON     = css.getPropertyValue('--sk-text').trim();
-        const COLOR_ACCENT = css.getPropertyValue('--sk-accent').trim();
-
-        ['mark-i','mark-l1','mark-l2','mark-check'].forEach(id => {
-            document.getElementById(id).setAttribute('fill', COLOR_DIM);
+        // Open the shared search modal wired to the discovery SSE stream.
+        // On done:<discovery_id>, redirect to the product selection page.
+        openSearchModal({
+            eyebrow: 'Researching',
+            title:   {{ company_name | tojson }},
+            sseUrl:  '/inspector/discover/progress/{{ discovery_id }}',
+            onComplete: function(payload) {
+                // payload is the discovery_id returned by the SSE 'done:' line
+                window.location.replace('/inspector/product-selection/' + payload);
+            },
+            onError: function(message) {
+                // Error state is shown inside the shared modal by default;
+                // onError is the hook for any page-specific extras.
+            },
         });
-        document.getElementById('mark-i').setAttribute('fill', COLOR_ON);
-
-        function litMark(id, color) {
-            const el = document.getElementById(id);
-            el.classList.remove('mark-active');
-            el.setAttribute('fill', color);
-        }
-        function activeMark(id, color) {
-            const el = document.getElementById(id);
-            el.setAttribute('fill', color);
-            el.classList.add('mark-active');
-        }
-        function celebrateCheck() {
-            const el = document.getElementById('mark-check');
-            el.classList.remove('mark-active');
-            el.setAttribute('fill', COLOR_ACCENT);
-            void el.getBoundingClientRect();
-            el.classList.add('mark-check-flash');
-        }
-
-        // Cycling status hints — tell a richer story about what discovery is
-        // doing while the (sparse) backend SSE status messages catch up.
-        // A real SSE status message wins for ~5s, then the cycle resumes.
-        const statusHints = [
-            "Locating the company website…",
-            "Identifying the product portfolio…",
-            "Extracting product families &amp; categories…",
-            "Detecting deployment models &amp; tech stack…",
-            "Finding training, certifications &amp; partner programs…",
-            "Mapping competitive products &amp; vendor landscape…",
-            "Pulling pricing, packaging &amp; tier signals…",
-            "Categorizing offerings against Skillable taxonomy…",
-        ];
-        const statusEl = document.getElementById("status");
-        let hintIdx = 0;
-        let pinnedUntil = 0; // timestamp until which an SSE message stays pinned
-
-        function showHint(text) {
-            statusEl.style.opacity = 0;
-            setTimeout(function() {
-                statusEl.innerHTML = text;
-                statusEl.style.opacity = 1;
-            }, 400);
-        }
-        // Start cycle
-        statusEl.innerHTML = statusHints[0];
-        setInterval(function() {
-            if (Date.now() < pinnedUntil) return; // SSE message still pinned
-            hintIdx = (hintIdx + 1) % statusHints.length;
-            showHint(statusHints[hintIdx]);
-        }, 4500);
-
-        const source = new EventSource("/inspector/discover/progress/{{ discovery_id }}");
-        let doneResultId = null;
-
-        source.onmessage = function(e) {
-            const msg = e.data;
-            if (msg.startsWith("status:")) {
-                // Pin a real backend status message for 5 seconds, then resume cycling
-                showHint(msg.slice(7));
-                pinnedUntil = Date.now() + 5000;
-            } else if (msg.startsWith("done:")) {
-                source.close();
-                doneResultId = msg.slice(5);
-                document.getElementById("status").textContent = "Complete — loading products...";
-                document.getElementById("progressFill").style.width = "100%";
-                // Make sure all three bars are lit before the check celebrates
-                litMark('mark-i',  COLOR_ON);
-                litMark('mark-l1', COLOR_ON);
-                litMark('mark-l2', COLOR_ON);
-                celebrateCheck();
-                // 1.4s flash + ~2s solid green = 3.4s before redirect
-                setTimeout(function() {
-                    window.location.replace("/inspector/product-selection/" + doneResultId);
-                }, 3400);
-            } else if (msg.startsWith("error:")) {
-                source.close();
-                showError(msg.slice(6));
-            }
-        };
-
-        source.onerror = function() {
-            source.close();
-            showError("Connection lost. Please try again.");
-        };
-
-        function showError(message) {
-            document.getElementById("status").style.display = "none";
-            document.getElementById("dots").style.display = "none";
-            document.querySelector('.bottom-row').style.display = "none";
-            document.getElementById("errorMsg").textContent = message;
-            document.getElementById("errorState").style.display = "block";
-        }
-
-        // Progress bar + mark advance — bars sequence cleanly:
-        // 0-28%   → left bar (i) pulsing
-        // 28-56%  → left lit, middle (l1) pulsing
-        // 56-85%  → left + middle lit, right (l2) pulsing
-        // (done event handles the checkmark celebration)
-        activeMark('mark-i', COLOR_ON);
-        let pct = 0;
-        let stage = 0; // 0 = i pulsing, 1 = l1 pulsing, 2 = l2 pulsing
-        setInterval(function() {
-            pct = Math.min(pct + 0.4, 85);
-            document.getElementById("progressFill").style.width = pct + "%";
-            if (stage === 0 && pct >= 28) {
-                litMark('mark-i', COLOR_ON);
-                activeMark('mark-l1', COLOR_ON);
-                stage = 1;
-            }
-            if (stage === 1 && pct >= 56) {
-                litMark('mark-l1', COLOR_ON);
-                activeMark('mark-l2', COLOR_ON);
-                stage = 2;
-            }
-        }, 300);
-
-        // Timer
-        const t0 = Date.now();
-        setInterval(function() {
-            const s = Math.floor((Date.now() - t0) / 1000);
-            document.getElementById("timer").innerHTML =
-                'running for <strong>' +
-                Math.floor(s/60) + ':' + String(s%60).padStart(2,'0') + '</strong>';
-        }, 1000);
     })();
     </script>
 </body>
