@@ -179,6 +179,59 @@ The platform is built on a clear architectural separation: **three thin tools si
 
 **Architectural enforcement:** intelligence functions in tool files are a **bug class**, not a stylistic choice. They are graded with the same severity as cache version lies and vocabulary drift. When the platform finds them, they get moved to the Intelligence layer or explicitly justified as tool-private with a comment.
 
+### The Three Layers of Intelligence — Research, Score, Badge
+
+The Intelligence layer has **three internal sub-layers** that must stay separate. Collapsing them into one step — especially one Claude call — is the primary way this platform drifts from its architecture. Every implementation must hold this separation.
+
+| Layer | Owns | Produces | Does NOT do |
+|---|---|---|---|
+| **1. Research** | Going out to the world and extracting **structured facts** about the company and its products | A populated fact drawer — install base, API signals, deployment model, partner count, event attendance, employee count, cert details, etc. | Score anything. Pick badges. Write evidence. Apply rubrics. |
+| **2. Store** | Holding the extracted facts in a **single canonical location** per fact — one source of truth | The fact drawer itself — structured data, product-level facts on `Product`, company-level facts on `CompanyAnalysis` | Logic. Computation. Presentation. |
+| **3. Score** | Applying **deterministic rules** to the stored facts to produce scores | Pillar scores, dimension scores, ACV ranges, verdicts, ceiling flags | Call Claude. Pick badges. Generate evidence. |
+| **4. Badge** | Selecting the **2–4 best contextual badges per dimension** that explain the score | Badge selections + evidence phrasing | Drive the math. Compute the score. Determine rubric weights. |
+
+**Note:** "Three Layers" is shorthand. Badge is listed as its own fourth step because it's a post-scoring concern, not a scoring input — but it sits downstream of Score as a presentation layer, not as a fifth Intelligence sub-layer. The framing is: *Research → Store → Score → Badge.*
+
+#### The collapse rule
+
+**No layer may collapse into another.** Specifically:
+
+| Forbidden pattern | Why it's forbidden |
+|---|---|
+| Research + Score in one Claude call | Scoring logic changes force re-research. Caching breaks. 4-minute Deep Dive instead of milliseconds. |
+| Score + Badge in one step | Badges become the currency of scoring. Changing a point value requires re-running Claude. Facts get trapped inside badge labels. |
+| Badge-as-scoring (the drift we caught 2026-04-07) | A badge is *context on a score*, not the score itself. The score is derived from facts via rules. Badges tell the story of WHY the score is what it is. |
+
+#### What each layer is allowed to use
+
+| Layer | Can call Claude? | Reads from | Writes to |
+|---|---|---|---|
+| **Research** | **Yes** — extracting facts from web pages is the one place Claude is used | Web pages, search results, company sites | The structured fact drawer (`Product`, `CompanyAnalysis`) |
+| **Store** | No | Nothing — it is the storage itself | Nothing — it is a location, not a process |
+| **Score** | **No** — pure Python, deterministic logic | The structured fact drawer | Score objects (`FitScore`, `ACVPotential`, etc.) |
+| **Badge** | **Optional — one tiny call per dimension for evidence phrasing**, or fully deterministic | Facts + score | Badge lists + evidence text |
+
+#### Why this matters operationally
+
+When these four layers are separated correctly:
+
+- **Re-scoring is instant and free.** Change a weight, change a baseline, change a penalty — re-run scoring from the stored fact drawer in milliseconds. No Claude calls. No wait. No per-product 4-minute Deep Dive.
+- **Cache refresh is targeted.** Research cache (the fact drawer) refreshes on age or explicit user request. Scoring recomputes whenever logic changes. The two are decoupled.
+- **Facts are Define-Once.** Install base is a number in the drawer, not a string inside a badge label. ACV Motion 1 and Pillar 2 Market Demand both read the same number from the same place. No duplication, no drift.
+- **Badges become post-scoring storytelling.** 2–4 per dimension, chosen to explain the score, not to produce it. Changing badge selection logic doesn't invalidate scores.
+- **Claude calls are minimized.** One Claude call for research (if cache miss), and optional tiny calls for badge evidence phrasing. That's it. No per-product monolithic scoring calls.
+
+#### The litmus test for any new code
+
+Before writing any code that touches the Intelligence layer, ask:
+
+1. Which of the four layers does this belong to?
+2. Am I about to collapse two layers together? If so, stop.
+3. Am I making a Claude call outside Research or Badge evidence phrasing? If so, stop.
+4. Am I storing a fact in two places? If so, stop — pick one canonical location.
+
+If any of those stops fire, the code is drifting from the architecture. Name the drift, find the right layer, and write the code there instead.
+
 ---
 
 ## How the GPs Show Up in the Platform
@@ -196,6 +249,7 @@ The platform is built on a clear architectural separation: **three thin tools si
 | **End-to-End** | Same Pillar / Dimension / Requirement model shapes research, storage, scoring, display — no translation step |
 | **Define-Once** | All framework variables in one config · referenced everywhere · change once, propagate everywhere |
 | **Layer Discipline** | Intelligence logic lives in the shared Intelligence layer (`intelligence`, `scorer`, `scoring_math`, `scoring_config`, `storage`, `models`, `prompt_generator`, `researcher`, `core`, `badge_normalization`). Tools (Inspector, Prospector, Designer) own URL handlers, request parsing, template selection — nothing more. When in doubt, default to shared. |
+| **Three Layers of Intelligence** | Research extracts structured facts → Store holds them once → Score reads them deterministically → Badge picks 2–4 contextual storytellers. No layer collapses into another. Claude runs in Research (and optionally for Badge evidence phrasing) — never in Score. |
 
 ---
 
