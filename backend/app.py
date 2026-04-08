@@ -593,12 +593,27 @@ def inspector_refresh_cache(analysis_id: str):
 
     def run_refresh():
         try:
-            push(job_id, f"status:Refreshing {len(selected)} products...")
+            total = len(selected)
+            push(job_id, f"status:Refreshing {total} products...")
+            # Trigger the scoring.html transition from "research" phase
+            # to "Claude scoring" phase.
+            push(job_id, "status:Scoring with Claude...")
+
+            # Honest per-completion progress callback — mirrors the
+            # run_scoring path so the refresh experience shows real
+            # per-product progress instead of a silent wall.
+            def _progress(product_name: str, completed: int, total_count: int) -> None:
+                push(
+                    job_id,
+                    f"status:Scored {product_name} ({completed}/{total_count})",
+                )
+
             new_analysis_id, new_product_names = score(
                 disc.get("company_name", ""),
                 selected, discovery_id,
                 discovery_data=disc,
                 force_refresh=True,
+                progress_cb=_progress,
             )
             push(job_id, f"done:{new_analysis_id}")
             if new_product_names:

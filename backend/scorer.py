@@ -696,12 +696,31 @@ _KTQ_SYSTEM_PROMPT = """You are a sales enablement expert for Skillable, a hands
 
 Your job: write Key Technical Questions for a seller about a specific product. These questions
 will be used to start a conversation with a TECHNICAL contact at the customer who can actually
-answer "does your REST API support DELETE on user records?" The seller will forward your
-exact question to that person via email or Slack.
+answer them. The seller will forward your exact question to that person via email or Slack.
 
-These questions unblock the lab build. They surface the technical details Skillable needs:
-provisioning path, identity model, scoring surface, teardown approach, NFR licensing,
-multi-tenancy model, API completeness for state validation.
+These questions unblock the lab build. They surface the technical details Skillable needs —
+BUT ONLY THE ONES THAT ACTUALLY APPLY TO THIS PRODUCT.
+
+═══ HARD RULE: ONLY ASK QUESTIONS THAT APPLY TO THIS PRODUCT ═══
+
+Before writing any question, read the `deployment_model`, `orchestration_method`, and
+`pillar_1_dimensions` you were given in the scoring context. The questions you ask MUST
+match the actual shape of this product. If a question doesn't apply, DO NOT ask it — pick
+a different question that does apply, or return fewer bullets.
+
+**Product-shape decision tree — apply BEFORE writing questions:**
+
+| If the product is... | DO ask about... | DO NOT ask about... |
+|---|---|---|
+| A VM-hosted application (Hyper-V / ESX / Docker orchestration) | NFR / eval licensing for lab use, snapshot/revert timing, identity INSIDE the VM, sample datasets for the lab, multi-VM topology, learner isolation at the VM level | Public REST APIs, Sandbox API, Scoring API, Teardown API — the VM IS the lab; teardown is snapshot revert, not an API call |
+| A SaaS / cloud service consumed via API | Sandbox API availability, rate limits, per-learner credentials, Scoring API surface for state validation, Teardown API for resource cleanup, OAuth/auth model | VM licensing, snapshot/revert — there is no VM |
+| A hybrid (SaaS queried from a VM lab) | BOTH: VM-level questions (snapshot, licensing) AND cloud-service questions (shared credential handling, API key rotation, per-learner sandbox) | Whichever side doesn't apply to the specific integration |
+| A desktop / on-prem appliance | Installer availability, license key model for non-production, default config reset between learners, hardware requirements | REST APIs unless the product specifically exposes one |
+| A physical device / hardware | Simulators, emulators, remote hands, hardware-in-the-loop options | Anything software-API-specific |
+
+**The Pillar 1 dimension summaries tell you what's already known.** If the Provisioning dimension summary says "the VM is the lab, GTI is the external service," the seller does NOT need to ask "does this have a Sandbox API" — the research already answered that. Ask about the NEXT unknown instead (licensing, snapshot timing, shared credential model).
+
+**Forbidden failure mode:** Emitting a generic `Validate Teardown API` or `Confirm API Surface` question on a product whose orchestration_method is Hyper-V and whose description makes clear it's a VM-hosted application with no public API. That's a template response, not product-specific sales enablement — and it embarrasses the seller.
 
 ═══ WHO to target — TECHNICAL ROLES ONLY ═══
 
@@ -740,13 +759,16 @@ Output JSON with this structure:
 
 Rules:
 - 2-3 bullets maximum — **but at least ONE bullet always. Never return an empty list.** If scoring evidence is thin, surface the single most important unknown you can identify (API surface, identity model, NFR licensing, etc.) and ask the clearest answerable question you can.
-- **Each bullet STARTS with a 2-3 word BOLD LABEL framed as the PROBLEM TO SOLVE** (not a topic, not a category). The label is an imperative phrase the seller reads as "this is what needs to happen." Examples of correct bold labels (2-3 words, imperative):
-  * **`**Unlock Sandbox API**`** — then the copy explains how
-  * **`**Confirm NFR Path**`** — then the copy explains how
-  * **`**Validate Teardown API**`** — then the copy explains how
-  * **`**Resolve Identity Model**`** — then the copy explains how
-  * **`**Pursue POC Credentials**`** — then the copy explains how
+- **Each bullet STARTS with a 2-3 word BOLD LABEL framed as the PROBLEM TO SOLVE** (not a topic, not a category). The label is an imperative phrase the seller reads as "this is what needs to happen." Choose labels that match the product's actual shape:
+  * **`**Unlock Sandbox API**`** — for SaaS/API products that need a per-learner sandbox
+  * **`**Confirm NFR Path**`** — for VM-hosted software that needs eval licensing
+  * **`**Secure Snapshot Revert**`** — for VM-hosted products torn down via snapshot
+  * **`**Resolve Identity Model**`** — for products where learner identity/auth inside the lab is unclear
+  * **`**Pursue POC Credentials**`** — when access itself is the unblocker
+  * **`**Clarify Shared Creds**`** — for hybrid products using shared vendor API keys
+  * **`**Rate Sample Data**`** — for products that need seeded datasets in the lab
   WRONG — topic labels with no verb: `Provisioning Path`, `Identity Model`, `API Scoring`, `NFR Licensing`. Those are categories, not problems to solve.
+  **ALSO WRONG — emitting an API-shaped label on a product with no API.** Never emit `Validate Teardown API`, `Confirm API Surface`, or `Unlock Sandbox API` on a product whose orchestration is Hyper-V / ESX and whose description makes clear it's a VM-hosted application without a public API. Read the `pillar_1_dimensions` first.
 - **Target 30 words maximum per bullet.** If you have more to say, it's a second bullet. Short and specific beats long and comprehensive.
 - **Anchor strictly to THIS product** — never reference similar products from the same company. If you're scoring Trellix Global Threat Intelligence, do NOT mention Trellix Insights or Trellix Endpoint Security in the same bullet; each product has its own briefcase.
 - Every bullet identifies a TECHNICAL role from the list above
@@ -910,15 +932,43 @@ who to find and here's the angle" qualifies. Lead with the highest-leverage one.
 
 
 def _build_briefcase_context(product: Product, company_context: str) -> str:
-    """Build the per-product context string used by all three section calls."""
+    """Build the per-product context string used by all three section calls.
+
+    KTQ needs Pillar 1 dimension summaries and badge names so it can write
+    product-shape-aware questions — e.g., "this product runs in Hyper-V and
+    is torn down by snapshot revert, so don't ask about a Teardown API."
+    Without this context the AI falls back to generic "Confirm API surface"
+    templates regardless of whether the product even has an API.
+    """
+    pl = product.fit_score.product_labability
+
+    def _dim_summary(dim):
+        return {
+            "name": dim.name,
+            "score": f"{dim.score}/{dim.weight}",
+            "summary": (dim.summary or "")[:400],
+            "badges": [
+                {"name": b.name, "color": b.color, "qualifier": b.qualifier}
+                for b in (dim.badges or [])
+            ],
+        }
+
     scoring_summary = json.dumps({
         "product": product.name,
+        "category": product.category,
+        "subcategory": product.subcategory,
+        "description": (product.description or "")[:600],
         "fit_score": product.fit_score.total,
-        "product_labability": product.fit_score.product_labability.score,
+        "product_labability": pl.score,
         "instructional_value": product.fit_score.instructional_value.score,
         "customer_fit": product.fit_score.customer_fit.score,
         "deployment_model": product.deployment_model,
         "orchestration_method": product.orchestration_method,
+        # Pillar 1 dimensions + badges drive KTQ product-shape awareness.
+        # The AI reads these to know what's already confirmed vs. still
+        # unknown about provisioning, lab access, scoring, and teardown
+        # for THIS specific product.
+        "pillar_1_dimensions": [_dim_summary(d) for d in pl.dimensions],
         "verdict": product.verdict.label if product.verdict else "",
         "contacts": [{"name": c.name, "title": c.title, "role_type": c.role_type}
                      for c in product.contacts],

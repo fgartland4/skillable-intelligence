@@ -332,16 +332,18 @@ def _format_org_type_values() -> str:
     return "\n".join(lines)
 
 
-def _format_cf_penalty_signals() -> str:
-    """Format all CF penalty signal categories as reference tables.
+def _format_rubric_penalty_signals() -> str:
+    """Format all rubric-model penalty signal categories as reference tables.
 
-    Derived from `cfg.CF_PENALTY_SIGNALS`.  The AI reads these tables to
-    know which negative signal categories are valid for each CF dimension
-    and what the exact penalty hit is.  Grouped by dimension for clarity.
+    Derived from `cfg.RUBRIC_PENALTY_SIGNALS`.  Covers BOTH Pillar 2
+    (Instructional Value) and Pillar 3 (Customer Fit).  The AI reads these
+    tables to know which negative signal categories are valid for each
+    rubric-model dimension and what the exact penalty hit is.  Grouped by
+    dimension for clarity.
     """
     # Group penalties by dimension key
     by_dimension: dict[str, list[cfg.PenaltySignal]] = {}
-    for p in cfg.CF_PENALTY_SIGNALS:
+    for p in cfg.RUBRIC_PENALTY_SIGNALS:
         by_dimension.setdefault(p.dimension, []).append(p)
 
     # Friendly dimension labels for the headings — derived from cfg.PILLARS
@@ -780,9 +782,11 @@ def _build_placeholder_map() -> dict[str, str]:
         # cfg.ORG_TYPE_NORMALIZATION)
         "CF_ORG_TYPE_VALUES": _format_org_type_values(),
 
-        # Pillar 3 CF penalty signal tables (Define-Once from
-        # cfg.CF_PENALTY_SIGNALS)
-        "CF_PENALTY_SIGNALS": _format_cf_penalty_signals(),
+        # Pillar 2 + Pillar 3 rubric-model penalty signal tables
+        # (Define-Once from cfg.RUBRIC_PENALTY_SIGNALS).  Covers Market
+        # Demand, Delivery Capacity, Build Capacity, Training Commitment,
+        # and Organizational DNA.
+        "RUBRIC_PENALTY_SIGNALS": _format_rubric_penalty_signals(),
 
         # Partner and platform lists
         "SKILLABLE_PARTNER_LMS_LIST": ", ".join(partner_lms_names),

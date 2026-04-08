@@ -1,41 +1,88 @@
-{# Standard Search Modal — reusable progress overlay used by every long-running operation.
-
-   Three sections per Frank's design:
-     1. Top    — eyebrow + operation target name
-     2. Middle — status text + animated dots (variable; future versions can render a per-stage checklist here)
-     3. Bottom — Skillable progress bar + elapsed timer
-
-   Sits as an overlay on top of any page (z-index above all page content).
-   The page underneath stays visible (slightly dimmed via backdrop) so context
-   is preserved.
-
-   USAGE:
-     {% import '_search_modal.html' as sm %}
-
-     <!-- Inside <style> block (once per page) -->
-     {{ sm.styles() }}
-
-     <!-- Once anywhere in <body> -->
-     {{ sm.markup() }}
-
-     <!-- After loading the JS function -->
-     <script>
-       {{ sm.js() }}
-     </script>
-
-     <!-- Then anywhere call -->
-     openSearchModal({
-       eyebrow: 'Refreshing',
-       title:   'Cohesity',
-       sseUrl:  '/inspector/score/progress/' + jobId,
-       onComplete: function(payload) { window.location.reload(); },
-       onError:    function(message) { alert(message); }
-     });
-
-   The SSE message contract is the existing 'status:' / 'done:' / 'error:'
-   text format published by backend push() calls. Future iterations can
-   extend the contract with structured stage events; this MVP is wire-
-   compatible with everything the platform publishes today. #}
+{# ╔═══════════════════════════════════════════════════════════════════════╗
+   ║                                                                       ║
+   ║   THE STANDARD SEARCH MODAL — THE ONE AND ONLY                        ║
+   ║                                                                       ║
+   ╠═══════════════════════════════════════════════════════════════════════╣
+   ║                                                                       ║
+   ║   There is ONE search modal in the platform. This is it.              ║
+   ║                                                                       ║
+   ║   Every long-running operation in Inspector (and eventually           ║
+   ║   Prospector + Designer) renders progress through THIS modal.         ║
+   ║   Do NOT build a separate modal, a separate progress page, or a       ║
+   ║   separate overlay for any flow — Deep Dive, refresh, discover,       ║
+   ║   product selection, briefcase generation, batch scoring. ALL of      ║
+   ║   them use this one shared component.                                 ║
+   ║                                                                       ║
+   ║   Architecture (Frank's design, locked 2026-04-04):                   ║
+   ║                                                                       ║
+   ║     ┌─────────────────────────────────────────────────┐               ║
+   ║     │  TOP      — eyebrow (verb) + title (target)    │  SHARED       ║
+   ║     ├─────────────────────────────────────────────────┤               ║
+   ║     │                                                 │               ║
+   ║     │  MIDDLE   — variable per operation              │  VARIABLE     ║
+   ║     │             small for product search            │               ║
+   ║     │             taller + more detail for deep dive  │               ║
+   ║     │                                                 │               ║
+   ║     ├─────────────────────────────────────────────────┤               ║
+   ║     │  BOTTOM   — progress bar + status text +        │  SHARED       ║
+   ║     │             counter + timer (all shared)        │               ║
+   ║     └─────────────────────────────────────────────────┘               ║
+   ║                                                                       ║
+   ║   Top and bottom are the SAME across every flow — same look,         ║
+   ║   same components, same SSE contract. Only the middle varies.        ║
+   ║                                                                       ║
+   ║   DO NOT REBUILD THIS. If you're about to create a new modal,        ║
+   ║   a new progress page, or a new overlay for a new flow, STOP.        ║
+   ║   Reuse this macro. If the middle section needs a new variant,       ║
+   ║   add the variant here, don't build a separate modal.                ║
+   ║                                                                       ║
+   ║   HISTORICAL NOTE: An earlier implementation lived in `scoring.html` ║
+   ║   as a separate full-page view with its own progress UI. That is     ║
+   ║   LEGACY. Any remaining Deep Dive references to `scoring.html` are   ║
+   ║   a pre-existing debt to migrate onto this shared modal — NOT a     ║
+   ║   license to build a second progress implementation.                 ║
+   ║                                                                       ║
+   ╠═══════════════════════════════════════════════════════════════════════╣
+   ║                                                                       ║
+   ║   USAGE — all three calls are required. Forgetting sm.styles()       ║
+   ║   was the 2026-04-07 bug that made the modal render as a tiny         ║
+   ║   unstyled block in the lower-left corner. Regression test in        ║
+   ║   tests/test_ux_consistency.py will catch it now.                    ║
+   ║                                                                       ║
+   ║     {% import '_search_modal.html' as sm %}                           ║
+   ║                                                                       ║
+   ║     <head>                                                            ║
+   ║       <style>                                                         ║
+   ║         {{ sm.styles() }}    <!-- REQUIRED — don't forget -->         ║
+   ║       </style>                                                        ║
+   ║     </head>                                                           ║
+   ║     <body>                                                            ║
+   ║       {{ sm.markup() }}      <!-- once anywhere in body -->           ║
+   ║       <script>                                                        ║
+   ║         {{ sm.js() }}        <!-- after page JS -->                   ║
+   ║       </script>                                                       ║
+   ║     </body>                                                           ║
+   ║                                                                       ║
+   ║     openSearchModal({                                                 ║
+   ║       eyebrow: 'Refreshing',                                          ║
+   ║       title:   'Cohesity',                                            ║
+   ║       sseUrl:  '/inspector/score/progress/' + jobId,                  ║
+   ║       onComplete: function(payload) { window.location.reload(); },    ║
+   ║       onError:    function(message) { alert(message); }               ║
+   ║     });                                                               ║
+   ║                                                                       ║
+   ║   SSE message contract — text-based, published by backend push():    ║
+   ║     'status:<text>'  → updates the status display                    ║
+   ║     'done:<payload>' → calls onComplete(payload)                     ║
+   ║     'error:<msg>'    → calls onError(msg)                            ║
+   ║                                                                       ║
+   ║   Decision-mode variant — `openSearchModalDecision()` shows a        ║
+   ║   refresh / ignore prompt that can transition in-place to progress   ║
+   ║   mode via `transitionSearchModalToProgress()`. Same shared modal,   ║
+   ║   different UI state — don't build a separate decision overlay.      ║
+   ║                                                                       ║
+   ╚═══════════════════════════════════════════════════════════════════════╝
+#}
 
 
 {% macro styles() %}

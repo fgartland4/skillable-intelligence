@@ -133,21 +133,27 @@ def _get_dimension_baseline(dim_key: str, context: dict | None) -> int:
     return 0
 
 
-def _build_cf_penalty_lookup() -> dict[tuple[str, str], cfg.PenaltySignal]:
-    """Map (dimension_key, signal_category) -> PenaltySignal for CF penalties.
+def _build_rubric_penalty_lookup() -> dict[tuple[str, str], cfg.PenaltySignal]:
+    """Map (dimension_key, signal_category) -> PenaltySignal for all rubric-model penalties.
 
+    Covers BOTH Pillar 2 (Instructional Value) and Pillar 3 (Customer Fit).
     The AI emits a badge with one of the penalty signal_category values
-    defined in the CF_PENALTY_SIGNALS list.  The math layer detects these
-    and applies the hit as a subtraction (positive integer in the
+    defined in the RUBRIC_PENALTY_SIGNALS list.  The math layer detects
+    these and applies the hit as a subtraction (positive integer in the
     PenaltySignal.hit field, negated when applied).
+
+    Keyed by ``(dimension, signal_category)`` so the same signal_category
+    can carry different weights in different dimensions — e.g.,
+    ``no_independent_training_market`` fires as a hard red penalty in
+    Delivery Capacity AND an amber penalty in Market Demand.
     """
     out: dict[tuple[str, str], cfg.PenaltySignal] = {}
-    for pen in cfg.CF_PENALTY_SIGNALS:
+    for pen in cfg.RUBRIC_PENALTY_SIGNALS:
         out[(pen.dimension, pen.category)] = pen
     return out
 
 
-_CF_PENALTY_LOOKUP = _build_cf_penalty_lookup()
+_RUBRIC_PENALTY_LOOKUP = _build_rubric_penalty_lookup()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -471,12 +477,16 @@ def _compute_rubric_dimension_score(dim: cfg.Dimension,
         like `Consumer Grade`) and legacy fallbacks when strength is missing.
 
       - **penalty hits** are subtractions triggered by badges whose
-        signal_category matches an entry in `CF_PENALTY_SIGNALS` (Customer
-        Fit only).  These represent diagnostic absences — no training
-        partners, no classroom delivery, long RFP process, etc.  Research
-        asymmetry matters: Delivery Capacity penalties fire on absence of
-        public evidence; Build Capacity penalties fire only on positive
-        evidence of outsourcing (taught in the prompt template).
+        signal_category matches an entry in `RUBRIC_PENALTY_SIGNALS`.  The
+        list covers BOTH Pillar 2 (Instructional Value) and Pillar 3
+        (Customer Fit) rubric-model dimensions.  Penalties represent
+        diagnostic absences — no training partners, no classroom delivery,
+        long RFP process, no independent training market, niche within
+        category, etc.  Research asymmetry matters: outward-facing
+        dimensions (Delivery Capacity, Market Demand) penalize
+        aggressively on absence of public evidence; inward-facing
+        dimensions (Build Capacity) penalize ONLY on positive evidence
+        (taught in the prompt template).
 
     Strength → color cross-check (when both present):
       green ↔ strong, amber ↔ moderate, red ↔ hard negative (uses color points)
@@ -518,12 +528,17 @@ def _compute_rubric_dimension_score(dim: cfg.Dimension,
         if not raw_name:
             continue
 
-        # CF penalty signals: if the badge's signal_category matches a
-        # PenaltySignal for this dimension, apply the penalty hit instead
-        # of normal rubric credit.  This is the mechanism for
-        # "No Training Partners", "No Classroom Delivery", "Long RFP
-        # Process", "Builds Everything", "Hard to Engage", etc.
-        penalty = _CF_PENALTY_LOOKUP.get((dim_key, category))
+        # Rubric penalty signals: if the badge's signal_category matches
+        # a PenaltySignal for this dimension, apply the penalty hit
+        # instead of normal rubric credit.  Covers BOTH pillars — Market
+        # Demand ("No Independent Training", "Niche Within Category",
+        # "Small Install Base"), Delivery Capacity ("No Training
+        # Partners", "No Classroom Delivery"), Build Capacity ("Outsourced
+        # Content"), Training Commitment ("No Customer Training"),
+        # Organizational DNA ("Long RFP Process", "Builds Everything",
+        # "Hard to Engage"), etc.  See RUBRIC_PENALTY_SIGNALS in
+        # scoring_config.py for the authoritative list.
+        penalty = _RUBRIC_PENALTY_LOOKUP.get((dim_key, category))
         if penalty is not None:
             penalties_applied.append({
                 "name": raw_name.strip(),

@@ -369,13 +369,18 @@ If the company genuinely does not fit any of these, leave it unset — the math 
 
 | Layer | What it is | How to detect | Badge examples |
 |---|---|---|---|
-| **1. Vendor-Delivered (base)** | The vendor runs training directly. Official ILT, self-paced portal, vendor-run hands-on labs. | Search the vendor's training page, academy, university, customer portal. Look for "instructor-led training," "self-paced," "on-demand courses," "lab exercises." | `Vendor-Delivered ILT`, `Vendor Self-Paced Portal`, `Vendor-Delivered Labs`, `Published Course Calendar` |
+| **1. Vendor-Delivered (base)** | The vendor runs training directly. Official ILT, self-paced portal, vendor-run hands-on labs. | Search the vendor's training page, academy, university, customer portal. Look for "instructor-led training," "self-paced," "on-demand courses," "lab exercises." | `Vendor-Delivered Training` (ONE badge; evidence text names the modes found) |
 | **2. Third-Party-Delivered (bonus)** | Independent training in the open market AND cert body curricula. | Search Coursera, Pluralsight, LinkedIn Learning, Udemy for courses on THIS SPECIFIC product. Search CompTIA, EC-Council, SANS, ISC2 curricula for product mentions. **Cross-pillar with Market Demand** — same fact fires in both. | `~15 Pluralsight Courses`, `~5 Coursera Courses`, `CompTIA Curriculum`, `EC-Council Track` |
 | **3. Auth-Partner-Delivered (TOP bonus)** | Formal Authorized Training Partner / Authorized Learning Partner program. Certified partners delivering the vendor's training at scale. | Search for "ATP," "Authorized Training Partner," "ALP," "Authorized Learning Partner," "training partner directory," "partner finder" on the vendor's site. | `Global Partner Network`, `~500 ATPs`, `Regional Partner Network` |
 
-**Key rule:** a vendor can have any subset of these three layers. Emit a separate badge for EACH layer found. A vendor with Layer 1 + Layer 2 + Layer 3 scores higher than a vendor with only Layer 1, because the delivery reach is measurably bigger. ATP / ALP programs are the TOP layer because they represent scaled multi-partner delivery maturity.
+**Key rule — ONE FACT, ONE BADGE.** A vendor can have any subset of these three layers. Emit exactly ONE badge per layer found:
 
-**Trellix example:** Trellix has Vendor-Delivered (ILT + self-paced + labs on their Education Services site) but NO Authorized Training Partner program. Emit `Vendor-Delivered ILT` strong, `Vendor Self-Paced Portal` strong, `Vendor-Delivered Labs` strong. Then also emit `No Training Partners` as the red penalty for the missing Layer 3 — it's a real gap for a vendor of Trellix's scale. Don't conflate "Trellix has no training partners" with "Trellix has no training" — the first is a specific penalty on Layer 3, the second is wrong.
+- **Layer 1** is a single `Vendor-Delivered Training` badge. The evidence text names the specific modes you found (ILT, self-paced portal, vendor-run labs, bootcamps, published course calendar). **Do NOT split Layer 1 into three separate badges** — "the vendor delivers their own training" is ONE fact, regardless of how many modes it covers.
+- **Layer 2** and **Layer 3** can be multiple badges because they represent multiple separate facts (e.g., Pluralsight has courses AND CompTIA has curriculum = two separate findings from two separate sources).
+
+A vendor with Layer 1 + Layer 2 + Layer 3 scores higher than a vendor with only Layer 1, because each layer badge carries its own rubric credit.
+
+**Trellix example:** Trellix has vendor-delivered training (ILT + self-paced + labs on their Education Services site) but NO Authorized Training Partner program. Emit ONE `Vendor-Delivered Training` badge as strong green with evidence text like "Education Services site lists instructor-led courses, a self-paced portal, and vendor-run hands-on labs." Then emit `No Training Partners` as the red penalty for the missing Layer 3 — it's a real gap for a vendor of Trellix's scale. Don't conflate "Trellix has no training partners" with "Trellix has no training" — the first is a specific penalty on Layer 3, the second is wrong.
 
 ### Research asymmetry — penalize Delivery Capacity aggressively, Build Capacity cautiously
 
@@ -398,11 +403,15 @@ Same architecture as Pillar 2: variable badge names, strength grading, signal_ca
 - **Emit penalty signals when evidence supports them** — the CF rubric includes negative signal categories with specific penalty hits. Emit them as amber or red badges with the matching signal_category; the math layer will subtract the hit.
 - **Emit gap badges ONLY when appropriate** — for Delivery Capacity (outward-facing), absence of evidence IS the signal, so penalty badges fire aggressively. For Build Capacity, penalty badges fire only on positive evidence of outsourcing — see research asymmetry above.
 
-### CF Penalty Signal Categories — emit these as penalty badges when evidence supports
+### Rubric Penalty Signal Categories — emit these as penalty badges when evidence supports
 
-The math layer recognizes specific negative signal categories and subtracts a penalty hit when the AI emits a badge with one of these categories. Badge names must follow the finding-as-name discipline (name the customer reality, not the research methodology).
+The math layer recognizes specific negative signal categories in BOTH Pillar 2 (Instructional Value) and Pillar 3 (Customer Fit), and subtracts a penalty hit when the AI emits a badge with one of these categories. Badge names must follow the finding-as-name discipline (name the customer reality, not the research methodology).
 
-{CF_PENALTY_SIGNALS}
+**Cross-pillar signals fire in BOTH dimensions.** For example, `no_independent_training_market` is a penalty in Delivery Capacity (the vendor failed to build partner reach) AND in Market Demand (the open market doesn't see enough demand to invest in training). When the evidence supports it, emit the SAME finding in BOTH dimensions — the math layer will apply the correct penalty hit to each.
+
+**This is the mechanism that prevents runaway positive scores.** A product in a high-demand category that no independent trainer teaches should NOT get full marks on Market Demand just because the category is hot. The `no_independent_training_market` penalty is how the platform enforces that.
+
+{RUBRIC_PENALTY_SIGNALS}
 
 **Badge naming for penalties: describe the customer, not the research.** "No Independent Training" is a finding about the customer's delivery reality. "Few Pluralsight Courses" is a description of how we researched it. The methodology belongs in the evidence text; the badge is the conclusion.
 

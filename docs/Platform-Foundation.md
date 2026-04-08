@@ -76,6 +76,31 @@ Every interaction makes the data sharper. No update loses prior knowledge. The p
 - Prompt changes should trigger smart invalidation, not silent drift
 - **One persistent analysis per company.** Each company has a single stable URL. Every Deep Dive run accumulates products into the same analysis without breaking the URL. Re-running with the same products is instant (cached). Re-running with new products scores only the new ones and appends them. The seller can bookmark the URL — it always reflects best current thinking.
 
+### GP6: Slow Down to Go Faster
+
+Truly understanding a problem and answering it once is dramatically faster than solving it quickly, bouncing off the wrong answer, and solving it again. This applies to people, to AI assistants, and to the platform itself.
+
+| Slow down means... | Not... |
+|---|---|
+| **Read before theorizing** | Diagnosing from memory or summary |
+| **Verify the symptom against ground truth** (the cache, the code, the actual output) | Inferring what must be happening |
+| **Present ONE grounded diagnosis, once** | A branching decision tree of maybe-fixes |
+| **Distinguish root cause from symptom** | Treating the first thing you see as the bug |
+| **Name structural questions when you spot them** | Burying them inside a code change |
+| **Check for adjacent causes before declaring independence** | Assuming two bugs are unrelated because they wear different masks |
+
+**Why this is a Guiding Principle, not a work habit:** the platform is maturing. Complexity compounds. At a certain point, the cost of a fast-but-wrong answer isn't just the rework — it's the confidence tax on every future decision that depends on the flawed one. Working slowly where it matters is how the platform stays trustworthy as it grows.
+
+**Where it shows up operationally:**
+
+- **In research:** read the cached JSON, read the code, read the docs — in that order — before proposing a fix.
+- **In scoring changes:** trace the same signal through config -> math -> prompt -> docs -> tests before touching anything. Don't stop at the first file.
+- **In UX changes:** check the shared components first. If there's already a pattern, use it; don't rebuild.
+- **In AI prompts:** verify what the AI is actually emitting from the cached output before changing the prompt. The fix may be in the data the prompt reads, not the prompt itself.
+- **In conversations:** when the right answer takes three more minutes of reading, take three more minutes of reading. A confident "I don't know yet, let me verify" is faster than two wrong answers.
+
+**GP6 and GP3 are partners.** Explainably Trustworthy (GP3) is the standard the platform must meet; Slow Down to Go Faster (GP6) is the discipline that lets it meet the standard as the platform grows.
+
 ### The End-to-End Principle
 
 The framework shapes how we **gather**, how we **store**, how we **judge**, and how we **present**. One model, end to end. The same Pillar/Dimension/Requirement structure runs through every layer — research, storage, scoring, display. No translation step. No reorganizing after the fact.
@@ -118,6 +143,7 @@ The platform is built on a clear architectural separation: **three thin tools si
 | **GP3** — Explainably Trustworthy | Confidence levels (confirmed / indicated / inferred) · evidence on hover · documentation is the in-app explainability layer · traceable from conclusion back to source |
 | **GP4** — Self-Evident Design | Variable names carry meaning · Pillar / Dimension / Requirement hierarchy is explicit · `scoring_config.py` is the Define-Once source · names you can read without a glossary |
 | **GP5** — Intelligence Compounds | One persistent analysis per company · cache sharpens, never wipes · prompt changes trigger smart invalidation · every analysis enriches what came before |
+| **GP6** — Slow Down to Go Faster | Read ground truth before theorizing · one grounded diagnosis, not a branching maybe-list · trace signals end-to-end before editing · name structural questions when you see them · the platform's trust comes from doing the right thing once, not the wrong thing fast |
 | **End-to-End** | Same Pillar / Dimension / Requirement model shapes research, storage, scoring, display — no translation step |
 | **Define-Once** | All framework variables in one config · referenced everywhere · change once, propagate everywhere |
 | **Layer Discipline** | Intelligence logic lives in the shared Intelligence layer (`intelligence`, `scorer`, `scoring_math`, `scoring_config`, `storage`, `models`, `prompt_generator`, `researcher`, `core`, `badge_normalization`). Tools (Inspector, Prospector, Designer) own URL handlers, request parsing, template selection — nothing more. When in doubt, default to shared. |

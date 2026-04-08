@@ -949,7 +949,7 @@ _market_demand_badges = (
         BadgeColor("gray", "Moderate install base"),
     )),
     Badge("~500 Users", (
-        BadgeColor("amber", "Small install base — limited training population"),
+        BadgeColor("amber", "Small install base — limited training population. Emit with signal_category=small_install_base so the penalty fires."),
     )),
     Badge("Enterprise Validated", (
         BadgeColor("green", "Enterprise adoption confirmed at scale — Fortune 500 customers named"),
@@ -1017,8 +1017,8 @@ _market_demand_badges = (
     Badge("High-Demand Category", (
         BadgeColor("green", "Product category has inherent high demand for hands-on training (cybersecurity, cloud, DevOps, data, AI)"),
     )),
-    Badge("Niche Specialty", (
-        BadgeColor("gray", "Specialist niche with real but narrow training demand — informational context"),
+    Badge("Niche Within Category", (
+        BadgeColor("amber", "Product sits inside a hot category but is itself a narrow specialty (e.g., a specific threat-intel feed inside the broader cybersecurity market). Emit with signal_category=niche_within_category so the penalty fires against the category-demand baseline."),
     )),
 )
 
@@ -1084,7 +1084,6 @@ _market_demand_rubric = Rubric(
         # These are cross-pillar — also fire in Delivery Capacity.
         "cert_body_mentions",          # CompTIA / EC-Council / SANS / ISC2 mention THIS product
         "independent_training_market", # Coursera / Pluralsight / LinkedIn Learning / Udemy courses exist
-        "no_independent_training_market",  # cross-pillar penalty — fewer than 3 courses found
         # Vendor's own ecosystem:
         "cert_ecosystem",              # vendor's own certification program
         "competitor_labs",             # other lab platforms sell training for this product
@@ -1093,7 +1092,14 @@ _market_demand_rubric = Rubric(
         # Category baseline:
         "category_demand",
         "ai_signal",
-        "enterprise_validation",
+        # Penalty answers (fire via RUBRIC_PENALTY_SIGNALS → MARKET_DEMAND_PENALTIES):
+        # These are negative findings — research asymmetry favors aggressive
+        # penalization here because the evidence is outward-facing and easy
+        # to verify.  The AI emits these as amber badges and the math layer
+        # subtracts the configured hit.
+        "no_independent_training_market",  # cross-pillar with Delivery Capacity — fewer than 3 courses found
+        "small_install_base",              # < ~1K users / tens of logos / no press
+        "niche_within_category",           # hot category, narrow specialty inside it (e.g., Trellix GTI inside cyber)
     ),
 )
 
@@ -1229,7 +1235,7 @@ _training_commitment_rubric = Rubric(
         "hands_on_learning_language",
         "compliance_training_program",
         "training_catalog_present",
-        # Negative answers (fire via CF_PENALTY_SIGNALS):
+        # Negative answers (fire via RUBRIC_PENALTY_SIGNALS):
         "no_customer_training",
         "thin_cert_program",
         "no_customer_success_team",
@@ -1275,7 +1281,7 @@ _organizational_dna_badges = (
         BadgeColor("green", "VP of Partnerships / Head of Alliances / Chief Alliance Officer documented"),
     )),
     # Negative findings — things that are TRUE but bad for Skillable.
-    # The math layer treats these via CF_PENALTY_SIGNALS; the badge list
+    # The math layer treats these via RUBRIC_PENALTY_SIGNALS; the badge list
     # here exists so the AI sees the finding-as-name pattern and so
     # _format_canonical_badge_names shows the prompt the valid labels.
     Badge("Builds Everything", (
@@ -1302,7 +1308,7 @@ _organizational_dna_rubric = Rubric(
         #   moderate      → pause answer — amber, smaller positive
         #   informational → context-only answer — zero scoring impact
         #   weak          → don't emit (no answer to give)
-        # Negative answers (penalties) are handled by CF_PENALTY_SIGNALS,
+        # Negative answers (penalties) are handled by RUBRIC_PENALTY_SIGNALS,
         # not by the rubric tiers below.
         RubricTier(
             "strong", 6,
@@ -1354,7 +1360,7 @@ _organizational_dna_rubric = Rubric(
         "formal_channel_program",          # answer: "they have a structured partner program"
         "nimble_engagement",               # answer: "they're fast and accessible"
         "named_alliance_leadership",       # answer: "VP / head of alliances documented"
-        # Negative signal categories — CF_PENALTY_SIGNALS mirrors these for
+        # Negative signal categories — RUBRIC_PENALTY_SIGNALS mirrors these for
         # penalty application. Listed here so the prompt's valid-signal list
         # shows them as emittable answers.
         "long_rfp_process",                # answer: "their RFPs take 9+ months"
@@ -1388,21 +1394,21 @@ _delivery_capacity_badges = (
     # Variable AI-synthesized names preferred for counts and geographic
     # reach (e.g., "~500 ATPs", "Global Partner Network", "Cisco Live 30K").
     #
-    # CRITICAL distinction (Frank 2026-04-07): vendor-controlled training
-    # and partner-delivered training are TWO SEPARATE delivery signals.
-    # A vendor can have strong vendor-delivered training (official ILT,
-    # self-paced portal, vendor-run labs) AND have ZERO training partners.
-    # Don't conflate them.
+    # ONE FACT, ONE BADGE (Frank 2026-04-07): the fact "the vendor delivers
+    # its own training" is a single finding. Don't split it into three
+    # badges (ILT + self-paced + labs) — the seller reads three labels for
+    # one reality. Use ONE badge whose evidence text names the specific
+    # delivery modes found (ILT, self-paced portal, vendor-run labs).
     #
-    # ── Vendor-controlled (direct) training delivery ─────────────────
-    Badge("Vendor-Delivered ILT", (
-        BadgeColor("green", "Vendor runs official instructor-led training directly — classroom, virtual, or bootcamp"),
-    )),
-    Badge("Vendor Self-Paced Portal", (
-        BadgeColor("green", "Vendor runs its own self-paced e-learning portal — on-demand courses"),
-    )),
-    Badge("Vendor-Delivered Labs", (
-        BadgeColor("green", "Vendor delivers its own hands-on lab exercises — their platform, their labs"),
+    # Vendor-Delivered Training is independent from Partner-Delivered
+    # Training (the next layer). A vendor can deliver its own training
+    # strongly AND have zero training partners — those are two different
+    # facts and get two different badges.
+    #
+    # ── Layer 1: Vendor-controlled (direct) training delivery ────────
+    Badge("Vendor-Delivered Training", (
+        BadgeColor("green", "Vendor runs its own training directly — list the modes found (ILT, self-paced portal, vendor-run labs, bootcamps) in the evidence text. Strong green when multiple modes exist at scale; name the depth you actually saw."),
+        BadgeColor("amber", "Vendor-run training exists but is thin — e.g., slide-deck-only, one short course, limited scope"),
     )),
     # ── Partner-delivered training (ATP / ALP programs) ──────────────
     Badge("Global Partner Network", (
@@ -1444,7 +1450,7 @@ _delivery_capacity_badges = (
     Badge("Cert Delivery Infrastructure", (
         BadgeColor("green", "Pearson VUE / Certiport / PSI / Certiverse integration — cert delivery reach"),
     )),
-    # Penalty answers (fire via CF_PENALTY_SIGNALS)
+    # Penalty answers (fire via RUBRIC_PENALTY_SIGNALS)
     Badge("No Training Partners", (
         BadgeColor("red", "Zero ATP / reseller / channel training network where partners should exist"),
     )),
@@ -1477,8 +1483,10 @@ _delivery_capacity_rubric = Rubric(
             "Also strong: named existing lab platform (Skillable, CloudShare, etc.); "
             "Skillable-partner LMS already in place (Docebo, Cornerstone); flagship events at "
             "scale with hands-on tracks; cert delivery infrastructure (Pearson VUE, Certiport). "
-            "**Emit a separate badge for each layer found** — don't conflate vendor-delivered "
-            "with partner-delivered; they are distinct facts and each contributes its own points.",
+            "**One fact, one badge.** Emit exactly one badge per layer found. Layer 1 is a "
+            "single `Vendor-Delivered Training` badge whose evidence text names the modes "
+            "found. Layer 2 and Layer 3 are separate badges because they are separate facts "
+            "(third-party independent market vs. formal ATP/ALP program).",
         ),
         RubricTier(
             "moderate", 4,
@@ -1505,8 +1513,9 @@ _delivery_capacity_rubric = Rubric(
         "",
         "  1. VENDOR-DELIVERED — the vendor runs training directly. Official ILT, self-paced "
         "portal, vendor-run hands-on labs. Positive signal but bounded to what the vendor alone "
-        "can reach. Use badges like `Vendor-Delivered ILT`, `Vendor Self-Paced Portal`, "
-        "`Vendor-Delivered Labs`.",
+        "can reach. **Emit ONE badge** (`Vendor-Delivered Training`) whose evidence text names "
+        "the specific modes you found. Do NOT split ILT, self-paced, and labs into three "
+        "separate badges — that's three labels for one fact.",
         "",
         "  2. THIRD-PARTY-DELIVERED — independent training in the open market. Coursera, "
         "Pluralsight, LinkedIn Learning, Udemy have courses on this product. Also cert-body "
@@ -1542,13 +1551,13 @@ _delivery_capacity_rubric = Rubric(
         "Whether the labs themselves are good (that is content quality, not delivery)",
     ),
     signal_categories=(
-        # Three delivery layers — emit a separate badge for each layer found.
-        # Layers stack for bonus points (Frank 2026-04-07):
+        # Three delivery layers — ONE BADGE PER LAYER FOUND. Layers stack
+        # for bonus points (Frank 2026-04-07). One fact, one badge.
         #
-        # Layer 1: VENDOR-DELIVERED (base) — vendor runs training directly
-        "vendor_delivered_ilt",            # vendor runs official instructor-led training directly
-        "vendor_self_paced_portal",        # vendor runs its own e-learning portal
-        "vendor_delivered_labs",           # vendor delivers its own hands-on lab exercises
+        # Layer 1: VENDOR-DELIVERED (base) — vendor runs training directly.
+        # Single signal category; the evidence text names the modes found
+        # (ILT, self-paced portal, vendor-run labs, bootcamps).
+        "vendor_delivered_training",       # vendor runs its own training directly (any/all modes)
         # Layer 2: THIRD-PARTY-DELIVERED (bonus) — independent market + cert bodies
         "third_party_training_market",     # cross-pillar with Market Demand — Coursera / Pluralsight / LinkedIn Learning / Udemy
         "cert_body_curriculum",            # cross-pillar with Market Demand — CompTIA / EC-Council / SANS / ISC2 mention THIS product
@@ -1564,7 +1573,7 @@ _delivery_capacity_rubric = Rubric(
         "geographic_reach",
         "published_course_calendar",
         "gray_market",
-        # Negative answers (fire via CF_PENALTY_SIGNALS):
+        # Negative answers (fire via RUBRIC_PENALTY_SIGNALS):
         "no_training_partners",
         "no_classroom_delivery",
         "no_independent_training_market",  # cross-pillar with Market Demand
@@ -1666,7 +1675,7 @@ _build_capacity_rubric = Rubric(
         "content_partnership",
         "instructor_authors_dual_role",
         "sme_content_authoring",
-        # Negative answers (fire via CF_PENALTY_SIGNALS, cautious):
+        # Negative answers (fire via RUBRIC_PENALTY_SIGNALS, cautious):
         "confirmed_outsourcing",
         "no_authoring_roles_found",
         "review_only_smes",
@@ -2214,12 +2223,22 @@ CF_ORG_BASELINES: dict[str, dict[str, int]] = {
 
 @dataclass(frozen=True)
 class PenaltySignal:
-    """A negative finding category for Customer Fit dimensions.
+    """A negative finding category for any rubric-model dimension (Pillar 2 + Pillar 3).
 
     The AI emits these when it finds positive evidence of a negative
     condition (e.g., confirmed outsourcing) or, for outward-facing
     dimensions, when research fails to find evidence that should exist
-    (e.g., no partner network for a scaled software vendor).
+    (e.g., no partner network for a scaled software vendor, no independent
+    training market for a supposedly in-demand product).
+
+    Lookup is keyed by ``(dimension, signal_category)`` so the same
+    signal_category can fire in multiple dimensions with different weights —
+    for example, ``no_independent_training_market`` is a strong penalty in
+    Delivery Capacity (vendor failed to build partner reach) AND an amber
+    penalty in Market Demand (the open market doesn't see enough demand to
+    invest in training).  Cross-pillar compounding is deliberate; the AI is
+    taught to emit the same badge in both dimensions when the evidence
+    supports it.
     """
     category: str        # signal_category key (e.g., "no_training_partners")
     dimension: str       # dimension key (e.g., "delivery_capacity")
@@ -2313,9 +2332,44 @@ ORGANIZATIONAL_DNA_PENALTIES: tuple[PenaltySignal, ...] = (
     ),
 )
 
-# All CF penalty signals, consolidated for easy lookup
-CF_PENALTY_SIGNALS: tuple[PenaltySignal, ...] = (
-    DELIVERY_CAPACITY_PENALTIES
+# ─── Pillar 2 (Instructional Value) penalties ──────────────────────────────
+
+# Market Demand penalties — penalize when the open training market has NOT
+# invested in this product.  Independent courses, install base size, and
+# category breadth are the three evidence anchors.
+#
+# Research asymmetry: Market Demand is outward-facing (public course
+# catalogs, analyst reports, install-base claims) — penalize aggressively
+# on absence of public evidence, just like Delivery Capacity.
+#
+# Cross-pillar compounding: `no_independent_training_market` also fires as
+# a Delivery Capacity penalty (same fact, two questions).  The AI is taught
+# in `scoring_template.md` to emit the same badge in both dimensions when
+# the evidence supports it.
+MARKET_DEMAND_PENALTIES: tuple[PenaltySignal, ...] = (
+    PenaltySignal(
+        "no_independent_training_market", "market_demand", "amber", 4, "No Independent Training",
+        "Fewer than 3 courses found on Coursera / Pluralsight / LinkedIn Learning / Udemy combined. The open training market hasn't invested — a real demand red flag even when the product is in a 'hot' category. Cross-pillar with Delivery Capacity.",
+    ),
+    PenaltySignal(
+        "small_install_base", "market_demand", "amber", 3, "Small Install Base",
+        "Public evidence of a small or undocumented customer footprint (< ~1K users / tens of logos / no press) for a product in a supposedly hot category. Specialist niche, not broad demand.",
+    ),
+    PenaltySignal(
+        "niche_within_category", "market_demand", "amber", 3, "Niche Within Category",
+        "Product sits inside a high-demand category but is itself a narrow specialty used by a small population (e.g., a specific threat intelligence feed inside the broader cybersecurity market). The category is hot; this product is not.",
+    ),
+)
+
+# All rubric-model penalty signals (Pillar 2 + Pillar 3), consolidated for
+# easy lookup.  The math layer builds a ``(dimension, signal_category) ->
+# PenaltySignal`` dict from this list.  Adding a new penalty = append to the
+# appropriate dimension tuple and extend this concatenation.
+RUBRIC_PENALTY_SIGNALS: tuple[PenaltySignal, ...] = (
+    # Pillar 2 — Instructional Value
+    MARKET_DEMAND_PENALTIES
+    # Pillar 3 — Customer Fit
+    + DELIVERY_CAPACITY_PENALTIES
     + BUILD_CAPACITY_PENALTIES
     + TRAINING_COMMITMENT_PENALTIES
     + ORGANIZATIONAL_DNA_PENALTIES
@@ -2947,7 +3001,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.answers-discipline-and-delivery-layers"
+SCORING_LOGIC_VERSION = "2026-04-07.market-demand-penalties-and-one-badge-per-fact"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

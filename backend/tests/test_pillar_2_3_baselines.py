@@ -437,7 +437,7 @@ def test_multiple_penalties_stack():
     assert r["floored"] is True
 
 
-def test_cf_penalty_on_wrong_dimension_does_nothing():
+def test_rubric_penalty_on_wrong_dimension_does_nothing():
     """A penalty signal_category only fires on its own dimension. A
     delivery-capacity penalty emitted against build_capacity must NOT
     deduct anything (it falls through to the rubric or color path)."""
@@ -496,11 +496,81 @@ def test_hard_to_engage_red_penalty_is_harsh():
     """hard_to_engage is a red -6 penalty — the harshest Organizational
     DNA penalty. Reserved for direct evidence of hostility."""
     penalty = next(
-        p for p in cfg.CF_PENALTY_SIGNALS
+        p for p in cfg.RUBRIC_PENALTY_SIGNALS
         if p.category == "hard_to_engage"
     )
     assert penalty.color == "red"
     assert penalty.hit == 6
+
+
+def test_market_demand_no_independent_training_penalty_fires():
+    """The Trellix GTI regression: `no_independent_training_market` must
+    fire as a penalty in Market Demand, not just in Delivery Capacity.
+
+    Without this penalty, a product in a high-demand category (Cybersecurity
+    baseline 14) that the open market doesn't teach can score 20/20 on
+    Market Demand — masking a real demand gap. The fix is that
+    RUBRIC_PENALTY_SIGNALS registers the same signal_category against
+    BOTH market_demand and delivery_capacity.
+    """
+    ctx = cfg.build_scoring_context(
+        raw_org_type="software_company",
+        raw_product_category="Cybersecurity",
+    )
+    # Trellix GTI actual badges (abbreviated):
+    r = sm.compute_dimension_score("market_demand", [
+        {"name": "High-Demand Category", "color": "green",
+         "strength": "strong", "signal_category": "category_demand"},
+        {"name": "Enterprise Validated", "color": "green",
+         "strength": "strong", "signal_category": "enterprise_validation"},
+        {"name": "AI-Powered Product", "color": "green",
+         "strength": "moderate", "signal_category": "ai_signal"},
+        {"name": "No Independent Courses Found", "color": "amber",
+         "strength": "moderate",
+         "signal_category": "no_independent_training_market"},
+    ], ctx)
+
+    # Baseline 14 + 5 strong + 5 strong + 3 moderate - 4 penalty = 23 → capped at 20
+    # The critical assertion: the penalty must be RECORDED (not fall
+    # through to +3 moderate credit).
+    assert any(
+        p.get("signal_category") == "no_independent_training_market"
+        for p in r.get("penalties_applied", [])
+    ), (
+        "Regression: no_independent_training_market should fire as a "
+        "Market Demand penalty, not credit as +3 moderate rubric. "
+        f"penalties_applied={r.get('penalties_applied')}"
+    )
+    # And the score should reflect the penalty hit — if it were +3 credit
+    # the raw_total would be 27; with -4 penalty it's 23 → capped at 20.
+    # Either way it caps, so assert on raw_total instead:
+    assert r["raw_total"] == 23, (
+        f"raw_total must reflect the penalty: baseline 14 + 5 + 5 + 3 - 4 = 23. "
+        f"Got raw_total={r['raw_total']}"
+    )
+
+
+def test_market_demand_niche_within_category_penalty():
+    """niche_within_category is an amber -3 penalty against the
+    category-demand baseline. A product inside a hot category that is
+    itself a narrow specialty should not get full marks."""
+    ctx = cfg.build_scoring_context(
+        raw_org_type="software_company",
+        raw_product_category="Cybersecurity",
+    )
+    r = sm.compute_dimension_score("market_demand", [
+        {"name": "High-Demand Category", "color": "green",
+         "strength": "strong", "signal_category": "category_demand"},
+        {"name": "Niche Within Category", "color": "amber",
+         "strength": "moderate",
+         "signal_category": "niche_within_category"},
+    ], ctx)
+    # Baseline 14 + 5 strong - 3 penalty = 16
+    assert r["raw_total"] == 16
+    assert any(
+        p.get("signal_category") == "niche_within_category"
+        for p in r.get("penalties_applied", [])
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -600,33 +670,60 @@ def test_cross_pillar_atp_network_rule_exists():
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# CF_PENALTY_SIGNALS — structural sanity
+# RUBRIC_PENALTY_SIGNALS — structural sanity
+# (Covers Pillar 2 + Pillar 3 rubric-model penalties)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def test_cf_penalty_signals_have_valid_dimensions():
-    """Every CF penalty must target a real CF dimension key."""
+def test_rubric_penalty_signals_have_valid_dimensions():
+    """Every rubric penalty must target a real rubric-model dimension key.
+
+    Valid targets are the dimensions of Pillar 2 (Instructional Value) and
+    Pillar 3 (Customer Fit) — both use the rubric model.
+    """
     valid_dim_keys = {
+        dim.name.lower().replace(" ", "_")
+        for pillar in (cfg.PILLAR_INSTRUCTIONAL_VALUE, cfg.PILLAR_CUSTOMER_FIT)
+        for dim in pillar.dimensions
+    }
+    for p in cfg.RUBRIC_PENALTY_SIGNALS:
+        assert p.dimension in valid_dim_keys, (
+            f"Rubric penalty {p.category!r} targets unknown dimension {p.dimension!r}"
+        )
+
+
+def test_rubric_penalty_signals_have_valid_colors():
+    """Penalty colors must be amber or red only — never green or gray."""
+    for p in cfg.RUBRIC_PENALTY_SIGNALS:
+        assert p.color in ("amber", "red"), (
+            f"Rubric penalty {p.category!r} has invalid color {p.color!r}"
+        )
+
+
+def test_rubric_penalty_signals_have_positive_hits():
+    """Penalty hits are stored as positive integers; the math layer negates
+    them when applying the subtraction."""
+    for p in cfg.RUBRIC_PENALTY_SIGNALS:
+        assert p.hit > 0, (
+            f"Rubric penalty {p.category!r} has non-positive hit {p.hit}"
+        )
+
+
+def test_rubric_penalty_signals_cover_both_pillars():
+    """The list must contain penalties for BOTH Pillar 2 and Pillar 3,
+    not just Customer Fit (the pre-2026-04-07 regression)."""
+    iv_dim_keys = {
+        dim.name.lower().replace(" ", "_")
+        for dim in cfg.PILLAR_INSTRUCTIONAL_VALUE.dimensions
+    }
+    cf_dim_keys = {
         dim.name.lower().replace(" ", "_")
         for dim in cfg.PILLAR_CUSTOMER_FIT.dimensions
     }
-    for p in cfg.CF_PENALTY_SIGNALS:
-        assert p.dimension in valid_dim_keys, (
-            f"CF penalty {p.category!r} targets unknown dimension {p.dimension!r}"
-        )
-
-
-def test_cf_penalty_signals_have_valid_colors():
-    """Penalty colors must be amber or red only — never green or gray."""
-    for p in cfg.CF_PENALTY_SIGNALS:
-        assert p.color in ("amber", "red"), (
-            f"CF penalty {p.category!r} has invalid color {p.color!r}"
-        )
-
-
-def test_cf_penalty_signals_have_positive_hits():
-    """Penalty hits are stored as positive integers; the math layer negates
-    them when applying the subtraction."""
-    for p in cfg.CF_PENALTY_SIGNALS:
-        assert p.hit > 0, (
-            f"CF penalty {p.category!r} has non-positive hit {p.hit}"
-        )
+    iv_penalties = [
+        p for p in cfg.RUBRIC_PENALTY_SIGNALS if p.dimension in iv_dim_keys
+    ]
+    cf_penalties = [
+        p for p in cfg.RUBRIC_PENALTY_SIGNALS if p.dimension in cf_dim_keys
+    ]
+    assert iv_penalties, "RUBRIC_PENALTY_SIGNALS must include at least one IV penalty"
+    assert cf_penalties, "RUBRIC_PENALTY_SIGNALS must include at least one CF penalty"

@@ -628,6 +628,14 @@
                             alert('Refresh failed: ' + (d.error || 'unknown error'));
                             return;
                         }
+                        // Keep the user on this page and transition the
+                        // same shared search modal to progress mode —
+                        // we use ONE shared modal for every search
+                        // operation (discover, product selection, deep
+                        // dive, refresh). The middle section varies per
+                        // operation; the top (verb + company) and
+                        // bottom (bar, text, counter, progress) are
+                        // shared across every flow.
                         transitionSearchModalToProgress({
                             eyebrow: 'Refreshing',
                             title:   '{{ discovery.company_name | e }}',
