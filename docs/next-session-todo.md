@@ -13,7 +13,13 @@ This doc uses a two-column table format per Frank's 2026-04-07 directive: narrow
 
 ## §0 — START HERE (the tonight-shipped feature set needs validation)
 
-A long late-night session shipped substantial scoring + UX refinements. The next session's first job is to verify the architecture is producing what the prompts intend, then knock down the §1 backlog Frank flagged during QA.
+**FIRST THING NEXT SESSION — FINISH THE SEARCH MODAL MIGRATION.** The Standard Search Modal unification is half-done. `discovering.html` was migrated in commit `e6784dc` (2026-04-07 late evening). `scoring.html` — the Deep Dive progress page — is still on its 417-line legacy custom implementation. Deferred under time pressure on Frank's explicit agreement: "doing it half-right tonight is worse than leaving it legacy one more day." **This is first-up — do it before anything else.**
+
+| Item | Description |
+|---|---|
+| **Migrate `scoring.html` to the shared `_search_modal.html`** | Deep Dive must render through the one shared modal like every other long-running flow. `scoring.html` currently has its own custom CSS, custom EventSource handler, rotating hint messages, three-stage "orchestration bars," and a research-to-Claude phase transition — all of which must move into a "deep dive" variant of the shared modal's middle section. Pattern to follow: the `discovering.html` migration in commit `e6784dc` (41-line shell that imports the shared modal, calls `openSearchModal()`, and wires the SSE stream). The SSE contract (`status:` / `done:` / `error:`) is already compatible — no backend changes should be needed, only template + frontend work. After migrating, delete the legacy `scoring.html` custom UI and add a regression test in `tests/test_ux_consistency.py` that scans Inspector templates for "custom progress" patterns (any `new EventSource(` outside `_search_modal.html`). Frank 2026-04-07: "We should not have multiple search. There should be one search modal, and the middle is the part that should be different." |
+
+A long late-night session shipped substantial scoring + UX refinements. Once the search modal migration is done, verify the architecture is producing what the prompts intend, then knock down the §1 backlog Frank flagged during QA.
 
 | Item | Description |
 |---|---|
