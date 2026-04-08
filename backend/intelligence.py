@@ -1083,7 +1083,48 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             p2_python_count, len(new_analysis.products),
         )
 
-        # Assign verdicts
+        # ── Step 5 of the rebuild: CUTOVER — Python scorers are authoritative ─
+        # After Steps 3 + 4 ran, every product has pillar_1_python_score +
+        # pillar_2_python_score populated and the company has pillar_3_python_score.
+        # This block FLIPS the authoritative fit_score to those values —
+        # overwriting whatever the legacy monolithic scoring call put there.
+        #
+        # The monolithic call still fires upstream (it's what populates the
+        # non-scoring metadata fields: name, category, description, contacts,
+        # owning_org, orchestration_method). Its fit_score output is ignored
+        # here. A follow-up commit will delete the monolithic Claude call and
+        # the badge-keyed compute_dimension_score / compute_all paths once
+        # metadata extraction is moved to a dedicated lightweight extractor
+        # (see the rebuild roadmap section Step 5b for that cleanup).
+        #
+        # This is the cutover per docs/next-session-todo.md §0c Step 5 —
+        # lock-in #1 ("Score reads facts directly, never badges") now
+        # holds at the fit_score level.
+        cutover_count = 0
+        for product in new_analysis.products:
+            flipped = False
+            if product.pillar_1_python_score is not None:
+                product.fit_score.product_labability = product.pillar_1_python_score
+                flipped = True
+            if product.pillar_2_python_score is not None:
+                product.fit_score.instructional_value = product.pillar_2_python_score
+                flipped = True
+            if new_analysis.pillar_3_python_score is not None:
+                product.fit_score.customer_fit = new_analysis.pillar_3_python_score
+                flipped = True
+            # Clear any total_override set by the legacy path so fit_score.total
+            # is recomputed from the new authoritative pillar scores.
+            if flipped:
+                product.fit_score.total_override = None
+                product.fit_score.pl_score_pre_ceiling = None
+                product.fit_score.ceilings_applied = []
+                cutover_count += 1
+        log.info(
+            "Intelligence.score: Step 5 cutover — fit_score flipped to Python scorers for %d/%d products",
+            cutover_count, len(new_analysis.products),
+        )
+
+        # Assign verdicts AFTER the cutover so they're based on the new scores
         for product in new_analysis.products:
             acv_tier = product.acv_potential.acv_tier or "medium"
             product.verdict = assign_verdict(product.fit_score.total, acv_tier)
