@@ -591,31 +591,83 @@
         updateState();
     });
 
-    {% if cached_is_stale and existing_analysis %}
-    // Stale-cache decision modal — Frank 2026-04-07.
+    // ── Deep Dive submit → Shared Search Modal ───────────────────────────
     //
-    // When the user clicks Deep Dive on a company whose cached analysis was
-    // scored with an older logic version, intercept the submit and show a
-    // confirmation modal: "Newer stuff or just go?" Three outcomes:
+    // There is ONE shared search modal for every long-running flow in
+    // Inspector (see `_search_modal.html`).  Deep Dive is no exception:
+    // clicking Deep Dive intercepts the form submit, POSTs to
+    // `/inspector/score`, opens the shared modal in progress mode, and
+    // subscribes to `/inspector/score/progress/<job_id>`.  On `done:`,
+    // redirect to Full Analysis.  No full-page `scoring.html` in between.
     //
-    //   • Refresh now — POST to the analysis refresh endpoint, transition the
-    //     modal to progress mode, redirect to Full Analysis when the rescore
-    //     finishes. (Same path as the modal that fires on Full Analysis when
-    //     the cache is already stale.)
-    //
-    //   • Continue with cached — let the original Deep Dive submit through.
-    //     Cached products re-use existing scores; any newly-checked products
-    //     get freshly scored as usual.
-    //
-    //   • Cancel — close the modal, no action taken.
-    //
-    // Once the user has made a choice on this page load, the flag is set so
-    // a second click of Deep Dive (e.g. after they tweak the selection) goes
-    // straight through without re-prompting.
-    let staleCachePromptHandled = false;
+    // The stale-cache decision block below fires FIRST when the cached
+    // analysis is stale: it opens the same shared modal in decision mode
+    // (Refresh / Use cached), and if the user picks Use cached, it sets
+    // the handled flag and resubmits the form, which lands back in this
+    // handler and runs the shared-modal path.
+    function openDeepDiveModal() {
+        const fd = new FormData(form);
+        fetch('/inspector/score', { method: 'POST', body: fd })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d || !d.ok) {
+                    alert('Deep Dive failed: ' + ((d && d.error) || 'unknown error'));
+                    return;
+                }
+                openSearchModal({
+                    eyebrow: 'Deep Dive',
+                    title:   {{ discovery.company_name | tojson }},
+                    sseUrl:  '/inspector/score/progress/' + d.job_id,
+                    onComplete: function(payload) {
+                        // payload is the analysis_id (or analysis_id + ?selected=...)
+                        // emitted by run_scoring()'s `done:` push.
+                        window.location.href = '/inspector/analysis/' + payload;
+                    },
+                });
+            })
+            .catch(function(e) { alert('Deep Dive failed: ' + e); });
+    }
+
+    // Single Deep Dive submit handler.  Stale-cache decision fires first
+    // (if applicable), then falls through to openDeepDiveModal() which
+    // opens the shared search modal in progress mode.  There is only
+    // ONE submit listener on this form — no race between decision and
+    // progress paths.
+    let staleCachePromptHandled = {% if cached_is_stale and existing_analysis %}false{% else %}true{% endif %};
     form.addEventListener('submit', function(e) {
-        if (staleCachePromptHandled) return;
         e.preventDefault();
+
+        {% if cached_is_stale and existing_analysis %}
+        // Stale-cache decision modal — Frank 2026-04-07.
+        //
+        // When the user clicks Deep Dive on a company whose cached analysis
+        // was scored with an older logic version, show a decision modal:
+        //
+        //   • Refresh first — POST to the refresh endpoint, transition the
+        //     SAME shared modal to progress mode, redirect to Full Analysis
+        //     when the rescore finishes.
+        //
+        //   • Use cached — mark the prompt handled and kick off the normal
+        //     Deep Dive path (openDeepDiveModal) so cached products re-use
+        //     existing scores while any newly-checked products get freshly
+        //     scored.  Uses the SAME shared modal for progress.
+        //
+        //   • Cancel — close the modal, no action taken.
+        //
+        // Once the user has made a choice on this page load, the flag is
+        // set so subsequent Deep Dive clicks go straight to the normal
+        // shared-modal path without re-prompting.
+        if (!staleCachePromptHandled) {
+            openStaleCacheDecisionModal();
+            return;
+        }
+        {% endif %}
+
+        openDeepDiveModal();
+    });
+
+    {% if cached_is_stale and existing_analysis %}
+    function openStaleCacheDecisionModal() {
         openSearchModalDecision({
             eyebrow: 'Cache check',
             title:   '{{ discovery.company_name | e }}',
@@ -649,7 +701,11 @@
             },
             onIgnore: function() {
                 staleCachePromptHandled = true;
-                form.submit();
+                // Re-fire the submit handler in the "cached" path.  The
+                // submit listener sees staleCachePromptHandled=true and
+                // falls through to openDeepDiveModal(), which opens the
+                // shared search modal in progress mode.
+                form.requestSubmit();
             }
         });
         // Relabel the default buttons for the Deep Dive submit-intercept
@@ -659,7 +715,7 @@
         const ignoreBtn  = document.getElementById('searchModalIgnoreBtn');
         if (refreshBtn) refreshBtn.textContent = 'Refresh first';
         if (ignoreBtn)  ignoreBtn.textContent  = 'Use cached';
-    });
+    }
     {% endif %}
 })();
 </script>

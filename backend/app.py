@@ -446,11 +446,9 @@ def inspector_score():
         try:
             total = len(selected)
             push(job_id, f"status:Preparing scoring context for {total} products...")
-            # Trigger the scoring.html transition from "research" phase to
-            # "Claude scoring" phase.  The client-side EventSource handler
-            # matches the substring "scoring with" to call startScoring(),
-            # which lights all three orchestration bars and kicks off the
-            # rotating hint messages while per-product work runs.
+            # Transition banner for the shared search modal's status line.
+            # The modal just renders whatever status text the backend pushes;
+            # no phase-machine state is required on the client anymore.
             push(job_id, "status:Scoring with Claude...")
 
             # Honest per-completion progress callback.  The Intelligence
@@ -500,10 +498,20 @@ def inspector_score():
 
     threading.Thread(target=run_scoring, daemon=True).start()
 
-    return render_template("scoring.html",
-                          job_id=job_id,
-                          company_name=disc.get("company_name", ""),
-                          product_count=len(selected))
+    # Return JSON — the caller (product_selection.html) opens the SHARED
+    # search modal in progress mode and subscribes to
+    # /inspector/score/progress/<job_id>.  There is ONE shared progress
+    # modal in the platform (see `_search_modal.html`); no route should
+    # render its own full-page progress view.  The legacy `scoring.html`
+    # template has been renamed to `_legacy_scoring.html` to make
+    # accidental reuse impossible.
+    return jsonify({
+        "ok": True,
+        "job_id": job_id,
+        "discovery_id": discovery_id,
+        "company_name": disc.get("company_name", ""),
+        "product_count": len(selected),
+    })
 
 
 @app.route("/inspector/score/progress/<job_id>")
@@ -595,8 +603,7 @@ def inspector_refresh_cache(analysis_id: str):
         try:
             total = len(selected)
             push(job_id, f"status:Refreshing {total} products...")
-            # Trigger the scoring.html transition from "research" phase
-            # to "Claude scoring" phase.
+            # Transition banner for the shared search modal's status line.
             push(job_id, "status:Scoring with Claude...")
 
             # Honest per-completion progress callback — mirrors the
