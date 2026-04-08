@@ -374,195 +374,60 @@ def inspector_product_selection(discovery_id: str):
               if p.get("category") != "Training & Certification"]
     selected_families = request.args.getlist("family")
 
-    # Shared matcher — same two-pass logic used for both the pre-picker
-    # family COUNT and the post-picker product FILTER. Without this, the
-    # counter and filter can disagree: "Data Security" shows 18 products
-    # in the counter (via token fallback) but then the filter uses strict
-    # substring match and returns 0. Frank 2026-04-08 Trellix.
-    _family_match_stopwords: set[str] = {
-        "and", "or", "the", "a", "an", "of", "for", "to", "in",
-        "by", "with", "on", "as", "at", "is", "&", "+",
-    }
-    _match_company_name = (disc.get("company_name") or "").lower().strip()
-    for _ct in re.findall(r"[a-z0-9]+", _match_company_name):
-        if len(_ct) >= 3:  # magic-allowed: minimum token length
-            _family_match_stopwords.add(_ct)
-
-    def _family_match_tokens(name: str) -> list[str]:
-        parts = re.findall(r"[a-z0-9]+", name.lower())
-        return [t for t in parts if t not in _family_match_stopwords and len(t) >= 3]  # magic-allowed: minimum token length
-
-    def _product_matches_family(p: dict, family_name: str) -> bool:
-        """True when a product belongs to a family under the same two-pass
-        rule the counter uses.
-
-        Pass 1 — strict substring on the full family name.
-        Pass 2 — ALL-tokens match: every non-stopword token in the family
-                 name must appear as a whole word in the product blob.
-                 "Data Security" requires both `data` AND `security`;
-                 "Security Awareness Topics" requires all three;
-                 "Google Cloud" requires both.
-
-        Frank 2026-04-08 Trellix: ANY-token fallback over-matched on
-        generic cybersecurity words (security, data, threat). ALL-token
-        is the right conservative rule — strict substring rescues the
-        literal matches, ALL-token fallback rescues real multi-word
-        families whose products don't substring-match verbatim.
-        """
-        fam_lower = family_name.lower()
-        blob = " ".join([
-            (p.get("name") or "").lower(),
-            (p.get("category") or "").lower(),
-            (p.get("subcategory") or "").lower(),
-        ])
-        # Pass 1 — strict substring on the full family name
-        if fam_lower in blob:
-            return True
-        # Pass 2 — ALL-tokens fallback (every non-stopword token present)
-        tokens = _family_match_tokens(family_name)
-        if len(tokens) < 2:  # magic-allowed: single-token fallback gate
-            return False
-        for tok in tokens:
-            if not re.search(rf"\b{re.escape(tok)}\b", blob):
-                return False
-        return True
-
+    # Families are AI-assigned product categories (see the picker builder
+    # below for why). Matching a product to a family is a simple
+    # case-insensitive equality check on the category field — no token
+    # machinery needed. Training & Certification products always come
+    # along regardless of which family the user picked.
     if selected_families:
-        # User picked one or more families — filter products to matches
-        # using the same two-pass rule the counter uses. Training &
-        # Certification products always come along regardless.
+        _selected_lower = {f.strip().lower() for f in selected_families}
         disc["products"] = [
             p for p in disc.get("products", [])
             if p.get("category") == "Training & Certification"
-            or any(_product_matches_family(p, fam) for fam in selected_families)
+            or (p.get("category") or "").strip().lower() in _selected_lower
         ]
         disc["_selected_families"] = selected_families
     elif len(non_tc) >= cfg.PRODUCT_FAMILY_PICKER_THRESHOLD:
-        # Show the family picker — prefer scraped families from website nav
-        # (vendor's own organization), fall back to category-based grouping.
-        scraped = disc.get("_scraped_families") or []
-        families = []
-        if scraped:
-            # Match products to families in two passes:
-            #  1. Strict substring match — the full family name appears
-            #     inside the product's name/category/subcategory (case-
-            #     insensitive). This is the safe matcher.
-            #  2. Token-overlap fallback — for multi-word families where
-            #     pass 1 found zero matches, require any NON-STOPWORD
-            #     token from the family name to appear as a whole word
-            #     in the product text. Rescues real families whose
-            #     products don't substring-match the exact family name
-            #     ("Data Security" family vs "Data Loss Prevention"
-            #     product — strict match fails, token match rescues it).
-            #
-            # Frank 2026-04-08: Trellix showed only 2 families with the
-            # strict matcher even though the scraper had found more real
-            # families in the homepage nav. Token fallback rescues them
-            # without over-matching because it only runs when strict
-            # returns zero AND it requires whole-word hits against
-            # non-stopword tokens.
-            # Stopwords include common English filler AND the vendor's
-            # own company name tokens. Frank 2026-04-08 Trellix: without
-            # the vendor-name strip, "Trellix Thrive" / "Trellix Partner
-            # Portal" / "Trellix Marketplace" all token-matched every
-            # Trellix product on the `trellix` token and showed up with
-            # 40 products each — nav-link noise, not real product families.
-            _family_stopwords: set[str] = {
-                "and", "or", "the", "a", "an", "of", "for", "to", "in",
-                "by", "with", "on", "as", "at", "is", "&", "+",
-            }
-            _company_name_for_family = (
-                (disc.get("company_name") or "").lower().strip()
-            )
-            for _ct in re.findall(r"[a-z0-9]+", _company_name_for_family):
-                if len(_ct) >= 3:  # magic-allowed: minimum token length (short words are noise)
-                    _family_stopwords.add(_ct)
+        # Build the family picker — PRIMARY strategy is grouping by the
+        # AI-assigned product CATEGORY. Every discovered product has a
+        # category (Endpoint Protection, Threat Intelligence, Data
+        # Protection, etc.), so grouping by category gives 100% coverage
+        # of the product list. The user can see every product through
+        # some family, no stranded products.
+        #
+        # Frank 2026-04-08 Trellix: earlier attempts used the scraped
+        # website-nav families as the primary source with various
+        # token-overlap heuristics to match them to products. The nav
+        # families (Data Security, AI and Security Operations, etc.) use
+        # a different vocabulary than the AI's own category assignments,
+        # so the matchers either over-matched (generic security tokens)
+        # or under-matched (40 products -> 3 families covering 10 of
+        # them, stranding 30). Categories sidestep the vocabulary
+        # mismatch entirely because they're the labels the AI literally
+        # put on each product.
+        family_counts: dict[str, int] = {}
+        for p in non_tc:
+            cat = (p.get("category") or "Other").strip() or "Other"
+            family_counts[cat] = family_counts.get(cat, 0) + 1
 
-            def _family_tokens(name: str) -> list[str]:
-                parts = re.findall(r"[a-z0-9]+", name.lower())
-                return [t for t in parts if t not in _family_stopwords and len(t) >= 3]  # magic-allowed: minimum token length (short words are noise)
+        # Noise filter: drop categories below PRODUCT_FAMILY_MIN_PRODUCTS
+        # (single-product categories are not meaningful picker choices).
+        # No MAX ratio cap needed — categories are inherently clean.
+        families = sorted(
+            [
+                {"name": c, "product_count": n}
+                for c, n in family_counts.items()
+                if n >= cfg.PRODUCT_FAMILY_MIN_PRODUCTS
+            ],
+            key=lambda f: f["product_count"], reverse=True
+        )
 
-            def _product_blob(p: dict) -> str:
-                return " ".join([
-                    (p.get("name") or "").lower(),
-                    (p.get("category") or "").lower(),
-                    (p.get("subcategory") or "").lower(),
-                ])
-
-            def _token_hit(token: str, blob: str) -> bool:
-                # Whole-word match so "data" doesn't match "datacenter".
-                return re.search(rf"\b{re.escape(token)}\b", blob) is not None
-
-            _non_tc_count = len(non_tc)
-            for fam in scraped:
-                fam_lower = fam["name"].lower()
-                # Pass 1 — strict substring.
-                strict = sum(
-                    1 for p in non_tc
-                    if fam_lower in p.get("name", "").lower()
-                    or fam_lower in p.get("category", "").lower()
-                    or fam_lower in p.get("subcategory", "").lower()
-                )
-                if strict > 0:
-                    fam["product_count"] = strict
-                    continue
-                # Pass 2 — ALL-tokens fallback for multi-word families.
-                # Every non-stopword token in the family name must appear
-                # as a whole word in the product blob. Frank 2026-04-08:
-                # ANY-token was over-matching on generic cybersecurity
-                # words (security, data, threat). Must stay in sync with
-                # _product_matches_family() below or counter and filter
-                # disagree.
-                tokens = _family_tokens(fam["name"])
-                if len(tokens) < 2:  # magic-allowed: single-token fallback gate (too noisy to rescue)
-                    # Single-token families don't get the fallback — too
-                    # noisy (one generic word would match everything).
-                    # Fires after the vendor-name strip above, so "Trellix
-                    # Thrive" ends up as ["thrive"] → filtered here.
-                    fam["product_count"] = 0
-                    continue
-                fam["product_count"] = sum(
-                    1 for p in non_tc
-                    if all(_token_hit(t, _product_blob(p)) for t in tokens)
-                )
-
-            # Filter out noise families. Two rules:
-            #   1. Must meet the PRODUCT_FAMILY_MIN_PRODUCTS threshold
-            #      (existing Workday protection — single-product families
-            #      are not meaningful picker choices).
-            #   2. Must not match more than PRODUCT_FAMILY_MAX_PRODUCT_RATIO
-            #      of all discovered products — any family that claims
-            #      most of the catalog is almost certainly a generic nav
-            #      link like "All Products" or "The Platform", not a real
-            #      product family. Belt-and-braces guard on top of the
-            #      vendor-name strip above.
-            _max_ratio = getattr(cfg, "PRODUCT_FAMILY_MAX_PRODUCT_RATIO", 0.80)  # magic-allowed: noise-cap fallback when config missing
-            _max_count_allowed = int(_non_tc_count * _max_ratio) if _non_tc_count else 0
-            families = [
-                f for f in scraped
-                if f.get("product_count", 0) >= cfg.PRODUCT_FAMILY_MIN_PRODUCTS
-                and (_max_count_allowed == 0 or f.get("product_count", 0) <= _max_count_allowed)
-            ]
-            families.sort(key=lambda f: f.get("product_count", 0), reverse=True)
-        else:
-            # Fallback: group by category.  Same noise filter applies —
-            # categories that only hold a single product are not
-            # meaningful picker choices.
-            family_counts: dict[str, int] = {}
-            for p in non_tc:
-                cat = p.get("category", "Other")
-                family_counts[cat] = family_counts.get(cat, 0) + 1
-            families = sorted(
-                [
-                    {"name": c, "product_count": n}
-                    for c, n in family_counts.items()
-                    if n >= cfg.PRODUCT_FAMILY_MIN_PRODUCTS
-                ],
-                key=lambda f: f["product_count"], reverse=True
-            )
-
-        # Only show the picker when there are multiple families to choose
-        # from — one family is no choice at all.
+        # Only show the picker when there are multiple families to
+        # choose from — one family is no choice at all. The threshold
+        # check above (len(non_tc) >= PRODUCT_FAMILY_PICKER_THRESHOLD)
+        # already guarantees we're dealing with enough products to make
+        # narrowing worthwhile; this guard just avoids showing a picker
+        # with a single option.
         if len(families) > 1:
             disc["product_families"] = families
             show_family_picker = True
