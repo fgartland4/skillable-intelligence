@@ -4,7 +4,7 @@ Environment variables are read at import time. Startup validation ensures
 the app fails fast with clear messages rather than crashing mid-analysis.
 
 Updated for the Prompt Generation System — validates scoring_config.py
-and scoring_template.md instead of a static prompt file.
+and the per-pillar Python scorers instead of a static prompt file.
 """
 
 import logging

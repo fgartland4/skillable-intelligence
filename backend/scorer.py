@@ -1,10 +1,10 @@
-"""Scoring engine for the Skillable Intelligence Platform.
+"""Scoring engine entry points — Claude API wrappers used by the Score layer.
 
-Uses the Prompt Generation System (scoring_config → scoring_template → generated prompt)
-instead of a static prompt file. Parses AI output into the new three-pillar data model.
-
-Infrastructure (API calls, retries, parallel scoring, context building) is proven
-from the proof-of-concept. Parsing and prompt loading are rebuilt for the new framework.
+Infrastructure only: Claude API calls, product discovery, company/product
+context builders for research, and seller briefcase generation. The Score
+layer proper lives in pillar_1_scorer / pillar_2_scorer / pillar_3_scorer
++ fit_score_composer; this file just provides the shared Claude call
+helpers and the Score layer entry point (score_selected_products).
 """
 
 from __future__ import annotations
@@ -349,6 +349,11 @@ def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis
         product_url = p.get("product_url") or disc_entry.get("product_url") or ""
         deployment_model = p.get("deployment_model") or disc_entry.get("deployment_model") or ""
         orchestration_method = p.get("orchestration_method") or disc_entry.get("orchestration_method") or ""
+        vendor_official_acronym = (
+            p.get("vendor_official_acronym")
+            or disc_entry.get("vendor_official_acronym")
+            or ""
+        )
 
         product = Product(
             name=name,
@@ -358,6 +363,7 @@ def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis
             product_url=product_url,
             deployment_model=deployment_model,
             orchestration_method=orchestration_method,
+            vendor_official_acronym=vendor_official_acronym,
         )
 
         facts = facts_by_product.get(name)

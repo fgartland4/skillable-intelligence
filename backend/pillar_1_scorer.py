@@ -41,7 +41,7 @@ this one.
   dimension's scoring_signals table.  This module matches fact-drawer
   fields against the same table:
 
-      Legacy:  badge.name == "Runs in Hyper-V" → +30 signal credit
+      Legacy:  badge.name == "Runs in VM" → +30 signal credit
       New:     facts.provisioning.runs_as_installable → +30 signal credit
 
   The point values are identical.  The rules are identical.  Only the
@@ -78,7 +78,7 @@ _DIM_SC = "Scoring"
 _DIM_TD = "Teardown"
 
 # Provisioning signals
-_SIG_HYPER_V = "Runs in Hyper-V"
+_SIG_VM = "Runs in VM"
 _SIG_AZURE = "Runs in Azure"
 _SIG_AWS = "Runs in AWS"
 _SIG_CONTAINER = "Runs in Container"
@@ -226,7 +226,7 @@ def _verify_canonical_names() -> None:
     entry in scoring_config.py.  Run at module load — raises if any name
     has drifted from the config source of truth.
     """
-    _signal_points(_PROV_DIM, _SIG_HYPER_V)
+    _signal_points(_PROV_DIM, _SIG_VM)
     _signal_points(_PROV_DIM, _SIG_AZURE)
     _signal_points(_PROV_DIM, _SIG_AWS)
     _signal_points(_PROV_DIM, _SIG_CONTAINER)
@@ -363,7 +363,7 @@ def _list_viable_fabrics(p: "ProvisioningFacts") -> list[str]:
     if p.m365_scenario == _M365_ADMIN:
         viable.append(_SIG_M365_ADMIN)
     if p.runs_as_installable:
-        viable.append(_SIG_HYPER_V)
+        viable.append(_SIG_VM)
     if _container_is_viable(p):
         viable.append(_SIG_CONTAINER)
     if p.runs_as_azure_native:
@@ -393,7 +393,7 @@ def _pick_primary_fabric(p: "ProvisioningFacts") -> str | None:
     # ── Honor preferred_fabric hint when the fact predicate supports it ──
     pf = p.preferred_fabric
     if pf in (_FABRIC_HYPER_V, _FABRIC_VM) and p.runs_as_installable:
-        return _SIG_HYPER_V
+        return _SIG_VM
     if pf == _FABRIC_CONTAINER and _container_is_viable(p):
         return _SIG_CONTAINER
     if pf == _FABRIC_AZURE and p.runs_as_azure_native:
@@ -405,7 +405,7 @@ def _pick_primary_fabric(p: "ProvisioningFacts") -> str | None:
 
     # ── Static priority fallback (VM > Container > Cloud > Sandbox API) ──
     if p.runs_as_installable:
-        return _SIG_HYPER_V
+        return _SIG_VM
     if _container_is_viable(p):
         return _SIG_CONTAINER
     if p.runs_as_azure_native:

@@ -30,25 +30,53 @@
 </div>
 
 <div class="hero-acv">
-  <div class="hero-acv-label">ACV Potential</div>
-  {# Hero number is the COMPANY TOTAL — sum of acv_low/high across every
-     scored product in the analysis. The selected product's individual
-     contribution is shown below for context. Per-motion breakdown lives
-     in the ACV by Use Case widget at the bottom of the page. #}
-  {% set ns = namespace(low=0, high=0) %}
+  {# Hero ACV widget — three-line structure per Platform-Foundation.md
+     lines 711–734. COMPANY-LEVEL opportunity, does not change as the
+     user switches products in the dropdown.
+
+     Line 1: ACV POTENTIAL big range — extrapolated across all discovered
+             products (proportional scale-up from the scored sample).
+     Line 2: Descriptor — "Estimated across all N discovered products"
+     Line 3: Scored subtotal — "Estimate for ONLY the N scored products: $X – $Y"
+             The uppercase ONLY is intentional per the spec: it signals
+             to the seller that line 3 is the defensible subset, not a
+             competing total.
+
+     Per-product ACV detail lives in the ACV by Use Case table in the
+     bottom row — NOT in the hero. #}
+  {% set ns = namespace(low=0, high=0, scored_with_acv=0) %}
   {% for p in analysis.products %}
-    {% if p.acv_potential %}
+    {% if p.acv_potential and (p.acv_potential.acv_high or 0) > 0 %}
       {% set ns.low = ns.low + (p.acv_potential.acv_low or 0) %}
       {% set ns.high = ns.high + (p.acv_potential.acv_high or 0) %}
+      {% set ns.scored_with_acv = ns.scored_with_acv + 1 %}
     {% endif %}
   {% endfor %}
-  {% if ns.high > 0 %}
-    <div class="hero-acv-num">{{ ns.low | format_acv }} – {{ ns.high | format_acv }}</div>
+  {% set scored_count = analysis.products | length %}
+  {% set discovered_count = analysis.total_products_discovered or scored_count %}
+  {% if ns.high > 0 and ns.scored_with_acv > 0 %}
+    {% if discovered_count > ns.scored_with_acv %}
+      {# Proportional extrapolation: scale the scored range up by the
+         ratio of discovered-to-scored. Honest extrapolation — line 2
+         descriptor makes the scaling visible. #}
+      {% set company_low = (ns.low * discovered_count / ns.scored_with_acv) | round(0) | int %}
+      {% set company_high = (ns.high * discovered_count / ns.scored_with_acv) | round(0) | int %}
+    {% else %}
+      {# Everything discovered is scored — the scored total IS the
+         company total. No extrapolation. #}
+      {% set company_low = ns.low %}
+      {% set company_high = ns.high %}
+    {% endif %}
+    <div class="hero-acv-label">ACV Potential</div>
+    <div class="hero-acv-num">{{ company_low | format_acv }} – {{ company_high | format_acv }}</div>
     <div class="hero-acv-detail">
-      Across <strong>{{ analysis.products | length }}</strong> scored {% if (analysis.total_products_discovered or 0) > (analysis.products | length) %}of <strong>{{ analysis.total_products_discovered }}</strong> discovered{% endif %} products
-      {% if top.acv_potential and top.acv_potential.acv_high %}
-      <br><span style="opacity:0.75">{{ top.name }}: <strong>{{ top.acv_potential.acv_low | format_acv }} – {{ top.acv_potential.acv_high | format_acv }}</strong></span>
-      {% endif %}
+      Estimated across all <strong>{{ discovered_count }}</strong> discovered products
+      <br>
+      <span class="hero-acv-scored">
+        Estimate for <strong>ONLY</strong> the <strong>{{ ns.scored_with_acv }}</strong> scored
+        product{% if ns.scored_with_acv != 1 %}s{% endif %}:
+        <strong>{{ ns.low | format_acv }} – {{ ns.high | format_acv }}</strong>
+      </span>
     </div>
   {% endif %}
 </div>

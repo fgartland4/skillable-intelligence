@@ -277,26 +277,51 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .bottom-row-product > .competitive-section { flex: 1; min-width: 0; margin-top: 0; }
 .bottom-row-org { flex: 3; min-width: 0; }
 
-/* ── ACV by Use Case widget ──
-   Rebuilt from the legacy dossier consumption table. Reads from
-   selected_product.acv_potential. Sits under Account Intelligence so
-   the org-side column tells a complete story: who they are
-   (Account Intelligence) + what the deal is worth by motion (ACV widget). */
-.acv-widget {
-    background: var(--sk-bg-card-org-soft);
-    border: 1px solid var(--sk-border-card-org);
-    border-top: 2px solid var(--sk-classify-purple-light);
-    border-radius: 0 0 8px 8px;
-    padding: 12px 14px 14px 14px;
+/* ── Three-Box Bottom Row — shared pattern (Platform-Foundation 766–800) ──
+   Scored Products (left), Competitive Products (middle), ACV by Use Case
+   (right) must read as ONE designed row. Same typography, same spacing,
+   same box chrome across all three. The ONE intentional differentiator
+   is the middle box's slate-blue competitor name font + purple hairline
+   accent — everything else matches edge-for-edge. */
+
+/* Shared box chrome applied only when the section lives inside the
+   bottom row (products-section is also used as a top-level page block
+   elsewhere and should not pick up box chrome there). */
+.bottom-row-product > .products-section,
+.bottom-row-product > .competitive-section,
+.bottom-row-org > .acv-widget {
+    background: var(--sk-bg-surface-low);
+    border: 1px solid var(--sk-border-soft);
+    border-radius: 8px;
+    padding: 16px 18px 12px 18px;
+    opacity: 1;
 }
-.acv-widget-header {
-    display: flex; align-items: center; gap: 6px;
-    margin-bottom: 10px;
-}
+
+/* Shared title style — .products-title and .competitive-title below
+   already use (0.75rem, 2px letter-spacing, muted). .acv-widget-title
+   inherits the same shape so the three titles read as one. */
 .acv-widget-title {
-    font-size: 0.65rem; letter-spacing: 1.5px;
-    color: var(--sk-classify-purple-light);
+    font-size: 0.75rem; letter-spacing: 2px;
+    color: var(--sk-text-muted);
     text-transform: uppercase; font-weight: 600;
+}
+
+/* Shared header spacing across all three boxes */
+.products-header,
+.competitive-header,
+.acv-widget-header {
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+}
+
+/* ── ACV by Use Case widget — right box ──
+   Shares the bottom-row box chrome above. No unique background, no
+   purple hairline (the purple hairline is the middle-box signature per
+   Platform-Foundation 796). Structurally unique (4-column data table +
+   footer rows) because the content demands it, but typography and
+   spacing match the other two boxes exactly. */
+.acv-widget {
+    /* chrome comes from the shared .bottom-row-org > .acv-widget rule */
 }
 .acv-table {
     width: 100%; border-collapse: collapse;
@@ -355,9 +380,11 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 }
 
 /* Product list at bottom */
+/* .products-section base rule for non-bottom-row contexts; when used
+   in the bottom row the shared box-chrome rule above overrides padding
+   and background. */
 .products-section { margin-top: 8px; }
-.products-header { margin-bottom: 12px; }
-.products-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; }
+.products-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; font-weight: 600; }
 .product-table { border-collapse: collapse; }
 .product-table tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
 .product-table tr:last-child { border-bottom: none; }
@@ -372,17 +399,16 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     text-decoration-color: var(--sk-score-high);
 }
 
-/* Competitive products list — muted/boxed so it's clearly separate */
-.competitive-section {
-    margin-top: 32px;
-    background: var(--sk-bg-surface-low);
-    border: 1px solid var(--sk-border-soft);
-    border-radius: 8px;
-    padding: 16px 18px 8px 18px;
-    opacity: 0.92;
+/* Competitive products list — middle box of the three-box bottom row.
+   Box chrome comes from the shared .bottom-row-product > .competitive-section
+   rule above. The ONE differentiator from the other two boxes is the
+   purple hairline accent on top — the middle-box signature per
+   Platform-Foundation 780–796 — plus slate-blue font for competitor
+   product names (see .competitive-name below). */
+.bottom-row-product > .competitive-section {
+    border-top: 2px solid var(--sk-classify-purple-light);
 }
-.competitive-header { margin-bottom: 12px; }
-.competitive-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; }
+.competitive-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; font-weight: 600; }
 .competitive-list { display: flex; flex-direction: column; gap: 4px; }
 .competitive-row {
     padding: 10px 8px 12px 8px;

@@ -268,25 +268,22 @@ class LockedTerm:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _provisioning_badges = (
-    Badge("Runs in Hyper-V", (
+    Badge("Runs in VM", (
         BadgeColor("green", "Clean VM install confirmed"),
         BadgeColor("amber", "Installs with complexity"),
-    )),
+    ), notes="Frank 2026-04-08 — renamed from 'Runs in Hyper-V' to fabric-neutral 'Runs in VM'. Skillable's VM fabric is Hyper-V under the hood but the badge names the product's shape, not the implementation detail."),
     Badge("Runs in Azure", (
         BadgeColor("green", "Azure-native service — viable for Azure Cloud Slice fabric"),
         BadgeColor("amber", "Azure path with friction"),
-    ), notes="Means the product IS an Azure service viable for Cloud Slice fabric — NOT 'can be hosted on an Azure VM.' For installable products that happen to run on Azure VMs, use Runs in Hyper-V."),
+    ), notes="Means the product IS an Azure service viable for Cloud Slice fabric — NOT 'can be hosted on an Azure VM.' For installable products that happen to run on Azure VMs, use Runs in VM."),
     Badge("Runs in AWS", (
         BadgeColor("green", "AWS-native service — viable for AWS Cloud Slice fabric"),
         BadgeColor("amber", "AWS path with friction"),
     ), notes="Means the product IS an AWS service viable for Cloud Slice fabric — NOT 'can be hosted on an AWS VM.'"),
-    Badge("Requires GCP", (
-        BadgeColor("amber", "No native Skillable GCP path"),
-    )),
     Badge("Runs in Container", (
         BadgeColor("green", "Container-native confirmed, no disqualifiers"),
         BadgeColor("amber", "Image exists but disqualifiers apply or research uncertain"),
-    ), notes="Singular. Defaults to green when container-native confirmed. Don't emit if definitively not container-viable. Scores ~equivalent to Hyper-V Standard."),
+    ), notes="Singular. Defaults to green when container-native confirmed. Don't emit if definitively not container-viable. Scores ~equivalent to Runs in VM Standard."),
     Badge("ESX Required", (
         BadgeColor("amber", "Nested virtualization or socket licensing requires ESX (details in evidence)"),
     )),
@@ -298,18 +295,15 @@ _provisioning_badges = (
         BadgeColor("amber", "API exists but coverage uncertain or partial"),
         BadgeColor("red", "No provisioning API confirmed — no path to per-learner environments via vendor API"),
     ), notes="Gatekeeper canonical for the 'can we provision per learner via the vendor's API?' question. Replaces the older Custom API (BYOC) signal name. Always emit (gatekeeper) — green/amber/red based on evidence."),
-    Badge("Pre-Instancing", (
+    Badge("Pre-Instancing?", (
         BadgeColor("green", "Slow first-launch or cluster init mitigated by Skillable Pre-Instancing — Skillable feature opportunity"),
-    ), notes="Green opportunity badge when product has long initial provisioning time. Frames the slowness as a Skillable feature win (Pre-Instancing pre-builds warm instances), not friction."),
+    ), notes="Frank 2026-04-08 — trailing question mark signals this is a Skillable feature SUGGESTION to explore, not a confirmed product property. Fires when product has long initial provisioning time and/or is_large_lab. Frames the slowness as a Skillable feature win (Pre-Instancing pre-builds warm instances), not friction."),
     Badge("Multi-VM Lab", (
         BadgeColor("green", "Multiple VMs working together — Skillable strength (competitors struggle here)"),
-    ), notes="Skillable competitive advantage. Typical for cybersecurity (attacker + target + SIEM), data engineering pipelines, enterprise stacks. Drives ACV rate tier upward. Mutually exclusive with Large Lab."),
+    ), notes="Skillable competitive advantage. Typical for cybersecurity (attacker + target + SIEM), data engineering pipelines, enterprise stacks. Drives ACV rate tier upward."),
     Badge("Complex Topology", (
         BadgeColor("green", "Real network complexity — routers, switches, firewalls, segmentation, routing protocols"),
-    ), notes="Skillable strength. Applies to networking vendors (Cisco, Juniper, Palo Alto, F5) AND cybersecurity products with real network-layer complexity. Can pair with Multi-VM Lab or Large Lab."),
-    Badge("Large Lab", (
-        BadgeColor("green", "Single environment with big footprint — RAM, CPU, GPU, datasets — Skillable strength"),
-    ), notes="Skillable strength for products that need big single-machine resources (data science, AI/ML, GPU-heavy workloads). Mutually exclusive with Multi-VM Lab — pick whichever better describes the primary nature of the scale."),
+    ), notes="Skillable strength. Applies to networking vendors (Cisco, Juniper, Palo Alto, F5) AND cybersecurity products with real network-layer complexity. Can pair with Multi-VM Lab."),
     Badge("GPU Required", (
         BadgeColor("amber", "Product requires GPU — forces cloud VM with GPU instance, slower launch and higher cost"),
     ), notes="Genuine friction. Standard Hyper-V doesn't have GPU; routes to Azure/AWS with GPU instance via Compute Gallery. Was a hidden penalty; promoted to a visible badge so SEs see the warning."),
@@ -347,11 +341,11 @@ _provisioning_signals = (
     # Each scoring signal name below MATCHES the canonical badge name above
     # so the math layer credits the canonical badge directly. No more
     # "emit two badges to get the points" hack.
-    ScoringSignal("Runs in Hyper-V", 30, "Clean Hyper-V install — full base credit"),
+    ScoringSignal("Runs in VM", 30, "Clean VM install — full base credit"),
     ScoringSignal("Runs in Azure", 30, "Azure-native service via Cloud Slice fabric"),
     ScoringSignal("Runs in AWS", 30, "AWS-native service via Cloud Slice fabric"),
-    ScoringSignal("Runs in Container", 30, "Container-native confirmed — equivalent to Hyper-V Standard"),
-    ScoringSignal("ESX Required", 26, "ESX path — 4 points below Hyper-V due to operational cost (Broadcom licensing)"),
+    ScoringSignal("Runs in Container", 30, "Container-native confirmed — equivalent to Runs in VM Standard"),
+    ScoringSignal("ESX Required", 26, "ESX path — 4 points below Runs in VM due to operational cost (Broadcom licensing)"),
     ScoringSignal("Sandbox API", 22, "Vendor provisioning API (BYOC) — viable per-learner provisioning, scored below native fabrics"),
     # Frank 2026-04-08: Simulation is now a HARD OVERRIDE case — when the
     # scorer picks Simulation as the fabric, it applies SIMULATION_PROVISIONING_POINTS
@@ -365,8 +359,7 @@ _provisioning_signals = (
     # the ACV rate tier upward and add seller-relevant context)
     ScoringSignal("Multi-VM Lab", 0, "Skillable competitive strength — drives ACV rate tier"),
     ScoringSignal("Complex Topology", 0, "Skillable competitive strength — drives ACV rate tier"),
-    ScoringSignal("Large Lab", 0, "Skillable competitive strength — drives ACV rate tier"),
-    ScoringSignal("Pre-Instancing", 0, "Skillable feature opportunity — mitigates slow init"),
+    ScoringSignal("Pre-Instancing?", 0, "Skillable feature suggestion — mitigates slow init or large-footprint cold starts"),
     # Frank 2026-04-08: BYOC / Custom Cloud Labs Skillable-strength context badge.
     # Fires alongside Sandbox API when Sandbox API is green or amber. Zero points —
     # credit lives on Sandbox API itself; Custom Cloud is display/context only.
@@ -2277,10 +2270,11 @@ IV_CATEGORY_BASELINES: dict[str, dict[str, int]] = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Maps the AI-emitted organization_type strings (lowercase snake_case) to
-# the CF_ORG_BASELINES keys (uppercase human-readable).  The AI output format
-# comes from the scoring_template.md prompt; the baselines use the format
-# that renders cleanly in docs and the dossier UX.  This is the Define-Once
-# seam — both scorer.py and intelligence.py normalize via this dict.
+# the CF_ORG_BASELINES keys (uppercase human-readable).  The AI output
+# format comes from the discovery-phase classification (researcher.py);
+# the baselines use the format that renders cleanly in docs and the
+# dossier UX.  This is the Define-Once seam — every caller normalizes
+# via this dict.
 # UNKNOWN_CLASSIFICATION is defined at the top of the baselines section
 # (before IV_CATEGORY_BASELINES) so both baseline dicts can reference it
 # as a dict key.  Single source of truth — see that definition for full docs.
@@ -3075,12 +3069,11 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 #
 # Bump format: "YYYY-MM-DD.short-description"
 # Bump policy: any commit that touches scoring_config.py (badges, signals,
-# rubrics, ceiling flags), the per-pillar scorers + fit_score_composer (math behavior), or the rubric
-# tiers in the prompts/scoring_template.md should bump this. Comment-only
-# changes don't require a bump.
+# rubrics), the per-pillar scorers, fit_score_composer, or rubric_grader
+# should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-4a-routing-fix-lab-infra-to-build"
+SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-5b-pristine-cleanup"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

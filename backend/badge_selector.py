@@ -157,7 +157,7 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
         # Only fire VM/Cloud badges when M365 isn't the primary fabric
         if p.runs_as_installable:
             badges.append(Badge(
-                name="Runs in Hyper-V",
+                name="Runs in VM",
                 color="green",
                 qualifier="Strength",
                 evidence=[_evidence(
@@ -433,43 +433,19 @@ def _pillar_1_lab_access_badges(product: Product) -> list[Badge]:
             )],
         ))
 
-    # ── Training License (amber-default per Frank 2026-04-08) ──
-    # Green is reserved for truly-zero-friction cases (open source, unlimited
-    # free tier). M365 scenarios and most vendor trials fire amber by default.
-    if la.training_license == "low_friction" and not p.m365_scenario:
-        # Only truly zero-friction non-M365 products get green
-        badges.append(Badge(
-            name="Training License",
-            color="green",
-            qualifier="Strength",
-            evidence=[_evidence(
-                "Low-friction training license confirmed — open-source, unlimited free tier, or equivalent. "
-                "No SE-side licensing design conversation needed.",
-                confidence="confirmed",
-            )],
-        ))
-    elif la.training_license in ("low_friction", "medium_friction") or p.m365_scenario:
-        # Everything else (including M365 End User) is amber
-        if p.m365_scenario:
-            claim = (
-                "Training License indicated amber — Microsoft 365 licensing has real SE questions to work out: "
-                "which tier (Base/Full/Full+AI)? concurrent user count? which optional add-ons (Teams, Copilot, "
-                "Power BI Premium)? existing customer tenants to integrate with? Skillable's automated M365 lane "
-                "removes learner friction, but the licensing design conversation still happens."
-            )
-        else:
-            claim = (
-                "Training License indicated amber — vendor has a path (trial, dev, or partner license) but SE needs "
-                "to validate terms with the customer: concurrent user count, region restrictions, commercial-vs-training "
-                "license terms, and whether existing customer agreements apply."
-            )
-        badges.append(Badge(
-            name="Training License",
-            color="amber",
-            qualifier="Risk",
-            evidence=[_evidence(claim, confidence="indicated")],
-        ))
-    elif la.training_license == "blocked":
+    # ── Training License (universal amber default per Frank 2026-04-08) ──
+    # Rule: amber is the default for essentially every product. Green is
+    # reserved for the truly-zero-friction edge cases — open source with
+    # no concurrent-user model, no tier choices, no add-on decisions —
+    # and the researcher does not currently have enough fact signal to
+    # claim that confidently, so green is not emitted by default. Most
+    # products, including M365 End User, fire amber because real SE
+    # conversations happen around almost every non-trivial licensing
+    # arrangement (tier, count, add-ons, regional restrictions, commercial
+    # vs training license terms, existing customer agreements).
+    # Red fires only when the fact drawer reports the license is blocked
+    # (no viable path).
+    if la.training_license == "blocked":
         badges.append(Badge(
             name="Training License",
             color="red",
@@ -479,6 +455,33 @@ def _pillar_1_lab_access_badges(product: Product) -> list[Badge]:
                 "negotiation path documented.",
                 confidence="confirmed",
             )],
+        ))
+    else:
+        # Everything else fires Training License amber. Evidence text
+        # adapts to M365 scenarios (where the Skillable automated M365
+        # lane removes learner friction but the licensing design
+        # conversation still happens) vs the general case (trial/dev/
+        # partner license with SE terms validation).
+        if p.m365_scenario:
+            claim = (
+                "Training License indicated amber — Microsoft 365 licensing has real SE questions to work out: "
+                "which tier (Base/Full/Full+AI)? concurrent user count? which optional add-ons (Teams, Copilot, "
+                "Power BI Premium)? existing customer tenants to integrate with? Skillable's automated M365 lane "
+                "removes learner friction, but the licensing design conversation still happens."
+            )
+        else:
+            claim = (
+                "Training License indicated amber — licensing arrangement needs SE validation with the customer: "
+                "concurrent user count, tier choice, optional add-ons, regional restrictions, commercial-vs-training "
+                "license terms, and whether existing customer agreements apply. Green is reserved for truly "
+                "zero-friction cases (unlimited free tier with no concurrent user model and no tier choices) and "
+                "those are rare enough that the badge defaults to amber until an SE confirms otherwise."
+            )
+        badges.append(Badge(
+            name="Training License",
+            color="amber",
+            qualifier="Risk",
+            evidence=[_evidence(claim, confidence="indicated")],
         ))
 
     # ── Red blocker badges ──

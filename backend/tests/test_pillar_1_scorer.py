@@ -71,12 +71,12 @@ def _dim_weight(dim_name: str) -> int:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def test_provisioning_clean_hyperv_earns_full_signal_credit():
-    """Installable product → Runs in Hyper-V → full +30, no friction."""
+    """Installable product → Runs in VM → full +30, no friction."""
     facts = ProductLababilityFacts(
         provisioning=ProvisioningFacts(runs_as_installable=True),
     )
     result = pls.score_provisioning(facts)
-    expected = _sig("Provisioning", "Runs in Hyper-V")
+    expected = _sig("Provisioning", "Runs in VM")
     assert result.raw_total == expected
     # Cap should not affect — signal value is below the dimension weight
     assert result.dimension_score.score == expected
@@ -172,7 +172,7 @@ def test_provisioning_gpu_required_applies_penalty_and_amber_risk():
         ),
     )
     result = pls.score_provisioning(facts)
-    hv = _sig("Provisioning", "Runs in Hyper-V")
+    hv = _sig("Provisioning", "Runs in VM")
     gpu_pen = _pen("Provisioning", "GPU Required")
     assert result.raw_total == hv + gpu_pen
     assert result.amber_risks == 1

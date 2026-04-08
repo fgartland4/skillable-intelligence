@@ -56,7 +56,6 @@ SKIP_PATHS = [
     "docs/Badging-Framework-Core.md",       # legacy doc — will be deleted
     "docs/Scoring-Framework-Core.md",       # legacy doc — will be deleted
     "backend/scoring_config.py",            # locked vocabulary section lists legacy terms
-    "backend/prompts/scoring_template.md",  # template references vocabulary in context
     "backend/prompts/product_scoring.txt",  # legacy prompt — will be deleted
     "docs/intelligence-platform.md",        # legacy doc
     "docs/Designer-Session-Prep.md",        # references legacy terms when identifying conflicts

@@ -38,6 +38,7 @@ List the technology products they build training content for.
 For each item, identify:
 
 - name: Product, program, or platform name
+- vendor_official_acronym: ONLY when the vendor themselves uses a short acronym for this product in their own marketing/docs (e.g., Trellix "TIE" for Threat Intelligence Exchange, Microsoft "SCCM" for System Center Configuration Manager, Cisco "ISE" for Identity Services Engine). Leave as empty string when the vendor doesn't use an acronym. NEVER invent an acronym. This is a display convenience for long product names — badges use it when available and keep the full name otherwise.
 - category: One of: Cloud Infrastructure, Cybersecurity, Data Protection, Networking, DevOps, Application Development, Data & Analytics, Data Science & Engineering, Collaboration, ERP/CRM, Healthcare IT, Industrial/OT, Content Management, Legal Tech, FinTech, AI/ML Platform, Academic Program, Training & Certification, Technology Platform, Other
 - subcategory: Concise industry-standard subcategory (2-3 words). Examples: Cybersecurity → "Endpoint Protection", "Detection & Response", "SIEM/SOAR". Cloud → "Compute", "Containers & Kubernetes".
 - description: One sentence describing what it does
@@ -80,6 +81,7 @@ Return ONLY valid JSON:
   "products": [
     {
       "name": "Product Name",
+      "vendor_official_acronym": "",
       "category": "Category",
       "subcategory": "Subcategory",
       "description": "One sentence",
