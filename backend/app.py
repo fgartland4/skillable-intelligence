@@ -149,6 +149,25 @@ def format_acv_filter(value) -> str:
     return f"${value:.0f}"
 
 
+@app.template_filter("format_count")
+def format_count_filter(value) -> str:
+    """Format an integer count with k / M abbreviations (no dollar sign).
+
+    Used by the ACV by Use Case table for audience / hours / annual
+    hours columns. "15,000" → "15k", "400,000" → "400k", "1,200,000"
+    → "1.2M". Sub-1000 values render as-is. Keeps the table compact
+    so columns don't overflow and get truncated.
+    """
+    try:
+        value = float(value or 0)
+    except (TypeError, ValueError):
+        return "0"
+    if value >= 1_000_000: return f"{value / 1_000_000:.1f}M"  # magic-allowed: standard count formatting (millions)
+    elif value >= 10_000: return f"{value / 1_000:.0f}k"  # magic-allowed: 10k+ rounds to whole-k
+    elif value >= 1_000: return f"{value / 1_000:.1f}k"  # magic-allowed: 1k-10k shows one decimal so 1.2k distinguishable from 1.5k
+    return f"{int(value)}"
+
+
 @app.template_filter("dim_caps")
 def dim_caps_filter(name: str) -> str:
     """Uppercase a dimension name and put each word on its own line.
