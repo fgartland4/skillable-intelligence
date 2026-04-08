@@ -355,6 +355,37 @@ class SignalEvidence:
     confidence: str = ""              # "confirmed" | "indicated" | "inferred"
 
 
+@dataclass
+class GradedSignal:
+    """A rubric signal that's been graded for strength and evidence text.
+
+    Produced by `backend/rubric_grader.py` — one focused Claude call per
+    rubric dimension reads the fact drawer for that dimension and emits
+    a list of GradedSignal records.  The pure-Python Pillar 2/3 scorers
+    then read these records deterministically (look up point values from
+    `scoring_config.py` by `signal_category` + `strength`, apply
+    baselines, apply caps).
+
+    Architecturally this is the narrow slice of Claude-in-Score that
+    the rebuild permits (lock-in #4 in docs/next-session-todo.md §0b).
+    Strength grading and evidence phrasing are both qualitative work
+    that can't reduce to Python heuristics without losing meaning.
+    Every other step in the Score layer stays pure Python.
+
+    Per Frank 2026-04-08 — the grader outputs live on `Product.
+    rubric_grades` (per-product dims) and `CompanyAnalysis.
+    customer_fit_rubric_grades` (per-company dims), KEEPING the
+    underlying `SignalEvidence` truth-only fact drawer intact.  Facts
+    stay truth-only; grades are a separate derived artifact.
+    """
+    signal_category: str              # e.g., "multi_vm_architecture", "atp_alp_program"
+    strength: str                     # "strong" | "moderate" | "weak" | "informational"
+    evidence_text: str                # Plain English with confidence hedging — feeds badge display
+    confidence: str                   # "confirmed" | "indicated" | "inferred"
+    color: str = ""                   # "green" | "amber" | "red" | "gray" — derived display signal
+    source_fact_path: str = ""        # Traceability pointer to the fact field the grade reads
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Pillar 1 — Product Labability fact drawer
 #
@@ -705,6 +736,23 @@ class Product:
     # fact-keyed pillar scorers.  See docs/next-session-todo.md §0c Step 3.
     pillar_1_python_score: Optional[PillarScore] = None
 
+    # ── Step 4 (2026-04-08) — Pillar 2 rubric grading + Python scoring ────
+    # `rubric_grades` is the output of backend/rubric_grader.py — one
+    # GradedSignal list per Pillar 2 dimension (product_complexity,
+    # mastery_stakes, lab_versatility, market_demand).  Keyed by the
+    # dimension's lowercase_underscore key.  Produced by a focused Claude
+    # call per dimension that reads the truth-only fact drawer and emits
+    # graded signals with strength + evidence text.  The pure-Python
+    # pillar_2_scorer.py reads these records plus facts and produces the
+    # PillarScore deterministically.  Both grades and Python score travel
+    # with the Product so re-scoring from cached grades is instant.
+    rubric_grades: dict[str, list[GradedSignal]] = field(default_factory=dict)
+
+    # Pillar 2 Python scoring comparison field.  Populated alongside the
+    # legacy monolithic scoring call during the rebuild; flipped to
+    # authoritative at Step 5 cutover.
+    pillar_2_python_score: Optional[PillarScore] = None
+
     # Classification review flag — raised when the product category or
     # organization type landed in "Unknown" during scoring.  The math layer
     # applies a neutral fallback baseline and surfaces this flag so the
@@ -771,6 +819,23 @@ class CompanyAnalysis:
     # of the same company reads from this single drawer.  See
     # Platform-Foundation.md → "Three Layers of Intelligence."
     customer_fit_facts: CustomerFitFacts = field(default_factory=CustomerFitFacts)
+
+    # ── Step 4 (2026-04-08) — Pillar 3 rubric grading + Python scoring ────
+    # Produced by backend/rubric_grader.py — one GradedSignal list per
+    # Pillar 3 dimension (training_commitment, build_capacity,
+    # delivery_capacity, organizational_dna).  Keyed by the dimension's
+    # lowercase_underscore key.  Customer Fit is per-company, so these
+    # grades live on the CompanyAnalysis, not on individual Products.
+    # Pure-Python pillar_3_scorer.py reads these records plus
+    # customer_fit_facts and produces the Pillar 3 PillarScore
+    # deterministically.
+    customer_fit_rubric_grades: dict[str, list[GradedSignal]] = field(default_factory=dict)
+
+    # Pillar 3 Python scoring comparison field.  Populated alongside the
+    # legacy monolithic scoring call during the rebuild; flipped to
+    # authoritative at Step 5 cutover.
+    pillar_3_python_score: Optional[PillarScore] = None
+
     briefcase: Optional[SellerBriefcase] = None
     # CRIT-6 in code-review-2026-04-07: analyzed_at MUST NOT be set at
     # dataclass instantiation. Setting it via default_factory means the

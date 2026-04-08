@@ -1011,6 +1011,78 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             pl_python_count, len(new_analysis.products),
         )
 
+        # ── Step 4 of the rebuild: Pillar 2/3 rubric grading + Python scoring ──
+        # New path runs ALONGSIDE the legacy monolithic scoring call.
+        #
+        # Flow:
+        #   1. rubric_grader.grade_all_for_product — one focused Claude call
+        #      per Pillar 2 dimension per product (4 parallel calls per
+        #      product). Each grader reads its dimension's fact drawer
+        #      and emits GradedSignal records.
+        #   2. rubric_grader.grade_all_for_company — same thing for Pillar 3
+        #      dimensions at the company level.
+        #   3. pillar_2_scorer.score_instructional_value — pure Python. Reads
+        #      grades + baselines + penalties, applies risk cap reduction.
+        #   4. pillar_3_scorer.score_customer_fit — same pattern at company level.
+        #
+        # Results go into Product.rubric_grades / pillar_2_python_score and
+        # CompanyAnalysis.customer_fit_rubric_grades / pillar_3_python_score
+        # as side-by-side comparison fields. Step 5 cutover will delete the
+        # monolithic path and flip Product.fit_score / PillarScore fields to
+        # be populated by these scorers directly. See docs/next-session-todo.md
+        # §0c Step 4.
+        #
+        # Best-effort throughout — any exception anywhere in the new path
+        # logs and skips that product / company. The legacy scoring result
+        # on fit_score is untouched.
+        from rubric_grader import grade_all_for_company, grade_all_for_product
+        from pillar_2_scorer import score_instructional_value
+        from pillar_3_scorer import score_customer_fit
+
+        log.info(
+            "Intelligence.score: Pillar 2/3 rubric grading starting for %d products + 1 company",
+            len(new_analysis.products),
+        )
+
+        # Pillar 3 company-level grading (runs once, reads products for cross-pillar facts)
+        try:
+            cf_grades = grade_all_for_company(new_analysis)
+            new_analysis.customer_fit_rubric_grades = cf_grades
+            new_analysis.pillar_3_python_score = score_customer_fit(
+                new_analysis.organization_type,
+                cf_grades,
+            )
+            log.info(
+                "Intelligence.score: Pillar 3 Python score populated (%d dim grades)",
+                len(cf_grades),
+            )
+        except Exception:
+            log.exception(
+                "Intelligence.score: Pillar 3 rubric grading/scoring failed for %s — skipping",
+                company_name,
+            )
+
+        # Pillar 2 per-product grading + scoring
+        p2_python_count = 0
+        for product in new_analysis.products:
+            try:
+                p_grades = grade_all_for_product(product, new_analysis)
+                product.rubric_grades = p_grades
+                product.pillar_2_python_score = score_instructional_value(
+                    product.category,
+                    p_grades,
+                )
+                p2_python_count += 1
+            except Exception:
+                log.exception(
+                    "Intelligence.score: Pillar 2 rubric grading/scoring failed for %r — skipping",
+                    product.name,
+                )
+        log.info(
+            "Intelligence.score: Pillar 2 Python scoring populated for %d/%d products",
+            p2_python_count, len(new_analysis.products),
+        )
+
         # Assign verdicts
         for product in new_analysis.products:
             acv_tier = product.acv_potential.acv_tier or "medium"
