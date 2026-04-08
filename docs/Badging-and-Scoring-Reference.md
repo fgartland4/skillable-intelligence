@@ -525,13 +525,42 @@ The commercial case. Measures whether this product genuinely warrants hands-on l
 
 **The question shifts from** *"is there evidence of instructional value?"* **to** *"is there any reason this product would NOT have instructional value?"*
 
+### CRITICAL — Every badge is an ANSWER, never a question or topic
+
+**This rule applies to EVERY badge in EVERY Pillar 2 and Pillar 3 dimension.** A badge label must be a finding the seller can read out loud and understand without context. If it's a question or a topic, it fails.
+
+**The four kinds of answers** — every badge is exactly one of these:
+
+| Kind | Strength | Example |
+|---|---|---|
+| **Good answer** — positive finding | `strong` (green) | `Platform Buyer`, `~500 ATPs`, `Multi-VM Architecture`, `Active Cert Exam` |
+| **Pause answer** — concerning finding, dig deeper | `moderate` (amber) | `Long RFP Process`, `Regional Partner Network`, `Slide-Deck Only Training` |
+| **Warning answer** — major red flag | (red, hard negative) | `Hard to Engage`, `No Training Partners`, `No Classroom Delivery`, `Consumer Grade` |
+| **Context answer** — informational, no scoring impact | `informational` (gray) | `Recent VP Hire`, `Parent Company: SoftBank`, `Niche Specialty` |
+
+**The "read it out loud" test** — if you cannot read the badge label as a statement about the customer and have it make sense, it's wrong:
+
+| ❌ Question / topic (FAIL) | ✓ Answer (PASS) |
+|---|---|
+| `Build vs Buy` (question) | `Platform Buyer` OR `Builds Everything` |
+| `Partner Ecosystem` (topic) | `Multi-Type Partnerships` OR `~500 ATPs` OR `Thin Channel` |
+| `Integration Maturity` (topic) | `Open Platform Culture` OR `Closed Platform` |
+| `Ease of Engagement` (topic) | `Partner-Friendly` OR `Long RFP Process` OR `Hard to Engage` |
+| `Training Culture` (topic) | `Hands-On Training Culture` OR `Slide-Deck Only Training` |
+| `Training Catalog` (topic) | `200+ Courses` OR `Thin Catalog` OR `Compliance-Only Catalog` |
+| `Deep Configuration` (topic) | `Deeply Configurable` OR `180+ Detection Rules` |
+| `Multi-Phase Workflow` (topic) | `Design → Deploy → Tune → Troubleshoot` |
+| `High-Stakes Skills` (topic) | `Breach Exposure` OR `HIPAA Audit Risk` OR `Patient Safety Critical` |
+
+**If you cannot produce an answer for a finding, don't emit the badge.** A question / topic label produces NO information for the seller — it just labels that the AI noticed something. The seller needs to know what the AI FOUND.
+
 ### Rubric Model Architecture
 
 Pillar 2 uses the **rubric model** (intentionally different from Pillar 1's canonical model — see "Three Architectural Properties Across Pillars" above). Each badge the AI emits carries:
-- `name` — variable, AI-synthesized, domain-specific (the visible chip) — **the name IS the finding, never a topic label**
-- `strength` — `strong` / `moderate` / `weak` — REQUIRED, drives the math
+- `name` — variable, AI-synthesized, domain-specific (the visible chip) — **the name IS the finding (an ANSWER), never a topic label or a question**
+- `strength` — `strong` / `moderate` / `informational` / `weak` — REQUIRED, drives the math. `informational` is 0 points (context-only).
 - `signal_category` — one of the dimension's fixed category list — REQUIRED, hidden, for analytics
-- `color` — green / amber / red (mirrors strength; red is reserved for hard negatives only)
+- `color` — green / amber / red / gray (mirrors strength; red reserved for hard negatives; gray for informational)
 - `evidence` — sentence-level context (existing field, hover popover)
 
 ### Dimensions
@@ -1019,26 +1048,28 @@ High-demand categories (cybersecurity, cloud, DevOps, data science, AI platforms
 
 | Category | Baseline | Rationale |
 |---|---|---|
-| **Cybersecurity** | **17 / 20 (85%)** | Massive global specialist population — every cyber pro needs hands-on skills. Active cert ecosystems (CompTIA, CISSP, vendor certs). Enormous ATP networks. |
-| **Cloud Infrastructure** | **17 / 20 (85%)** | Massive specialist population — AWS/Azure/GCP certs are career-defining, millions of cloud engineers globally. |
-| **AI Platforms & Tooling** | **17 / 20 (85%)** | Surging specialist population — prompt engineering, agent development, LLMOps, fine-tuning are the most-requested skills in the market. |
-| **Networking / SDN** | **16 / 20 (80%)** | Large specialist population — network engineers globally. Cisco, Juniper, etc. — long-established cert ecosystems (CCNA/CCNP/CCIE remain career-defining). |
-| **DevOps** | **16 / 20 (80%)** | Large specialist population — Kubernetes, Terraform, Docker, CI/CD engineers. Recognized career skills with active cert ecosystems. |
-| **Data Science & Engineering** | **15 / 20 (75%)** | Large specialist population — growing certs (Databricks, Snowflake, dbt), widespread job postings. |
-| **Data & Analytics** | **14 / 20 (70%)** | Real specialist market (Tableau, Power BI, Snowflake, Databricks BI) — broad but not as deep-hands-on as data engineering. |
-| **App Development** | **13 / 20 (65%)** | Language and framework-specific skill markets (Java, .NET, Python, React) — large but fragmented. |
-| **ERP** | **12 / 20 (60%)** | SAP, Workday, Oracle, NetSuite — specialist consultant population worldwide, but far smaller than the cyber or cloud pro population. |
-| **Infrastructure / Virtualization** | **12 / 20 (60%)** | VMware VCP, Nutanix, Citrix — established but maturing. Smaller specialist pool than cloud or cyber. |
-| **Healthcare IT** | **12 / 20 (60%)** | Specialist demand (Epic, Cerner, Meditech) — niche but highly valued, certification-gated access. |
-| **FinTech** | **12 / 20 (60%)** | Trading platforms, Bloomberg, banking systems — specialist demand, compliance-driven. |
-| **Industrial / OT** | **12 / 20 (60%)** | Niche but real — PLC, SCADA, Rockwell, Siemens skills in specific industries. |
-| **Data Protection** | **11 / 20 (55%)** | Vendor-specific cert programs (Cohesity, Veeam, Rubrik) — smaller specialist admin population per company. |
-| **Legal Tech** | **11 / 20 (55%)** | Relativity Certified User, e-discovery platforms — niche professional demand. |
-| **Unknown / uncategorized** | **11 / 20 (55%)** | Neutral fallback — flag for classification review |
-| **CRM** | **10 / 20 (50%)** | Salesforce Trailhead is big in aggregate but the admin/developer population per company is small — 5,000 users, 3 admins. Training market exists but is narrower than cyber or cloud. |
-| **Collaboration** | **10 / 20 (50%)** | Microsoft 365 admin certs, SharePoint development — real but narrow admin population per company. |
-| **Content Management** | **10 / 20 (50%)** | Documentum, Alfresco, Box — specialist admin population per company is small. |
+| **Cybersecurity** | **14 / 20 (70%)** | Massive specialist population, but the CATEGORY baseline leaves room for product-specific differentiation. A Microsoft Defender or CrowdStrike lands near the top (18-20); a Trellix lands in the middle (16-17); a niche vendor lands lower. |
+| **Cloud Infrastructure** | **14 / 20 (70%)** | Massive specialist population — AWS/Azure/GCP certs are career-defining, millions of cloud engineers globally. Room for per-product spread. |
+| **AI Platforms & Tooling** | **14 / 20 (70%)** | Surging specialist population — prompt engineering, agent development, LLMOps, fine-tuning are the most-requested skills. |
+| **Networking / SDN** | **13 / 20 (65%)** | Large specialist population — network engineers globally. Cisco, Juniper, etc. — long-established cert ecosystems. |
+| **DevOps** | **13 / 20 (65%)** | Large specialist population — Kubernetes, Terraform, Docker, CI/CD engineers. |
+| **Data Science & Engineering** | **12 / 20 (60%)** | Large specialist population — growing certs (Databricks, Snowflake, dbt), widespread job postings. |
+| **Data & Analytics** | **11 / 20 (55%)** | Real specialist market (Tableau, Power BI) — broad but not as deep-hands-on as data engineering. |
+| **App Development** | **11 / 20 (55%)** | Language and framework-specific skill markets — large but fragmented. |
+| **ERP** | **10 / 20 (50%)** | SAP, Workday, Oracle, NetSuite — specialist consultant population worldwide, but smaller than cyber or cloud. |
+| **Infrastructure / Virtualization** | **10 / 20 (50%)** | VMware VCP, Nutanix, Citrix — established but maturing. |
+| **Healthcare IT** | **10 / 20 (50%)** | Specialist demand (Epic, Cerner, Meditech) — niche but highly valued. |
+| **FinTech** | **10 / 20 (50%)** | Trading platforms, Bloomberg, banking systems — specialist, compliance-driven. |
+| **Industrial / OT** | **10 / 20 (50%)** | Niche but real — PLC, SCADA, Rockwell, Siemens skills in specific industries. |
+| **Data Protection** | **9 / 20 (45%)** | Vendor-specific cert programs — smaller specialist admin population per company. |
+| **Legal Tech** | **9 / 20 (45%)** | Relativity Certified User, e-discovery platforms — niche professional demand. |
+| **Unknown / uncategorized** | **9 / 20 (45%)** | Neutral fallback — flag for classification review |
+| **CRM** | **8 / 20 (40%)** | Salesforce Trailhead is big in aggregate but the admin/developer population per company is small — 5,000 users, 3 admins. |
+| **Collaboration** | **8 / 20 (40%)** | Microsoft 365 admin certs, SharePoint development — real but narrow admin population per company. |
+| **Content Management** | **8 / 20 (40%)** | Documentum, Alfresco, Box — specialist admin population per company is small. |
 | **Social / Entertainment** *(e.g., Facebook, Instagram, TikTok, Netflix, Spotify)* | **0 / 20 (0%)** | No professional training market |
+
+**Why baselines are lower than they were (2026-04-07 recalibration):** the old baselines (17 for Cybersecurity) ate all the product-specific differentiation — Microsoft Defender and Trellix both capped at 20/20 despite 10x different install bases. New baselines leave room for the product-specific signals (`install_base_scale`, `cert_body_mentions`, `independent_training_market`) to create real spread. A Microsoft-scale product should land at ~18-19, a Trellix-scale product at ~15-16, a niche product at ~12-13.
 
 #### Strength Tiers
 
@@ -1052,17 +1083,19 @@ High-demand categories (cybersecurity, cloud, DevOps, data science, AI platforms
 
 | Signal category | What it means |
 |---|---|
-| `skill_appetite` | Recognized skill people actively seek (job postings, career paths, recruiter language) |
-| `cert_ecosystem` | Active certification program with published exams, pass rates, career value |
-| `atp_network` | Authorized training partner network exists — **cross-pillar with Delivery Capacity** |
-| `install_base_scale` | Large learner-eligible user base (not raw users — specialists who might train) |
-| `geographic_reach` | Global presence — not Indiana-only |
+| `install_base_scale` | Product-specific user population at hands-on depth — differentiates Microsoft Defender vs Trellix vs niche vendor |
+| `enterprise_validation` | Named Fortune 500 / Global 2000 reference customers |
+| `geographic_reach` | Global presence vs regional vs single country |
+| `cert_body_mentions` | CompTIA, EC-Council, SANS, or ISC2 curriculum mentions THIS product — **cross-pillar with Delivery Capacity** (third-party delivered training signal) |
+| `independent_training_market` | Coursera / Pluralsight / LinkedIn Learning / Udemy have courses on THIS product — **cross-pillar with Delivery Capacity** |
+| `no_independent_training_market` | Cross-pillar penalty — fewer than 3 courses found on the open market |
+| `cert_ecosystem` | Vendor's own certification program (not third-party) |
+| `competitor_labs` | Other lab platforms sell training for this product — demand is proven |
 | `funding_growth` | IPO, Series D, major enterprise momentum |
 | `category_demand` | High-demand parent category (cybersecurity, cloud, data, DevOps, AI) |
-| `enterprise_validation` | Named Fortune 500 / Global 2000 customers |
-| `flagship_event` | Major conference or event with hands-on tracks — **cross-pillar with Delivery Capacity** |
 | `ai_signal` | Product IS or heavily features AI — surging skill demand |
-| `competitor_labs` | Competitors already sell training for this product — demand is proven |
+
+**Key insight (Frank 2026-04-07):** Market Demand is both **category demand** (baseline) AND **product-specific evidence**. The category tells you the ceiling; the product-specific evidence determines where THIS product lands within the category. Lots of people want cybersecurity training — not all of them care about Trellix specifically. Research CompTIA, EC-Council, SANS, ISC2 curricula for product mentions. Research Coursera, Pluralsight, LinkedIn Learning, Udemy for courses on THIS product. Count them and emit a specific answer badge.
 
 #### Badge Naming — Finding-as-Name
 
@@ -1081,11 +1114,13 @@ Domain examples: `Fortune 100 Clients`, `Series D $200M`, `IPO 2024`, `Global AT
 
 | Step | Value |
 |---|---|
-| Baseline (Cybersecurity) | **17** |
+| Baseline (Cybersecurity) | **14** |
 | `Top 5 Threat Intel` (strong, `install_base_scale`) | +5 |
 | `Active Cert Track` (strong, `cert_ecosystem`) | +5 |
-| `ATP Network` (strong, `atp_network`) — cross-pillar, also credits Delivery Capacity | +5 |
-| **Final score** | **20 / 20** (capped from 32) |
+| `CompTIA Curriculum` (strong, `cert_body_mentions`) — cross-pillar with Delivery Capacity Layer 2 | +5 |
+| **Final score** | **20 / 20** (capped from 29) |
+
+*Note: Trellix does not have an Authorized Training Partner program, so `atp_alp_program` does NOT fire. But CompTIA does mention threat intelligence in its cybersecurity curriculum, and Coursera has courses on threat intel — those fire as third-party-delivered signals in both Market Demand AND Delivery Capacity Layer 2.*
 
 #### Typical Spread
 
@@ -1478,13 +1513,23 @@ Delivery Capacity asks: **can this organization actually reach learners at scale
 
 Delivery Capacity is weighted highest within Customer Fit (30 out of 100) because of a **share-of-wallet** reality: having labs = cost, delivering labs to learners = value. Without delivery infrastructure, labs are a cost center that never reaches the audience that would benefit. A customer can have perfect Training Commitment and excellent Build Capacity, but if they have no channel to get the content in front of learners, the commercial case collapses. **Delivery Capacity is where commercial value lives.**
 
-Strong Delivery Capacity signals:
+#### Three Delivery Layers — each is a separate signal, layers stack for bonus points
 
-- **ATP / Authorized Training Partner networks** — the bigger the global network, the higher the reach
+**Delivery capacity is measured across three distinct layers (Frank 2026-04-07).** Each layer is a separate fact. A vendor can have any subset or all three. Each deeper layer ADDS BONUS POINTS on top of the previous — the layers stack:
+
+| Layer | What it is | How to detect | Example badges |
+|---|---|---|---|
+| **1. Vendor-Delivered** *(base)* | The vendor runs training directly. Official ILT, self-paced portal, vendor-run hands-on labs. Positive signal but bounded to what the vendor alone can reach. | Search the vendor's training / academy / university pages for "instructor-led training," "self-paced courses," "on-demand," "lab exercises." | `Vendor-Delivered ILT`, `Vendor Self-Paced Portal`, `Vendor-Delivered Labs`, `Published Course Calendar` |
+| **2. Third-Party-Delivered** *(bonus)* | Independent training in the open market AND cert body curricula. Positive signal because independent trainers don't invest if nobody wants the training. **Cross-pillar with Market Demand.** | Search Coursera, Pluralsight, LinkedIn Learning, Udemy for courses on THIS product (count them). Search CompTIA, EC-Council, SANS, ISC2 curricula for product mentions. | `~15 Pluralsight Courses`, `~5 Coursera Courses`, `CompTIA Curriculum`, `EC-Council Track`, `No Independent Courses Found` (penalty) |
+| **3. Auth-Partner-Delivered** *(TOP bonus)* | Formal Authorized Training Partner / Authorized Learning Partner program. Certified partners delivering the vendor's training at scale. ATP/ALP programs are typically more mature than vendor-direct training because they represent scaled multi-partner delivery capability. | Search for "ATP," "Authorized Training Partner," "ALP," "Authorized Learning Partner," "training partner directory," "partner finder." | `Global Partner Network`, `~500 ATPs`, `Regional Partner Network`, `No Training Partners` (penalty) |
+
+**Trellix example:** Trellix has vendor-delivered training (ILT + self-paced + labs on Trellix Education Services) but NO formal ATP / ALP program. The honest answer emits BOTH: `Vendor-Delivered ILT` + `Vendor Self-Paced Portal` + `Vendor-Delivered Labs` (Layer 1 positives) AND `No Training Partners` (Layer 3 penalty). Layer 2 depends on whether Coursera / Pluralsight / CompTIA / SANS actually have Trellix-specific content. Don't conflate "has training" with "has training partners" — they are two separate facts.
+
+Other Delivery Capacity signals:
+
 - **Skillable-partner LMS platforms already in place** — Docebo, Cornerstone, Skillable TMS
 - **Flagship training events at scale** — Cohesity Connect, Cisco Live, Microsoft Ignite with hands-on tracks
 - **Existing lab platform** — Skillable (expansion), competitor (displacement), or `DIY Lab Platform` (replacement)
-- **Instructor-led delivery network at scale** — internal instructors, certified trainers, bootcamp faculty
 - **Global geographic reach** — presence in NAMER + EMEA + APAC vs. one region
 - **Certification delivery infrastructure** — Pearson VUE, Certiport, PSI integration
 

@@ -291,6 +291,12 @@
         function startScoring() {
             if (scoringStarted) return;
             scoringStarted = true;
+            // Advance the research index PAST the last step so any later
+            // status messages (like per-product "Scored X (N/total)"
+            // progress events from the Intelligence layer callback) do
+            // not re-trigger research-step advancement after Claude
+            // scoring has begun.
+            sseResearchIndex = researchSteps.length;
             researchSteps.forEach(markDone);
             markActive(claudeStep);
             setProgress(5);

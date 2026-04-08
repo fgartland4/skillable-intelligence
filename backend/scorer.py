@@ -304,8 +304,19 @@ def _score_single_product(company_name: str, product: dict, product_context: str
     return _call_claude(SCORING_PROMPT, user_content, max_tokens=16000)
 
 
-def score_selected_products(research: dict) -> CompanyAnalysis:
-    """Phase 2: Parallel scoring — one Claude call per product."""
+def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis:
+    """Phase 2: Parallel scoring — one Claude call per product.
+
+    Args:
+        research: research dict with company_name, selected_products, etc.
+        progress_cb: optional callback invoked as each product FINISHES scoring.
+            Signature: progress_cb(product_name: str, completed: int, total: int).
+            The math layer publishes true per-completion progress events so the
+            UI reflects actual work, not upfront dispatch.  GP1 (right info,
+            right time, right way): the progress bar must trace honestly back
+            to completed work — emitting events upfront before scoring begins
+            is a trust failure.
+    """
     company_name = research["company_name"]
     selected = research["selected_products"]
     all_results = research.get("search_results", {})
@@ -315,9 +326,19 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
     company_context = _build_company_context(company_name, discovery_data)
     benchmarks_text = _build_benchmarks_text()
 
-    # Fire one call per product in parallel — cap at 6 workers
+    total = len(selected)
+
+    def _emit_progress(name: str, done: int) -> None:
+        if progress_cb is None:
+            return
+        try:
+            progress_cb(name, done, total)
+        except Exception:
+            log.exception("score_selected_products: progress_cb raised — ignoring")
+
+    # Fire one call per product in parallel — cap at MAX_SCORING_WORKERS workers
     from config import MAX_SCORING_WORKERS, SCORING_TIMEOUT_SECS
-    with ThreadPoolExecutor(max_workers=min(len(selected), MAX_SCORING_WORKERS)) as executor:
+    with ThreadPoolExecutor(max_workers=min(total, MAX_SCORING_WORKERS)) as executor:
         product_futures = {
             executor.submit(
                 _score_single_product,
@@ -329,12 +350,15 @@ def score_selected_products(research: dict) -> CompanyAnalysis:
         }
 
         product_results = {}
+        completed = 0
         for future in as_completed(product_futures, timeout=SCORING_TIMEOUT_SECS):
             name = product_futures[future]
             try:
                 product_results[name] = future.result()
             except Exception as e:
                 product_results[name] = {"_error": str(e)}
+            completed += 1
+            _emit_progress(name, completed)
 
     failed = {name: r for name, r in product_results.items() if "_error" in r}
     successful = {name: r for name, r in product_results.items() if "_error" not in r}
@@ -716,12 +740,15 @@ Output JSON with this structure:
 
 Rules:
 - 2-3 bullets maximum — **but at least ONE bullet always. Never return an empty list.** If scoring evidence is thin, surface the single most important unknown you can identify (API surface, identity model, NFR licensing, etc.) and ask the clearest answerable question you can.
-- **Every bullet STARTS with a specific action verb** that tells the seller exactly what to do. Examples of correct openers:
-  * *"Determine whether Trellix GTI exposes a REST API for IOC DELETE operations by connecting an API Platform Lead with a Skillable SE..."*
-  * *"Ensure Skillable SEs have NFR license keys for a POC proving per-learner sandboxing works by contacting the Trellix Customer Onboarding Engineer..."*
-  * *"Confirm the identity model supports tenant-scoped users by asking the Principal Engineer on the API team..."*
-  * *"Pursue a written answer to 'does the teardown API reliably deprovision resources under concurrent load' from the Platform Engineering Lead..."*
-  The action verb pattern makes each bullet a clear CTA that the seller can execute. No bullet should read as a passive observation.
+- **Each bullet STARTS with a 2-3 word BOLD LABEL framed as the PROBLEM TO SOLVE** (not a topic, not a category). The label is an imperative phrase the seller reads as "this is what needs to happen." Examples of correct bold labels (2-3 words, imperative):
+  * **`**Unlock Sandbox API**`** — then the copy explains how
+  * **`**Confirm NFR Path**`** — then the copy explains how
+  * **`**Validate Teardown API**`** — then the copy explains how
+  * **`**Resolve Identity Model**`** — then the copy explains how
+  * **`**Pursue POC Credentials**`** — then the copy explains how
+  WRONG — topic labels with no verb: `Provisioning Path`, `Identity Model`, `API Scoring`, `NFR Licensing`. Those are categories, not problems to solve.
+- **Target 30 words maximum per bullet.** If you have more to say, it's a second bullet. Short and specific beats long and comprehensive.
+- **Anchor strictly to THIS product** — never reference similar products from the same company. If you're scoring Trellix Global Threat Intelligence, do NOT mention Trellix Insights or Trellix Endpoint Security in the same bullet; each product has its own briefcase.
 - Every bullet identifies a TECHNICAL role from the list above
 - Every bullet contains a VERBATIM question the engineer can answer in 1-2 sentences
 - Every bullet is specific to THIS product and THIS company — never generic
@@ -765,11 +792,15 @@ Output JSON with this structure:
 
 Rules:
 - 2-3 bullets maximum — **but at least ONE bullet always. Never return an empty list.** If there's nothing strong to say about this product's complexity or stakes, pivot to an adjacent strategic angle (recent press release, executive hire, flagship product release, market timing) — something the seller can legitimately open with.
-- **Every bullet STARTS with a specific action verb** that gives the seller a clear CTA. Examples of correct openers:
-  * *"Pitch the VP of Customer Education on why Trellix GTI's multi-correlation workflow requires hands-on practice — analysts who only read documentation never develop pivot intuition..."*
-  * *"Open the VP conversation with the $200M breach cost anchor — Trellix GTI sits exactly where hands-on threat-hunting practice reduces mean-time-to-detect..."*
-  * *"Connect the Director of Customer Success with the Skillable outcomes data showing PBT-trained analysts reduce false positives by 40% — ask whether that maps to their retention goals..."*
-  The action verb pattern makes each bullet a strategic CTA the seller can execute in a conversation — not a passive talking point.
+- **Each bullet STARTS with a 2-3 word BOLD LABEL framed as the STRATEGIC ANGLE the seller should open with** (not a topic, not a category). Examples of correct bold labels:
+  * **`**Pitch Breach Anchor**`** — copy explains how
+  * **`**Lead With NRR**`** — copy explains how
+  * **`**Frame Time-To-Value**`** — copy explains how
+  * **`**Anchor On Compliance**`** — copy explains how
+  * **`**Open On Retention**`** — copy explains how
+  WRONG — topic labels: `Customer Retention`, `Product Complexity`, `Strategic Angle`. Those are categories, not angles to open with.
+- **Target 30 words maximum per bullet.** Short and specific beats long and comprehensive.
+- **Anchor strictly to THIS product** — never reference similar products from the same company. Each product has its own briefcase; don't bleed context across them.
 - Each bullet is a complete, conversational sentence the seller could say out loud TO A VP
 - Each bullet ties THIS product's complexity, stakes, regulatory exposure, customer outcomes,
   or workflows to why hands-on training matters at the STRATEGIC level (not the API level)
@@ -798,12 +829,15 @@ Output JSON with this structure:
 ═══ Rules ═══
 
 - 2-3 bullets maximum — **but at least ONE bullet always. Never return an empty list.** If there's no strong scoring signal, find ANYTHING real from the company research to anchor a bullet: a recent press release, a newly hired executive, a product launch, an earnings-call mention of training, an industry event they sponsor. Something. An empty Account Intelligence box is a research failure, not a valid result.
-- **Every bullet STARTS with a specific action verb** that gives the seller a clear CTA. Examples of correct openers:
-  * *"Find the head of Elevate 2026 (Atlanta, April 22-24) and pitch a hands-on governance audit lab track..."*
-  * *"Research the new VP of Customer Education at Cohesity (hired Q1 2026 per LinkedIn) before the first call — their mandate from the hiring announcement mentions..."*
-  * *"Validate the Skillable displacement angle by asking how much time the current CloudShare environment takes to provision..."*
-  * *"Identify the ~500 Trellix ATPs in NAMER and propose a partner-enablement lab pilot..."*
-  The action verb pattern makes each bullet a concrete next step the seller can execute this week.
+- **Each bullet STARTS with a 2-3 word BOLD LABEL framed as the CONCRETE NEXT STEP** (not a topic, not a category). Examples of correct bold labels:
+  * **`**Find Elevate Lead**`** — copy explains the event and the ask
+  * **`**Research New VP**`** — copy explains the hire and the angle
+  * **`**Validate CloudShare Gap**`** — copy explains the displacement angle
+  * **`**Pilot ATP Enablement**`** — copy explains the partner motion
+  * **`**Anchor On Greenfield**`** — copy explains the no-incumbent opportunity
+  WRONG — topic labels: `Annual Conference`, `Training Leader`, `Competitive Landscape`. Those are categories, not next steps.
+- **Target 30 words maximum per bullet.** Short and specific beats long and comprehensive.
+- **Anchor strictly to THIS product** — never reference similar products from the same company. Each product has its own briefcase; don't bleed context across them.
 - Each bullet surfaces a SPECIFIC organizational signal anchored to a named entity:
   * Named LMS (Cornerstone, Docebo, etc.)
   * Named certification program (specific cert name, exam, recent updates)

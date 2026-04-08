@@ -190,6 +190,35 @@ Baselines are applied by the math layer automatically. Your job: emit the `produ
 
 **Do NOT use**: `Simple SaaS` (retired — SaaS is a delivery mechanism, not a content area), `Consumer` (retired — replaced by `Social / Entertainment` for the no-training-market case; QuickBooks and similar consumer-but-professional tools belong in `FinTech`).
 
+### CRITICAL: Every badge is an ANSWER, not a question or topic
+
+**This rule applies to EVERY badge in EVERY Pillar 2 and Pillar 3 dimension.** A badge label must be a finding the seller can read out loud and understand without context. If it's a question or a topic, it fails.
+
+**The four kinds of answers** — every badge is exactly one of these:
+
+| Kind | Color / strength | Example |
+|---|---|---|
+| **Good answer** — positive finding | green / `strong` | `Platform Buyer`, `~500 ATPs`, `Multi-VM Architecture`, `Active Cert Exam` |
+| **Pause answer** — concerning finding, dig deeper | amber / `moderate` | `Long RFP Process`, `Regional Partner Network`, `Slide-Deck Only Training` |
+| **Warning answer** — major red flag | red / explicit hard negative | `Hard to Engage`, `No Training Partners`, `No Classroom Delivery`, `Consumer Grade` |
+| **Context answer** — informational, no scoring impact | gray / `informational` | `Recent VP Hire`, `Parent Company: SoftBank`, `Niche Specialty` |
+
+**The "read it out loud" test** — if you cannot read the badge label as a statement about the customer and have it make sense, it's wrong:
+
+| ❌ Question / topic (FAIL) | ✓ Answer (PASS) |
+|---|---|
+| `Build vs Buy` (question) | `Platform Buyer` (answer) OR `Builds Everything` (answer) |
+| `Partner Ecosystem` (topic) | `Multi-Type Partnerships` OR `~500 ATPs` OR `Thin Channel` |
+| `Integration Maturity` (topic) | `Open Platform Culture` OR `Closed Platform` |
+| `Ease of Engagement` (topic) | `Partner-Friendly` OR `Long RFP Process` OR `Hard to Engage` |
+| `Training Culture` (topic) | `Hands-On Training Culture` OR `Slide-Deck Only Training` |
+| `Training Catalog` (topic) | `200+ Courses` OR `Thin Catalog` OR `Compliance-Only Catalog` |
+| `Deep Configuration` (topic) | `Deeply Configurable` OR `180+ Detection Rules` |
+| `Multi-Phase Workflow` (topic) | `Design → Deploy → Tune → Troubleshoot` |
+| `High-Stakes Skills` (topic) | `Breach Exposure` OR `HIPAA Audit Risk` OR `Patient Safety Critical` |
+
+**If you cannot produce an answer for a finding, don't emit the badge.** A question / topic label produces NO information for the seller — it just labels that the AI noticed something. The seller needs to know what the AI FOUND.
+
 ### Pillar 2 uses the RUBRIC model — read this carefully
 
 Pillar 2 dimensions measure **interpretive subject-matter complexity**, which varies by domain. Networking, cybersecurity, legal, banking, healthcare each have their own terminology. Forcing canonical badge names here loses the domain-specific nuance that makes badges useful to the seller.
@@ -213,9 +242,11 @@ So Pillar 2 uses a different model from Pillar 1:
 | `Multi-VM Lab` in Pillar 1 Provisioning | A strong badge in Pillar 2 Product Complexity with signal_category `multi_vm_architecture` — variable name like `Multi-VM Deployment` or `Cluster Architecture` |
 | `Complex Topology` in Pillar 1 Provisioning | A strong badge in Pillar 2 Product Complexity with signal_category `complex_networking` — variable name like `Segmented Zones` or `Multi-Subnet Architecture` |
 | `Large Lab` in Pillar 1 Provisioning | A strong badge in Pillar 2 Product Complexity with signal_category `deep_configuration` or `state_persistence` |
-| `~500 ATPs` or similar partner network in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `atp_network` — partners don't exist without skill demand |
+| `~500 ATPs` or similar partner network in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `atp_alp_program` — partners don't exist without skill demand |
 | Active certification exam in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `cert_ecosystem` |
-| Flagship event at scale (Cisco Live, Cohesity Connect) in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `flagship_event` |
+| Flagship event at scale (Cisco Live, Cohesity Connect) in Pillar 3 Delivery Capacity | A strong badge in Pillar 2 Market Demand with signal_category `training_events_scale` |
+| Pluralsight / Coursera / LinkedIn Learning / Udemy has courses on THIS product | Emit in BOTH: P2 Market Demand (`independent_training_market`) + P3 Delivery Capacity (`third_party_training_market`) — same fact, two layers |
+| CompTIA / EC-Council / SANS / ISC2 curriculum mentions THIS product | Emit in BOTH: P2 Market Demand (`cert_body_mentions`) + P3 Delivery Capacity (`cert_body_curriculum`) — same fact, two layers |
 | `No Independent Training Market` penalty in Pillar 3 Delivery Capacity | A matching amber badge in Pillar 2 Market Demand with signal_category `no_independent_training_market` — no open-market courses means both weak delivery reach AND weak skill appetite |
 
 **The principle:** the same fact can legitimately answer multiple questions. ATPs in Delivery Capacity answer "can you reach learners"; ATPs in Market Demand answer "is there skill appetite." Both are true. Emit both.
@@ -230,6 +261,26 @@ So Pillar 2 uses a different model from Pillar 1:
 | **Standard industry acronyms — never spell out** | API, CLI, GUI, AI, MFA, NFR, ATP, LMS, RBAC, IDP, IPO, PBT, MCQ, SSO |
 | **Subject matter terminology is encouraged** | The whole point of Pillar 2 variable names is to capture domain-specific concepts |
 | **NO product names of the company being scored** | The dossier header has the company name — don't repeat it in badges |
+
+### Emit 3-5 badges per Pillar 2 dimension — the baseline is not an excuse to stop
+
+**Critical posture rule for Pillar 2.** The new category-aware baselines mean one strong finding alone can already cap a dimension at its maximum. **Do NOT use that as an excuse to emit only 1-2 badges.** Badges serve two purposes:
+
+1. **Scoring math** — one strong finding may already max the dimension
+2. **Conversational competence for the seller** — each badge is a specific product-grounded talking point the seller uses in the actual conversation
+
+The seller needs the CONVERSATIONAL VALUE, not just the score. **Emit 3-5 distinct badges per Pillar 2 dimension whenever the evidence supports them**, even when the math would already be capped by fewer badges. A dimension showing only 1 badge is a failed read — it tells the seller "there's one thing to say" when the real world has five or six things to say about a cybersecurity platform's complexity, stakes, lab versatility, and market demand.
+
+**Specific guidance per IV dimension:**
+
+| Dimension | Target badge count | Why |
+|---|---|---|
+| **Product Complexity** | 3-5 strong badges | Complex products always have multiple angles — role diversity, workflow depth, integration chains, state persistence, troubleshooting depth. Surface them all. |
+| **Mastery Stakes** | 3-4 strong badges | High-stakes products face multiple consequence types — compliance exposure, breach potential, financial impact, reputation risk. Don't collapse them into one generic "high stakes" badge. Name each specific stake. |
+| **Lab Versatility** | 3-5 lab type badges | Serious products support multiple lab types. A cybersecurity product typically supports Red vs Blue, Incident Response, Cyber Range, CTF, AND Break/Fix — that's FIVE distinct lab types the seller can pitch. Emit all that fit naturally. |
+| **Market Demand** | 3-5 badges | Market Demand has multiple signal categories — scale, certification ecosystem, ATP networks, enterprise validation, geographic reach, funding growth, competitor labs. Surface each one that has evidence. |
+
+**A dimension with only 1 badge — even if the math caps at 15/15 or 25/25 — is undersold.** Re-read the research. What else is true? Emit it.
 
 ### Strength grading discipline — DON'T HEDGE
 
@@ -311,6 +362,20 @@ Customer Fit follows the same default-positive philosophy as Instructional Value
 {CF_ORG_TYPE_VALUES}
 
 If the company genuinely does not fit any of these, leave it unset — the math layer falls back to the Unknown baseline and raises a classification review flag for human follow-up.
+
+### Delivery Capacity — THREE DELIVERY LAYERS (each is a separate signal)
+
+**Every vendor's delivery capacity is measured across three distinct layers.** Each layer is a separate signal. ALL THREE are worth surfacing independently — don't conflate them. Each deeper layer adds BONUS POINTS on top of the previous.
+
+| Layer | What it is | How to detect | Badge examples |
+|---|---|---|---|
+| **1. Vendor-Delivered (base)** | The vendor runs training directly. Official ILT, self-paced portal, vendor-run hands-on labs. | Search the vendor's training page, academy, university, customer portal. Look for "instructor-led training," "self-paced," "on-demand courses," "lab exercises." | `Vendor-Delivered ILT`, `Vendor Self-Paced Portal`, `Vendor-Delivered Labs`, `Published Course Calendar` |
+| **2. Third-Party-Delivered (bonus)** | Independent training in the open market AND cert body curricula. | Search Coursera, Pluralsight, LinkedIn Learning, Udemy for courses on THIS SPECIFIC product. Search CompTIA, EC-Council, SANS, ISC2 curricula for product mentions. **Cross-pillar with Market Demand** — same fact fires in both. | `~15 Pluralsight Courses`, `~5 Coursera Courses`, `CompTIA Curriculum`, `EC-Council Track` |
+| **3. Auth-Partner-Delivered (TOP bonus)** | Formal Authorized Training Partner / Authorized Learning Partner program. Certified partners delivering the vendor's training at scale. | Search for "ATP," "Authorized Training Partner," "ALP," "Authorized Learning Partner," "training partner directory," "partner finder" on the vendor's site. | `Global Partner Network`, `~500 ATPs`, `Regional Partner Network` |
+
+**Key rule:** a vendor can have any subset of these three layers. Emit a separate badge for EACH layer found. A vendor with Layer 1 + Layer 2 + Layer 3 scores higher than a vendor with only Layer 1, because the delivery reach is measurably bigger. ATP / ALP programs are the TOP layer because they represent scaled multi-partner delivery maturity.
+
+**Trellix example:** Trellix has Vendor-Delivered (ILT + self-paced + labs on their Education Services site) but NO Authorized Training Partner program. Emit `Vendor-Delivered ILT` strong, `Vendor Self-Paced Portal` strong, `Vendor-Delivered Labs` strong. Then also emit `No Training Partners` as the red penalty for the missing Layer 3 — it's a real gap for a vendor of Trellix's scale. Don't conflate "Trellix has no training partners" with "Trellix has no training" — the first is a specific penalty on Layer 3, the second is wrong.
 
 ### Research asymmetry — penalize Delivery Capacity aggressively, Build Capacity cautiously
 

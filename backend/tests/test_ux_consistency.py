@@ -12,9 +12,102 @@ Until then, they serve as the specification.
 See docs/Test-Plan.md for the full test strategy.
 """
 
+import os
+from pathlib import Path
+
 import pytest
 
 import scoring_config as cfg
+
+
+# Path to the Inspector template directory (tool layer).
+_INSPECTOR_TEMPLATE_DIR = (
+    Path(__file__).resolve().parent.parent.parent
+    / "tools" / "inspector" / "templates"
+)
+
+
+# ── Search modal consistency ─────────────────────────────────────────────────
+
+def test_templates_using_search_modal_include_styles():
+    """GP4 regression test — catch the stale-cache modal CSS bug.
+
+    Any Inspector template that calls `{{ sm.markup() }}` or `{{ sm.js() }}`
+    MUST also call `{{ sm.styles() }}` inside a `<style>` block.  Without
+    the styles call, the search modal HTML and JS load but render
+    completely unstyled — the seller sees a tiny text block in the
+    lower-left corner instead of a modal dialog, and the page appears
+    to "do nothing" on Deep Dive.
+
+    This fired for real on 2026-04-07 when the SCORING_LOGIC_VERSION bump
+    to `pillars-2-3-posture-rewrite` triggered the stale-cache decision
+    modal on Product Selection for the first time — revealing that
+    `product_selection.html` had been calling `sm.markup()` and `sm.js()`
+    without `sm.styles()` since the stale-cache modal was introduced in
+    commit `7c69eb1`.  The latent bug didn't surface until a cache
+    version change forced the flow.
+
+    This test ensures that class of bug cannot silently re-emerge in any
+    Inspector template.
+    """
+    if not _INSPECTOR_TEMPLATE_DIR.exists():
+        pytest.skip(f"Inspector template dir not found: {_INSPECTOR_TEMPLATE_DIR}")
+
+    offenders: list[str] = []
+    for html_path in _INSPECTOR_TEMPLATE_DIR.glob("*.html"):
+        content = html_path.read_text(encoding="utf-8")
+        uses_markup = "sm.markup()" in content
+        uses_js = "sm.js()" in content
+        if uses_markup or uses_js:
+            if "sm.styles()" not in content:
+                offenders.append(html_path.name)
+
+    assert not offenders, (
+        f"These Inspector templates call sm.markup() or sm.js() but are "
+        f"missing sm.styles(): {offenders}. The search modal will render "
+        f"unstyled. Add {{{{ sm.styles() }}}} inside a <style> block."
+    )
+
+
+def test_templates_importing_search_modal_either_use_it_fully_or_not_at_all():
+    """A template that imports `_search_modal.html` must use all three
+    parts (styles / markup / js) — or none.  Partial usage always
+    produces broken UX: styles without markup renders nothing; markup
+    without styles renders unstyled; markup without js is non-
+    interactive.  Importing the macro and not using it at all wastes a
+    few bytes but is harmless.
+    """
+    if not _INSPECTOR_TEMPLATE_DIR.exists():
+        pytest.skip(f"Inspector template dir not found: {_INSPECTOR_TEMPLATE_DIR}")
+
+    broken: list[str] = []
+    for html_path in _INSPECTOR_TEMPLATE_DIR.glob("*.html"):
+        content = html_path.read_text(encoding="utf-8")
+        imports_sm = "'_search_modal.html' as sm" in content
+        if not imports_sm:
+            continue
+
+        uses_styles = "sm.styles()" in content
+        uses_markup = "sm.markup()" in content
+        uses_js = "sm.js()" in content
+
+        # If the template uses ANY part, it must use ALL parts.
+        if uses_styles or uses_markup or uses_js:
+            if not (uses_styles and uses_markup and uses_js):
+                missing = []
+                if not uses_styles:
+                    missing.append("sm.styles()")
+                if not uses_markup:
+                    missing.append("sm.markup()")
+                if not uses_js:
+                    missing.append("sm.js()")
+                broken.append(f"{html_path.name} (missing: {', '.join(missing)})")
+
+    assert not broken, (
+        f"These Inspector templates use the search modal partially: "
+        f"{broken}. If a template uses ANY of sm.styles() / sm.markup() "
+        f"/ sm.js(), it must use ALL THREE."
+    )
 
 
 # ── Theme variables ─────────────────────────────────────────────────────────

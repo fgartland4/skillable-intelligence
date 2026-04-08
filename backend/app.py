@@ -444,13 +444,33 @@ def inspector_score():
 
     def run_scoring():
         try:
-            push(job_id, f"status:Scoring {len(selected)} products...")
-            for i, p in enumerate(selected):
-                push(job_id, f"status:Researching {p.get('name', '')} ({i+1}/{len(selected)})...")
+            total = len(selected)
+            push(job_id, f"status:Preparing scoring context for {total} products...")
+            # Trigger the scoring.html transition from "research" phase to
+            # "Claude scoring" phase.  The client-side EventSource handler
+            # matches the substring "scoring with" to call startScoring(),
+            # which lights all three orchestration bars and kicks off the
+            # rotating hint messages while per-product work runs.
+            push(job_id, "status:Scoring with Claude...")
+
+            # Honest per-completion progress callback.  The Intelligence
+            # layer calls this as each product ACTUALLY FINISHES scoring
+            # (not upfront at dispatch time, which was the old behavior
+            # and produced a dishonest progress bar that zipped through
+            # the first N-2 products in a second and then sat silent on
+            # the last few for minutes).  GP1 "right way" + GP3 honest
+            # progress — the bar traces back to completed work.
+            def _progress(product_name: str, completed: int, total_count: int) -> None:
+                push(
+                    job_id,
+                    f"status:Scored {product_name} ({completed}/{total_count})",
+                )
+
             analysis_id, new_product_names = score(
                 disc.get("company_name", ""),
                 selected, discovery_id,
                 discovery_data=disc,
+                progress_cb=_progress,
             )
             # Signal "done" immediately — stable URL (existing analysis_id if cache hit)
             # Pass selected products as URL-encoded query so the page can default to

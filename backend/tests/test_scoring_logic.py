@@ -335,17 +335,27 @@ def test_pillar_1_dimensions_have_no_rubric():
 
 
 def test_pillar_2_3_dimensions_all_have_rubrics():
-    """Architecture invariant: every Pillar 2 + 3 dimension must have a rubric."""
+    """Architecture invariant: every Pillar 2 + 3 dimension must have a rubric.
+
+    Each rubric MUST include strong / moderate / weak. Optional `informational`
+    tier (zero points, context-only) is allowed but not required. Per Frank
+    2026-04-07: every badge is one of four answers — good (strong), pause
+    (moderate), context (informational), or nothing to say (weak don't emit).
+    """
+    required_tiers = {"strong", "moderate", "weak"}
+    allowed_tiers = required_tiers | {"informational"}
     for pillar in (cfg.PILLAR_INSTRUCTIONAL_VALUE, cfg.PILLAR_CUSTOMER_FIT):
         for dim in pillar.dimensions:
             assert dim.rubric is not None, (
                 f"{pillar.name} dimension '{dim.name}' is missing a rubric — "
                 f"Pillars 2 and 3 use the rubric model."
             )
-            # Each rubric has the canonical strong/moderate/weak tier set
             tier_names = {t.strength for t in dim.rubric.tiers}
-            assert tier_names == {"strong", "moderate", "weak"}, (
-                f"{pillar.name} > {dim.name} has unexpected strength tiers: {tier_names}"
+            missing = required_tiers - tier_names
+            extra = tier_names - allowed_tiers
+            assert not missing and not extra, (
+                f"{pillar.name} > {dim.name} has unexpected strength tiers: {tier_names} "
+                f"(missing: {missing}, extra: {extra})"
             )
             # Signal categories list must be non-empty
             assert dim.rubric.signal_categories, (

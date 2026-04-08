@@ -749,7 +749,8 @@ def discover(company_name: str, known_products: list[str] | None = None,
 def score(company_name: str, selected_products: list[dict], discovery_id: str,
           discovery_data: dict | None = None,
           research_cache: dict | None = None,
-          force_refresh: bool = False) -> tuple[str, list[str]]:
+          force_refresh: bool = False,
+          progress_cb=None) -> tuple[str, list[str]]:
     """Deep per-product scoring with cache-and-append semantics.
 
     ARCHITECTURE — One persistent analysis per company (per discovery_id), forever.
@@ -841,8 +842,11 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             "discovery_data": discovery_data,
         }
 
-        # Score only the NEW products in parallel
-        new_analysis = score_selected_products(research)
+        # Score only the NEW products in parallel.  The progress_cb
+        # emits real per-completion events (not fake upfront dispatch)
+        # so the scoring progress modal traces honestly back to actual
+        # work completed — GP3 honest progress.
+        new_analysis = score_selected_products(research, progress_cb=progress_cb)
 
         # Assign verdicts
         for product in new_analysis.products:

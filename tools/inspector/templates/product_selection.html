@@ -10,6 +10,14 @@
     <style>
         {% include '_theme.html' %}
         {{ ch.styles() }}
+        {# Search modal CSS — required for the stale-cache decision modal
+           that fires on Deep Dive when the cached analysis is stale.
+           Without this block the modal renders unstyled in the lower-left
+           corner of the page (GP3 UX failure: the seller sees nothing).
+           Pre-existing latent bug caught 2026-04-07 when the
+           SCORING_LOGIC_VERSION bump made the stale-cache flow fire on
+           Product Selection for the first time. #}
+        {{ sm.styles() }}
         * { margin: 0; padding: 0; box-sizing: border-box; }
         button, label { font-family: inherit; }
         body {

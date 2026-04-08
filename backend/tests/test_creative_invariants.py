@@ -238,6 +238,17 @@ def test_pillar_1_badges_have_no_rubric_fields(filename: str, analysis: dict) ->
     if filename == "no-fixtures":
         pytest.skip("No saved analyses on disk")
 
+    # Skip cached analyses stamped with a stale SCORING_LOGIC_VERSION —
+    # their badges reflect the OLD vocabulary and will be re-scored on
+    # next access. Testing them against current rules would flag drift
+    # that the cache invalidation is already handling.
+    if not cfg.is_cached_logic_current(analysis):
+        pytest.skip(
+            f"{filename}: stale cache (stamped with "
+            f"{analysis.get('_scoring_logic_version')!r}, current is "
+            f"{cfg.SCORING_LOGIC_VERSION!r}) — will re-score on next access"
+        )
+
     p1_violators: list[str] = []
     p23_missing_strength: list[str] = []
     p23_missing_sigcat: list[str] = []
@@ -346,6 +357,16 @@ def test_pillar_2_3_signal_category_in_rubric(filename: str, analysis: dict) -> 
     """
     if filename == "no-fixtures":
         pytest.skip("No saved analyses on disk")
+
+    # Skip cached analyses stamped with a stale SCORING_LOGIC_VERSION —
+    # their signal_categories reflect the OLD vocabulary and will be
+    # re-scored on next access.
+    if not cfg.is_cached_logic_current(analysis):
+        pytest.skip(
+            f"{filename}: stale cache (stamped with "
+            f"{analysis.get('_scoring_logic_version')!r}, current is "
+            f"{cfg.SCORING_LOGIC_VERSION!r}) — will re-score on next access"
+        )
 
     drift: list[str] = []
     for pname, pkey, dim in _iter_dimensions(analysis):

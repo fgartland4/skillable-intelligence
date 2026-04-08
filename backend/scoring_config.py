@@ -595,33 +595,39 @@ PILLAR_PRODUCT_LABABILITY = Pillar(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _product_complexity_badges = (
-    Badge("Deep Configuration", (
-        BadgeColor("green", "Many options, real consequences"),
-        BadgeColor("amber", "Some configuration, limited scope"),
+    # ANSWERS, not topics. Each badge label is a finding the seller can
+    # read out loud and understand without context. The rubric model
+    # allows variable AI-synthesized names — these are example patterns.
+    Badge("Deeply Configurable", (
+        BadgeColor("green", "Many options with real consequences — deeply configurable product"),
+        BadgeColor("amber", "Some configuration depth but limited scope"),
     )),
-    Badge("Multi-Phase Workflow", (
-        BadgeColor("green", "Multiple distinct phases"),
+    Badge("Multi-Phase Workflow Present", (
+        BadgeColor("green", "Multiple distinct phases — design, build, deploy, troubleshoot"),
         BadgeColor("amber", "Some depth, similar phases"),
     )),
-    Badge("Role Diversity", (
-        BadgeColor("green", "Many personas need separate programs"),
+    Badge("Multiple Admin Roles", (
+        BadgeColor("green", "Many personas need separate hands-on programs"),
         BadgeColor("amber", "Few roles, not distinct enough for separate tracks"),
     )),
-    Badge("Troubleshooting", (
-        BadgeColor("green", "Rich fault scenarios confirmed"),
+    Badge("Rich Troubleshooting Scenarios", (
+        BadgeColor("green", "Rich fault scenarios documented — real failure modes to practice"),
         BadgeColor("amber", "Some troubleshooting, limited scope"),
     )),
-    Badge("Complex Networking", (
-        BadgeColor("green", "VLANs, routing, multi-network topologies"),
+    Badge("Complex Network Topology", (
+        BadgeColor("green", "VLANs, routing, multi-network topologies — learned only by manipulation"),
         BadgeColor("amber", "Some networking, straightforward"),
     )),
-    Badge("Integration Complexity", (
-        BadgeColor("green", "External systems are primary workflow"),
-        BadgeColor("amber", "Some integrations, not primary"),
+    Badge("Integration-Heavy Workflow", (
+        BadgeColor("green", "External systems are primary workflow — the product's real work lives in integrations"),
+        BadgeColor("amber", "Some integrations, not primary workflow"),
     )),
     Badge("AI Practice Required", (
-        BadgeColor("green", "AI features need iterative hands-on practice"),
+        BadgeColor("green", "AI features require iterative hands-on prompt + verify + tune cycles"),
         BadgeColor("amber", "AI present but shallow"),
+    )),
+    Badge("Multi-VM Architecture", (
+        BadgeColor("green", "Product requires multiple VMs working together — cross-pillar with P1 Multi-VM Lab"),
     )),
     Badge("Consumer Grade", (
         BadgeColor("amber", "Might be consumer-oriented (inferred)"),
@@ -629,7 +635,7 @@ _product_complexity_badges = (
     )),
     Badge("Simple UX", (
         BadgeColor("amber", "Might be too simple (inferred)"),
-        BadgeColor("red", "Straightforward interface confirmed — minimal lab value"),
+        BadgeColor("red", "Wizard-driven or overly simple interface confirmed — minimal lab value"),
     )),
 )
 
@@ -652,17 +658,23 @@ _product_complexity_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 6,
-            "Deep multi-system, multi-phase workflows; multiple distinct admin/operator roles; "
-            "rich troubleshooting paths; OR genuine AI requiring iterative practice",
+            "A strong positive answer — deep multi-system work, multi-phase workflows with real "
+            "state transitions, multiple distinct admin/operator roles, rich troubleshooting, "
+            "multi-VM architecture, or genuine AI requiring iterative practice",
         ),
         RubricTier(
             "moderate", 3,
-            "Some depth or some complexity but limited scope — single-phase, narrow role set, "
-            "light troubleshooting",
+            "A partial positive answer — some depth or some complexity but limited scope — "
+            "single-phase, narrow role set, light troubleshooting",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., deprecated "
+            "features, upcoming version changes, specific integrations worth mentioning",
         ),
         RubricTier(
             "weak", 0,
-            "Thin documentation, mostly straightforward, single-stage workflow — don't emit",
+            "No answer — thin documentation, mostly straightforward, single-stage workflow — don't emit",
         ),
     ),
     is_about=(
@@ -670,6 +682,7 @@ _product_complexity_rubric = Rubric(
         "Documentation breadth — module count, features per module, options per feature, interoperability",
         "Multi-phase workflows that span design, build, deploy, monitor, troubleshoot",
         "Role diversity — admin vs operator vs end user vs developer",
+        "Multi-VM architecture (cross-pillar with P1 Multi-VM Lab)",
         "AI features that require iterative hands-on practice (cannot be learned by watching)",
     ),
     is_not_about=(
@@ -679,15 +692,22 @@ _product_complexity_rubric = Rubric(
         "The mastery STAKES of getting it wrong (that is the Mastery Stakes dimension)",
     ),
     signal_categories=(
+        "multi_vm_architecture",   # cross-pillar with P1 Multi-VM Lab
         "deep_configuration",
         "multi_phase_workflow",
         "role_diversity",
         "troubleshooting_depth",
-        "complex_networking",
+        "complex_networking",      # cross-pillar with P1 Complex Topology
         "integration_complexity",
         "ai_practice_required",
-        "consumer_grade",      # red
-        "simple_ux",           # red
+        "state_persistence",
+        "compliance_depth",
+        # Negative answers (hard negatives — fall back to color points):
+        "consumer_grade",          # red
+        "simple_ux",               # red
+        "wizard_driven",           # amber/red
+        # Informational:
+        "product_complexity_context",
     ),
 )
 
@@ -706,16 +726,37 @@ _product_complexity_dimension = Dimension(
 
 
 _mastery_stakes_badges = (
-    Badge("High-Stakes Skills", (
-        BadgeColor("green", "Misconfiguration causes real harm — breach, data loss, compliance failure, downtime"),
-        BadgeColor("amber", "Stakes exist but moderate"),
+    # ANSWERS — each badge names a specific consequence of failure, not a
+    # topic like "High-Stakes Skills." Variable AI-synthesized names are
+    # preferred (e.g., "HIPAA Exposure", "PCI-DSS Audit Risk", "Board
+    # Privilege Exposure") — these are example patterns.
+    Badge("Breach Exposure", (
+        BadgeColor("green", "Security mistakes expose data, credentials, or systems to attack"),
+    )),
+    Badge("Compliance Audit Risk", (
+        BadgeColor("green", "Regulatory framework (HIPAA, PCI, SOX, GDPR, SOC 2) creates direct audit / fine exposure"),
+    )),
+    Badge("Data Integrity Failure", (
+        BadgeColor("green", "Errors corrupt data, break reporting, poison downstream systems"),
+    )),
+    Badge("Production Outage Risk", (
+        BadgeColor("green", "Failures cause outages, SLA breaches, missed transactions"),
+    )),
+    Badge("Patient Safety Critical", (
+        BadgeColor("green", "Safety-critical environment — physical harm, patient safety, OT control systems"),
+    )),
+    Badge("Legal Liability Exposure", (
+        BadgeColor("green", "Malpractice, privilege breaches, contractual liability"),
+    )),
+    Badge("Material Financial Impact", (
+        BadgeColor("green", "Direct dollar impact — incorrect transactions, pricing errors, reconciliation failures"),
     )),
     Badge("Steep Learning Curve", (
-        BadgeColor("green", "Long path to competence, multiple stages"),
+        BadgeColor("green", "Long path to competence, multiple stages — onboarding risk"),
         BadgeColor("amber", "Some learning curve but manageable"),
     )),
-    Badge("Adoption Risk", (
-        BadgeColor("green", "Poor adoption is a documented concern — labs directly address this"),
+    Badge("High Churn Risk", (
+        BadgeColor("green", "Documented adoption risk — customers churn when they can't become competent"),
         BadgeColor("amber", "Some adoption challenges"),
     )),
 )
@@ -730,24 +771,28 @@ _mastery_stakes_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 9,
-            "Misconfiguration causes breach, data loss, compliance failure, sanctions, "
-            "malpractice, downtime — real and consequential harm",
+            "A strong positive answer — misconfiguration causes breach, data loss, compliance "
+            "failure, sanctions, malpractice, material downtime, or physical harm",
         ),
         RubricTier(
             "moderate", 5,
-            "Errors are visible and create rework / reputation cost but are recoverable",
+            "A partial positive answer — errors create rework / reputation cost but are recoverable",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., recent incident "
+            "reported in the news, known vulnerability class",
         ),
         RubricTier(
             "weak", 0,
-            "Mostly inconvenience — easily fixed, no lasting consequences — don't emit",
+            "No answer — mostly inconvenience, easily fixed, no lasting consequences — don't emit",
         ),
     ),
     is_about=(
-        "Real-world consequences of getting it wrong",
-        "Whether errors cause breach, data loss, regulatory failure, financial harm, downtime",
-        "Career or business stakes for the practitioner",
-        "Steepness of the learning curve from beginner to competent",
-        "Adoption risk — documented evidence that poor adoption is a known concern",
+        "What are the CONSEQUENCES of getting it wrong — named, specific consequences",
+        "Breach exposure, compliance audit risk, data integrity failures, production outages",
+        "Patient safety, legal liability, material financial impact",
+        "Steep learning curves and adoption / churn risk",
     ),
     is_not_about=(
         "How HARD the product is to use (that is Product Complexity)",
@@ -755,10 +800,19 @@ _mastery_stakes_rubric = Rubric(
         "How important the product is to the customer's business in general (that is Market Demand)",
     ),
     signal_categories=(
+        "breach_exposure",
+        "compliance_consequences",
+        "data_integrity",
+        "business_continuity",
+        "safety_regulated",
+        "legal_liability",
+        "reputation_damage",
+        "financial_impact",
         "harm_severity",
         "learning_curve",
         "adoption_risk",
-        "compliance_consequences",
+        # Informational:
+        "mastery_stakes_context",
     ),
 )
 
@@ -815,42 +869,53 @@ _lab_versatility_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 5,
-            "Clear high-value lab type fits naturally — Cyber Range, Red vs Blue, Performance Tuning, "
-            "Migration Lab, Compliance Audit, Incident Response, etc. — the product genuinely supports it",
+            "A strong positive answer — a clear high-value lab type fits naturally (Red vs Blue, "
+            "Cyber Range, Incident Response, Performance Tuning, Migration Lab, Compliance Audit, "
+            "Break/Fix, CTF) — the product genuinely supports it without shoehorning",
         ),
         RubricTier(
             "moderate", 3,
-            "Lab type is adaptable to the product but requires some shoehorning",
+            "A partial positive answer — lab type is adaptable to the product but requires some shoehorning",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., a lab type "
+            "supported via a third-party integration, an emerging lab modality worth mentioning",
         ),
         RubricTier(
             "weak", 0,
-            "Lab type doesn't fit — most simple products get nothing in this dimension — don't emit",
+            "No answer — lab type doesn't fit, product doesn't support hands-on in any recognizable form — don't emit",
         ),
     ),
     is_about=(
-        "High-value, special lab types beyond standard step-by-step labs",
+        "What kinds of high-value hands-on experiences could be DESIGNED and DELIVERED on Skillable for this product",
         "Lab types that fit the product naturally — adversarial scenarios, cyber ranges, "
-        "incident response, break/fix, migration, compliance audit, performance tuning",
+        "incident response, break/fix, migration, compliance audit, performance tuning, CTF",
         "Lab types that serve dual purpose — conversational competence in Inspector + "
         "program recommendations in Designer",
     ),
     is_not_about=(
+        "Who will actually build the labs (Skillable Professional Services, customer team, content partner)",
         "Standard step-by-step labs (those exist for every product, not credit-worthy here)",
         "How the lab is provisioned (that is Pillar 1)",
         "Whether the customer can deliver labs (that is Delivery Capacity)",
     ),
     signal_categories=(
         "adversarial_scenario",
+        "simulated_attack",
         "incident_response",
         "break_fix",
         "team_handoff",
+        "bug_bounty",
         "cyber_range",
         "performance_tuning",
         "migration_lab",
         "architecture_challenge",
         "compliance_audit",
         "disaster_recovery",
-        "bug_bounty",
+        "ctf",
+        # Informational:
+        "lab_versatility_context",
     ),
 )
 
@@ -868,20 +933,17 @@ _lab_versatility_dimension = Dimension(
 
 
 _market_demand_badges = (
-    Badge("Rapid Growth", (
-        BadgeColor("green", "Company or product showing rapid growth trajectory"),
-    )),
-    Badge("Series D $200M", (
-        BadgeColor("green", "Significant funding round — strong market validation"),
-    )),
-    Badge("IPO 2024", (
-        BadgeColor("green", "Recent IPO — scale and market maturity confirmed"),
-    )),
-    Badge("Layoffs Reported", (
-        BadgeColor("amber", "Workforce reductions reported — potential instability"),
-    )),
+    # ANSWERS — each badge is a specific fact about the product's market.
+    # Every badge answers: "how big is the worldwide population of people
+    # who need to learn THIS specific product at hands-on depth?"
+    # Category demand is the baseline (cybersecurity is inherently high);
+    # product-specific evidence comes from cert bodies (CompTIA, EC-Council,
+    # SANS, ISC2) AND independent training markets (Coursera, Pluralsight,
+    # LinkedIn Learning, Udemy). Variable AI-synthesized names preferred.
+    #
+    # Scale & population answers:
     Badge("~2M Users", (
-        BadgeColor("green", "Large install base — significant training population"),
+        BadgeColor("green", "Large install base — significant specialist training population"),
     )),
     Badge("~50K Users", (
         BadgeColor("gray", "Moderate install base"),
@@ -889,6 +951,10 @@ _market_demand_badges = (
     Badge("~500 Users", (
         BadgeColor("amber", "Small install base — limited training population"),
     )),
+    Badge("Enterprise Validated", (
+        BadgeColor("green", "Enterprise adoption confirmed at scale — Fortune 500 customers named"),
+    )),
+    # Geographic reach answers:
     Badge("Global", (
         BadgeColor("green", "Global geographic presence"),
     )),
@@ -901,26 +967,58 @@ _market_demand_badges = (
     Badge("APAC Only", (
         BadgeColor("gray", "APAC-only geographic presence"),
     )),
-    Badge("Active Certification", (
-        BadgeColor("green", "Active certification program with exams"),
+    # Independent training market answers (Frank 2026-04-07: check
+    # CompTIA, EC-Council, SANS, Coursera, Pluralsight, LinkedIn Learning):
+    Badge("CompTIA Curriculum", (
+        BadgeColor("green", "CompTIA curriculum mentions THIS product — independent cert body validation"),
     )),
-    Badge("Emerging Certification", (
+    Badge("EC-Council Track", (
+        BadgeColor("green", "EC-Council / SANS / ISC2 track mentions THIS product"),
+    )),
+    Badge("~15 Pluralsight Courses", (
+        BadgeColor("green", "Pluralsight has substantial courses on THIS product — count it"),
+    )),
+    Badge("~5 Coursera Courses", (
+        BadgeColor("green", "Coursera / LinkedIn Learning / Udemy have courses on THIS product — count it"),
+    )),
+    Badge("No Independent Courses Found", (
+        BadgeColor("amber", "Search of Coursera, Pluralsight, LinkedIn Learning, Udemy found fewer than 3 courses on THIS product — cross-pillar with Delivery Capacity"),
+    )),
+    # Certification ecosystem answers:
+    Badge("Active Cert Ecosystem", (
+        BadgeColor("green", "Vendor's own active certification program with published pass rates"),
+    )),
+    Badge("Emerging Cert", (
         BadgeColor("gray", "Certification program in early stages"),
     )),
     Badge("Competitor Labs Confirmed", (
-        BadgeColor("green", "Other providers invest in hands-on training for this product"),
+        BadgeColor("green", "Other lab platforms sell hands-on training for this product — demand is proven"),
     )),
-    Badge("High-Demand Category", (
-        BadgeColor("green", "Product category has inherent demand for hands-on training"),
+    # Funding / growth answers:
+    Badge("Rapid Growth", (
+        BadgeColor("green", "Company or product showing rapid growth trajectory"),
     )),
+    Badge("Series D $200M", (
+        BadgeColor("green", "Significant funding round — strong market validation (example — use actual round)"),
+    )),
+    Badge("IPO 2024", (
+        BadgeColor("green", "Recent IPO — scale and market maturity confirmed (example — use actual year)"),
+    )),
+    Badge("Layoffs Reported", (
+        BadgeColor("amber", "Workforce reductions reported — potential market instability"),
+    )),
+    # AI / category answers:
     Badge("AI-Powered Product", (
-        BadgeColor("green", "Product has AI features that require hands-on practice"),
+        BadgeColor("green", "Product has AI features that require hands-on practice — surging skill demand"),
     )),
     Badge("AI Platform", (
-        BadgeColor("green", "Product IS an AI platform — labs teach building/training/deploying AI"),
+        BadgeColor("green", "Product IS an AI platform — labs teach building / training / deploying AI"),
     )),
-    Badge("Enterprise Validated", (
-        BadgeColor("green", "Enterprise adoption confirmed at scale"),
+    Badge("High-Demand Category", (
+        BadgeColor("green", "Product category has inherent high demand for hands-on training (cybersecurity, cloud, DevOps, data, AI)"),
+    )),
+    Badge("Niche Specialty", (
+        BadgeColor("gray", "Specialist niche with real but narrow training demand — informational context"),
     )),
 )
 
@@ -940,14 +1038,20 @@ _market_demand_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 5,
-            "Clear scale signal — large install base, active certification ecosystem, AI platform, "
-            "enterprise validation at scale, high-demand category, IPO or major funding, "
-            "global geographic reach",
+            "A strong positive answer — a named cert body mentions THIS product (CompTIA, "
+            "EC-Council, SANS, ISC2), Coursera / Pluralsight / LinkedIn Learning has 10+ courses "
+            "on THIS product, Fortune 500 adoption confirmed, active cert with tested pass rates, "
+            "AI platform at scale, IPO or major funding, global reach",
         ),
         RubricTier(
             "moderate", 3,
-            "Moderate signal — growing category, mid-size install base, emerging certification, "
-            "regional presence, recent series funding",
+            "A partial positive answer — moderate install base, 3-9 independent courses on THIS "
+            "product, emerging certification, regional presence, recent series funding",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., parent company, "
+            "recent rebrand, competitive landscape context",
         ),
         RubricTier(
             "weak", 0,
@@ -970,12 +1074,24 @@ _market_demand_rubric = Rubric(
         "Technical depth of the product (that is Product Complexity)",
     ),
     signal_categories=(
+        # Scale + population answers (for product-specific differentiation within a category)
         "install_base_scale",
+        "enterprise_validation",
         "geographic_reach",
-        "cert_ecosystem",
+        # Independent training market answers (Frank 2026-04-07):
+        # Category demand is the baseline (cybersecurity = high). Product-
+        # specific evidence comes from WHO TEACHES THIS PRODUCT externally.
+        # These are cross-pillar — also fire in Delivery Capacity.
+        "cert_body_mentions",          # CompTIA / EC-Council / SANS / ISC2 mention THIS product
+        "independent_training_market", # Coursera / Pluralsight / LinkedIn Learning / Udemy courses exist
+        "no_independent_training_market",  # cross-pillar penalty — fewer than 3 courses found
+        # Vendor's own ecosystem:
+        "cert_ecosystem",              # vendor's own certification program
+        "competitor_labs",             # other lab platforms sell training for this product
+        # Funding / growth:
         "funding_growth",
+        # Category baseline:
         "category_demand",
-        "competitor_labs",
         "ai_signal",
         "enterprise_validation",
     ),
@@ -1017,77 +1133,81 @@ PILLAR_INSTRUCTIONAL_VALUE = Pillar(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _training_commitment_badges = (
-    # Product Adoption evidence
-    Badge("Customer Enablement", (
-        BadgeColor("green", "Dedicated customer enablement program confirmed"),
-        BadgeColor("amber", "Mentioned but unstructured"),
+    # ANSWERS — each badge names a specific finding about the customer's
+    # training commitment, not a topic. Variable AI-synthesized names are
+    # preferred (e.g., "Named Customer Enablement Team", "~200 Courses",
+    # "VP of Education Named") — these are example patterns.
+    Badge("Named Customer Enablement Team", (
+        BadgeColor("green", "Dedicated customer enablement team with named leadership documented"),
     )),
-    Badge("Customer Success", (
-        BadgeColor("green", "Dedicated CS team confirmed"),
-        BadgeColor("amber", "Mentioned but unclear scope"),
+    Badge("Dedicated Customer Success Org", (
+        BadgeColor("green", "Standalone customer success organization with training mandate"),
     )),
-    Badge("Channel Enablement", (
-        BadgeColor("green", "Partner training program confirmed"),
-        BadgeColor("amber", "Channel exists, no formal enablement"),
+    Badge("Formal Partner Academy", (
+        BadgeColor("green", "Named partner / channel training program with structured curriculum"),
     )),
-    # Skill Development evidence
-    Badge("Certification Program", (
-        BadgeColor("green", "Active certification with exams"),
-        BadgeColor("amber", "Mentioned, no active exams"),
+    Badge("Active Cert Exam", (
+        BadgeColor("green", "Active certification with tested exams and pass-rate publication"),
     )),
-    Badge("Training Catalog", (
-        BadgeColor("green", "Published courses, meaningful scale"),
-        BadgeColor("amber", "Small catalog or shallow"),
+    Badge("Published Training Catalog", (
+        BadgeColor("green", "Meaningful catalog of published courses — use the count if known (e.g. ~200 Courses)"),
     )),
-    # Compliance & Risk evidence
     Badge("Regulated Industry", (
-        BadgeColor("green", "Healthcare, finance, cybersecurity — compliance inherent"),
+        BadgeColor("green", "Regulated industry — compliance-inherent training driver"),
         BadgeColor("gray", "Some regulation, not compliance-driven"),
     )),
-    Badge("Compliance Training Program", (
-        BadgeColor("green", "Training built around regulatory requirements"),
+    Badge("Regulated Compliance Training", (
+        BadgeColor("green", "Training built around specific regulatory requirements (HIPAA, SOX, PCI, etc.)"),
     )),
-    Badge("Audit Requirements", (
-        BadgeColor("green", "External audits require demonstrated competence"),
+    Badge("External Audit-Driven Training", (
+        BadgeColor("green", "External audits require demonstrated competence — training is table-stakes"),
     )),
-    # Cross-cutting
-    Badge("Training Leadership", (
-        BadgeColor("green", "C-level or VP dedicated to learning/enablement"),
-        BadgeColor("gray", "Director-level training leader"),
-        BadgeColor("amber", "Managers only"),
+    Badge("VP of Education Named", (
+        BadgeColor("green", "VP-level or C-level training leadership documented — level only, not personal name"),
     )),
-    Badge("Training Culture", (
-        BadgeColor("green", "Training permeates the business — multiple teams across the lifecycle"),
-        BadgeColor("gray", "Some investment, concentrated in one area"),
-        BadgeColor("amber", "Minimal — one or two people"),
+    Badge("Hands-On Training Culture", (
+        BadgeColor("green", "Explicit hands-on / lab / interactive / scenario-based language in published programs"),
+    )),
+    Badge("Multi-Audience Training Commitment", (
+        BadgeColor("green", "Training spans employees + customers + partners — deepest breadth signal"),
+    )),
+    Badge("Slide-Deck Only Training", (
+        BadgeColor("amber", "Training exists but content-only — no hands-on evidence"),
     )),
 )
 
 _training_commitment_rubric = Rubric(
     tiers=(
+        # Every badge is one of four ANSWERS: good (strong), pause (moderate),
+        # context-only (informational), or nothing to say (weak).
         RubricTier(
             "strong", 6,
-            "Explicit hands-on / lab / interactive / scenario-based language in published programs; "
-            "active certification with tested exam pass rates; major flagship training events; "
-            "senior training leadership with mandate (level only — never name the person); "
-            "strong regulated-industry compliance training programs",
+            "A strong positive answer — named customer enablement team, active cert exam, hands-on / "
+            "lab / interactive language in published programs, VP-level training leadership, "
+            "multi-audience commitment (employees + customers + partners)",
         ),
         RubricTier(
             "moderate", 3,
-            "Catalog of training exists but mostly content-only (no hands-on); documented programs "
-            "without scale evidence; director-level training leader; some compliance training",
+            "A partial positive answer — catalog exists but slide-deck-only, director-level training "
+            "leader, single-audience commitment, some compliance training",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., recent hire of a "
+            "VP of Education, announced investment in customer success, regulated-industry framing",
         ),
         RubricTier(
             "weak", 0,
-            "Single training mention with no detail; generic 'we train our customers' statements; "
-            "minimal investment evidence — don't emit",
+            "No answer — generic 'we train our customers' with no specifics — don't emit",
         ),
     ),
     is_about=(
-        "Investment evidence — programs, catalogs, certifications, hands-on language, leadership",
-        "Whether the org has put resources behind training as a strategic function",
-        "Three motivation categories: product adoption, skill development, compliance & risk",
-        "Hands-on / interactive / scenario-based language is the strongest single signal",
+        "Whether the org is COMMITTED to customer competence (not just checking a training box)",
+        "Named customer enablement teams, customer success orgs with training mandate",
+        "Active certification programs with tested exam pass rates",
+        "Multi-audience breadth: employees + customers + partners = deepest commitment",
+        "Hands-on / interactive / scenario-based language in published programs",
+        "Regulated-industry compliance training (inherent driver)",
     ),
     is_not_about=(
         "Technical openness of products (that is Pillar 1)",
@@ -1096,13 +1216,26 @@ _training_commitment_rubric = Rubric(
         "Content creation roles (that is Build Capacity)",
     ),
     signal_categories=(
-        "hands_on_commitment",
+        # Positive answers:
+        "customer_enablement_team",
+        "customer_success_investment",
+        "partner_enablement_program",
+        "employee_learning_investment",
+        "multi_audience_commitment",
         "cert_exam_active",
-        "training_catalog",
+        "onboarding_program",
         "training_leadership_level",
-        "compliance_program",
-        "training_events",
-        "product_training_partnership",
+        "training_events_at_scale",
+        "hands_on_learning_language",
+        "compliance_training_program",
+        "training_catalog_present",
+        # Negative answers (fire via CF_PENALTY_SIGNALS):
+        "no_customer_training",
+        "thin_cert_program",
+        "no_customer_success_team",
+        "minimal_training_language",
+        # Informational context:
+        "training_org_context",
     ),
 )
 
@@ -1120,54 +1253,87 @@ _training_commitment_dimension = Dimension(
 
 
 _organizational_dna_badges = (
-    Badge("Partner Ecosystem", (
-        BadgeColor("green", "Strong partner network"),
-        BadgeColor("gray", "Some partnerships"),
-        BadgeColor("amber", "No partner program or limited partners"),
-    ), notes="Variable-driven: ~500 ATPs, Strong Channel Program, etc."),
-    Badge("Build vs Buy", (
-        BadgeColor("green", "Uses external platforms — Platform Buyer"),
-        BadgeColor("gray", "Mixed Approach — some build, some buy"),
-        BadgeColor("amber", "Builds In-House"),
+    # ALL badges are ANSWERS (findings the seller can read out loud), never
+    # questions or topic labels. The rubric model allows variable AI-
+    # synthesized names — these tuples are EXAMPLES the prompt shows the
+    # AI as starting patterns. Finding-as-name discipline (GP4).
+    #
+    # Positive findings — things that are TRUE about the organization:
+    Badge("Platform Buyer", (
+        BadgeColor("green", "Uses external platforms (Salesforce, Workday, Okta, etc.) for things companies might build in-house — evidence of platform-buyer culture"),
     )),
-    Badge("Integration Maturity", (
-        BadgeColor("green", "Open Platform — rich APIs, marketplace, SDKs"),
-        BadgeColor("gray", "APIs exist but limited"),
-        BadgeColor("amber", "Closed System"),
+    Badge("Multi-Type Partnerships", (
+        BadgeColor("green", "Multiple distinct kinds of partnerships documented — technology + channel + delivery + content + integration"),
     )),
-    Badge("Ease of Engagement", (
-        BadgeColor("green", "Accessible — mid-size, partner-friendly"),
-        BadgeColor("gray", "Large but workable"),
-        BadgeColor("amber", "Hard to Engage — complex organization"),
+    Badge("Strategic Alliance Program", (
+        BadgeColor("green", "Formal alliance program with tiers, certifications, incentives, named leadership"),
+    )),
+    Badge("Partner-Friendly", (
+        BadgeColor("green", "Accessible contact paths, documented fast decision-making, partner-friendly posture"),
+    )),
+    Badge("Named Alliance Leadership", (
+        BadgeColor("green", "VP of Partnerships / Head of Alliances / Chief Alliance Officer documented"),
+    )),
+    # Negative findings — things that are TRUE but bad for Skillable.
+    # The math layer treats these via CF_PENALTY_SIGNALS; the badge list
+    # here exists so the AI sees the finding-as-name pattern and so
+    # _format_canonical_badge_names shows the prompt the valid labels.
+    Badge("Builds Everything", (
+        BadgeColor("amber", "IBM-style 'we build it ourselves' posture documented — outside platforms treated as inferior by default"),
+    )),
+    Badge("Long RFP Process", (
+        BadgeColor("amber", "Documented 9+ month vendor engagement cycles, exhaustive committees, multiple approval gates"),
+    )),
+    Badge("Heavy Procurement", (
+        BadgeColor("amber", "Large vendor management bureaucracy — vendors treated as cost centers to extract value from"),
+    )),
+    Badge("Closed Platform", (
+        BadgeColor("amber", "Proprietary everything — no public APIs, no ecosystem investment, no developer community"),
+    )),
+    Badge("Hard to Engage", (
+        BadgeColor("red", "Documented hostility or legendary bureaucratic slowness toward outside partners — direct evidence"),
     )),
 )
 
 _organizational_dna_rubric = Rubric(
     tiers=(
+        # Every badge is one of four ANSWERS (never a question or topic):
+        #   strong        → good answer — green, positive contribution
+        #   moderate      → pause answer — amber, smaller positive
+        #   informational → context-only answer — zero scoring impact
+        #   weak          → don't emit (no answer to give)
+        # Negative answers (penalties) are handled by CF_PENALTY_SIGNALS,
+        # not by the rubric tiers below.
         RubricTier(
             "strong", 6,
-            "Strong partner ecosystem with formal channel program and partner certification; "
-            "Platform Buyer culture (uses external platforms vs builds in-house); accessible / "
-            "partner-friendly engagement; mid-size or formal partnership program",
+            "A strong positive answer — clear evidence of multi-type partnerships, "
+            "platform-buyer culture, formal alliance program with tiers and certifications, "
+            "named VP-level alliance leadership, or documented nimble partner-friendly engagement",
         ),
         RubricTier(
             "moderate", 3,
-            "Mixed approach — some partner, some build in-house; moderate partner engagement; "
-            "some channel structure; larger but workable",
+            "A partial positive answer — some partnerships but not multi-type, mixed buyer-"
+            "builder posture, alliance program below VP level, moderate partner engagement",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., org size, "
+            "parent company relationship, recent M&A activity affecting partnership posture. "
+            "Emits the badge for conversational value but credits zero points",
         ),
         RubricTier(
             "weak", 0,
-            "Generic 'they're an organization' with no specific patterns; closed system with no "
-            "partnership signals — don't emit",
+            "No answer — generic 'they're an organization' with no specific pattern — don't emit",
         ),
     ),
     is_about=(
-        "How the COMPANY operates as a business",
-        "Partnership patterns and ecosystem strength (~500 ATPs, formal channel)",
-        "Build-in-house vs buy-from-outside culture",
-        "Ease of doing business — accessible vs hard to engage",
-        "Cultural patterns — bureaucratic vs nimble, formal vs flexible",
-        "Channel program structure (rep counts, tiers, partnership depth)",
+        "How the company operates as a business — culturally",
+        "Whether they see outside platforms as STRATEGIC ASSETS or as PROCUREMENT LINE ITEMS",
+        "Partnership breadth: multiple distinct kinds (technology, channel, delivery, content)",
+        "Platform-buyer behavior: using Salesforce, Workday, Okta etc. vs. building in-house",
+        "Formal alliance program structure (tiers, certifications, named leadership)",
+        "Engagement posture — nimble and partner-friendly vs. long RFPs and heavy procurement",
+        "Closed-culture signals: 'we build everything here' (IBM pattern) documented explicitly",
     ),
     is_not_about=(
         "The technical architecture of their products (Pillar 1: Sandbox API, Identity API, etc.)",
@@ -1176,12 +1342,28 @@ _organizational_dna_rubric = Rubric(
         "Cloud-native vs on-prem deployment shape (classification metadata)",
         "Their product line structure (this dimension is about the ORG, not the products)",
         "'Open Platform Architecture' or similar technical openness signals (Pillar 1)",
+        "Whether they have training at all (that is Training Commitment)",
+        "Whether they can build labs (that is Build Capacity)",
+        "Whether they can deliver labs at scale (that is Delivery Capacity)",
     ),
     signal_categories=(
-        "partner_pattern",
-        "build_vs_buy_culture",
-        "engagement_ease",
-        "channel_structure",
+        # Positive signal categories — each describes an ANSWER the badge represents.
+        "many_partnership_types",          # answer: "they have many different kinds of partners"
+        "strategic_asset_partnerships",    # answer: "they partner to build strategic assets"
+        "platform_buyer_behavior",         # answer: "they use external platforms instead of building"
+        "formal_channel_program",          # answer: "they have a structured partner program"
+        "nimble_engagement",               # answer: "they're fast and accessible"
+        "named_alliance_leadership",       # answer: "VP / head of alliances documented"
+        # Negative signal categories — CF_PENALTY_SIGNALS mirrors these for
+        # penalty application. Listed here so the prompt's valid-signal list
+        # shows them as emittable answers.
+        "long_rfp_process",                # answer: "their RFPs take 9+ months"
+        "heavy_procurement",               # answer: "procurement treats vendors as cost centers"
+        "build_everything_culture",        # answer: "IBM-style build-everything culture"
+        "closed_platform_culture",         # answer: "proprietary everything, no ecosystem"
+        "hard_to_engage",                  # answer: "documented hostility to outside partners"
+        # Informational category — for context-only findings.
+        "org_context",                     # answer: general context (size, parent, M&A)
     ),
 )
 
@@ -1199,20 +1381,84 @@ _organizational_dna_dimension = Dimension(
 
 
 _delivery_capacity_badges = (
-    Badge("ATP / Learning Partners", (
-        BadgeColor("green", "Scaled network of authorized training partners"),
-        BadgeColor("amber", "Limited partner network"),
+    # ANSWERS — each badge names a specific delivery capability or gap.
+    # Lab Platform badges are the ACTUAL platform name (Skillable,
+    # CloudShare, Instruqt, Skytap, No Lab Platform, DIY Lab Platform)
+    # — the badge label IS the finding. LMS badges are the specific LMS.
+    # Variable AI-synthesized names preferred for counts and geographic
+    # reach (e.g., "~500 ATPs", "Global Partner Network", "Cisco Live 30K").
+    #
+    # CRITICAL distinction (Frank 2026-04-07): vendor-controlled training
+    # and partner-delivered training are TWO SEPARATE delivery signals.
+    # A vendor can have strong vendor-delivered training (official ILT,
+    # self-paced portal, vendor-run labs) AND have ZERO training partners.
+    # Don't conflate them.
+    #
+    # ── Vendor-controlled (direct) training delivery ─────────────────
+    Badge("Vendor-Delivered ILT", (
+        BadgeColor("green", "Vendor runs official instructor-led training directly — classroom, virtual, or bootcamp"),
     )),
-    Badge("LMS Platform", (
-        BadgeColor("green", "Skillable partner LMS (Docebo, Cornerstone, Skillable TMS)"),
-        BadgeColor("gray", "Other LMS platform in use"),
-    ), notes="Variable-driven: shows specific platform + audience (Public/Internal)"),
-    Badge("Lab Platform", (
-        BadgeColor("green", "Skillable (expansion opportunity)"),
-        BadgeColor("amber", "Competitor platform (migration opportunity)"),
-    ), notes="Variable-driven: shows exact platform name. DIY noted in evidence."),
-    Badge("Gray Market Offering", (
-        BadgeColor("amber", "Third-party training exists — conversation starter"),
+    Badge("Vendor Self-Paced Portal", (
+        BadgeColor("green", "Vendor runs its own self-paced e-learning portal — on-demand courses"),
+    )),
+    Badge("Vendor-Delivered Labs", (
+        BadgeColor("green", "Vendor delivers its own hands-on lab exercises — their platform, their labs"),
+    )),
+    # ── Partner-delivered training (ATP / ALP programs) ──────────────
+    Badge("Global Partner Network", (
+        BadgeColor("green", "Scaled global Authorized Training Partner / Authorized Learning Partner network — use the count if known (e.g. ~500 ATPs)"),
+    )),
+    Badge("Regional Partner Network", (
+        BadgeColor("amber", "ATP / ALP program exists but regionally limited"),
+    )),
+    Badge("Skillable-Hosted", (
+        BadgeColor("green", "Skillable is their current LMS or lab platform — expansion opportunity"),
+    )),
+    Badge("Docebo-Hosted", (
+        BadgeColor("green", "Docebo is their current LMS — Skillable-compatible partner LMS"),
+    )),
+    Badge("Cornerstone-Hosted", (
+        BadgeColor("green", "Cornerstone is their current LMS — Skillable-compatible partner LMS"),
+    )),
+    Badge("Other LMS In Place", (
+        BadgeColor("gray", "Non-Skillable-partner LMS in use — variable, name the platform in evidence"),
+    )),
+    Badge("Skillable Customer", (
+        BadgeColor("green", "Already a Skillable customer — expansion opportunity"),
+    )),
+    Badge("Competitor Lab Platform", (
+        BadgeColor("amber", "Competitor lab platform (CloudShare, Instruqt, Skytap, Kyndryl, ReadyTech) — displacement opportunity"),
+    )),
+    Badge("No Lab Platform", (
+        BadgeColor("gray", "No incumbent lab platform detected — greenfield opportunity, no competitor to displace"),
+    )),
+    Badge("DIY Lab Platform", (
+        BadgeColor("gray", "They built their own lab platform — replacement opportunity"),
+    )),
+    Badge("Flagship Event at Scale", (
+        BadgeColor("green", "Major flagship event with hands-on tracks at scale — use the event name and attendance (e.g. Cisco Live 30K)"),
+    )),
+    Badge("Published Course Calendar", (
+        BadgeColor("green", "Vendor has a public course registration page / training calendar — real evidence of active ILT delivery"),
+    )),
+    Badge("Cert Delivery Infrastructure", (
+        BadgeColor("green", "Pearson VUE / Certiport / PSI / Certiverse integration — cert delivery reach"),
+    )),
+    # Penalty answers (fire via CF_PENALTY_SIGNALS)
+    Badge("No Training Partners", (
+        BadgeColor("red", "Zero ATP / reseller / channel training network where partners should exist"),
+    )),
+    Badge("No Classroom Delivery", (
+        BadgeColor("red", "Zero evidence of instructor-led training, bootcamps, workshops, or published course calendar"),
+    )),
+    Badge("No Independent Training", (
+        BadgeColor("amber", "Fewer than 3 courses on Coursera / Pluralsight / LinkedIn Learning / Udemy — open market has not invested"),
+    )),
+    Badge("Single-Region Reach", (
+        BadgeColor("amber", "Delivery presence limited to one state or country"),
+    )),
+    Badge("Gray Market Only", (
+        BadgeColor("amber", "Training exists only from unaffiliated third parties — vendor hasn't invested in delivery"),
     )),
 )
 
@@ -1220,29 +1466,74 @@ _delivery_capacity_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 8,
-            "Existing lab platform (Skillable = expansion, competitor name = displacement); "
-            "large ATP / learning partner network at scale; Skillable-partner LMS already in place "
-            "(Docebo, Cornerstone); major flagship events with hands-on tracks at scale; "
-            "instructor-led delivery network at scale",
+            "A strong positive answer — the three delivery layers stack for BONUS POINTS. Each "
+            "layer found adds on top of the previous one:\n"
+            "  - Layer 1 (base): vendor-delivered training alone = strong when real (ILT, "
+            "self-paced, vendor labs)\n"
+            "  - Layer 2 (bonus): third-party independent training in the open market "
+            "(Coursera / Pluralsight / LinkedIn Learning / cert bodies mention THIS product)\n"
+            "  - Layer 3 (TOP bonus): formal ATP / ALP program — scaled multi-partner delivery "
+            "maturity\n"
+            "Also strong: named existing lab platform (Skillable, CloudShare, etc.); "
+            "Skillable-partner LMS already in place (Docebo, Cornerstone); flagship events at "
+            "scale with hands-on tracks; cert delivery infrastructure (Pearson VUE, Certiport). "
+            "**Emit a separate badge for each layer found** — don't conflate vendor-delivered "
+            "with partner-delivered; they are distinct facts and each contributes its own points.",
         ),
         RubricTier(
             "moderate", 4,
-            "No Lab Platform (greenfield — opportunity, not deficiency); DIY Lab Platform "
-            "(replacement opportunity); limited ATP network; other LMS in place; moderate "
-            "instructor delivery network; smaller events",
+            "A partial positive answer — any single layer of the three delivered in limited "
+            "form. Regional (not global) ATP network; vendor-direct training without evidence "
+            "of third-party or partner delivery; 'No Lab Platform' (greenfield, still counts "
+            "as moderate); 'DIY Lab Platform' (replacement opportunity); other LMS in place; "
+            "smaller events.",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., recent partner "
+            "program reorganization, geographic expansion plans, LMS migration in progress",
         ),
         RubricTier(
             "weak", 0,
-            "Plain 'they offer training' with no delivery infrastructure named — don't emit",
+            "No answer — plain 'they offer training' with no delivery infrastructure named — don't emit",
         ),
     ),
     is_about=(
-        "Infrastructure to GET labs to learners",
+        "Whether the org has the CAPACITY to reach learners at scale — outward-facing infrastructure",
+        "",
+        "THREE DELIVERY LAYERS — each is a separate signal and ALL THREE are worth surfacing:",
+        "",
+        "  1. VENDOR-DELIVERED — the vendor runs training directly. Official ILT, self-paced "
+        "portal, vendor-run hands-on labs. Positive signal but bounded to what the vendor alone "
+        "can reach. Use badges like `Vendor-Delivered ILT`, `Vendor Self-Paced Portal`, "
+        "`Vendor-Delivered Labs`.",
+        "",
+        "  2. THIRD-PARTY-DELIVERED — independent training in the open market. Coursera, "
+        "Pluralsight, LinkedIn Learning, Udemy have courses on this product. Also cert-body "
+        "curricula (CompTIA, EC-Council, SANS, ISC2) that mention this product. Positive "
+        "signal with real reach because independent trainers wouldn't invest if nobody wanted "
+        "the training. CROSS-PILLAR with Market Demand (same evidence, two questions). Use "
+        "badges like `~15 Pluralsight Courses`, `CompTIA Curriculum`, `EC-Council Track`. "
+        "Absence fires the `no_independent_training_market` penalty.",
+        "",
+        "  3. AUTH-PARTNER-DELIVERED — formal Authorized Training Partner / Authorized Learning "
+        "Partner program. ATPs and ALPs are certified partners who deliver the vendor's training "
+        "at scale. This is the TOP delivery signal because it represents scaled multi-partner "
+        "delivery maturity — the vendor has built a program, invested in partner certification, "
+        "and has a network of named partners doing the delivery. Use badges like `Global Partner "
+        "Network`, `Regional Partner Network`, `~500 ATPs`.",
+        "",
+        "A vendor can have all three layers (ideal), any subset, or none (red flag). Each layer "
+        "is a distinct fact and should be surfaced independently — don't conflate them.",
+        "",
         "Lab platforms — Skillable (expansion), competitor (displacement), DIY (replacement), none (greenfield)",
-        "ATP / authorized training partner / learning partner networks",
         "LMS platforms at scale (Skillable-partner LMS scores higher — Docebo, Cornerstone)",
-        "Major flagship events with hands-on tracks (Cohesity Connect, Cisco Live, etc.)",
-        "Instructor-led delivery networks at scale",
+        "Flagship events with hands-on tracks (Cohesity Connect, Cisco Live) — cross-pillar with Market Demand",
+        "Published course calendars — real evidence of active ILT delivery",
+        "Cert delivery infrastructure (Pearson VUE, Certiport, PSI)",
+        "Geographic reach (Indiana < US < Hemisphere < Global)",
+        "Research asymmetry: Delivery Capacity is outward-facing and easy to verify — penalize "
+        "aggressively on absence of public evidence",
     ),
     is_not_about=(
         "Content creation roles (Build Capacity)",
@@ -1251,13 +1542,36 @@ _delivery_capacity_rubric = Rubric(
         "Whether the labs themselves are good (that is content quality, not delivery)",
     ),
     signal_categories=(
-        "lab_platform",            # variable: Skillable / competitor name / DIY / none
-        "atp_network",
-        "lms_partner",
-        "lms_other",
-        "instructor_delivery_network",
-        "training_events_scale",
+        # Three delivery layers — emit a separate badge for each layer found.
+        # Layers stack for bonus points (Frank 2026-04-07):
+        #
+        # Layer 1: VENDOR-DELIVERED (base) — vendor runs training directly
+        "vendor_delivered_ilt",            # vendor runs official instructor-led training directly
+        "vendor_self_paced_portal",        # vendor runs its own e-learning portal
+        "vendor_delivered_labs",           # vendor delivers its own hands-on lab exercises
+        # Layer 2: THIRD-PARTY-DELIVERED (bonus) — independent market + cert bodies
+        "third_party_training_market",     # cross-pillar with Market Demand — Coursera / Pluralsight / LinkedIn Learning / Udemy
+        "cert_body_curriculum",            # cross-pillar with Market Demand — CompTIA / EC-Council / SANS / ISC2 mention THIS product
+        # Layer 3: AUTH-PARTNER-DELIVERED (top bonus) — ATP / ALP programs
+        "atp_alp_program",                 # cross-pillar with Market Demand — ATPs prove demand exists
+        "regional_atp_network",            # smaller-scale version
+        # Platform / LMS / event delivery infrastructure:
+        "lab_platform",                    # variable: Skillable / competitor name / DIY / none
+        "lms_partner",                     # Skillable-compatible LMS (Docebo, Cornerstone)
+        "lms_other",                       # other LMS in place
+        "training_events_scale",           # cross-pillar with Market Demand
+        "cert_delivery_infrastructure",    # Pearson VUE / Certiport / PSI
+        "geographic_reach",
+        "published_course_calendar",
         "gray_market",
+        # Negative answers (fire via CF_PENALTY_SIGNALS):
+        "no_training_partners",
+        "no_classroom_delivery",
+        "no_independent_training_market",  # cross-pillar with Market Demand
+        "single_region_only",
+        "gray_market_only",
+        # Informational context:
+        "delivery_capacity_context",
     ),
 )
 
@@ -1275,17 +1589,27 @@ _delivery_capacity_dimension = Dimension(
 
 
 _build_capacity_badges = (
-    Badge("Content Dev Team", (
-        BadgeColor("green", "Named training org, Lab Authors, IDs, Tech Writers"),
+    # ANSWERS — each badge names a specific finding about the customer's
+    # build capacity. Variable AI-synthesized names are preferred
+    # (e.g., "~30 Lab Authors", "Workday Education Team", "Already
+    # Building Labs") — these are example patterns.
+    Badge("Named Content Dev Team", (
+        BadgeColor("green", "Named training organization with documented Lab Authors, IDs, Tech Writers"),
     )),
-    Badge("Technical Build Team", (
-        BadgeColor("green", "Can build lab environments, not just content"),
+    Badge("Technical Build Team Documented", (
+        BadgeColor("green", "Can build lab environments, not just content — technical SMEs and lab engineers named"),
     )),
-    Badge("DIY Labs", (
-        BadgeColor("green", "Already building labs themselves — have the skills"),
+    Badge("Already Building Labs", (
+        BadgeColor("green", "DIY lab authoring happening today — strongest possible Build Capacity signal"),
     )),
-    Badge("Content Outsourcing", (
-        BadgeColor("amber", "Third parties build content — ProServ opportunity"),
+    Badge("Outsourced Content", (
+        BadgeColor("amber", "Third parties build content — explicit outsourcing documented (ProServ opportunity)"),
+    )),
+    Badge("No Content Authors", (
+        BadgeColor("amber", "Thorough research finds zero Instructional Designer / Curriculum Developer / Lab Author roles"),
+    )),
+    Badge("Review-Only SMEs", (
+        BadgeColor("amber", "SMEs mentioned only in review / accuracy-validation roles, never as authors"),
     )),
 )
 
@@ -1293,32 +1617,36 @@ _build_capacity_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 5,
-            "Named education / curriculum / content team explicitly responsible for content "
-            "creation; Instructional Designers, Lab Authors, Tech Writers / Editors documented; "
-            "product-training partnership documented as collaborative content development; "
-            "strong DIY lab evidence (already building their own); documented content development partnerships",
+            "A strong positive answer — DIY lab authoring happening today, named content dev team, "
+            "Instructional Designers / Lab Authors / Tech Writers documented, product-training "
+            "partnership documented as collaborative content development",
         ),
         RubricTier(
             "moderate", 3,
-            "SME participation in content development mentioned; named training department with "
-            "some authoring signals; third-party content firm engagement; instructors with explicit "
-            "dual-role authoring evidence",
+            "A partial positive answer — SME participation in content development mentioned; "
+            "named training department with some authoring signals; third-party content firm "
+            "engagement; instructors with explicit dual-role authoring evidence",
+        ),
+        RubricTier(
+            "informational", 0,
+            "Context the seller should know that doesn't change the score — e.g., recent hire of "
+            "a VP of Content, announced investment in a content team, a university relationship",
         ),
         RubricTier(
             "weak", 0,
-            "Just 'training department exists' with no creation evidence; plain instructor headcount "
-            "(those route to Delivery Capacity); SMEs whose role is review/accuracy only — don't emit",
+            "No answer — just 'training department exists' with no creation evidence, plain instructor "
+            "headcount, SMEs whose role is review only — don't emit",
         ),
     ),
     is_about=(
-        "Roles that CREATE content — Instructional Designers (IDs), Content Developers, "
-        "Lab Authors, Tech Writers, Tech Editors",
-        "Named education / curriculum / content teams ('Workday Education Team', vendor universities)",
+        "Whether the org has the CAPACITY to create technical / hands-on training content",
+        "Named content dev teams, Instructional Designers, Lab Authors, Tech Writers",
+        "DIY lab evidence — already building their own labs (strongest signal)",
         "Product-Training partnership documented as collaborative content development",
-        "DIY lab evidence — already building their own labs",
         "Documented content development partnerships (third-party content firms)",
-        "Subject matter experts WHEN explicitly paired with content authoring (not review-only)",
-        "Instructors WHEN explicit dual-role authoring evidence (instructor as lab author / tech writer)",
+        "SMEs WHEN explicitly paired with content authoring (not review-only)",
+        "Research asymmetry: Build Capacity is inward-facing and hard to verify — penalize ONLY on "
+        "positive evidence of outsourcing, never on absence of evidence",
     ),
     is_not_about=(
         "Pure delivery instructors / trainers / workshop leaders (those go to Delivery Capacity)",
@@ -1328,14 +1656,22 @@ _build_capacity_rubric = Rubric(
         "SMEs whose role is content review or accuracy validation only",
     ),
     signal_categories=(
+        # Positive answers:
+        "diy_labs",
         "content_team_named",
         "instructional_designers",
         "lab_authors",
         "tech_writers",
         "product_training_partnership",
         "content_partnership",
-        "diy_labs",
         "instructor_authors_dual_role",
+        "sme_content_authoring",
+        # Negative answers (fire via CF_PENALTY_SIGNALS, cautious):
+        "confirmed_outsourcing",
+        "no_authoring_roles_found",
+        "review_only_smes",
+        # Informational context:
+        "build_capacity_context",
     ),
 )
 
@@ -1721,37 +2057,37 @@ UNKNOWN_CLASSIFICATION = "Unknown"
 # callers reference the canonical label without re-typing the literal.
 IV_CATEGORY_BASELINES: dict[str, dict[str, int]] = {
     # Top tier — technical / specialist categories with deep multi-system work
-    "Cybersecurity": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 17},
-    "Cloud Infrastructure": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 17},
-    "Networking/SDN": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 16},
-    "Data Science & Engineering": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 13, "market_demand": 15},
-    "Data & Analytics": {"product_complexity": 32, "mastery_stakes": 18, "lab_versatility": 12, "market_demand": 14},
-    "DevOps": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 16},
-    "AI Platforms & Tooling": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 17},
+    "Cybersecurity": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 14},
+    "Cloud Infrastructure": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 14},
+    "Networking/SDN": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 13},
+    "Data Science & Engineering": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 13, "market_demand": 12},
+    "Data & Analytics": {"product_complexity": 32, "mastery_stakes": 18, "lab_versatility": 12, "market_demand": 11},
+    "DevOps": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 13},
+    "AI Platforms & Tooling": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 14},
 
     # Very high
-    "Data Protection": {"product_complexity": 30, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 11},
+    "Data Protection": {"product_complexity": 30, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 9},
 
     # High — enterprise business systems with real depth and stakes
-    "ERP": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 12},
-    "CRM": {"product_complexity": 28, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 10},
-    "Healthcare IT": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 12},
-    "FinTech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 12},
-    "Legal Tech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 11, "market_demand": 11},
-    "Industrial/OT": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 12},
-    "Infrastructure/Virtualization": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 12},
-    "App Development": {"product_complexity": 28, "mastery_stakes": 14, "lab_versatility": 12, "market_demand": 13},
+    "ERP": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 10},
+    "CRM": {"product_complexity": 28, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 8},
+    "Healthcare IT": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 10},
+    "FinTech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 10},
+    "Legal Tech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 11, "market_demand": 9},
+    "Industrial/OT": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 10},
+    "Infrastructure/Virtualization": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 10},
+    "App Development": {"product_complexity": 28, "mastery_stakes": 14, "lab_versatility": 12, "market_demand": 11},
 
     # Moderate — collaboration and content with real but bounded depth
-    "Collaboration": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 10},
-    "Content Management": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 10},
+    "Collaboration": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 8},
+    "Content Management": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 8},
 
     # No professional training market
     "Social / Entertainment": {"product_complexity": 4, "mastery_stakes": 2, "lab_versatility": 1, "market_demand": 0},
 
     # Neutral fallback — flagged for classification review in UX.
     # Keyed by the canonical UNKNOWN_CLASSIFICATION constant (Define-Once).
-    UNKNOWN_CLASSIFICATION: {"product_complexity": 22, "mastery_stakes": 14, "lab_versatility": 11, "market_demand": 11},
+    UNKNOWN_CLASSIFICATION: {"product_complexity": 22, "mastery_stakes": 14, "lab_versatility": 11, "market_demand": 9},
 }
 
 
@@ -2611,7 +2947,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.pillars-2-3-posture-rewrite"
+SCORING_LOGIC_VERSION = "2026-04-07.answers-discipline-and-delivery-layers"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
@@ -3016,12 +3352,17 @@ def validate() -> list[str]:
                         f"signal_categories — empty signal_category list "
                         f"defeats the analytics hedge"
                     )
-                # Each rubric should have exactly the three canonical strength tiers
+                # Each rubric MUST include strong / moderate / weak. Optional
+                # informational tier (zero points, context-only) is allowed
+                # but not required. Per Frank 2026-04-07: every badge is one
+                # of four answers — good (strong), pause (moderate), context
+                # (informational), or nothing to say (weak don't emit).
                 strength_names = {t.strength for t in dim.rubric.tiers}
-                expected_strengths = {"strong", "moderate", "weak"}
-                if strength_names != expected_strengths:
-                    missing = expected_strengths - strength_names
-                    extra = strength_names - expected_strengths
+                required_strengths = {"strong", "moderate", "weak"}
+                allowed_strengths = required_strengths | {"informational"}
+                missing = required_strengths - strength_names
+                extra = strength_names - allowed_strengths
+                if missing or extra:
                     msg = f"Rubric for {pillar.name} > {dim.name} has unexpected strength tiers"
                     if missing:
                         msg += f" (missing: {missing})"
