@@ -99,9 +99,9 @@ For high-risk areas (contacts, consumption estimates): rationale must be explici
 | Metric | What it answers | How it's determined |
 |---|---|---|
 | **Fit Score** | Should we pursue this? | Composite of three Pillars |
-| **ACV Potential** | How big is this if we win? | Calculated: population x adoption x hours x rate |
+| **ACV Potential** | How big is this if we win? | Calculated per consumption motion, then summed. See `Platform-Foundation.md` → "ACV Potential" for the full framework — this reference doc does not duplicate ACV content. |
 
-ACV values use lowercase k for thousands and uppercase M for millions (e.g., 250k, 1.2M).
+ACV values use lowercase k for thousands and uppercase M for millions (e.g., `$250k`, `$1.2M`).
 
 ### Verdict Grid
 
@@ -1863,34 +1863,9 @@ Honest outcome: banks have partnerships, but every engagement is a procurement c
 
 ## ACV Potential
 
-Calculated, not scored. Estimated annual contract value if the customer standardized on Skillable.
+ACV Potential is a framework concept, not a badging or scoring detail. Its full definition — hero widget structure, five consumption motions, per-motion calculation, rate tier lookup, Define-Once install base, and range discipline — lives in `Platform-Foundation.md` → "ACV Potential."
 
-**ACV = Population x Adoption Rate x Hours per Learner x Rate**
-
-ACV values use lowercase k for thousands and uppercase M for millions (e.g., 250k, 1.2M).
-
-### Rate by Delivery Path
-
-| Path | Rate |
-|---|---|
-| Azure/AWS Cloud Slice, Custom API | $6/hr (platform; cloud consumption separate) |
-| Container | $6-12/hr |
-| Standard VM (1-3 VMs) | $12-15/hr |
-| Large/complex VM | $45-55/hr |
-| Simulation | $5/hr |
-
-### Six Consumption Motions
-
-| Motion | Typical adoption ceiling |
-|---|---|
-| Customer Onboarding & Enablement | 0.02-0.08 |
-| ATP & Channel Enablement | 0.05-0.15 |
-| General Practice & Skilling | 0.02-0.08 |
-| Certification / PBT | 0.02-0.10 |
-| Employee Technical Enablement | 0.05-0.15 |
-| Events & Conferences | 0.30-0.70 |
-
-Never exceed 0.80 (Events only). Never exceed 0.20 for all other motions.
+This reference doc does not duplicate ACV content. One source of truth, Define-Once.
 
 ---
 

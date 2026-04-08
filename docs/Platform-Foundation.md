@@ -467,9 +467,9 @@ The badge color tells you the assessment. The evidence language tells you the ba
 | Metric | What it answers | How it's determined |
 |---|---|---|
 | **Fit Score** | Should we pursue this? | Composite of three Pillars |
-| **ACV Potential** | How big is this if we win? | Calculated: population x adoption x hours x rate |
+| **ACV Potential** | How big is this if we win? | Calculated per consumption motion, then summed. The hero widget shows a **company-level range across all discovered products** plus a sharper subtotal for the products actually scored. See "ACV Potential" below. |
 
-These are the two hero elements in the UX — visible at the top of every dossier and caseboard entry. Separate outputs, not one composite. The Fit Score is a qualitative assessment. ACV Potential is a calculated business metric. ACV values use lowercase k for thousands and uppercase M for millions (e.g., 250k, 1.2M).
+These are the two hero elements in the UX — visible at the top of every company view and caseboard entry. Separate outputs, not one composite. The Fit Score is a qualitative assessment. ACV Potential is a calculated business metric. ACV values use lowercase k for thousands and uppercase M for millions (e.g., `$250k`, `$1.2M`).
 
 ### Verdict Grid
 
@@ -594,31 +594,65 @@ Everything about the organization in one Pillar. Combines training commitment, b
 
 ### ACV Potential
 
-ACV Potential is calculated, not scored. It is the estimated annual contract value if a customer standardized on Skillable for all training and enablement motions.
+ACV Potential is **calculated, not scored**. It answers one question: *how big is this opportunity if we win?* — expressed as the estimated annual contract value if the customer standardized on Skillable across all training and enablement motions for a given product.
 
-**ACV = Population x Adoption Rate x Hours per Learner x Rate**
+**ACV is calculated per consumption motion, then summed.** Each motion has its own audience, adoption rate, hours per learner, and rate lookup. The sum per product is that product's ACV; the sum across all scored products is the company's scored-products subtotal; the company-level range extrapolates across all discovered products for the full opportunity.
 
-The rate depends on the delivery path determined by Product Labability:
-- VM labs (Hyper-V/ESX): $12-55/hr depending on complexity
-- Cloud labs (Azure/AWS Cloud Slice): $6/hr platform rate (cloud consumption billed separately)
-- Container labs: $6-12/hr
-- Simulation: $5/hr
+#### Per-motion calculation
 
-Six consumption motions feed the calculation:
-1. Customer Onboarding & Enablement
-2. Authorized Training Partners & Channel Enablement
-3. General Practice & Skilling Experiences
-4. Certification / PBT
-5. Employee Technical Enablement
-6. Events & Conferences
+```
+Audience × Adoption × Hours = Annual Hours
+Annual Hours × Rate = Annual Potential
+```
 
-Each motion reflects both motivation (why people would take labs) and delivery reach (how many people could). The consumption motions are where motivation and delivery capacity converge into revenue.
+**Single values everywhere except audience.** Audience is the only source of range in the final number — because that's where the real uncertainty lives (how many customers, how big the partner community, how many event attendees). Adoption, hours, and rate are all single values. One source of range keeps the math clean and the final number defendable.
 
-Delivery reach directly drives ACV. CompTIA with millions of global certification candidates has a fundamentally different ACV potential than a niche content management company — even if both score identically on fit.
+#### Rate tier lookup — derived from Product Labability
+
+**The rate is derived from Product Labability (Pillar 1).** Delivery path is determined once during scoring — the ACV calculation looks it up, never redefines it. This is Define-Once: one source of truth for how a product gets delivered, used for both scoring and ACV.
+
+| Delivery path (from Pillar 1) | Badges that trigger this tier | Rate |
+|---|---|---|
+| **Cloud labs** | `Runs in Azure`, `Runs in AWS`, `Sandbox API` (green) | **~$6/hr** |
+| **Small VM, Container, or Simulation** | `Runs in Hyper-V` alone (no Multi-VM/Complex Topology/Large Lab), `Runs in Container`, `Simulation` | **~$9/hr** |
+| **Typical VM** | `Runs in Hyper-V` with 1–3 VMs, standard footprint | **~$13/hr** |
+| **Large or complex VM** | `Multi-VM Lab` OR `Complex Topology` OR `Large Lab` fires on top of Hyper-V/ESX | **~$45/hr** |
+
+Rates use `~` to signal estimate. **One number per tier** — the final ACV range comes from audience variation, not from the rate. Range values in rate tiers compound noise without adding precision and are forbidden here.
+
+#### Five consumption motions
+
+Each motion reflects both a reason people take labs AND a path for reaching them. Audience is a range (the researcher produces a tight, believable estimate); adoption and hours are single values.
+
+| # | Motion | Audience | Adoption | Hours | Zero when... |
+|---|---|---|---:|---:|---|
+| **1** | **Customer Training & Enablement** | **Install base** — total customers using the product this year | ~4% | 2 | Never (every product has customers) |
+| **2** | **Partner Training & Enablement** | **Global partner community** — people reselling, deploying, and supporting the product | ~15% | 5 | Company doesn't sell through a channel |
+| **3** | **Employee Training & Enablement** | **Relevant-employee subset** — product team, support, sales engineering, customer success. Not total headcount. | ~30% | 8 | Never in practice (though the subset may be small at small companies) |
+| **4** | **Certification (PBT)** | People in the world who sit for the certification exam | **100%** | 1 | Product has no certification, or the certification has no lab component |
+| **5** | **Events & Conferences** | Total attendees at the company's events (e.g., ~15,000 at Tableau Conference) | ~30% | 1 | Company doesn't run events at all. Events without labs today are **not zero** — they are the opportunity we'd sell. |
+
+**Motion 3 framing note:** the audience must be narrowed to the relevant subset BEFORE the adoption % is applied. Applying ~30% to total headcount would massively overshoot. The researcher estimates the subset size per product, and adoption is applied to that subset.
+
+**Motion 4 framing note:** 100% is exact (no `~`) because if a lab is in the certification exam, everyone who sits for the cert takes the lab — conditional, but exact. The "person who takes multiple certs" case is handled in the audience count, not in per-lab hours.
+
+#### Install base is Define-Once
+
+The same install base estimate feeds both Motion 1 audience AND **Pillar 2 Market Demand**. The researcher produces one install base number per product, and that number is used everywhere. Never compute it twice. When install base appears in two places with two different values, that's a Define-Once violation.
+
+The same rule applies to the **global partner community size** (feeds Motion 2 and Pillar 3 Delivery Capacity) and the **delivery path** (feeds the rate tier lookup and Pillar 1 badge display). Three Define-Once facts power the ACV model — all computed once, referenced everywhere.
+
+#### Range discipline
+
+Estimates must be **believable**. A range of 2,000–40,000 signals "we have no idea." The researcher produces tight, defendable ranges the seller can quote without caveats. Because audience is the only source of range in the final ACV, the discipline of keeping audience tight directly controls the tightness of the final number.
+
+#### Delivery reach drives ACV
+
+A product sold through a global channel with a large certification ecosystem and a flagship event has fundamentally different ACV potential than a niche product with a regional delivery footprint — even if both score identically on fit. The five motions are where delivery reach and motivation converge into revenue.
 
 ---
 
-## Inspector Dossier UX
+## Inspector UX
 
 ### Hero Section
 
@@ -626,9 +660,23 @@ The hero section is the star of the show. Layout:
 
 - **Left:** Product name with dropdown selector (products listed with name left-aligned truncated at ~40 chars, score, purple subcategory badge)
 - **Center:** Fit Score — the star of the show, large and prominent
-- **Right:** ACV Potential
+- **Right:** ACV Potential — company-level, not per-product
 
 Below the product name: verdict badge, then "HIGH FIT · HIGH ACV" label (all caps).
+
+#### ACV Potential widget (hero, upper right)
+
+The ACV Potential widget is **company-level**. It does not change as the seller switches products in the dropdown — the number is about the opportunity with the **company**, not the currently-displayed product. Per-product ACV detail lives in the ACV by Use Case table in the bottom row.
+
+The widget shows three lines:
+
+| Line | Content |
+|---|---|
+| **1. `ACV POTENTIAL`** | Big range — company-level ACV across all discovered products |
+| **2. Descriptor** | `Estimated across all N discovered products` |
+| **3. Scored subtotal** | `Estimate for ONLY the N scored products: $X – $Y` |
+
+The word **`ONLY`** in line 3 is intentional and uppercase — it signals to the seller that line 3 is a subset, not a competing total. The two ranges together answer "how big is the full opportunity" AND "what can we defend with evidence today."
 
 ### 70/30 Visual Split
 
@@ -660,6 +708,42 @@ Below the Pillar cards and briefcase sections, a product list table shows all di
 ### Company Classification
 
 Company classification badge uses purple — same color as product subcategory badges. Purple is for classification, not scoring.
+
+### Three-Box Bottom Row — Shared Pattern
+
+The three boxes at the bottom of the company view — Scored Products (left), Competitive Products (middle), ACV by Use Case (right) — must read as **one designed row**, not three independent components.
+
+**One shared pattern across all three boxes:**
+
+| Element | Rule |
+|---|---|
+| **Font family** | Same across all three boxes |
+| **Font size** | Same across all three — section titles match each other, body rows match each other |
+| **Vertical spacing** | Same across all three — row padding, row gap, header-to-body spacing all identical |
+| **Section title style** | Same font, size, and treatment across all three titles |
+| **Link style** | **Arrow links** (→) — de facto standard across the platform, locked |
+
+**The one intentional differentiator — middle box only:**
+
+| Box | Unique treatment |
+|---|---|
+| **Competitive Products** (middle) | **Slate blue font color** for competitor product names — signals "this is the other world, not us." Everything else about the middle box (typography, spacing, layout) matches the other two boxes exactly. |
+
+**What makes the right box (ACV by Use Case) structurally unique:**
+
+| Thing | Why |
+|---|---|
+| **Four columns** (Audience, Adoption, Hours, Annual Hours) + footer rows (Annual Hours total, Annual Potential range, Rate + delivery path note) | It's a calculation table, not a list — needs the column structure |
+| **Tight column widths** tuned to prevent line wrap | The right box is denser than the other two; columns are sized so rows never break |
+| **Right-aligned numeric columns** | Adoption %, Hours, and Annual Hours are numeric — right-align so digits stack cleanly |
+
+Visual pattern (font, size, spacing) matches the other two boxes. Structural pattern (column count, widths, right-alignment, footer rows) is unique because the content demands it.
+
+**What the right box must not do:** no purple hairline above the box (that's a middle-box treatment), no black background (should match the rest of the row).
+
+**Line-wrap discipline on the right box:** lines **must not wrap**. Column widths and font sizing must be tuned so the table stays within its box at all supported widths.
+
+This is GP4 (Self-Evident Design) applied at the UX layer — one typography pattern, one spacing pattern, one link style, defined once and used everywhere. Color is the one differentiator for the middle box because "competitors vs us" is the one visual signal that earns its own treatment.
 
 ---
 
