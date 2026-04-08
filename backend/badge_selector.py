@@ -601,6 +601,28 @@ def _pillar_1_scoring_badges(product: Product) -> list[Badge]:
             )],
         ))
 
+    # ── No Scoring Methods red blocker ──────────────────────────────────
+    # If none of the four viable scoring paths have any granularity and
+    # simulation scoring isn't viable either, emit a red "No Scoring Methods"
+    # badge so the Full Analysis view shows the dimension's state clearly
+    # (the dimension already scores 0 on the math side by virtue of having
+    # no credited signals; this is the display-layer surface of that zero).
+    # Frank 2026-04-08 Trellix Intelligence as a Service — product had no
+    # API, no scripting, no AI Vision, no simulation scoring, but the
+    # Scoring dimension surfaced zero badges at all; the user had no way
+    # to see "this product has no scoring path".
+    if not badges and not sc.simulation_scoring_viable:
+        badges.append(Badge(
+            name="No Scoring Methods",
+            color="red",
+            qualifier="Blocker",
+            evidence=[_evidence(
+                "No viable scoring method found — no Scoring API, no Script Scoring, "
+                "no AI Vision, no Simulation scoring. The product cannot be scored.",
+                confidence="confirmed",
+            )],
+        ))
+
     return badges
 
 

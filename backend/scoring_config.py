@@ -518,6 +518,9 @@ _scoring_badges = (
     Badge("MCQ Scoring", (
         BadgeColor("amber", "No programmatic surface — knowledge-check questions only"),
     ), notes="The genuine fallback. Used when no environment state is available to validate (knowledge-only assessment)."),
+    Badge("No Scoring Methods", (
+        BadgeColor("red", "No viable scoring method found — no Scoring API, no Script Scoring, no AI Vision, no Simulation scoring. The product cannot be scored."),
+    ), notes="Frank 2026-04-08 Trellix Intelligence as a Service: when every scoring fact is null/False, the Scoring dimension scores 0 and previously rendered with zero badges — a blank dimension that looked broken. This canonical red blocker fires from badge_selector when all four scoring paths are unviable so the user sees WHY the dimension is zero. Parallel to 'No Deployment Method' in Provisioning and 'Manual Teardown' in Teardown — every Pillar 1 dimension has a canonical absence-finding badge."),
 )
 
 _scoring_signals = (
@@ -554,6 +557,7 @@ _scoring_signals = (
     ScoringSignal("AI Vision", 10, "Skillable's AI observes the GUI to validate state — strong differentiator, caps standalone at 10"),
     ScoringSignal("Simulation Scorable", 8, "Simulation scoring via guided interaction"),
     ScoringSignal("MCQ Scoring", 0, "Knowledge-check questions — display only, zero credit (Frank 2026-04-07: anyone can do MCQs, not lab work)"),
+    ScoringSignal("No Scoring Methods", 0, "No viable scoring method — display-only red blocker emitted by badge_selector when all four paths are unviable. Zero points; the dimension already scores 0 on the math side by virtue of having no credited signals."),
 )
 
 _scoring_dimension = Dimension(

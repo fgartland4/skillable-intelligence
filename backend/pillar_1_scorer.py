@@ -115,6 +115,7 @@ _SIG_SCRIPT_SCORING = "Script Scoring"
 _SIG_AI_VISION = "AI Vision"
 _SIG_SIMULATION_SCORABLE = "Simulation Scorable"
 _SIG_MCQ_SCORING = "MCQ Scoring"
+_SIG_NO_SCORING_METHODS = "No Scoring Methods"
 
 # Teardown signals
 _SIG_DATACENTER = "Datacenter"
@@ -256,6 +257,7 @@ def _verify_canonical_names() -> None:
     _signal_points(_SC_DIM, _SIG_AI_VISION)
     _signal_points(_SC_DIM, _SIG_SIMULATION_SCORABLE)
     _signal_points(_SC_DIM, _SIG_MCQ_SCORING)
+    _signal_points(_SC_DIM, _SIG_NO_SCORING_METHODS)
 
     _signal_points(_TD_DIM, _SIG_DATACENTER)
     _signal_points(_TD_DIM, _SIG_SIMULATION_RESET)
@@ -348,15 +350,57 @@ def _container_is_viable(p: "ProvisioningFacts") -> bool:
     return True
 
 
+# ── Preferred-fabric hint → canonical signal name mapping ──────────────
+# Used by _pick_primary_fabric to translate the researcher's preferred_fabric
+# hint into the canonical signal name. Kept as a module-level constant so the
+# picker is a thin chooser and all fabric vocabulary lives in one place.
+_PREFERRED_FABRIC_TO_SIGNAL: dict[str, str] = {
+    _FABRIC_HYPER_V: _SIG_VM,
+    _FABRIC_VM: _SIG_VM,
+    _FABRIC_CONTAINER: _SIG_CONTAINER,
+    _FABRIC_AZURE: _SIG_AZURE,
+    _FABRIC_AWS: _SIG_AWS,
+    _FABRIC_SANDBOX_API: _SIG_SANDBOX_API,
+}
+
+
 def _list_viable_fabrics(p: "ProvisioningFacts") -> list[str]:
-    """Return the list of all viable Pillar 1 Provisioning fabric signal
-    names for this product. Used for optionality bonus counting.
+    """Single source of truth for which per-learner provisioning fabrics
+    are viable for this product. Used by the primary fabric picker AND by
+    the multi-fabric optionality bonus counter — both reads the same list,
+    no drift possible.
 
     Rules (Frank 2026-04-08):
-      - Simulation does NOT count (it's a fallback, not a real alternative)
-      - Partial-granularity Sandbox API does NOT count (too weak)
-      - Container with disqualifiers does NOT count
+      - Researcher escape hatch: preferred_fabric == "simulation" returns []
+        (the researcher judged this product has NO real per-learner fabric;
+        picker falls through to Simulation last-resort)
+      - SaaS-only contradiction rule: when runs_as_saas_only == True AND
+        has_sandbox_api == False, the vendor runs it as a managed service
+        and there is no per-learner path into the vendor's cloud.
+        runs_as_aws_native / runs_as_azure_native in that state means
+        "hosted on X by vendor", NOT "learner can provision on X" — strip
+        those signals from the viable list. Without this rule, Trellix
+        Intelligence as a Service (runs_as_saas_only=True AND
+        runs_as_aws_native=True) gets scored 30 points for AWS provisioning
+        despite having no per-learner path at all.
+      - M365 scenarios map to M365 Tenant / M365 Admin (owned branch)
+      - VM requires runs_as_installable
+      - Container requires production-native + no disqualifiers
+      - Sandbox API only counts at rich granularity (partial is too weak
+        for optionality; picker handles partial as a weaker primary-only
+        fallback below)
+      - Simulation is NOT in this list — it is a last-resort fallback, not
+        a real per-learner fabric
     """
+    # Researcher's explicit escape hatch — empty list means "no real fabric,
+    # fall through to Simulation". All other rules are short-circuited.
+    if p.preferred_fabric == _FABRIC_SIMULATION:
+        return []
+
+    # SaaS-only managed service with no Sandbox API → vendor runs the cloud,
+    # not the learner. Strip cloud-native signals to prevent false credit.
+    saas_managed = p.runs_as_saas_only and not p.has_sandbox_api
+
     viable: list[str] = []
     if p.m365_scenario == _M365_END_USER:
         viable.append(_SIG_M365_TENANT)
@@ -366,9 +410,9 @@ def _list_viable_fabrics(p: "ProvisioningFacts") -> list[str]:
         viable.append(_SIG_VM)
     if _container_is_viable(p):
         viable.append(_SIG_CONTAINER)
-    if p.runs_as_azure_native:
+    if p.runs_as_azure_native and not saas_managed:
         viable.append(_SIG_AZURE)
-    if p.runs_as_aws_native:
+    if p.runs_as_aws_native and not saas_managed:
         viable.append(_SIG_AWS)
     if p.has_sandbox_api and p.sandbox_api_granularity == _GRAN_RICH:
         viable.append(_SIG_SANDBOX_API)
@@ -376,44 +420,50 @@ def _list_viable_fabrics(p: "ProvisioningFacts") -> list[str]:
 
 
 def _pick_primary_fabric(p: "ProvisioningFacts") -> str | None:
-    """Pick the primary fabric based on (a) m365_scenario highest priority,
-    (b) the extractor's preferred_fabric hint when the fact predicate
-    supports it, (c) the static priority order as fallback.
+    """Pick the primary fabric from _list_viable_fabrics. The picker is a
+    thin chooser over that list — every contradiction rule lives in
+    _list_viable_fabrics, which is the single source of truth.
 
-    Returns the canonical signal name of the primary fabric, or None if
-    nothing is viable (in which case the caller falls through to Simulation
-    or to the no-deployment-method ceiling flag).
+    Priority order within the viable list:
+      1. M365 Tenant / M365 Admin — owned branch, highest priority when set
+      2. Researcher's preferred_fabric hint, if it names a signal in the
+         viable list (tiebreaker between otherwise-equal options)
+      3. Static priority: VM > Container > Azure > AWS > Sandbox API
+
+    Weaker fallback when the viable list is empty:
+      - Partial-granularity Sandbox API can still be the primary fabric
+        (it earns half credit via the granularity penalty path) even though
+        it does not count toward the optionality bonus.
+
+    Returns None only when nothing at all is pickable — caller falls
+    through to Simulation last-resort or emits a no-deployment-method
+    ceiling flag when bare metal or GCP blocks simulation.
     """
-    # ── M365 scenario — highest priority when set ──
-    if p.m365_scenario == _M365_END_USER:
+    viable = _list_viable_fabrics(p)
+
+    # M365 owned branch wins when present.
+    if _SIG_M365_TENANT in viable:
         return _SIG_M365_TENANT
-    if p.m365_scenario == _M365_ADMIN:
+    if _SIG_M365_ADMIN in viable:
         return _SIG_M365_ADMIN
 
-    # ── Honor preferred_fabric hint when the fact predicate supports it ──
-    pf = p.preferred_fabric
-    if pf in (_FABRIC_HYPER_V, _FABRIC_VM) and p.runs_as_installable:
-        return _SIG_VM
-    if pf == _FABRIC_CONTAINER and _container_is_viable(p):
-        return _SIG_CONTAINER
-    if pf == _FABRIC_AZURE and p.runs_as_azure_native:
-        return _SIG_AZURE
-    if pf == _FABRIC_AWS and p.runs_as_aws_native:
-        return _SIG_AWS
-    if pf == _FABRIC_SANDBOX_API and p.has_sandbox_api and p.sandbox_api_granularity == _GRAN_RICH:
+    # Researcher's preferred fabric, if it names a signal in the viable list.
+    preferred_sig = _PREFERRED_FABRIC_TO_SIGNAL.get(p.preferred_fabric or "")
+    if preferred_sig and preferred_sig in viable:
+        return preferred_sig
+
+    # Static priority walk over the viable list.
+    for sig in (_SIG_VM, _SIG_CONTAINER, _SIG_AZURE, _SIG_AWS, _SIG_SANDBOX_API):
+        if sig in viable:
+            return sig
+
+    # Weaker primary-only fallback: partial-granularity Sandbox API is
+    # pickable as primary (scored at half credit) but does not count for
+    # the optionality bonus, so it is deliberately excluded from the
+    # viable list and handled here as a last step before None.
+    if p.has_sandbox_api and p.sandbox_api_granularity == _GRAN_PARTIAL:
         return _SIG_SANDBOX_API
 
-    # ── Static priority fallback (VM > Container > Cloud > Sandbox API) ──
-    if p.runs_as_installable:
-        return _SIG_VM
-    if _container_is_viable(p):
-        return _SIG_CONTAINER
-    if p.runs_as_azure_native:
-        return _SIG_AZURE
-    if p.runs_as_aws_native:
-        return _SIG_AWS
-    if p.has_sandbox_api and p.sandbox_api_granularity in (_GRAN_RICH, _GRAN_PARTIAL):
-        return _SIG_SANDBOX_API
     return None
 
 
