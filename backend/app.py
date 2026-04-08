@@ -394,9 +394,21 @@ def inspector_product_selection(discovery_id: str):
 
     def _product_matches_family(p: dict, family_name: str) -> bool:
         """True when a product belongs to a family under the same two-pass
-        rule the counter uses. Strict substring first, then multi-token
-        overlap fallback (requires 2+ non-stopword tokens, whole-word
-        match so "data" doesn't match "datacenter")."""
+        rule the counter uses.
+
+        Pass 1 — strict substring on the full family name.
+        Pass 2 — ALL-tokens match: every non-stopword token in the family
+                 name must appear as a whole word in the product blob.
+                 "Data Security" requires both `data` AND `security`;
+                 "Security Awareness Topics" requires all three;
+                 "Google Cloud" requires both.
+
+        Frank 2026-04-08 Trellix: ANY-token fallback over-matched on
+        generic cybersecurity words (security, data, threat). ALL-token
+        is the right conservative rule — strict substring rescues the
+        literal matches, ALL-token fallback rescues real multi-word
+        families whose products don't substring-match verbatim.
+        """
         fam_lower = family_name.lower()
         blob = " ".join([
             (p.get("name") or "").lower(),
@@ -406,14 +418,14 @@ def inspector_product_selection(discovery_id: str):
         # Pass 1 — strict substring on the full family name
         if fam_lower in blob:
             return True
-        # Pass 2 — token-overlap fallback
+        # Pass 2 — ALL-tokens fallback (every non-stopword token present)
         tokens = _family_match_tokens(family_name)
         if len(tokens) < 2:  # magic-allowed: single-token fallback gate
             return False
         for tok in tokens:
-            if re.search(rf"\b{re.escape(tok)}\b", blob):
-                return True
-        return False
+            if not re.search(rf"\b{re.escape(tok)}\b", blob):
+                return False
+        return True
 
     if selected_families:
         # User picked one or more families — filter products to matches
@@ -494,7 +506,13 @@ def inspector_product_selection(discovery_id: str):
                 if strict > 0:
                     fam["product_count"] = strict
                     continue
-                # Pass 2 — token-overlap fallback for multi-word families.
+                # Pass 2 — ALL-tokens fallback for multi-word families.
+                # Every non-stopword token in the family name must appear
+                # as a whole word in the product blob. Frank 2026-04-08:
+                # ANY-token was over-matching on generic cybersecurity
+                # words (security, data, threat). Must stay in sync with
+                # _product_matches_family() below or counter and filter
+                # disagree.
                 tokens = _family_tokens(fam["name"])
                 if len(tokens) < 2:  # magic-allowed: single-token fallback gate (too noisy to rescue)
                     # Single-token families don't get the fallback — too
@@ -505,7 +523,7 @@ def inspector_product_selection(discovery_id: str):
                     continue
                 fam["product_count"] = sum(
                     1 for p in non_tc
-                    if any(_token_hit(t, _product_blob(p)) for t in tokens)
+                    if all(_token_hit(t, _product_blob(p)) for t in tokens)
                 )
 
             # Filter out noise families. Two rules:
