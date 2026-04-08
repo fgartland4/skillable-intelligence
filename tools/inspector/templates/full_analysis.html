@@ -3,6 +3,17 @@
   Data source: analysis dict prepared by inspector_full_analysis() in app.py.
 #}
 {% import '_company_header.html' as ch %}
+{# ────────────────────────────────────────────────────────────────────────
+   Full Analysis (Dossier).
+
+   SEARCH MODAL RULE (platform-wide): every long-running flow on this page
+   (manual cache refresh, stale-cache decision prompt, future per-product
+   re-score) uses the SHARED search modal from `_search_modal.html`.  Do
+   NOT build a custom progress overlay, spinner, or decision prompt on
+   this page.  See `CLAUDE.md` → "The Standard Search Modal" and
+   `docs/Platform-Foundation.md` → "The Standard Search Modal — The One
+   and Only".
+   ──────────────────────────────────────────────────────────────────────── #}
 {% import '_search_modal.html' as sm %}
 <!DOCTYPE html>
 <html lang="en">
@@ -759,17 +770,19 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
                     alert('Refresh failed: ' + (d.error || 'unknown error'));
                     return;
                 }
-                // Open the modal in progress mode subscribed to the score
-                // progress SSE endpoint. When the SSE emits 'done:', reload
-                // the page so the user sees the freshly scored data.
+                // Open the SHARED search modal in progress mode subscribed
+                // to the score progress SSE endpoint.  When the SSE emits
+                // 'done:', reload the page so the user sees the freshly
+                // scored data.  Every long-running Inspector operation
+                // uses this same shared modal — see _search_modal.html.
                 openSearchModal({
                     eyebrow: 'Refreshing',
-                    title:   '{{ analysis.company_name | e }}',
+                    title:   {{ analysis.company_name | tojson }},
                     sseUrl:  '/inspector/score/progress/' + d.job_id,
                     onComplete: function() { window.location.reload(); }
                 });
             })
-            .catch(function(e) { alert('Refresh failed: ' + e); });
+            .catch(function(err) { alert('Refresh failed: ' + err); });
     }
 
     // ── Briefcase polling (product-aware) ──
@@ -835,13 +848,14 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 document.addEventListener('DOMContentLoaded', function() {
     openSearchModalDecision({
         eyebrow: 'Cache check',
-        title:   '{{ analysis.company_name | e }}',
+        title:   {{ analysis.company_name | tojson }},
         message: 'Data refresh recommended — this analysis was scored with an older version of the scoring logic. Refresh now for current scoring, or ignore and continue with the cached view.',
         onRefresh: function() {
             // Re-use the same path as the manual refresh button: hit the
-            // refresh endpoint, then transition the modal in place to
-            // progress mode subscribed to the score progress SSE.
-            fetch('/inspector/analysis/{{ analysis.analysis_id }}/refresh', { method: 'POST' })
+            // refresh endpoint, then transition the SHARED modal in
+            // place to progress mode subscribed to the score progress SSE.
+            // Same modal, same SSE contract — see _search_modal.html.
+            fetch({{ ('/inspector/analysis/' + analysis.analysis_id + '/refresh') | tojson }}, { method: 'POST' })
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     if (!d.ok) {
@@ -850,12 +864,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     transitionSearchModalToProgress({
                         eyebrow: 'Refreshing',
-                        title:   '{{ analysis.company_name | e }}',
+                        title:   {{ analysis.company_name | tojson }},
                         sseUrl:  '/inspector/score/progress/' + d.job_id,
                         onComplete: function() { window.location.reload(); }
                     });
                 })
-                .catch(function(e) { alert('Refresh failed: ' + e); });
+                .catch(function(err) { alert('Refresh failed: ' + err); });
         }
     });
 });

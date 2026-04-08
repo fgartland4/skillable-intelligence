@@ -670,34 +670,29 @@
     function openStaleCacheDecisionModal() {
         openSearchModalDecision({
             eyebrow: 'Cache check',
-            title:   '{{ discovery.company_name | e }}',
+            title:   {{ discovery.company_name | tojson }},
             message: 'There is newer scoring logic available. Refresh the cached analysis with current scoring, or continue with the cached scores as-is?',
             onRefresh: function() {
-                fetch('/inspector/analysis/{{ existing_analysis.analysis_id }}/refresh', { method: 'POST' })
+                fetch({{ ('/inspector/analysis/' + existing_analysis.analysis_id + '/refresh') | tojson }}, { method: 'POST' })
                     .then(function(r) { return r.json(); })
                     .then(function(d) {
                         if (!d.ok) {
                             alert('Refresh failed: ' + (d.error || 'unknown error'));
                             return;
                         }
-                        // Keep the user on this page and transition the
-                        // same shared search modal to progress mode —
-                        // we use ONE shared modal for every search
-                        // operation (discover, product selection, deep
-                        // dive, refresh). The middle section varies per
-                        // operation; the top (verb + company) and
-                        // bottom (bar, text, counter, progress) are
-                        // shared across every flow.
+                        // Transition the SAME shared modal in-place from
+                        // decision mode to progress mode.  One modal, one
+                        // SSE subscription, zero flicker.
                         transitionSearchModalToProgress({
                             eyebrow: 'Refreshing',
-                            title:   '{{ discovery.company_name | e }}',
+                            title:   {{ discovery.company_name | tojson }},
                             sseUrl:  '/inspector/score/progress/' + d.job_id,
                             onComplete: function() {
-                                window.location.href = '/inspector/analysis/{{ existing_analysis.analysis_id }}';
+                                window.location.href = {{ ('/inspector/analysis/' + existing_analysis.analysis_id) | tojson }};
                             }
                         });
                     })
-                    .catch(function(e) { alert('Refresh failed: ' + e); });
+                    .catch(function(err) { alert('Refresh failed: ' + err); });
             },
             onIgnore: function() {
                 staleCachePromptHandled = true;

@@ -12,10 +12,10 @@
    migrated here.  DO NOT reintroduce page-specific progress CSS / JS /
    markup on this page — reuse the shared macros from _search_modal.html.
 
-   SSE contract: /inspector/discover/progress/<discovery_id> publishes
-     'status:<text>'  → appears as the modal status line
-     'done:<id>'      → triggers redirect to /inspector/product-selection/<id>
-     'error:<msg>'    → shows an error state inside the shared modal
+   SSE contract: /inspector/discover/progress/<job_id> publishes
+     'status:<text>'          → appears as the modal status line
+     'done:<discovery_id>'    → triggers redirect to /inspector/product-selection/<discovery_id>
+     'error:<msg>'            → shows an error state inside the shared modal
    ──────────────────────────────────────────────────────────────────────── #}
 {% import '_search_modal.html' as sm %}
 <!DOCTYPE html>
@@ -59,7 +59,7 @@
         openSearchModal({
             eyebrow: 'Researching',
             title:   {{ company_name | tojson }},
-            sseUrl:  '/inspector/discover/progress/{{ discovery_id }}',
+            sseUrl:  '/inspector/discover/progress/{{ job_id }}',
             onComplete: function(payload) {
                 // payload is the discovery_id returned by the SSE 'done:' line
                 window.location.replace('/inspector/product-selection/' + payload);

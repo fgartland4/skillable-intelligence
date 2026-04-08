@@ -287,6 +287,136 @@ def test_search_modal_macros_exist():
         )
 
 
+def test_no_eventsource_outside_shared_search_modal():
+    """Platform-wide rule: the ONLY `new EventSource(` in the codebase
+    lives in `_search_modal.html`.  Every long-running flow in every tool
+    (Inspector today; Prospector and Designer later) renders progress
+    through the SHARED search modal.  If this test fails, someone built
+    a custom progress UI instead of reusing the shared modal — that is
+    a Platform-Foundation violation, not a style issue.
+
+    See `docs/Platform-Foundation.md` → "The Standard Search Modal" and
+    `CLAUDE.md` → "The Standard Search Modal".
+    """
+    repo_root = Path(__file__).resolve().parents[2]
+    tools_dir = repo_root / "tools"
+    backend_dir = repo_root / "backend"
+    shared_modal = repo_root / "tools" / "inspector" / "templates" / "_search_modal.html"
+    self_path = Path(__file__).resolve()
+
+    offenders: list[str] = []
+    for root in (tools_dir, backend_dir):
+        if not root.exists():
+            continue
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix not in (".html", ".py", ".js"):
+                continue
+            if path == shared_modal or path == self_path:
+                continue
+            # Skip the legacy-reference quarantine — it is out of the
+            # Python import path and not used by the active platform.
+            if "legacy-reference" in path.parts or "_legacy_" in path.name:
+                continue
+            try:
+                src = path.read_text(encoding="utf-8")
+            except Exception:
+                continue
+            if "new EventSource(" in src:
+                offenders.append(str(path.relative_to(repo_root)))
+
+    assert not offenders, (
+        "Platform-wide rule violation: `new EventSource(` found outside "
+        "the shared search modal. Every long-running flow must use the "
+        "shared `_search_modal.html` via `openSearchModal({sseUrl: ...})`. "
+        "See CLAUDE.md → 'The Standard Search Modal' and "
+        "docs/Platform-Foundation.md → 'The Standard Search Modal'. "
+        "Offenders:\n  - " + "\n  - ".join(offenders)
+    )
+
+
+def test_no_rendered_progress_templates_exist():
+    """Platform-wide rule: there are no rendered full-page progress
+    templates in the platform.  Progress lives INSIDE the shared modal
+    (an overlay), not as a dedicated page.  The legacy `scoring.html`
+    was deleted on 2026-04-07 for exactly this reason.
+
+    Any file named like a progress / loading / scoring / waiting page
+    that isn't a minimal shell importing `_search_modal.html` is a
+    Platform-Foundation violation.
+    """
+    tools_dir = Path(__file__).resolve().parents[2] / "tools"
+    # Files that would be suspicious as standalone progress pages.
+    suspicious_names = {
+        "scoring.html", "progress.html", "loading.html", "waiting.html",
+        "searching.html", "running.html",
+    }
+    offenders: list[str] = []
+    for path in tools_dir.rglob("*.html"):
+        if path.name in suspicious_names:
+            offenders.append(str(path.relative_to(tools_dir.parent)))
+
+    assert not offenders, (
+        "Platform-wide rule violation: a dedicated progress-page template "
+        "was found. Progress lives INSIDE the shared search modal, not as "
+        "a rendered page. Delete the file and route through "
+        "`openSearchModal()` instead.\n"
+        "Offenders:\n  - " + "\n  - ".join(offenders)
+    )
+
+
+def test_shared_search_modal_is_flow_agnostic():
+    """The shared modal must stay flow-agnostic so Prospector and
+    Designer can reuse it without forking.  No Inspector-specific hard
+    references (routes, analysis IDs, discovery IDs, specific tool names)
+    should appear inside the macros.
+    """
+    shared_modal = (Path(__file__).resolve().parents[2]
+                    / "tools" / "inspector" / "templates" / "_search_modal.html")
+    src = shared_modal.read_text(encoding="utf-8")
+
+    # The functional code inside the macros (CSS rules, markup, JS) must
+    # not hardcode any tool-specific URL pattern.  Usage examples and doc
+    # comments are allowed to reference Inspector URLs for illustration —
+    # strip them before checking.
+    import re
+    macro_start = src.find("{% macro styles()")
+    assert macro_start > 0, "could not find macro definitions in _search_modal.html"
+    macro_src = src[macro_start:]
+
+    # Strip JS block comments /* ... */ and line comments `// ...`
+    macro_src_no_block_comments = re.sub(r"/\*.*?\*/", "", macro_src, flags=re.DOTALL)
+    lines = []
+    for line in macro_src_no_block_comments.splitlines():
+        stripped = line.lstrip()
+        # Drop full-line JS comments
+        if stripped.startswith("//"):
+            continue
+        # Drop inline JS comments
+        if "//" in line:
+            line = line.split("//", 1)[0]
+        # Drop Jinja comments {# ... #}
+        line = re.sub(r"\{#.*?#\}", "", line)
+        lines.append(line)
+    functional_src = "\n".join(lines)
+
+    forbidden = [
+        "/inspector/score",
+        "/inspector/discover",
+        "/inspector/analysis/",
+        "/prospector/",
+        "/designer/",
+    ]
+    found = [p for p in forbidden if p in functional_src]
+    assert not found, (
+        "The shared search modal must stay flow-agnostic so every tool can "
+        "reuse it.  Found tool-specific references inside the FUNCTIONAL "
+        f"macro bodies (not comments): {found}. Move these to the CALLER, "
+        "not the shared component."
+    )
+
+
 def test_full_analysis_imports_search_modal():
     """full_analysis.html must import the search modal partial and call
     its macros. Catches accidental removal of the import or the macro calls.

@@ -57,6 +57,38 @@ Everything built before the Platform Foundation (April 4, 2026) is proof-of-conc
 
 After completing any code changes, automatically stage, commit, and push without prompting.
 
+### The Standard Search Modal — THE ONE AND ONLY
+
+**There is ONE search / progress modal in this entire platform. It lives in `tools/inspector/templates/_search_modal.html` and is used for every long-running operation across Inspector, and will be used by Prospector and Designer when those tools are built.**
+
+Before you build ANY new progress UI, loading spinner, overlay, decision prompt, or "wait while we search" experience — STOP. The answer is always the same shared modal. No exceptions.
+
+**If you find yourself about to:**
+- Create a new `<div>` for a progress bar
+- Add `new EventSource(` to any file that isn't `_search_modal.html`
+- Build a decision prompt ("Refresh? / Use cached?") with its own markup
+- Render a full-page progress template (like the pre-2026-04-07 `scoring.html`)
+- Copy/paste the modal markup to tweak a per-flow variant
+- Add a "loading..." inline UI to any long-running action
+
+...then you are doing the wrong thing. Reuse the shared modal. If the modal's middle section needs a new variant, add the variant INSIDE `_search_modal.html`, do not fork.
+
+**API (from `_search_modal.html`):**
+- `openSearchModal({eyebrow, title, sseUrl, onComplete, onError})` — progress mode
+- `openSearchModalDecision({eyebrow, title, message, onRefresh, onIgnore})` — decision mode
+- `transitionSearchModalToProgress({...})` — in-place decision → progress transition
+
+**SSE contract** the modal expects the backend `push(job_id, ...)` to follow:
+- `status:<text>` → updates the visible status line
+- `done:<payload>` → calls `onComplete(payload)`
+- `error:<message>` → calls `onError(message)` or shows inline error
+
+**Why this is non-negotiable:** Every time someone has built "just a small custom progress page for this one flow," the platform has ended up with drifted UI, different timer behavior, different error handling, inconsistent status updates, and users who can't tell which Skillable tool they're in. There is ONE progress experience across the platform. It's the shared modal.
+
+**When Prospector and Designer come online:** they reuse `_search_modal.html`. The component has zero Inspector-specific code. Just `{% import '_search_modal.html' as sm %}` from anywhere in the tools tree and call the same API.
+
+See also: GP4 (Self-Evident Design) and GP6 (Slow Down to Go Faster) in `docs/Platform-Foundation.md`.
+
 ### Never Mention the Preview Panel
 
 The preview tool renders raw Jinja2 template syntax, not the running Flask app. After editing any template, do not mention the preview panel. To see changes, reload the Flask app.

@@ -101,6 +101,55 @@ Truly understanding a problem and answering it once is dramatically faster than 
 
 **GP6 and GP3 are partners.** Explainably Trustworthy (GP3) is the standard the platform must meet; Slow Down to Go Faster (GP6) is the discipline that lets it meet the standard as the platform grows.
 
+### The Standard Search Modal — The One and Only
+
+**There is ONE search / progress modal in this entire platform.** It lives in `tools/inspector/templates/_search_modal.html` and is used for every long-running operation: product discovery, product selection, Deep Dive scoring, cache refresh, and every future long-running flow in Inspector, Prospector, and Designer.
+
+This is a platform-wide architectural rule, not an Inspector convention.
+
+| What the shared modal does | Where it's used |
+|---|---|
+| **Progress mode** — card overlay with eyebrow (the verb), title (the target), animated status line, progress bar, elapsed timer, Skillable logo, cancel button, and SSE subscription | Discovery research, Deep Dive scoring, cache refresh — Inspector today; Prospector batch scoring and Designer pipeline runs when they come online |
+| **Decision mode** — same card, different middle section: message + two buttons (primary / secondary) | Stale-cache prompts on Product Selection and Full Analysis — Inspector today; any future "confirm before running" flow anywhere |
+| **In-place transition** — decision mode → progress mode without flicker | Refresh flows where the user confirms and then watches the work happen |
+
+**The three sections of the card:**
+
+```
+┌─────────────────────────────────────────────────┐
+│  TOP      — eyebrow (verb) + title (target)    │  SHARED
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  MIDDLE   — variable per operation              │  VARIABLE
+│             small for product search            │
+│             taller + more detail for deep dive  │
+│                                                 │
+├─────────────────────────────────────────────────┤
+│  BOTTOM   — progress bar + status text +        │  SHARED
+│             counter + timer                     │
+└─────────────────────────────────────────────────┘
+```
+
+Top and bottom are the SAME across every flow. Only the middle varies. Variants live INSIDE `_search_modal.html`, not as forks.
+
+**Platform enforcement rules — no exceptions, no per-tool custom progress UIs:**
+
+1. Every long-running operation across every tool (Inspector, Prospector, Designer) uses this shared modal.
+2. The ONLY `new EventSource(` in the entire codebase lives in `_search_modal.html`. If you find another one, it's a bug.
+3. The SSE contract is `status:<text>` / `done:<payload>` / `error:<message>`. Every backend route that publishes progress uses this exact contract so the modal can consume it without a contract adapter per flow.
+4. The only backend routes that should return a rendered progress page are NONE. Routes that kick off long-running work return JSON `{ok, job_id}`; the caller opens the shared modal via `openSearchModal({sseUrl: '/.../progress/' + job_id, ...})`.
+5. No forked markup. No per-flow "just this one modal." No inline loading states for long operations. If you're tempted to build one, re-read this section.
+
+**Why this is a Platform-Foundation-level rule, not a style preference:** every time a drifted custom progress UI has been built, the platform has ended up with different timer behavior, different error handling, different cancel semantics, inconsistent status updates, and users who can't tell which Skillable tool they're in. Trust (GP3) requires consistency. Self-Evident Design (GP4) requires one way to do it. The shared modal is how both are realized for every long-running operation in the platform.
+
+**When Prospector and Designer come online:** they reuse `_search_modal.html` directly. The component has zero Inspector-specific code. Just `{% import '_search_modal.html' as sm %}` from anywhere in `tools/` and call the same API:
+
+- `openSearchModal({eyebrow, title, sseUrl, onComplete, onError})` — progress mode
+- `openSearchModalDecision({eyebrow, title, message, onRefresh, onIgnore})` — decision mode
+- `transitionSearchModalToProgress({...})` — decision → progress in place
+
+If the modal's middle section needs a new variant for a new use case, add the variant INSIDE `_search_modal.html`, expose it via a new option to `openSearchModal`, and document it in the file header.
+
 ### The End-to-End Principle
 
 The framework shapes how we **gather**, how we **store**, how we **judge**, and how we **present**. One model, end to end. The same Pillar/Dimension/Requirement structure runs through every layer — research, storage, scoring, display. No translation step. No reorganizing after the fact.

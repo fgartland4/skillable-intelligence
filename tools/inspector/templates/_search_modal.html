@@ -1,17 +1,26 @@
 {# ╔═══════════════════════════════════════════════════════════════════════╗
    ║                                                                       ║
    ║   THE STANDARD SEARCH MODAL — THE ONE AND ONLY                        ║
+   ║   ────────────────────────────────────────────                        ║
+   ║   PLATFORM-WIDE RULE — INSPECTOR · PROSPECTOR · DESIGNER              ║
    ║                                                                       ║
    ╠═══════════════════════════════════════════════════════════════════════╣
    ║                                                                       ║
-   ║   There is ONE search modal in the platform. This is it.              ║
+   ║   There is ONE search / progress modal in the entire platform.        ║
+   ║   This is it.                                                         ║
    ║                                                                       ║
-   ║   Every long-running operation in Inspector (and eventually           ║
-   ║   Prospector + Designer) renders progress through THIS modal.         ║
-   ║   Do NOT build a separate modal, a separate progress page, or a       ║
-   ║   separate overlay for any flow — Deep Dive, refresh, discover,       ║
-   ║   product selection, briefcase generation, batch scoring. ALL of      ║
-   ║   them use this one shared component.                                 ║
+   ║   Every long-running operation — in Inspector today, in Prospector    ║
+   ║   and Designer when they come online — renders progress through       ║
+   ║   THIS modal.  Do NOT build a separate modal, a separate progress     ║
+   ║   page, a separate overlay, an inline loading state, a custom         ║
+   ║   EventSource, or a per-flow variant.  Every flow uses this one       ║
+   ║   shared component: discovery, product selection, Deep Dive scoring,  ║
+   ║   cache refresh, briefcase generation, batch scoring, lookalikes,     ║
+   ║   program design pipeline runs — ALL of them.                         ║
+   ║                                                                       ║
+   ║   See `CLAUDE.md` → "The Standard Search Modal" and                   ║
+   ║   `docs/Platform-Foundation.md` → "The Standard Search Modal —        ║
+   ║   The One and Only" for the full platform-wide rule.                  ║
    ║                                                                       ║
    ║   Architecture (Frank's design, locked 2026-04-04):                   ║
    ║                                                                       ║

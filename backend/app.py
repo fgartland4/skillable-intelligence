@@ -261,6 +261,38 @@ def inspector_home():
     return render_template("home.html")
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# INSPECTOR SEARCH + PROGRESS ROUTES — ALL FLOWS USE THE SHARED SEARCH MODAL
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# THE RULE (platform-wide, Inspector + Prospector + Designer): every long-
+# running operation renders its progress through the SHARED search modal
+# defined in `tools/inspector/templates/_search_modal.html`.  There is ONE
+# progress UI in the platform — no per-flow custom pages, no per-tool
+# bespoke overlays.
+#
+# Every route below follows the same three-step pattern:
+#
+#   1. Kick off the long-running work on a background thread.
+#   2. Publish progress via `push(job_id, "status:...")` / "done:..." /
+#      "error:..." — the exact SSE contract the shared modal consumes.
+#   3. Return JSON `{ok: True, job_id: ..., ...}` so the caller can open
+#      the shared modal via `openSearchModal({sseUrl: '/.../progress/' +
+#      job_id, onComplete: ...})`.
+#
+# The ONLY exception is `inspector_discover` which renders `discovering.html`
+# (a 75-line shell that itself opens the shared modal on load) — the form
+# POST from `home.html` is traditional because there's no JS on home.html
+# that could fetch() and intercept.  `discovering.html` is NOT a custom
+# progress page; it's a thin wrapper around the shared modal.
+#
+# If you are adding a new long-running flow and are tempted to build a new
+# progress page / loading spinner / overlay / decision prompt:  STOP.  The
+# answer is always the shared modal.  See `docs/Platform-Foundation.md` →
+# "The Standard Search Modal" and `CLAUDE.md` → "The Standard Search Modal"
+# for the full rule.
+# ═══════════════════════════════════════════════════════════════════════════
+
 @app.route("/inspector/discover", methods=["POST"])
 def inspector_discover():
     """Start discovery research for a company."""
@@ -296,8 +328,13 @@ def inspector_discover():
 
     threading.Thread(target=run_discovery, daemon=True).start()
 
+    # discovering.html is a thin shell that opens the SHARED search modal
+    # (see `_search_modal.html`) subscribed to the discovery progress SSE
+    # stream.  We pass the job_id; the modal's onComplete reads the real
+    # discovery_id out of the 'done:<discovery_id>' SSE payload and
+    # redirects to /inspector/product-selection/<discovery_id>.
     return render_template("discovering.html",
-                          discovery_id=job_id,
+                          job_id=job_id,
                           company_name=company_name)
 
 
@@ -502,9 +539,7 @@ def inspector_score():
     # search modal in progress mode and subscribes to
     # /inspector/score/progress/<job_id>.  There is ONE shared progress
     # modal in the platform (see `_search_modal.html`); no route should
-    # render its own full-page progress view.  The legacy `scoring.html`
-    # template has been renamed to `_legacy_scoring.html` to make
-    # accidental reuse impossible.
+    # render its own full-page progress view.
     return jsonify({
         "ok": True,
         "job_id": job_id,

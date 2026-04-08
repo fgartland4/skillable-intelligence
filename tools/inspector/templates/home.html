@@ -1,3 +1,15 @@
+{# ────────────────────────────────────────────────────────────────────────
+   Inspector home — company + product search entry point.
+
+   SEARCH MODAL RULE (platform-wide, Inspector + Prospector + Designer):
+   this page POSTs to /inspector/discover which renders `discovering.html`,
+   which opens the SHARED search modal (`_search_modal.html`) as an overlay.
+   Every long-running progress UI in the platform lives in that ONE shared
+   modal. Do NOT build a custom progress experience on this page or any
+   other.  See `CLAUDE.md` → "The Standard Search Modal" and
+   `docs/Platform-Foundation.md` → "The Standard Search Modal — The One
+   and Only".
+   ──────────────────────────────────────────────────────────────────────── #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
