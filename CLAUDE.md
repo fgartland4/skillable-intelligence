@@ -17,9 +17,11 @@ This file loads automatically every session. Read the documents it points to —
 | Step | Document | Why |
 |---|---|---|
 | 1 | `docs/collaboration-with-frank.md` | How Frank thinks, how to work together, the startup sequence. **Read this first, every session.** |
-| 2 | `docs/Platform-Foundation.md` | Strategic authority — Guiding Principles, architecture, scoring framework, UX, personas. Where it conflicts with anything else, it wins. |
-| 3 | `docs/Badging-and-Scoring-Reference.md` | Operational detail — badge names, color criteria, scoring signals, point values, penalties, thresholds, locked vocabulary. |
-| 4 | `docs/next-session-todo.md` | **Read last.** What shipped in the previous session, what's open, and the FIRST thing to do this session. The "Shipped" section at the bottom is the historical record — read it when current behavior surprises you. The Foundation docs above lag the most recent architectural work; this doc is the bridge until they're synced. |
+| 2 | `docs/Platform-Foundation.md` | Strategic authority — Guiding Principles, Three Layers of Intelligence, Layer Discipline, Define-Once, people, personas, scoring framework at a glance, Fit Score composition, Verdict Grid, ACV Potential model, Inspector UX, Designer pipeline. Strategy, framework, and concepts. |
+| 3 | `docs/Badging-and-Scoring-Reference.md` | Operational detail — every Pillar, every dimension, every scoring signal, every strength tier, every baseline, every penalty, Technical Fit Multiplier table, risk cap reduction rules, rate tier lookup, badge naming rules, locked vocabulary. The math. |
+| 4 | `docs/next-session-todo.md` | **Read last.** What shipped, what's open, and the FIRST thing to do this session. |
+
+The two core docs (2 + 3) are rewritten whole, not appended, to stay Best Current Thinking. They have a hard **no-duplication rule**: Platform-Foundation owns the framework at a glance + Verdict Grid + ACV model + Fit Score composition concepts; B&S owns the operational math and the per-Pillar / per-dimension detail. Where one doc names a concept the other owns, it refers back without restating.
 
 For the **complete inventory** of everything we know we want to do or have done — across every tool, every area, every status — see `docs/roadmap.md`. That doc is a reference, not a read-first. Use it when you need to look up "is this captured?" or "where does X fit?" or "what's our overall arc?"
 
@@ -29,9 +31,9 @@ For the **complete inventory** of everything we know we want to do or have done 
 
 ### Layer Discipline — Intelligence Belongs in the Intelligence Layer
 
-The platform has THREE tools — **Inspector**, **Prospector**, **Designer** — that all sit on top of a shared **Intelligence layer**. The Intelligence layer owns ALL the logic about *what we know and how we evaluate it*: research, discovery, scoring math, normalization, cache versioning, validation, briefcase generation, model definitions, prompt assembly, locked vocabulary, classification, verdicts. The three tool layers own ONLY *the things that are tool-specific*: URL patterns, request parsing, template selection, view orchestration.
+The platform has THREE tools — **Inspector**, **Prospector**, **Designer** — that all sit on top of a shared **Intelligence layer**. The Intelligence layer owns ALL the logic about *what we know and how we evaluate it*: research, discovery, per-pillar scoring, rubric grading, Fit Score composition, ACV calculation, badge selection, cache versioning, validation, briefcase generation, model definitions, locked vocabulary, classification, verdicts. The three tool layers own ONLY *the things that are tool-specific*: URL patterns, request parsing, template selection, view orchestration.
 
-**The discipline rule:** if a function does intelligence work — scoring, normalizing, validating, computing, classifying, recomputing, deciding — it belongs in the **Intelligence layer** (`backend/intelligence.py`, `backend/scorer.py`, `backend/scoring_math.py`, `backend/scoring_config.py`, `backend/storage.py`, `backend/models.py`, `backend/prompt_generator.py`, `backend/researcher.py`, `backend/core.py`, `backend/badge_normalization.py`) where ALL three tools can call it. If it does view work — rendering a template, parsing a query string, redirecting, picking a default product index — it stays in the tool layer (`backend/app.py` Inspector routes, future Prospector routes, future Designer routes).
+**The discipline rule:** if a function does intelligence work — scoring, grading, composing, calculating, classifying, recomputing, deciding — it belongs in the **Intelligence layer** (`backend/intelligence.py`, `backend/scorer.py`, `backend/researcher.py`, `backend/pillar_1_scorer.py`, `backend/pillar_2_scorer.py`, `backend/pillar_3_scorer.py`, `backend/rubric_grader.py`, `backend/fit_score_composer.py`, `backend/acv_calculator.py`, `backend/badge_selector.py`, `backend/scoring_config.py`, `backend/storage.py`, `backend/models.py`, `backend/core.py`) where ALL three tools can call it. If it does view work — rendering a template, parsing a query string, redirecting, picking a default product index — it stays in the tool layer (`backend/app.py` Inspector routes, future Prospector routes, future Designer routes).
 
 **How to test:** ask "would Prospector or Designer also need this if they were calling it?" If yes, it belongs in the shared layer. If no, it belongs in the tool. **When in doubt, default to shared.**
 
@@ -39,12 +41,13 @@ The platform has THREE tools — **Inspector**, **Prospector**, **Designer** —
 
 | Belongs in the **Intelligence layer** | Belongs in the **tool layer** |
 |---|---|
-| `discover()`, `score()`, recompute, refresh | URL handlers, route decorators |
-| Badge normalization (Phase 1 + Phase 2) | Request parsing, query param extraction |
-| Cache versioning + invalidation | Template selection, response shaping |
-| Verdict assignment, ACV recompute | Tool-only progress orchestration |
-| Discovery tier / classification / org color computation | Tool-only UI defaults (e.g. selected product index) |
-| Loading models from JSON | Anything no other tool would ever call |
+| `discover()`, `score()`, `recompute_analysis()`, `refresh()` | URL handlers, route decorators |
+| Per-pillar scoring, rubric grading, Fit Score composition, ACV calculation | Request parsing, query param extraction |
+| Badge selection (post-scoring display layer) | Template selection, response shaping |
+| Cache versioning + invalidation (`SCORING_LOGIC_VERSION`) | Tool-only progress orchestration |
+| Verdict assignment | Tool-only UI defaults (e.g. selected product index) |
+| Discovery tier / classification / org color computation | Anything no other tool would ever call |
+| Loading models and knowledge from JSON | |
 | Anything another tool would also need | |
 
 When you find intelligence logic living in a tool layer, **flag it as a bug-class violation** — it is the same severity as vocabulary drift or cache version lies. Fix or document the move to the shared layer.
@@ -99,7 +102,9 @@ Consistent 2-column grids. Field widths match across sections. Full-width sectio
 
 ### Skillable Terminology
 
-Two cloud fabrics (Azure Cloud Slice, AWS Cloud Slice). Three virtualization fabrics (Hyper-V, ESX, Docker). "Fabric" is correct for these. **Never say "network fabric"** — networking is a capability of the virtualization fabrics, not a separate entity. See `docs/skillable-terminology.md` when created.
+Two cloud fabrics (Azure Cloud Slice, AWS Cloud Slice). Three virtualization fabrics (Hyper-V, ESX, Docker/Container). "Fabric" is correct for these. **Never say "network fabric"** — networking is a capability of the virtualization fabrics, not a separate entity.
+
+**Badge vs implementation.** The badge name `Runs in VM` is fabric-neutral (user-facing); the internal fabric enum `hyper_v` names the actual implementation. Both are correct at their layer — do not rename the enum to match the badge or vice versa.
 
 ### No Inspector-to-Designer In-App Handoff
 
@@ -119,13 +124,26 @@ See `docs/roadmap.md` for the consolidated inventory of everything we know we wa
 
 ## Key Architecture
 
-### Prompt Generation System — Three Layers
+### Score Layer Modules — one file, one job
 
-| Layer | File | What it does |
-|---|---|---|
-| **Configuration** | `backend/scoring_config.py` | All variables — pillar names, weights, badges, signals, penalties, thresholds, vocabulary |
-| **Template** | `backend/prompts/scoring_template.md` | Instruction structure with `{PLACEHOLDER}` references to config |
-| **Generated Prompt** | Built in memory by `prompt_generator.py` | Config injected into template at runtime. Never saved as static file. |
+There is **no monolithic scoring prompt**. Score reads the typed fact drawer directly and applies deterministic rules. The only Claude call the Score layer is allowed to make is the narrow **rubric grader**, which tiers qualitative findings for Pillars 2 / 3 (strong / moderate / weak / informational). Everything else is pure Python.
+
+| Module | What it does |
+|---|---|
+| `backend/scoring_config.py` | Define-Once source of every variable the math layer touches — pillar weights, dimension weights, scoring signals, rubric tiers, baselines, penalty tables, risk cap reduction constants, Technical Fit Multiplier table, rate tables, ACV tier thresholds, Verdict Grid, locked vocabulary. **No hardcoded numbers anywhere else in the Score layer.** |
+| `backend/researcher.py` + three fact extractors | Research layer — parallel Claude calls per Deep Dive populate `ProductLababilityFacts`, `InstructionalValueFacts`, `CustomerFitFacts`. Truth-only — no scoring judgments. |
+| `backend/pillar_1_scorer.py` | Pillar 1 Product Labability — **pure Python, zero Claude.** Reads capability-store facts and produces a `PillarScore` with four dimension scores. Handles Simulation hard override, fabric priority + optionality bonus, container disqualifiers, bare-metal + Sandbox API score_override caps. |
+| `backend/rubric_grader.py` | The **narrow Claude-in-Score slice.** One focused Claude call per Pillar 2 / Pillar 3 dimension grades qualitative findings into `GradedSignal` records. |
+| `backend/pillar_2_scorer.py` | Pillar 2 Instructional Value — pure Python. Reads `GradedSignal` records + category-aware baselines, applies strength tiers, honors the penalty-visibility rule (capped positives, then subtract penalties). |
+| `backend/pillar_3_scorer.py` | Pillar 3 Customer Fit — pure Python. Same rubric math as Pillar 2 with organization-type baselines. Per-company, not per-product. |
+| `backend/fit_score_composer.py` | Composes the three pillar scores into the final Fit Score with the Technical Fit Multiplier applied to IV + CF contributions (asymmetric coupling — weak PL drags IV + CF down). Writes `FitScore.total_override` + `FitScore.technical_fit_multiplier`. |
+| `backend/acv_calculator.py` | Pure Python. Computes ACV Potential from per-motion audience / adoption / hours estimates + the rate tier lookup keyed on orchestration method. |
+| `backend/badge_selector.py` | Post-scoring display layer. Reads facts + pillar scores and emits 2–4 canonical badges per dimension with evidence text. Honors the locked naming rules. Zero scoring impact. |
+| `backend/intelligence.py` + `backend/scorer.py` | Orchestration — wire the above together for `discover()`, `score()`, `recompute_analysis()`, briefcase generation. |
+| `backend/models.py` + `backend/storage.py` | Data model (typed dataclasses) + JSON persistence. |
+| `backend/core.py` | Shared helpers — verdict assignment, classification label, sorting, etc. |
+
+Deleted in the 2026-04-08 rebuild: `scoring_math.py`, `badge_normalization.py`, `prompt_generator.py`, `prompts/scoring_template.md`, and the monolithic `SCORING_PROMPT`. If you see a reference to any of these, it's stale — route the concept to the right module above.
 
 ### Data Architecture — Three Domains
 

@@ -1,6 +1,6 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-08 (late session — Rebuild Steps 1 through 5 + Step 5b pristine cleanup all shipped; the Score layer is now fully restructured around per-pillar scorers + fit_score_composer + acv_calculator with zero legacy code. Trellix verification is the next step.)
+**Last updated:** 2026-04-08 (late session — Rebuild Steps 1 through 5 + Step 5b pristine cleanup shipped; follow-up commit 06391b0 landed the deferred 5.5 items (Runs in VM rename, Pre-Instancing? rename, Large Lab / Requires GCP deletions, Training License universal amber, vendor_official_acronym, ACV hero 3-line widget, three-box bottom row consistency, SCORING_LOGIC_VERSION bump); subsequent commit rewrote `docs/Platform-Foundation.md` and `docs/Badging-and-Scoring-Reference.md` from scratch under WHY/WHAT/HOW discipline with zero cross-doc duplication, plus CLAUDE.md updated to match the new module structure. Trellix verification is the next step.)
 **Read this first when you sit down for the next session.**
 
 ---
