@@ -981,6 +981,36 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             if pname in instructional_value_by_name:
                 product.instructional_value_facts = instructional_value_by_name[pname]
 
+        # ── Step 3 of the rebuild: Pillar 1 pure-Python scoring from facts ──
+        # Runs ALONGSIDE the legacy monolithic scoring call.  Reads each
+        # product's populated ProductLababilityFacts drawer and produces a
+        # PillarScore directly without any Claude call.  The result is stored
+        # on Product.pillar_1_python_score as a side-by-side comparison field.
+        # Step 5 cutover will delete the monolithic path and flip
+        # Product.fit_score.product_labability to be populated by this scorer
+        # directly.  See docs/next-session-todo.md §0c Step 3.
+        #
+        # Best-effort: any exception in the new path is logged and the product
+        # simply has no pillar_1_python_score attached — the legacy scoring
+        # result on fit_score is untouched.
+        from pillar_1_scorer import score_product_labability
+        pl_python_count = 0
+        for product in new_analysis.products:
+            try:
+                product.pillar_1_python_score = score_product_labability(
+                    product.product_labability_facts
+                )
+                pl_python_count += 1
+            except Exception:
+                log.exception(
+                    "Intelligence.score: pillar_1_scorer failed for product %r — skipping",
+                    product.name,
+                )
+        log.info(
+            "Intelligence.score: Pillar 1 Python scoring populated for %d/%d products",
+            pl_python_count, len(new_analysis.products),
+        )
+
         # Assign verdicts
         for product in new_analysis.products:
             acv_tier = product.acv_potential.acv_tier or "medium"

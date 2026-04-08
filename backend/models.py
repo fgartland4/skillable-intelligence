@@ -696,6 +696,15 @@ class Product:
     acv_potential: ACVPotential = field(default_factory=ACVPotential)
     verdict: Optional[Verdict] = None
 
+    # ── Step 3 (2026-04-08) — Pillar 1 Python scoring comparison field ────
+    # Populated by `backend/pillar_1_scorer.py` alongside the legacy
+    # monolithic scoring call for side-by-side comparison while the rebuild
+    # is in progress.  Pure Python — reads ProductLababilityFacts directly,
+    # never touches Claude, never reads badge names.  Removed at Step 5
+    # cutover when `fit_score` itself flips to being populated by the new
+    # fact-keyed pillar scorers.  See docs/next-session-todo.md §0c Step 3.
+    pillar_1_python_score: Optional[PillarScore] = None
+
     # Classification review flag — raised when the product category or
     # organization type landed in "Unknown" during scoring.  The math layer
     # applies a neutral fallback baseline and surfaces this flag so the
