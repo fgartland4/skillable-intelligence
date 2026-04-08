@@ -150,7 +150,9 @@
   margin-bottom: 28px;
 }
 
-/* Middle section — status text + animated dots */
+/* Middle section — two variants selected by the caller:
+   1. simple  (default, small)  → status line + three animated dots
+   2. stages  (rich, tall)      → six-step progressive list (Deep Dive) */
 .search-modal-status {
   color: var(--sk-text-muted);
   font-size: 0.92rem;
@@ -168,6 +170,56 @@
 @keyframes search-modal-pulse {
   0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
   40%           { transform: scale(1);   opacity: 1;   }
+}
+
+/* Middle variant: stages (Deep Dive).  Six-step progressive list —
+   five research stages + one Claude scoring stage.  Each row has an
+   icon (pending / active spinner / done check) and a label.  The
+   Claude row has a cycling hint line under its label.  Ported from
+   the 2026-04-07 legacy scoring.html into the shared modal per
+   Frank's "one modal, different middle" design. */
+.search-modal-stages { display: none; text-align: left; margin: 4px 0 18px; }
+.search-modal-card.is-stages .search-modal-stages { display: block; }
+.search-modal-card.is-stages .search-modal-status,
+.search-modal-card.is-stages .search-modal-dots { display: none; }
+.search-modal-stage {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 6px 0;
+}
+.search-modal-stage-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--sk-bg); border: 1px solid var(--sk-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; flex-shrink: 0; color: var(--sk-text-dim);
+  transition: all 0.3s; position: relative;
+}
+.search-modal-stage-icon.active {
+  border-color: rgba(36,237,155,0.4); color: var(--sk-accent);
+  box-shadow: 0 0 0 3px rgba(36,237,155,0.08);
+}
+.search-modal-stage-icon.active::after {
+  content: '';
+  position: absolute; inset: -3px; border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--sk-accent);
+  border-right-color: rgba(36,237,155,0.35);
+  animation: search-modal-spin 0.85s linear infinite;
+}
+.search-modal-stage-icon.done {
+  background: rgba(36,237,155,0.12);
+  border-color: var(--sk-accent); color: var(--sk-accent);
+}
+@keyframes search-modal-spin { to { transform: rotate(360deg); } }
+.search-modal-stage-label {
+  color: var(--sk-text-dim); font-size: 0.82rem;
+  line-height: 1.35; transition: color 0.3s;
+}
+.search-modal-stage-label.active { color: var(--sk-text); font-weight: 500; }
+.search-modal-stage-label.done   { color: var(--sk-text-muted); }
+.search-modal-stage-hint {
+  font-size: 0.7rem; color: var(--sk-text-dim);
+  margin-top: 2px; min-height: 0.9rem;
+  transition: opacity 0.4s;
 }
 
 /* Bottom section — Skillable "ill+check" progress mark + progress bar + timer */
@@ -315,12 +367,49 @@
     <div class="search-modal-eyebrow" id="searchModalEyebrow">Working</div>
     <div class="search-modal-title"   id="searchModalTitle">&nbsp;</div>
 
-    {# Middle section — status + animated dots #}
+    {# Middle section — simple variant (default): status line + dots.
+       Used by Product Search (discovery) and simple refresh flows.
+       Hidden when the card has .is-stages class. #}
     <div class="search-modal-status" id="searchModalStatus">Starting...</div>
     <div class="search-modal-dots">
       <div class="search-modal-dot"></div>
       <div class="search-modal-dot"></div>
       <div class="search-modal-dot"></div>
+    </div>
+
+    {# Middle section — stages variant: six-step progressive list.
+       Used by Deep Dive.  Shown only when the card has .is-stages class
+       (set by openSearchModal when opts.middle === 'stages').
+       Five research stages + one Claude scoring stage with a cycling
+       hint line.  Stage labels are locked — Define-Once lives here. #}
+    <div class="search-modal-stages" id="searchModalStages">
+      <div class="search-modal-stage">
+        <div class="search-modal-stage-icon" id="searchModalStageIcon0">⟳</div>
+        <div class="search-modal-stage-label" id="searchModalStageLabel0">Scouring technical docs, APIs &amp; deployment guides</div>
+      </div>
+      <div class="search-modal-stage">
+        <div class="search-modal-stage-icon" id="searchModalStageIcon1">⟳</div>
+        <div class="search-modal-stage-label" id="searchModalStageLabel1">Finding training (ATP, gray market) &amp; certification programs</div>
+      </div>
+      <div class="search-modal-stage">
+        <div class="search-modal-stage-icon" id="searchModalStageIcon2">⟳</div>
+        <div class="search-modal-stage-label" id="searchModalStageLabel2">Researching product focus, AI features &amp; target personas</div>
+      </div>
+      <div class="search-modal-stage">
+        <div class="search-modal-stage-icon" id="searchModalStageIcon3">⟳</div>
+        <div class="search-modal-stage-label" id="searchModalStageLabel3">Analyzing channel partners, enablement &amp; hands-on events</div>
+      </div>
+      <div class="search-modal-stage">
+        <div class="search-modal-stage-icon" id="searchModalStageIcon4">⟳</div>
+        <div class="search-modal-stage-label" id="searchModalStageLabel4">Identifying training/enablement orgs &amp; key contacts</div>
+      </div>
+      <div class="search-modal-stage">
+        <div class="search-modal-stage-icon" id="searchModalStageIcon5">⟳</div>
+        <div>
+          <div class="search-modal-stage-label" id="searchModalStageLabel5">Scoring with Claude AI &amp; generating report</div>
+          <div class="search-modal-stage-hint" id="searchModalStageHint"></div>
+        </div>
+      </div>
     </div>
 
     {# Bottom section — ONE shared layout for every long-running flow.
@@ -391,12 +480,24 @@ window.openSearchModal = function(opts) {
     console.error('openSearchModal: search modal markup not on page');
     return;
   }
+  const card = backdrop.querySelector('.search-modal-card');
 
   // Read theme colors at open time so the mark animation follows the theme.
   const css = getComputedStyle(document.body);
   const COLOR_DIM    = css.getPropertyValue('--sk-border').trim();
   const COLOR_ON     = css.getPropertyValue('--sk-text').trim();
   const COLOR_ACCENT = css.getPropertyValue('--sk-accent').trim();
+
+  // Middle variant selector.  'simple' (default) = small status + dots.
+  // 'stages' = six-step progressive list (Deep Dive).  The shared modal
+  // is ONE component with two middle sections; the caller picks which
+  // middle to render by passing opts.middle.
+  const useStages = opts.middle === 'stages';
+  if (useStages) {
+    card.classList.add('is-stages');
+  } else {
+    card.classList.remove('is-stages');
+  }
 
   // Reset state for any previous run
   document.getElementById('searchModalEyebrow').textContent = opts.eyebrow || 'Working';
@@ -408,6 +509,45 @@ window.openSearchModal = function(opts) {
   document.getElementById('searchModalError').style.display  = 'none';
   document.querySelectorAll('.search-modal-status, .search-modal-dots, .search-modal-bottom')
     .forEach(function(el) { el.style.display = ''; });
+
+  // Reset all six stage rows to pending (icon dim, label dim, no spinner).
+  const STAGE_COUNT = 6;
+  const RESEARCH_COUNT = 5;  // stages 0-4 are research; stage 5 is Claude scoring
+  function resetStages() {
+    for (let i = 0; i < STAGE_COUNT; i++) {
+      const icon = document.getElementById('searchModalStageIcon' + i);
+      const label = document.getElementById('searchModalStageLabel' + i);
+      if (icon) {
+        icon.className = 'search-modal-stage-icon';
+        icon.textContent = '⟳';
+      }
+      if (label) label.className = 'search-modal-stage-label';
+    }
+    const hint = document.getElementById('searchModalStageHint');
+    if (hint) hint.textContent = '';
+  }
+  function markStageDone(i) {
+    const icon = document.getElementById('searchModalStageIcon' + i);
+    const label = document.getElementById('searchModalStageLabel' + i);
+    if (icon) {
+      icon.className = 'search-modal-stage-icon done';
+      icon.textContent = '✓';
+    }
+    if (label) label.className = 'search-modal-stage-label done';
+  }
+  function markStageActive(i) {
+    const icon = document.getElementById('searchModalStageIcon' + i);
+    const label = document.getElementById('searchModalStageLabel' + i);
+    if (icon) {
+      icon.className = 'search-modal-stage-icon active';
+      icon.textContent = '';  // spinner ::after handles the visual
+    }
+    if (label) label.className = 'search-modal-stage-label active';
+  }
+  if (useStages) {
+    resetStages();
+    markStageActive(0);
+  }
 
   // Reset the animated ill mark — first bar pulsing, rest dim, check hidden.
   const MARK_IDS = ['searchModalMarkI', 'searchModalMarkL1', 'searchModalMarkL2', 'searchModalMarkCheck'];
@@ -445,6 +585,89 @@ window.openSearchModal = function(opts) {
   }
 
   backdrop.classList.add('is-open');
+
+  // ── Deep Dive stage orchestration (only when useStages) ─────────────
+  //
+  // The five research stages auto-advance on a timer so the user sees
+  // steady visual progress while the backend researcher runs.  The
+  // researcher is ONE concurrent call that does all five research areas
+  // simultaneously — there is no per-area backend phase to hook.
+  // Advancing on a timer is a visual cue, not fake progress: the
+  // backend is genuinely doing all of this work in parallel.  The
+  // timer runs INDEPENDENTLY of the backend and does NOT gate any
+  // actual work — it exists purely to give the user a sense of
+  // forward motion.  Speed is preserved (GP1 "right way" + Frank
+  // 2026-04-07: "nothing about the design should slow the process").
+  //
+  // When the backend pushes "Scoring with Claude..." (which it emits
+  // as the transition from research → scoring), the shared modal
+  // immediately jumps to stage 5 (Claude), marks the first five done,
+  // and starts cycling the Claude hint line.  The Claude stage stays
+  // active until the SSE `done:` event — that's the only REAL phase
+  // transition, and it's tied directly to actual work completion.
+  let currentResearchStage = 0;
+  let claudeStarted = false;
+  let claudeHintTimer = null;
+  let hintIndex = 0;
+
+  const CLAUDE_HINTS = [
+    'Evaluating technical deployment signals…',
+    'Calibrating against Skillable benchmarks…',
+    'Assessing training commitment & delivery capacity…',
+    'Scoring labability & instructional value…',
+    'Mapping market fit & strategic alignment…',
+    'Identifying key contacts & org structure…',
+    'Generating recommendations…',
+  ];
+
+  // Research stage auto-advance — runs every STAGE_ADVANCE_MS and
+  // walks through the five research stages.  Stops once all five are
+  // active-or-done OR startClaudePhase() fires (whichever comes first).
+  // magic-allowed: stage dwell time — tuned for the typical research
+  // call duration so the list feels alive without racing ahead.
+  const STAGE_ADVANCE_MS = 3800;
+  const stageAdvanceInterval = useStages ? setInterval(function() {
+    if (claudeStarted) return;
+    if (currentResearchStage < RESEARCH_COUNT - 1) {
+      markStageDone(currentResearchStage);
+      currentResearchStage++;
+      markStageActive(currentResearchStage);
+    }
+    // Don't mark the last research stage done on the timer — wait for
+    // the explicit "Scoring with Claude..." trigger so the visual
+    // handoff to the Claude phase is tied to real backend progress.
+  }, STAGE_ADVANCE_MS) : null;
+
+  function startClaudePhase() {
+    if (claudeStarted) return;
+    claudeStarted = true;
+    // Mark all five research stages done, activate Claude stage,
+    // start cycling the Claude hint line under its label.
+    for (let i = 0; i < RESEARCH_COUNT; i++) markStageDone(i);
+    markStageActive(RESEARCH_COUNT);  // stage 5 = Claude
+    const hintEl = document.getElementById('searchModalStageHint');
+    if (hintEl) {
+      hintEl.textContent = CLAUDE_HINTS[0];
+      claudeHintTimer = setInterval(function() {
+        hintIndex++;
+        hintEl.style.opacity = 0;
+        setTimeout(function() {
+          hintEl.textContent = CLAUDE_HINTS[hintIndex % CLAUDE_HINTS.length];
+          hintEl.style.opacity = 1;
+        }, 400);
+      }, 6500);  // magic-allowed: hint cycle cadence
+    }
+  }
+
+  function finishClaudePhase() {
+    if (claudeHintTimer) {
+      clearInterval(claudeHintTimer);
+      claudeHintTimer = null;
+    }
+    const hintEl = document.getElementById('searchModalStageHint');
+    if (hintEl) hintEl.textContent = '';
+    markStageDone(RESEARCH_COUNT);  // mark Claude stage done
+  }
 
   // Subscribe to SSE
   const source = new EventSource(opts.sseUrl);
@@ -485,6 +708,11 @@ window.openSearchModal = function(opts) {
     source.close();
     clearInterval(progressInterval);
     clearInterval(timerInterval);
+    if (stageAdvanceInterval) clearInterval(stageAdvanceInterval);
+    if (claudeHintTimer) {
+      clearInterval(claudeHintTimer);
+      claudeHintTimer = null;
+    }
   }
 
   function close() {
@@ -496,6 +724,10 @@ window.openSearchModal = function(opts) {
     document.getElementById('searchModalStatus').style.display = 'none';
     document.querySelector('.search-modal-dots').style.display = 'none';
     document.querySelector('.search-modal-bottom').style.display = 'none';
+    // Hide the stages middle too when an error fires, so the error
+    // card isn't competing with a half-lit stage list underneath.
+    const stagesEl = document.getElementById('searchModalStages');
+    if (stagesEl) stagesEl.style.display = 'none';
     document.getElementById('searchModalErrorMsg').textContent = message;
     document.getElementById('searchModalError').style.display = 'block';
   }
@@ -521,7 +753,18 @@ window.openSearchModal = function(opts) {
   source.onmessage = function(e) {
     const msg = e.data || '';
     if (msg.startsWith('status:')) {
-      applyStatus(msg.slice(7));
+      const text = msg.slice(7);
+      // Detect the backend's "research → Claude" phase transition and
+      // jump the stages middle to the Claude phase.  Use a full-phrase
+      // match, NOT a substring match — historical bug: "scouring" in a
+      // research status message contained "scoring" and prematurely
+      // triggered the Claude phase.  The current backend explicitly
+      // pushes "Scoring with Claude..." as the transition marker in
+      // run_scoring() and run_refresh().
+      if (useStages && /scoring with/i.test(text)) {
+        startClaudePhase();
+      }
+      applyStatus(text);
     } else if (msg.startsWith('done:')) {
       cleanup();
       document.getElementById('searchModalStatus').textContent = 'Complete';
@@ -530,6 +773,8 @@ window.openSearchModal = function(opts) {
       litMark('searchModalMarkI');
       litMark('searchModalMarkL1');
       litMark('searchModalMarkL2');
+      // Stages middle: mark the Claude stage done before celebrating.
+      if (useStages) finishClaudePhase();
       celebrateCheck();
       const payload = msg.slice(5);
       if (typeof opts.onComplete === 'function') {

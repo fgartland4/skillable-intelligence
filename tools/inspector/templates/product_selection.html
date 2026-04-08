@@ -617,6 +617,7 @@
                 openSearchModal({
                     eyebrow: 'Deep Dive',
                     title:   {{ discovery.company_name | tojson }},
+                    middle:  'stages',  // six-stage progressive list
                     sseUrl:  '/inspector/score/progress/' + d.job_id,
                     onComplete: function(payload) {
                         // payload is the analysis_id (or analysis_id + ?selected=...)
@@ -686,6 +687,7 @@
                         transitionSearchModalToProgress({
                             eyebrow: 'Refreshing',
                             title:   {{ discovery.company_name | tojson }},
+                            middle:  'stages',  // refresh re-runs the Deep Dive pipeline
                             sseUrl:  '/inspector/score/progress/' + d.job_id,
                             onComplete: function() {
                                 window.location.href = {{ ('/inspector/analysis/' + existing_analysis.analysis_id) | tojson }};

@@ -778,6 +778,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
                 openSearchModal({
                     eyebrow: 'Refreshing',
                     title:   {{ analysis.company_name | tojson }},
+                    middle:  'stages',  // refresh re-runs the Deep Dive pipeline
                     sseUrl:  '/inspector/score/progress/' + d.job_id,
                     onComplete: function() { window.location.reload(); }
                 });
@@ -865,6 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     transitionSearchModalToProgress({
                         eyebrow: 'Refreshing',
                         title:   {{ analysis.company_name | tojson }},
+                        middle:  'stages',  // refresh re-runs the Deep Dive pipeline
                         sseUrl:  '/inspector/score/progress/' + d.job_id,
                         onComplete: function() { window.location.reload(); }
                     });
