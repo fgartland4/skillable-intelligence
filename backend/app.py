@@ -374,16 +374,55 @@ def inspector_product_selection(discovery_id: str):
               if p.get("category") != "Training & Certification"]
     selected_families = request.args.getlist("family")
 
+    # Shared matcher — same two-pass logic used for both the pre-picker
+    # family COUNT and the post-picker product FILTER. Without this, the
+    # counter and filter can disagree: "Data Security" shows 18 products
+    # in the counter (via token fallback) but then the filter uses strict
+    # substring match and returns 0. Frank 2026-04-08 Trellix.
+    _family_match_stopwords: set[str] = {
+        "and", "or", "the", "a", "an", "of", "for", "to", "in",
+        "by", "with", "on", "as", "at", "is", "&", "+",
+    }
+    _match_company_name = (disc.get("company_name") or "").lower().strip()
+    for _ct in re.findall(r"[a-z0-9]+", _match_company_name):
+        if len(_ct) >= 3:  # magic-allowed: minimum token length
+            _family_match_stopwords.add(_ct)
+
+    def _family_match_tokens(name: str) -> list[str]:
+        parts = re.findall(r"[a-z0-9]+", name.lower())
+        return [t for t in parts if t not in _family_match_stopwords and len(t) >= 3]  # magic-allowed: minimum token length
+
+    def _product_matches_family(p: dict, family_name: str) -> bool:
+        """True when a product belongs to a family under the same two-pass
+        rule the counter uses. Strict substring first, then multi-token
+        overlap fallback (requires 2+ non-stopword tokens, whole-word
+        match so "data" doesn't match "datacenter")."""
+        fam_lower = family_name.lower()
+        blob = " ".join([
+            (p.get("name") or "").lower(),
+            (p.get("category") or "").lower(),
+            (p.get("subcategory") or "").lower(),
+        ])
+        # Pass 1 — strict substring on the full family name
+        if fam_lower in blob:
+            return True
+        # Pass 2 — token-overlap fallback
+        tokens = _family_match_tokens(family_name)
+        if len(tokens) < 2:  # magic-allowed: single-token fallback gate
+            return False
+        for tok in tokens:
+            if re.search(rf"\b{re.escape(tok)}\b", blob):
+                return True
+        return False
+
     if selected_families:
-        # User picked one or more families — filter products to matches.
-        # Training & Certification products always come along regardless.
-        families_lower = {f.lower() for f in selected_families}
+        # User picked one or more families — filter products to matches
+        # using the same two-pass rule the counter uses. Training &
+        # Certification products always come along regardless.
         disc["products"] = [
             p for p in disc.get("products", [])
-            if p.get("category", "").lower() in families_lower
-            or any(fl in p.get("name", "").lower() for fl in families_lower)
-            or any(fl in p.get("subcategory", "").lower() for fl in families_lower)
-            or p.get("category") == "Training & Certification"
+            if p.get("category") == "Training & Certification"
+            or any(_product_matches_family(p, fam) for fam in selected_families)
         ]
         disc["_selected_families"] = selected_families
     elif len(non_tc) >= cfg.PRODUCT_FAMILY_PICKER_THRESHOLD:
