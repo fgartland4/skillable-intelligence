@@ -688,7 +688,17 @@ Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no m
 
 ═══ FIELD GUIDANCE ═══
 
-provisioning.runs_as_*: how the product can ACTUALLY be deployed.  Multiple may be true (a product that ships as both an installable and a Docker image is both runs_as_installable AND runs_as_container).  If the only way to use the product is the vendor's hosted service, runs_as_saas_only is true and the others are false.
+provisioning.runs_as_*: how the product can ACTUALLY be deployed BY A LEARNER for hands-on lab work. This is NOT about how the vendor runs their own infrastructure — it is about whether a learner (via a lab environment) can stand up their own instance.
+
+  - runs_as_installable: TRUE when a learner can install the product on their own VM (Hyper-V, ESX, etc.) from vendor-published installers / images.
+  - runs_as_container: TRUE when the vendor publishes a production-ready container image a learner can pull and run themselves.
+  - runs_as_azure_native: TRUE when a LEARNER can spin up their own instance on Azure — for example, a published Azure Marketplace offer, an ARM template, or clear documentation for learner-driven Azure deployment. NOT true just because the vendor happens to host their SaaS on Azure.
+  - runs_as_aws_native: TRUE when a LEARNER can spin up their own instance on AWS — AWS Marketplace AMI, CloudFormation template, or clear learner-driven deployment path. NOT true just because the vendor happens to host their SaaS on AWS.
+  - runs_as_saas_only: TRUE when the ONLY way to use the product is the vendor's hosted managed service — the learner cannot install, containerize, or cloud-deploy their own instance. The vendor runs it for the customer as a service.
+
+  HARD CONTRADICTION RULE: runs_as_saas_only=true is mutually exclusive with runs_as_installable, runs_as_container, runs_as_azure_native, and runs_as_aws_native. If runs_as_saas_only is true, ALL FOUR of the others MUST be false. A managed-service SaaS product that "runs on AWS under the hood" is STILL runs_as_saas_only=true with runs_as_aws_native=false — the learner has no path into the vendor's AWS account. Only set runs_as_aws_native / runs_as_azure_native when there is documented, learner-accessible deployment into THEIR OWN cloud account.
+
+  Multiple NON-saas values may be true together (e.g. an installable product that also publishes a Docker image is runs_as_installable=true AND runs_as_container=true).
 
 provisioning.sandbox_api_granularity: does the product expose an API that can spin up an isolated sandbox/tenant on demand?
   - "rich"    = full create/configure/delete cycle
