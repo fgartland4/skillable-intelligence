@@ -19,11 +19,8 @@ import anthropic
 
 from config import ANTHROPIC_API_KEY, ANTHROPIC_MODEL
 from models import (
-    ACVPotential, Badge, CompanyAnalysis, ConsumptionMotion, Contact,
-    DimensionScore, Evidence, FitScore, OrgUnit, PillarScore, Product,
-    ProspectorRow, SellerBriefcase, BriefcaseSection, Verdict,
+    BriefcaseSection, CompanyAnalysis, Product, ProspectorRow, SellerBriefcase,
 )
-from prompt_generator import generate_scoring_prompt
 
 log = logging.getLogger(__name__)
 
@@ -43,13 +40,6 @@ _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 _DISCOVERY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "discovery.txt")
 with open(_DISCOVERY_PROMPT_PATH, "r", encoding="utf-8") as _f:
     DISCOVERY_PROMPT = _f.read()
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Scoring prompt — generated at runtime from config + template (Define-Once)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-SCORING_PROMPT = generate_scoring_prompt()
-log.info("Scoring prompt generated: %d characters", len(SCORING_PROMPT))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -288,71 +278,28 @@ def _build_product_context(name: str, all_results: dict, page_contents: dict) ->
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Phase 2: Scoring — uses generated prompt, parses into new model
+# Phase 2: Score layer entry point
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def _score_single_product(company_name: str, product: dict, product_context: str,
-                          company_context: str, benchmarks_text: str) -> dict:
-    """Score one product via Claude. Returns raw dict from AI.
-
-    max_tokens raised from 16000 to 32000 2026-04-07 after Trellix
-    Wise + Trellix Endpoint Security hit the 16K ceiling mid-output
-    on a 6-product scoring run.  Claude Opus 4.6 supports 32K output
-    tokens; giving the full scoring prompt headroom avoids the
-    defensive "Analysis too large" raise path when the answer-format
-    badge vocabulary + all three pillars produce long JSON.
-    """
-    user_content = "\n".join([
-        f"# Score this product for: {company_name}",
-        f"Product: {product.get('name', '')}",
-        product_context,
-        company_context,
-        benchmarks_text,
-    ])
-    return _call_claude(SCORING_PROMPT, user_content, max_tokens=32000)
-
-
 def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis:
-    """Phase 2 stub — REBUILD Step 5b-lite (Frank 2026-04-08).
+    """Score layer entry point — builds CompanyAnalysis from research dict.
 
-    The legacy monolithic per-product Claude scoring call is COMMENTED OUT.
-    Running both the new Python scorers (Steps 3/4/5) and the monolithic
-    call at the same time was producing timeouts and corrupted the Deep
-    Dive flow, so Frank directed us to stub the old path so the new one
-    can be tested in isolation on Trellix.
+    Responsibilities:
+      1. Reads company_name, selected_products, and discovery metadata
+         from the `research` dict.
+      2. Builds minimal Product objects from selected_products + discovery
+         metadata (name, category, description, subcategory, product_url).
+         No Claude call here.
+      3. Emits progress events so the UX progress modal moves.
+      4. Returns a CompanyAnalysis with empty fit_score placeholders on
+         each Product — intelligence.score() populates them via the
+         Python pillar scorers and fit_score_composer.
 
-    This function now:
-      1. Reads company_name, selected products, and discovery metadata
-         from the `research` dict
-      2. Builds minimal Product objects from selected_products + whatever
-         metadata lives in discovery_data (name, category, description,
-         subcategory, product_url). No Claude call.
-      3. Attaches the Pillar 1 fact drawer from research["product_labability_facts"]
-         (populated by the Step 2 fact extractors).
-      4. Emits progress events for each product so the UX progress bar
-         still moves.
-      5. Returns a CompanyAnalysis with empty fit_score placeholders —
-         `intelligence.score()` will populate them via the Python scorers
-         (Steps 3/4) and the Step 5 cutover flip.
-
-    Full Step 5b (delete the dead legacy code + the badge-keyed math in
-    scoring_math.py + the _parse_product / _parse_pillar / _parse_* helpers)
-    is still pending. This stub is the minimum viable cutover that lets us
-    test the new scoring path end-to-end.
-
-    Lost by the stub vs the old monolithic path:
-      - owning_org per product (Claude used to synthesize from research)
-      - contacts per product (Claude used to extract from research)
-      - lab_highlight, lab_concepts, deployment_model, orchestration_method,
-        user_personas, recommendation (all from the monolithic call)
-      - description / subcategory / product_url (if not present on the
-        selected_products entries)
-      - poor_match_flags (Claude-derived ceiling flag hints)
-
-    Most of these become empty strings or empty lists. The UI will render
-    with gaps in those areas — acceptable for the rebuild test window.
-    A future metadata extractor (a focused small Claude call for metadata
-    only) will refill them at Step 5b proper.
+    Metadata that is NOT yet populated by this function (Step 5b scope):
+      owning_org, contacts, lab_highlight, lab_concepts, deployment_model,
+      orchestration_method, user_personas, recommendation, poor_match_flags.
+    These come from the upcoming lightweight metadata extractor. Until
+    that lands, those fields render empty in the dossier.
 
     Args:
         research: research dict with company_name, selected_products, etc.
@@ -440,312 +387,6 @@ def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis
         company_description=discovery_data.get("company_description", ""),
         organization_type=discovery_data.get("organization_type", "software_company"),
         products=products,
-    )
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# LEGACY score_selected_products — DEAD CODE pending Step 5b proper deletion
-#
-# Kept below (inside this comment block) as a one-place reference of what
-# the old monolithic path did, until Step 5b removes both the code and the
-# _score_single_product / _parse_product / _parse_* helpers that supported
-# it. The old behavior:
-#
-#   1. Build product_context from search_results + page_contents
-#   2. Build company_context from discovery_data
-#   3. Build benchmarks_text from benchmarks.json
-#   4. Fire one Claude call per product in parallel (SCORING_PROMPT)
-#      via _score_single_product
-#   5. Parse each response via _parse_product which called
-#      scoring_math.compute_all to run badge-keyed math
-#   6. Return CompanyAnalysis with fit_score populated from the AI output
-#
-# All of that is now dead. The new path (Steps 2/3/4/5) reads facts
-# directly and computes scores via the pure-Python pillar scorers. The
-# rubric grader handles the narrow Claude-in-Score slice for Pillar 2/3.
-# ─────────────────────────────────────────────────────────────────────────────
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Parsing — AI output → new data model
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _parse_evidence(raw: dict) -> Evidence:
-    """Parse a single evidence item from AI output."""
-    return Evidence(
-        claim=raw.get("claim", ""),
-        confidence_level=raw.get("confidence", "inferred"),
-        confidence_explanation=raw.get("confidence_explanation", ""),
-        source_url=raw.get("source_url"),
-        source_title=raw.get("source_title"),
-    )
-
-
-def _parse_badges_for_dimension(dim_name: str, evidence_dict: dict) -> list[Badge]:
-    """Parse badges from the evidence section for a specific dimension.
-
-    Carries the rubric fields (strength + signal_category) through onto the
-    persisted Badge object so the dossier UX can render them and downstream
-    analytics can group by signal_category. For Pillar 1 dimensions both
-    fields will be empty strings — that's expected and not an error.
-    """
-    key = dim_name.lower().replace(" ", "_")
-    raw_items = evidence_dict.get(key, [])
-    badges = []
-    for item in raw_items:
-        badge = Badge(
-            name=item.get("badge", ""),
-            color=item.get("color", "gray"),
-            qualifier=item.get("qualifier", ""),
-            evidence=[_parse_evidence(item)],
-            strength=(item.get("strength") or "").strip().lower(),
-            signal_category=(item.get("signal_category") or "").strip(),
-        )
-        badges.append(badge)
-    return badges
-
-
-def _parse_pillar(pillar_name: str, pillar_data: dict, evidence_dict: dict,
-                  computed_dim_scores: dict | None = None) -> PillarScore:
-    """Parse a Pillar from AI output into PillarScore.
-
-    `computed_dim_scores` is the dict from `scoring_math.compute_all`'s
-    "dimensions" key — keyed by dimension key (lowercase, underscores).
-    When provided, dimension scores AND weights come from the math layer
-    rather than from the AI output. The AI's claimed scores are discarded.
-    """
-    import scoring_config as cfg
-
-    dims_data = pillar_data.get("dimensions", {})
-
-    # Map dimension key -> weight from the config (NO HARD CODING)
-    dim_weights: dict[str, int] = {}
-    for pillar in cfg.PILLARS:
-        for dim in pillar.dimensions:
-            key = dim.name.lower().replace(" ", "_")
-            dim_weights[key] = dim.weight
-
-    # Pillar weight from config too
-    weight = pillar_data.get("weight", 0)
-    for pillar in cfg.PILLARS:
-        if pillar.name == pillar_name:
-            weight = pillar.weight
-            break
-
-    dimensions = []
-    for dim_key, dim_data in dims_data.items():
-        display_name = dim_key.replace("_", " ").title()
-        # Prefer computed score from scoring_math; fall back to AI output only
-        # if math wasn't run (defensive — should not happen in normal flow)
-        if computed_dim_scores and dim_key in computed_dim_scores:
-            score = computed_dim_scores[dim_key]["score"]
-        else:
-            score = min(dim_data.get("score", 0), dim_weights.get(dim_key, 100))
-        dimensions.append(DimensionScore(
-            name=display_name,
-            score=score,
-            weight=dim_weights.get(dim_key, 0),
-            summary=dim_data.get("summary", ""),
-            badges=_parse_badges_for_dimension(display_name, evidence_dict),
-        ))
-
-    return PillarScore(
-        name=pillar_name,
-        weight=weight,
-        dimensions=dimensions,
-    )
-
-
-def _parse_consumption(raw: dict) -> ACVPotential:
-    """Parse consumption potential from AI output."""
-    motions = [
-        ConsumptionMotion(
-            label=m.get("label", ""),
-            population_low=int(m.get("population_low", 0)),
-            population_high=int(m.get("population_high", 0)),
-            hours_low=float(m.get("hours_low", 0)),
-            hours_high=float(m.get("hours_high", 0)),
-            adoption_pct=float(m.get("adoption_pct", 0)),
-            rationale=m.get("rationale", ""),
-        )
-        for m in raw.get("motions", [])
-    ]
-    # Recompute — don't trust Claude's arithmetic
-    computed_low = round(sum(
-        m.population_low * m.hours_low * m.adoption_pct for m in motions
-    ))
-    computed_high = round(sum(
-        m.population_high * m.hours_high * m.adoption_pct for m in motions
-    ))
-    return ACVPotential(
-        motions=motions,
-        annual_hours_low=computed_low,
-        annual_hours_high=computed_high,
-        acv_low=float(raw.get("total_acv_low", 0)),
-        acv_high=float(raw.get("total_acv_high", 0)),
-        acv_tier=raw.get("acv_tier", ""),
-        methodology_note=raw.get("methodology_note", ""),
-    )
-
-
-def _parse_verdict(raw: dict) -> Verdict:
-    """Parse verdict from AI output."""
-    return Verdict(
-        label=raw.get("label", ""),
-        color=raw.get("color", ""),
-    )
-
-
-# Scoring context construction lives in scoring_config.build_scoring_context
-# (Define-Once seam). scorer.py and intelligence.py both call that helper —
-# this module no longer carries its own copy.
-
-
-def _parse_product(data: dict) -> Product:
-    """Parse a complete product from AI scoring output into the new model.
-
-    The AI is responsible for evidence synthesis (badges + bullets). All scoring
-    math is performed deterministically by `scoring_math.compute_all()` from the
-    badges the AI emitted. The AI's claimed dimension scores are IGNORED — the
-    Python math is the source of truth for every number on the page.
-    """
-    import scoring_math
-
-    pillar_scores = data.get("pillar_scores", {})
-    evidence_dict = data.get("evidence", {})
-    poor_match_flags = data.get("poor_match_flags", []) or []
-    orchestration_method = data.get("orchestration_method", "") or ""
-
-    # ─── Build scoring context for the rubric model baselines ────────────
-    # Pillar 2 (IV) dimensions look up category-aware baselines via
-    # product_category. Pillar 3 (CF) dimensions look up organization-type
-    # baselines via org_type. Missing values fall back to UNKNOWN_CLASSIFICATION
-    # which triggers the classification review flag in the dossier UX.
-    import scoring_config as _cfg_for_context
-    scoring_context = _cfg_for_context.build_scoring_context(
-        raw_org_type=data.get("organization_type"),
-        raw_product_category=data.get("product_category") or data.get("category"),
-    )
-
-    # ─── Build badges_by_dimension from the AI's evidence output ─────────
-    # Each evidence entry has a "badge" name and a "color". We pass both to
-    # the math layer so it can apply color-based fallback scoring for
-    # badge-presence dimensions (Customer Fit, parts of Instructional Value).
-    badges_by_dimension: dict[str, list] = {}
-    for dim_key, items in evidence_dict.items():
-        if not isinstance(items, list):
-            continue
-        # Carry the Pillar 2/3 rubric fields (strength + signal_category)
-        # through to the math layer. scoring_math._compute_rubric_dimension_score
-        # reads `badge.get("strength")` and `badge.get("signal_category")` from
-        # these dicts to credit points by (dimension, strength) lookup. Dropping
-        # them here was the root cause of the rubric architecture being non-
-        # functional from f46dcc9 through bf930d0.
-        badge_objs = [
-            {
-                "name": item.get("badge", ""),
-                "color": item.get("color", ""),
-                "strength": item.get("strength", ""),
-                "signal_category": item.get("signal_category", ""),
-            }
-            for item in items
-            if isinstance(item, dict) and item.get("badge")
-        ]
-        badges_by_dimension[dim_key.lower()] = badge_objs
-
-    # ─── Run the deterministic math ──────────────────────────────────────
-    math_result = scoring_math.compute_all(
-        badges_by_dimension=badges_by_dimension,
-        ceiling_flags=poor_match_flags,
-        orchestration_method=orchestration_method,
-        context=scoring_context,
-    )
-
-    if math_result.get("ceilings_applied"):
-        log.info("Ceiling flags applied for %s: %s",
-                 data.get("product_name") or data.get("name", "?"),
-                 [c["flag"] for c in math_result["ceilings_applied"]])
-
-    # ─── Parse pillars, OVERRIDING dimension scores with computed values ─
-    fit = FitScore()
-    for pillar_name, pillar_data in pillar_scores.items():
-        parsed = _parse_pillar(
-            pillar_name, pillar_data, evidence_dict,
-            computed_dim_scores=math_result["dimensions"],
-        )
-        if "Labability" in pillar_name:
-            fit.product_labability = parsed
-        elif "Instructional" in pillar_name:
-            fit.instructional_value = parsed
-        elif "Customer" in pillar_name:
-            fit.customer_fit = parsed
-
-    # ─── Apply post-ceiling pillar score override and Fit Score override ─
-    # Product Labability gets the post-ceiling score from the math layer.
-    # The dimension scores remain authentic (so the badge story holds), but
-    # the pillar header reflects the ceiling cap.
-    pl_post_ceiling = math_result["pillars"]["product_labability"]
-    fit.product_labability.score_override = pl_post_ceiling
-    fit.pl_score_pre_ceiling = math_result["pillar_labability_pre_ceiling"]
-    fit.ceilings_applied = math_result["ceilings_applied"]
-    fit.technical_fit_multiplier = math_result["technical_fit_multiplier"]
-    fit.total_override = math_result["fit_score"]
-
-    # Contacts
-    contacts_raw = data.get("contacts", {})
-    contacts = []
-    for role_type in ["decision_maker", "influencer"]:
-        c = contacts_raw.get(role_type, {})
-        if c.get("name"):
-            contacts.append(Contact(
-                name=c["name"],
-                title=c.get("title", ""),
-                role_type=role_type,
-                linkedin_url=c.get("linkedin_url"),
-                relevance=c.get("relevance", ""),
-            ))
-
-    # Owning org
-    owning_org = None
-    if data.get("owning_org"):
-        o = data["owning_org"]
-        owning_org = OrgUnit(
-            name=o.get("name", ""),
-            type=o.get("type", "department"),
-            description=o.get("description", ""),
-        )
-
-    # Consumption potential
-    cp_raw = data.get("consumption_potential", {})
-
-    # Verdict
-    verdict_raw = data.get("verdict", {})
-
-    return Product(
-        name=data.get("product_name", data.get("name", "Unknown")),
-        category=data.get("product_category", data.get("category", "")),
-        subcategory=data.get("product_subcategory", data.get("subcategory", "")),
-        description=data.get("description", ""),
-        product_url=data.get("product_url", ""),
-        deployment_model=data.get("deployment_model", ""),
-        orchestration_method=data.get("orchestration_method", ""),
-        user_personas=data.get("user_personas", []),
-        lab_highlight=data.get("lab_highlight", ""),
-        lab_concepts=[
-            lc.get("title", "") if isinstance(lc, dict) else str(lc)
-            for lc in data.get("lab_concepts", [])
-        ],
-        poor_match_flags=data.get("poor_match_flags", []),
-        recommendation=[
-            r.get("text", "") if isinstance(r, dict) else str(r)
-            for r in data.get("recommendations", [])
-        ],
-        fit_score=fit,
-        acv_potential=_parse_consumption(cp_raw) if cp_raw else ACVPotential(),
-        verdict=_parse_verdict(verdict_raw) if verdict_raw else None,
-        classification_review_needed=bool(math_result.get("classification_review_needed", False)),
-        owning_org=owning_org,
-        contacts=contacts,
     )
 
 

@@ -507,7 +507,7 @@ _scoring_badges = (
 _scoring_signals = (
     # Recalibrated 2026-04-07 per Frank's "Scoring is about OPTIONS" rule.
     # The Scoring dimension uses a SPECIAL CAP rule on top of these point
-    # values — see _SCORING_BREADTH_CAP in scoring_math.py. Numbers below
+    # values — see _SCORING_BREADTH_CAP in pillar_1_scorer.py. Numbers below
     # are the standalone values (single method only); the breadth rule
     # caps full marks at 15 only when AI Vision is paired with Script
     # Scoring (VM context) OR Scoring API (cloud context).
@@ -2002,7 +2002,7 @@ RED_RISK_CAP_REDUCTION = 8
 #   AI Vision + API           → cap at 15 (Grand Slam, cloud)
 #   MCQ Scoring               → 0 (display only, anyone can do MCQs)
 #
-# scoring_math._compute_signal_penalty_dimension() reads these to enforce
+# pillar scorers() reads these to enforce
 # the breadth rule when computing the Scoring dimension specifically.
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -2021,7 +2021,7 @@ SCORING_API_ALONE_CAP = 12
 #   Sandbox API red + Simulation viable    → Pillar 1 capped at 25
 #   Sandbox API red + nothing viable       → Pillar 1 capped at  5
 #
-# scoring_math.detect_sandbox_api_red_cap() reads these.
+# pillar_1_scorer() reads these.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 SANDBOX_API_RED_CAP_SIM_VIABLE = 25
@@ -2093,47 +2093,23 @@ M365_TENANT_POINTS = 25                # End User scenario — automated lane
 M365_ADMIN_POINTS = 18                 # Administration scenario — trial/MOC path
 
 
-CEILING_FLAGS: dict[str, dict] = {
-    # When the AI emits any of these flags, Product Labability cannot exceed
-    # the listed max_score regardless of how the dimension math came out.
-    # The math layer enforces this — the AI cannot bypass it.
-    #
-    # Architecture sharpening (in-progress refactor): `saas_only` and
-    # `multi_tenant_only` were historically scoring caps. They are now
-    # CLASSIFICATION METADATA ONLY — they describe what the product IS
-    # (deployment shape) without capping the score. The scoring cap for
-    # SaaS products comes from the new `Sandbox API` canonical badge: when
-    # research confirms there is no provisioning API, the math layer applies
-    # a cap based on whether Simulation is still viable.
-    #
-    # Both flags remain in POOR_MATCH_FLAGS so existing reporting and
-    # filtering keeps working. Their max_score is set to 100 (no effective
-    # cap) so old cached analyses don't suddenly drop in score.
-    "bare_metal_required": {
-        "max_score": 5,
-        "reason": "Physical hardware required — no virtualization path",
-    },
-    "no_api_automation": {
-        "max_score": 5,
-        "reason": "No API automation feasible — manual provisioning only",
-    },
-    "saas_only": {
-        "max_score": 100,
-        "reason": "Classification metadata only — Sandbox API badge drives the cap",
-    },
-    "multi_tenant_only": {
-        "max_score": 100,
-        "reason": "Classification metadata only — Sandbox API badge drives the cap",
-    },
-}
-
-# The historical render-time synthetic-injection machinery — empty
-# ISOLATION_BLOCKING_CEILING_FLAGS frozenset, LAB_ACCESS_DIMENSION_NAME
-# constant, and SYNTHETIC_BADGES dict — has been removed entirely. The
-# `Learner Isolation` canonical badge in Lab Access (gatekeeper, green/
-# amber/red, always emit) now carries this signal directly, sourced from
-# research evidence about per-user provisioning capability. The call sites
-# in app._normalize_badges_for_scoring have been removed.
+# CEILING_FLAGS deleted 2026-04-08 (Step 5b rebuild cleanup).
+#
+# The old AI-emitted ceiling flag mechanism (bare_metal_required, saas_only,
+# no_api_automation, multi_tenant_only) has been fully replaced by the new
+# Score layer:
+#
+#   - bare_metal_required → pillar_1_scorer raises its own score_override
+#     when facts indicate physical-hardware requirement (same effective cap)
+#   - saas_only / multi_tenant_only → the Sandbox API canonical badge drives
+#     the Pillar 1 cap when there's no per-learner provisioning API
+#   - no_api_automation → structurally replaced by risk cap reduction on the
+#     red Sandbox API finding (-8 per red knocks the pillar cap down)
+#
+# Nothing in the new Python path reads CEILING_FLAGS. The three Pillar
+# scorers produce authoritative PillarScore objects; fit_score_composer
+# handles the Technical Fit Multiplier coupling. Score reads facts, not
+# ceiling-flag strings.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2155,7 +2131,7 @@ CEILING_FLAGS: dict[str, dict] = {
 # ║                                                                       ║
 # ║    IV_CATEGORY_BASELINES → SCORING MATH BASELINES                     ║
 # ║      Per-dimension baselines (Product Complexity, Mastery Stakes,     ║
-# ║      Lab Versatility, Market Demand) applied by scoring_math.py       ║
+# ║      Lab Versatility, Market Demand) applied by the Python pillar scorers       ║
 # ║      BEFORE the AI's findings are added.  This is the default-        ║
 # ║      positive posture Frank directed on 2026-04-07.                   ║
 # ║                                                                       ║
@@ -2324,7 +2300,7 @@ ORG_TYPE_NORMALIZATION: dict[str, str] = {
 
 
 def build_scoring_context(raw_org_type: str | None, raw_product_category: str | None) -> dict:
-    """Build the scoring context dict used by `scoring_math.compute_all`.
+    """Build the scoring context dict used by `fit_score_composer.compose_fit_score`.
 
     Normalizes raw AI-emitted values into the canonical baseline lookup keys.
     Missing or unrecognized values fall back to `UNKNOWN_CLASSIFICATION`,
@@ -2545,80 +2521,6 @@ RUBRIC_PENALTY_SIGNALS: tuple[PenaltySignal, ...] = (
 )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# CROSS-PILLAR EVIDENCE COMPOUNDING
-#
-# Certain facts legitimately fire in multiple pillars.  The prompt template
-# teaches the AI to cross-reference evidence between pillars at badge-
-# emission time.  This list is the single source of truth for which signals
-# propagate across pillars.
-# ═══════════════════════════════════════════════════════════════════════════════
-
-@dataclass(frozen=True)
-class CrossPillarRule:
-    """A rule specifying that a finding in one pillar should also credit
-    another pillar's dimension.
-
-    The AI is instructed to emit a corresponding badge in the second pillar
-    when it emits a badge matching the source signal in the first pillar.
-    """
-    source_pillar: str           # e.g., "pillar_1"
-    source_dimension: str        # e.g., "provisioning"
-    source_badge: str            # e.g., "Multi-VM Lab"
-    target_pillar: str           # e.g., "pillar_2"
-    target_dimension: str        # e.g., "product_complexity"
-    target_signal_category: str  # e.g., "multi_vm_architecture"
-    rationale: str               # Why this cross-credit is legitimate
-
-
-CROSS_PILLAR_RULES: tuple[CrossPillarRule, ...] = (
-    # Pillar 1 -> Pillar 2 Product Complexity
-    CrossPillarRule(
-        "pillar_1", "provisioning", "Multi-VM Lab",
-        "pillar_2", "product_complexity", "multi_vm_architecture",
-        "A product that requires multiple VMs working together is inherently more complex to operate and teach.",
-    ),
-    CrossPillarRule(
-        "pillar_1", "provisioning", "Complex Topology",
-        "pillar_2", "product_complexity", "complex_networking",
-        "Real network complexity (routers, switches, segmentation) is learned only through manipulation.",
-    ),
-    CrossPillarRule(
-        "pillar_1", "provisioning", "Large Lab",
-        "pillar_2", "product_complexity", "state_persistence",
-        "Large stateful environments imply configuration depth and persistent-state complexity.",
-    ),
-    # Pillar 3 -> Pillar 2 Market Demand (positive compounding)
-    CrossPillarRule(
-        "pillar_3", "delivery_capacity", "atp_network",
-        "pillar_2", "market_demand", "atp_network",
-        "Nobody becomes a training partner for a product with no skill demand. ATP networks prove Market Demand exists.",
-    ),
-    CrossPillarRule(
-        "pillar_3", "delivery_capacity", "cert_delivery_infrastructure",
-        "pillar_2", "market_demand", "cert_ecosystem",
-        "Active certification delivery implies active learner appetite for the cert.",
-    ),
-    CrossPillarRule(
-        "pillar_3", "delivery_capacity", "training_events_scale",
-        "pillar_2", "market_demand", "flagship_event",
-        "Flagship training events don't scale to 30K attendees without real skill demand.",
-    ),
-    # Frank 2026-04-08: the `no_independent_training_market` cross-pillar
-    # rule was removed. Independent third-party training market is now
-    # Market Demand ONLY — it is not a Delivery Capacity signal anymore,
-    # so there is nothing to cross-pillar compound. See the
-    # _delivery_capacity_rubric.is_not_about section for the full routing
-    # rationale.
-    #
-    # NOTE: several entries in this tuple reference old badge/signal names
-    # that are now stale (e.g., `atp_network` where Delivery Capacity now
-    # uses `atp_alp_program`, `flagship_event` where Market Demand has no
-    # such category). These are pre-rebuild rot scheduled for cleanup at
-    # Step 5 cutover alongside the deletion of the monolithic scoring path
-    # that read them. Leaving them in place until Step 5 to avoid scope
-    # creep in the current routing-fix commit.
-)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3173,7 +3075,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 #
 # Bump format: "YYYY-MM-DD.short-description"
 # Bump policy: any commit that touches scoring_config.py (badges, signals,
-# rubrics, ceiling flags), scoring_math.py (math behavior), or the rubric
+# rubrics, ceiling flags), the per-pillar scorers + fit_score_composer (math behavior), or the rubric
 # tiers in the prompts/scoring_template.md should bump this. Comment-only
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════

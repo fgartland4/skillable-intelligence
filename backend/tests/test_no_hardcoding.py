@@ -227,15 +227,19 @@ def _scan_template_for_inline_style_hex(path: Path) -> list[tuple[int, str]]:
 # stub for the Designer Foundation Session, also excluded.
 
 _PYTHON_SCAN_FILES: tuple[str, ...] = (
+    "backend/acv_calculator.py",
     "backend/app.py",
-    "backend/badge_normalization.py",
+    "backend/badge_selector.py",
     "backend/core.py",
+    "backend/fit_score_composer.py",
     "backend/intelligence.py",
     "backend/models.py",
-    "backend/prompt_generator.py",
+    "backend/pillar_1_scorer.py",
+    "backend/pillar_2_scorer.py",
+    "backend/pillar_3_scorer.py",
     "backend/researcher.py",
+    "backend/rubric_grader.py",
     "backend/scorer.py",
-    "backend/scoring_math.py",
     "backend/storage.py",
 )
 
@@ -391,7 +395,7 @@ def _find_distinctive_cfg_literals(path: Path, forbidden: dict[str, str]) -> lis
 def test_no_hardcoded_distinctive_scoring_config_constants():
     """Phase 2B — Distinctive string constants exported from scoring_config
     should not appear as literals anywhere else in production code. If you
-    see "Standard VM (1-3 VMs)" in scoring_math.py, you should be using
+    see "Standard VM (1-3 VMs)" in the Score layer files, you should be using
     cfg.DEFAULT_RATE_TIER_NAME instead.
 
     Curated list — only constants distinctive enough that a literal match
@@ -438,23 +442,26 @@ def test_no_hardcoded_distinctive_scoring_config_constants():
 # Phase 3 — Magic-number scan with annotation system
 # ─────────────────────────────────────────────────────────────────────────────
 #
-# Pre-Release Strict Mode: any int or float literal in scoring_math.py that
-# isn't a "well-known bareword constant" (0, 1, -1, 100) must either:
+# Pre-Release Strict Mode: any int or float literal in the Score layer
+# files that isn't a "well-known bareword constant" (0, 1, -1, 100) must
+# either:
 #   1. Reference a named constant from scoring_config, OR
 #   2. Carry a `# magic-allowed: <reason>` annotation on the same line
 #
-# Why scoring_math.py specifically: it's the math layer for the whole
+# Score layer files specifically: they're the math layer for the whole
 # scoring system. Any numeric literal here that isn't from config is a
 # definition that lives in two places and will silently rot. The whole
-# point of scoring_config.py is that scoring_math.py reads from it.
+# point of scoring_config.py is that the scorers read from it.
 #
-# Phase 3 deliberately starts narrow (one file) so we don't drown in
-# false positives from route handlers, HTTP status codes, polling
-# intervals, etc. Expand the scope in subsequent phases if/when we
-# decide the annotation pattern works at scale.
+# Phase 3 deliberately starts narrow so we don't drown in false positives
+# from route handlers, HTTP status codes, polling intervals, etc.
 
 _PHASE_3_SCAN_FILES: tuple[str, ...] = (
-    "backend/scoring_math.py",
+    "backend/acv_calculator.py",
+    "backend/fit_score_composer.py",
+    "backend/pillar_1_scorer.py",
+    "backend/pillar_2_scorer.py",
+    "backend/pillar_3_scorer.py",
     "backend/app.py",
 )
 
@@ -553,8 +560,8 @@ def _find_unannotated_magic_numbers(path: Path) -> list[tuple[int, str, str]]:
     return findings
 
 
-def test_no_unannotated_magic_numbers_in_scoring_math():
-    """Phase 3 — Magic-number scan over scoring_math.py.
+def test_no_unannotated_magic_numbers_in_score_layer():
+    """Phase 3 — Magic-number scan over the Score layer files.
 
     Any int/float literal that isn't a well-known bareword (0, 1, -1, 100)
     must either reference a config constant via cfg.* or carry a

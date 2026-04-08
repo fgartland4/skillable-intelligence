@@ -149,7 +149,7 @@ _TL_LOW = "low_friction"
 _TL_MEDIUM = "medium_friction"
 _TL_BLOCKED = "blocked"
 
-# Ceiling flag names (match scoring_math / scoring_config where applicable)
+# Ceiling flag names (match scoring_config where applicable)
 _CEIL_SANDBOX_RED_SIM_VIABLE = "sandbox_api_red_sim_viable"
 _CEIL_SANDBOX_RED_NOTHING_VIABLE = "sandbox_api_red_nothing_viable"
 _CEIL_BARE_METAL = "bare_metal_required"
@@ -490,7 +490,7 @@ def score_provisioning(facts: ProductLababilityFacts) -> _DimensionResult:
         base_points = _signal_points(dim, primary_fabric)
         # Color-aware half-credit for partial Sandbox API
         if primary_fabric == _SIG_SANDBOX_API and p.sandbox_api_granularity == _GRAN_PARTIAL:
-            signals.append((primary_fabric, base_points // 2))
+            signals.append((primary_fabric, base_points // 2))  # magic-allowed: amber fires at half the green signal credit
             amber_risks += 1
         else:
             signals.append((primary_fabric, base_points))
@@ -618,7 +618,7 @@ def score_lab_access(facts: ProductLababilityFacts) -> _DimensionResult:
         identity_path_set = True
     elif la.user_provisioning_api_granularity == _GRAN_PARTIAL:
         base = _signal_points(dim, _SIG_IDENTITY_API)
-        signals.append((_SIG_IDENTITY_API, base // 2))
+        signals.append((_SIG_IDENTITY_API, base // 2))  # magic-allowed: amber fires at half the green signal credit
         amber_risks += 1
         identity_path_set = True
     elif la.auth_model in (_AUTH_SSO_SAML, _AUTH_SSO_OIDC):
@@ -638,7 +638,7 @@ def score_lab_access(facts: ProductLababilityFacts) -> _DimensionResult:
         signals.append((_SIG_TRAINING_LICENSE, _signal_points(dim, _SIG_TRAINING_LICENSE)))
     elif la.training_license == _TL_MEDIUM:
         base = _signal_points(dim, _SIG_TRAINING_LICENSE)
-        signals.append((_SIG_TRAINING_LICENSE, base // 2))
+        signals.append((_SIG_TRAINING_LICENSE, base // 2))  # magic-allowed: amber fires at half the green signal credit
         amber_risks += 1
     elif la.training_license == _TL_BLOCKED:
         red_risks += 1  # Red — no credit, just a risk counted for cap reduction
@@ -713,7 +713,7 @@ def score_scoring(facts: ProductLababilityFacts) -> _DimensionResult:
         if sc.state_validation_api_granularity == _GRAN_RICH:
             signals.append((_SIG_SCORING_API, base))
         else:
-            signals.append((_SIG_SCORING_API, base // 2))
+            signals.append((_SIG_SCORING_API, base // 2))  # magic-allowed: amber fires at half the green signal credit
             amber_risks += 1
 
     if has_script:
@@ -721,7 +721,7 @@ def score_scoring(facts: ProductLababilityFacts) -> _DimensionResult:
         if sc.scriptable_via_shell_granularity == _GRAN_FULL:
             signals.append((_SIG_SCRIPT_SCORING, base))
         else:
-            signals.append((_SIG_SCRIPT_SCORING, base // 2))
+            signals.append((_SIG_SCRIPT_SCORING, base // 2))  # magic-allowed: amber fires at half the green signal credit
             amber_risks += 1
 
     if has_ai_vision:
@@ -729,7 +729,7 @@ def score_scoring(facts: ProductLababilityFacts) -> _DimensionResult:
         if sc.gui_state_visually_evident_granularity == _GRAN_FULL:
             signals.append((_SIG_AI_VISION, base))
         else:
-            signals.append((_SIG_AI_VISION, base // 2))
+            signals.append((_SIG_AI_VISION, base // 2))  # magic-allowed: amber fires at half the green signal credit
             amber_risks += 1
 
     if sc.simulation_scoring_viable and not (has_api or has_script or has_ai_vision):
@@ -817,7 +817,7 @@ def score_teardown(facts: ProductLababilityFacts) -> _DimensionResult:
             signals.append((_SIG_TEARDOWN_API, _signal_points(dim, _SIG_TEARDOWN_API)))
         elif td.vendor_teardown_api_granularity == _GRAN_PARTIAL:
             base = _signal_points(dim, _SIG_TEARDOWN_API)
-            signals.append((_SIG_TEARDOWN_API, base // 2))
+            signals.append((_SIG_TEARDOWN_API, base // 2))  # magic-allowed: amber fires at half the green signal credit
             amber_risks += 1
         else:
             # Check for Simulation fallback before penalizing

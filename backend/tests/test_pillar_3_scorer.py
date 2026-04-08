@@ -216,3 +216,111 @@ def test_empty_grades_returns_baseline_pillar_score():
         + _baseline("organizational_dna", "ENTERPRISE SOFTWARE")
     )
     assert pillar.score == min(expected, 100)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Penalty-visibility rule — Trellix Organizational DNA 25/25 regression
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_cap_never_eats_penalty_trellix_org_dna_regression():
+    """The Trellix Organizational DNA 25/25 bug (Frank 2026-04-07):
+    named penalties must ALWAYS be visible in the final score, even
+    when positive contributions overflow the dimension cap.
+
+    Under the OLD buggy math:
+        raw_total = baseline + positives + penalties
+        score     = min(raw_total, effective_cap)
+        → A -4 penalty on a dimension where positives overflow by
+          5+ silently became `effective_cap` — the penalty absorbed
+          into the overflow. Trellix Org DNA rendered 25/25 instead
+          of the correct 21/25.
+
+    Under the NEW correct math:
+        capped_positive = min(baseline + positives, effective_cap)
+        score           = capped_positive + penalty_total
+        → Penalty is visible regardless of how high positives went.
+
+    The fix lives in pillar_3_scorer._apply_risk_cap_reduction. This
+    test is the regression gate against ever silently reintroducing
+    the bug.
+    """
+    # Pick enough strong positive grades to overflow the Org DNA cap
+    # even after the amber risk cap reduction from the penalty grade.
+    strong_positives = [
+        GradedSignal(
+            signal_category="many_partnership_types",
+            strength="strong", color="green",
+            evidence_text="Multi-type partnership ecosystem",
+            confidence="confirmed",
+        ),
+        GradedSignal(
+            signal_category="strategic_asset_partnerships",
+            strength="strong", color="green",
+            evidence_text="Strategic alliance program documented",
+            confidence="confirmed",
+        ),
+        GradedSignal(
+            signal_category="platform_buyer_behavior",
+            strength="strong", color="green",
+            evidence_text="Platform buyer behavior pattern",
+            confidence="confirmed",
+        ),
+        GradedSignal(
+            signal_category="formal_channel_program",
+            strength="strong", color="green",
+            evidence_text="Formal channel program with tiers",
+            confidence="confirmed",
+        ),
+        GradedSignal(
+            signal_category="named_alliance_leadership",
+            strength="strong", color="green",
+            evidence_text="Named VP of Alliances",
+            confidence="confirmed",
+        ),
+    ]
+    # The penalty grade — exact category Trellix hit
+    penalty_grade = GradedSignal(
+        signal_category="long_rfp_process",
+        strength="moderate", color="amber",
+        evidence_text="9+ month RFP cycles documented",
+        confidence="indicated",
+    )
+    grades = strong_positives + [penalty_grade]
+
+    result = p3.score_organizational_dna("ENTERPRISE SOFTWARE", grades)
+
+    # Derive all expected values from config — zero hardcoded numbers.
+    baseline = _baseline("organizational_dna", "ENTERPRISE SOFTWARE")
+    strong_pts = _tier_points("Organizational DNA", "strong")
+    positive_total = baseline + (len(strong_positives) * strong_pts)
+    penalty_hit = _penalty("organizational_dna", "long_rfp_process")
+
+    # The penalty is amber, so amber_risks = 1 → effective_cap drops
+    # by cfg.AMBER_RISK_CAP_REDUCTION from the base dimension cap.
+    base_cap = _dim_weight("Organizational DNA")
+    effective_cap = base_cap - cfg.AMBER_RISK_CAP_REDUCTION
+
+    # Test setup guard: positives MUST overflow the effective cap,
+    # otherwise the cap-eats-penalty path isn't exercised.
+    assert positive_total > effective_cap, (
+        f"Test setup: positive_total {positive_total} must exceed "
+        f"effective_cap {effective_cap} to exercise the bug path."
+    )
+
+    # Correct math: positives clamp to effective_cap, THEN subtract
+    # the penalty on top. Penalty is fully visible in the final score.
+    expected_score = effective_cap - penalty_hit
+
+    assert result.positives_capped is True
+    assert result.dimension_score.score == expected_score, (
+        f"Penalty must be visible. Expected {expected_score}, "
+        f"got {result.dimension_score.score}. "
+        f"positive_total={result.positive_total}, "
+        f"penalty_total={result.penalty_total}, "
+        f"effective_cap={result.effective_cap}."
+    )
+
+    # Penalty must be recorded in penalties_applied (not silently dropped)
+    assert any(
+        cat == "long_rfp_process" for cat, _ in result.penalties_applied
+    ), f"Penalty must appear in penalties_applied. Got: {result.penalties_applied}"

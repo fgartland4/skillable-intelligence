@@ -115,8 +115,12 @@ class _DimensionResult:
     penalties_applied: list[tuple[str, int]] = field(default_factory=list)
     amber_risks: int = 0
     red_risks: int = 0
+    positive_total: int = 0
+    penalty_total: int = 0
     raw_total: int = 0
     effective_cap: int = 0
+    positives_capped: bool = False
+    floored: bool = False
 
 
 def _dim_cap(dim: cfg.Dimension) -> int:
@@ -128,16 +132,38 @@ def _dim_floor(dim: cfg.Dimension) -> int:
 
 
 def _apply_risk_cap_reduction(
-    raw_total: int,
+    positive_total: int,
+    penalty_total: int,
     dim: cfg.Dimension,
     amber_risks: int,
     red_risks: int,
-) -> tuple[int, int]:
-    """Risk cap reduction extended to Pillar 2/3 (Frank 2026-04-08).
+) -> tuple[int, int, bool, bool]:
+    """Compose the final dimension score under the penalty-visibility rule.
 
-    Same mechanic as Pillar 1: each amber knocks cfg.AMBER_RISK_CAP_REDUCTION
-    off the cap, each red knocks cfg.RED_RISK_CAP_REDUCTION off. Hard
-    floored at the dimension's floor.
+    Penalty-visibility rule (Frank 2026-04-07, Trellix Org DNA 25/25
+    regression): named penalties must ALWAYS be reflected in the final
+    score, even when positive contributions would otherwise overflow
+    the dimension cap.
+
+    Old buggy math:
+        raw_total = baseline + positives + penalties   (penalty already in)
+        score     = min(raw_total, cap)                (penalty absorbed)
+        30 positives + -4 penalty = 26 → min(26, 25) = 25 → penalty invisible
+
+    Correct math:
+        capped_positive = min(baseline + positives, effective_cap)
+        score           = max(capped_positive + penalty_total, floor)
+        30 positives + -4 penalty → min(30, 25) = 25 → 25 + -4 = 21 visible
+
+    Risk cap reduction from amber/red color counts is applied to the
+    effective_cap BEFORE positives clamp against it. Each amber knocks
+    cfg.AMBER_RISK_CAP_REDUCTION off the cap, each red knocks
+    cfg.RED_RISK_CAP_REDUCTION off. Effective cap is hard-floored at
+    the dimension's floor.
+
+    penalty_total is passed in as a negative number (already signed).
+
+    Returns (score, effective_cap, positives_capped, floored).
     """
     base_cap = _dim_cap(dim)
     floor = _dim_floor(dim)
@@ -146,8 +172,15 @@ def _apply_risk_cap_reduction(
         + red_risks * cfg.RED_RISK_CAP_REDUCTION
     )
     effective_cap = max(base_cap - knockdown, floor)
-    score = max(min(raw_total, effective_cap), floor)
-    return int(score), int(effective_cap)
+
+    capped_positive = min(positive_total, effective_cap)
+    positives_capped = positive_total > effective_cap
+
+    raw_with_penalties = capped_positive + penalty_total
+    floored = raw_with_penalties < floor
+    score = max(raw_with_penalties, floor)
+
+    return int(score), int(effective_cap), positives_capped, floored
 
 
 def _iv_category_baseline(dim_key: str, product_category: str | None) -> int:
@@ -177,11 +210,14 @@ def _score_rubric_dimension(
 ) -> _DimensionResult:
     """Score one rubric dimension from its GradedSignal list + a baseline.
 
-    Walks the grades, splits them into positive credits vs named
-    penalties, counts color risks, applies risk cap reduction, clamps
-    to [floor, effective_cap].
+    Walks the grades, tracks positive credits and named penalties
+    SEPARATELY, counts color risks, then delegates to
+    `_apply_risk_cap_reduction` which applies the penalty-visibility
+    rule: cap clamps positives only, penalties are subtracted AFTER
+    the clamp so they are always visible in the final score.
     """
-    raw = baseline
+    positive_total = baseline  # baseline counts as positive contribution
+    penalty_total = 0          # accumulated as negative number
     signals_credited: list[tuple[str, int]] = []
     penalties_applied: list[tuple[str, int]] = []
     amber_risks = 0
@@ -191,7 +227,7 @@ def _score_rubric_dimension(
     # category. Graders are instructed to emit one signal per category,
     # but defensive dedupe keeps the math stable if they slip.
     best_by_category: dict[str, GradedSignal] = {}
-    _tier_rank = {"strong": 3, "moderate": 2, "weak": 1, "informational": 0, "": 0}
+    _tier_rank = {"strong": 3, "moderate": 2, "weak": 1, "informational": 0, "": 0}  # magic-allowed: rubric strength ordering
     for grade in grades:
         cat = grade.signal_category
         existing = best_by_category.get(cat)
@@ -203,8 +239,7 @@ def _score_rubric_dimension(
 
     for cat, grade in best_by_category.items():
         # Skip unknown signal categories — a grader that emits something
-        # outside the rubric's signal_categories list is malformed. Log
-        # via raw_total (no credit, no penalty).
+        # outside the rubric's signal_categories list is malformed.
         if cat not in valid_categories:
             continue
 
@@ -215,20 +250,23 @@ def _score_rubric_dimension(
         elif color == "red":
             red_risks += 1
 
-        # Named penalty?
+        # Named penalty — accumulate separately from positives so the
+        # penalty-visibility rule can keep it visible past the cap.
         penalty = _PENALTY_LOOKUP.get((dim_key, cat))
         if penalty is not None:
-            raw -= penalty.hit
+            penalty_total -= penalty.hit
             penalties_applied.append((cat, -penalty.hit))
             continue
 
         # Positive rubric credit from tier points
         pts = int(tier_points.get(grade.strength, 0))
         if pts:
-            raw += pts
+            positive_total += pts
             signals_credited.append((cat, pts))
 
-    score, effective_cap = _apply_risk_cap_reduction(raw, dim, amber_risks, red_risks)
+    score, effective_cap, positives_capped, floored = _apply_risk_cap_reduction(
+        positive_total, penalty_total, dim, amber_risks, red_risks,
+    )
 
     return _DimensionResult(
         dimension_score=DimensionScore(
@@ -241,8 +279,12 @@ def _score_rubric_dimension(
         penalties_applied=penalties_applied,
         amber_risks=amber_risks,
         red_risks=red_risks,
-        raw_total=raw,
+        positive_total=positive_total,
+        penalty_total=penalty_total,
+        raw_total=positive_total + penalty_total,
         effective_cap=effective_cap,
+        positives_capped=positives_capped,
+        floored=floored,
     )
 
 

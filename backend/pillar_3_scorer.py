@@ -117,8 +117,12 @@ class _DimensionResult:
     penalties_applied: list[tuple[str, int]] = field(default_factory=list)
     amber_risks: int = 0
     red_risks: int = 0
+    positive_total: int = 0
+    penalty_total: int = 0
     raw_total: int = 0
     effective_cap: int = 0
+    positives_capped: bool = False
+    floored: bool = False
 
 
 def _dim_cap(dim: cfg.Dimension) -> int:
@@ -130,11 +134,26 @@ def _dim_floor(dim: cfg.Dimension) -> int:
 
 
 def _apply_risk_cap_reduction(
-    raw_total: int,
+    positive_total: int,
+    penalty_total: int,
     dim: cfg.Dimension,
     amber_risks: int,
     red_risks: int,
-) -> tuple[int, int]:
+) -> tuple[int, int, bool, bool]:
+    """Compose the final dimension score under the penalty-visibility rule.
+
+    Penalty-visibility rule (Frank 2026-04-07, Trellix Org DNA 25/25
+    regression): named penalties must ALWAYS be reflected in the final
+    score, even when positive contributions would otherwise overflow
+    the dimension cap.
+
+    Math:
+        capped_positive = min(positive_total, effective_cap)
+        score           = max(capped_positive + penalty_total, floor)
+
+    penalty_total is passed in as a negative number (already signed).
+    Returns (score, effective_cap, positives_capped, floored).
+    """
     base_cap = _dim_cap(dim)
     floor = _dim_floor(dim)
     knockdown = (
@@ -142,8 +161,15 @@ def _apply_risk_cap_reduction(
         + red_risks * cfg.RED_RISK_CAP_REDUCTION
     )
     effective_cap = max(base_cap - knockdown, floor)
-    score = max(min(raw_total, effective_cap), floor)
-    return int(score), int(effective_cap)
+
+    capped_positive = min(positive_total, effective_cap)
+    positives_capped = positive_total > effective_cap
+
+    raw_with_penalties = capped_positive + penalty_total
+    floored = raw_with_penalties < floor
+    score = max(raw_with_penalties, floor)
+
+    return int(score), int(effective_cap), positives_capped, floored
 
 
 def _cf_org_baseline(dim_key: str, org_type: str | None) -> int:
@@ -171,14 +197,15 @@ def _score_rubric_dimension(
     grades: list[GradedSignal],
     baseline: int,
 ) -> _DimensionResult:
-    raw = baseline
+    positive_total = baseline
+    penalty_total = 0
     signals_credited: list[tuple[str, int]] = []
     penalties_applied: list[tuple[str, int]] = []
     amber_risks = 0
     red_risks = 0
 
     best_by_category: dict[str, GradedSignal] = {}
-    _tier_rank = {"strong": 3, "moderate": 2, "weak": 1, "informational": 0, "": 0}
+    _tier_rank = {"strong": 3, "moderate": 2, "weak": 1, "informational": 0, "": 0}  # magic-allowed: rubric strength ordering
     for grade in grades:
         cat = grade.signal_category
         existing = best_by_category.get(cat)
@@ -198,18 +225,22 @@ def _score_rubric_dimension(
         elif color == "red":
             red_risks += 1
 
+        # Named penalty — tracked separately from positives so the
+        # penalty-visibility rule preserves it past the cap.
         penalty = _PENALTY_LOOKUP.get((dim_key, cat))
         if penalty is not None:
-            raw -= penalty.hit
+            penalty_total -= penalty.hit
             penalties_applied.append((cat, -penalty.hit))
             continue
 
         pts = int(tier_points.get(grade.strength, 0))
         if pts:
-            raw += pts
+            positive_total += pts
             signals_credited.append((cat, pts))
 
-    score, effective_cap = _apply_risk_cap_reduction(raw, dim, amber_risks, red_risks)
+    score, effective_cap, positives_capped, floored = _apply_risk_cap_reduction(
+        positive_total, penalty_total, dim, amber_risks, red_risks,
+    )
 
     return _DimensionResult(
         dimension_score=DimensionScore(
@@ -222,8 +253,12 @@ def _score_rubric_dimension(
         penalties_applied=penalties_applied,
         amber_risks=amber_risks,
         red_risks=red_risks,
-        raw_total=raw,
+        positive_total=positive_total,
+        penalty_total=penalty_total,
+        raw_total=positive_total + penalty_total,
         effective_cap=effective_cap,
+        positives_capped=positives_capped,
+        floored=floored,
     )
 
 

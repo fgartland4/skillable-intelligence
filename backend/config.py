@@ -100,16 +100,6 @@ def validate_startup() -> None:
     except Exception as e:
         errors.append(f"scoring_config.py failed to load: {e}")
 
-    # Validate prompt generation works
-    try:
-        from prompt_generator import generate_scoring_prompt, validate_generated_prompt
-        prompt = generate_scoring_prompt()
-        unresolved = validate_generated_prompt(prompt)
-        if unresolved:
-            errors.append(f"Prompt generation has unresolved placeholders: {unresolved}")
-    except Exception as e:
-        errors.append(f"Prompt generation failed: {e}")
-
     if not SERPER_API_KEY:
         log.info("SERPER_API_KEY not set — web searches will use DuckDuckGo fallback")
 
@@ -121,4 +111,4 @@ def validate_startup() -> None:
             print(f"  - {err}", file=sys.stderr)
         sys.exit(1)
 
-    log.info("Startup validation passed — API key set, scoring config valid, prompt generates cleanly")
+    log.info("Startup validation passed — API key set, scoring config valid")

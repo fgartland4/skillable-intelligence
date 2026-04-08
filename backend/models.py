@@ -96,7 +96,7 @@ class PillarScore:
     name: str
     weight: int                    # Percentage of Fit Score (40, 30, or 30)
     dimensions: list[DimensionScore] = field(default_factory=list)
-    score_override: Optional[int] = None  # Set by scoring_math when ceiling enforced
+    score_override: Optional[int] = None  # Set by pillar_1_scorer when bare-metal / sandbox ceiling enforced
 
     @property
     def score(self) -> int:
@@ -160,7 +160,7 @@ class FitScore:
     Customer Fit (30%) = 30% organization
 
     Math layer audit trail:
-      - `total_override` — set by scoring_math when ceiling flags or the
+      - `total_override` — set by fit_score_composer when the Technical Fit Multiplier or
         Technical Fit Multiplier change the result from a naive weighted sum.
       - `pl_score_pre_ceiling` — what Product Labability would have scored
         without ceiling enforcement.
@@ -777,31 +777,18 @@ class Product:
     acv_potential: ACVPotential = field(default_factory=ACVPotential)
     verdict: Optional[Verdict] = None
 
-    # ── Step 3 (2026-04-08) — Pillar 1 Python scoring comparison field ────
-    # Populated by `backend/pillar_1_scorer.py` alongside the legacy
-    # monolithic scoring call for side-by-side comparison while the rebuild
-    # is in progress.  Pure Python — reads ProductLababilityFacts directly,
-    # never touches Claude, never reads badge names.  Removed at Step 5
-    # cutover when `fit_score` itself flips to being populated by the new
-    # fact-keyed pillar scorers.  See docs/next-session-todo.md §0c Step 3.
-    pillar_1_python_score: Optional[PillarScore] = None
-
-    # ── Step 4 (2026-04-08) — Pillar 2 rubric grading + Python scoring ────
+    # ── Pillar 2 rubric grades ────────────────────────────────────────────
     # `rubric_grades` is the output of backend/rubric_grader.py — one
     # GradedSignal list per Pillar 2 dimension (product_complexity,
     # mastery_stakes, lab_versatility, market_demand).  Keyed by the
     # dimension's lowercase_underscore key.  Produced by a focused Claude
     # call per dimension that reads the truth-only fact drawer and emits
     # graded signals with strength + evidence text.  The pure-Python
-    # pillar_2_scorer.py reads these records plus facts and produces the
-    # PillarScore deterministically.  Both grades and Python score travel
-    # with the Product so re-scoring from cached grades is instant.
+    # pillar_2_scorer.py reads these records + facts and produces the
+    # PillarScore deterministically.  Grades travel with the Product so
+    # re-scoring from cached grades is instant and the UI can surface the
+    # evidence text per badge.
     rubric_grades: dict[str, list[GradedSignal]] = field(default_factory=dict)
-
-    # Pillar 2 Python scoring comparison field.  Populated alongside the
-    # legacy monolithic scoring call during the rebuild; flipped to
-    # authoritative at Step 5 cutover.
-    pillar_2_python_score: Optional[PillarScore] = None
 
     # Classification review flag — raised when the product category or
     # organization type landed in "Unknown" during scoring.  The math layer
@@ -870,21 +857,15 @@ class CompanyAnalysis:
     # Platform-Foundation.md → "Three Layers of Intelligence."
     customer_fit_facts: CustomerFitFacts = field(default_factory=CustomerFitFacts)
 
-    # ── Step 4 (2026-04-08) — Pillar 3 rubric grading + Python scoring ────
+    # ── Pillar 3 rubric grades ────────────────────────────────────────────
     # Produced by backend/rubric_grader.py — one GradedSignal list per
     # Pillar 3 dimension (training_commitment, build_capacity,
     # delivery_capacity, organizational_dna).  Keyed by the dimension's
     # lowercase_underscore key.  Customer Fit is per-company, so these
     # grades live on the CompanyAnalysis, not on individual Products.
-    # Pure-Python pillar_3_scorer.py reads these records plus
-    # customer_fit_facts and produces the Pillar 3 PillarScore
-    # deterministically.
+    # pillar_3_scorer.py reads these records + customer_fit_facts and
+    # produces the Pillar 3 PillarScore deterministically.
     customer_fit_rubric_grades: dict[str, list[GradedSignal]] = field(default_factory=dict)
-
-    # Pillar 3 Python scoring comparison field.  Populated alongside the
-    # legacy monolithic scoring call during the rebuild; flipped to
-    # authoritative at Step 5 cutover.
-    pillar_3_python_score: Optional[PillarScore] = None
 
     briefcase: Optional[SellerBriefcase] = None
     # CRIT-6 in code-review-2026-04-07: analyzed_at MUST NOT be set at

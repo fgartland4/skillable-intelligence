@@ -421,68 +421,52 @@ def enrich_discovery(discovery: dict) -> None:
 
 
 def recompute_analysis(analysis: dict) -> None:
-    """Re-run the deterministic scoring math against a saved analysis dict.
+    """Cache-reload revalidation against a saved analysis dict.
 
     This is the cache-revalidation contract. Inspector calls it on every
     page load. Prospector batch scoring should call it before rendering
     cached results. Designer (when product context is needed) should call
     it before reading any product's scores.
 
-    Mutates the analysis dict in place:
-      1. Phase 1 normalization (badge_normalization.normalize_for_scoring)
-         strips evidence-claim bold prefixes from every badge so the popover
-         text doesn't compete with the canonical badge.name
-      2. For each product, collects badges by dimension via
-         badge_normalization.collect_badges_for_math (the ONLY safe place
-         that constructs badge dicts for the math layer)
-      3. Runs scoring_math.compute_all to get fresh dimension + pillar
-         scores, ceiling caps, and the technical fit multiplier
-      4. Writes the computed scores back into the saved dict
-      5. Recomputes ACV via scoring_math.compute_acv_potential
-      6. Reassigns verdict via core.assign_verdict from the new
-         Fit Score + ACV tier
-      7. Phase 2 normalization (badge_normalization.normalize_for_display)
-         merges any same-named badges and promotes color to worst-of-group
-      8. Sorts products by Fit Score descending
+    POST-REBUILD CONTRACT (Step 5b, 2026-04-08):
 
-    Layer Discipline note (2026-04-07): this function used to live as
-    _prepare_analysis_for_render in app.py — the Inspector Flask app.
-    Per CRIT-2 in code-review-2026-04-07.md, it was moved here so all
-    three tools can share one cache-revalidation path. The "render" name
-    was misleading — almost nothing in this function is rendering, it's
-    deterministic recompute against saved badges. Inspector's route
-    handler now calls this and then handles only true rendering concerns
-    (template selection, default product index, etc).
+    Pillar scores live in the saved analysis — they were computed at
+    score-time by the per-pillar Python scorers reading typed fact
+    drawers, and they are trusted here. If the saved analysis has a
+    stale SCORING_LOGIC_VERSION, the cache-versioning layer at
+    intelligence.score() will trigger a fresh per-product re-run
+    through the full Score layer (with fresh facts + fresh grades);
+    this function never re-runs the pillar scorers against the dict
+    representation of a saved analysis.
 
-    Zero hardcoded values — pillar keys, dimension keys, and weights all
-    come from scoring_config.PILLARS at runtime.
+    What this function DOES do on every page load:
+      1. Unify Customer Fit across products (Phase F) — make sure every
+         product of the same company shows identical Pillar 3 data
+      2. Recompute ACV Potential from the AI's motion estimates using
+         acv_calculator (the rate table + motions may have been retuned
+         after the analysis was saved)
+      3. Reassign verdict from the saved Fit Score + fresh ACV tier
+      4. Sort products by Fit Score descending
+
+    What this function DOES NOT do:
+      - Re-run Pillar 1/2/3 scorers (trust saved scores)
+      - Apply Technical Fit Multiplier (already baked into saved total_override)
+      - Normalize badges for display (badge_selector produces canonical
+        badges at score time — no runtime normalization needed)
+      - Walk badges_by_dimension to feed badge-keyed math (that math is
+        deleted in the rebuild — Score reads facts, not badges)
+
+    Layer Discipline: lives in the intelligence layer so all three
+    tools share one cache-revalidation path. Route handlers only
+    handle true rendering concerns after this function returns.
     """
-    import scoring_math
-    import scoring_config as cfg
-    import badge_normalization
+    import acv_calculator
     from core import assign_verdict
 
-    # ── Unify Customer Fit across products FIRST ───────────────────────────
-    # Customer Fit is a property of the organization, not the product. Every
-    # product from the same company must show the same Pillar 3 reading.
-    # This must run BEFORE the per-product math loop so each product's
-    # math runs against the unified Customer Fit data and produces
-    # identical Pillar 3 scores. Per Frank's 2026-04-07 directive.
-    #
-    # Phase F (2026-04-07): Customer Fit is owned by the discovery
-    # (discovery["_customer_fit"]) — the shared Intelligence layer's single
-    # source of truth, so Inspector / Prospector / Designer all read from
-    # one place. Lookup order:
-    #
-    #   1. discovery["_customer_fit"] — the canonical Phase F home, written
-    #      by intelligence.score() at every save boundary via
-    #      aggregate_customer_fit_to_discovery()
-    #   2. _build_unified_customer_fit(products) — fallback for any analysis
-    #      whose parent discovery hasn't been stamped yet (legacy data, or
-    #      during the score() pre-save window)
-    #
-    # If either source produces a unified CF, broadcast it onto every
-    # product so the per-product math loop sees identical Pillar 3 input.
+    # ── Unify Customer Fit across products (Phase F) ──────────────────────
+    # Customer Fit is a property of the organization, not the product.
+    # Every product from the same company must show the same Pillar 3
+    # reading. Phase F rule: the canonical home is discovery["_customer_fit"].
     _phase_f_unified_cf: dict | None = None
     discovery_id = analysis.get("discovery_id")
     if discovery_id:
@@ -492,17 +476,9 @@ def recompute_analysis(analysis: dict) -> None:
     if _phase_f_unified_cf is None:
         _phase_f_unified_cf = _build_unified_customer_fit(analysis.get("products") or [])
     if _phase_f_unified_cf is not None:
-        _apply_customer_fit_to_products(analysis.get("products") or [], _phase_f_unified_cf)
-
-    # Map each pillar's dict-key to its Pillar object — once, not per product
-    pillar_key_to_obj: dict[str, cfg.Pillar] = {}
-    dim_key_to_pillar_key: dict[str, str] = {}
-    for pillar in cfg.PILLARS:
-        pkey = pillar.name.lower().replace(" ", "_")
-        pillar_key_to_obj[pkey] = pillar
-        for dim in pillar.dimensions:
-            dkey = dim.name.lower().replace(" ", "_")
-            dim_key_to_pillar_key[dkey] = pkey
+        _apply_customer_fit_to_products(
+            analysis.get("products") or [], _phase_f_unified_cf,
+        )
 
     products = analysis.get("products", [])
     for p in products:
@@ -511,86 +487,37 @@ def recompute_analysis(analysis: dict) -> None:
             p["fit_score"] = {"total": 0, "_total": 0}
             continue
 
-        # ── Phase 1: Strip evidence-claim bold prefixes (changes only the
-        # claim text, never badge.name/color/strength/signal_category) ──
-        badge_normalization.normalize_for_scoring(p)
-
-        # ── Collect badges per dimension via the shared utility ──
-        # This is the ONLY safe place to construct badge dicts for the
-        # math layer. Any other code path that walks badges by hand and
-        # forgets a field is a bug class. See badge_normalization module
-        # docstring for the history of why this matters.
-        badges_by_dim = badge_normalization.collect_badges_for_math(p, dim_key_to_pillar_key)
-
-        # ── Build the rubric model scoring context ──
-        # IV dimensions use product_category for baseline lookup; CF
-        # dimensions use org_type.  Missing values fall back to
-        # UNKNOWN_CLASSIFICATION which triggers the classification review
-        # flag in the UX.  Define-Once — both scorer.py and intelligence.py
-        # call cfg.build_scoring_context so the two scoring paths produce
-        # identical context dicts.
-        scoring_context = cfg.build_scoring_context(
-            raw_org_type=analysis.get("organization_type"),
-            raw_product_category=p.get("product_category") or p.get("category"),
-        )
-
-        # ── Run the math — single source of truth ──
-        result = scoring_math.compute_all(
-            badges_by_dimension=badges_by_dim,
-            ceiling_flags=p.get("poor_match_flags") or [],
-            orchestration_method=p.get("orchestration_method") or "",
-            context=scoring_context,
-        )
-
-        # ── Write computed scores back into the saved dict in place ──
-        # Dimension scores remain authentic (the badges that matched).
-        # Pillar scores reflect post-ceiling values for Product Labability.
-        for pillar_key, pillar_obj in pillar_key_to_obj.items():
-            pillar_dict = fs.get(pillar_key, {})
+        # Trust saved pillar scores — they were produced by the Python
+        # scorers at score-time. Precompute per-dimension display fields
+        # (score_percentage, dominant_color) so the template reads them
+        # without re-implementing the rules in Jinja (HIGH-3).
+        for pillar_key in ("product_labability", "instructional_value", "customer_fit"):
+            pillar_dict = fs.get(pillar_key)
             if not isinstance(pillar_dict, dict):
                 continue
-            pillar_dict["weight"] = pillar_obj.weight
-            for dim_dict in pillar_dict.get("dimensions", []) or []:
+            for dim_dict in pillar_dict.get("dimensions") or []:
                 if not isinstance(dim_dict, dict):
                     continue
-                dim_key = dim_dict.get("name", "").lower().replace(" ", "_")
-                dim_result = result["dimensions"].get(dim_key)
-                if dim_result is not None:
-                    dim_dict["score"] = dim_result["score"]
-                # Compute dimension percentage and dominant color in Python so
-                # the template doesn't re-implement the same rules in Jinja.
-                # HIGH-3 in code-review-2026-04-07.md.
                 dim_weight = dim_dict.get("weight") or 1
                 dim_score = dim_dict.get("score") or 0
                 dim_dict["score_percentage"] = int((dim_score * 100) / dim_weight)
-                dim_dict["dominant_color"] = _compute_dominant_color(dim_dict.get("badges") or [])
-            pillar_dict["score"] = result["pillars"].get(pillar_key, 0)
+                dim_dict["dominant_color"] = _compute_dominant_color(
+                    dim_dict.get("badges") or []
+                )
 
-        # Top-level fit_score audit fields
-        fs["total"] = result["fit_score"]
-        fs["_total"] = result["fit_score"]
-        fs["pl_score_pre_ceiling"] = result["pillar_labability_pre_ceiling"]
-        fs["ceilings_applied"] = result["ceilings_applied"]
-        fs["technical_fit_multiplier"] = result["technical_fit_multiplier"]
+        # Recompute ACV from motions × deterministic rate. The rate
+        # table and motion semantics can evolve after the analysis
+        # was saved, so this re-run keeps the displayed ACV fresh.
+        acv_calculator.compute_acv_potential(p)
 
-        # Classification review flag — surfaced in the dossier UX when the
-        # product_category or org_type landed in "Unknown" during scoring.
-        # The flag lives on the product dict so per-product indicators can
-        # be rendered independently (some products in a dossier may be
-        # classified cleanly while others need review).
-        p["classification_review_needed"] = bool(result.get("classification_review_needed", False))
-
-        # ── Recompute ACV from motions × deterministic rate ──
-        # The AI's job is to estimate per-motion population, adoption %,
-        # and hours per learner. Python's job is everything else: per-motion
-        # hours, total hours, rate lookup by orchestration method, dollar
-        # conversion, and tier assignment from dollar thresholds.
-        scoring_math.compute_acv_potential(p)
-
-        # Recompute the verdict from the new Fit Score and ACV tier — the
-        # AI's cached verdict is stale once the math layer rewrites the score.
+        # Reassign verdict from the saved Fit Score total + fresh ACV
+        # tier. fit_score.total (or total_override) is the authoritative
+        # composed value produced by fit_score_composer at score-time.
+        fit_total = fs.get("total_override")
+        if fit_total is None:
+            fit_total = fs.get("total") or fs.get("_total") or 0
         acv_tier = (p.get("acv_potential") or {}).get("acv_tier") or "low"
-        new_verdict = assign_verdict(result["fit_score"], acv_tier)
+        new_verdict = assign_verdict(int(fit_total), acv_tier)
         p["verdict"] = {
             "label": new_verdict.label,
             "color": new_verdict.color,
@@ -598,13 +525,12 @@ def recompute_analysis(analysis: dict) -> None:
             "acv_label": new_verdict.acv_label,
         }
 
-        # ── Phase 2: Merge same-named badges, promote color to worst ──
-        # Runs strictly AFTER the math + score writeback so it can never
-        # silently distort scores. Decision-log principle (2026-04-06):
-        # visual changes must NEVER affect scoring.
-        badge_normalization.normalize_for_display(p)
+        # Mirror the authoritative total into the legacy display
+        # fields the template still reads for sort + display.
+        fs["total"] = int(fit_total)
+        fs["_total"] = int(fit_total)
 
-    # Sort by computed Fit Score, descending
+    # Sort by Fit Score, descending
     products.sort(key=lambda p: (p.get("fit_score") or {}).get("_total", 0), reverse=True)
     analysis["top_products"] = products
     analysis["products"] = products
@@ -981,147 +907,100 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             if pname in instructional_value_by_name:
                 product.instructional_value_facts = instructional_value_by_name[pname]
 
-        # ── Step 3 of the rebuild: Pillar 1 pure-Python scoring from facts ──
-        # Runs ALONGSIDE the legacy monolithic scoring call.  Reads each
-        # product's populated ProductLababilityFacts drawer and produces a
-        # PillarScore directly without any Claude call.  The result is stored
-        # on Product.pillar_1_python_score as a side-by-side comparison field.
-        # Step 5 cutover will delete the monolithic path and flip
-        # Product.fit_score.product_labability to be populated by this scorer
-        # directly.  See docs/next-session-todo.md §0c Step 3.
+        # ── Score layer — per-pillar Python scorers populate fit_score ──
+        # Three Layers of Intelligence (Platform-Foundation.md): Score reads
+        # typed facts directly, never badges. Pure Python. Zero hardcoded
+        # numbers. Every score comes from facts + config.
         #
-        # Best-effort: any exception in the new path is logged and the product
-        # simply has no pillar_1_python_score attached — the legacy scoring
-        # result on fit_score is untouched.
+        # Pillar 1 is pure Python via pillar_1_scorer.
+        # Pillar 2 and 3 use the narrow Claude-in-Score rubric grader to
+        # emit GradedSignal records (qualitative strength tiering is the
+        # only step in the Score layer that legitimately needs Claude),
+        # then pillar_2_scorer / pillar_3_scorer read those grades
+        # deterministically with zero further AI calls.
+        #
+        # After the three per-pillar scorers finish, fit_score_composer
+        # composes the final Fit Score with the Technical Fit Multiplier
+        # applied to IV + CF contributions — the asymmetric coupling rule
+        # that enforces "weak PL drags IV + CF contribution down."
         from pillar_1_scorer import score_product_labability
-        pl_python_count = 0
-        for product in new_analysis.products:
-            try:
-                product.pillar_1_python_score = score_product_labability(
-                    product.product_labability_facts
-                )
-                pl_python_count += 1
-            except Exception:
-                log.exception(
-                    "Intelligence.score: pillar_1_scorer failed for product %r — skipping",
-                    product.name,
-                )
-        log.info(
-            "Intelligence.score: Pillar 1 Python scoring populated for %d/%d products",
-            pl_python_count, len(new_analysis.products),
-        )
-
-        # ── Step 4 of the rebuild: Pillar 2/3 rubric grading + Python scoring ──
-        # New path runs ALONGSIDE the legacy monolithic scoring call.
-        #
-        # Flow:
-        #   1. rubric_grader.grade_all_for_product — one focused Claude call
-        #      per Pillar 2 dimension per product (4 parallel calls per
-        #      product). Each grader reads its dimension's fact drawer
-        #      and emits GradedSignal records.
-        #   2. rubric_grader.grade_all_for_company — same thing for Pillar 3
-        #      dimensions at the company level.
-        #   3. pillar_2_scorer.score_instructional_value — pure Python. Reads
-        #      grades + baselines + penalties, applies risk cap reduction.
-        #   4. pillar_3_scorer.score_customer_fit — same pattern at company level.
-        #
-        # Results go into Product.rubric_grades / pillar_2_python_score and
-        # CompanyAnalysis.customer_fit_rubric_grades / pillar_3_python_score
-        # as side-by-side comparison fields. Step 5 cutover will delete the
-        # monolithic path and flip Product.fit_score / PillarScore fields to
-        # be populated by these scorers directly. See docs/next-session-todo.md
-        # §0c Step 4.
-        #
-        # Best-effort throughout — any exception anywhere in the new path
-        # logs and skips that product / company. The legacy scoring result
-        # on fit_score is untouched.
         from rubric_grader import grade_all_for_company, grade_all_for_product
         from pillar_2_scorer import score_instructional_value
         from pillar_3_scorer import score_customer_fit
+        from fit_score_composer import compose_fit_score
 
         log.info(
-            "Intelligence.score: Pillar 2/3 rubric grading starting for %d products + 1 company",
+            "Intelligence.score: Score layer starting for %d products + 1 company",
             len(new_analysis.products),
         )
 
-        # Pillar 3 company-level grading (runs once, reads products for cross-pillar facts)
+        # Pillar 3 company-level grading + scoring (runs once, broadcast
+        # to every product so all products share the same Customer Fit
+        # reading — Phase F rule).
+        cf_pillar_score = None
         try:
             cf_grades = grade_all_for_company(new_analysis)
             new_analysis.customer_fit_rubric_grades = cf_grades
-            new_analysis.pillar_3_python_score = score_customer_fit(
+            cf_pillar_score = score_customer_fit(
                 new_analysis.organization_type,
                 cf_grades,
             )
             log.info(
-                "Intelligence.score: Pillar 3 Python score populated (%d dim grades)",
+                "Intelligence.score: Pillar 3 score populated (%d dim grades)",
                 len(cf_grades),
             )
         except Exception:
             log.exception(
-                "Intelligence.score: Pillar 3 rubric grading/scoring failed for %s — skipping",
+                "Intelligence.score: Pillar 3 rubric grading/scoring failed for %s",
                 company_name,
             )
 
-        # Pillar 2 per-product grading + scoring
-        p2_python_count = 0
+        # Per-product: Pillar 1 + Pillar 2 scoring, then fit-score composition
+        composed_count = 0
         for product in new_analysis.products:
+            try:
+                product.fit_score.product_labability = score_product_labability(
+                    product.product_labability_facts
+                )
+            except Exception:
+                log.exception(
+                    "Intelligence.score: pillar_1_scorer failed for %r",
+                    product.name,
+                )
+
             try:
                 p_grades = grade_all_for_product(product, new_analysis)
                 product.rubric_grades = p_grades
-                product.pillar_2_python_score = score_instructional_value(
+                product.fit_score.instructional_value = score_instructional_value(
                     product.category,
                     p_grades,
                 )
-                p2_python_count += 1
             except Exception:
                 log.exception(
-                    "Intelligence.score: Pillar 2 rubric grading/scoring failed for %r — skipping",
+                    "Intelligence.score: Pillar 2 grading/scoring failed for %r",
                     product.name,
                 )
-        log.info(
-            "Intelligence.score: Pillar 2 Python scoring populated for %d/%d products",
-            p2_python_count, len(new_analysis.products),
-        )
 
-        # ── Step 5 of the rebuild: CUTOVER — Python scorers are authoritative ─
-        # After Steps 3 + 4 ran, every product has pillar_1_python_score +
-        # pillar_2_python_score populated and the company has pillar_3_python_score.
-        # This block FLIPS the authoritative fit_score to those values —
-        # overwriting whatever the legacy monolithic scoring call put there.
-        #
-        # The monolithic call still fires upstream (it's what populates the
-        # non-scoring metadata fields: name, category, description, contacts,
-        # owning_org, orchestration_method). Its fit_score output is ignored
-        # here. A follow-up commit will delete the monolithic Claude call and
-        # the badge-keyed compute_dimension_score / compute_all paths once
-        # metadata extraction is moved to a dedicated lightweight extractor
-        # (see the rebuild roadmap section Step 5b for that cleanup).
-        #
-        # This is the cutover per docs/next-session-todo.md §0c Step 5 —
-        # lock-in #1 ("Score reads facts directly, never badges") now
-        # holds at the fit_score level.
-        cutover_count = 0
-        for product in new_analysis.products:
-            flipped = False
-            if product.pillar_1_python_score is not None:
-                product.fit_score.product_labability = product.pillar_1_python_score
-                flipped = True
-            if product.pillar_2_python_score is not None:
-                product.fit_score.instructional_value = product.pillar_2_python_score
-                flipped = True
-            if new_analysis.pillar_3_python_score is not None:
-                product.fit_score.customer_fit = new_analysis.pillar_3_python_score
-                flipped = True
-            # Clear any total_override set by the legacy path so fit_score.total
-            # is recomputed from the new authoritative pillar scores.
-            if flipped:
-                product.fit_score.total_override = None
-                product.fit_score.pl_score_pre_ceiling = None
-                product.fit_score.ceilings_applied = []
-                cutover_count += 1
+            if cf_pillar_score is not None:
+                product.fit_score.customer_fit = cf_pillar_score
+
+            # Final composition — applies the Technical Fit Multiplier
+            # and writes fit_score.total_override + .technical_fit_multiplier.
+            try:
+                compose_fit_score(
+                    product.fit_score,
+                    product.orchestration_method or "",
+                )
+                composed_count += 1
+            except Exception:
+                log.exception(
+                    "Intelligence.score: fit_score_composer failed for %r",
+                    product.name,
+                )
+
         log.info(
-            "Intelligence.score: Step 5 cutover — fit_score flipped to Python scorers for %d/%d products",
-            cutover_count, len(new_analysis.products),
+            "Intelligence.score: Fit Score composition complete for %d/%d products",
+            composed_count, len(new_analysis.products),
         )
 
         # ── Step 6-lite: attach display badges via badge_selector ──

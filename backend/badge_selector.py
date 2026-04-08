@@ -101,16 +101,16 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
     # If the scorer picked Simulation as the fabric, the pillar is at 42/100
     # and the other dimension scorers were bypassed. The Provisioning badge
     # here is just "Simulation" (gray context).
-    if product.pillar_1_python_score is not None:
+    if product.fit_score.product_labability is not None:
         prov_dim_score = next(
-            (d for d in product.pillar_1_python_score.dimensions if d.name == "Provisioning"),
+            (d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"),
             None,
         )
         if prov_dim_score is not None and prov_dim_score.score == cfg.SIMULATION_PROVISIONING_POINTS:
             # Verify we're in the Simulation hard override case — check that
             # Scoring is also 0 and Teardown is the full override value
-            sc = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Scoring"), None)
-            td = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Teardown"), None)
+            sc = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Scoring"), None)
+            td = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Teardown"), None)
             if (sc is not None and sc.score == cfg.SIMULATION_SCORING_POINTS and
                 td is not None and td.score == cfg.SIMULATION_TEARDOWN_POINTS):
                 badges.append(Badge(
@@ -356,10 +356,10 @@ def _pillar_1_lab_access_badges(product: Product) -> list[Badge]:
     badges: list[Badge] = []
 
     # Simulation hard override skips the lab access dimension's normal badges
-    if product.pillar_1_python_score is not None:
-        la_dim = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Lab Access"), None)
+    if product.fit_score.product_labability is not None:
+        la_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Lab Access"), None)
         if la_dim is not None and la_dim.score == cfg.SIMULATION_LAB_ACCESS_POINTS:
-            prov_dim = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Provisioning"), None)
+            prov_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"), None)
             if prov_dim is not None and prov_dim.score == cfg.SIMULATION_PROVISIONING_POINTS:
                 return []  # No Lab Access badges in Simulation override case
 
@@ -525,9 +525,9 @@ def _pillar_1_scoring_badges(product: Product) -> list[Badge]:
     badges: list[Badge] = []
 
     # Simulation override has no Scoring badges
-    if product.pillar_1_python_score is not None:
-        sc_dim = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Scoring"), None)
-        prov_dim = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Provisioning"), None)
+    if product.fit_score.product_labability is not None:
+        sc_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Scoring"), None)
+        prov_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"), None)
         if (sc_dim is not None and sc_dim.score == cfg.SIMULATION_SCORING_POINTS and
             prov_dim is not None and prov_dim.score == cfg.SIMULATION_PROVISIONING_POINTS):
             return []
@@ -608,9 +608,9 @@ def _pillar_1_teardown_badges(product: Product) -> list[Badge]:
     badges: list[Badge] = []
 
     # Simulation override has a special Teardown badge (full credit)
-    if product.pillar_1_python_score is not None:
-        td_dim = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Teardown"), None)
-        prov_dim = next((d for d in product.pillar_1_python_score.dimensions if d.name == "Provisioning"), None)
+    if product.fit_score.product_labability is not None:
+        td_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Teardown"), None)
+        prov_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"), None)
         if (td_dim is not None and td_dim.score == cfg.SIMULATION_TEARDOWN_POINTS and
             prov_dim is not None and prov_dim.score == cfg.SIMULATION_PROVISIONING_POINTS):
             # Simulation override — Teardown is full credit because nothing to tear down
@@ -693,9 +693,9 @@ def select_pillar_1_badges(product: Product) -> dict[str, list[Badge]]:
     """Select Pillar 1 display badges for a product.
 
     Returns a dict keyed by dimension name → list of Badge objects.
-    Reads the fact drawer + pillar_1_python_score (for Simulation override
-    detection) and emits display-only badges per the rules locked in Chunk 1
-    Issue #3 on 2026-04-08.
+    Reads the fact drawer + fit_score.product_labability (for Simulation
+    override detection) and emits display-only badges per the rules locked
+    in Chunk 1 Issue #3 on 2026-04-08.
     """
     return {
         "Provisioning": _pillar_1_provisioning_badges(product),

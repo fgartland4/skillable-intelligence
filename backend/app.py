@@ -400,23 +400,35 @@ def inspector_product_selection(discovery_id: str):
                     or fam_lower in p.get("category", "").lower()
                     or fam_lower in p.get("subcategory", "").lower()
                 )
-            # Filter to families that actually match at least one discovered
-            # product. The scraper grabs every nav link from the company's
-            # homepage and many of those (Newsroom, Healthcare, "View All
-            # Products", marketing taglines, etc.) aren't real product
-            # families — they just got into the scraped list because they
-            # were prominent links. If a "family" name doesn't match a
-            # single product, it's noise and should not be picked.
-            families = [f for f in scraped if f.get("product_count", 0) > 0]
+            # Filter to families that actually contain enough discovered
+            # products to be worth picking.  The scraper grabs every nav
+            # link from the company's homepage and many of those
+            # (Newsroom, Healthcare, "View All Products", marketing
+            # taglines, one-off offerings, etc.) aren't real product
+            # families — they just got into the scraped list because
+            # they were prominent links.  Families with fewer than
+            # PRODUCT_FAMILY_MIN_PRODUCTS are noise.  Frank 2026-04-07:
+            # Workday showed 13 single-product families in the picker;
+            # the threshold suppresses them.
+            families = [
+                f for f in scraped
+                if f.get("product_count", 0) >= cfg.PRODUCT_FAMILY_MIN_PRODUCTS
+            ]
             families.sort(key=lambda f: f.get("product_count", 0), reverse=True)
         else:
-            # Fallback: group by category
+            # Fallback: group by category.  Same noise filter applies —
+            # categories that only hold a single product are not
+            # meaningful picker choices.
             family_counts: dict[str, int] = {}
             for p in non_tc:
                 cat = p.get("category", "Other")
                 family_counts[cat] = family_counts.get(cat, 0) + 1
             families = sorted(
-                [{"name": c, "product_count": n} for c, n in family_counts.items()],
+                [
+                    {"name": c, "product_count": n}
+                    for c, n in family_counts.items()
+                    if n >= cfg.PRODUCT_FAMILY_MIN_PRODUCTS
+                ],
                 key=lambda f: f["product_count"], reverse=True
             )
 
