@@ -127,13 +127,20 @@
   background: var(--sk-bg);
   border: 1px solid var(--sk-border);
   color: var(--sk-text-muted);
-  font-size: 1.3rem; cursor: pointer;
-  line-height: 1;
+  cursor: pointer;
   width: 32px; height: 32px;
+  padding: 0;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-family: inherit;
   transition: all 0.15s ease;
+}
+.search-modal-cancel svg {
+  width: 12px; height: 12px;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  display: block;  /* prevents inline-svg baseline offset */
 }
 .search-modal-cancel:hover {
   color: var(--sk-text);
@@ -369,7 +376,14 @@
 {% macro markup() %}
 <div class="search-modal-backdrop" id="searchModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
   <div class="search-modal-card">
-    <button type="button" class="search-modal-cancel" id="searchModalCancel" title="Cancel">&times;</button>
+    <button type="button" class="search-modal-cancel" id="searchModalCancel" title="Cancel" aria-label="Cancel">
+      {# Inline SVG × — perfectly centered regardless of font.  Uses
+         currentColor so it inherits color state from the button. #}
+      <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line x1="2" y1="2" x2="10" y2="10" />
+        <line x1="10" y1="2" x2="2" y2="10" />
+      </svg>
+    </button>
 
     {# Top section — eyebrow + target #}
     <div class="search-modal-eyebrow" id="searchModalEyebrow">Working</div>
