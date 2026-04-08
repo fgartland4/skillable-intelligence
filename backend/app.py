@@ -410,10 +410,22 @@ def inspector_product_selection(discovery_id: str):
             # without over-matching because it only runs when strict
             # returns zero AND it requires whole-word hits against
             # non-stopword tokens.
-            _family_stopwords = {
+            # Stopwords include common English filler AND the vendor's
+            # own company name tokens. Frank 2026-04-08 Trellix: without
+            # the vendor-name strip, "Trellix Thrive" / "Trellix Partner
+            # Portal" / "Trellix Marketplace" all token-matched every
+            # Trellix product on the `trellix` token and showed up with
+            # 40 products each — nav-link noise, not real product families.
+            _family_stopwords: set[str] = {
                 "and", "or", "the", "a", "an", "of", "for", "to", "in",
                 "by", "with", "on", "as", "at", "is", "&", "+",
             }
+            _company_name_for_family = (
+                (disc.get("company_name") or "").lower().strip()
+            )
+            for _ct in re.findall(r"[a-z0-9]+", _company_name_for_family):
+                if len(_ct) >= 3:  # magic-allowed: minimum token length (short words are noise)
+                    _family_stopwords.add(_ct)
 
             def _family_tokens(name: str) -> list[str]:
                 parts = re.findall(r"[a-z0-9]+", name.lower())
@@ -430,6 +442,7 @@ def inspector_product_selection(discovery_id: str):
                 # Whole-word match so "data" doesn't match "datacenter".
                 return re.search(rf"\b{re.escape(token)}\b", blob) is not None
 
+            _non_tc_count = len(non_tc)
             for fam in scraped:
                 fam_lower = fam["name"].lower()
                 # Pass 1 — strict substring.
@@ -447,25 +460,31 @@ def inspector_product_selection(discovery_id: str):
                 if len(tokens) < 2:  # magic-allowed: single-token fallback gate (too noisy to rescue)
                     # Single-token families don't get the fallback — too
                     # noisy (one generic word would match everything).
+                    # Fires after the vendor-name strip above, so "Trellix
+                    # Thrive" ends up as ["thrive"] → filtered here.
                     fam["product_count"] = 0
                     continue
                 fam["product_count"] = sum(
                     1 for p in non_tc
                     if any(_token_hit(t, _product_blob(p)) for t in tokens)
                 )
-            # Filter to families that actually contain enough discovered
-            # products to be worth picking.  The scraper grabs every nav
-            # link from the company's homepage and many of those
-            # (Newsroom, Healthcare, "View All Products", marketing
-            # taglines, one-off offerings, etc.) aren't real product
-            # families — they just got into the scraped list because
-            # they were prominent links.  Families with fewer than
-            # PRODUCT_FAMILY_MIN_PRODUCTS are noise.  Frank 2026-04-07:
-            # Workday showed 13 single-product families in the picker;
-            # the threshold suppresses them.
+
+            # Filter out noise families. Two rules:
+            #   1. Must meet the PRODUCT_FAMILY_MIN_PRODUCTS threshold
+            #      (existing Workday protection — single-product families
+            #      are not meaningful picker choices).
+            #   2. Must not match more than PRODUCT_FAMILY_MAX_PRODUCT_RATIO
+            #      of all discovered products — any family that claims
+            #      most of the catalog is almost certainly a generic nav
+            #      link like "All Products" or "The Platform", not a real
+            #      product family. Belt-and-braces guard on top of the
+            #      vendor-name strip above.
+            _max_ratio = getattr(cfg, "PRODUCT_FAMILY_MAX_PRODUCT_RATIO", 0.80)  # magic-allowed: noise-cap fallback when config missing
+            _max_count_allowed = int(_non_tc_count * _max_ratio) if _non_tc_count else 0
             families = [
                 f for f in scraped
                 if f.get("product_count", 0) >= cfg.PRODUCT_FAMILY_MIN_PRODUCTS
+                and (_max_count_allowed == 0 or f.get("product_count", 0) <= _max_count_allowed)
             ]
             families.sort(key=lambda f: f.get("product_count", 0), reverse=True)
         else:

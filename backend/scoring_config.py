@@ -3345,6 +3345,15 @@ PRODUCT_FAMILY_PICKER_THRESHOLD = 20
 # it and then sees a single product anyway.
 PRODUCT_FAMILY_MIN_PRODUCTS = 2
 
+# A family that claims more than this fraction of all discovered products
+# is almost certainly a generic nav link ("All Products", "The Platform",
+# "Product Tours") rather than a real product family. Frank 2026-04-08
+# Trellix: the scraper pulled "Trellix Thrive", "Trellix Marketplace",
+# "Trellix Partner Portal", and 4 more nav links that each token-matched
+# 40/41 products on the vendor-name token. Even with the vendor-name
+# strip in app.py, this ratio cap is the belt-and-braces guard.
+PRODUCT_FAMILY_MAX_PRODUCT_RATIO = 0.80
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # VALIDATION
