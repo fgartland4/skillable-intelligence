@@ -284,6 +284,378 @@ class OrgUnit:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Fact Drawer — structured truth from the Research layer
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# The fact drawer is the canonical home for everything Research extracts about
+# a product or a company.  It implements the "Research → Store → Score → Badge"
+# architecture documented in Platform-Foundation.md → "The Three Layers of
+# Intelligence."  Facts are stored as TRUTH (not pre-judged interpretations).
+# Scoring reads the facts and applies framework rules; badging reads the facts
+# AND the score to pick contextual storytellers.
+#
+# Two principles govern every field below:
+#
+#   1. **Truth, not interpretation.**  No `strength` field, no pre-baked
+#      tier judgments.  Each fact is what the researcher observed, with
+#      enough context that downstream scoring can make a real judgment.
+#
+#   2. **Define-Once.**  Each fact lives in exactly one location.
+#      Cross-pillar reads are explicit (e.g., Pillar 2 Market Demand reads
+#      `enterprise_reference_customers` from `CustomerFitFacts`); the same
+#      fact never lives in two places.
+#
+# Field naming convention: typed primitives where possible (bool, str, enum
+# strings, NumericRange, list[str], dict[str, ...]).  Qualitative dimensions
+# use a `signals: dict[str, SignalEvidence]` where the keys come from the
+# canonical signal_category list in scoring_config.py (Define-Once — the
+# signal categories live there, not duplicated here).
+
+
+@dataclass
+class NumericRange:
+    """A believable numeric range with provenance.
+
+    Used for facts that are inherently ranges — install base, partner
+    community size, employee count, event attendance, etc.  Single-point
+    estimates are stored as `low == high`.
+
+    Frank 2026-04-07: ranges must be **believable**.  A range of
+    2,000–40,000 signals "we have no idea" and is forbidden.  The
+    researcher produces tight, defendable ranges the seller can quote.
+    """
+    low: Optional[int] = None
+    high: Optional[int] = None
+    source_url: str = ""
+    confidence: str = ""              # "confirmed" | "indicated" | "inferred"
+    notes: str = ""                   # Researcher's free-text flag for anything unusual
+
+
+@dataclass
+class SignalEvidence:
+    """Raw evidence that a qualitative signal is present.
+
+    Used for rubric-model dimensions (Pillar 2, Pillar 3) where the
+    research finding is genuinely qualitative — "is this product
+    multi-phase workflow at strong strength?" can't be reduced to a
+    typed primitive.
+
+    NO `strength` field.  Strength is interpretation; this drawer holds
+    truth only.  Scoring reads `observation` and decides strength tier
+    via the rubric judgment step.
+
+    Per Frank 2026-04-07: "We're storing facts that have enough context
+    to be scored later."  The `observation` field is where that context
+    lives — concrete enough that downstream judgment is grounded, not
+    stripped of meaning.
+    """
+    present: bool = False
+    observation: str = ""             # What the researcher observed — the raw truth
+    source_url: str = ""
+    confidence: str = ""              # "confirmed" | "indicated" | "inferred"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pillar 1 — Product Labability fact drawer
+#
+# Capability-store model.  All typed primitives.  Pillar 1 scoring is a
+# pure-Python lookup that maps facts to canonical badges and point values.
+# No Claude call at scoring time.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@dataclass
+class ProvisioningFacts:
+    """Pillar 1.1 — How the product can be deployed and what fabric fits.
+
+    Stores capability flags, not pre-classified delivery paths.  Scoring
+    walks the priority order (Hyper-V > Cloud Native > Sandbox API >
+    Simulation) at runtime to pick which fabric wins.
+    """
+    description: str = ""             # Narrative: what IS this product's deployment shape?
+    runs_as_installable: bool = False
+    runs_as_azure_native: bool = False
+    runs_as_aws_native: bool = False
+    runs_as_container: bool = False
+    runs_as_saas_only: bool = False
+    supported_host_os: list[str] = field(default_factory=list)  # ["windows", "linux"]
+    has_sandbox_api: bool = False
+    sandbox_api_granularity: str = ""  # "rich" | "partial" | "none"
+    is_multi_vm_lab: bool = False
+    has_complex_topology: bool = False
+    is_large_lab: bool = False
+    has_pre_instancing_opportunity: bool = False
+    needs_gpu: bool = False
+    needs_bare_metal: bool = False
+    needs_gcp: bool = False
+
+
+@dataclass
+class LabAccessFacts:
+    """Pillar 1.2 — How learners actually log in to the product.
+
+    auth_model is pure truth — describes how authentication works from
+    the user's perspective.  VM vs cloud delivery context is captured
+    separately in ProvisioningFacts.runs_as_*.  Scoring combines the
+    two at runtime to decide which Skillable canonical applies.
+    """
+    description: str = ""
+    user_provisioning_api_granularity: str = ""  # "rich" | "partial" | "none"
+    auth_model: str = ""              # see auth_model values below
+    # Valid auth_model values:
+    #   "entra_native_tenant" — Skillable provisions in a controlled Entra tenant;
+    #                            displays uname+pword in lab
+    #   "entra_msft_id"       — Product accepts learner's own Microsoft account;
+    #                            Skillable doesn't pre-provision
+    #   "sso_saml"            — Generic SAML SSO
+    #   "sso_oidc"            — Generic OIDC SSO
+    #   "oauth"               — OAuth-based (rare for human login)
+    #   "product_credentials" — Product manages its own user database;
+    #                            Skillable creates per-learner accounts
+    #   "api_key"             — User authenticates via API key (developer products)
+    #   "none"                — No documented auth model
+    credential_lifecycle: str = ""    # "recyclable" | "pool_only" | "none"
+    learner_isolation: str = ""       # "confirmed" | "unknown" | "absent"
+    training_license: str = ""        # "low_friction" | "medium_friction" | "blocked" | "none"
+    has_mfa_blocker: bool = False
+    has_anti_automation: bool = False
+    has_rate_limit_blocker: bool = False
+
+
+@dataclass
+class ScoringFacts:
+    """Pillar 1.3 — What state-validation surfaces the product exposes.
+
+    Pure capabilities of the product, not Skillable scoring decisions.
+    Scoring logic uses the Grand Slam rule (AI Vision + Script OR API
+    for full marks) at runtime.
+    """
+    description: str = ""
+    state_validation_api_granularity: str = ""    # "rich" | "partial" | "none"
+    scriptable_via_shell_granularity: str = ""    # "full" | "partial" | "none"
+    gui_state_visually_evident_granularity: str = ""  # "full" | "partial" | "none"
+    simulation_scoring_viable: bool = False
+
+
+@dataclass
+class TeardownFacts:
+    """Pillar 1.4 — Vendor-side cleanup capabilities.
+
+    Datacenter snapshot teardown is derived from ProvisioningFacts at
+    scoring time (if the product runs in Hyper-V/Container/ESX, teardown
+    is automatic).  These fields capture the cloud/SaaS case where
+    Skillable depends on the vendor's API to clean up.
+    """
+    description: str = ""
+    vendor_teardown_api_granularity: str = ""  # "rich" | "partial" | "none"
+    has_orphan_risk: bool = False
+
+
+@dataclass
+class ProductLababilityFacts:
+    """Pillar 1 fact drawer.  All typed primitives, capability-store model."""
+    provisioning: ProvisioningFacts = field(default_factory=ProvisioningFacts)
+    lab_access: LabAccessFacts = field(default_factory=LabAccessFacts)
+    scoring: ScoringFacts = field(default_factory=ScoringFacts)
+    teardown: TeardownFacts = field(default_factory=TeardownFacts)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pillar 2 — Instructional Value fact drawer
+#
+# Three of four dimensions (Product Complexity, Mastery Stakes, Lab
+# Versatility) are purely qualitative — the drawer holds a description and
+# a `signals` dict keyed by signal_category.  Market Demand has both
+# concrete numeric facts AND a signals dict for the remaining qualitative
+# bits.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@dataclass
+class ProductComplexityFacts:
+    """Pillar 2.1 — Is this product hard enough to need hands-on practice?
+
+    Almost entirely qualitative.  Signal categories are the canonical list
+    from scoring_config.py (multi_vm_architecture, deep_configuration,
+    multi_phase_workflow, role_diversity, troubleshooting_depth, etc.).
+    """
+    description: str = ""
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class MasteryStakesFacts:
+    """Pillar 2.2 — What are the consequences of getting it wrong?
+
+    Qualitative.  Signal categories: breach_exposure, compliance_consequences,
+    data_integrity, business_continuity, safety_regulated, legal_liability,
+    reputation_damage, financial_impact.
+    """
+    description: str = ""
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class LabVersatilityFacts:
+    """Pillar 2.3 — Which lab types fit this product naturally?
+
+    Qualitative.  Signal categories map to LAB_TYPE_MENU entries in
+    scoring_config.py (adversarial_scenario, simulated_attack,
+    incident_response, break_fix, team_handoff, bug_bounty, cyber_range,
+    performance_tuning, migration_lab, architecture_challenge,
+    compliance_audit, disaster_recovery, ctf).
+    """
+    description: str = ""
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class MarketDemandFacts:
+    """Pillar 2.4 — How big is the worldwide population that needs this skill?
+
+    Mixed: concrete numeric/list facts for the things that are genuinely
+    countable, plus a signals dict for the remaining qualitative judgments.
+
+    install_base is Define-Once — the same number feeds Motion 1 audience
+    in ACV AND any Market Demand judgment about install base scale.
+    """
+    description: str = ""
+    # Concrete numeric facts
+    install_base: NumericRange = field(default_factory=NumericRange)            # → ACV Motion 1
+    employee_subset_size: NumericRange = field(default_factory=NumericRange)    # → ACV Motion 3
+    cert_annual_sit_rate: NumericRange = field(default_factory=NumericRange)    # → ACV Motion 4
+    # Concrete list/dict facts
+    cert_bodies_mentioning: list[str] = field(default_factory=list)             # ["CompTIA", "EC-Council", "SANS"]
+    independent_training_course_counts: dict[str, int] = field(default_factory=dict)  # {"Pluralsight": 15, "Coursera": 5}
+    # Concrete boolean facts
+    is_ai_powered: bool = False
+    is_ai_platform: bool = False
+    # Remaining qualitative signals (e.g., niche_within_category, cert_ecosystem)
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class InstructionalValueFacts:
+    """Pillar 2 fact drawer.  Holds the four dimension drawers."""
+    product_complexity: ProductComplexityFacts = field(default_factory=ProductComplexityFacts)
+    mastery_stakes: MasteryStakesFacts = field(default_factory=MasteryStakesFacts)
+    lab_versatility: LabVersatilityFacts = field(default_factory=LabVersatilityFacts)
+    market_demand: MarketDemandFacts = field(default_factory=MarketDemandFacts)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Pillar 3 — Customer Fit fact drawer
+#
+# Company-level facts.  Lives on CompanyAnalysis, NOT on Product.  Top-level
+# shared facts feed multiple dimensions and ACV motions; per-dimension drawers
+# hold dimension-specific concrete facts plus qualitative signal dicts.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@dataclass
+class TrainingCommitmentFacts:
+    """Pillar 3.1 — Does this organization have a heart for teaching?"""
+    description: str = ""
+    has_on_demand_catalog: bool = False
+    has_ilt_calendar: bool = False
+    customer_enablement_team_name: str = ""
+    certification_programs: list[str] = field(default_factory=list)
+    training_leadership_titles: list[str] = field(default_factory=list)
+    training_catalog_url: str = ""
+    audiences_served: list[str] = field(default_factory=list)  # subset of ["employees", "customers", "partners", "end_users"]
+    has_compliance_training: bool = False
+    uses_hands_on_language: bool = False
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class BuildCapacityFacts:
+    """Pillar 3.2 — Can the org create its own labs?
+
+    `lab_build_platforms_in_use` is the strongest verifiable Build
+    Capacity signal because it's outward-facing.  Values come from
+    `backend/knowledge/competitors.json` — Define-Once.
+    """
+    description: str = ""
+    lab_build_platforms_in_use: list[str] = field(default_factory=list)  # canonical names from competitors.json
+    is_already_building_labs: bool = False
+    content_team_name: str = ""
+    authoring_roles_found: list[str] = field(default_factory=list)
+    outsourcing_evidence: list[str] = field(default_factory=list)
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class DeliveryCapacityFacts:
+    """Pillar 3.3 — Can the org get labs to learners at scale?
+
+    Three delivery layers, with Layers 2 and 3 captured as separate
+    field-sets so they can both be true at the same time (e.g., Cohesity
+    in transition from informal partners to a new authorized program).
+
+    Layer 2's open-market half (Pluralsight, Coursera, etc.) lives at the
+    PRODUCT level in MarketDemandFacts.independent_training_course_counts;
+    Delivery Capacity scoring reads it cross-pillar.
+    """
+    description: str = ""
+    # Layer 1: Vendor has their own training
+    has_vendor_delivered_training: bool = False
+    vendor_training_modes: list[str] = field(default_factory=list)  # ["ilt", "self_paced", "vendor_labs", "bootcamps"]
+    has_published_course_calendar: bool = False
+    course_calendar_url: str = ""
+    # Layer 2: Third parties deliver training (vendor-connected informal half)
+    has_informal_training_partners: bool = False
+    named_informal_training_partners: list[str] = field(default_factory=list)
+    # Layer 3: Vendor sponsors an authorized program
+    authorized_training_program_name: str = ""  # empty string = no formal program
+    authorized_training_partners_count: NumericRange = field(default_factory=NumericRange)
+    named_authorized_training_partners: list[str] = field(default_factory=list)
+    # LMS + cert delivery infrastructure
+    lms_platforms_in_use: list[str] = field(default_factory=list)
+    cert_delivery_vendors: list[str] = field(default_factory=list)
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class OrganizationalDnaFacts:
+    """Pillar 3.4 — Are these guys easy to do business with?
+
+    Reframed per Frank 2026-04-07 — focus on ease-of-engagement signals
+    rather than partnership counts.  funding_events and has_recent_layoffs
+    moved here from Market Demand because they're about the company, not
+    market appetite for the skill.
+    """
+    description: str = ""
+    partnership_types: list[str] = field(default_factory=list)  # ["technology", "channel", "content", "delivery", "integration"]
+    named_alliance_leadership: list[str] = field(default_factory=list)
+    uses_external_platforms: list[str] = field(default_factory=list)  # Platform Buyer evidence — ["Salesforce", "Workday", "Okta"]
+    funding_events: list[str] = field(default_factory=list)  # ["IPO 2024", "Series D $200M"]
+    has_recent_layoffs: bool = False
+    signals: dict[str, SignalEvidence] = field(default_factory=dict)
+
+
+@dataclass
+class CustomerFitFacts:
+    """Pillar 3 fact drawer.  Lives on CompanyAnalysis (NOT on Product).
+
+    Top-level shared facts feed multiple Customer Fit dimensions AND ACV
+    motions.  channel_partners_size and channel_partner_se_population are
+    Define-Once — channel_partner_se_population feeds ACV Motion 2.
+    """
+    description: str = ""
+    # Top-level shared facts (company-level, feed multiple readers)
+    total_employees: NumericRange = field(default_factory=NumericRange)
+    channel_partners_size: NumericRange = field(default_factory=NumericRange)
+    channel_partner_se_population: NumericRange = field(default_factory=NumericRange)  # → ACV Motion 2
+    named_channel_partners: list[str] = field(default_factory=list)
+    events_attendance: dict[str, NumericRange] = field(default_factory=dict)  # → ACV Motion 5; e.g. {"Cohesity Connect": NumericRange(5000, 5500)}
+    enterprise_reference_customers: list[str] = field(default_factory=list)  # cross-pillar with Pillar 2 Market Demand
+    geographic_reach_regions: list[str] = field(default_factory=list)        # cross-pillar with Pillar 2 + Delivery Capacity
+    # Per-dimension drawers
+    training_commitment: TrainingCommitmentFacts = field(default_factory=TrainingCommitmentFacts)
+    build_capacity: BuildCapacityFacts = field(default_factory=BuildCapacityFacts)
+    delivery_capacity: DeliveryCapacityFacts = field(default_factory=DeliveryCapacityFacts)
+    organizational_dna: OrganizationalDnaFacts = field(default_factory=OrganizationalDnaFacts)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Product — the center of everything
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -307,7 +679,19 @@ class Product:
     poor_match_flags: list[str] = field(default_factory=list)
     recommendation: list[str] = field(default_factory=list)
 
-    # Scoring
+    # ── Fact drawer (Research → Store layer) ──────────────────────────────
+    # New 2026-04-07: structured facts populated by the researcher.  Pillar 1
+    # facts are typed primitives (capability-store).  Pillar 2 facts are
+    # qualitative SignalEvidence dicts plus concrete numeric facts on Market
+    # Demand.  Pillar 3 facts (CustomerFit) live on CompanyAnalysis, not on
+    # Product.  See Platform-Foundation.md → "Three Layers of Intelligence."
+    product_labability_facts: ProductLababilityFacts = field(default_factory=ProductLababilityFacts)
+    instructional_value_facts: InstructionalValueFacts = field(default_factory=InstructionalValueFacts)
+
+    # ── Scoring (Score layer — derived from facts) ─────────────────────────
+    # Old interpretive structures stay during the migration.  They're
+    # populated by the legacy monolithic scoring call until Step 4/5 of
+    # the rebuild shifts scoring to read from the fact drawer above.
     fit_score: FitScore = field(default_factory=FitScore)
     acv_potential: ACVPotential = field(default_factory=ACVPotential)
     verdict: Optional[Verdict] = None
@@ -372,6 +756,12 @@ class CompanyAnalysis:
     company_description: str = ""
     organization_type: str = "software_company"
     products: list[Product] = field(default_factory=list)
+    # Pillar 3 fact drawer — company-level facts shared across all products
+    # of this company.  Per Three Layers of Intelligence: Customer Fit is
+    # measured at the COMPANY level, not the product level.  Every product
+    # of the same company reads from this single drawer.  See
+    # Platform-Foundation.md → "Three Layers of Intelligence."
+    customer_fit_facts: CustomerFitFacts = field(default_factory=CustomerFitFacts)
     briefcase: Optional[SellerBriefcase] = None
     # CRIT-6 in code-review-2026-04-07: analyzed_at MUST NOT be set at
     # dataclass instantiation. Setting it via default_factory means the
