@@ -115,6 +115,12 @@
   max-width: 520px; width: 92%;
   box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 30px 80px rgba(0,0,0,0.55);
   position: relative;
+  /* Defensive: inherit the host page's font so every element inside
+     the modal uses the Skillable body font stack, regardless of any
+     downstream cascade changes.  Protects the timer, counter, stage
+     labels, and hint line from drifting into a system-default font. */
+  font-family: inherit;
+  color: var(--sk-text);
 }
 .search-modal-cancel {
   position: absolute; top: 12px; right: 14px;
@@ -243,6 +249,7 @@
   transition: width 1.2s ease;
 }
 .search-modal-counter {
+  font-family: inherit;
   font-size: 0.76rem;
   color: var(--sk-text-muted);
   font-weight: 600;
@@ -251,10 +258,11 @@
   letter-spacing: 0.01em;
 }
 .search-modal-timer {
+  font-family: inherit;
   font-size: 0.74rem;
   color: var(--sk-text-dim);
 }
-.search-modal-timer strong { color: var(--sk-text-muted); font-weight: 700; }
+.search-modal-timer strong { font-weight: 700; }
 
 /* Animated Skillable "ill" mark — three bars advance in step with the
    progress bar (0-28% i, 28-56% l1, 56-85% l2), then the check celebrates
@@ -607,6 +615,7 @@ window.openSearchModal = function(opts) {
   // transition, and it's tied directly to actual work completion.
   let currentResearchStage = 0;
   let claudeStarted = false;
+  let claudePhasePending = false;  // backend sent the trigger but timer not ready
   let claudeHintTimer = null;
   let hintIndex = 0;
 
@@ -621,29 +630,50 @@ window.openSearchModal = function(opts) {
   ];
 
   // Research stage auto-advance — runs every STAGE_ADVANCE_MS and
-  // walks through the five research stages.  Stops once all five are
-  // active-or-done OR startClaudePhase() fires (whichever comes first).
-  // magic-allowed: stage dwell time — tuned for the typical research
-  // call duration so the list feels alive without racing ahead.
-  const STAGE_ADVANCE_MS = 3800;
+  // walks through the five research stages.  The timer drives the
+  // visual progression; the backend's "Scoring with Claude..." trigger
+  // does NOT race ahead.  If the trigger arrives before the timer has
+  // reached the last research stage, we set a pending flag and the
+  // timer picks it up when ready.  Frank 2026-04-07: "First four took
+  // ~1 second" — the old behavior let the backend trigger flash all
+  // stages done instantly, which is the bug this fix addresses.
+  // magic-allowed: stage dwell time — short enough to feel alive,
+  // long enough for the user to read each label.
+  const STAGE_ADVANCE_MS = 2000;
   const stageAdvanceInterval = useStages ? setInterval(function() {
     if (claudeStarted) return;
     if (currentResearchStage < RESEARCH_COUNT - 1) {
       markStageDone(currentResearchStage);
       currentResearchStage++;
       markStageActive(currentResearchStage);
+      // Reached the last research stage AND the backend trigger has
+      // already arrived?  Start the Claude phase now — the timer has
+      // caught up to the queued request.
+      if (currentResearchStage === RESEARCH_COUNT - 1 && claudePhasePending) {
+        setTimeout(startClaudePhase, 500);  // magic-allowed: brief dwell so the last stage is visibly active
+      }
     }
-    // Don't mark the last research stage done on the timer — wait for
-    // the explicit "Scoring with Claude..." trigger so the visual
-    // handoff to the Claude phase is tied to real backend progress.
   }, STAGE_ADVANCE_MS) : null;
+
+  // Called when the backend pushes "Scoring with Claude..." — either
+  // start the Claude phase immediately (timer already at stage 4) or
+  // queue it for when the timer gets there.  Never races ahead.
+  function requestClaudePhase() {
+    if (claudeStarted) return;
+    if (currentResearchStage >= RESEARCH_COUNT - 1) {
+      startClaudePhase();
+    } else {
+      claudePhasePending = true;
+    }
+  }
 
   function startClaudePhase() {
     if (claudeStarted) return;
     claudeStarted = true;
-    // Mark all five research stages done, activate Claude stage,
-    // start cycling the Claude hint line under its label.
-    for (let i = 0; i < RESEARCH_COUNT; i++) markStageDone(i);
+    // Mark the last research stage done and activate the Claude stage.
+    // Earlier stages were already marked done by the timer loop — this
+    // function only handles the final handoff.
+    markStageDone(RESEARCH_COUNT - 1);
     markStageActive(RESEARCH_COUNT);  // stage 5 = Claude
     const hintEl = document.getElementById('searchModalStageHint');
     if (hintEl) {
@@ -657,6 +687,18 @@ window.openSearchModal = function(opts) {
         }, 400);
       }, 6500);  // magic-allowed: hint cycle cadence
     }
+  }
+
+  // Fast-forward helper — called when `done:` arrives while stages
+  // are still mid-advance (rare, but correct handling matters).
+  // Marks every research stage done, activates Claude briefly, then
+  // the normal done-handling in the SSE handler marks it done and
+  // celebrates the checkmark.
+  function fastForwardStages() {
+    if (claudeStarted) return;
+    for (let i = 0; i < RESEARCH_COUNT; i++) markStageDone(i);
+    claudeStarted = true;
+    markStageActive(RESEARCH_COUNT);
   }
 
   function finishClaudePhase() {
@@ -709,6 +751,7 @@ window.openSearchModal = function(opts) {
     clearInterval(progressInterval);
     clearInterval(timerInterval);
     if (stageAdvanceInterval) clearInterval(stageAdvanceInterval);
+    if (hintCycleInterval) clearInterval(hintCycleInterval);
     if (claudeHintTimer) {
       clearInterval(claudeHintTimer);
       claudeHintTimer = null;
@@ -747,22 +790,61 @@ window.openSearchModal = function(opts) {
     } else if (/starting|preparing|searching/i.test(text)) {
       // Keep any prior counter visible; don't wipe it on startup messages.
     }
-    document.getElementById('searchModalStatus').textContent = text;
+    // Pin a real backend status message for HINT_PIN_MS so it stays
+    // visible through the next hint tick, then the hint cycler resumes.
+    hintPinnedUntil = Date.now() + HINT_PIN_MS;
+    showStatus(text);
   }
+
+  // ── Rotating status hints (simple middle only) ────────────────────
+  //
+  // When the caller passes opts.hints as an array of strings, the
+  // simple middle cycles through them every HINT_CYCLE_MS so the user
+  // sees a rich narrative even though the backend only pushes a handful
+  // of real status messages during a fast research call.  A real
+  // backend `status:` message wins for HINT_PIN_MS and then the cycler
+  // resumes.  Flow-agnostic: discovery passes its 8 discovery hints,
+  // any future flow can pass its own set.
+  const HINT_CYCLE_MS = 4500;  // magic-allowed: hint rotation cadence
+  const HINT_PIN_MS   = 5000;  // magic-allowed: real-status pin duration
+  const hints = Array.isArray(opts.hints) ? opts.hints.slice() : null;
+  let hintIdxSimple = 0;
+  let hintPinnedUntil = 0;
+  const statusEl = document.getElementById('searchModalStatus');
+  function showStatus(text) {
+    if (!statusEl) return;
+    statusEl.style.opacity = 0;
+    setTimeout(function() {
+      statusEl.innerHTML = text;
+      statusEl.style.opacity = 1;
+    }, 320);
+  }
+  // Seed with the first hint (if hints provided) so the simple middle
+  // is never stuck on "Starting...".
+  if (hints && hints.length > 0 && !useStages) {
+    statusEl.innerHTML = hints[0];
+  }
+  const hintCycleInterval = (hints && hints.length > 0 && !useStages) ?
+    setInterval(function() {
+      if (Date.now() < hintPinnedUntil) return;  // real status still pinned
+      hintIdxSimple = (hintIdxSimple + 1) % hints.length;
+      showStatus(hints[hintIdxSimple]);
+    }, HINT_CYCLE_MS) : null;
 
   source.onmessage = function(e) {
     const msg = e.data || '';
     if (msg.startsWith('status:')) {
       const text = msg.slice(7);
       // Detect the backend's "research → Claude" phase transition and
-      // jump the stages middle to the Claude phase.  Use a full-phrase
-      // match, NOT a substring match — historical bug: "scouring" in a
-      // research status message contained "scoring" and prematurely
-      // triggered the Claude phase.  The current backend explicitly
-      // pushes "Scoring with Claude..." as the transition marker in
-      // run_scoring() and run_refresh().
+      // REQUEST the Claude phase.  requestClaudePhase() queues the
+      // transition if the stage timer hasn't reached the last research
+      // stage yet — the timer will pick it up when it's ready.  This
+      // prevents the "first four stages in 1 second" race where the
+      // backend trigger fired before the visual had time to progress.
+      // Full-phrase match only (historical bug: "scouring" contains
+      // "scoring" as a substring).
       if (useStages && /scoring with/i.test(text)) {
-        startClaudePhase();
+        requestClaudePhase();
       }
       applyStatus(text);
     } else if (msg.startsWith('done:')) {
@@ -773,8 +855,14 @@ window.openSearchModal = function(opts) {
       litMark('searchModalMarkI');
       litMark('searchModalMarkL1');
       litMark('searchModalMarkL2');
-      // Stages middle: mark the Claude stage done before celebrating.
-      if (useStages) finishClaudePhase();
+      // Stages middle: if the stage-advance timer hasn't finished
+      // walking through research, fast-forward it now so the user
+      // doesn't see a half-lit list next to a celebrating check.
+      // Then mark the Claude stage done.
+      if (useStages) {
+        if (!claudeStarted) fastForwardStages();
+        finishClaudePhase();
+      }
       celebrateCheck();
       const payload = msg.slice(5);
       if (typeof opts.onComplete === 'function') {

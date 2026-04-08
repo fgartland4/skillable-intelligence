@@ -190,16 +190,28 @@
         .glance-total { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sk-text-dim); }
         .glance-total-count { font-size: 0.72rem; font-weight: 700; color: var(--sk-text-muted); }
 
-        /* Training & Certification panel */
+        /* Training & Certification panel.  Each li uses flex layout
+           so the bullet (::before) and the text sit in separate flex
+           children — wrapped text keeps its own column and stays
+           aligned with the first character after the bullet instead
+           of collapsing back to the li's left edge. */
         .panel-box-tc { border-color: var(--sk-classify-purple-bdr); }
         .panel-label-tc { color: var(--sk-classify-purple); }
         .tc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
         .tc-list li {
+            display: flex; align-items: flex-start; gap: 8px;
             font-size: 0.78rem; color: var(--sk-text-muted); padding: 3px 0;
             border-bottom: 1px solid rgba(112,0,255,0.08);
+            line-height: 1.4;
         }
         .tc-list li:last-child { border-bottom: none; }
-        .tc-list li::before { content: "●  "; color: rgba(167,139,250,0.5); font-size: 0.55rem; }
+        .tc-list li::before {
+            content: "●";
+            color: rgba(167,139,250,0.5);
+            font-size: 0.55rem;
+            flex-shrink: 0;
+            padding-top: 0.45em;  /* vertical-align the dot with the text's x-height */
+        }
 
         /* Competitive Landscape */
         .comp-card { cursor: default; padding: 10px 14px; }
@@ -220,9 +232,20 @@
             box-shadow: 0 24px 80px rgba(0,0,0,0.5);
         }
         .modal-header { padding: 18px 24px 12px; border-bottom: 1px solid var(--sk-border); }
-        .modal-company { font-size: 0.95rem; font-weight: 700; color: var(--sk-text); }
-        .modal-count { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 2px; }
-        .modal-prompt { font-size: 0.75rem; color: var(--sk-text-muted); margin-top: 4px; }
+        /* Company name uses the SAME style as the Company Header Widget
+           (_company_header.html → .company-header-name) so every page in
+           Inspector — Product Selection, Full Analysis, family picker —
+           shows the company name at the same size and weight.  One
+           canonical style, no drift. */
+        .modal-company {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--sk-text-strong);
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+        }
+        .modal-count { font-size: 0.8rem; color: var(--sk-text-dim); margin-top: 6px; }
+        .modal-prompt { font-size: 0.8rem; color: var(--sk-text-muted); margin-top: 4px; }
         .modal-body {
             padding: 8px 0; max-height: 70vh; overflow-y: auto;
             scrollbar-width: thin; scrollbar-color: var(--sk-border) var(--sk-surface);

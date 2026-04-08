@@ -55,11 +55,25 @@
     <script>
     (function() {
         // Open the shared search modal wired to the discovery SSE stream.
-        // On done:<discovery_id>, redirect to the product selection page.
+        // Pass the discovery-specific rotating hint set so the simple
+        // middle cycles through them while the backend researcher runs.
+        // A real backend status message (if one arrives) wins for 5s,
+        // then the cycler resumes.  On done:<discovery_id>, redirect
+        // to the product selection page.
         openSearchModal({
             eyebrow: 'Researching',
             title:   {{ company_name | tojson }},
             sseUrl:  '/inspector/discover/progress/{{ job_id }}',
+            hints: [
+                'Locating the company website…',
+                'Identifying the product portfolio…',
+                'Extracting product families &amp; categories…',
+                'Detecting deployment models &amp; tech stack…',
+                'Finding training, certifications &amp; partner programs…',
+                'Mapping competitive products &amp; vendor landscape…',
+                'Pulling pricing, packaging &amp; tier signals…',
+                'Categorizing offerings against Skillable taxonomy…'
+            ],
             onComplete: function(payload) {
                 // payload is the discovery_id returned by the SSE 'done:' line
                 window.location.replace('/inspector/product-selection/' + payload);
