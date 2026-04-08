@@ -833,12 +833,133 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     new_product_names = []
 
     if new_to_score:
-        cache = discovery_data.get("_research_cache", {}) if research_cache is None else research_cache
+        # ── Research → Store layer (Step 2 of the rebuild, 2026-04-08) ──────
+        # Per Platform-Foundation.md "Three Layers of Intelligence":
+        # Research extracts structured facts → Store holds them → Score reads
+        # them deterministically → Badge picks 2-4 storytellers.  This block
+        # is Research + Store.  The legacy monolithic scoring call still runs
+        # immediately after as a safety net until Step 5 of the rebuild
+        # cuts over to pure-Python scoring against the fact drawer.
+        #
+        # Three structured fact extractions per Deep Dive:
+        #   - Pillar 1 ProductLababilityFacts  (per product)
+        #   - Pillar 2 InstructionalValueFacts (per product)
+        #   - Pillar 3 CustomerFitFacts        (once per company)
+        # All run in parallel.  Each is a focused Claude call with a
+        # truth-only prompt — no Skillable judgment, no scoring, no badges.
+        from researcher import (
+            extract_customer_fit_facts,
+            extract_instructional_value_facts,
+            extract_product_labability_facts,
+        )
+
+        log.info("Intelligence.score: Research → Store phase starting for %s (%d new products)",
+                 company_name, len(new_to_score))
+
+        # Step 1 of Research → Store: deeper per-product web research.
+        # research_products() runs all per-product search queries + page
+        # fetches and returns raw search_results + page_contents that the
+        # extractors will read.  This was dead code before today — now wired
+        # in for real because the legacy "_research_cache" was never written
+        # by the discover phase, leaving the monolithic scoring call to
+        # invent product evidence from its training data.
+        try:
+            raw_product_research = research_products(company_name, new_to_score)
+        except Exception:
+            log.exception("Intelligence.score: research_products failed for %s — proceeding with empty research",
+                          company_name)
+            raw_product_research = {
+                "company_name": company_name,
+                "selected_products": new_to_score,
+                "search_results": {},
+                "page_contents": {},
+            }
+
+        # Step 2 of Research → Store: deeper company-level web research.
+        # research_company_fit() gathers company-level evidence for the
+        # Customer Fit dimensions — same dead-code situation as above.
+        try:
+            raw_company_research = research_company_fit(company_name, discovery_data)
+        except Exception:
+            log.exception("Intelligence.score: research_company_fit failed for %s — proceeding with empty research",
+                          company_name)
+            raw_company_research = {
+                "company_name": company_name,
+                "customer_fit_research": {},
+                "customer_fit_pages": {},
+            }
+
+        search_results = raw_product_research.get("search_results", {}) or {}
+        page_contents = raw_product_research.get("page_contents", {}) or {}
+        cf_research = raw_company_research.get("customer_fit_research", {}) or {}
+        cf_pages = raw_company_research.get("customer_fit_pages", {}) or {}
+
+        # Step 3 of Research → Store: parallel structured fact extraction.
+        # 2 extractors per product (Pillar 1 + Pillar 2) plus 1 company-level
+        # extractor (Pillar 3).  Each extractor is a focused Claude call with
+        # a truth-only prompt that produces typed dataclasses — no scoring,
+        # no badges, no Skillable judgment.  Defensive: any extractor failure
+        # falls back to an empty fact drawer for that product/company so the
+        # whole scoring run never crashes.
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from models import (
+            CustomerFitFacts, InstructionalValueFacts, ProductLababilityFacts,
+        )
+
+        product_labability_by_name: dict[str, ProductLababilityFacts] = {}
+        instructional_value_by_name: dict[str, InstructionalValueFacts] = {}
+        customer_fit_facts: CustomerFitFacts = CustomerFitFacts()
+
+        # Run all extractors in parallel.  Worker cap protects against
+        # rate limits when a single Deep Dive selects many products.
+        max_workers = max(3, min(len(new_to_score) * 2 + 1, 8))
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futures = {}
+            for p in new_to_score:
+                pname = p.get("name", "")
+                f1 = ex.submit(
+                    extract_product_labability_facts,
+                    pname, search_results, page_contents,
+                )
+                futures[f1] = ("p1", pname)
+                f2 = ex.submit(
+                    extract_instructional_value_facts,
+                    pname, search_results, page_contents,
+                )
+                futures[f2] = ("p2", pname)
+            f3 = ex.submit(
+                extract_customer_fit_facts,
+                company_name, discovery_data, cf_research, cf_pages,
+            )
+            futures[f3] = ("p3", company_name)
+
+            for future in as_completed(futures, timeout=300):
+                kind, key = futures[future]
+                try:
+                    result = future.result()
+                except Exception as e:
+                    log.warning("Fact extraction (%s/%s) failed: %s", kind, key, e)
+                    continue
+                if kind == "p1":
+                    product_labability_by_name[key] = result
+                elif kind == "p2":
+                    instructional_value_by_name[key] = result
+                elif kind == "p3":
+                    customer_fit_facts = result
+
+        log.info("Intelligence.score: Research → Store complete — P1: %d, P2: %d, P3: 1",
+                 len(product_labability_by_name), len(instructional_value_by_name))
+
+        # Build the research dict for the legacy monolithic scoring call.
+        # We now pass REAL per-product research (search_results + page
+        # contents) to the scorer so its product context isn't empty —
+        # this alone should sharpen the legacy path while we work toward
+        # cutting it over in Step 5.
         research = {
             "company_name": company_name,
             "selected_products": new_to_score,
-            "search_results": cache.get("search_results", {}),
-            "page_contents": cache.get("page_contents", {}),
+            "search_results": search_results,
+            "page_contents": page_contents,
             "discovery_data": discovery_data,
         }
 
@@ -847,6 +968,18 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         # so the scoring progress modal traces honestly back to actual
         # work completed — GP3 honest progress.
         new_analysis = score_selected_products(research, progress_cb=progress_cb)
+
+        # ── Store layer: attach extracted facts onto Product / CompanyAnalysis ──
+        # The fact drawers travel WITH the scored objects so they persist into
+        # analysis_<id>.json and become the input substrate for Step 3 (pure
+        # Python Pillar 1 scoring) and Step 4 (Pillars 2/3 rubric judgment).
+        new_analysis.customer_fit_facts = customer_fit_facts
+        for product in new_analysis.products:
+            pname = product.name
+            if pname in product_labability_by_name:
+                product.product_labability_facts = product_labability_by_name[pname]
+            if pname in instructional_value_by_name:
+                product.instructional_value_facts = instructional_value_by_name[pname]
 
         # Assign verdicts
         for product in new_analysis.products:

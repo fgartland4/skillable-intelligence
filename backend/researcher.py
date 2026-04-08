@@ -27,8 +27,12 @@ from typing import Optional
 from urllib.parse import urljoin
 
 from models import (
-    LabAccessFacts, ProductLababilityFacts, ProvisioningFacts,
-    ScoringFacts, TeardownFacts,
+    BuildCapacityFacts, CustomerFitFacts, DeliveryCapacityFacts,
+    InstructionalValueFacts, LabAccessFacts, LabVersatilityFacts,
+    MarketDemandFacts, MasteryStakesFacts, NumericRange,
+    OrganizationalDnaFacts, ProductComplexityFacts, ProductLababilityFacts,
+    ProvisioningFacts, ScoringFacts, SignalEvidence, TeardownFacts,
+    TrainingCommitmentFacts,
 )
 
 log = logging.getLogger(__name__)
@@ -597,37 +601,11 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
 
     page_contents = _fetch_pages_parallel(pages_to_fetch)
 
-    # ── Step 2 (2026-04-08): Research → Store layer for Pillar 1 ────────────
-    # Run structured fact extraction per product in parallel.  This populates
-    # the ProductLababilityFacts drawer with truth-only typed primitives that
-    # the Pillar 1 scorer (Step 3) will read.  The legacy monolithic scoring
-    # call still runs in scorer.py until Step 5 — both paths coexist during
-    # the rebuild so we never have a half-broken system.
-    product_facts: dict[str, ProductLababilityFacts] = {}
-    with ThreadPoolExecutor(max_workers=min(len(selected_products), 5) or 1) as ex:
-        futures = {
-            ex.submit(
-                extract_product_labability_facts,
-                p.get("name", ""),
-                search_results,
-                page_contents,
-            ): p.get("name", "")
-            for p in selected_products
-        }
-        for future in as_completed(futures, timeout=120):
-            name = futures[future]
-            try:
-                product_facts[name] = future.result()
-            except Exception as e:
-                log.warning("Pillar 1 fact extraction failed for %s: %s", name, e)
-                product_facts[name] = ProductLababilityFacts()
-
     return {
         "company_name": company_name,
         "selected_products": selected_products,
         "search_results": search_results,
         "page_contents": page_contents,
-        "product_labability_facts": product_facts,
     }
 
 
@@ -893,6 +871,627 @@ def extract_product_labability_facts(
         log.warning("Pillar 1 fact extraction Claude call failed for %s: %s", product_name, e)
         return ProductLababilityFacts()
     return _coerce_facts_dict_to_dataclass(raw)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Pillar 2 Fact Extraction — Instructional Value
+#
+# Truth-only extraction.  Reads the same per-product raw research used by the
+# Pillar 1 extractor but looks at different signals and produces a different
+# shape — mostly qualitative SignalEvidence dicts plus concrete numeric facts
+# for Market Demand (install base, employee subset, cert sit rate).
+#
+# Per Frank 2026-04-07: no `strength` field in SignalEvidence.  Strength is
+# interpretation and belongs in the scoring layer.  The observation field
+# captures the raw fact with enough context for downstream judgment.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Canonical signal category lists pulled from scoring_config at module load.
+# Define-Once: the rubric in scoring_config owns the vocabulary; research
+# reads it so Claude can only emit categories the scoring layer understands.
+def _load_canonical_signal_categories() -> dict[str, tuple[str, ...]]:
+    """Load canonical signal_category tuples per Pillar 2 dimension from config."""
+    try:
+        import scoring_config as cfg
+        out: dict[str, tuple[str, ...]] = {}
+        for pillar in cfg.PILLARS:
+            if pillar.name != "Instructional Value":
+                continue
+            for dim in pillar.dimensions:
+                key = dim.name.lower().replace(" ", "_")
+                rubric = getattr(dim, "rubric", None)
+                cats = getattr(rubric, "signal_categories", ()) if rubric else ()
+                out[key] = tuple(cats)
+        return out
+    except Exception as e:
+        log.warning("Could not load Pillar 2 signal categories from scoring_config: %s", e)
+        return {}
+
+
+_P2_SIGNAL_CATEGORIES = _load_canonical_signal_categories()
+
+
+def _format_category_list(key: str) -> str:
+    """Render a canonical category tuple as a comma-separated prompt fragment."""
+    cats = _P2_SIGNAL_CATEGORIES.get(key, ())
+    if not cats:
+        return "(categories unavailable — use your best judgment)"
+    return ", ".join(cats)
+
+
+_INSTRUCTIONAL_VALUE_FACTS_PROMPT = f"""You are a research analyst extracting structured facts about whether a software product warrants hands-on training.
+
+Your job is TRUTH ONLY.  You are NOT scoring, NOT classifying as good/bad, NOT picking winners, NOT applying any Skillable framework.  You are extracting observable facts about how complex the product is, what the stakes of getting it wrong are, what kinds of hands-on experiences the product naturally supports, and how big the worldwide market for training on it is.
+
+Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no markdown):
+
+{{
+  "product_complexity": {{
+    "description": "<1-3 sentence narrative of how complex this product is to use and administer>",
+    "signals": {{
+      "<signal_category>": {{
+        "present": <bool>,
+        "observation": "<concrete one-sentence fact from the research>",
+        "source_url": "<url>",
+        "confidence": "<confirmed|indicated|inferred>"
+      }}
+    }}
+  }},
+  "mastery_stakes": {{
+    "description": "<1-3 sentence narrative of the consequences of getting this product wrong>",
+    "signals": {{
+      "<signal_category>": {{
+        "present": <bool>,
+        "observation": "<concrete one-sentence fact>",
+        "source_url": "<url>",
+        "confidence": "<confirmed|indicated|inferred>"
+      }}
+    }}
+  }},
+  "lab_versatility": {{
+    "description": "<1-3 sentence narrative of what kinds of hands-on experiences this product naturally supports>",
+    "signals": {{
+      "<signal_category>": {{
+        "present": <bool>,
+        "observation": "<concrete one-sentence fact>",
+        "source_url": "<url>",
+        "confidence": "<confirmed|indicated|inferred>"
+      }}
+    }}
+  }},
+  "market_demand": {{
+    "description": "<1-3 sentence narrative of the worldwide market for training on this product>",
+    "install_base": {{
+      "low": <int or null>,
+      "high": <int or null>,
+      "source_url": "<url>",
+      "confidence": "<confirmed|indicated|inferred>",
+      "notes": "<any unusual context>"
+    }},
+    "employee_subset_size": {{
+      "low": <int or null>,
+      "high": <int or null>,
+      "source_url": "<url>",
+      "confidence": "<confirmed|indicated|inferred>",
+      "notes": ""
+    }},
+    "cert_annual_sit_rate": {{
+      "low": <int or null>,
+      "high": <int or null>,
+      "source_url": "<url>",
+      "confidence": "<confirmed|indicated|inferred>",
+      "notes": ""
+    }},
+    "cert_bodies_mentioning": [<"CompTIA", "EC-Council", "SANS", etc.>],
+    "independent_training_course_counts": {{<"Pluralsight": <int>, "Coursera": <int>, "LinkedIn Learning": <int>, "Udemy": <int>>}},
+    "is_ai_powered": <bool>,
+    "is_ai_platform": <bool>,
+    "signals": {{
+      "<signal_category>": {{
+        "present": <bool>,
+        "observation": "<concrete one-sentence fact>",
+        "source_url": "<url>",
+        "confidence": "<confirmed|indicated|inferred>"
+      }}
+    }}
+  }}
+}}
+
+═══ CANONICAL SIGNAL CATEGORIES ═══
+
+Use ONLY the signal category names listed below for each dimension.  If a signal doesn't match any canonical name, leave it out.  Do not invent new category names.
+
+**product_complexity signals:** {_format_category_list("product_complexity")}
+
+**mastery_stakes signals:** {_format_category_list("mastery_stakes")}
+
+**lab_versatility signals:** {_format_category_list("lab_versatility")}
+
+**market_demand signals:** {_format_category_list("market_demand")}
+
+═══ FIELD GUIDANCE ═══
+
+**description:** 1-3 sentences summarizing the dimension — what the research reveals about THIS product for THIS dimension.  Descriptive, not evaluative.
+
+**signals:** one entry per signal you actually found evidence for.  Do NOT emit a signal you didn't see evidence for.  Missing signals are fine — leave the key out entirely.
+
+**observation:** a concrete, specific one-sentence fact grounded in the research.  Not "the product is complex" — "the admin console has 12 top-level modules with 40+ configuration options each."  Not "stakes are high" — "a misconfigured policy can expose sensitive data to unauthorized users, reported in CVE-2024-XXXXX."
+
+**source_url:** the URL the evidence came from.  Empty string if synthesized from multiple sources.
+
+**confidence:**
+  - "confirmed" = direct evidence from a primary source (vendor docs, official announcements)
+  - "indicated" = strong indirect evidence across multiple signals
+  - "inferred" = pattern-based / category norms / limited signals
+
+**Market Demand numeric fields:**
+
+  - **install_base**: total users of this product worldwide.  `low` and `high` bound a BELIEVABLE range.  A range of 2000-40000 signals "we have no idea" and is FORBIDDEN — produce a tighter, defendable range or leave both null.
+  - **employee_subset_size**: headcount across all enterprises who use this product AND whose job involves it (not the company's total employees — the specialist subset).
+  - **cert_annual_sit_rate**: how many people sit for this product's certification exam annually, worldwide.  Null if no cert program or unknown.
+  - **cert_bodies_mentioning**: list of independent certification bodies whose curriculum mentions THIS product (not the parent company).
+  - **independent_training_course_counts**: dict of platform name → course count for THIS product on each independent training marketplace.  Example: {{"Pluralsight": 15, "Coursera": 3, "Udemy": 8}}.  Only include platforms you searched.
+  - **is_ai_powered**: product has AI features requiring hands-on practice.
+  - **is_ai_platform**: product IS an AI platform — labs teach building / training / deploying AI.
+
+═══ TRUTH DISCIPLINE ═══
+
+If the research doesn't say, use the conservative neutral value (null / empty / false).  Do NOT guess.  Do NOT apply your own knowledge of the product — use ONLY the research provided.  If a field cannot be determined from the research, leave it neutral rather than fabricating.
+
+Return ONLY the JSON object.  No prose, no markdown, no code fence.
+"""
+
+
+def _build_pillar_2_fact_context(name: str, search_results: dict, page_contents: dict) -> str:
+    """Build per-product research context for Pillar 2 fact extraction.
+
+    Reads Pillar 2 search keys (product complexity, mastery stakes, lab
+    versatility, market demand).  Some keys overlap with Pillar 1 (e.g.
+    documentation pages carry signal for both dimensions) — that's fine,
+    each extractor reads what it needs.
+    """
+    lines = [f"# Research for: {name}"]
+
+    pillar_2_keys = [
+        # Product Complexity signals
+        f"docs_{name}", f"ai_{name}", f"tech_{name}",
+        # Mastery Stakes signals
+        f"stakes_{name}",
+        # Lab Versatility + Market Demand signals
+        f"train_{name}", f"compete_{name}", f"marketplace_{name}",
+        f"api_{name}",  # shared with P1 but informs complexity too
+    ]
+    for key in pillar_2_keys:
+        for r in search_results.get(key, []):
+            title = r.get("title", "")
+            url = r.get("url", "")
+            snippet = r.get("snippet", "")
+            lines.append(f"- **{title}** ({url}): {snippet}")
+
+    page_key_labels = [
+        (name, "Documentation"),
+        (f"docs_{name}", "Docs Page"),
+        (f"train_{name}", "Training Page"),
+    ]
+    for key, label in page_key_labels:
+        if key in page_contents:
+            lines.append(f"\n### {label}:")
+            lines.append(page_contents[key])
+
+    return "\n".join(lines)
+
+
+def _coerce_numeric_range(raw: dict | None) -> NumericRange:
+    """Defensive parse of a NumericRange dict."""
+    if not isinstance(raw, dict):
+        return NumericRange()
+    def _opt_int(v):
+        if v is None:
+            return None
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+    return NumericRange(
+        low=_opt_int(raw.get("low")),
+        high=_opt_int(raw.get("high")),
+        source_url=str(raw.get("source_url") or ""),
+        confidence=str(raw.get("confidence") or ""),
+        notes=str(raw.get("notes") or ""),
+    )
+
+
+def _coerce_signal_evidence(raw: dict | None) -> SignalEvidence:
+    """Defensive parse of a SignalEvidence dict (no strength field — truth only)."""
+    if not isinstance(raw, dict):
+        return SignalEvidence()
+    return SignalEvidence(
+        present=bool(raw.get("present") or False),
+        observation=str(raw.get("observation") or ""),
+        source_url=str(raw.get("source_url") or ""),
+        confidence=str(raw.get("confidence") or ""),
+    )
+
+
+def _coerce_signals_dict(raw: dict | None) -> dict[str, SignalEvidence]:
+    """Defensive parse of a dict of signal_category → SignalEvidence."""
+    if not isinstance(raw, dict):
+        return {}
+    return {str(k): _coerce_signal_evidence(v) for k, v in raw.items()}
+
+
+def _coerce_iv_facts_dict_to_dataclass(raw: dict) -> InstructionalValueFacts:
+    """Parse the JSON Claude returned into InstructionalValueFacts.
+
+    Defensive: drops unknown keys, supplies neutral defaults for missing
+    keys, never raises on field-shape mismatch.
+    """
+    def _str(v) -> str: return str(v) if v is not None else ""
+
+    pc_raw = raw.get("product_complexity", {}) or {}
+    product_complexity = ProductComplexityFacts(
+        description=_str(pc_raw.get("description")),
+        signals=_coerce_signals_dict(pc_raw.get("signals")),
+    )
+
+    ms_raw = raw.get("mastery_stakes", {}) or {}
+    mastery_stakes = MasteryStakesFacts(
+        description=_str(ms_raw.get("description")),
+        signals=_coerce_signals_dict(ms_raw.get("signals")),
+    )
+
+    lv_raw = raw.get("lab_versatility", {}) or {}
+    lab_versatility = LabVersatilityFacts(
+        description=_str(lv_raw.get("description")),
+        signals=_coerce_signals_dict(lv_raw.get("signals")),
+    )
+
+    md_raw = raw.get("market_demand", {}) or {}
+    cert_bodies = md_raw.get("cert_bodies_mentioning") or []
+    if not isinstance(cert_bodies, list):
+        cert_bodies = []
+    course_counts_raw = md_raw.get("independent_training_course_counts") or {}
+    course_counts: dict[str, int] = {}
+    if isinstance(course_counts_raw, dict):
+        for k, v in course_counts_raw.items():
+            try:
+                course_counts[str(k)] = int(v)
+            except (TypeError, ValueError):
+                continue
+
+    market_demand = MarketDemandFacts(
+        description=_str(md_raw.get("description")),
+        install_base=_coerce_numeric_range(md_raw.get("install_base")),
+        employee_subset_size=_coerce_numeric_range(md_raw.get("employee_subset_size")),
+        cert_annual_sit_rate=_coerce_numeric_range(md_raw.get("cert_annual_sit_rate")),
+        cert_bodies_mentioning=[str(b) for b in cert_bodies],
+        independent_training_course_counts=course_counts,
+        is_ai_powered=bool(md_raw.get("is_ai_powered") or False),
+        is_ai_platform=bool(md_raw.get("is_ai_platform") or False),
+        signals=_coerce_signals_dict(md_raw.get("signals")),
+    )
+
+    return InstructionalValueFacts(
+        product_complexity=product_complexity,
+        mastery_stakes=mastery_stakes,
+        lab_versatility=lab_versatility,
+        market_demand=market_demand,
+    )
+
+
+def extract_instructional_value_facts(
+    product_name: str,
+    search_results: dict,
+    page_contents: dict,
+) -> InstructionalValueFacts:
+    """Extract Pillar 2 facts for one product from raw research.
+
+    Truth-only.  One focused Claude call per product, populating the
+    InstructionalValueFacts drawer with qualitative SignalEvidence dicts
+    plus concrete numeric facts for Market Demand.  On failure, returns
+    an empty InstructionalValueFacts so the research run never crashes.
+    """
+    from scorer import _call_claude  # local import to avoid circular dep
+    context = _build_pillar_2_fact_context(product_name, search_results, page_contents)
+    log.info("Pillar 2 fact extraction starting for %s", product_name)
+    try:
+        raw = _call_claude(
+            _INSTRUCTIONAL_VALUE_FACTS_PROMPT,
+            context,
+            max_tokens=4000,
+        )
+    except Exception as e:
+        log.warning("Pillar 2 fact extraction Claude call failed for %s: %s", product_name, e)
+        return InstructionalValueFacts()
+    return _coerce_iv_facts_dict_to_dataclass(raw)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Pillar 3 Fact Extraction — Customer Fit (company-level, one call per company)
+#
+# Reads company-level research (training programs, partners, delivery infra,
+# org DNA signals) and produces a CustomerFitFacts drawer with top-level
+# shared facts plus four per-dimension sub-drawers.  This fires ONCE per
+# company, not per product.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_CUSTOMER_FIT_FACTS_PROMPT = """You are a research analyst extracting structured facts about an organization's ability to build, deliver, and commit to hands-on training.
+
+Your job is TRUTH ONLY.  You are NOT scoring, NOT classifying as good/bad, NOT picking winners, NOT applying any Skillable framework.  You are extracting observable facts about the company.
+
+Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no markdown):
+
+{
+  "description": "<1-3 sentence narrative of the company as a training/enablement organization>",
+  "total_employees": {"low": <int or null>, "high": <int or null>, "source_url": "", "confidence": "", "notes": ""},
+  "channel_partners_size": {"low": <int or null>, "high": <int or null>, "source_url": "", "confidence": "", "notes": ""},
+  "channel_partner_se_population": {"low": <int or null>, "high": <int or null>, "source_url": "", "confidence": "", "notes": ""},
+  "named_channel_partners": [<"Deloitte", "Accenture", ...>],
+  "events_attendance": {"<event name>": {"low": <int or null>, "high": <int or null>, "source_url": "", "confidence": "", "notes": ""}},
+  "enterprise_reference_customers": [<"Fortune 500 names from case studies">],
+  "geographic_reach_regions": [<"NAMER", "EMEA", "APAC", "LATAM">],
+
+  "training_commitment": {
+    "description": "",
+    "has_on_demand_catalog": <bool>,
+    "has_ilt_calendar": <bool>,
+    "customer_enablement_team_name": "",
+    "certification_programs": [<"name of cert program", ...>],
+    "training_leadership_titles": [<"VP of Education", "Chief Learning Officer", ...>],
+    "training_catalog_url": "",
+    "audiences_served": [<"employees", "customers", "partners", "end_users">],
+    "has_compliance_training": <bool>,
+    "uses_hands_on_language": <bool>,
+    "signals": {}
+  },
+
+  "build_capacity": {
+    "description": "",
+    "lab_build_platforms_in_use": [<"Skillable", "Instruqt", "CloudShare", ...>],
+    "is_already_building_labs": <bool>,
+    "content_team_name": "",
+    "authoring_roles_found": [<"Instructional Designer", "Lab Author", "Technical Writer", ...>],
+    "outsourcing_evidence": [<"specific finding strings">],
+    "signals": {}
+  },
+
+  "delivery_capacity": {
+    "description": "",
+    "has_vendor_delivered_training": <bool>,
+    "vendor_training_modes": [<"ilt", "self_paced", "vendor_labs", "bootcamps">],
+    "has_published_course_calendar": <bool>,
+    "course_calendar_url": "",
+    "has_informal_training_partners": <bool>,
+    "named_informal_training_partners": [<"partner name", ...>],
+    "authorized_training_program_name": "",
+    "authorized_training_partners_count": {"low": <int or null>, "high": <int or null>, "source_url": "", "confidence": "", "notes": ""},
+    "named_authorized_training_partners": [<"ATP name", ...>],
+    "lms_platforms_in_use": [<"Docebo", "Cornerstone", "Moodle", ...>],
+    "cert_delivery_vendors": [<"Pearson VUE", "Prometric", "PSI", ...>],
+    "signals": {}
+  },
+
+  "organizational_dna": {
+    "description": "",
+    "partnership_types": [<"technology", "channel", "content", "delivery", "integration">],
+    "named_alliance_leadership": [<"VP Alliances name or title">],
+    "uses_external_platforms": [<"Salesforce", "Workday", "Okta", ...>],
+    "funding_events": [<"IPO 2024", "Series D $200M", ...>],
+    "has_recent_layoffs": <bool>,
+    "signals": {}
+  }
+}
+
+═══ FIELD GUIDANCE ═══
+
+**Top-level shared facts** feed multiple downstream readers.  Be careful:
+  - `total_employees`: the company's total headcount, not the training team.
+  - `channel_partners_size`: total partner count — resellers, GSIs, distributors combined.
+  - `channel_partner_se_population`: approximate number of sales engineers / solution architects working inside the channel partner ecosystem.  This feeds ACV Motion 2.
+  - `named_channel_partners`: specific partner names mentioned in the research.
+  - `events_attendance`: flagship events the company runs — name → attendance range.  e.g. {"Cohesity Connect": {"low": 5000, "high": 5500, ...}}.
+  - `enterprise_reference_customers`: Fortune 500 names mentioned as customers in case studies.
+  - `geographic_reach_regions`: where the company operates — NAMER / EMEA / APAC / LATAM.
+
+**training_commitment.audiences_served**: ONLY the subset of {"employees", "customers", "partners", "end_users"} that the research actually documents training for.  Multi-audience breadth is a strong signal.
+
+**training_commitment.uses_hands_on_language**: true if the company's training materials explicitly mention "hands-on", "lab", "interactive", "scenario-based" language.
+
+**build_capacity.lab_build_platforms_in_use**: competitor lab platforms detected on the company's website or in their training materials.  Use canonical platform names.
+
+**delivery_capacity** — separate field sets for informal vs authorized partner programs because a company can have both simultaneously (e.g., transitioning from informal to a new ATP).  Do not collapse them.
+
+**delivery_capacity.authorized_training_program_name**: empty string if no formal program exists.  If a program exists, name it (e.g. "Cohesity Authorized Training Partner Program").
+
+**delivery_capacity.lms_platforms_in_use**: named LMS platforms the company uses — Docebo, Cornerstone, Moodle, etc.
+
+**organizational_dna.uses_external_platforms**: Platform Buyer evidence.  If the company publicly uses Salesforce, Workday, Okta, etc., name them.
+
+**organizational_dna.funding_events**: recent IPOs, funding rounds, M&A activity that signal scale / stability.
+
+═══ TRUTH DISCIPLINE ═══
+
+If the research doesn't say, use the conservative neutral value (null / empty / false).  Do NOT guess.  Do NOT apply your own knowledge of the company — use ONLY the research provided.  If a field cannot be determined from the research, leave it neutral rather than fabricating.
+
+Return ONLY the JSON object.  No prose, no markdown, no code fence.
+"""
+
+
+def _build_pillar_3_fact_context(
+    company_name: str,
+    discovery_data: dict | None,
+    customer_fit_research: dict,
+    customer_fit_pages: dict,
+) -> str:
+    """Build company-level research context for Pillar 3 fact extraction.
+
+    Pulls from two sources:
+      1. discovery_data — company homepage, training pages, partner pages
+         already fetched during the Discover phase (cheap, cached).
+      2. customer_fit_research / customer_fit_pages — the deeper
+         company-level research fired by research_company_fit() at
+         Deep Dive time.
+    """
+    lines = [f"# Company: {company_name}"]
+
+    # From discovery data (already-fetched at search time)
+    if discovery_data:
+        if discovery_data.get("company_description"):
+            lines.append(f"\n**Description:** {discovery_data['company_description']}")
+        if discovery_data.get("company_url"):
+            lines.append(f"**URL:** {discovery_data['company_url']}")
+
+        disc_pages = discovery_data.get("page_contents") or {}
+        for key in ("company_homepage", "training_page", "atp_page", "partner_portal_page"):
+            if key in disc_pages:
+                lines.append(f"\n## Discovery — {key.replace('_', ' ').title()}")
+                lines.append(disc_pages[key])
+
+        for key in ("training_programs", "atp_signals", "training_catalog",
+                    "partner_ecosystem", "partner_portal", "cs_signals",
+                    "lms_signals", "org_contacts"):
+            results = discovery_data.get(key) or []
+            if results:
+                lines.append(f"\n## Discovery — {key.replace('_', ' ').title()}")
+                for r in results[:8]:
+                    lines.append(f"- **{r.get('title', '')}** ({r.get('url', '')}): {r.get('snippet', '')}")
+
+    # From the deeper Pillar 3 research
+    if customer_fit_research:
+        for key, results in customer_fit_research.items():
+            if not results:
+                continue
+            lines.append(f"\n## Deep Research — {key}")
+            for r in results[:6]:
+                lines.append(f"- **{r.get('title', '')}** ({r.get('url', '')}): {r.get('snippet', '')}")
+
+    if customer_fit_pages:
+        for key, content in customer_fit_pages.items():
+            lines.append(f"\n### Fetched page — {key}:")
+            lines.append(content[:3000])
+
+    return "\n".join(lines)
+
+
+def _coerce_cf_facts_dict_to_dataclass(raw: dict) -> CustomerFitFacts:
+    """Parse the JSON Claude returned into CustomerFitFacts.
+
+    Defensive: drops unknown keys, supplies neutral defaults for missing
+    keys, never raises on field-shape mismatch.
+    """
+    def _str(v) -> str: return str(v) if v is not None else ""
+    def _bool(v) -> bool: return bool(v) if v is not None else False
+    def _list_str(v) -> list:
+        return [str(x) for x in v] if isinstance(v, list) else []
+
+    # ── Training Commitment ─────────────────────────────────────────────
+    tc_raw = raw.get("training_commitment", {}) or {}
+    training_commitment = TrainingCommitmentFacts(
+        description=_str(tc_raw.get("description")),
+        has_on_demand_catalog=_bool(tc_raw.get("has_on_demand_catalog")),
+        has_ilt_calendar=_bool(tc_raw.get("has_ilt_calendar")),
+        customer_enablement_team_name=_str(tc_raw.get("customer_enablement_team_name")),
+        certification_programs=_list_str(tc_raw.get("certification_programs")),
+        training_leadership_titles=_list_str(tc_raw.get("training_leadership_titles")),
+        training_catalog_url=_str(tc_raw.get("training_catalog_url")),
+        audiences_served=_list_str(tc_raw.get("audiences_served")),
+        has_compliance_training=_bool(tc_raw.get("has_compliance_training")),
+        uses_hands_on_language=_bool(tc_raw.get("uses_hands_on_language")),
+        signals=_coerce_signals_dict(tc_raw.get("signals")),
+    )
+
+    # ── Build Capacity ──────────────────────────────────────────────────
+    bc_raw = raw.get("build_capacity", {}) or {}
+    build_capacity = BuildCapacityFacts(
+        description=_str(bc_raw.get("description")),
+        lab_build_platforms_in_use=_list_str(bc_raw.get("lab_build_platforms_in_use")),
+        is_already_building_labs=_bool(bc_raw.get("is_already_building_labs")),
+        content_team_name=_str(bc_raw.get("content_team_name")),
+        authoring_roles_found=_list_str(bc_raw.get("authoring_roles_found")),
+        outsourcing_evidence=_list_str(bc_raw.get("outsourcing_evidence")),
+        signals=_coerce_signals_dict(bc_raw.get("signals")),
+    )
+
+    # ── Delivery Capacity ───────────────────────────────────────────────
+    dc_raw = raw.get("delivery_capacity", {}) or {}
+    delivery_capacity = DeliveryCapacityFacts(
+        description=_str(dc_raw.get("description")),
+        has_vendor_delivered_training=_bool(dc_raw.get("has_vendor_delivered_training")),
+        vendor_training_modes=_list_str(dc_raw.get("vendor_training_modes")),
+        has_published_course_calendar=_bool(dc_raw.get("has_published_course_calendar")),
+        course_calendar_url=_str(dc_raw.get("course_calendar_url")),
+        has_informal_training_partners=_bool(dc_raw.get("has_informal_training_partners")),
+        named_informal_training_partners=_list_str(dc_raw.get("named_informal_training_partners")),
+        authorized_training_program_name=_str(dc_raw.get("authorized_training_program_name")),
+        authorized_training_partners_count=_coerce_numeric_range(dc_raw.get("authorized_training_partners_count")),
+        named_authorized_training_partners=_list_str(dc_raw.get("named_authorized_training_partners")),
+        lms_platforms_in_use=_list_str(dc_raw.get("lms_platforms_in_use")),
+        cert_delivery_vendors=_list_str(dc_raw.get("cert_delivery_vendors")),
+        signals=_coerce_signals_dict(dc_raw.get("signals")),
+    )
+
+    # ── Organizational DNA ──────────────────────────────────────────────
+    od_raw = raw.get("organizational_dna", {}) or {}
+    organizational_dna = OrganizationalDnaFacts(
+        description=_str(od_raw.get("description")),
+        partnership_types=_list_str(od_raw.get("partnership_types")),
+        named_alliance_leadership=_list_str(od_raw.get("named_alliance_leadership")),
+        uses_external_platforms=_list_str(od_raw.get("uses_external_platforms")),
+        funding_events=_list_str(od_raw.get("funding_events")),
+        has_recent_layoffs=_bool(od_raw.get("has_recent_layoffs")),
+        signals=_coerce_signals_dict(od_raw.get("signals")),
+    )
+
+    # ── Events attendance dict ──────────────────────────────────────────
+    events_raw = raw.get("events_attendance") or {}
+    events_attendance: dict[str, NumericRange] = {}
+    if isinstance(events_raw, dict):
+        for ev_name, ev_raw in events_raw.items():
+            events_attendance[str(ev_name)] = _coerce_numeric_range(ev_raw)
+
+    return CustomerFitFacts(
+        description=_str(raw.get("description")),
+        total_employees=_coerce_numeric_range(raw.get("total_employees")),
+        channel_partners_size=_coerce_numeric_range(raw.get("channel_partners_size")),
+        channel_partner_se_population=_coerce_numeric_range(raw.get("channel_partner_se_population")),
+        named_channel_partners=_list_str(raw.get("named_channel_partners")),
+        events_attendance=events_attendance,
+        enterprise_reference_customers=_list_str(raw.get("enterprise_reference_customers")),
+        geographic_reach_regions=_list_str(raw.get("geographic_reach_regions")),
+        training_commitment=training_commitment,
+        build_capacity=build_capacity,
+        delivery_capacity=delivery_capacity,
+        organizational_dna=organizational_dna,
+    )
+
+
+def extract_customer_fit_facts(
+    company_name: str,
+    discovery_data: dict | None,
+    customer_fit_research: dict,
+    customer_fit_pages: dict,
+) -> CustomerFitFacts:
+    """Extract Pillar 3 facts for one company from raw research.
+
+    Truth-only.  One focused Claude call per company (not per product),
+    populating the CustomerFitFacts drawer.  On failure, returns an empty
+    CustomerFitFacts so the scoring run never crashes.
+    """
+    from scorer import _call_claude  # local import to avoid circular dep
+    context = _build_pillar_3_fact_context(
+        company_name, discovery_data, customer_fit_research, customer_fit_pages,
+    )
+    log.info("Pillar 3 fact extraction starting for %s", company_name)
+    try:
+        raw = _call_claude(
+            _CUSTOMER_FIT_FACTS_PROMPT,
+            context,
+            max_tokens=4000,
+        )
+    except Exception as e:
+        log.warning("Pillar 3 fact extraction Claude call failed for %s: %s", company_name, e)
+        return CustomerFitFacts()
+    return _coerce_cf_facts_dict_to_dataclass(raw)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
