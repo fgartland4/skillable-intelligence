@@ -1067,23 +1067,42 @@ _market_demand_rubric = Rubric(
         "Category demand priors (cybersecurity, cloud, networking are inherently high-demand)",
         "Competitor labs confirmed (other providers invest in hands-on for this product)",
         "AI signals (product builds AI, product has embedded AI features)",
+        "Independent third-party training market — Coursera, Pluralsight, LinkedIn Learning, "
+        "Udemy, Skillsoft course counts where the publisher is NOT the vendor. Independent "
+        "trainers wouldn't invest without market demand, so course counts are a direct demand "
+        "signal. (Vendor-published courses on those same platforms are Delivery Capacity + "
+        "Build Capacity, NOT Market Demand — Frank 2026-04-08.)",
+        "Cert body curricula — CompTIA, EC-Council, SANS, ISC2 mentioning THIS product in "
+        "their curricula. External recognition by cert bodies is a demand signal. (Frank "
+        "2026-04-08 — moved from Delivery Capacity.)",
+        "Formal Authorized Training Partner networks — ATPs / ALPs prove demand exists, "
+        "because partners wouldn't invest in certification and delivery infrastructure "
+        "without underlying skill demand. This is a CROSS-CREDIT with Delivery Capacity: "
+        "the same ATP fact produces a Delivery Capacity Layer 2 signal AND a Market Demand "
+        "signal. Both credits fire legitimately.",
     ),
     is_not_about=(
         "How the customer org is structured (that is Organizational DNA)",
         "Whether the customer has training programs (that is Training Commitment)",
         "Technical depth of the product (that is Product Complexity)",
+        "Vendor-direct training (Delivery Capacity — Layer 1 vendor-delivered)",
+        "LMS infrastructure (Delivery Capacity)",
+        "Lab infrastructure / lab platforms (Build Capacity)",
     ),
     signal_categories=(
         # Scale + population answers (for product-specific differentiation within a category)
         "install_base_scale",
         "enterprise_validation",
         "geographic_reach",
-        # Independent training market answers (Frank 2026-04-07):
-        # Category demand is the baseline (cybersecurity = high). Product-
-        # specific evidence comes from WHO TEACHES THIS PRODUCT externally.
-        # These are cross-pillar — also fire in Delivery Capacity.
+        # Independent training market answers (Market Demand only per Frank
+        # 2026-04-08). Product-specific evidence from WHO TEACHES THIS
+        # PRODUCT externally via independent publishers.
         "cert_body_mentions",          # CompTIA / EC-Council / SANS / ISC2 mention THIS product
-        "independent_training_market", # Coursera / Pluralsight / LinkedIn Learning / Udemy courses exist
+        "independent_training_market", # Coursera / Pluralsight / LinkedIn Learning / Udemy — independent publishers only
+        # ATP cross-credit from Delivery Capacity (Frank 2026-04-08):
+        # same fact produces two credits — Delivery Layer 2 AND Market
+        # Demand validation.
+        "atp_alp_program",             # formal ATPs prove demand exists
         # Vendor's own ecosystem:
         "cert_ecosystem",              # vendor's own certification program
         "competitor_labs",             # other lab platforms sell training for this product
@@ -1097,7 +1116,7 @@ _market_demand_rubric = Rubric(
         # penalization here because the evidence is outward-facing and easy
         # to verify.  The AI emits these as amber badges and the math layer
         # subtracts the configured hit.
-        "no_independent_training_market",  # cross-pillar with Delivery Capacity — fewer than 3 courses found
+        "no_independent_training_market",  # fewer than 3 courses found (Market Demand only now)
         "small_install_base",              # < ~1K users / tens of logos / no press
         "niche_within_category",           # hot category, narrow specialty inside it (e.g., Trellix GTI inside cyber)
     ),
@@ -1388,11 +1407,16 @@ _organizational_dna_dimension = Dimension(
 
 _delivery_capacity_badges = (
     # ANSWERS — each badge names a specific delivery capability or gap.
-    # Lab Platform badges are the ACTUAL platform name (Skillable,
-    # CloudShare, Instruqt, Skytap, No Lab Platform, DIY Lab Platform)
-    # — the badge label IS the finding. LMS badges are the specific LMS.
-    # Variable AI-synthesized names preferred for counts and geographic
-    # reach (e.g., "~500 ATPs", "Global Partner Network", "Cisco Live 30K").
+    # Delivery Capacity is the vendor's apparatus for REACHING LEARNERS:
+    # vendor-direct training, ATP/ALP networks, LMS platforms, events,
+    # published course calendars, cert delivery infrastructure, and
+    # geographic reach. It is NOT about lab infrastructure (Skillable,
+    # CloudShare, Instruqt, DIY lab platforms) — lab infrastructure is
+    # BUILD CAPACITY. It is NOT about independent third-party training
+    # markets (Pluralsight, Coursera, LinkedIn Learning, Udemy) or cert
+    # body curricula (CompTIA, EC-Council, SANS, ISC2) — those are
+    # MARKET DEMAND. See Frank's 2026-04-08 rebuild routing decisions
+    # in docs/next-session-todo.md §0b.
     #
     # ONE FACT, ONE BADGE (Frank 2026-04-07): the fact "the vendor delivers
     # its own training" is a single finding. Don't split it into three
@@ -1410,16 +1434,17 @@ _delivery_capacity_badges = (
         BadgeColor("green", "Vendor runs its own training directly — list the modes found (ILT, self-paced portal, vendor-run labs, bootcamps) in the evidence text. Strong green when multiple modes exist at scale; name the depth you actually saw."),
         BadgeColor("amber", "Vendor-run training exists but is thin — e.g., slide-deck-only, one short course, limited scope"),
     )),
-    # ── Partner-delivered training (ATP / ALP programs) ──────────────
+    # ── Layer 2: Auth-Partner-delivered (ATP / ALP programs) ─────────
+    # Formal vendor-built partner programs for delivering training at
+    # scale. Cross-credit with Market Demand: ATPs prove demand exists
+    # (partners wouldn't invest without skill demand).
     Badge("Global Partner Network", (
         BadgeColor("green", "Scaled global Authorized Training Partner / Authorized Learning Partner network — use the count if known (e.g. ~500 ATPs)"),
     )),
     Badge("Regional Partner Network", (
         BadgeColor("amber", "ATP / ALP program exists but regionally limited"),
     )),
-    Badge("Skillable-Hosted", (
-        BadgeColor("green", "Skillable is their current LMS or lab platform — expansion opportunity"),
-    )),
+    # ── LMS infrastructure (how training is delivered to learners) ──
     Badge("Docebo-Hosted", (
         BadgeColor("green", "Docebo is their current LMS — Skillable-compatible partner LMS"),
     )),
@@ -1432,15 +1457,7 @@ _delivery_capacity_badges = (
     Badge("Skillable Customer", (
         BadgeColor("green", "Already a Skillable customer — expansion opportunity"),
     )),
-    Badge("Competitor Lab Platform", (
-        BadgeColor("amber", "Competitor lab platform (CloudShare, Instruqt, Skytap, Kyndryl, ReadyTech) — displacement opportunity"),
-    )),
-    Badge("No Lab Platform", (
-        BadgeColor("gray", "No incumbent lab platform detected — greenfield opportunity, no competitor to displace"),
-    )),
-    Badge("DIY Lab Platform", (
-        BadgeColor("gray", "They built their own lab platform — replacement opportunity"),
-    )),
+    # ── Events / calendar / cert delivery infrastructure ─────────────
     Badge("Flagship Event at Scale", (
         BadgeColor("green", "Major flagship event with hands-on tracks at scale — use the event name and attendance (e.g. Cisco Live 30K)"),
     )),
@@ -1450,21 +1467,15 @@ _delivery_capacity_badges = (
     Badge("Cert Delivery Infrastructure", (
         BadgeColor("green", "Pearson VUE / Certiport / PSI / Certiverse integration — cert delivery reach"),
     )),
-    # Penalty answers (fire via RUBRIC_PENALTY_SIGNALS)
+    # ── Penalty answers (fire via RUBRIC_PENALTY_SIGNALS) ───────────
     Badge("No Training Partners", (
         BadgeColor("red", "Zero ATP / reseller / channel training network where partners should exist"),
     )),
     Badge("No Classroom Delivery", (
         BadgeColor("red", "Zero evidence of instructor-led training, bootcamps, workshops, or published course calendar"),
     )),
-    Badge("No Independent Training", (
-        BadgeColor("amber", "Fewer than 3 courses on Coursera / Pluralsight / LinkedIn Learning / Udemy — open market has not invested"),
-    )),
     Badge("Single-Region Reach", (
         BadgeColor("amber", "Delivery presence limited to one state or country"),
-    )),
-    Badge("Gray Market Only", (
-        BadgeColor("amber", "Training exists only from unaffiliated third parties — vendor hasn't invested in delivery"),
     )),
 )
 
@@ -1472,29 +1483,23 @@ _delivery_capacity_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 8,
-            "A strong positive answer — the three delivery layers stack for BONUS POINTS. Each "
-            "layer found adds on top of the previous one:\n"
-            "  - Layer 1 (base): vendor-delivered training alone = strong when real (ILT, "
-            "self-paced, vendor labs)\n"
-            "  - Layer 2 (bonus): third-party independent training in the open market "
-            "(Coursera / Pluralsight / LinkedIn Learning / cert bodies mention THIS product)\n"
-            "  - Layer 3 (TOP bonus): formal ATP / ALP program — scaled multi-partner delivery "
-            "maturity\n"
-            "Also strong: named existing lab platform (Skillable, CloudShare, etc.); "
-            "Skillable-partner LMS already in place (Docebo, Cornerstone); flagship events at "
-            "scale with hands-on tracks; cert delivery infrastructure (Pearson VUE, Certiport). "
-            "**One fact, one badge.** Emit exactly one badge per layer found. Layer 1 is a "
-            "single `Vendor-Delivered Training` badge whose evidence text names the modes "
-            "found. Layer 2 and Layer 3 are separate badges because they are separate facts "
-            "(third-party independent market vs. formal ATP/ALP program).",
+            "A strong positive answer — the two delivery layers stack for BONUS POINTS:\n"
+            "  - Layer 1 (base): vendor-delivered training — ILT, self-paced portal, vendor-run "
+            "labs, bootcamps, published course calendar at scale\n"
+            "  - Layer 2 (TOP bonus): formal ATP / ALP program — scaled multi-partner delivery "
+            "maturity where the vendor has built a certified partner network\n"
+            "Also strong: Skillable-partner LMS already in place (Docebo, Cornerstone); flagship "
+            "events at scale with hands-on tracks; cert delivery infrastructure (Pearson VUE, "
+            "Certiport, PSI, Certiverse). **One fact, one badge.** Emit exactly one badge per "
+            "layer found. Layer 1 is a single `Vendor-Delivered Training` badge whose evidence "
+            "text names the modes found. Layer 2 is a separate `Global Partner Network` (or "
+            "regional) badge.",
         ),
         RubricTier(
             "moderate", 4,
-            "A partial positive answer — any single layer of the three delivered in limited "
-            "form. Regional (not global) ATP network; vendor-direct training without evidence "
-            "of third-party or partner delivery; 'No Lab Platform' (greenfield, still counts "
-            "as moderate); 'DIY Lab Platform' (replacement opportunity); other LMS in place; "
-            "smaller events.",
+            "A partial positive answer — any single layer delivered in limited form. Regional "
+            "(not global) ATP network; vendor-direct training without a formal partner program; "
+            "other LMS in place (non-Skillable partner); smaller events with hands-on tracks.",
         ),
         RubricTier(
             "informational", 0,
@@ -1507,37 +1512,39 @@ _delivery_capacity_rubric = Rubric(
         ),
     ),
     is_about=(
-        "Whether the org has the CAPACITY to reach learners at scale — outward-facing infrastructure",
+        "Whether the org has the CAPACITY to reach learners at scale — the vendor's own delivery "
+        "apparatus and distribution network",
         "",
-        "THREE DELIVERY LAYERS — each is a separate signal and ALL THREE are worth surfacing:",
+        "TWO DELIVERY LAYERS — each is a separate signal and both are worth surfacing:",
         "",
         "  1. VENDOR-DELIVERED — the vendor runs training directly. Official ILT, self-paced "
-        "portal, vendor-run hands-on labs. Positive signal but bounded to what the vendor alone "
-        "can reach. **Emit ONE badge** (`Vendor-Delivered Training`) whose evidence text names "
-        "the specific modes you found. Do NOT split ILT, self-paced, and labs into three "
-        "separate badges — that's three labels for one fact.",
+        "portal, vendor-run hands-on labs, bootcamps, published course calendar. Positive "
+        "signal bounded to what the vendor alone reaches. **Emit ONE badge** "
+        "(`Vendor-Delivered Training`) whose evidence text names the specific modes you found. "
+        "Do NOT split ILT, self-paced, and labs into three separate badges — that's three "
+        "labels for one fact.",
         "",
-        "  2. THIRD-PARTY-DELIVERED — independent training in the open market. Coursera, "
-        "Pluralsight, LinkedIn Learning, Udemy have courses on this product. Also cert-body "
-        "curricula (CompTIA, EC-Council, SANS, ISC2) that mention this product. Positive "
-        "signal with real reach because independent trainers wouldn't invest if nobody wanted "
-        "the training. CROSS-PILLAR with Market Demand (same evidence, two questions). Use "
-        "badges like `~15 Pluralsight Courses`, `CompTIA Curriculum`, `EC-Council Track`. "
-        "Absence fires the `no_independent_training_market` penalty.",
+        "  2. AUTH-PARTNER-DELIVERED — formal Authorized Training Partner / Authorized Learning "
+        "Partner program. ATPs and ALPs are certified partners the vendor has authorized to "
+        "deliver training at scale. This is the TOP delivery signal because it represents "
+        "scaled multi-partner delivery maturity — the vendor has built a program, invested in "
+        "partner certification, and has a network of named partners doing the delivery. Use "
+        "badges like `Global Partner Network`, `Regional Partner Network`, `~500 ATPs`. "
+        "**Cross-credit with Market Demand**: ATPs also prove demand exists (partners wouldn't "
+        "invest without skill demand), so ATP facts fire a Market Demand signal in parallel.",
         "",
-        "  3. AUTH-PARTNER-DELIVERED — formal Authorized Training Partner / Authorized Learning "
-        "Partner program. ATPs and ALPs are certified partners who deliver the vendor's training "
-        "at scale. This is the TOP delivery signal because it represents scaled multi-partner "
-        "delivery maturity — the vendor has built a program, invested in partner certification, "
-        "and has a network of named partners doing the delivery. Use badges like `Global Partner "
-        "Network`, `Regional Partner Network`, `~500 ATPs`.",
+        "A vendor can have both layers (ideal), just one, or none (red flag).",
         "",
-        "A vendor can have all three layers (ideal), any subset, or none (red flag). Each layer "
-        "is a distinct fact and should be surfaced independently — don't conflate them.",
+        "VENDOR-PUBLISHED THIRD-PARTY COURSES are a special case: when the vendor themselves "
+        "is the publisher of courses on a third-party platform (e.g., Google Cloud Training on "
+        "Coursera, AWS Training on LinkedIn Learning, Microsoft Learn content on edX), that "
+        "counts as vendor-delivered training distributed through a third-party channel AND as "
+        "Build Capacity (they built the content). Do NOT confuse this with independent third "
+        "party courses on those same platforms — independent third-party courses belong to "
+        "Market Demand, not Delivery Capacity.",
         "",
-        "Lab platforms — Skillable (expansion), competitor (displacement), DIY (replacement), none (greenfield)",
         "LMS platforms at scale (Skillable-partner LMS scores higher — Docebo, Cornerstone)",
-        "Flagship events with hands-on tracks (Cohesity Connect, Cisco Live) — cross-pillar with Market Demand",
+        "Flagship events with hands-on tracks (Cohesity Connect, Cisco Live)",
         "Published course calendars — real evidence of active ILT delivery",
         "Cert delivery infrastructure (Pearson VUE, Certiport, PSI)",
         "Geographic reach (Indiana < US < Hemisphere < Global)",
@@ -1546,39 +1553,47 @@ _delivery_capacity_rubric = Rubric(
     ),
     is_not_about=(
         "Content creation roles (Build Capacity)",
+        "Lab infrastructure — Skillable, CloudShare, Instruqt, Skytap, Kyndryl, ReadyTech, "
+        "DIY lab platforms, owned VM farm. Lab infrastructure lives in Build Capacity, not "
+        "Delivery Capacity (Frank 2026-04-08).",
+        "Independent third-party courses on Coursera / Pluralsight / LinkedIn Learning / "
+        "Udemy / Skillsoft where the publisher is NOT the vendor. Those are Market Demand "
+        "signals — the market showing up independently, not the vendor delivering. (Exception: "
+        "vendor-published courses on those same platforms ARE Delivery Capacity + Build "
+        "Capacity — see is_about.)",
+        "Cert body curricula (CompTIA / EC-Council / SANS / ISC2 mentioning the product) — "
+        "that's external market recognition, a Market Demand signal, not the vendor's "
+        "delivery.",
         "Just having a training catalog (Training Commitment)",
         "Org culture / partnerships in general (Organizational DNA)",
         "Whether the labs themselves are good (that is content quality, not delivery)",
     ),
     signal_categories=(
-        # Three delivery layers — ONE BADGE PER LAYER FOUND. Layers stack
-        # for bonus points (Frank 2026-04-07). One fact, one badge.
+        # Two delivery layers — ONE BADGE PER LAYER FOUND. Layers stack
+        # for bonus points. One fact, one badge.
         #
         # Layer 1: VENDOR-DELIVERED (base) — vendor runs training directly.
         # Single signal category; the evidence text names the modes found
         # (ILT, self-paced portal, vendor-run labs, bootcamps).
         "vendor_delivered_training",       # vendor runs its own training directly (any/all modes)
-        # Layer 2: THIRD-PARTY-DELIVERED (bonus) — independent market + cert bodies
-        "third_party_training_market",     # cross-pillar with Market Demand — Coursera / Pluralsight / LinkedIn Learning / Udemy
-        "cert_body_curriculum",            # cross-pillar with Market Demand — CompTIA / EC-Council / SANS / ISC2 mention THIS product
-        # Layer 3: AUTH-PARTNER-DELIVERED (top bonus) — ATP / ALP programs
-        "atp_alp_program",                 # cross-pillar with Market Demand — ATPs prove demand exists
-        "regional_atp_network",            # smaller-scale version
-        # Platform / LMS / event delivery infrastructure:
-        "lab_platform",                    # variable: Skillable / competitor name / DIY / none
+        # Layer 2: AUTH-PARTNER-DELIVERED (top bonus) — ATP / ALP programs
+        # Cross-credit with Market Demand via CROSS_PILLAR_RULES — ATPs
+        # prove demand exists, so the Market Demand grader also credits
+        # this fact when it fires here.
+        "atp_alp_program",                 # formal global ATP / ALP program
+        "regional_atp_network",            # smaller-scale regional version
+        # LMS infrastructure — how training is delivered to learners:
         "lms_partner",                     # Skillable-compatible LMS (Docebo, Cornerstone)
         "lms_other",                       # other LMS in place
-        "training_events_scale",           # cross-pillar with Market Demand
+        # Events / calendar / cert delivery:
+        "training_events_scale",
         "cert_delivery_infrastructure",    # Pearson VUE / Certiport / PSI
         "geographic_reach",
         "published_course_calendar",
-        "gray_market",
         # Negative answers (fire via RUBRIC_PENALTY_SIGNALS):
         "no_training_partners",
         "no_classroom_delivery",
-        "no_independent_training_market",  # cross-pillar with Market Demand
         "single_region_only",
-        "gray_market_only",
         # Informational context:
         "delivery_capacity_context",
     ),
@@ -1599,23 +1614,55 @@ _delivery_capacity_dimension = Dimension(
 
 _build_capacity_badges = (
     # ANSWERS — each badge names a specific finding about the customer's
-    # build capacity. Variable AI-synthesized names are preferred
-    # (e.g., "~30 Lab Authors", "Workday Education Team", "Already
-    # Building Labs") — these are example patterns.
-    Badge("Named Content Dev Team", (
+    # build capacity.  Short abbreviated labels per Frank 2026-04-07:
+    # "use abbreviations... Tech Build Team is fine."  Variable
+    # AI-synthesized names with counts are still preferred when the
+    # research finds them (e.g., "~30 Lab Authors").
+    #
+    # Build Capacity is about CREATING lab content: content development
+    # roles, lab authors, instructional designers, tech writers, AND the
+    # LAB INFRASTRUCTURE itself (Skillable, CloudShare, Instruqt, DIY lab
+    # platforms, owned VM farm).  Lab infrastructure lives HERE, not in
+    # Delivery Capacity — Frank's 2026-04-08 rebuild routing decision:
+    # "if they have lab infrastructure, a bunch of VMs at their place or
+    # they've got infrastructure to build labs, that's build capacity."
+    Badge("Content Dev Team", (
         BadgeColor("green", "Named training organization with documented Lab Authors, IDs, Tech Writers"),
     )),
-    Badge("Technical Build Team Documented", (
+    Badge("Tech Build Team", (
         BadgeColor("green", "Can build lab environments, not just content — technical SMEs and lab engineers named"),
     )),
     Badge("Already Building Labs", (
         BadgeColor("green", "DIY lab authoring happening today — strongest possible Build Capacity signal"),
     )),
+    # ── Lab infrastructure in place (Frank 2026-04-08) ──────────────
+    # Having the infrastructure to build labs is build capacity, even if
+    # the org isn't actively authoring labs today. Moved from Delivery
+    # Capacity where these used to live erroneously.
+    Badge("Skillable-Hosted", (
+        BadgeColor("green", "Skillable is their lab platform — expansion opportunity, and lab infrastructure is in place for building labs"),
+    )),
+    Badge("Competitor Lab Platform", (
+        BadgeColor("amber", "Competitor lab platform (CloudShare, Instruqt, Skytap, Kyndryl, ReadyTech) — they already have lab build infrastructure; displacement opportunity"),
+    )),
+    Badge("DIY Lab Platform", (
+        BadgeColor("gray", "They built their own lab platform — they have lab infrastructure; replacement opportunity"),
+    )),
+    Badge("No Lab Platform", (
+        BadgeColor("gray", "No incumbent lab platform detected — greenfield for lab infrastructure"),
+    )),
     Badge("Outsourced Content", (
         BadgeColor("amber", "Third parties build content — explicit outsourcing documented (ProServ opportunity)"),
     )),
-    Badge("No Content Authors", (
-        BadgeColor("amber", "Thorough research finds zero Instructional Designer / Curriculum Developer / Lab Author roles"),
+    # Build Capacity is inward-facing and hard to verify from outside
+    # (GP3 research asymmetry).  Never emit this badge to mean "we
+    # proved no one exists" — it means "we couldn't find public
+    # evidence of content authoring roles after thorough research."
+    # Label reflects the uncertainty: the absence is an information
+    # gap, not a confirmed negative.  Softens the overconfident
+    # "No Content Authors" label Frank flagged on Trellix.
+    Badge("Build Team Unverified", (
+        BadgeColor("amber", "Thorough LinkedIn / job-posting / company-page research found no public evidence of Instructional Designer / Lab Author / Tech Writer roles.  Absence of evidence, not evidence of absence — flag for discovery call."),
     )),
     Badge("Review-Only SMEs", (
         BadgeColor("amber", "SMEs mentioned only in review / accuracy-validation roles, never as authors"),
@@ -1626,15 +1673,20 @@ _build_capacity_rubric = Rubric(
     tiers=(
         RubricTier(
             "strong", 5,
-            "A strong positive answer — DIY lab authoring happening today, named content dev team, "
-            "Instructional Designers / Lab Authors / Tech Writers documented, product-training "
-            "partnership documented as collaborative content development",
+            "A strong positive answer — DIY lab authoring happening today, named content dev "
+            "team, Instructional Designers / Lab Authors / Tech Writers documented, a lab "
+            "platform already in place (Skillable, CloudShare, Instruqt, Skytap, Kyndryl, "
+            "ReadyTech, or their own DIY lab platform / VM farm), product-training partnership "
+            "documented as collaborative content development. Lab infrastructure is a strong "
+            "signal because it means they have the capacity to build labs, even if they aren't "
+            "actively authoring today.",
         ),
         RubricTier(
             "moderate", 3,
             "A partial positive answer — SME participation in content development mentioned; "
             "named training department with some authoring signals; third-party content firm "
-            "engagement; instructors with explicit dual-role authoring evidence",
+            "engagement; instructors with explicit dual-role authoring evidence; greenfield "
+            "(no incumbent lab platform detected but also no capacity gap proven).",
         ),
         RubricTier(
             "informational", 0,
@@ -1648,24 +1700,39 @@ _build_capacity_rubric = Rubric(
         ),
     ),
     is_about=(
-        "Whether the org has the CAPACITY to create technical / hands-on training content",
+        "Whether the org has the CAPACITY to create technical / hands-on training content AND "
+        "the infrastructure to build labs",
         "Named content dev teams, Instructional Designers, Lab Authors, Tech Writers",
         "DIY lab evidence — already building their own labs (strongest signal)",
+        "Lab infrastructure in place — Skillable, CloudShare, Instruqt, Skytap, Kyndryl, "
+        "ReadyTech, DIY lab platforms, owned VM farm. Having the platform means they have the "
+        "capacity to build labs (Frank 2026-04-08). This used to live in Delivery Capacity "
+        "erroneously — lab infrastructure is build, not delivery.",
+        "Vendor-published training content on third-party platforms (e.g., Google Cloud "
+        "publishing official courses on Coursera, AWS Training on LinkedIn Learning). Vendor "
+        "authorship of that content is Build Capacity; the distribution channel is Delivery "
+        "Capacity — cross-credit with Delivery Capacity for that specific case.",
         "Product-Training partnership documented as collaborative content development",
         "Documented content development partnerships (third-party content firms)",
         "SMEs WHEN explicitly paired with content authoring (not review-only)",
-        "Research asymmetry: Build Capacity is inward-facing and hard to verify — penalize ONLY on "
-        "positive evidence of outsourcing, never on absence of evidence",
+        "Research asymmetry: content authoring roles are inward-facing and hard to verify — "
+        "penalize ONLY on positive evidence of outsourcing, never on absence of evidence. "
+        "Lab infrastructure, however, is outward-facing and can be verified from public "
+        "evidence.",
     ),
     is_not_about=(
         "Pure delivery instructors / trainers / workshop leaders (those go to Delivery Capacity)",
         "Generic 'training department' without creation evidence",
-        "Lab infrastructure (that is Delivery Capacity)",
+        "LMS infrastructure (Docebo, Cornerstone, other LMSes) — those deliver training to "
+        "learners, they don't build labs. LMSes belong to Delivery Capacity.",
+        "Authorized Training Partner programs (ATPs / ALPs) — those are how the vendor "
+        "delivers training through partners. ATPs belong to Delivery Capacity (and cross-"
+        "credit into Market Demand as a demand signal).",
         "Training catalog SIZE or scope (that is Training Commitment)",
         "SMEs whose role is content review or accuracy validation only",
     ),
     signal_categories=(
-        # Positive answers:
+        # Content authoring — named roles and teams
         "diy_labs",
         "content_team_named",
         "instructional_designers",
@@ -1675,6 +1742,13 @@ _build_capacity_rubric = Rubric(
         "content_partnership",
         "instructor_authors_dual_role",
         "sme_content_authoring",
+        # Lab infrastructure (Frank 2026-04-08 routing correction)
+        "lab_build_capability",            # Skillable / CloudShare / Instruqt / DIY lab platform / owned VM farm
+        # Vendor-published training on third-party platforms
+        # (Google on Coursera, AWS on LinkedIn Learning, etc.) — the content
+        # itself is Build; the channel is also Delivery, so this is a
+        # two-credit fact.
+        "vendor_published_on_third_party",
         # Negative answers (fire via RUBRIC_PENALTY_SIGNALS, cautious):
         "confirmed_outsourcing",
         "no_authoring_roles_found",
@@ -2259,17 +2333,13 @@ DELIVERY_CAPACITY_PENALTIES: tuple[PenaltySignal, ...] = (
         "Zero evidence of instructor-led training, bootcamps, workshops, or a published course calendar. Nobody teaches the product.",
     ),
     PenaltySignal(
-        "no_independent_training_market", "delivery_capacity", "amber", 4, "No Independent Training",
-        "The open market hasn't built training on this product. Evidence: fewer than 3 courses found on Coursera, Pluralsight, LinkedIn Learning, or Udemy combined. Cross-pillar signal — also fires as Market Demand negative.",
-    ),
-    PenaltySignal(
         "single_region_only", "delivery_capacity", "amber", 3, "Single-Region Reach",
         "Delivery presence limited to one state or country. Real ceiling on reach.",
     ),
-    PenaltySignal(
-        "gray_market_only", "delivery_capacity", "amber", 2, "Gray Market Only",
-        "Training exists only from unaffiliated third parties. The vendor hasn't invested in delivery.",
-    ),
+    # Frank 2026-04-08 routing correction: `no_independent_training_market`
+    # and `gray_market_only` moved to MARKET_DEMAND_PENALTIES only. Both
+    # signals are about the market not showing up for the product, which
+    # is a demand concern, not a delivery concern.
 )
 
 # Build Capacity penalties — inward-facing, penalize CAUTIOUSLY (positive evidence only)
@@ -2279,7 +2349,7 @@ BUILD_CAPACITY_PENALTIES: tuple[PenaltySignal, ...] = (
         "Research finds explicit statements or case studies documenting that the organization buys off-the-shelf content (Pluralsight, Udemy, generic e-learning vendors) and has no internal authoring mandate. Only fires on positive evidence of outsourcing.",
     ),
     PenaltySignal(
-        "no_authoring_roles_found", "build_capacity", "amber", 3, "No Content Authors",
+        "no_authoring_roles_found", "build_capacity", "amber", 3, "Build Team Unverified",
         "After thorough LinkedIn/job-posting/company-page research, zero evidence of Instructional Designer, Curriculum Developer, Lab Author, or Tech Writer roles. Combined with explicit buying language.",
     ),
     PenaltySignal(
@@ -3001,7 +3071,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-07.market-demand-penalties-and-one-badge-per-fact"
+SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-4a-routing-fix-lab-infra-to-build"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
@@ -3209,6 +3279,17 @@ MODAL_CONTENT = _build_modal_content()
 # Was 30 historically, dropped to 20 on 2026-04-06 per Frank's directive.
 # Spec source: docs/archive/inspector.md "Product Family Selection" rule.
 PRODUCT_FAMILY_PICKER_THRESHOLD = 20
+
+# Minimum number of products required for a candidate family to appear
+# as a pickable option in the Product Family picker.  Families with
+# fewer than this many products are "noise" — they slipped into the
+# scraped nav list (marketing buckets, one-off offerings, tagline
+# links) or into the category-fallback grouping by accident.  Frank
+# 2026-04-07: Workday shows 13 single-product families; the picker
+# should surface only the meaningful ones.
+# A family with 1 product is no choice at all — the user has to pick
+# it and then sees a single product anyway.
+PRODUCT_FAMILY_MIN_PRODUCTS = 2
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
