@@ -328,7 +328,7 @@ def score_customer_fit(
     dc = score_delivery_capacity(org_type, customer_fit_rubric_grades.get(_DIM_KEY_DC, []))
     od = score_organizational_dna(org_type, customer_fit_rubric_grades.get(_DIM_KEY_OD, []))
 
-    return PillarScore(
+    pillar = PillarScore(
         name=_CF_PILLAR.name,
         weight=_CF_PILLAR.weight,
         dimensions=[
@@ -338,3 +338,7 @@ def score_customer_fit(
             od.dimension_score,
         ],
     )
+    # Populate the stored `score` field so it survives asdict() serialization.
+    from models import recompute_pillar_score
+    recompute_pillar_score(pillar)
+    return pillar

@@ -87,29 +87,58 @@ class PillarScore:
     Each Pillar scores out of 100 internally (sum of its dimension scores),
     then gets weighted to its share of the Fit Score.
 
+    **`score` is a stored field, not a computed property.** It must be set
+    explicitly by the per-pillar scorer (pillar_1_scorer / pillar_2_scorer /
+    pillar_3_scorer) after the dimensions are populated, so that when the
+    scored Product is serialized via `dataclasses.asdict`, the pillar.score
+    value survives into the saved JSON and the template can read it.
+
+    Why this is a field, not a property: `asdict()` drops all @property
+    methods, which silently zeroed every pillar header in the dossier on
+    the first real Trellix run (2026-04-08). The fix is to make score a
+    real dataclass field that the scorer always populates.
+
+    `recompute_pillar_score()` is the helper every scorer uses to compute
+    the right value from dimensions + score_override. Call it at the end
+    of the scorer after building the dimensions and before returning the
+    PillarScore. Cache-reload paths can call it again on a dict form via
+    the parallel `recompute_pillar_score_on_dict` helper.
+
     `score_override` lets the scoring math layer set the pillar score
     explicitly — used when ceiling flags cap Product Labability below the
-    raw dimension sum. Dimension scores remain authentic to the badges that
-    matched; the override only affects the pillar-level score and the
-    weighted contribution.
+    raw dimension sum. Dimension scores remain authentic to the badges
+    that matched; the override only affects the pillar-level score.
     """
     name: str
     weight: int                    # Percentage of Fit Score (40, 30, or 30)
     dimensions: list[DimensionScore] = field(default_factory=list)
+    score: int = 0                 # Stored — set by the pillar scorer via recompute_pillar_score()
     score_override: Optional[int] = None  # Set by pillar_1_scorer when bare-metal / sandbox ceiling enforced
-
-    @property
-    def score(self) -> int:
-        """Pillar score. If `score_override` is set (e.g., ceiling applied),
-        use it. Otherwise sum the dimensions, capped at 100."""
-        if self.score_override is not None:
-            return self.score_override
-        return min(100, sum(d.score for d in self.dimensions))
 
     @property
     def weighted_contribution(self) -> float:
         """This Pillar's contribution to the Fit Score."""
         return self.score * (self.weight / 100)
+
+
+def recompute_pillar_score(pillar: PillarScore) -> int:
+    """Compute a PillarScore.score from its dimensions + score_override.
+
+    This is the ONE place the rule lives:
+      - If score_override is set (Pillar 1 cap via bare_metal / sandbox red),
+        use it.
+      - Otherwise sum the dimensions, capped at 100.
+
+    Called by pillar_1_scorer / pillar_2_scorer / pillar_3_scorer at the
+    end of each scorer, AFTER the dimensions are populated. Also called
+    by intelligence.recompute_analysis on the dict form so cache reloads
+    populate the field for analyses saved before the field existed.
+    """
+    if pillar.score_override is not None:
+        pillar.score = int(pillar.score_override)
+    else:
+        pillar.score = min(100, sum(int(d.score or 0) for d in pillar.dimensions))
+    return pillar.score
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -185,6 +214,7 @@ class FitScore:
     product_labability: PillarScore = field(default_factory=lambda: _build_default_pillar("product_labability"))
     instructional_value: PillarScore = field(default_factory=lambda: _build_default_pillar("instructional_value"))
     customer_fit: PillarScore = field(default_factory=lambda: _build_default_pillar("customer_fit"))
+    total: int = 0                 # Stored — set by fit_score_composer via recompute_fit_total()
     total_override: Optional[int] = None
     pl_score_pre_ceiling: Optional[int] = None
     technical_fit_multiplier: float = 1.0
@@ -195,20 +225,32 @@ class FitScore:
         return [self.product_labability, self.instructional_value, self.customer_fit]
 
     @property
-    def total(self) -> int:
-        """Fit Score. Uses `total_override` if set (e.g., math layer applied
-        ceilings or the Technical Fit Multiplier), otherwise weighted sum."""
-        if self.total_override is not None:
-            return self.total_override
-        return round(sum(p.weighted_contribution for p in self.pillars))
-
-    @property
     def verdict_inputs(self) -> dict:
         """Returns the inputs needed for verdict grid lookup."""
         return {
             "fit_score": self.total,
             "product_labability_score": self.product_labability.score,
         }
+
+
+def recompute_fit_total(fit_score: "FitScore") -> int:
+    """Compute FitScore.total from pillar scores + total_override.
+
+    Called by fit_score_composer.compose_fit_score after writing
+    total_override, and by intelligence.recompute_analysis's dict path
+    for cache reloads of analyses saved before `total` was a stored
+    field.
+
+    Rule: if total_override is set (composer applied the Technical Fit
+    Multiplier), use it. Otherwise fall back to the pure weighted sum
+    of pillar contributions — which is what FitScore should read on
+    freshly-constructed objects before the composer runs.
+    """
+    if fit_score.total_override is not None:
+        fit_score.total = int(fit_score.total_override)
+    else:
+        fit_score.total = round(sum(p.weighted_contribution for p in fit_score.pillars))
+    return fit_score.total
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

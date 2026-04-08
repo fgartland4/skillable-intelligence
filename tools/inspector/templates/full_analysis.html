@@ -280,21 +280,26 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 /* ── Three-Box Bottom Row — shared pattern (Platform-Foundation 766–800) ──
    Scored Products (left), Competitive Products (middle), ACV by Use Case
    (right) must read as ONE designed row. Same typography, same spacing,
-   same box chrome across all three. The ONE intentional differentiator
-   is the middle box's slate-blue competitor name font + purple hairline
-   accent — everything else matches edge-for-edge. */
+   same padding. Frank 2026-04-08: LEFT and RIGHT boxes are transparent
+   (no background, no border) so the content bleeds into the page. The
+   MIDDLE box is the ONE intentional differentiator — visible box
+   chrome + purple hairline + slate-blue competitor font — signals
+   "this is the other world." */
 
-/* Shared box chrome applied only when the section lives inside the
-   bottom row (products-section is also used as a top-level page block
-   elsewhere and should not pick up box chrome there). */
+/* Shared padding + sizing for all three boxes so the content lines up. */
 .bottom-row-product > .products-section,
 .bottom-row-product > .competitive-section,
 .bottom-row-org > .acv-widget {
-    background: var(--sk-bg-surface-low);
-    border: 1px solid var(--sk-border-soft);
     border-radius: 8px;
     padding: 16px 18px 12px 18px;
     opacity: 1;
+}
+
+/* Left + right boxes are transparent — no background, no border. */
+.bottom-row-product > .products-section,
+.bottom-row-org > .acv-widget {
+    background: transparent;
+    border: none;
 }
 
 /* Shared title style — .products-title and .competitive-title below
@@ -400,12 +405,13 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 }
 
 /* Competitive products list — middle box of the three-box bottom row.
-   Box chrome comes from the shared .bottom-row-product > .competitive-section
-   rule above. The ONE differentiator from the other two boxes is the
-   purple hairline accent on top — the middle-box signature per
-   Platform-Foundation 780–796 — plus slate-blue font for competitor
-   product names (see .competitive-name below). */
+   This is the ONLY box in the bottom row with visible chrome. Frank
+   2026-04-08: left + right are transparent; middle gets background +
+   subtle border + purple hairline top accent + slate-blue competitor
+   font. Signals "this is the other world — competitors — not us." */
 .bottom-row-product > .competitive-section {
+    background: var(--sk-bg-surface-low);
+    border: 1px solid var(--sk-border-soft);
     border-top: 2px solid var(--sk-classify-purple-light);
 }
 .competitive-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; font-weight: 600; }

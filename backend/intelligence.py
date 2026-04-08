@@ -168,6 +168,7 @@ def _build_unified_customer_fit(products: list[dict]) -> dict | None:
 
     dim_best: dict[str, dict[str, dict]] = {}
     dim_meta: dict[str, dict] = {}
+    dim_best_score: dict[str, int] = {}  # best dim score seen across products
     canonical_dim_order: list[str] = []
 
     for idx, p in enumerate(products):
@@ -186,8 +187,21 @@ def _build_unified_customer_fit(products: list[dict]) -> dict | None:
                     "weight": dim.get("weight", 0),
                 }
                 dim_best[dname] = {}
+                dim_best_score[dname] = 0
                 if idx == 0:
                     canonical_dim_order.append(dname)
+            # Preserve the dimension score — "best showing wins" applied at
+            # the dimension level too. In the current post-rebuild flow every
+            # product shares the same CF reading produced once by
+            # pillar_3_scorer, so this max() is a no-op. It matters only for
+            # legacy data where per-product CF drifted.
+            try:
+                dim_score = int(dim.get("score") or 0)
+            except (TypeError, ValueError):
+                dim_score = 0
+            if dim_score > dim_best_score[dname]:
+                dim_best_score[dname] = dim_score
+
             for b in dim.get("badges", []) or []:
                 if not isinstance(b, dict):
                     continue
@@ -209,12 +223,15 @@ def _build_unified_customer_fit(products: list[dict]) -> dict | None:
         return None
 
     unified_dims = []
+    pillar_score_total = 0
     for dname in canonical_dim_order:
+        dim_score = dim_best_score[dname]
+        pillar_score_total += dim_score
         unified_dims.append({
             "name": dname,
             "weight": dim_meta[dname]["weight"],
             "badges": list(dim_best[dname].values()),
-            "score": 0,  # recomputed by the math loop in recompute_analysis
+            "score": dim_score,
         })
 
     # Pull the pillar-level metadata from the first product that has it
@@ -225,11 +242,17 @@ def _build_unified_customer_fit(products: list[dict]) -> dict | None:
             pillar_weight = cf["weight"]
             break
 
+    # Pillar score is sum of dim scores, capped at 100 (matches
+    # PillarScore.recompute_pillar_score rule). score_override lives in
+    # the dict when a Pillar 1 cap fires — not relevant for Pillar 3.
+    unified_pillar_score = min(100, pillar_score_total)
+
     return {
         "name": "Customer Fit",
         "weight": pillar_weight,
         "dimensions": unified_dims,
-        "score": 0,  # recomputed by recompute_analysis
+        "score": unified_pillar_score,
+        "score_override": None,
     }
 
 
@@ -480,6 +503,7 @@ def recompute_analysis(analysis: dict) -> None:
             analysis.get("products") or [], _phase_f_unified_cf,
         )
 
+    import scoring_config as cfg
     products = analysis.get("products", [])
     for p in products:
         fs = p.get("fit_score")
@@ -487,14 +511,22 @@ def recompute_analysis(analysis: dict) -> None:
             p["fit_score"] = {"total": 0, "_total": 0}
             continue
 
-        # Trust saved pillar scores — they were produced by the Python
-        # scorers at score-time. Precompute per-dimension display fields
-        # (score_percentage, dominant_color) so the template reads them
-        # without re-implementing the rules in Jinja (HIGH-3).
+        # Populate pillar.score on the dict form and precompute per-
+        # dimension display fields (score_percentage, dominant_color).
+        # PillarScore.score and FitScore.total are stored dataclass
+        # fields since 2026-04-08, and the per-pillar scorers set them
+        # at score-time. On cache reload we re-derive them from the
+        # stored dimension scores so analyses saved before the fields
+        # existed still render correctly. This is the single place the
+        # rule lives in the dict path — mirrors recompute_pillar_score
+        # and recompute_fit_total in models.py.
+        pillar_weights: dict[str, int] = {}
+        pillar_scores: dict[str, int] = {}
         for pillar_key in ("product_labability", "instructional_value", "customer_fit"):
             pillar_dict = fs.get(pillar_key)
             if not isinstance(pillar_dict, dict):
                 continue
+            # Per-dimension display fields
             for dim_dict in pillar_dict.get("dimensions") or []:
                 if not isinstance(dim_dict, dict):
                     continue
@@ -504,18 +536,46 @@ def recompute_analysis(analysis: dict) -> None:
                 dim_dict["dominant_color"] = _compute_dominant_color(
                     dim_dict.get("badges") or []
                 )
+            # Pillar score — override wins, else sum of dim scores capped at 100
+            override = pillar_dict.get("score_override")
+            if override is not None:
+                pillar_score = int(override)
+            else:
+                pillar_score = min(100, sum(
+                    int((d.get("score") or 0))
+                    for d in (pillar_dict.get("dimensions") or [])
+                ))
+            pillar_dict["score"] = pillar_score
+            pillar_scores[pillar_key] = pillar_score
+            pillar_weights[pillar_key] = int(pillar_dict.get("weight") or 0)
 
         # Recompute ACV from motions × deterministic rate. The rate
         # table and motion semantics can evolve after the analysis
         # was saved, so this re-run keeps the displayed ACV fresh.
         acv_calculator.compute_acv_potential(p)
 
-        # Reassign verdict from the saved Fit Score total + fresh ACV
-        # tier. fit_score.total (or total_override) is the authoritative
-        # composed value produced by fit_score_composer at score-time.
+        # Fit Score total — composer-written override wins, else weighted
+        # sum with the Technical Fit Multiplier lookup from config. Mirrors
+        # fit_score_composer.compose_fit_score.
         fit_total = fs.get("total_override")
         if fit_total is None:
-            fit_total = fs.get("total") or fs.get("_total") or 0
+            pl = pillar_scores.get("product_labability", 0)
+            iv = pillar_scores.get("instructional_value", 0)
+            cf = pillar_scores.get("customer_fit", 0)
+            pl_w = pillar_weights.get("product_labability", 40)
+            iv_w = pillar_weights.get("instructional_value", 30)
+            cf_w = pillar_weights.get("customer_fit", 30)
+            # Look up the multiplier the same way the composer does, so
+            # a cache reload of a pre-composer analysis still applies it.
+            from fit_score_composer import get_technical_fit_multiplier
+            mult = get_technical_fit_multiplier(pl, p.get("orchestration_method") or "")
+            weighted = (
+                pl * (pl_w / 100)
+                + iv * (iv_w / 100) * mult
+                + cf * (cf_w / 100) * mult
+            )
+            fit_total = max(0, min(100, round(weighted)))
+
         acv_tier = (p.get("acv_potential") or {}).get("acv_tier") or "low"
         new_verdict = assign_verdict(int(fit_total), acv_tier)
         p["verdict"] = {
@@ -525,8 +585,8 @@ def recompute_analysis(analysis: dict) -> None:
             "acv_label": new_verdict.acv_label,
         }
 
-        # Mirror the authoritative total into the legacy display
-        # fields the template still reads for sort + display.
+        # Mirror the authoritative total into the display fields the
+        # template reads for sort + hero rendering.
         fs["total"] = int(fit_total)
         fs["_total"] = int(fit_total)
 
@@ -1001,6 +1061,30 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         log.info(
             "Intelligence.score: Fit Score composition complete for %d/%d products",
             composed_count, len(new_analysis.products),
+        )
+
+        # ── ACV Potential: build motions from facts + compute dollars ──
+        # Reads the per-product Market Demand audience facts (install_base,
+        # employee_subset_size, cert_annual_sit_rate) plus the company-level
+        # Customer Fit facts (channel_partner_se_population, events_attendance)
+        # and populates product.acv_potential with fully computed motion
+        # records, annual hours, ACV low/high dollars, and ACV tier.
+        # See docs/Platform-Foundation.md → ACV Potential Model and
+        # docs/Badging-and-Scoring-Reference.md → ACV Calculation.
+        from acv_calculator import compute_acv_on_product
+        acv_count = 0
+        for product in new_analysis.products:
+            try:
+                compute_acv_on_product(product, new_analysis)
+                acv_count += 1
+            except Exception:
+                log.exception(
+                    "Intelligence.score: compute_acv_on_product failed for %r",
+                    product.name,
+                )
+        log.info(
+            "Intelligence.score: ACV Potential computed for %d/%d products",
+            acv_count, len(new_analysis.products),
         )
 
         # ── Step 6-lite: attach display badges via badge_selector ──

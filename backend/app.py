@@ -392,13 +392,66 @@ def inspector_product_selection(discovery_id: str):
         scraped = disc.get("_scraped_families") or []
         families = []
         if scraped:
+            # Match products to families in two passes:
+            #  1. Strict substring match — the full family name appears
+            #     inside the product's name/category/subcategory (case-
+            #     insensitive). This is the safe matcher.
+            #  2. Token-overlap fallback — for multi-word families where
+            #     pass 1 found zero matches, require any NON-STOPWORD
+            #     token from the family name to appear as a whole word
+            #     in the product text. Rescues real families whose
+            #     products don't substring-match the exact family name
+            #     ("Data Security" family vs "Data Loss Prevention"
+            #     product — strict match fails, token match rescues it).
+            #
+            # Frank 2026-04-08: Trellix showed only 2 families with the
+            # strict matcher even though the scraper had found more real
+            # families in the homepage nav. Token fallback rescues them
+            # without over-matching because it only runs when strict
+            # returns zero AND it requires whole-word hits against
+            # non-stopword tokens.
+            _family_stopwords = {
+                "and", "or", "the", "a", "an", "of", "for", "to", "in",
+                "by", "with", "on", "as", "at", "is", "&", "+",
+            }
+
+            def _family_tokens(name: str) -> list[str]:
+                parts = re.findall(r"[a-z0-9]+", name.lower())
+                return [t for t in parts if t not in _family_stopwords and len(t) >= 3]  # magic-allowed: minimum token length (short words are noise)
+
+            def _product_blob(p: dict) -> str:
+                return " ".join([
+                    (p.get("name") or "").lower(),
+                    (p.get("category") or "").lower(),
+                    (p.get("subcategory") or "").lower(),
+                ])
+
+            def _token_hit(token: str, blob: str) -> bool:
+                # Whole-word match so "data" doesn't match "datacenter".
+                return re.search(rf"\b{re.escape(token)}\b", blob) is not None
+
             for fam in scraped:
                 fam_lower = fam["name"].lower()
-                fam["product_count"] = sum(
+                # Pass 1 — strict substring.
+                strict = sum(
                     1 for p in non_tc
                     if fam_lower in p.get("name", "").lower()
                     or fam_lower in p.get("category", "").lower()
                     or fam_lower in p.get("subcategory", "").lower()
+                )
+                if strict > 0:
+                    fam["product_count"] = strict
+                    continue
+                # Pass 2 — token-overlap fallback for multi-word families.
+                tokens = _family_tokens(fam["name"])
+                if len(tokens) < 2:  # magic-allowed: single-token fallback gate (too noisy to rescue)
+                    # Single-token families don't get the fallback — too
+                    # noisy (one generic word would match everything).
+                    fam["product_count"] = 0
+                    continue
+                fam["product_count"] = sum(
+                    1 for p in non_tc
+                    if any(_token_hit(t, _product_blob(p)) for t in tokens)
                 )
             # Filter to families that actually contain enough discovered
             # products to be worth picking.  The scraper grabs every nav

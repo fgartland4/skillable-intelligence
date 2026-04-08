@@ -172,12 +172,35 @@ class VerdictDefinition:
 class ConsumptionMotion:
     """A consumption motion that feeds the ACV calculation.
 
-    Each motion represents a distinct way labs reach learners.  Population,
-    adoption rate, hours, and rate combine to estimate annual revenue.
+    Each motion represents a distinct way labs reach learners.  Per the
+    Platform-Foundation ACV model: the only source of range in the final
+    number is AUDIENCE — adoption_pct and hours are single locked values.
+    The population is read from the fact drawer at ACV-population time
+    via the named source field.
+
+    Fields:
+      label              — the motion's display name (locked vocabulary)
+      adoption_pct       — single adoption rate, used directly (no range)
+      hours_low/high     — single values in the typical case; kept as a
+                           range only because a few motions have a narrow
+                           hours spread (e.g., events 1-2hr per session).
+                           When locked as a single value, set low == high.
+      population_source  — the fact-drawer field the ACV builder reads
+                           for this motion's audience. Two forms:
+                             "product:<field>" — read from
+                               product.instructional_value_facts.market_demand.<field>
+                             "company:<field>" — read from
+                               company_analysis.customer_fit_facts.<field>
+                             "company:events_attendance_sum" — special
+                               case: sum all events_attendance values
+      description        — guidance sentence for the hero tooltip and the
+                           ACV by Use Case widget row label
     """
     label: str
-    adoption_ceiling_low: float
-    adoption_ceiling_high: float
+    adoption_pct: float
+    hours_low: float
+    hours_high: float
+    population_source: str
     description: str
 
 
@@ -2791,36 +2814,65 @@ PRODUCT_CATEGORY_RATE_PRIORS = (
      "examples": "Standard enterprise software administration"},
 )
 
+# The five consumption motions — Platform-Foundation ACV model (2026-04-08).
+#
+# Each motion has a single adoption_pct and single hours values (low == high
+# except where the hours spread is a defendable real range). The ONLY source
+# of range in the final ACV number is the audience (population), because
+# that's where the real uncertainty lives. Adoption and hours are locked.
+#
+# population_source names a fact-drawer field the ACV builder reads:
+#   "product:install_base"              → instructional_value_facts.market_demand.install_base
+#   "product:employee_subset_size"      → instructional_value_facts.market_demand.employee_subset_size
+#   "product:cert_annual_sit_rate"      → instructional_value_facts.market_demand.cert_annual_sit_rate
+#   "company:channel_partner_se_population" → customer_fit_facts.channel_partner_se_population
+#   "company:events_attendance_sum"     → sum of customer_fit_facts.events_attendance values
 CONSUMPTION_MOTIONS: tuple[ConsumptionMotion, ...] = (
     ConsumptionMotion(
-        "Customer Onboarding & Enablement",
-        0.02, 0.08,
-        "New customers getting started with the product; onboarding programs, guided setup labs"),
+        label="Customer Training & Enablement",
+        adoption_pct=0.04,
+        hours_low=2.0, hours_high=2.0,
+        population_source="product:install_base",
+        description="Install base — total customers using the product this year. "
+                    "Every product has customers; this motion never zeroes out."),
     ConsumptionMotion(
-        "Authorized Training Partners & Channel Enablement",
-        0.05, 0.15,
-        "ATP network, resellers, and channel partners who deliver or sell training"),
+        label="Partner Training & Enablement",
+        adoption_pct=0.15,
+        hours_low=5.0, hours_high=5.0,
+        population_source="company:channel_partner_se_population",
+        description="Global partner community — sales engineers and solution "
+                    "architects across the channel partner ecosystem. Zero when "
+                    "the company doesn't sell through a channel."),
     ConsumptionMotion(
-        "General Practice & Skilling Experiences",
-        0.02, 0.08,
-        "Ongoing skills development for existing users, admins, and practitioners"),
+        label="Employee Training & Enablement",
+        adoption_pct=0.30,
+        hours_low=8.0, hours_high=8.0,
+        population_source="product:employee_subset_size",
+        description="Relevant-employee subset — product team, support, sales "
+                    "engineering, customer success. NOT total headcount."),
     ConsumptionMotion(
-        "Certification / PBT",
-        0.02, 0.10,
-        "Performance-based testing and proctored certification exams"),
+        label="Certification (PBT)",
+        adoption_pct=1.00,
+        hours_low=1.0, hours_high=1.0,
+        population_source="product:cert_annual_sit_rate",
+        description="People who sit for the certification exam each year. 100% "
+                    "adoption is exact — if a lab is in the exam, every taker "
+                    "takes the lab. Zero when the product has no cert or the "
+                    "cert has no lab component."),
     ConsumptionMotion(
-        "Employee Technical Enablement",
-        0.05, 0.15,
-        "Internal SEs, presales, professional services, and support staff"),
-    ConsumptionMotion(
-        "Events & Conferences",
-        0.30, 0.70,
-        "Annual flagship events, user conferences, product launch labs, trade show hands-on tracks"),
+        label="Events & Conferences",
+        adoption_pct=0.30,
+        hours_low=1.0, hours_high=1.0,
+        population_source="company:events_attendance_sum",
+        description="Total attendees at the company's flagship events. Events "
+                    "without labs today are the opportunity, NOT zero. Zero only "
+                    "when the company runs no events at all."),
 )
 
-# Hard ceilings — never exceed these adoption rates
+# Hard ceilings — never exceed these adoption rates in future tuning.
+# Motion 4 (Certification) is exempt — its 100% is exact by definition.
 ADOPTION_CEILING_EVENTS = 0.80
-ADOPTION_CEILING_NON_EVENTS = 0.20
+ADOPTION_CEILING_NON_EVENTS = 0.35
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3424,25 +3476,45 @@ def validate() -> list[str]:
                 f"Category prior '{cp.category}' has invalid demand level: {cp.demand_level}"
             )
 
-    # 10. Consumption motion adoption ceilings are valid
+    # 10. Consumption motion adoption + hours + population source shape
+    _valid_pop_sources = {
+        "product:install_base",
+        "product:employee_subset_size",
+        "product:cert_annual_sit_rate",
+        "company:channel_partner_se_population",
+        "company:events_attendance_sum",
+    }
     for motion in CONSUMPTION_MOTIONS:
-        if motion.adoption_ceiling_low > motion.adoption_ceiling_high:
+        if motion.hours_low > motion.hours_high:
             issues.append(
-                f"Motion '{motion.label}' has low ceiling > high ceiling: "
-                f"{motion.adoption_ceiling_low} > {motion.adoption_ceiling_high}"
+                f"Motion '{motion.label}' has hours_low > hours_high: "
+                f"{motion.hours_low} > {motion.hours_high}"
             )
+        if motion.adoption_pct < 0 or motion.adoption_pct > 1.0:
+            issues.append(
+                f"Motion '{motion.label}' adoption_pct {motion.adoption_pct} "
+                f"out of range [0, 1.0]"
+            )
+        # Certification is exempt from the non-events ceiling — its 1.0
+        # is exact by definition. Events has its own higher ceiling.
         if motion.label == "Events & Conferences":
-            if motion.adoption_ceiling_high > ADOPTION_CEILING_EVENTS:
+            if motion.adoption_pct > ADOPTION_CEILING_EVENTS:
                 issues.append(
-                    f"Events motion ceiling {motion.adoption_ceiling_high} "
-                    f"exceeds hard cap {ADOPTION_CEILING_EVENTS}"
+                    f"Events motion adoption {motion.adoption_pct} "
+                    f"exceeds events hard cap {ADOPTION_CEILING_EVENTS}"
                 )
-        else:
-            if motion.adoption_ceiling_high > ADOPTION_CEILING_NON_EVENTS:
+        elif motion.label != "Certification (PBT)":
+            if motion.adoption_pct > ADOPTION_CEILING_NON_EVENTS:
                 issues.append(
-                    f"Motion '{motion.label}' ceiling {motion.adoption_ceiling_high} "
+                    f"Motion '{motion.label}' adoption {motion.adoption_pct} "
                     f"exceeds non-events cap {ADOPTION_CEILING_NON_EVENTS}"
                 )
+        if motion.population_source not in _valid_pop_sources:
+            issues.append(
+                f"Motion '{motion.label}' population_source "
+                f"'{motion.population_source}' is not a recognized source; "
+                f"valid: {sorted(_valid_pop_sources)}"
+            )
 
     # 11. Technical Fit Multiplier ranges don't have gaps
     multiplier_ranges = sorted(TECHNICAL_FIT_MULTIPLIERS, key=lambda m: m.score_min)

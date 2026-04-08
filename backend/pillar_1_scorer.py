@@ -926,6 +926,8 @@ def score_product_labability(facts: ProductLababilityFacts) -> PillarScore:
         )
         # No ceiling flags flipped here — the hard override IS the cap.
         # Pillar total = sum of the four SIMULATION_*_POINTS constants = 42.
+        from models import recompute_pillar_score
+        recompute_pillar_score(pillar)
         return pillar
 
     # ── Normal path — run the other three dimension scorers ──
@@ -969,5 +971,11 @@ def score_product_labability(facts: ProductLababilityFacts) -> PillarScore:
 
     if override is not None:
         pillar.score_override = override
+
+    # Populate the stored `score` field — PillarScore.score is a dataclass
+    # field (not a property) so it survives asdict() serialization. Every
+    # pillar scorer is responsible for setting it before returning.
+    from models import recompute_pillar_score
+    recompute_pillar_score(pillar)
 
     return pillar

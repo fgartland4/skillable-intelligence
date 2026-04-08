@@ -194,3 +194,8 @@ def compose_fit_score(fit_score: FitScore, orchestration_method: str) -> None:
 
     fit_score.total_override = int(total)
     fit_score.technical_fit_multiplier = float(multiplier)
+
+    # Populate the stored `total` field so it survives asdict() serialization.
+    # FitScore.total is a dataclass field (not a property) since 2026-04-08.
+    from models import recompute_fit_total
+    recompute_fit_total(fit_score)

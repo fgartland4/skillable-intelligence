@@ -25,13 +25,26 @@
    docs/code-review-2026-04-07.md. #}
 
 {% macro evidence_data(badge) -%}
-<div class='ev-title'>{{ badge.name | e }}</div>
+{# Evidence popover layout (Frank 2026-04-08):
+     1. Confidence line — FIRST line, so the reader immediately knows the
+        weight of what they're about to read
+     2. Badge title
+     3. Evidence claim(s)
+     4. Source — LAST line, so the reader can drill into the primary
+        source after they've read the finding #}
 {%- for ev in badge.evidence or [] -%}
-<div class='ev-bullet'>{{ ev.claim | inline_md }}</div>
-{%- if ev.source_url or ev.source_title %}<div class='ev-source'>Source: {{ (ev.source_title or ev.source_url) | e }}</div>{% endif -%}
 {%- if ev.confidence_level -%}
 {%- set _conf_class = 'ev-confidence-confirmed' if ev.confidence_level|lower == 'confirmed' else 'ev-confidence-other' -%}
 <div class='ev-confidence {{ _conf_class }}'>Confidence: {{ ev.confidence_level | e }}</div>
+{%- endif -%}
+{%- if loop.first -%}<div class='ev-title'>{{ badge.name | e }}</div>{%- endif -%}
+<div class='ev-bullet'>{{ ev.claim | inline_md }}</div>
+{%- if ev.source_url or ev.source_title -%}
+{%- if ev.source_url -%}
+<div class='ev-source'>Source: <a href='{{ ev.source_url | e }}' target='_blank' rel='noopener'>{{ (ev.source_title or ev.source_url) | e }}</a></div>
+{%- else -%}
+<div class='ev-source'>Source: {{ ev.source_title | e }}</div>
+{%- endif -%}
 {%- endif -%}
 {%- endfor -%}
 {%- endmacro %}

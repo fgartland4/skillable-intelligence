@@ -354,7 +354,7 @@ def score_instructional_value(
     lv = score_lab_versatility(product_category, rubric_grades_by_dim.get(_DIM_KEY_LV, []))
     md = score_market_demand(product_category, rubric_grades_by_dim.get(_DIM_KEY_MD, []))
 
-    return PillarScore(
+    pillar = PillarScore(
         name=_IV_PILLAR.name,
         weight=_IV_PILLAR.weight,
         dimensions=[
@@ -364,3 +364,7 @@ def score_instructional_value(
             md.dimension_score,
         ],
     )
+    # Populate the stored `score` field so it survives asdict() serialization.
+    from models import recompute_pillar_score
+    recompute_pillar_score(pillar)
+    return pillar

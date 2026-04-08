@@ -1089,11 +1089,15 @@ Use ONLY the signal category names listed below for each dimension.  If a signal
   - "indicated" = strong indirect evidence across multiple signals
   - "inferred" = pattern-based / category norms / limited signals
 
-**Market Demand numeric fields:**
+**Market Demand numeric fields — CRITICAL for ACV Potential calculation.**
 
-  - **install_base**: total users of this product worldwide.  `low` and `high` bound a BELIEVABLE range.  A range of 2000-40000 signals "we have no idea" and is FORBIDDEN — produce a tighter, defendable range or leave both null.
-  - **employee_subset_size**: headcount across all enterprises who use this product AND whose job involves it (not the company's total employees — the specialist subset).
-  - **cert_annual_sit_rate**: how many people sit for this product's certification exam annually, worldwide.  Null if no cert program or unknown.
+These three ranges feed the ACV math directly — they are the AUDIENCE for three of the five consumption motions. The ACV calculation uses population × adoption_pct × hours × rate per motion, with audience as the ONLY source of range in the final number. Tight, defendable ranges make the seller number credible; wide hedges make it worthless. Produce your best real estimate, not a safe-hedge range.
+
+  - **install_base** → ACV Motion 1 (Customer Training). The total paying customer population for THIS product worldwide, right now. "Seats sold" if the product is per-seat licensed; "customer accounts" if it's per-account; "deployments" if it's per-deployment. The question you are answering is "how many customers are actively using this specific product this year?" NOT "how many people know about the vendor." Examples of tight defendable ranges for a mid-size enterprise product: 8,000–12,000. Microsoft 365: 300M–400M. A niche SaaS tool: 800–1,500. A range of 2,000–40,000 signals "we have no idea" and is FORBIDDEN — produce a tighter range or leave both null.
+
+  - **employee_subset_size** → ACV Motion 3 (Employee Training). Global headcount of people whose job involves meaningfully using THIS product. For a cybersecurity platform: all security analysts, SOC engineers, and incident responders across every customer. For an ERP module: all specialists (financial analysts, HR admins, supply chain operators) across the install base. NOT total headcount at customer companies — the relevant-job subset. For a mid-size enterprise product with 10,000 customers averaging ~50 specialist employees each, that's 500,000. For a niche admin tool with 500 customers at ~3 admins each, that's 1,500. Tight ranges preferred.
+
+  - **cert_annual_sit_rate** → ACV Motion 4 (Certification / PBT). People worldwide who sit for THIS product's certification exam each year. Null if the product has no cert program. Null if it has a cert but the cert has no lab component. Tight range preferred — look for published vendor cert stats (Microsoft Learn publishes exam volumes, AWS publishes cert counts, Cisco publishes CCNA/CCNP volumes). For mainstream certs: 20,000–60,000 per year is typical. For specialist vendor certs: 2,000–8,000. Do NOT guess — leave null when the research doesn't document the number.
   - **cert_bodies_mentioning**: list of independent certification bodies whose curriculum mentions THIS product (not the parent company).
   - **independent_training_course_counts**: dict of platform name → course count for THIS product on each independent training marketplace.  Example: {{"Pluralsight": 15, "Coursera": 3, "Udemy": 8}}.  Only include platforms you searched.
   - **is_ai_powered**: product has AI features requiring hands-on practice.
@@ -1349,12 +1353,13 @@ Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no m
 
 ═══ FIELD GUIDANCE ═══
 
-**Top-level shared facts** feed multiple downstream readers.  Be careful:
-  - `total_employees`: the company's total headcount, not the training team.
+**Top-level shared facts** feed multiple downstream readers, including the ACV Potential calculation. Some of them are the AUDIENCE inputs for specific consumption motions — produce tight, defendable ranges because audience is the ONLY source of range in the final ACV number.
+
+  - `total_employees`: the company's total headcount. NOT the training team, NOT the SE population.
   - `channel_partners_size`: total partner count — resellers, GSIs, distributors combined.
-  - `channel_partner_se_population`: approximate number of sales engineers / solution architects working inside the channel partner ecosystem.  This feeds ACV Motion 2.
+  - `channel_partner_se_population` → ACV Motion 2 (Partner Training). Approximate number of sales engineers, solution architects, and delivery consultants working INSIDE the channel partner ecosystem who would benefit from hands-on labs on the company's products. NOT the channel partner headcount (that's every employee at every partner) — the subset whose job actually requires hands-on skill. A global ATP network of 500 partners with ~5 SEs each is 2,500. A thin channel of 50 resellers with 2 SEs each is 100. Produce a tight believable range; leave null when research doesn't document this.
   - `named_channel_partners`: specific partner names mentioned in the research.
-  - `events_attendance`: flagship events the company runs — name → attendance range.  e.g. {"Cohesity Connect": {"low": 5000, "high": 5500, ...}}.
+  - `events_attendance` → ACV Motion 5 (Events & Conferences). Flagship events the company runs — map of event name to attendance range. e.g. {"Cohesity Connect": {"low": 5000, "high": 5500, ...}, "Cohesity World Tour": {"low": 3000, "high": 4000, ...}}. The ACV calculator sums ALL named events' attendance as the Motion 5 audience. Include only real events with public attendance evidence; leave the dict empty when the company runs no events or when attendance isn't documented. Do NOT invent events. Tight ranges — conference pages usually publish attendance numbers.
   - `enterprise_reference_customers`: Fortune 500 names mentioned as customers in case studies.
   - `geographic_reach_regions`: where the company operates — NAMER / EMEA / APAC / LATAM.
 

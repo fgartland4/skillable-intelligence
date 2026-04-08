@@ -36,10 +36,9 @@ def _expected_fit(pl: int, iv: int, cf: int, multiplier: float) -> int:
 def _make_fit_score(pl: int, iv: int, cf: int) -> FitScore:
     """Build a FitScore pre-populated with the three pillar scores.
 
-    Uses a single synthetic DimensionScore per pillar so the pillar
-    weighted_contribution math has something to operate on, but the
-    composer itself reads the .score field directly so the shape
-    matters less than the numeric values.
+    Sets both the dimension score AND the PillarScore.score field
+    (which is a stored dataclass field since 2026-04-08, not a property).
+    This matches what the production scorers do via recompute_pillar_score.
     """
     def _p(key: str, score: int) -> PillarScore:
         pw = _pillar_weight(key)
@@ -49,6 +48,7 @@ def _make_fit_score(pl: int, iv: int, cf: int) -> FitScore:
             dimensions=[
                 DimensionScore(name=f"{key}_test_dim", score=score, weight=pw),
             ],
+            score=score,   # stored field — composer reads this directly
         )
     fs = FitScore()
     fs.product_labability = _p("product_labability", pl)

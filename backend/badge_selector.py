@@ -723,20 +723,138 @@ def _strength_to_qualifier(strength: str) -> str:
     return mapping.get(strength, "Context")
 
 
+#: Locked word abbreviations for rubric-grader badge names. Frank 2026-04-08:
+#: "Long words" — tightening to ~20 chars per badge. Applied word-for-word
+#: after Title Case, before the length cap. This is the single source of
+#: truth for grader-emitted badge abbreviations; extend here, never inline
+#: at call sites.
+_BADGE_NAME_ABBREVIATIONS: dict[str, str] = {
+    # Length abbreviations
+    "Geographic": "Geo",
+    "Consequences": "Risks",
+    "Certification": "Cert",
+    "Configuration": "Config",
+    "Administrator": "Admin",
+    "Administration": "Admin",
+    "Authentication": "Auth",
+    "Development": "Dev",
+    "Operations": "Ops",
+    "Application": "App",
+    "Environment": "Env",
+    "Production": "Prod",
+    "Documentation": "Docs",
+    "Performance": "Perf",
+    "Repository": "Repo",
+    "Infrastructure": "Infra",
+    "Recommendation": "Reco",
+    "Organizational": "Org",
+    "Organization": "Org",
+    "Integration": "Integ",
+    "Instructional": "ID",   # e.g. "Instructional Designers" -> "ID Designers" -> "IDs On Staff"
+    "Designers": "IDs",      # canonical phrase: "IDs On Staff"
+    "Designer": "ID",
+    "Partnerships": "Partners",
+    "Partnership": "Partner",
+    "Enablement": "Enable",
+    "Independent": "Indep",
+    "Professional": "Pro",
+    "Technical": "Tech",
+    "Commitment": "Commit",
+    "Delivery": "Delivery",  # explicit pass-through so a later rename is one edit
+    "Requirements": "Reqs",
+    "Complexity": "Depth",
+    "Complicated": "Complex",
+    "Multi-Audience": "Multi-Aud",
+    "Reference": "Ref",
+    "Customers": "Customers",  # locked — DO NOT shorten to "Custs"
+}
+
+#: Acronyms that must render ALL CAPS when they appear as whole Title-Cased words.
+#: Frank 2026-04-08: "AI" needs to be ALL CAPS, not "Ai" — caught on Trellix.
+#: Extend this tuple as new acronyms appear; never special-case inline.
+_BADGE_NAME_ACRONYMS: tuple[str, ...] = (
+    # Core platform / scoring vocabulary
+    "Api", "Atp", "Alp", "Mfa", "Sso", "Saml", "Vm", "Sme", "Id", "Ids",
+    "Diy", "Lms", "Gpu", "Cpu", "Nfr", "Mcq", "Kyc", "Pii", "Rest",
+    # AI / ML — Frank 2026-04-08
+    "Ai", "Ml", "Llm", "Rag", "Nlp", "Gpt", "Mlops",
+    # Security stack
+    "Soc", "Siem", "Edr", "Xdr", "Soar", "Iam", "Dlp", "Waf", "Ids",
+    "Ips", "Zta", "Ztna", "Casb", "Sase",
+    # Business / ops
+    "Poc", "Crm", "Erp", "Hris", "Saas", "Paas", "Iaas", "Rpa", "Bpm",
+    # DevOps / infra
+    "Ci", "Cd", "Iac", "Rbac", "Cicd", "Sdlc", "Dns", "Cdn", "Vpc",
+    # Net / standards
+    "Url", "Ssl", "Tls", "Tcp", "Udp", "Http", "Https", "Json", "Xml",
+    # Cloud
+    "Aws", "Gcp",
+    # Hardware
+    "Sql", "Nosql", "Etl", "Elt",
+    # Misc
+    "Sdk", "Ide", "Cli", "Gui",
+)
+
+#: Hard max character budget per rubric-emitted badge. Frank 2026-04-08 —
+#: shorter than the old 25 / 30 cap, because variable-data badges have
+#: proved too wordy in real dossiers. Tight is correct.
+_BADGE_NAME_MAX_CHARS = 20
+
+
+def _prettify_signal_category(category: str) -> str:
+    """Turn a signal_category snake-case key into a short display name.
+
+    Applies Title Case, then the abbreviation dictionary word-for-word,
+    then ALL-CAPS for standalone acronyms, then a hard character cap.
+    Single source of truth for grader-emitted badge naming — extend
+    _BADGE_NAME_ABBREVIATIONS or _BADGE_NAME_ACRONYMS, never inline.
+    """
+    words = category.replace("_", " ").split()
+    out_words: list[str] = []
+    for w in words:
+        title = w.capitalize()
+        if title in _BADGE_NAME_ABBREVIATIONS:
+            out_words.append(_BADGE_NAME_ABBREVIATIONS[title])
+        else:
+            out_words.append(title)
+
+    name = " ".join(out_words)
+
+    # ALL CAPS for standalone acronym words (not when they're embedded in a word)
+    for acronym in _BADGE_NAME_ACRONYMS:
+        # Replace the Title-Cased form as a whole word
+        name = _replace_whole_word(name, acronym, acronym.upper())
+
+    # Hard character cap, word-aware (don't slice mid-word when we can avoid it)
+    if len(name) > _BADGE_NAME_MAX_CHARS:
+        truncated = name[:_BADGE_NAME_MAX_CHARS]
+        last_space = truncated.rfind(" ")
+        if last_space >= _BADGE_NAME_MAX_CHARS - 6:
+            name = truncated[:last_space]
+        else:
+            name = truncated
+    return name
+
+
+def _replace_whole_word(text: str, old: str, new: str) -> str:
+    """Whole-word replace — `Id` in `Identity` should NOT become `ID`entity."""
+    import re
+    return re.sub(rf"\b{re.escape(old)}\b", new, text)
+
+
 def _graded_signals_to_badges(
     grades: list[GradedSignal],
     max_badges: int = 4,
 ) -> list[Badge]:
     """Convert a list of rubric-grader GradedSignal records into display Badges.
 
-    Frank 2026-04-08 locks in: the grader already wrote evidence_text with
-    confidence hedging. Badge selection is a simple pass-through plus a
-    max-4-per-dimension limit (with sorting by strength to keep the strongest).
+    The grader already wrote evidence_text with confidence hedging. Badge
+    selection sorts by strength, applies the abbreviation dictionary
+    (`_prettify_signal_category`), and caps at max_badges per dimension.
     """
     if not grades:
         return []
 
-    # Sort by strength (strong > moderate > weak > informational), tie-break by name
     strength_rank = {"strong": 3, "moderate": 2, "weak": 1, "informational": 0}
     sorted_grades = sorted(
         grades,
@@ -745,15 +863,9 @@ def _graded_signals_to_badges(
 
     badges: list[Badge] = []
     for g in sorted_grades[:max_badges]:
-        # The signal_category is the canonical key; the display badge name
-        # is a prettified version (Title Case, spaces).
-        badge_name = g.signal_category.replace("_", " ").title()
-        # Keep acronyms ALL CAPS — simple heuristic for common ones
-        for acronym in ("Api", "Atp", "Alp", "Mfa", "Sso", "Saml", "Vm", "Sme", "Id", "Diy", "Lms", "Gpu"):
-            badge_name = badge_name.replace(acronym, acronym.upper())
-
+        badge_name = _prettify_signal_category(g.signal_category)
         badges.append(Badge(
-            name=badge_name[:30],  # enforce max-length defensively
+            name=badge_name,
             color=g.color or "gray",
             qualifier=_strength_to_qualifier(g.strength),
             evidence=[_evidence(
