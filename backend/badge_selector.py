@@ -755,7 +755,9 @@ _BADGE_NAME_ABBREVIATIONS: dict[str, str] = {
     "Designer": "ID",
     "Partnerships": "Partners",
     "Partnership": "Partner",
-    "Enablement": "Enable",
+    # "Enablement" stays unabbreviated — "Enable" reads awkwardly as a
+    # standalone word ("Customer Enable Team" vs "Customer Enablement
+    # Team"). The 24-char cap now accommodates "Customer Enablement".
     "Independent": "Indep",
     "Professional": "Pro",
     "Technical": "Tech",
@@ -796,9 +798,12 @@ _BADGE_NAME_ACRONYMS: tuple[str, ...] = (
 )
 
 #: Hard max character budget per rubric-emitted badge. Frank 2026-04-08 —
-#: shorter than the old 25 / 30 cap, because variable-data badges have
-#: proved too wordy in real dossiers. Tight is correct.
-_BADGE_NAME_MAX_CHARS = 20
+#: tuned to 24 after Trellix showed that the 20-char cap was chopping
+#: single characters off real rubric labels: "Multi VM Architecture"
+#: (21 chars) → "Multi VM Architectur", "Niche Within Category" (21 chars)
+#: → "Niche Within Categor". 24 lets full, properly-titled multi-word
+#: labels render intact while still keeping badges visually compact.
+_BADGE_NAME_MAX_CHARS = 24
 
 
 def _prettify_signal_category(category: str) -> str:
@@ -825,11 +830,18 @@ def _prettify_signal_category(category: str) -> str:
         # Replace the Title-Cased form as a whole word
         name = _replace_whole_word(name, acronym, acronym.upper())
 
-    # Hard character cap, word-aware (don't slice mid-word when we can avoid it)
+    # Hard character cap, word-aware: never slice mid-word. If there is
+    # any space in the first _BADGE_NAME_MAX_CHARS characters, cut there
+    # and drop the remaining partial word entirely. Only when the first
+    # word itself already exceeds the cap (rare — e.g. a single long
+    # compound word) do we fall back to a hard slice. Frank 2026-04-08:
+    # the old 6-char rescue window produced "Multi VM Architectur" and
+    # "Niche Within Categor" — last-character amputations that read as
+    # bugs. Dropping the partial word is always the correct read.
     if len(name) > _BADGE_NAME_MAX_CHARS:
         truncated = name[:_BADGE_NAME_MAX_CHARS]
         last_space = truncated.rfind(" ")
-        if last_space >= _BADGE_NAME_MAX_CHARS - 6:
+        if last_space > 0:
             name = truncated[:last_space]
         else:
             name = truncated

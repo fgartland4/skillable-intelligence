@@ -216,6 +216,10 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .badge-red { background: var(--sk-badge-red-bg); color: var(--sk-score-low-soft); border: 1px solid var(--sk-badge-red-bdr); }
 .badge-gray { background: var(--sk-badge-gray-bg); color: var(--sk-text-muted); border: 1px solid var(--sk-badge-gray-bdr); }
 .badge-purple { background: var(--sk-badge-purple-bg); color: var(--sk-classify-purple); border: 1px solid var(--sk-badge-purple-bdr); white-space: nowrap; }
+/* Product-selector dropdown — badges inside a clickable row inherit
+   the row's pointer cursor so the badge area doesn't feel dead when
+   the user is trying to click the row. Frank 2026-04-08. */
+.product-option .badge { cursor: pointer; }
 
 .info-icon { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--sk-text-dim); color: var(--sk-text-dim); font-size: 0.5rem; font-weight: 600; text-align: center; line-height: 1; cursor: pointer; vertical-align: middle; }
 .info-icon:hover { border-color: var(--sk-score-high); color: var(--sk-score-high); }

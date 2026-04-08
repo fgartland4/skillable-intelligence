@@ -322,6 +322,90 @@ def _product_context_label(product: Product) -> str:
     return " | ".join(parts)
 
 
+def _product_shape_context(product: Product) -> str:
+    """A compact description + Pillar 1 facts section that every Pillar 2
+    grader can read as cross-pillar context.
+
+    Frank 2026-04-08: the Pillar 2 fact extractor sometimes comes back
+    empty (intermittent Claude call failure or thin research for a
+    specific product) and when that happens, Mastery Stakes / Lab
+    Versatility / Market Demand have nothing to grade from their own
+    dimension facts. Providing the product description + Pillar 1
+    capability-store facts gives the grader a reliable floor of
+    evidence — the grader still honors TRUTH ONLY (no invention) but
+    can tier signals from the cross-pillar facts when the per-dimension
+    facts are empty. Same pattern Product Complexity already uses.
+    """
+    pl = product.product_labability_facts
+    prov = getattr(pl, "provisioning", None)
+    la = getattr(pl, "lab_access", None)
+    sc = getattr(pl, "scoring", None)
+    td = getattr(pl, "teardown", None)
+
+    lines = [f"**Product description:** {product.description or '(not provided)'}"]
+    if prov is not None:
+        lines.append(
+            _format_facts_section(
+                "Cross-pillar read: Pillar 1 Provisioning facts",
+                _json_dumps_dataclass({
+                    "description": getattr(prov, "description", ""),
+                    "runs_as_installable": getattr(prov, "runs_as_installable", False),
+                    "runs_as_azure_native": getattr(prov, "runs_as_azure_native", False),
+                    "runs_as_aws_native": getattr(prov, "runs_as_aws_native", False),
+                    "runs_as_container": getattr(prov, "runs_as_container", False),
+                    "runs_as_saas_only": getattr(prov, "runs_as_saas_only", False),
+                    "has_sandbox_api": getattr(prov, "has_sandbox_api", False),
+                    "sandbox_api_granularity": getattr(prov, "sandbox_api_granularity", ""),
+                    "is_multi_vm_lab": getattr(prov, "is_multi_vm_lab", False),
+                    "has_complex_topology": getattr(prov, "has_complex_topology", False),
+                    "is_large_lab": getattr(prov, "is_large_lab", False),
+                    "needs_gpu": getattr(prov, "needs_gpu", False),
+                    "m365_scenario": getattr(prov, "m365_scenario", ""),
+                    "supported_host_os": getattr(prov, "supported_host_os", []),
+                    "vm_is_resource_intensive": getattr(prov, "vm_is_resource_intensive", False),
+                    "vm_has_premium_cost_profile": getattr(prov, "vm_has_premium_cost_profile", False),
+                }),
+            )
+        )
+    if la is not None:
+        lines.append(
+            _format_facts_section(
+                "Cross-pillar read: Pillar 1 Lab Access facts",
+                _json_dumps_dataclass({
+                    "auth_model": getattr(la, "auth_model", ""),
+                    "has_identity_api": getattr(la, "has_identity_api", False),
+                    "training_license": getattr(la, "training_license", ""),
+                    "has_mfa_required": getattr(la, "has_mfa_required", False),
+                    "has_rate_limits": getattr(la, "has_rate_limits", False),
+                    "has_anti_automation": getattr(la, "has_anti_automation", False),
+                }),
+            )
+        )
+    if sc is not None:
+        lines.append(
+            _format_facts_section(
+                "Cross-pillar read: Pillar 1 Scoring facts",
+                _json_dumps_dataclass({
+                    "has_scoring_api": getattr(sc, "has_scoring_api", False),
+                    "scoring_api_granularity": getattr(sc, "scoring_api_granularity", ""),
+                    "script_scoring_viable": getattr(sc, "script_scoring_viable", False),
+                    "ai_vision_viable": getattr(sc, "ai_vision_viable", False),
+                }),
+            )
+        )
+    if td is not None:
+        lines.append(
+            _format_facts_section(
+                "Cross-pillar read: Pillar 1 Teardown facts",
+                _json_dumps_dataclass({
+                    "vendor_teardown_api": getattr(td, "vendor_teardown_api", False),
+                    "vendor_teardown_api_granularity": getattr(td, "vendor_teardown_api_granularity", ""),
+                }),
+            )
+        )
+    return "\n\n".join(lines)
+
+
 def _company_context_label(company: CompanyAnalysis) -> str:
     parts = [f"Company: {company.company_name}"]
     if company.organization_type:
@@ -366,12 +450,24 @@ def grade_product_complexity(product: Product, company: CompanyAnalysis) -> list
 
 
 def grade_mastery_stakes(product: Product, company: CompanyAnalysis) -> list[GradedSignal]:
-    """Grade Mastery Stakes signals for one product."""
+    """Grade Mastery Stakes signals for one product.
+
+    Reads the MasteryStakesFacts drawer plus cross-reads product
+    description + Pillar 1 capability facts so the grader has a
+    reliable evidence floor when the Pillar 2 fact extractor comes
+    back empty for this product (intermittent — see Trellix
+    Endpoint Security 2026-04-08). Still honors TRUTH ONLY: the
+    grader will only emit signals whose evidence is visible in
+    the context, including the cross-pillar context.
+    """
     iv_facts = product.instructional_value_facts
-    facts_context = _format_facts_section(
-        "Mastery Stakes facts",
-        _json_dumps_dataclass(iv_facts.mastery_stakes),
-    )
+    facts_context = "\n\n".join([
+        _format_facts_section(
+            "Mastery Stakes facts (primary)",
+            _json_dumps_dataclass(iv_facts.mastery_stakes),
+        ),
+        _product_shape_context(product),
+    ])
     return grade_dimension(
         _MASTERY_STAKES_DIM,
         facts_context,
@@ -380,12 +476,23 @@ def grade_mastery_stakes(product: Product, company: CompanyAnalysis) -> list[Gra
 
 
 def grade_lab_versatility(product: Product, company: CompanyAnalysis) -> list[GradedSignal]:
-    """Grade Lab Versatility signals for one product."""
+    """Grade Lab Versatility signals for one product.
+
+    Reads the LabVersatilityFacts drawer plus cross-reads product
+    description + Pillar 1 capability facts. Lab versatility is
+    particularly well-served by Pillar 1 cross-reads: a product with
+    Multi-VM + Complex Topology naturally supports Adversarial
+    Scenario, Cyber Range, and Incident Response lab types; a
+    container-native product supports Team Handoff and Break/Fix.
+    """
     iv_facts = product.instructional_value_facts
-    facts_context = _format_facts_section(
-        "Lab Versatility facts",
-        _json_dumps_dataclass(iv_facts.lab_versatility),
-    )
+    facts_context = "\n\n".join([
+        _format_facts_section(
+            "Lab Versatility facts (primary)",
+            _json_dumps_dataclass(iv_facts.lab_versatility),
+        ),
+        _product_shape_context(product),
+    ])
     return grade_dimension(
         _LAB_VERSATILITY_DIM,
         facts_context,
@@ -398,7 +505,10 @@ def grade_market_demand(product: Product, company: CompanyAnalysis) -> list[Grad
 
     Cross-reads Pillar 3 CustomerFitFacts for ATP/ALP presence
     (ATPs prove demand exists — partners wouldn't invest without demand)
-    and channel partner SE population.
+    and channel partner SE population. Also includes the shared
+    product shape context (description + Pillar 1 facts) so the grader
+    has a reliable floor when the Pillar 2 fact extractor comes back
+    empty for this product.
     """
     iv_facts = product.instructional_value_facts
     cf_facts = company.customer_fit_facts
@@ -425,6 +535,7 @@ def grade_market_demand(product: Product, company: CompanyAnalysis) -> list[Grad
                 "named_authorized_training_partners": cf_facts.delivery_capacity.named_authorized_training_partners,
             }),
         ),
+        _product_shape_context(product),
     ])
     return grade_dimension(
         _MARKET_DEMAND_DIM,
