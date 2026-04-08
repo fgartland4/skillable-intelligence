@@ -1577,11 +1577,18 @@ _delivery_capacity_rubric = Rubric(
         # (ILT, self-paced portal, vendor-run labs, bootcamps).
         "vendor_delivered_training",       # vendor runs its own training directly (any/all modes)
         # Layer 2: AUTH-PARTNER-DELIVERED (top bonus) — ATP / ALP programs
-        # Cross-credit with Market Demand via CROSS_PILLAR_RULES — ATPs
-        # prove demand exists, so the Market Demand grader also credits
-        # this fact when it fires here.
+        # Cross-credit with Market Demand — same fact fires atp_alp_program
+        # in both Delivery (vendor's partner network) and Market Demand
+        # (partners prove demand exists). Both credits are legitimate.
         "atp_alp_program",                 # formal global ATP / ALP program
         "regional_atp_network",            # smaller-scale regional version
+        # Vendor-published content on third-party platforms (Google on
+        # Coursera, AWS on LinkedIn Learning, Microsoft on edX). The
+        # vendor authored the content (Build Capacity) AND chose the
+        # distribution channel (Delivery Capacity). Same fact, two
+        # credits. NOT to be confused with independent third-party
+        # courses (those are Market Demand only).
+        "vendor_published_on_third_party",
         # LMS infrastructure — how training is delivered to learners:
         "lms_partner",                     # Skillable-compatible LMS (Docebo, Cornerstone)
         "lms_other",                       # other LMS in place
@@ -2412,14 +2419,16 @@ ORGANIZATIONAL_DNA_PENALTIES: tuple[PenaltySignal, ...] = (
 # catalogs, analyst reports, install-base claims) — penalize aggressively
 # on absence of public evidence, just like Delivery Capacity.
 #
-# Cross-pillar compounding: `no_independent_training_market` also fires as
-# a Delivery Capacity penalty (same fact, two questions).  The AI is taught
-# in `scoring_template.md` to emit the same badge in both dimensions when
-# the evidence supports it.
+# Frank 2026-04-08 routing correction: `no_independent_training_market`
+# used to be cross-pillar with Delivery Capacity. It is now Market Demand
+# ONLY — independent third-party courses on Coursera / Pluralsight /
+# LinkedIn Learning / Udemy are a demand signal (who teaches this
+# independently?), not a delivery signal (vendor's apparatus for reaching
+# learners). See docs/next-session-todo.md §0b lock-in #5.
 MARKET_DEMAND_PENALTIES: tuple[PenaltySignal, ...] = (
     PenaltySignal(
         "no_independent_training_market", "market_demand", "amber", 4, "No Independent Training",
-        "Fewer than 3 courses found on Coursera / Pluralsight / LinkedIn Learning / Udemy combined. The open training market hasn't invested — a real demand red flag even when the product is in a 'hot' category. Cross-pillar with Delivery Capacity.",
+        "Fewer than 3 courses found on Coursera / Pluralsight / LinkedIn Learning / Udemy / Skillsoft combined where the publisher is NOT the vendor. The open training market hasn't invested independently — a real demand red flag even when the product is in a 'hot' category. Market Demand only (Frank 2026-04-08 routing correction).",
     ),
     PenaltySignal(
         "small_install_base", "market_demand", "amber", 3, "Small Install Base",
@@ -2505,12 +2514,20 @@ CROSS_PILLAR_RULES: tuple[CrossPillarRule, ...] = (
         "pillar_2", "market_demand", "flagship_event",
         "Flagship training events don't scale to 30K attendees without real skill demand.",
     ),
-    # Pillar 3 -> Pillar 2 Market Demand (negative compounding)
-    CrossPillarRule(
-        "pillar_3", "delivery_capacity", "no_independent_training_market",
-        "pillar_2", "market_demand", "no_independent_training_market",
-        "If the open market hasn't built courses on the product, that's both a delivery reach problem AND a skill demand problem.",
-    ),
+    # Frank 2026-04-08: the `no_independent_training_market` cross-pillar
+    # rule was removed. Independent third-party training market is now
+    # Market Demand ONLY — it is not a Delivery Capacity signal anymore,
+    # so there is nothing to cross-pillar compound. See the
+    # _delivery_capacity_rubric.is_not_about section for the full routing
+    # rationale.
+    #
+    # NOTE: several entries in this tuple reference old badge/signal names
+    # that are now stale (e.g., `atp_network` where Delivery Capacity now
+    # uses `atp_alp_program`, `flagship_event` where Market Demand has no
+    # such category). These are pre-rebuild rot scheduled for cleanup at
+    # Step 5 cutover alongside the deletion of the monolithic scoring path
+    # that read them. Leaving them in place until Step 5 to avoid scope
+    # creep in the current routing-fix commit.
 )
 
 
