@@ -170,13 +170,19 @@
   40%           { transform: scale(1);   opacity: 1;   }
 }
 
-/* Bottom section — Skillable progress bar + timer + logo footer */
+/* Bottom section — Skillable "ill+check" progress mark + progress bar + timer */
+.search-modal-bottom {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 22px; padding-top: 18px;
+  border-top: 1px solid var(--sk-border);
+}
+.search-modal-bottom-left { flex: 1; text-align: left; }
 .search-modal-progress-track {
   width: 100%; height: 3px;
   background: var(--sk-border);
   border-radius: 2px;
   overflow: hidden;
-  margin: 22px 0 8px;
+  margin-bottom: 8px;
 }
 .search-modal-progress-fill {
   height: 100%; width: 0%;
@@ -184,17 +190,41 @@
   border-radius: 2px;
   transition: width 1.2s ease;
 }
-.search-modal-timer {
+.search-modal-counter {
   font-size: 0.76rem;
+  color: var(--sk-text-muted);
+  font-weight: 600;
+  min-height: 1.1em;
+  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+}
+.search-modal-timer {
+  font-size: 0.74rem;
   color: var(--sk-text-dim);
-  margin-bottom: 18px;
 }
-.search-modal-logo {
-  margin-top: 6px;
-  display: flex; justify-content: center;
-  opacity: 0.85;
+.search-modal-timer strong { color: var(--sk-text-muted); font-weight: 700; }
+
+/* Animated Skillable "ill" mark — three bars advance in step with the
+   progress bar (0-28% i, 28-56% l1, 56-85% l2), then the check celebrates
+   on the SSE `done:` event.  Single branded bottom treatment for every
+   long-running flow in the platform. */
+.search-modal-mark-svg { flex-shrink: 0; width: 32px; height: 54px; }
+.search-modal-mark-el { transition: fill 0.45s ease; }
+@keyframes search-modal-mark-pulse {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1;    }
 }
-.search-modal-logo img { height: 22px; }
+.search-modal-mark-active { animation: search-modal-mark-pulse 1.2s ease-in-out infinite; }
+@keyframes search-modal-check-flash {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  30%  { opacity: 0; }
+  45%  { opacity: 1; }
+  60%  { opacity: 0; }
+  75%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+.search-modal-mark-check-flash { animation: search-modal-check-flash 1.4s ease-in-out forwards; }
 
 /* Error state */
 .search-modal-error {
@@ -265,12 +295,11 @@
 }
 
 /* When the modal is in decision mode, hide the progress UI (status,
-   dots, progress bar, timer). Switch to decision section. */
+   dots, bottom row with progress bar + counter + timer + mark).
+   Switch to decision section. */
 .search-modal-card.is-decision .search-modal-status,
 .search-modal-card.is-decision .search-modal-dots,
-.search-modal-card.is-decision .search-modal-progress-track,
-.search-modal-card.is-decision .search-modal-timer,
-.search-modal-card.is-decision .search-modal-logo {
+.search-modal-card.is-decision .search-modal-bottom {
   display: none;
 }
 .search-modal-card.is-decision .search-modal-decision { display: block; }
@@ -294,14 +323,33 @@
       <div class="search-modal-dot"></div>
     </div>
 
-    {# Bottom section — progress bar + timer + Skillable logo #}
-    <div class="search-modal-progress-track">
-      <div class="search-modal-progress-fill" id="searchModalProgressFill"></div>
-    </div>
-    <div class="search-modal-timer" id="searchModalTimer">0:00</div>
-    <div class="search-modal-logo">
-      <img src="/static/img/skillable-logo-white.svg" alt="Skillable"
-           onerror="this.src='/static/img/skillable-logo.png';" />
+    {# Bottom section — ONE shared layout for every long-running flow.
+       Left column: progress bar + counter line + timer.
+       Right column: animated Skillable "i-l-l-✓" mark that advances with
+       the progress bar and celebrates on SSE `done:`. #}
+    <div class="search-modal-bottom">
+      <div class="search-modal-bottom-left">
+        <div class="search-modal-progress-track">
+          <div class="search-modal-progress-fill" id="searchModalProgressFill"></div>
+        </div>
+        <div class="search-modal-counter" id="searchModalCounter">&nbsp;</div>
+        <div class="search-modal-timer" id="searchModalTimer">running for <strong>0:00</strong></div>
+      </div>
+      <svg class="search-modal-mark-svg" xmlns="http://www.w3.org/2000/svg"
+           viewBox="28.5 -0.5 21.5 38.5">
+        <path id="searchModalMarkI" class="search-modal-mark-el search-modal-mark-active"
+              fill-rule="evenodd" clip-rule="evenodd"
+              d="M31.8203 36.3587H35.4225V22.8284H31.8203V36.3587Z"/>
+        <path id="searchModalMarkL1" class="search-modal-mark-el"
+              fill-rule="evenodd" clip-rule="evenodd"
+              d="M38.511 36.3587H42.118V17.5439H38.511V36.3587Z"/>
+        <path id="searchModalMarkL2" class="search-modal-mark-el"
+              fill-rule="evenodd" clip-rule="evenodd"
+              d="M45.2032 36.3586H48.8134V10.2878H45.2032V36.3586Z"/>
+        <path id="searchModalMarkCheck" class="search-modal-mark-el"
+              fill-rule="evenodd" clip-rule="evenodd"
+              d="M45.8683 0L33.957 13.3398L32.3133 11.8098L29.9446 14.4504L33.9397 18.3333L48.2779 2.34634L45.8683 0Z"/>
+      </svg>
     </div>
 
     {# Decision mode — Refresh / Ignore choice prompt (hidden by default) #}
@@ -344,15 +392,57 @@ window.openSearchModal = function(opts) {
     return;
   }
 
+  // Read theme colors at open time so the mark animation follows the theme.
+  const css = getComputedStyle(document.body);
+  const COLOR_DIM    = css.getPropertyValue('--sk-border').trim();
+  const COLOR_ON     = css.getPropertyValue('--sk-text').trim();
+  const COLOR_ACCENT = css.getPropertyValue('--sk-accent').trim();
+
   // Reset state for any previous run
   document.getElementById('searchModalEyebrow').textContent = opts.eyebrow || 'Working';
   document.getElementById('searchModalTitle').textContent   = opts.title || '';
   document.getElementById('searchModalStatus').textContent  = 'Starting...';
   document.getElementById('searchModalProgressFill').style.width = '0%';
-  document.getElementById('searchModalTimer').textContent   = '0:00';
-  document.getElementById('searchModalError').style.display = 'none';
-  document.querySelectorAll('.search-modal-status, .search-modal-dots, .search-modal-progress-track, .search-modal-timer')
+  document.getElementById('searchModalCounter').innerHTML    = '&nbsp;';
+  document.getElementById('searchModalTimer').innerHTML      = 'running for <strong>0:00</strong>';
+  document.getElementById('searchModalError').style.display  = 'none';
+  document.querySelectorAll('.search-modal-status, .search-modal-dots, .search-modal-bottom')
     .forEach(function(el) { el.style.display = ''; });
+
+  // Reset the animated ill mark — first bar pulsing, rest dim, check hidden.
+  const MARK_IDS = ['searchModalMarkI', 'searchModalMarkL1', 'searchModalMarkL2', 'searchModalMarkCheck'];
+  MARK_IDS.forEach(function(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.setAttribute('fill', COLOR_DIM);
+    el.classList.remove('search-modal-mark-active', 'search-modal-mark-check-flash');
+  });
+  const markI = document.getElementById('searchModalMarkI');
+  if (markI) {
+    markI.setAttribute('fill', COLOR_ON);
+    markI.classList.add('search-modal-mark-active');
+  }
+
+  function litMark(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('search-modal-mark-active');
+    el.setAttribute('fill', COLOR_ON);
+  }
+  function activeMark(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.setAttribute('fill', COLOR_ON);
+    el.classList.add('search-modal-mark-active');
+  }
+  function celebrateCheck() {
+    const el = document.getElementById('searchModalMarkCheck');
+    if (!el) return;
+    el.classList.remove('search-modal-mark-active');
+    el.setAttribute('fill', COLOR_ACCENT);
+    void el.getBoundingClientRect();  // force reflow so the flash restarts
+    el.classList.add('search-modal-mark-check-flash');
+  }
 
   backdrop.classList.add('is-open');
 
@@ -360,19 +450,35 @@ window.openSearchModal = function(opts) {
   const source = new EventSource(opts.sseUrl);
   const startTime = Date.now();
   let pct = 0;
+  let stage = 0;  // 0 = i pulsing, 1 = l1 pulsing, 2 = l2 pulsing
 
-  // Animated progress bar (creeps to ~85% then waits for done)
+  // Animated progress bar + synchronized ill-mark stage advance.
+  // 0-28%  → i pulsing
+  // 28-56% → i lit, l1 pulsing
+  // 56-85% → i + l1 lit, l2 pulsing
+  // done:  → all three lit, check celebrates
   const progressInterval = setInterval(function() {
     pct = Math.min(pct + 0.4, 85);  // magic-allowed: progress bar visual creep rate
     document.getElementById('searchModalProgressFill').style.width = pct + '%';
+    if (stage === 0 && pct >= 28) {
+      litMark('searchModalMarkI');
+      activeMark('searchModalMarkL1');
+      stage = 1;
+    }
+    if (stage === 1 && pct >= 56) {
+      litMark('searchModalMarkL1');
+      activeMark('searchModalMarkL2');
+      stage = 2;
+    }
   }, 300);
 
-  // Elapsed timer
+  // Elapsed timer (verbose "running for M:SS" format — shared across flows).
   const timerInterval = setInterval(function() {
     const s = Math.floor((Date.now() - startTime) / 1000);
     const mm = Math.floor(s / 60);
     const ss = String(s % 60).padStart(2, '0');
-    document.getElementById('searchModalTimer').textContent = mm + ':' + ss;
+    document.getElementById('searchModalTimer').innerHTML =
+      'running for <strong>' + mm + ':' + ss + '</strong>';
   }, 1000);
 
   function cleanup() {
@@ -389,25 +495,48 @@ window.openSearchModal = function(opts) {
   function showError(message) {
     document.getElementById('searchModalStatus').style.display = 'none';
     document.querySelector('.search-modal-dots').style.display = 'none';
-    document.querySelector('.search-modal-progress-track').style.display = 'none';
-    document.getElementById('searchModalTimer').style.display = 'none';
+    document.querySelector('.search-modal-bottom').style.display = 'none';
     document.getElementById('searchModalErrorMsg').textContent = message;
     document.getElementById('searchModalError').style.display = 'block';
+  }
+
+  // Parse "(N/M)" out of status messages and render as the counter line.
+  // The backend's per-product progress callbacks emit strings like
+  // "Scored Trellix GTI (3/4)" — the counter slot shows "3 of 4", while
+  // the prose part stays in the main status line in the middle section.
+  // Flow-agnostic: any backend that includes `(N/M)` in any status string
+  // gets the counter automatically, no new SSE verb required.
+  const COUNTER_RE = /\((\d+)\s*\/\s*(\d+)\)/;
+  function applyStatus(text) {
+    const m = text.match(COUNTER_RE);
+    const counterEl = document.getElementById('searchModalCounter');
+    if (m) {
+      counterEl.textContent = m[1] + ' of ' + m[2];
+    } else if (/starting|preparing|searching/i.test(text)) {
+      // Keep any prior counter visible; don't wipe it on startup messages.
+    }
+    document.getElementById('searchModalStatus').textContent = text;
   }
 
   source.onmessage = function(e) {
     const msg = e.data || '';
     if (msg.startsWith('status:')) {
-      document.getElementById('searchModalStatus').textContent = msg.slice(7);
+      applyStatus(msg.slice(7));
     } else if (msg.startsWith('done:')) {
       cleanup();
       document.getElementById('searchModalStatus').textContent = 'Complete';
       document.getElementById('searchModalProgressFill').style.width = '100%';
+      // Make sure all three bars are lit before the check celebrates.
+      litMark('searchModalMarkI');
+      litMark('searchModalMarkL1');
+      litMark('searchModalMarkL2');
+      celebrateCheck();
       const payload = msg.slice(5);
       if (typeof opts.onComplete === 'function') {
-        opts.onComplete(payload);
+        // Small pause so the user sees the checkmark flash before redirect.
+        setTimeout(function() { opts.onComplete(payload); }, 800);
       } else {
-        setTimeout(close, 600);  // magic-allowed: brief pause so user sees the 100% bar
+        setTimeout(close, 1200);
       }
     } else if (msg.startsWith('error:')) {
       cleanup();
