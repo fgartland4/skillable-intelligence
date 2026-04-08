@@ -319,6 +319,20 @@ _provisioning_badges = (
     Badge("No Deployment Method", (
         BadgeColor("red", "Cannot be provisioned or simulated in any software environment"),
     ), notes="Ultimate dead-end blocker. Only fires when no real provisioning path AND Simulation is also blocked. Diligent-style products where Simulation is viable do NOT get this badge — they get Sandbox API red + Simulation gray."),
+    # Frank 2026-04-08 additions:
+    Badge("M365 Tenant", (
+        BadgeColor("green", "Microsoft 365 End User scenario — Skillable's automated tenant provisioning applies. Low-friction learner experience: no credit card, no MFA, Skillable-owned tenant with the right M365 tier (Base/Full/Full+AI)."),
+    ), notes="Frank 2026-04-08 — M365 as a first-class Provisioning fabric peer to VM/Azure/AWS/Container. Fires when m365_scenario == 'end_user'. See backend/knowledge/skillable_capabilities.json → m365_tenants → scenarios → end_user for the capability detail."),
+    Badge("M365 Admin", (
+        BadgeColor("amber", "Microsoft 365 Administration scenario — requires Global Admin tenant. Path is either MOC-provided tenant (Learning Partners only) or learner-signed-up M365 Trial account (may require credit card / MFA identity verification by Microsoft)."),
+    ), notes="Frank 2026-04-08 — M365 Administration fires amber because tenant path has identity verification friction. Evidence text should explain the MOC vs trial distinction. See backend/knowledge/skillable_capabilities.json → m365_tenants → scenarios → administration."),
+    Badge("Custom Cloud", (
+        BadgeColor("gray", "Skillable's Custom Cloud Labs (BYOC) pattern orchestrates this product's vendor API through Lifecycle Actions + Automated Activities + Custom Start Page. Named operational pattern for SaaS/cloud products with per-learner provisioning APIs."),
+    ), notes="Frank 2026-04-08 — Skillable-strength context badge that fires alongside Sandbox API (when Sandbox API is green or amber). Zero scoring points (strength context only, credit lives on Sandbox API itself). Multi-badge pattern: Sandbox API names the vendor finding, Custom Cloud names the Skillable operational capability. See backend/knowledge/skillable_capabilities.json → byoc_custom_cloud_labs."),
+    Badge("No GCP Path", (
+        BadgeColor("amber", "Product runs on GCP AND has another viable fabric — GCP is a limitation but we can route around it via the alternative path. SE validates the alternative path."),
+        BadgeColor("red", "GCP is required or preferred by the vendor AND no native Skillable GCP path exists — either the product is GCP-only, or the vendor's preferred deployment is GCP and going against their grain means real friction."),
+    ), notes="Frank 2026-04-08 — replaces the old 'Requires GCP' amber-only badge with a finding-oriented name. Multi-badge pattern for GCP-preferred products: No GCP Path red + the workaround fabric fires at amber (instead of its normal green) to signal it's a workaround, not the happy path."),
 )
 
 _provisioning_signals = (
@@ -339,13 +353,24 @@ _provisioning_signals = (
     ScoringSignal("Runs in Container", 30, "Container-native confirmed — equivalent to Hyper-V Standard"),
     ScoringSignal("ESX Required", 26, "ESX path — 4 points below Hyper-V due to operational cost (Broadcom licensing)"),
     ScoringSignal("Sandbox API", 22, "Vendor provisioning API (BYOC) — viable per-learner provisioning, scored below native fabrics"),
-    ScoringSignal("Simulation", 12, "Simulation as the chosen path — base credit when real provisioning is impractical"),
+    # Frank 2026-04-08: Simulation is now a HARD OVERRIDE case — when the
+    # scorer picks Simulation as the fabric, it applies SIMULATION_PROVISIONING_POINTS
+    # directly rather than walking signals. This row stays for backward compat
+    # but the scorer doesn't read it for Simulation-chosen products anymore.
+    ScoringSignal("Simulation", 5, "Simulation as the chosen path — low base credit (Frank 2026-04-08 override, reduced from 12)"),
+    # Frank 2026-04-08: M365 as first-class Provisioning fabric peer.
+    ScoringSignal("M365 Tenant", 25, "Microsoft 365 End User scenario — Skillable's automated tenant provisioning (Base/Full/Full+AI). Low-friction learner path."),
+    ScoringSignal("M365 Admin", 18, "Microsoft 365 Administration scenario — trial tenant or MOC-provided tenant path; identity verification friction."),
     # Strength badges (do not score in Provisioning directly — they drive
     # the ACV rate tier upward and add seller-relevant context)
     ScoringSignal("Multi-VM Lab", 0, "Skillable competitive strength — drives ACV rate tier"),
     ScoringSignal("Complex Topology", 0, "Skillable competitive strength — drives ACV rate tier"),
     ScoringSignal("Large Lab", 0, "Skillable competitive strength — drives ACV rate tier"),
     ScoringSignal("Pre-Instancing", 0, "Skillable feature opportunity — mitigates slow init"),
+    # Frank 2026-04-08: BYOC / Custom Cloud Labs Skillable-strength context badge.
+    # Fires alongside Sandbox API when Sandbox API is green or amber. Zero points —
+    # credit lives on Sandbox API itself; Custom Cloud is display/context only.
+    ScoringSignal("Custom Cloud", 0, "Skillable's Custom Cloud Labs (BYOC) pattern — context/strength badge, credit lives on Sandbox API"),
 )
 
 _provisioning_penalties = (
@@ -2001,6 +2026,71 @@ SCORING_API_ALONE_CAP = 12
 
 SANDBOX_API_RED_CAP_SIM_VIABLE = 25
 SANDBOX_API_RED_CAP_NOTHING_VIABLE = 5
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SIMULATION HARD OVERRIDE VALUES — Frank 2026-04-08
+#
+# When Simulation is the chosen fabric (last-resort fallback after VM, Cloud,
+# Sandbox API, and M365 all fail), ALL FOUR Pillar 1 dimensions get HARD
+# OVERRIDE values regardless of what the other facts say. The normal per-
+# dimension computation is suppressed.
+#
+# Rationale (Frank): "If it's a sim, the product isn't really running in the
+# classic sense, so the other dimensions' normal questions don't apply. You
+# can't penalize teardown when there's nothing to tear down. Lab access is
+# middle — learners just log into the sim. Scoring doesn't exist for sims
+# yet (feature request). Provisioning is low — it's a fallback, not a win."
+#
+# Total Simulation Pillar 1 = 5 + 12 + 0 + 25 = 42/100 (Light Amber).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+SIMULATION_PROVISIONING_POINTS = 5     # Fallback, low but nonzero
+SIMULATION_LAB_ACCESS_POINTS = 12      # Middle of Lab Access 25 cap
+SIMULATION_SCORING_POINTS = 0          # No scoring for sims today (feature request)
+SIMULATION_TEARDOWN_POINTS = 25        # Full — nothing to tear down = structurally equivalent to Datacenter automatic
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MULTI-FABRIC OPTIONALITY BONUS — Frank 2026-04-08
+#
+# When a product has MULTIPLE viable Pillar 1 Provisioning fabrics (e.g., a
+# product that runs in Hyper-V AND on Azure as a cloud-native service), the
+# primary fabric's base credit is credited normally, PLUS an optionality bonus
+# for each additional viable secondary fabric. Reflects Frank's insight that
+# multi-fabric products give lab developers more design choices and enable
+# more lab types (cross-pillar with Pillar 2 Lab Versatility).
+#
+# Rules:
+#   - Simulation does NOT count as a secondary fabric (it's a fallback)
+#   - Partial-granularity Sandbox API does NOT count (too weak to count)
+#   - Container with disqualifiers does NOT count
+#   - Bonus caps at MULTI_FABRIC_OPTIONALITY_BONUS_CAP (diminishing returns)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+MULTI_FABRIC_OPTIONALITY_BONUS_PER_EXTRA = 3
+MULTI_FABRIC_OPTIONALITY_BONUS_CAP = 6
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# M365 SCENARIO FABRIC POINTS — Frank 2026-04-08
+#
+# M365 is a first-class Provisioning fabric in Skillable (peer to Hyper-V /
+# Cloud Slice / Sandbox API / Simulation). Two distinct scenarios with
+# different friction profiles:
+#
+#   End User (automated Skillable-owned tenants, low friction):  25 points
+#   Administration (MOC or trial tenant, higher friction):        18 points
+#
+# When m365_scenario is set, the scorer picks M365 as the primary fabric
+# BEFORE walking the VM/Cloud/Sandbox priority order. Training License in
+# Lab Access separately fires amber for both scenarios (SE has real licensing
+# design questions regardless of scenario — tier, concurrent user count,
+# add-ons, identity verification).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+M365_TENANT_POINTS = 25                # End User scenario — automated lane
+M365_ADMIN_POINTS = 18                 # Administration scenario — trial/MOC path
 
 
 CEILING_FLAGS: dict[str, dict] = {

@@ -646,7 +646,20 @@ Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no m
     "has_pre_instancing_opportunity": <bool>,
     "needs_gpu": <bool>,
     "needs_bare_metal": <bool>,
-    "needs_gcp": <bool>
+    "needs_gcp": <bool>,
+    "m365_scenario": "<end_user|administration|>",
+    "preferred_fabric": "<hyper_v|vm|container|azure|aws|sandbox_api|m365_tenant|m365_admin|simulation|gcp|>",
+    "preferred_fabric_rationale": "<1-2 sentence explanation of why this fabric is preferred>",
+    "vm_is_resource_intensive": <bool>,
+    "vm_has_premium_cost_profile": <bool>,
+    "vm_footprint_notes": "<narrative: 'Standard Hyper-V profile' or 'Requires 16vCPU + 64GB + GPU' etc.>",
+    "container_is_production_native": <bool>,
+    "container_is_dev_only": <bool>,
+    "container_needs_windows_gui": <bool>,
+    "container_needs_multi_vm_network": <bool>,
+    "container_footprint_notes": "<narrative about container capabilities or limitations>",
+    "requires_esx": <bool>,
+    "requires_esx_reason": "<1-sentence specific constraint if requires_esx is true>"
   },
   "lab_access": {
     "description": "<1-3 sentence narrative of how learners actually authenticate>",
@@ -683,6 +696,44 @@ provisioning.sandbox_api_granularity: does the product expose an API that can sp
   - "none"    = no documented sandbox provisioning API
 
 provisioning.has_pre_instancing_opportunity: true ONLY when documentation explicitly indicates slow first-launch, slow cluster initialization, or slow tenant warm-up that would benefit from pre-warming environments.
+
+provisioning.m365_scenario: classify Microsoft 365 dependency.
+  - "end_user"       = product is Microsoft 365 End User scenario (Word, Excel, Teams, SharePoint, PowerBI, OneDrive, Outlook, OneNote training). Skillable has an automated M365 End User solution (E3/E5/E7 tiers) that handles this without credit card / MFA friction for learners.
+  - "administration" = product is Microsoft 365 Administration scenario (Intune admin, Defender admin, Purview admin, Entra admin, anything requiring Global Administrator tenant access). Higher friction — requires MOC-provided tenant or learner-signed-up M365 Trial account.
+  - ""               = product has no direct M365 dependency. Leave empty.
+  Read the product description carefully — if the learning objectives involve Microsoft 365 apps or administering M365, classify accordingly.
+
+provisioning.preferred_fabric: the fabric best matched to this product, based on multi-factor analysis (NOT just vendor marketing). Decision tree:
+  1. Default to "hyper_v" (VM) for installable products — gives lab developers the most control and easiest scoring.
+  2. Lean "azure" or "aws" when: (a) the VM footprint would be resource-intensive (set vm_is_resource_intensive=true), (b) the VM profile is meaningfully more expensive than cloud (vm_has_premium_cost_profile=true), OR (c) the vendor strongly prefers cloud in their marketing.
+  3. Use "container" only when container is production-native AND no disqualifiers fire (see container_* fields).
+  4. Use "m365_tenant" or "m365_admin" when m365_scenario is set.
+  5. Use "sandbox_api" when the product is SaaS-only AND has a rich provisioning API.
+  6. Use "simulation" only as last resort.
+  7. Only use vendor marketing preference as a TIEBREAKER when technical analysis is neutral.
+  Leave empty if you can't determine the preferred fabric with confidence.
+
+provisioning.preferred_fabric_rationale: 1-2 sentences explaining WHY this fabric is preferred. Example: "Cisco Meraki is installable on a Hyper-V appliance, and the VM is lightweight (single small VM). Lab developers get full control over the network topology this way."
+
+provisioning.vm_is_resource_intensive: true when the product would need a BIG VM (16+ vCPUs, 32GB+ RAM, specialized hardware). Normal small VMs stay false. This is a FACT about the product, not a judgment about VMs being bad.
+
+provisioning.vm_has_premium_cost_profile: true when the VM footprint is meaningfully more expensive than the cloud alternative. Most products stay false.
+
+provisioning.vm_footprint_notes: free-text narrative describing the VM profile. "Standard Hyper-V profile" for normal products. "Requires 16vCPU + 64GB RAM + GPU" for resource-intensive ones. "Premium licensing adds cost" for high-cost cases.
+
+provisioning.container_is_production_native: true when the vendor publishes this product as a production-ready container (not just a dev image). Positive signal when true. Does NOT count as anti-signal when false.
+
+provisioning.container_is_dev_only: true when the published image is labeled "for development only," "not for production," "demo use only," or equivalent. Disqualifier for container viability.
+
+provisioning.container_needs_windows_gui: true when the product requires a Windows desktop GUI to use. Container GUI support is limited — this disqualifies container as a viable fabric.
+
+provisioning.container_needs_multi_vm_network: true when the product requires multi-VM networking (segmentation, firewalls between VMs). Container isolation doesn't support this — disqualifier.
+
+provisioning.container_footprint_notes: free-text narrative about what the container provides or the specific disqualifier reason if any apply.
+
+provisioning.requires_esx: true when there's a specific technical constraint forcing VMware ESX over Hyper-V (nested virtualization required for hypervisor training scenarios, socket licensing above 24 vCPUs, legacy vSphere dependency). Most products stay false.
+
+provisioning.requires_esx_reason: 1-sentence specific constraint when requires_esx is true. Example: "Nested virtualization required for hypervisor training scenarios — Hyper-V doesn't support nested virt."
 
 lab_access.auth_model: how the END USER authenticates to the running product.
   - "entra_native_tenant" — Skillable provisions in a controlled Entra tenant; in-lab username + password are displayed
@@ -797,6 +848,20 @@ def _coerce_facts_dict_to_dataclass(raw: dict) -> ProductLababilityFacts:
         needs_gpu=_bool(prov_raw.get("needs_gpu")),
         needs_bare_metal=_bool(prov_raw.get("needs_bare_metal")),
         needs_gcp=_bool(prov_raw.get("needs_gcp")),
+        # Frank 2026-04-08 additions
+        m365_scenario=_str(prov_raw.get("m365_scenario")),
+        preferred_fabric=_str(prov_raw.get("preferred_fabric")),
+        preferred_fabric_rationale=_str(prov_raw.get("preferred_fabric_rationale")),
+        vm_is_resource_intensive=_bool(prov_raw.get("vm_is_resource_intensive")),
+        vm_has_premium_cost_profile=_bool(prov_raw.get("vm_has_premium_cost_profile")),
+        vm_footprint_notes=_str(prov_raw.get("vm_footprint_notes")),
+        container_is_production_native=_bool(prov_raw.get("container_is_production_native")),
+        container_is_dev_only=_bool(prov_raw.get("container_is_dev_only")),
+        container_needs_windows_gui=_bool(prov_raw.get("container_needs_windows_gui")),
+        container_needs_multi_vm_network=_bool(prov_raw.get("container_needs_multi_vm_network")),
+        container_footprint_notes=_str(prov_raw.get("container_footprint_notes")),
+        requires_esx=_bool(prov_raw.get("requires_esx")),
+        requires_esx_reason=_str(prov_raw.get("requires_esx_reason")),
     )
 
     la_raw = raw.get("lab_access", {}) or {}

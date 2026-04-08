@@ -313,26 +313,55 @@ def _score_single_product(company_name: str, product: dict, product_context: str
 
 
 def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis:
-    """Phase 2: Parallel scoring — one Claude call per product.
+    """Phase 2 stub — REBUILD Step 5b-lite (Frank 2026-04-08).
+
+    The legacy monolithic per-product Claude scoring call is COMMENTED OUT.
+    Running both the new Python scorers (Steps 3/4/5) and the monolithic
+    call at the same time was producing timeouts and corrupted the Deep
+    Dive flow, so Frank directed us to stub the old path so the new one
+    can be tested in isolation on Trellix.
+
+    This function now:
+      1. Reads company_name, selected products, and discovery metadata
+         from the `research` dict
+      2. Builds minimal Product objects from selected_products + whatever
+         metadata lives in discovery_data (name, category, description,
+         subcategory, product_url). No Claude call.
+      3. Attaches the Pillar 1 fact drawer from research["product_labability_facts"]
+         (populated by the Step 2 fact extractors).
+      4. Emits progress events for each product so the UX progress bar
+         still moves.
+      5. Returns a CompanyAnalysis with empty fit_score placeholders —
+         `intelligence.score()` will populate them via the Python scorers
+         (Steps 3/4) and the Step 5 cutover flip.
+
+    Full Step 5b (delete the dead legacy code + the badge-keyed math in
+    scoring_math.py + the _parse_product / _parse_pillar / _parse_* helpers)
+    is still pending. This stub is the minimum viable cutover that lets us
+    test the new scoring path end-to-end.
+
+    Lost by the stub vs the old monolithic path:
+      - owning_org per product (Claude used to synthesize from research)
+      - contacts per product (Claude used to extract from research)
+      - lab_highlight, lab_concepts, deployment_model, orchestration_method,
+        user_personas, recommendation (all from the monolithic call)
+      - description / subcategory / product_url (if not present on the
+        selected_products entries)
+      - poor_match_flags (Claude-derived ceiling flag hints)
+
+    Most of these become empty strings or empty lists. The UI will render
+    with gaps in those areas — acceptable for the rebuild test window.
+    A future metadata extractor (a focused small Claude call for metadata
+    only) will refill them at Step 5b proper.
 
     Args:
         research: research dict with company_name, selected_products, etc.
-        progress_cb: optional callback invoked as each product FINISHES scoring.
+        progress_cb: optional callback invoked as each product is built.
             Signature: progress_cb(product_name: str, completed: int, total: int).
-            The math layer publishes true per-completion progress events so the
-            UI reflects actual work, not upfront dispatch.  GP1 (right info,
-            right time, right way): the progress bar must trace honestly back
-            to completed work — emitting events upfront before scoring begins
-            is a trust failure.
     """
     company_name = research["company_name"]
     selected = research["selected_products"]
-    all_results = research.get("search_results", {})
-    page_contents = research.get("page_contents", {})
-
-    discovery_data = research.get("discovery_data")
-    company_context = _build_company_context(company_name, discovery_data)
-    benchmarks_text = _build_benchmarks_text()
+    discovery_data = research.get("discovery_data") or {}
 
     total = len(selected)
 
@@ -342,69 +371,99 @@ def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis
         try:
             progress_cb(name, done, total)
         except Exception:
-            log.exception("score_selected_products: progress_cb raised — ignoring")
+            log.exception("score_selected_products (stub): progress_cb raised — ignoring")
 
-    # Fire one call per product in parallel — cap at MAX_SCORING_WORKERS workers
-    from config import MAX_SCORING_WORKERS, SCORING_TIMEOUT_SECS
-    with ThreadPoolExecutor(max_workers=min(total, MAX_SCORING_WORKERS)) as executor:
-        product_futures = {
-            executor.submit(
-                _score_single_product,
-                company_name, p,
-                _build_product_context(p["name"], all_results, page_contents),
-                company_context, benchmarks_text
-            ): p["name"]
-            for p in selected
-        }
+    # Build a lookup of discovery-data products by name so we can grab
+    # whatever metadata was emitted at discovery time (category,
+    # description, subcategory, product_url).
+    discovery_products_by_name: dict[str, dict] = {}
+    for dp in discovery_data.get("products", []) or []:
+        if isinstance(dp, dict) and dp.get("name"):
+            discovery_products_by_name[dp["name"]] = dp
 
-        product_results = {}
-        completed = 0
-        for future in as_completed(product_futures, timeout=SCORING_TIMEOUT_SECS):
-            name = product_futures[future]
-            try:
-                product_results[name] = future.result()
-            except Exception as e:
-                product_results[name] = {"_error": str(e)}
-            completed += 1
-            _emit_progress(name, completed)
-
-    failed = {name: r for name, r in product_results.items() if "_error" in r}
-    successful = {name: r for name, r in product_results.items() if "_error" not in r}
-    for name, r in failed.items():
-        log.error("Scoring failed for '%s': %s", name, r["_error"])
-
-    if not successful:
-        raise ValueError(
-            "Scoring failed for all products — usually a temporary API issue. "
-            "Try again in a moment, or select fewer products."
-        )
-
-    first = next(iter(successful.values()))
     # Attach the Pillar 1 fact drawer extracted by researcher.research_products().
-    # Research → Store layer output flows onto each Product here so downstream
-    # Pillar 1 scoring (Step 3) can read typed primitives instead of re-parsing
-    # Claude's interpretive JSON.  Missing facts are silently left at defaults —
-    # fact extraction is best-effort and never fails the whole scoring run.
+    # The other fact drawers (InstructionalValueFacts, CustomerFitFacts) are
+    # attached by intelligence.score() after this function returns — see the
+    # Step 2 wiring there. This keeps `score_selected_products`'s contract
+    # narrow: build Products with metadata + Pillar 1 facts, let intelligence.py
+    # do the rest.
     facts_by_product = research.get("product_labability_facts", {}) or {}
 
-    products = []
+    products: list[Product] = []
+    completed = 0
     for p in selected:
-        result = product_results.get(p["name"], {})
-        if "_error" in result:
-            continue
-        parsed = _parse_product(result)
-        facts = facts_by_product.get(p["name"])
-        if facts is not None:
-            parsed.product_labability_facts = facts
-        products.append(parsed)
+        name = p.get("name", "")
+        disc_entry = discovery_products_by_name.get(name, {})
 
+        # Merge: selected_products entry first, discovery_data entry as fallback
+        category = p.get("category") or disc_entry.get("category") or ""
+        subcategory = p.get("subcategory") or disc_entry.get("subcategory") or ""
+        description = p.get("description") or disc_entry.get("description") or ""
+        product_url = p.get("product_url") or disc_entry.get("product_url") or ""
+        deployment_model = p.get("deployment_model") or disc_entry.get("deployment_model") or ""
+        orchestration_method = p.get("orchestration_method") or disc_entry.get("orchestration_method") or ""
+
+        product = Product(
+            name=name,
+            category=category,
+            subcategory=subcategory,
+            description=description,
+            product_url=product_url,
+            deployment_model=deployment_model,
+            orchestration_method=orchestration_method,
+        )
+
+        facts = facts_by_product.get(name)
+        if facts is not None:
+            product.product_labability_facts = facts
+
+        products.append(product)
+        completed += 1
+        _emit_progress(name, completed)
+
+    if not products:
+        raise ValueError(
+            "score_selected_products (stub): zero products in research['selected_products']"
+        )
+
+    log.info(
+        "score_selected_products (stub): built %d products from discovery data — "
+        "monolithic Claude call SKIPPED (Step 5b-lite). Pillar scoring will be "
+        "populated by intelligence.score() via the Python scorers.",
+        len(products),
+    )
+
+    # Company-level metadata comes from discovery_data.
     return CompanyAnalysis(
         company_name=company_name,
-        company_url=first.get("company_url"),
-        company_description=first.get("company_description", ""),
-        organization_type=first.get("organization_type", "software_company"),
+        company_url=discovery_data.get("company_url"),
+        company_description=discovery_data.get("company_description", ""),
+        organization_type=discovery_data.get("organization_type", "software_company"),
         products=products,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LEGACY score_selected_products — DEAD CODE pending Step 5b proper deletion
+#
+# Kept below (inside this comment block) as a one-place reference of what
+# the old monolithic path did, until Step 5b removes both the code and the
+# _score_single_product / _parse_product / _parse_* helpers that supported
+# it. The old behavior:
+#
+#   1. Build product_context from search_results + page_contents
+#   2. Build company_context from discovery_data
+#   3. Build benchmarks_text from benchmarks.json
+#   4. Fire one Claude call per product in parallel (SCORING_PROMPT)
+#      via _score_single_product
+#   5. Parse each response via _parse_product which called
+#      scoring_math.compute_all to run badge-keyed math
+#   6. Return CompanyAnalysis with fit_score populated from the AI output
+#
+# All of that is now dead. The new path (Steps 2/3/4/5) reads facts
+# directly and computes scores via the pure-Python pillar scorers. The
+# rubric grader handles the narrow Claude-in-Score slice for Pillar 2/3.
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

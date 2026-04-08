@@ -84,8 +84,10 @@ def test_provisioning_clean_hyperv_earns_full_signal_credit():
 
 
 def test_provisioning_azure_native_beats_sandbox_api():
-    """Azure-native product that also has a sandbox API uses Cloud Slice,
-    not Sandbox API, per the 'native fabric beats manual API wiring' rule."""
+    """Azure-native product that also has a sandbox API uses Cloud Slice as
+    the PRIMARY fabric, not Sandbox API. The product also gets an optionality
+    bonus because Sandbox API is viable as a secondary, and Custom Cloud fires
+    as a Skillable-strength context badge. Frank 2026-04-08 refinements."""
     facts = ProductLababilityFacts(
         provisioning=ProvisioningFacts(
             runs_as_azure_native=True,
@@ -94,14 +96,22 @@ def test_provisioning_azure_native_beats_sandbox_api():
         ),
     )
     result = pls.score_provisioning(facts)
-    assert result.raw_total == _sig("Provisioning", "Runs in Azure")
     names = [n for n, _ in result.signals_matched]
+    # Azure must be the primary fabric (picked first)
     assert "Runs in Azure" in names
+    # Sandbox API is NOT the primary but Custom Cloud strength badge fires
     assert "Sandbox API" not in names
+    assert "Custom Cloud" in names
+    # Multi-fabric optionality bonus fires because Sandbox API is a viable secondary
+    assert "Multi-Fabric Bonus" in names
+    # Raw total = Azure base credit + optionality bonus
+    azure_pts = _sig("Provisioning", "Runs in Azure")
+    assert result.raw_total == azure_pts + cfg.MULTI_FABRIC_OPTIONALITY_BONUS_PER_EXTRA
 
 
 def test_provisioning_sandbox_api_rich_is_green():
-    """SaaS-only product with rich sandbox API → full Sandbox API credit, no cap."""
+    """SaaS-only product with rich sandbox API → full Sandbox API credit, no cap.
+    Custom Cloud strength badge also fires alongside."""
     facts = ProductLababilityFacts(
         provisioning=ProvisioningFacts(
             runs_as_saas_only=True,
@@ -110,12 +120,17 @@ def test_provisioning_sandbox_api_rich_is_green():
         ),
     )
     result = pls.score_provisioning(facts)
+    # Raw total is Sandbox API full credit (Custom Cloud is 0 pts)
     assert result.raw_total == _sig("Provisioning", "Sandbox API")
     assert not result.ceiling_flags
+    names = [n for n, _ in result.signals_matched]
+    assert "Sandbox API" in names
+    assert "Custom Cloud" in names  # Skillable strength badge fires alongside
 
 
 def test_provisioning_sandbox_api_partial_is_amber_half_credit():
-    """Partial sandbox API granularity → half credit + amber risk counted."""
+    """Partial sandbox API granularity → half credit + amber risk counted.
+    Custom Cloud strength badge still fires (context, not scoring)."""
     facts = ProductLababilityFacts(
         provisioning=ProvisioningFacts(
             runs_as_saas_only=True,
@@ -128,18 +143,24 @@ def test_provisioning_sandbox_api_partial_is_amber_half_credit():
     assert result.amber_risks == 1
 
 
-def test_provisioning_saas_only_no_sandbox_raises_red_ceiling_flag():
-    """Pure SaaS with no Sandbox API → red ceiling flag + simulation fallback."""
+def test_provisioning_saas_only_no_sandbox_uses_simulation_override():
+    """Pure SaaS with no Sandbox API → falls through to Simulation hard override.
+    Frank 2026-04-08: Simulation is a hard override (5/12/0/25), NOT the old
+    sandbox_api_red_sim_viable ceiling flag path. The simulation_chosen flag
+    triggers the composer to apply all four dimension overrides."""
     facts = ProductLababilityFacts(
         provisioning=ProvisioningFacts(runs_as_saas_only=True),
     )
     result = pls.score_provisioning(facts)
-    assert "sandbox_api_red_sim_viable" in result.ceiling_flags
-    assert result.red_risks >= 1
-    # Simulation should still fire as a viable fabric
+    # New behavior: Simulation hard override fires, no sandbox_red ceiling
+    assert result.simulation_chosen is True
     assert result.simulation_viable is True
-    sim_pts = _sig("Provisioning", "Simulation")
-    assert any(n == "Simulation" and p == sim_pts for n, p in result.signals_matched)
+    assert result.dimension_score.score == cfg.SIMULATION_PROVISIONING_POINTS
+    # The only signal matched is Simulation
+    assert result.signals_matched == [("Simulation", cfg.SIMULATION_PROVISIONING_POINTS)]
+    # Old sandbox_red ceiling flag is NOT raised — the Simulation override is
+    # the canonical answer for no-real-provisioning-path now.
+    assert "sandbox_api_red_sim_viable" not in result.ceiling_flags
 
 
 def test_provisioning_gpu_required_applies_penalty_and_amber_risk():
@@ -362,9 +383,15 @@ def test_pillar_clean_hyperv_grand_slam_scores_near_cap():
     assert pillar.score_override is None  # no ceiling should fire
 
 
-def test_pillar_sandbox_api_red_sim_viable_caps_at_config_constant():
-    """SaaS with no API + Simulation viable → Pillar 1 caps at
-    SANDBOX_API_RED_CAP_SIM_VIABLE."""
+def test_pillar_simulation_override_sums_to_config_constants():
+    """SaaS with no real provisioning path → Simulation hard override applies
+    ALL FOUR dimensions: SIMULATION_PROVISIONING_POINTS + SIMULATION_LAB_ACCESS_POINTS
+    + SIMULATION_SCORING_POINTS + SIMULATION_TEARDOWN_POINTS.
+
+    Frank 2026-04-08: the old sandbox_api_red_sim_viable ceiling flag behavior
+    (cap at 25) is REPLACED by the Simulation hard override (42 = 5+12+0+25).
+    The normal dimension scorers for Lab Access / Scoring / Teardown are
+    bypassed entirely — their facts don't matter when Simulation is the fabric."""
     facts = ProductLababilityFacts(
         provisioning=ProvisioningFacts(runs_as_saas_only=True),
         lab_access=LabAccessFacts(
@@ -375,8 +402,20 @@ def test_pillar_sandbox_api_red_sim_viable_caps_at_config_constant():
         teardown=TeardownFacts(),
     )
     pillar = pls.score_product_labability(facts)
-    assert pillar.score == cfg.SANDBOX_API_RED_CAP_SIM_VIABLE
-    assert pillar.score_override == cfg.SANDBOX_API_RED_CAP_SIM_VIABLE
+    expected_total = (
+        cfg.SIMULATION_PROVISIONING_POINTS
+        + cfg.SIMULATION_LAB_ACCESS_POINTS
+        + cfg.SIMULATION_SCORING_POINTS
+        + cfg.SIMULATION_TEARDOWN_POINTS
+    )
+    assert pillar.score == expected_total
+    # Each dimension matches its Simulation override constant exactly —
+    # the other dimension scorers' facts are ignored under the override.
+    dim_by_name = {d.name: d.score for d in pillar.dimensions}
+    assert dim_by_name["Provisioning"] == cfg.SIMULATION_PROVISIONING_POINTS
+    assert dim_by_name["Lab Access"] == cfg.SIMULATION_LAB_ACCESS_POINTS
+    assert dim_by_name["Scoring"] == cfg.SIMULATION_SCORING_POINTS
+    assert dim_by_name["Teardown"] == cfg.SIMULATION_TEARDOWN_POINTS
 
 
 def test_pillar_bare_metal_required_caps_hard():

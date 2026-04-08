@@ -1124,6 +1124,29 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             cutover_count, len(new_analysis.products),
         )
 
+        # ── Step 6-lite: attach display badges via badge_selector ──
+        # After the cutover flip, fit_score contains the authoritative Python-
+        # scored PillarScore objects with EMPTY badges lists. Badge selector
+        # populates the badges list on each DimensionScore as a post-scoring
+        # display concern — does not modify scores, only adds display metadata.
+        # Reads the fact drawer + rubric grades + the computed pillar scores
+        # and emits Badge objects per the naming rules locked 2026-04-08.
+        from badge_selector import attach_badges_to_product
+        badge_count = 0
+        for product in new_analysis.products:
+            try:
+                attach_badges_to_product(product, new_analysis)
+                badge_count += 1
+            except Exception:
+                log.exception(
+                    "Intelligence.score: badge_selector failed for product %r — skipping",
+                    product.name,
+                )
+        log.info(
+            "Intelligence.score: Step 6-lite badge selector populated badges for %d/%d products",
+            badge_count, len(new_analysis.products),
+        )
+
         # Assign verdicts AFTER the cutover so they're based on the new scores
         for product in new_analysis.products:
             acv_tier = product.acv_potential.acv_tier or "medium"

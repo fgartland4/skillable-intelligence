@@ -85,6 +85,11 @@ _SIG_CONTAINER = "Runs in Container"
 _SIG_ESX = "ESX Required"
 _SIG_SANDBOX_API = "Sandbox API"
 _SIG_SIMULATION = "Simulation"
+# Frank 2026-04-08 additions:
+_SIG_M365_TENANT = "M365 Tenant"
+_SIG_M365_ADMIN = "M365 Admin"
+_SIG_CUSTOM_CLOUD = "Custom Cloud"
+_SIG_NO_GCP_PATH = "No GCP Path"
 
 # Provisioning penalties
 _PEN_GPU = "GPU Required"
@@ -150,6 +155,22 @@ _CEIL_SANDBOX_RED_NOTHING_VIABLE = "sandbox_api_red_nothing_viable"
 _CEIL_BARE_METAL = "bare_metal_required"
 _CEIL_NO_API_AUTOMATION = "no_api_automation"
 
+# M365 scenario values (match ProvisioningFacts.m365_scenario)
+_M365_END_USER = "end_user"
+_M365_ADMIN = "administration"
+
+# Preferred fabric values (match ProvisioningFacts.preferred_fabric)
+_FABRIC_M365_TENANT = "m365_tenant"
+_FABRIC_M365_ADMIN = "m365_admin"
+_FABRIC_HYPER_V = "hyper_v"
+_FABRIC_VM = "vm"
+_FABRIC_CONTAINER = "container"
+_FABRIC_AZURE = "azure"
+_FABRIC_AWS = "aws"
+_FABRIC_SANDBOX_API = "sandbox_api"
+_FABRIC_SIMULATION = "simulation"
+_FABRIC_GCP = "gcp"
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Config lookups — resolved once at module load, zero runtime walks
@@ -212,6 +233,10 @@ def _verify_canonical_names() -> None:
     _signal_points(_PROV_DIM, _SIG_ESX)
     _signal_points(_PROV_DIM, _SIG_SANDBOX_API)
     _signal_points(_PROV_DIM, _SIG_SIMULATION)
+    # Frank 2026-04-08 new Provisioning signals:
+    _signal_points(_PROV_DIM, _SIG_M365_TENANT)
+    _signal_points(_PROV_DIM, _SIG_M365_ADMIN)
+    _signal_points(_PROV_DIM, _SIG_CUSTOM_CLOUD)
     _penalty_deduction(_PROV_DIM, _PEN_GPU)
     _penalty_deduction(_PROV_DIM, _PEN_SOCKET)
 
@@ -264,6 +289,7 @@ class _DimensionResult:
     raw_total: int = 0
     effective_cap: int = 0
     simulation_viable: bool = False  # for Sandbox API red cap resolution
+    simulation_chosen: bool = False  # Frank 2026-04-08 — Simulation is the primary fabric; triggers hard override on the other three dimensions via the composer
 
 
 def _dim_cap(dim: cfg.Dimension) -> int:
@@ -306,19 +332,105 @@ def _apply_risk_cap_reduction(raw_total: int,
 # Dimension 1.1 — Provisioning
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _container_is_viable(p: "ProvisioningFacts") -> bool:
+    """Container is viable only when production-native AND none of the four
+    documented disqualifiers fire. Frank 2026-04-08."""
+    if not p.runs_as_container:
+        return False
+    if not p.container_is_production_native:
+        return False
+    if p.container_is_dev_only:
+        return False
+    if p.container_needs_windows_gui:
+        return False
+    if p.container_needs_multi_vm_network:
+        return False
+    return True
+
+
+def _list_viable_fabrics(p: "ProvisioningFacts") -> list[str]:
+    """Return the list of all viable Pillar 1 Provisioning fabric signal
+    names for this product. Used for optionality bonus counting.
+
+    Rules (Frank 2026-04-08):
+      - Simulation does NOT count (it's a fallback, not a real alternative)
+      - Partial-granularity Sandbox API does NOT count (too weak)
+      - Container with disqualifiers does NOT count
+    """
+    viable: list[str] = []
+    if p.m365_scenario == _M365_END_USER:
+        viable.append(_SIG_M365_TENANT)
+    if p.m365_scenario == _M365_ADMIN:
+        viable.append(_SIG_M365_ADMIN)
+    if p.runs_as_installable:
+        viable.append(_SIG_HYPER_V)
+    if _container_is_viable(p):
+        viable.append(_SIG_CONTAINER)
+    if p.runs_as_azure_native:
+        viable.append(_SIG_AZURE)
+    if p.runs_as_aws_native:
+        viable.append(_SIG_AWS)
+    if p.has_sandbox_api and p.sandbox_api_granularity == _GRAN_RICH:
+        viable.append(_SIG_SANDBOX_API)
+    return viable
+
+
+def _pick_primary_fabric(p: "ProvisioningFacts") -> str | None:
+    """Pick the primary fabric based on (a) m365_scenario highest priority,
+    (b) the extractor's preferred_fabric hint when the fact predicate
+    supports it, (c) the static priority order as fallback.
+
+    Returns the canonical signal name of the primary fabric, or None if
+    nothing is viable (in which case the caller falls through to Simulation
+    or to the no-deployment-method ceiling flag).
+    """
+    # ── M365 scenario — highest priority when set ──
+    if p.m365_scenario == _M365_END_USER:
+        return _SIG_M365_TENANT
+    if p.m365_scenario == _M365_ADMIN:
+        return _SIG_M365_ADMIN
+
+    # ── Honor preferred_fabric hint when the fact predicate supports it ──
+    pf = p.preferred_fabric
+    if pf in (_FABRIC_HYPER_V, _FABRIC_VM) and p.runs_as_installable:
+        return _SIG_HYPER_V
+    if pf == _FABRIC_CONTAINER and _container_is_viable(p):
+        return _SIG_CONTAINER
+    if pf == _FABRIC_AZURE and p.runs_as_azure_native:
+        return _SIG_AZURE
+    if pf == _FABRIC_AWS and p.runs_as_aws_native:
+        return _SIG_AWS
+    if pf == _FABRIC_SANDBOX_API and p.has_sandbox_api and p.sandbox_api_granularity == _GRAN_RICH:
+        return _SIG_SANDBOX_API
+
+    # ── Static priority fallback (VM > Container > Cloud > Sandbox API) ──
+    if p.runs_as_installable:
+        return _SIG_HYPER_V
+    if _container_is_viable(p):
+        return _SIG_CONTAINER
+    if p.runs_as_azure_native:
+        return _SIG_AZURE
+    if p.runs_as_aws_native:
+        return _SIG_AWS
+    if p.has_sandbox_api and p.sandbox_api_granularity in (_GRAN_RICH, _GRAN_PARTIAL):
+        return _SIG_SANDBOX_API
+    return None
+
+
 def score_provisioning(facts: ProductLababilityFacts) -> _DimensionResult:
     """Compute Provisioning dimension score from facts.
 
-    Walks the fabric priority order (VM → Cloud Slice → Sandbox API →
-    Simulation) and picks the first viable path.  Adds friction penalties
-    (GPU Required).  Raises Sandbox API red ceiling flag when SaaS-only
-    with no provisioning API.
-
-    Priority order per docs/Badging-and-Scoring-Reference.md §1.1:
-      1. Runs in Hyper-V / Container — installable on VM or container-native
-      2. Runs in Azure / Runs in AWS — cloud-native managed service
-      3. Sandbox API — vendor exposes per-learner provisioning API
-      4. Simulation — real fabric when nothing else is viable
+    Updated Frank 2026-04-08 with multiple refinements:
+      - M365 scenario is first-priority (M365 Tenant / M365 Admin fabrics)
+      - Simulation is a HARD OVERRIDE (all 4 dims get fixed values via composer)
+      - preferred_fabric hint is honored when fact predicate supports it
+      - Multi-fabric optionality bonus (+3 per extra, capped at +6)
+      - Container disqualifier check (production-native + no disqualifiers)
+      - GCP No GCP Path badge fires amber (simple) — full red+workaround
+        multi-badge nuance deferred to Step 5.5 tuning
+      - ESX Required fires as a separate amber badge when requires_esx=True
+      - Custom Cloud fires as a Skillable-strength context badge alongside
+        Sandbox API when Sandbox API is viable at rich or partial granularity
     """
     p = facts.provisioning
     dim = _PROV_DIM
@@ -328,80 +440,121 @@ def score_provisioning(facts: ProductLababilityFacts) -> _DimensionResult:
     amber_risks = 0
     red_risks = 0
     ceiling_flags: list[str] = []
-    fabric_chosen = False
+    simulation_chosen = False
     simulation_viable = False
     sandbox_red = False
 
-    # ── Priority 1: VM fabric (installable or container-native) ──────────
-    # Hyper-V is the default installable VM fabric.  Container is scored
-    # equivalently and is mutually exclusive — pick whichever describes
-    # the primary deployment shape.  The facts may set both (Docker image
-    # exists for an installable product); Hyper-V wins by priority order.
-    if p.runs_as_installable:
-        signals.append((_SIG_HYPER_V, _signal_points(dim, _SIG_HYPER_V)))
-        fabric_chosen = True
-    elif p.runs_as_container:
-        signals.append((_SIG_CONTAINER, _signal_points(dim, _SIG_CONTAINER)))
-        fabric_chosen = True
+    # ── Pick the primary fabric ──
+    primary_fabric = _pick_primary_fabric(p)
 
-    # ── Priority 2: Cloud Slice (Azure preferred over AWS) ───────────────
-    if not fabric_chosen:
-        if p.runs_as_azure_native:
-            signals.append((_SIG_AZURE, _signal_points(dim, _SIG_AZURE)))
-            fabric_chosen = True
-        elif p.runs_as_aws_native:
-            signals.append((_SIG_AWS, _signal_points(dim, _SIG_AWS)))
-            fabric_chosen = True
-
-    # ── Priority 3: Sandbox API (color-aware via granularity) ────────────
-    if not fabric_chosen and p.has_sandbox_api:
-        base_pts = _signal_points(dim, _SIG_SANDBOX_API)
-        if p.sandbox_api_granularity == _GRAN_RICH:
-            signals.append((_SIG_SANDBOX_API, base_pts))  # green = full credit
-            fabric_chosen = True
-        elif p.sandbox_api_granularity == _GRAN_PARTIAL:
-            # amber = half credit (rounds via int division, same as scoring_math)
-            signals.append((_SIG_SANDBOX_API, base_pts // 2))
-            amber_risks += 1
-            fabric_chosen = True
+    if primary_fabric is None:
+        # Nothing at all viable. Simulation is the last-resort fallback
+        # UNLESS bare_metal or GCP blocks it.
+        if not p.needs_bare_metal and not p.needs_gcp:
+            primary_fabric = _SIG_SIMULATION
+            simulation_chosen = True
+            simulation_viable = True
         else:
-            # Has sandbox API claimed but granularity is "none" or missing
-            # → treated as red (no coverage confirmed)
-            sandbox_red = True
-            red_risks += 1
+            # Bare metal or GCP-only with no alternative → no deployment method
+            ceiling_flags.append(_CEIL_BARE_METAL if p.needs_bare_metal else _CEIL_SANDBOX_RED_NOTHING_VIABLE)
 
-    # ── SaaS-only with no provisioning API at all → Sandbox API red ──────
-    if not fabric_chosen and p.runs_as_saas_only and not p.has_sandbox_api:
+    # ── Simulation hard override case ──
+    # When the primary fabric resolves to Simulation, all four Pillar 1
+    # dimensions get HARD OVERRIDE values (Frank 2026-04-08). The composer
+    # detects this via simulation_chosen=True in the result.
+    if primary_fabric == _SIG_SIMULATION:
+        simulation_chosen = True
+        simulation_viable = True
+        score = cfg.SIMULATION_PROVISIONING_POINTS
+        dimension_score = DimensionScore(
+            name=dim.name,
+            score=score,
+            weight=dim.weight,
+            summary=p.description,
+        )
+        return _DimensionResult(
+            dimension_score=dimension_score,
+            ceiling_flags=ceiling_flags,
+            signals_matched=[(_SIG_SIMULATION, score)],
+            penalties_applied=[],
+            amber_risks=0,
+            red_risks=0,
+            raw_total=score,
+            effective_cap=cfg.SIMULATION_PROVISIONING_POINTS,
+            simulation_viable=True,
+            simulation_chosen=True,
+        )
+
+    # ── Credit the primary fabric ──
+    if primary_fabric is not None:
+        base_points = _signal_points(dim, primary_fabric)
+        # Color-aware half-credit for partial Sandbox API
+        if primary_fabric == _SIG_SANDBOX_API and p.sandbox_api_granularity == _GRAN_PARTIAL:
+            signals.append((primary_fabric, base_points // 2))
+            amber_risks += 1
+        else:
+            signals.append((primary_fabric, base_points))
+
+    # ── M365 Admin counts as amber risk (friction from trial/tenant path) ──
+    if primary_fabric == _SIG_M365_ADMIN:
+        amber_risks += 1
+
+    # ── Sandbox API red cap (SaaS-only with no API) ──
+    if primary_fabric is None and p.runs_as_saas_only and not p.has_sandbox_api:
         sandbox_red = True
         red_risks += 1
+    # Sandbox API claimed but granularity is "none" → red
+    if p.has_sandbox_api and p.sandbox_api_granularity == _GRAN_NONE:
+        sandbox_red = True
 
-    # ── Priority 4: Simulation (last-resort viable fabric) ───────────────
-    if not fabric_chosen:
-        if not p.needs_bare_metal and not p.needs_gcp:
-            signals.append((_SIG_SIMULATION, _signal_points(dim, _SIG_SIMULATION)))
-            simulation_viable = True
-            fabric_chosen = True
-
-    # ── Sandbox API red Pillar 1 ceiling flag ────────────────────────────
     if sandbox_red:
         if simulation_viable:
             ceiling_flags.append(_CEIL_SANDBOX_RED_SIM_VIABLE)
         else:
             ceiling_flags.append(_CEIL_SANDBOX_RED_NOTHING_VIABLE)
+            red_risks += 1
 
-    # ── Bare metal / GCP ceiling flags ───────────────────────────────────
+    # ── Multi-fabric optionality bonus — Frank 2026-04-08 ──
+    viable = _list_viable_fabrics(p)
+    secondary_count = max(0, sum(1 for v in viable if v != primary_fabric))
+    if secondary_count > 0:
+        bonus = min(
+            secondary_count * cfg.MULTI_FABRIC_OPTIONALITY_BONUS_PER_EXTRA,
+            cfg.MULTI_FABRIC_OPTIONALITY_BONUS_CAP,
+        )
+        # Append as a synthetic signal entry so the math sums it correctly
+        signals.append(("Multi-Fabric Bonus", bonus))
+
+    # ── Custom Cloud Skillable-strength context badge ──
+    # Fires alongside Sandbox API whenever the vendor has a real provisioning
+    # API (rich or partial). Zero scoring impact — it's display/context only.
+    if p.has_sandbox_api and p.sandbox_api_granularity in (_GRAN_RICH, _GRAN_PARTIAL):
+        signals.append((_SIG_CUSTOM_CLOUD, 0))
+
+    # ── ESX Required amber badge (fires alongside VM primary) ──
+    if p.requires_esx:
+        signals.append((_SIG_ESX, 0))
+        amber_risks += 1
+
+    # ── Bare metal ceiling flag ──
     if p.needs_bare_metal:
-        ceiling_flags.append(_CEIL_BARE_METAL)
+        if _CEIL_BARE_METAL not in ceiling_flags:
+            ceiling_flags.append(_CEIL_BARE_METAL)
         red_risks += 1
-    if p.needs_gcp:
-        amber_risks += 1  # No native Skillable GCP path
 
-    # ── Friction penalties ───────────────────────────────────────────────
+    # ── GCP handling (Frank 2026-04-08 simplified) ──
+    # needs_gcp fires No GCP Path amber; the full red+workaround multi-badge
+    # nuance is deferred to Step 5.5 tuning once we see real data.
+    if p.needs_gcp:
+        signals.append((_SIG_NO_GCP_PATH, 0))
+        amber_risks += 1
+
+    # ── Friction penalties ──
     if p.needs_gpu:
         penalties.append((_PEN_GPU, _penalty_deduction(dim, _PEN_GPU)))
         amber_risks += 1
 
-    # ── Compute raw total + apply risk cap reduction ─────────────────────
+    # ── Compute raw total + apply risk cap reduction ──
     raw_total = sum(pts for _, pts in signals) + sum(d for _, d in penalties)
     score, effective_cap = _apply_risk_cap_reduction(
         raw_total, dim, amber_risks, red_risks,
@@ -712,19 +865,70 @@ def score_teardown(facts: ProductLababilityFacts) -> _DimensionResult:
 # Pillar composer — Product Labability
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _build_simulation_override_dimensions() -> list[DimensionScore]:
+    """Build the four hard-override DimensionScore objects for Simulation fabric.
+
+    Frank 2026-04-08: when Simulation is the chosen fabric, all four Pillar 1
+    dimensions get hard override values. Normal scoring is suppressed. Values
+    come from scoring_config.SIMULATION_*_POINTS constants — zero hardcoding.
+    """
+    return [
+        DimensionScore(
+            name=_PROV_DIM.name,
+            score=cfg.SIMULATION_PROVISIONING_POINTS,
+            weight=_PROV_DIM.weight,
+            summary="Simulation is the chosen fabric — fallback when real provisioning isn't possible. Low Provisioning credit reflects the fallback nature.",
+        ),
+        DimensionScore(
+            name=_LA_DIM.name,
+            score=cfg.SIMULATION_LAB_ACCESS_POINTS,
+            weight=_LA_DIM.weight,
+            summary="Simulation Lab Access — middle credit. Learners log into the simulation environment directly, no identity / licensing friction of the vendor's real product.",
+        ),
+        DimensionScore(
+            name=_SC_DIM.name,
+            score=cfg.SIMULATION_SCORING_POINTS,
+            weight=_SC_DIM.weight,
+            summary="Simulation Scoring — zero credit. Automated scoring within simulations is not supported today. Feature request, not a current capability. Can be changed as the product evolves.",
+        ),
+        DimensionScore(
+            name=_TD_DIM.name,
+            score=cfg.SIMULATION_TEARDOWN_POINTS,
+            weight=_TD_DIM.weight,
+            summary="Simulation Teardown — full credit. There is nothing to tear down when the session ends; structurally equivalent to Datacenter automatic cleanup. You don't lose teardown points for a fabric where teardown work doesn't apply.",
+        ),
+    ]
+
+
 def score_product_labability(facts: ProductLababilityFacts) -> PillarScore:
     """Compose the four Pillar 1 dimensions into a PillarScore.
 
-    Applies cross-dimension ceilings:
+    Applies cross-dimension ceilings + Simulation hard override:
+      - **Simulation hard override** (Frank 2026-04-08) — when the primary
+        fabric resolves to Simulation, the composer skips the normal scorers
+        for Lab Access, Scoring, and Teardown and uses the
+        SIMULATION_*_POINTS constants directly. Total Pillar 1 = 42/100.
       - Sandbox API red cap (Pillar 1 ≤ 25 if Simulation viable, ≤ 5 otherwise)
-        per scoring_config.SANDBOX_API_RED_CAP_SIM_VIABLE /
-        SANDBOX_API_RED_CAP_NOTHING_VIABLE
-      - bare_metal_required → Pillar 1 ≤ 5 (Platform-Foundation Pillar 1 note)
+      - bare_metal_required → Pillar 1 ≤ 5
 
     Returns a PillarScore with the four dimensions attached and
     score_override set when a ceiling applies.
     """
     prov_result = score_provisioning(facts)
+
+    if prov_result.simulation_chosen:
+        # ── Simulation hard override — all four dimensions use fixed values ──
+        dimensions = _build_simulation_override_dimensions()
+        pillar = PillarScore(
+            name=_PL_PILLAR.name,
+            weight=_PL_PILLAR.weight,
+            dimensions=dimensions,
+        )
+        # No ceiling flags flipped here — the hard override IS the cap.
+        # Pillar total = sum of the four SIMULATION_*_POINTS constants = 42.
+        return pillar
+
+    # ── Normal path — run the other three dimension scorers ──
     la_result = score_lab_access(facts)
     sc_result = score_scoring(facts)
     td_result = score_teardown(facts)

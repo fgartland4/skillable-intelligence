@@ -399,8 +399,9 @@ class ProvisioningFacts:
     """Pillar 1.1 — How the product can be deployed and what fabric fits.
 
     Stores capability flags, not pre-classified delivery paths.  Scoring
-    walks the priority order (Hyper-V > Cloud Native > Sandbox API >
-    Simulation) at runtime to pick which fabric wins.
+    walks the priority order (M365 > VM > Cloud Native > Sandbox API >
+    Simulation) at runtime to pick which fabric wins, respecting the
+    `preferred_fabric` hint when set.
     """
     description: str = ""             # Narrative: what IS this product's deployment shape?
     runs_as_installable: bool = False
@@ -418,6 +419,49 @@ class ProvisioningFacts:
     needs_gpu: bool = False
     needs_bare_metal: bool = False
     needs_gcp: bool = False
+
+    # ── Frank 2026-04-08 additions — Issue #2 fabric priority + optionality ──
+    # `preferred_fabric` is the extractor's judgment of which fabric best fits
+    # this product based on a multi-factor decision: lab developer control
+    # (VM default), VM resource intensity or cost (lean cloud), container
+    # production-readiness, and vendor marketing as tiebreaker when technical
+    # analysis is neutral. The scorer honors this hint when the fact predicate
+    # for the preferred fabric is True, and falls back to static priority
+    # order otherwise. See docs/next-session-todo.md §0 for the full rule.
+    preferred_fabric: str = ""        # "hyper_v" | "vm" | "container" | "azure" | "aws" | "sandbox_api" | "m365_tenant" | "m365_admin" | "simulation" | ""
+    preferred_fabric_rationale: str = ""   # Plain-English why this fabric wins
+
+    # VM footprint context — captured as FACTS, not judgments. The scorer
+    # reads these to decide whether a "big VM" product might lean cloud in
+    # the preferred_fabric calculation. Normal-sized VMs stay False; only
+    # resource-intensive or premium-cost cases set True.
+    vm_is_resource_intensive: bool = False    # Big VM (16+ vCPU, 32GB+ RAM, specialized hw)
+    vm_has_premium_cost_profile: bool = False # Meaningfully more expensive than cloud alternative
+    vm_footprint_notes: str = ""              # Narrative: "Standard Hyper-V profile" or "Requires 16vCPU + 64GB + GPU"
+
+    # Container disqualifier context — the four documented Skillable
+    # container disqualifiers. When any of these are True, container is NOT
+    # viable as a primary or secondary fabric (the scorer skips it). Capture
+    # all four so the scorer + Step 6 badging can cite the specific reason.
+    container_is_production_native: bool = False    # Positive when True (not an anti-signal when False)
+    container_is_dev_only: bool = False              # Disqualifier: image is labeled dev-only, not production
+    container_needs_windows_gui: bool = False        # Disqualifier: requires Windows desktop GUI
+    container_needs_multi_vm_network: bool = False   # Disqualifier: needs multi-VM networking
+    container_footprint_notes: str = ""              # Narrative context
+
+    # ESX-specific constraints — when True, the scorer fires a separate
+    # `ESX Required` amber badge alongside the VM primary (instead of
+    # relying on a Hyper-V green that doesn't signal the constraint).
+    requires_esx: bool = False
+    requires_esx_reason: str = ""     # "Nested virtualization required" / "Socket licensing above 24 vCPUs" etc.
+
+    # ── M365 scenario classification — Frank 2026-04-08 ──
+    # Set by the extractor when the product is Microsoft 365-dependent.
+    # The scorer picks M365 Tenant / M365 Admin as the primary fabric
+    # BEFORE walking the VM/Cloud/Sandbox priority order. See
+    # backend/knowledge/skillable_capabilities.json → m365_tenants for the
+    # full capability context.
+    m365_scenario: str = ""           # "" | "end_user" | "administration"
 
 
 @dataclass
@@ -704,6 +748,12 @@ class Product:
     product_url: str = ""
     deployment_model: str = ""     # "installable" | "hybrid" | "cloud" | "saas-only"
     orchestration_method: str = "" # e.g., "Hyper-V", "Azure Cloud Slice", "Custom API", "Simulation"
+    # Frank 2026-04-08 — captured by the researcher when the vendor themselves
+    # uses an acronym for this product (e.g., Trellix TIE, Microsoft SCCM,
+    # Cisco ISE). The badge selector uses this field to render a concise
+    # badge name when the full name exceeds the length limit. NEVER invented;
+    # only used when the researcher finds vendor evidence of the acronym.
+    vendor_official_acronym: str = ""
     user_personas: list[str] = field(default_factory=list)
     lab_highlight: str = ""        # Why this is a great hands-on candidate
     lab_concepts: list[str] = field(default_factory=list)

@@ -1,6 +1,6 @@
 {
   "_description": "What Skillable can do — updated as features ship. This file is read at runtime by the researcher and scorer. Update it when new capabilities are released — no code changes needed.",
-  "_updated": "2026-04-05",
+  "_updated": "2026-04-08",
 
   "datacenter": {
     "description": "Purpose-built ephemeral infrastructure for learning and skill validation.",
@@ -46,6 +46,48 @@
     }
   },
 
+  "byoc_custom_cloud_labs": {
+    "description": "Bring Your Own Cloud (BYOC) / Custom Cloud Labs — Skillable's capability to deliver hands-on labs on external cloud platforms or web applications BEYOND native Azure and AWS Cloud Slice integrations. This is the operational pattern behind the Pillar 1 'Sandbox API' canonical — when a vendor exposes per-learner provisioning APIs, BYOC is how Skillable orchestrates them into labs.",
+    "full_name": "Bring Your Own Cloud (Custom Cloud Labs)",
+    "also_known_as": ["BYOC", "Custom Cloud Labs", "External Platform Labs"],
+    "positioning": "Unlocks Skillable labs for any external cloud or web application with suitable APIs — not limited to Microsoft Azure or AWS. Extends Skillable's reach from introductory hands-on training through proctor-based certification (via Exam Delivery Partner integration).",
+    "core_skillable_features_used": {
+      "lifecycle_actions": "LCA scripts trigger at lab lifecycle events (launch, teardown, etc.) to call external platform APIs for provisioning and cleanup.",
+      "automated_activities": "Used for user task validation during the lab and for task scoring at lab end.",
+      "custom_start_page": "Landing page that bridges the learner into the external platform with appropriate credentials and context."
+    },
+    "supporting_features_used": {
+      "virtual_machines": "Companion VM when the external platform requires a browser client, developer tool, or local agent.",
+      "integrated_browser": "Built-in browser that can be pre-authenticated into the external platform.",
+      "cloud_credential_pool": "Pool of managed credentials for products that can't provision per-learner identities dynamically.",
+      "lab_replacement_tokens": "@lab.* tokens for dynamic substitution of per-learner values into external platform API calls and templates."
+    },
+    "lab_phase_workflow": {
+      "description": "When designing a BYOC lab, each of these phases must be worked out against the external platform's API surface. Missing coverage at any phase is a real gap — these phases map to the Pillar 1 dimension questions.",
+      "phases": {
+        "lab_startup": "Initial lab launch — what runs the moment the learner arrives?",
+        "tenant_and_user_access_provisioning": "Create a tenant, account, workspace, or equivalent isolated environment per learner. Maps to Pillar 1 → Lab Access.",
+        "resource_and_data_provisioning": "Seed data, create baseline resources, configure starting state. Maps to Pillar 1 → Provisioning.",
+        "permissions_and_security": "Set appropriate roles/permissions for the learner's identity.",
+        "grant_user_access_to_resources": "Assign the learner access to the resources they'll interact with.",
+        "lab_duration_validation": "Continuous validation via Automated Activities — user task validation during the lab. Maps to Pillar 1 → Scoring.",
+        "lab_end_task_scoring": "Final Automated Activity scoring pass when the lab ends.",
+        "lab_end_permission_removal": "Strip the learner's access to resources.",
+        "lab_end_user_deletion": "Delete the per-learner user account.",
+        "lab_end_resource_deletion": "Delete per-learner resources, data, and tenant. Maps to Pillar 1 → Teardown."
+      }
+    },
+    "sme_requirement": "The lab developer needs either deep knowledge of the external platform OR a Subject Matter Expert (SME) who does. Each external platform is unique — the workflow depends heavily on the platform's API capabilities.",
+    "known_working_example": "Salesforce — full solution documented in Skillable's Custom Cloud Labs documentation.",
+    "scoring_layer_mapping": {
+      "pillar_1_provisioning": "BYOC resource/data provisioning phase maps to the 'Sandbox API' canonical in Pillar 1 Provisioning. Rich sandbox API → green; partial → amber; none → red.",
+      "pillar_1_lab_access": "BYOC tenant/user access provisioning phase maps to 'Identity API' / 'Cred Recycling' / 'Credential Pool' canonicals in Pillar 1 Lab Access depending on which provisioning path the vendor API supports.",
+      "pillar_1_scoring": "BYOC lab-duration validation via Automated Activities maps to 'Scoring API' canonical in Pillar 1 Scoring.",
+      "pillar_1_teardown": "BYOC lab-end deletion phases (user + resources + tenant) map to 'Teardown API' canonical in Pillar 1 Teardown."
+    },
+    "documentation_source": "Skillable Studio docs — Introduction to Custom Cloud Labs, updated 2024-09-25"
+  },
+
   "scoring_methods": {
     "api_scoring": "REST API validation — interrogates system state via API. Highest validity.",
     "script_scoring": "PowerShell/Bash scripts inside VM — validates file creation, service status, registry values, config files, running processes, database state, network config.",
@@ -56,12 +98,165 @@
   },
 
   "m365_tenants": {
-    "description": "Automated M365 tenant provisioning via Azure Cloud Slice.",
-    "tiers": {
-      "base": "E3 license",
-      "full": "E5 license",
-      "full_ai": "E7 (coming soon)"
-    }
+    "description": "Automated Microsoft 365 tenant provisioning via Azure Cloud Slice for End User scenarios — Skillable-owned tenants that remove identity verification friction (no credit cards, no MFA for learners). Two distinct scenario paths (Administration vs End User) with very different friction profiles.",
+    "scenarios": {
+      "end_user": {
+        "description": "M365 End User labs — learners use M365 apps (Word, Excel, Teams, SharePoint, etc.) without needing Global Administrator access. Automated, low-friction path: Skillable provides Skillable-owned tenants with all licensing handled automatically. NO credit card, NO MFA friction for learners.",
+        "friction": "low_friction",
+        "tenant_ownership": "skillable_owned",
+        "requires_identity_verification": false,
+        "supported_contexts": ["custom_labs", "skillable_professional_services_built_labs"],
+        "unsupported_contexts": ["off_the_shelf_skillable_challenges", "microsoft_official_curriculum_moc"],
+        "app_delivery_modes": ["web", "windows"],
+        "preferred_app_delivery_mode": "web",
+        "preferred_app_delivery_mode_reason": "Windows Applications have constant updates that disrupt lab stability; web version is preferred",
+        "includes_windows_11_vm": true,
+        "tiers": {
+          "base": {
+            "license_edition": "E3",
+            "product_name": "Microsoft 365 Base",
+            "included_apps": ["Word", "Excel", "PowerPoint", "Outlook", "OneNote", "SharePoint", "OneDrive", "Entra ID P1"],
+            "optional_add_ons": ["PowerBI Pro", "Entra ID P2 (also available independently)", "Microsoft 365 Copilot", "Agent 365 (coming soon)", "Teams", "Power BI Premium (requires PowerBI Pro)", "Power Automate Premium"]
+          },
+          "full": {
+            "license_edition": "E5",
+            "product_name": "Microsoft 365 Full",
+            "included_apps": ["Word", "Excel", "PowerPoint", "Outlook", "OneNote", "SharePoint", "OneDrive", "Entra ID P1", "Entra ID P2", "PowerBI Pro"],
+            "optional_add_ons": ["Microsoft 365 Copilot", "Agent 365 (coming soon)", "Teams", "Power BI Premium", "Power Automate Premium"]
+          },
+          "full_ai": {
+            "license_edition": "E7",
+            "product_name": "Microsoft 365 Full + AI",
+            "status": "coming_soon",
+            "included_apps": ["Word", "Excel", "PowerPoint", "Outlook", "OneNote", "SharePoint", "OneDrive", "Entra ID P1", "Entra ID P2", "PowerBI Pro", "Microsoft 365 Copilot", "Agent 365 (coming soon)"],
+            "optional_add_ons": ["Teams", "Power BI Premium", "Power Automate Premium"]
+          }
+        },
+        "sales_engagement_required": true,
+        "lab_profile_template": "Skillable provides M365 Lab Profile templates that include a configured M365 environment + Windows 11 VM. Lab developer can modify the VM and instructions as usual in Studio."
+      },
+      "administration": {
+        "description": "M365 Administration labs — learners manage a Microsoft 365 tenant and require Global Administrator role. Two supported paths, both with higher friction than End User.",
+        "friction": "medium_friction",
+        "paths": {
+          "moc_learning_partner": {
+            "description": "Microsoft Learning Partners consuming Microsoft Official Curriculum (MOC) receive Microsoft-provided tenants for students to use.",
+            "tenant_ownership": "microsoft_provided",
+            "requires_identity_verification": false
+          },
+          "custom_lab_trial_account": {
+            "description": "Custom labs and Challenge Labs require learners to sign up for a Microsoft 365 Trial account directly with Microsoft.",
+            "tenant_ownership": "learner_provided_trial",
+            "requires_identity_verification": true,
+            "identity_verification_methods": ["credit_card", "mfa", "other_microsoft_mechanisms"],
+            "credit_card_charging_note": "Credit card is NOT charged if the learner cancels the tenant before the trial period ends."
+          }
+        },
+        "global_admin_access": "Learners get Global Administrator role (highest level in M365) with full tenant ownership. No Skillable mechanism to restrict access or prevent malicious use — Microsoft's identity verification is the only safeguard."
+      }
+    },
+    "billing_model": "concurrent_user",
+    "concurrent_user_increments": [15, 30, 50, 100],
+    "concurrent_user_definition": "Count of lab users (learners, instructors, lab developers) actively running labs simultaneously. Exceeding the limit triggers a lab launch error for additional users.",
+    "annual_commitment": true,
+    "license_counts_adjustable": "Can be increased at any time within the annual commitment",
+    "scoring_layer_mapping": {
+      "m365_end_user_products": "When a scored product is an M365 End User scenario (Word, Excel, Teams, SharePoint, PowerBI, OneDrive, etc.), Skillable's automated solution means Pillar 1 Lab Access Training License fires low_friction (green). This is a Skillable-specific strength for this product category.",
+      "m365_administration_products": "When a scored product is M365 Administration (Intune, Defender, Purview admin scenarios, etc.), Training License fires medium_friction (amber) because identity verification is required at tenant provisioning."
+    },
+    "documentation_source": "Skillable Studio docs — Microsoft Office & Microsoft 365 Licensing, updated 2026-03-10"
+  },
+
+  "microsoft_office": {
+    "description": "Skillable-provided licensing for the classic Microsoft Office applications under Microsoft's SPLA program. For labs needing only traditional Office apps — recommended over M365 when Teams/SharePoint/cloud apps are NOT required (lower complexity, lower cost).",
+    "distinct_from_m365": "Microsoft Office (this block) and Microsoft 365 (m365_tenants) are TWO different Microsoft product offerings. Office is traditional one-time-purchase classic apps (Word, Excel, PowerPoint, Visio, Project). M365 is the cloud subscription with premium apps (Teams, Outlook, SharePoint, etc.). Choose Office when classic apps are sufficient — cheaper and simpler.",
+    "activation_method": "SPLA (Microsoft Services Provider License Agreement)",
+    "billing_model": "concurrent_user",
+    "concurrent_user_increments": [15, 30, 50, 100],
+    "annual_commitment": true,
+    "supported_products": {
+      "office_standard": ["2016", "2019", "2021"],
+      "office_professional": ["2016", "2019", "2021"],
+      "office_visio_standard": ["2016", "2019", "2021"],
+      "office_visio_professional": ["2016", "2019", "2021"],
+      "office_project_standard": ["2016", "2019", "2021"],
+      "office_project_professional": ["2016", "2019", "2021"]
+    },
+    "recommended_for": "Labs using only classic Office apps (Word, Excel, PowerPoint, Visio, Project)",
+    "not_for": "Labs using M365 premium apps (Teams, SharePoint, OneDrive, PowerBI, Copilot) — use m365_tenants End User instead",
+    "documentation_source": "Skillable Studio docs — Microsoft Office & Microsoft 365 Licensing, updated 2026-03-10"
+  },
+
+  "software_licensing": {
+    "description": "Broader software licensing context — who is responsible, how to minimize licensing needs, and the specific products where Skillable provides licensing on the customer's behalf. This is reference data for lab builders and for the scorer when a product has known licensing implications.",
+    "responsibility": "Lab builders and their organizations are primarily responsible for ensuring all software used in labs is properly licensed. Skillable provides the platform and tools, but licensing compliance is the builder's responsibility except where Skillable explicitly provides licensing.",
+    "minimization_strategies": {
+      "free_or_open_source": {
+        "description": "Use free or open-source alternatives where feasible",
+        "examples": {
+          "firewall": {"licensed": "FortiGate NGFW", "open_source": "pfSense"},
+          "word_processing": {"licensed": "Microsoft Word", "open_source": "LibreOffice"},
+          "developer_ide": {"licensed": "Microsoft Visual Studio", "open_source": "Visual Studio Code"}
+        },
+        "pros": ["No licensing costs"],
+        "cons": ["May differ in features or workflows"]
+      },
+      "trial_developer_or_education_license": {
+        "description": "Use vendor trial, developer, or education licenses",
+        "example": "Microsoft SQL Server Developer Edition — full Enterprise features, free for non-commercial (lab) use",
+        "pros": ["Access to the exact software required"],
+        "cons": ["License terms may be time-limited or feature-restricted"]
+      },
+      "skillable_provided_licensing": {
+        "description": "Skillable provides licensing on the customer's behalf for select products",
+        "current_products": ["Windows Client (10/11)", "Windows Server (2012 R2 and up)", "Microsoft Office", "Microsoft 365", "Microsoft Azure", "Amazon AWS"],
+        "activation_types": ["manual", "automatic"],
+        "contact": "Skillable Account Manager for availability and cost"
+      }
+    },
+    "known_licensing_solutions": {
+      "windows_client": {
+        "description": "Windows 10 Enterprise or Windows 11 Enterprise",
+        "editions_supported": ["Windows 10 Enterprise", "Windows 11 Enterprise"],
+        "activation_options": {
+          "manual": "Customer-provided Microsoft Volume Licensing agreement, key applied to each lab environment",
+          "automatic_vm": "Skillable-provided automatic activation for Windows Client VMs running on Hyper-V or ESX — no Microsoft licensing agreement required, but needs a Skillable service contract + additional costs",
+          "automatic_cloud": "For cloud-hosted Windows Client VMs, activation is handled by the cloud provider. NOTE: Only Microsoft Azure automatically licenses Windows Client VMs — AWS and GCP do not."
+        }
+      },
+      "windows_server": {
+        "description": "Windows Server 2012 R2 and up",
+        "activation_options": {
+          "manual": "Customer-provided Microsoft Volume Licensing agreement, key applied to each lab",
+          "automatic_hyper_v_esx": "Skillable-provided automatic activation for Windows Server VMs on Hyper-V or ESX — requires Skillable service contract + additional costs",
+          "automatic_cloud": "Microsoft Azure, Amazon AWS, AND Google Cloud all automatically activate Windows Server VMs (unlike Windows Client which is Azure-only)",
+          "azure_hybrid_benefit": "Customer may qualify for Azure Hybrid Benefit if they already hold eligible Windows Server licenses"
+        }
+      },
+      "microsoft_sql_server": {
+        "description": "SQL Server labs",
+        "recommendation": "Use free SQL Server Developer Edition (full Enterprise features, free for dev/test/education) OR deploy Azure SQL Database in a Cloud Slice environment",
+        "enterprise_edition_note": "SQL Server Enterprise Edition requires paid license and is permitted only for production — NOT for lab use"
+      },
+      "tableau_desktop": {
+        "description": "Tableau Desktop or Tableau Prep Builder",
+        "recommendation": "Tableau Lab License via Tableau's 'Tableau for Teaching' program"
+      }
+    },
+    "additional_microsoft_programs_available_on_request": {
+      "description": "Skillable uses a specific Microsoft licensing program that may cover additional Microsoft products beyond the current supported list. Customers can request coverage for potentially-supported products by contacting their Skillable primary representative.",
+      "potentially_supported_products": [
+        "SharePoint Server",
+        "System Center Standard Core",
+        "Visual Studio Team Foundation Server",
+        "Visual Studio (Enterprise, Professional, Test Professional)",
+        "BizTalk Server (Branch, Standard, Enterprise)",
+        "Dynamics 365 (Customer Services, Sales, Team Members)",
+        "Exchange Server"
+      ],
+      "scoring_implication": "When a scored product is one of these (SharePoint, SCCM, Visual Studio, BizTalk, Dynamics 365, Exchange Server, TFS), Skillable MAY be able to provide licensing — positive Training License signal. The scorer should note this as a Skillable-friendly signal for Microsoft product families on this list."
+    },
+    "documentation_source": "Skillable Studio docs — Software Licensing Overview, updated 2025-12-08"
   },
 
   "special_capabilities": {
