@@ -359,11 +359,11 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 }
 /* Five fixed columns. Frank 2026-04-08: with k / M abbreviations the
    number columns can stay narrow without truncation. */
-.acv-table col.acv-col-motion { width: auto; }   /* Use Case column takes all remaining space — long motion labels need room */
+.acv-table col.acv-col-motion { width: auto; }   /* Use Case column takes all remaining space */
 .acv-table col.acv-col-aud    { width: 84px; }
-.acv-table col.acv-col-adopt  { width: 38px; }
-.acv-table col.acv-col-hrs    { width: 42px; }   /* narrow — Hrs column only ever holds single or 2-digit integers */
-.acv-table col.acv-col-yr     { width: 74px; }   /* narrow — Hrs/Yr column only holds abbreviated values like "1.2M–3.6M". Annual-totals rows use colspan="2" to borrow this column's width when needed */
+.acv-table col.acv-col-adopt  { width: 46px; }   /* fits "Adopt" header + "100%" values right-aligned */
+.acv-table col.acv-col-hrs    { width: 52px; }   /* fits "Hrs" header + 1-2 digit values right-aligned */
+.acv-table col.acv-col-yr     { width: 96px; }   /* fits "Hrs / Yr" header + abbreviated ranges like "1.2M–3.6M" right-aligned. Annual-total rows span hrs+yr via colspan="2" so big ACV values like "$16.9M – $50.7M" have 148px of combined space without widening the per-column widths. */
 /* Unified font: header labels stay a touch smaller for visual hierarchy,
    but body + total-row labels + methodology all share the same size. */
 .acv-table thead th {
@@ -511,11 +511,19 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     text-decoration-color: var(--sk-score-high);
 }
 .pt-name {
-    min-width: 280px;
-    max-width: 280px;            /* hard cap so long product names don't push the box wider — Frank 2026-04-08 */
     font-size: 0.75rem;
     color: var(--sk-text-body);
     padding: 8px 16px 8px 0;
+    /* NOTE: max-width on <td> is ignored in table-layout:auto tables.
+       The actual truncation happens on the inner .pt-name-wrap div
+       below — the div has an explicit width and overflow:hidden +
+       text-overflow:ellipsis, which IS respected. Frank 2026-04-08:
+       long Workday product names were pushing the Scored Products
+       box wider than its flex allocation until this was fixed. */
+}
+.pt-name-wrap {
+    width: 280px;                /* hard cap — div width IS honored */
+    max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -675,7 +683,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
       <table class="product-table">
         {% for p in analysis.products %}
         <tr>
-          <td class="pt-name" title="{{ p.name }}"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span>{% if p.classification_review_needed %} <span class="badge badge-amber" title="This product or its organization classification landed in Unknown — review and reclassify before trusting the scores.">⚠ Review Classification</span>{% endif %}</td>
+          <td class="pt-name" title="{{ p.name }}"><div class="pt-name-wrap"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span>{% if p.classification_review_needed %} <span class="badge badge-amber" title="This product or its organization classification landed in Unknown — review and reclassify before trusting the scores.">⚠ Review Classification</span>{% endif %}</div></td>
           <td class="pt-sub">{% if p.subcategory %}<span class="badge badge-purple">{{ p.subcategory | clean_subcategory }}</span>{% endif %}</td>
           <td class="pt-score {{ (p.fit_score.total or p.fit_score._total or 0) | score_color }}">{{ p.fit_score.total or p.fit_score._total or 0 }}</td>
           <td class="pt-doc"><span class="doc-icon" title="Export report (Word)">{{ doc_svg() }}</span></td>
@@ -735,8 +743,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
         <thead>
           <tr>
             <th>Use Case</th>
-            <th class="acv-center">Audience</th>
-            <th class="acv-center">Adopt</th>
+            <th class="acv-num">Audience</th>
+            <th class="acv-num">Adopt</th>
             <th class="acv-num">Hrs</th>
             <th class="acv-num">Hrs / Yr</th>
           </tr>
@@ -745,8 +753,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
           {% for m in acv.motions %}
           <tr>
             <td class="acv-motion" title="{{ m.label }}">{{ m.label }}</td>
-            <td class="acv-center">{% if (m.population_low or 0) == (m.population_high or 0) %}{{ (m.population_low or 0) | format_count }}{% else %}{{ (m.population_low or 0) | format_count }}–{{ (m.population_high or 0) | format_count }}{% endif %}</td>
-            <td class="acv-center">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
+            <td class="acv-num">{% if (m.population_low or 0) == (m.population_high or 0) %}{{ (m.population_low or 0) | format_count }}{% else %}{{ (m.population_low or 0) | format_count }}–{{ (m.population_high or 0) | format_count }}{% endif %}</td>
+            <td class="acv-num">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
             <td class="acv-num">{% if (m.hours_low or 0) == (m.hours_high or 0) %}{{ (m.hours_low or 0) | int }}{% else %}{{ (m.hours_low or 0) | int }}–{{ (m.hours_high or 0) | int }}{% endif %}</td>
             <td class="acv-num">{% if (m.hrs_low or 0) == (m.hrs_high or 0) %}{{ (m.hrs_low or 0) | format_count }}{% else %}{{ (m.hrs_low or 0) | format_count }}–{{ (m.hrs_high or 0) | format_count }}{% endif %}</td>
           </tr>
