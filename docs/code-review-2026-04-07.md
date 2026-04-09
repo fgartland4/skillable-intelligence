@@ -1,12 +1,34 @@
 # Deep Code Review — 2026-04-07
 
+> # ⚠️ HISTORICAL DOCUMENT — NOT A CURRENT TASK LIST
+>
+> **This review was a pre-rebuild diagnostic. The vast majority of its 61 findings were resolved by the rebuild that followed.** Between 2026-04-07 and 2026-04-08, the entire Score layer was torn down and rewritten from first principles under the Three Layers of Intelligence architecture. The modules this review complained about no longer exist:
+>
+> - `scoring_math.py` → **deleted**, split into `pillar_1_scorer.py`, `pillar_2_scorer.py`, `pillar_3_scorer.py`, `fit_score_composer.py`, `acv_calculator.py`
+> - `badge_normalization.py` → **deleted**, replaced by post-scoring `badge_selector.py`
+> - `prompt_generator.py` + `prompts/scoring_template.md` → **deleted**, replaced by typed fact extractors in `researcher.py` + narrow Claude slice in `rubric_grader.py`
+> - `app_new.py` → **renamed** to `app.py`
+> - Monolithic `SCORING_PROMPT` → **deleted entirely**; Score layer reads fact drawers directly
+>
+> See `CLAUDE.md` → "Score Layer Modules — one file, one job" for the current architecture, and `CLAUDE.md` → the deleted-modules routing table for where each concept now lives.
+>
+> **Do not use this document as a task list.** Do not try to fix individual findings by name. Do not reconstruct the deleted modules. Use this document only to understand bug-class PATTERNS when debugging or refactoring similar areas — it is a lesson-learned artifact, not a work queue.
+>
+> **For current tasks, see:**
+> - `docs/next-session-todo.md` §1 (start here) + §2 (live bugs) + §3 (big projects)
+> - `docs/roadmap.md` for the long arc
+> - `git log` from 2026-04-07 forward for the actual resolution history
+> - `docs/decision-log.md` for architectural decisions made during the rebuild
+
+---
+
 **Trigger:** Frank reviewed Devolutions and Trellix Deep Dive output and found symptoms of fundamental scoring bugs ("almost none of our agreed-upon rules are in effect"). The session that followed exposed several architectural defects that required emergency fixes (`e5c95c7`, `120e3c9`) before this review could even begin.
 
 **Goal:** find every other bug of the same shape — and others — before Prospector and Designer get built on top of broken foundations.
 
 **Method:** read the priority docs first (`collaboration-with-frank.md`, `Platform-Foundation.md`, `Badging-and-Scoring-Reference.md`, `decision-log.md`, `next-session-todo.md`). Then launch six parallel Explore subagents, each hunting a specific bug-class cluster that the Devolutions/Trellix incidents teach us to look for. Compile findings here.
 
-**Status:** review complete. Fixes NOT applied — Frank decides priority order.
+**Status:** review complete. Fixes NOT applied in this document's lifetime — Frank decides priority order. **Most findings were subsequently resolved by the 2026-04-07 → 2026-04-08 rebuild; see the banner above.**
 
 ---
 

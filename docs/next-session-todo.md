@@ -1,6 +1,12 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-08 (late session, Phase 1 live-bug batch shipped. Earlier in session: `dd62c87` viable_fabrics + No Scoring Methods badge, `a296e29` researcher SaaS/cloud contradiction fix, `9682ba2` docs audit + refresh. This update adds the Phase 1 live-bug commit which resolved 10 small items from the late-session testing pass: Simulation override normalized to 12/12/0/12 with gray bars across all three symmetric dims, briefcase markdown stripped, ACV table separator + wider columns + ANNUAL ACV POTENTIAL rename + Use Case column font uniformity, "Hands On Learning" renamed to "Hands On", "Instructor Authors Dual" renamed to "Dual Instructors/Authors", "Customer Enablement Team" badge now pulls the vendor's actual named program from `customer_enablement_team_name` fact (e.g. "Cohesity Academy"), and product chooser link placement standardized above the Deep Dive button. Phase 2 queue in §2a is what to pick up next session. Read this doc first, then `docs/roadmap.md` for the long arc.)
+> **Fresh Claude on this project?** Skip the "Last updated" block below and jump straight to **§1 — START HERE NEXT SESSION**. That's your entry point. The Last updated block is continuity context for returning Claude — it assumes you already know what happened in the prior session. You don't need it to start working.
+>
+> **Returning Claude?** Read the Last updated block to catch up on what landed in the prior session, then proceed to §1 for the next action.
+
+---
+
+**Last updated:** 2026-04-08 (late session, Phase 1 live-bug batch shipped. Earlier in session: `dd62c87` viable_fabrics + No Scoring Methods canonical label, `a296e29` researcher SaaS/cloud contradiction fix, `9682ba2` docs audit + refresh. This update adds the Phase 1 live-bug commit which resolved 10 small items from the late-session testing round: Simulation override normalized to 12/12/0/12 with gray bars across all three symmetric dims, briefcase markdown stripped, ACV table separator + wider columns + ANNUAL ACV POTENTIAL rename + Use Case column font uniformity, "Hands On Learning" renamed to "Hands On", "Instructor Authors Dual" renamed to "Dual Instructors/Authors", "Customer Enablement Team" label now pulls the vendor's actual named program from `customer_enablement_team_name` fact (e.g. "Cohesity Academy"), and product chooser link placement standardized above the Deep Dive button. Phase 2 queue in §2a is what to pick up next session. Read this doc first, then `docs/roadmap.md` for the long arc.)
 
 ---
 

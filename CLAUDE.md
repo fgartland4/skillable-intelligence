@@ -10,20 +10,43 @@ This file loads automatically every session. Read the documents it points to —
 
 ---
 
-## First — Read These Before Doing Anything
+## Startup Sequence — Three Passes, Every Session
 
-**These are not a skim.** Read each pass with a different lens — first for content, then for how everything interrelates. Re-reading is the point. See `docs/collaboration-with-frank.md` → "Re-reading Is the Point" for why.
+**This is not a skim. This is how the documents become operational.** Frank has found through experience that the collaboration rules and Guiding Principles land differently on the second read, after the full context is in your head. Honor that pattern.
+
+### Pass 1 — Working mode + thinking system
 
 | Step | Document | Why |
 |---|---|---|
-| 1 | `docs/collaboration-with-frank.md` | How Frank thinks, how to work together, the startup sequence. **Read this first, every session.** |
-| 2 | `docs/Platform-Foundation.md` | Strategic authority — Guiding Principles, Three Layers of Intelligence, Layer Discipline, Define-Once, people, personas, scoring framework at a glance, Fit Score composition, Verdict Grid, ACV Potential model, Inspector UX, Designer pipeline. Strategy, framework, and concepts. |
-| 3 | `docs/Badging-and-Scoring-Reference.md` | Operational detail — every Pillar, every dimension, every scoring signal, every strength tier, every baseline, every penalty, Technical Fit Multiplier table, risk cap reduction rules, rate tier lookup, badge naming rules, locked vocabulary. The math. |
-| 4 | `docs/next-session-todo.md` | **Read last.** What shipped, what's open, and the FIRST thing to do this session. |
+| **1** | `docs/collaboration-with-frank.md` (full) | How Frank thinks, how to work together, what matters. Working mode goes in first. |
+| **2** | `docs/Platform-Foundation.md` → **Guiding Principles** section only (GP1 through GP5 + Define-Once + End-to-End Thinking) | The thinking system that shapes every decision — code, UX, collaboration, communication. You cannot apply what you have not internalized. |
 
-The two core docs (2 + 3) are rewritten whole, not appended, to stay Best Current Thinking. They have a hard **no-duplication rule**: Platform-Foundation owns the framework at a glance + Verdict Grid + ACV model + Fit Score composition concepts; B&S owns the operational math and the per-Pillar / per-dimension detail. Where one doc names a concept the other owns, it refers back without restating.
+### Pass 2 — Full context
 
-For the **complete inventory** of everything we know we want to do or have done — across every tool, every area, every status — see `docs/roadmap.md`. That doc is a reference, not a read-first. Use it when you need to look up "is this captured?" or "where does X fit?" or "what's our overall arc?"
+| Step | Document | Why |
+|---|---|---|
+| **3** | `docs/Platform-Foundation.md` (in full) | Strategic authority — Three Layers of Intelligence, Layer Discipline, Define-Once, personas, scoring framework at a glance, Fit Score composition, Verdict Grid, ACV Potential model, Inspector UX, Designer pipeline. |
+| **4** | `docs/Badging-and-Scoring-Reference.md` (in full) | Operational detail — every Pillar, every dimension, every scoring signal, every strength tier, every baseline, every penalty, Technical Fit Multiplier table, risk cap reduction rules, rate tier lookup, badge naming rules, locked vocabulary. The math. |
+| **5** | `docs/next-session-todo.md` | What's active. §1 names the first action of THIS session. |
+| **6** | `docs/roadmap.md` | The long arc inventory — reference only, not cover-to-cover. |
+
+### Pass 3 — Re-read collaboration-with-frank + Guiding Principles
+
+Go back to `docs/collaboration-with-frank.md` AND the Guiding Principles section of `docs/Platform-Foundation.md`. Read them a second time, with all the Pass 2 context in your head. **They land differently the second time.** Frank's exact phrasing: "they really land better with context the second time around."
+
+The interrelation is the point. A rule in collaboration-with-frank traces back to a GP in Platform-Foundation. A badge in Badging-and-Scoring-Reference traces back to a dimension, which traces back to a Pillar, which traces back to the 70/30 split, which traces back to GP4 and Define-Once. Nothing stands alone. The second pass is where the documents become operational.
+
+### Then — present ONE thing and stop
+
+State what you read, where the project stands, and what is next (the first action from next-session-todo.md §1). Then **stop. Wait for Frank.** Do not present a plan. Do not suggest work. Do not start coding. Step 5 of the collaboration doc is non-negotiable.
+
+---
+
+### About the core docs
+
+The two core docs (`Platform-Foundation.md` + `Badging-and-Scoring-Reference.md`) are rewritten whole, not appended, to stay Best Current Thinking. They have a hard **no-duplication rule**: Platform-Foundation owns the framework at a glance + Verdict Grid + ACV model + Fit Score composition concepts; B&S owns the operational math and the per-Pillar / per-dimension detail. Where one doc names a concept the other owns, it refers back without restating.
+
+For the **complete inventory** of everything we know we want to do or have done — across every tool, every area, every status — see `docs/roadmap.md`. Reference, not a read-first.
 
 ---
 
@@ -143,7 +166,18 @@ There is **no monolithic scoring prompt**. Score reads the typed fact drawer dir
 | `backend/models.py` + `backend/storage.py` | Data model (typed dataclasses) + JSON persistence. |
 | `backend/core.py` | Shared helpers — verdict assignment, classification label, sorting, etc. |
 
-Deleted in the 2026-04-08 rebuild: `scoring_math.py`, `badge_normalization.py`, `prompt_generator.py`, `prompts/scoring_template.md`, and the monolithic `SCORING_PROMPT`. If you see a reference to any of these, it's stale — route the concept to the right module above.
+Deleted in the 2026-04-08 rebuild: `scoring_math.py`, `badge_normalization.py`, `prompt_generator.py`, `prompts/scoring_template.md`, and the monolithic `SCORING_PROMPT`. If you see a reference to any of these in old commits, decision-log entries, code-review artifacts, or legacy-reference code, **it is stale — do not reconstruct it.** Route the concept to its new home:
+
+| Deleted module / concept | New home |
+|---|---|
+| `scoring_math.py` (monolithic scoring) | Split into `pillar_1_scorer.py`, `pillar_2_scorer.py`, `pillar_3_scorer.py`, `fit_score_composer.py`, `acv_calculator.py` — one file per concern |
+| `prompt_generator.py` + `prompts/scoring_template.md` | Prompts assembled inline in `researcher.py` (three per-pillar fact extractors) + the narrow Claude slice in `rubric_grader.py` |
+| `badge_normalization.py` | Replaced by post-scoring `badge_selector.py` — display layer, zero scoring impact |
+| `SCORING_PROMPT` (single monolithic Claude call) | Removed entirely. Score layer reads typed fact drawers directly and applies deterministic Python rules. The only Claude calls in the Score layer are the rubric grader's per-dimension calls for Pillar 2/3 qualitative grading. |
+| `app_new.py` | Renamed to `app.py` during cleanup. Any `app_new.py` reference is stale. |
+| `legacy-reference/` directory | **Off-limits for code reuse.** Reference only — never copy, import, or port. Pre-Foundation work is proof-of-concept. See "Legacy Boundary" above. |
+
+Route the concept. Do not reconstruct the module.
 
 ### Data Architecture — Three Domains
 

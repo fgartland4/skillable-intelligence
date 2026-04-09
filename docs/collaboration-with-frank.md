@@ -4,19 +4,38 @@ This document reflects best current thinking. As thinking evolves, this document
 
 ---
 
-## Startup Sequence — Do This First, Every Session
+## Startup Sequence — Three Passes, Every Session
 
-The Guiding Principles are not decoration. They are a thinking system. The startup sequence applies them.
+The Guiding Principles and the collaboration rules are not decoration. They are a thinking system. The startup sequence is three passes because Frank has found through experience that these documents land differently on the second read, once the full context is in your head.
 
-| Step | Action | Why it matters |
+### Pass 1 — Working mode + thinking system
+
+| Step | Action | Why |
 |---|---|---|
-| **1** | Read the Guiding Principles in `docs/Platform-Foundation.md` (GP1 through GP5, plus Define-Once and End-to-End) | These shape every decision — code, UX, collaboration, communication. You cannot apply what you have not internalized. |
-| **2** | Read `docs/Platform-Foundation.md` and `docs/Badging-and-Scoring-Reference.md` in full | Understand the strategic foundation and the operational detail. These are the authority. |
-| **3** | Re-read with the interrelation lens | Now that you have context, re-read the Guiding Principles AND the collaboration rules. Ask: how does each GP show up in the architecture, the scoring, the UX, *and in how we work together?* Can you see GP4 in the variable names? GP3 in the badge evidence? GP2 in how every screen is structured? GP1 in digestible chunks? If the interrelations aren't visible, read again. See "Re-reading Is the Point" below. |
-| **4** | Read this document — the collaboration preferences below | Understand how Frank works and what he expects from the partnership. |
-| **5** | Present ONE thing: where we are | State what you read, where the project stands, and what is next. Then stop. Wait for Frank. |
+| **1** | Read **this document** (`collaboration-with-frank.md`) in full | Working mode, Frank's expectations, how to partner. This goes in first because it shapes how you read everything else. |
+| **2** | Read the **Guiding Principles** section of `docs/Platform-Foundation.md` (GP1 through GP5 + Define-Once + End-to-End Thinking) | The thinking system that shapes every decision — code, UX, collaboration, communication. You cannot apply what you have not internalized. |
 
-Step 5 is critical. Do not present a plan. Do not suggest work. Do not start coding. Say where we are. Wait.
+### Pass 2 — Full context
+
+| Step | Action | Why |
+|---|---|---|
+| **3** | Read `docs/Platform-Foundation.md` in full | Strategic authority — Three Layers of Intelligence, Layer Discipline, scoring framework, Verdict Grid, ACV Potential, personas. |
+| **4** | Read `docs/Badging-and-Scoring-Reference.md` in full | Operational detail — every Pillar, every dimension, every signal, every baseline, every penalty, Technical Fit Multiplier, rate tier lookup, badge naming rules, locked vocabulary. |
+| **5** | Read `docs/next-session-todo.md` | What's active. §1 names the first action of THIS session. |
+
+### Pass 3 — Re-read collaboration-with-frank + Guiding Principles
+
+| Step | Action | Why |
+|---|---|---|
+| **6** | **Re-read this document AND the Guiding Principles section of Platform-Foundation.md** | Same words, different meaning. Now that the full-context read is in your head, the interrelations become visible. You see how each GP shows up in the architecture, the scoring, the UX, *and in how we work together.* Can you see GP4 in the variable names? GP3 in the evidence text of each rubric-grader finding? GP2 in how every screen is structured? GP1 in digestible chunks? If the interrelations aren't visible, read again. See "Re-reading Is the Point" below. |
+
+### Then — present ONE thing: where we are
+
+| Step | Action | Why |
+|---|---|---|
+| **7** | Present ONE thing: where we are | State what you read, where the project stands, and what is next. Then stop. Wait for Frank. |
+
+Step 7 is critical. Do not present a plan. Do not suggest work. Do not start coding. Say where we are. Wait.
 
 ---
 
