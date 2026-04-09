@@ -364,11 +364,11 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 }
 /* Five fixed columns. Frank 2026-04-08: with k / M abbreviations the
    number columns can stay narrow without truncation. */
-.acv-table col.acv-col-motion { width: auto; }   /* Use Case column takes all remaining space */
-.acv-table col.acv-col-aud    { width: 84px; }
-.acv-table col.acv-col-adopt  { width: 46px; }   /* fits "Adopt" header + "100%" values right-aligned */
-.acv-table col.acv-col-hrs    { width: 52px; }   /* fits "Hrs" header + 1-2 digit values right-aligned */
-.acv-table col.acv-col-yr     { width: 96px; }   /* fits "Hrs / Yr" header + abbreviated ranges like "1.2M–3.6M" right-aligned. Annual-total rows span hrs+yr via colspan="2" so big ACV values like "$16.9M – $50.7M" have 148px of combined space without widening the per-column widths. */
+.acv-table col.acv-col-motion { width: auto; }   /* Use Case column takes all remaining space — Frank 2026-04-08: "narrow, maximizing room for first column use names". Every numeric column below is sized to fit its widest body value with a small buffer so nothing overflows. Bottom two total rows merge hrs+yr via colspan="2" so big ACV values have combined width. */
+.acv-table col.acv-col-aud    { width: 72px; }   /* fits "500k-1.5M" */
+.acv-table col.acv-col-adopt  { width: 44px; }   /* fits "100%" */
+.acv-table col.acv-col-hrs    { width: 32px; }   /* fits 1-2 digit integers, centered */
+.acv-table col.acv-col-yr     { width: 78px; }   /* fits "1.2M–3.6M". Total rows span hrs+yr → 110px combined, fits "$16.9M – $50.7M". */
 /* Unified font: header labels stay a touch smaller for visual hierarchy,
    but body + total-row labels + methodology all share the same size. */
 .acv-table thead th {
@@ -382,8 +382,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .acv-table thead th.acv-center { text-align: center; }
 .acv-table tbody td {
     padding: 5px 3px;
-    font-size: 0.7rem;         /* explicit, not inherited, so every cell matches */
-    font-weight: 500;          /* medium weight so text cells match the visual density of number cells */
+    font-size: 0.75rem;        /* unified with .pt-name and .competitive-name — Frank 2026-04-08 */
+    font-weight: 500;          /* unified weight across all three bottom-row boxes */
     color: var(--sk-text-body);
     border-bottom: 1px solid rgba(255,255,255,0.03);
     vertical-align: middle;
@@ -488,7 +488,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     column-gap: 14px;
 }
 .competitive-name {
-    font-size: 0.82rem; font-weight: 600; color: var(--sk-link-slate);
+    font-size: 0.75rem; font-weight: 500; color: var(--sk-link-slate);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .competitive-sub {
@@ -527,6 +527,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .pt-name {
     width: 180px;
     font-size: 0.75rem;
+    font-weight: 500;
     color: var(--sk-text-body);
     padding: 8px 12px 8px 0;
     overflow: hidden;
