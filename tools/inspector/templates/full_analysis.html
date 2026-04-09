@@ -290,13 +290,18 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
    chrome + purple hairline + slate-blue competitor font — signals
    "this is the other world." */
 
-/* Shared padding + sizing for all three boxes so the content lines up. */
+/* Shared padding + sizing for all three boxes so the content lines up.
+   `overflow: hidden` is a hard guarantee that no child content escapes
+   the box border — belt-and-suspenders alongside the per-cell
+   overflow/ellipsis rules. Frank 2026-04-08: "Remaining columns
+   CANNOT go outside the border of the box." */
 .bottom-row-product > .products-section,
 .bottom-row-product > .competitive-section,
 .bottom-row-org > .acv-widget {
     border-radius: 8px;
     padding: 16px 18px 12px 18px;
     opacity: 1;
+    overflow: hidden;
 }
 
 /* Left + right boxes are transparent — no background, no border. */
@@ -318,21 +323,21 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     white-space: nowrap;        /* keep title on one line */
     overflow: hidden;
 }
-/* The product-name portion of the title can shrink + ellipsis-truncate
-   when the vendor + product name is long. The "ACV by Use Case" suffix
-   stays intact so the widget purpose remains legible. Frank 2026-04-08
-   Workday: "WORKDAY HUMAN CAPITAL MANAGEMENT (HCM) ACV BY USE CASE"
-   was wrapping to two lines. */
+/* Frank 2026-04-08: the fixed "ACV by Use Case |" prefix comes first and
+   NEVER shrinks. The product name portion comes after and is the one that
+   ellipsis-truncates if the widget is narrow. This ordering guarantees the
+   info-icon "?" that follows the title will never be pushed to a second
+   line — the truncation always happens in the product name, before the
+   icon. */
+.acv-widget-title-prefix {
+    flex: 0 0 auto;          /* never shrinks — fixed text stays intact */
+}
 .acv-widget-title-product {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
-    flex: 0 1 auto;
-    margin-right: 0.35em;
-}
-.acv-widget-title-suffix {
-    flex: 0 0 auto;
+    flex: 0 1 auto;          /* shrinks first when space is tight */
 }
 
 /* Shared header spacing across all three boxes */
@@ -436,7 +441,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
    and background. */
 .products-section { margin-top: 8px; }
 .products-title { font-size: 0.75rem; letter-spacing: 2px; color: var(--sk-text-muted); text-transform: uppercase; font-weight: 600; }
-.product-table { border-collapse: collapse; }
+.product-table { border-collapse: collapse; table-layout: fixed; width: 100%; }
 .product-table tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
 .product-table tr:last-child { border-bottom: none; }
 .pt-name-link {
@@ -469,13 +474,16 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .competitive-row:last-child { border-bottom: none; }
 .competitive-top {
     display: grid;
-    /* Three columns:
-       1. Product name (slate blue) — fixed width so the Subcategory column
-          always starts at the same x-position from row to row.
-       2. Subcategory badge — left-aligned in its own column, consistent
-          spacing from the product name regardless of truncation.
-       3. Run link — right-aligned to the box edge (no button box now). */
-    grid-template-columns: 210px auto 1fr;
+    /* Three columns (Frank 2026-04-08 standard pattern):
+       1. Product name — fixed 180px, matches .pt-name in the Scored
+          Products box for visual symmetry. Truncates via .competitive-name
+          overflow rules.
+       2. Subcategory badge — minmax(0, 1fr) so the track CAN shrink
+          below intrinsic content width. Truncates via .competitive-sub
+          overflow rules. Without minmax(0, 1fr) the badge content
+          forces the track wider and pushes the run link out of the box.
+       3. Run link — auto width, content-sized, right-aligned to box edge. */
+    grid-template-columns: 180px minmax(0, 1fr) auto;
     align-items: center;
     column-gap: 14px;
 }
@@ -483,7 +491,13 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     font-size: 0.82rem; font-weight: 600; color: var(--sk-link-slate);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.competitive-sub { text-align: left; }
+.competitive-sub {
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;                /* required so the grid track can shrink below content */
+}
 .competitive-action {
     text-align: right;
     justify-self: end;
@@ -511,26 +525,23 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     text-decoration-color: var(--sk-score-high);
 }
 .pt-name {
+    width: 180px;
     font-size: 0.75rem;
     color: var(--sk-text-body);
-    padding: 8px 16px 8px 0;
-    /* NOTE: max-width on <td> is ignored in table-layout:auto tables.
-       The actual truncation happens on the inner .pt-name-wrap div
-       below — the div has an explicit width and overflow:hidden +
-       text-overflow:ellipsis, which IS respected. Frank 2026-04-08:
-       long Workday product names were pushing the Scored Products
-       box wider than its flex allocation until this was fixed. */
-}
-.pt-name-wrap {
-    width: 280px;                /* hard cap — div width IS honored */
-    max-width: 280px;
+    padding: 8px 12px 8px 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.pt-sub { min-width: 180px; padding: 8px 12px 8px 0; }
-.pt-score { min-width: 50px; font-size: 0.9rem; font-weight: 700; padding: 8px 12px 8px 0; text-align: right; }
-.pt-doc { padding: 8px 0; }
+.pt-sub {
+    width: 140px;
+    padding: 8px 12px 8px 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pt-score { width: 50px; font-size: 0.9rem; font-weight: 700; padding: 8px 12px 8px 0; text-align: right; }
+.pt-doc { width: 24px; padding: 8px 0; }
 
 /* ── Reusable info / docs modal ──
    One modal, two content sources:
@@ -683,7 +694,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
       <table class="product-table">
         {% for p in analysis.products %}
         <tr>
-          <td class="pt-name" title="{{ p.name }}"><div class="pt-name-wrap"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span>{% if p.classification_review_needed %} <span class="badge badge-amber" title="This product or its organization classification landed in Unknown — review and reclassify before trusting the scores.">⚠ Review Classification</span>{% endif %}</div></td>
+          <td class="pt-name" title="{{ p.name }}"><span class="pt-name-link" onclick="window.swapProduct({{ loop.index0 }})">{{ p.name }}</span>{% if p.classification_review_needed %} <span class="badge badge-amber" title="This product or its organization classification landed in Unknown — review and reclassify before trusting the scores.">⚠ Review Classification</span>{% endif %}</td>
           <td class="pt-sub">{% if p.subcategory %}<span class="badge badge-purple">{{ p.subcategory | clean_subcategory }}</span>{% endif %}</td>
           <td class="pt-score {{ (p.fit_score.total or p.fit_score._total or 0) | score_color }}">{{ p.fit_score.total or p.fit_score._total or 0 }}</td>
           <td class="pt-doc"><span class="doc-icon" title="Export report (Word)">{{ doc_svg() }}</span></td>
@@ -725,9 +736,9 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
     {% set acv = top.acv_potential %}
     <div class="acv-widget">
       <div class="acv-widget-header">
-        <span class="acv-widget-title" title="{{ top.name }} ACV by Use Case">
+        <span class="acv-widget-title" title="ACV by Use Case | {{ top.name }}">
+          <span class="acv-widget-title-prefix">ACV by Use Case&nbsp;|&nbsp;</span>
           <span class="acv-widget-title-product">{{ top.name | upper }}</span>
-          <span class="acv-widget-title-suffix">ACV by Use Case</span>
         </span>
         <span class="info-icon" onclick="openInfoModal('acv_use_case')" title="What is ACV by Use Case?">?</span>
       </div>
@@ -745,7 +756,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
             <th>Use Case</th>
             <th class="acv-num">Audience</th>
             <th class="acv-num">Adopt</th>
-            <th class="acv-num">Hrs</th>
+            <th class="acv-center">Hrs</th>
             <th class="acv-num">Hrs / Yr</th>
           </tr>
         </thead>
@@ -755,7 +766,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
             <td class="acv-motion" title="{{ m.label }}">{{ m.label }}</td>
             <td class="acv-num">{% if (m.population_low or 0) == (m.population_high or 0) %}{{ (m.population_low or 0) | format_count }}{% else %}{{ (m.population_low or 0) | format_count }}–{{ (m.population_high or 0) | format_count }}{% endif %}</td>
             <td class="acv-num">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
-            <td class="acv-num">{% if (m.hours_low or 0) == (m.hours_high or 0) %}{{ (m.hours_low or 0) | int }}{% else %}{{ (m.hours_low or 0) | int }}–{{ (m.hours_high or 0) | int }}{% endif %}</td>
+            <td class="acv-center">{% if (m.hours_low or 0) == (m.hours_high or 0) %}{{ (m.hours_low or 0) | int }}{% else %}{{ (m.hours_low or 0) | int }}–{{ (m.hours_high or 0) | int }}{% endif %}</td>
             <td class="acv-num">{% if (m.hrs_low or 0) == (m.hrs_high or 0) %}{{ (m.hrs_low or 0) | format_count }}{% else %}{{ (m.hrs_low or 0) | format_count }}–{{ (m.hrs_high or 0) | format_count }}{% endif %}</td>
           </tr>
           {% endfor %}
