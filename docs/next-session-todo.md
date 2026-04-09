@@ -1,6 +1,6 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-08 (late session — scoring viable_fabrics refactor shipped `dd62c87`, researcher SaaS/cloud contradiction fix shipped `a296e29`, docs audit + refresh landed this commit. Both planning docs are now trimmed to best current thinking. Read this doc first when you sit down for the next session, then `docs/roadmap.md` for the long arc.)
+**Last updated:** 2026-04-08 (late session, Phase 1 live-bug batch shipped. Earlier in session: `dd62c87` viable_fabrics + No Scoring Methods badge, `a296e29` researcher SaaS/cloud contradiction fix, `9682ba2` docs audit + refresh. This update adds the Phase 1 live-bug commit which resolved 10 small items from the late-session testing pass: Simulation override normalized to 12/12/0/12 with gray bars across all three symmetric dims, briefcase markdown stripped, ACV table separator + wider columns + ANNUAL ACV POTENTIAL rename + Use Case column font uniformity, "Hands On Learning" renamed to "Hands On", "Instructor Authors Dual" renamed to "Dual Instructors/Authors", "Customer Enablement Team" badge now pulls the vendor's actual named program from `customer_enablement_team_name` fact (e.g. "Cohesity Academy"), and product chooser link placement standardized above the Deep Dive button. Phase 2 queue in §2a is what to pick up next session. Read this doc first, then `docs/roadmap.md` for the long arc.)
 
 ---
 
@@ -37,14 +37,30 @@ Walk `docs/Platform-Foundation.md` and `docs/Badging-and-Scoring-Reference.md` t
 
 ---
 
-## §2 — LIVE BUGS (FIX WHEN YOU TOUCH THE AREA)
+## §2 — LIVE BUGS + PHASE 2 QUEUE (FROM 2026-04-08 LATE SESSION)
+
+Phase 1 of the live-bug batch shipped in the commit that landed this doc update. Phase 2 is the queue for next session — investigate-first items, tuning decisions, and the original three deferred items that are still open.
+
+### §2a — Phase 2 queue (investigate and/or fix next session)
+
+| Bug | Kind | Why not in Phase 1 |
+|---|---|---|
+| **Bug 2 — IV Market Demand shows 7/20 with four green badges** (Trellix Advanced Threat Landscape Analysis System) | Investigate-first | Need to pull the analysis JSON and look at graded signals vs scored signals. Likely outcomes: (a) math correct + small install base dragging it down legitimately, (b) signals should be amber not green, (c) baseline/weights wrong. Report findings before any code change. |
+| **Bug 4 — HIGH FIT · LOW ACV verdict on highest-scoring product** (Trellix Endpoint Security, confirmed again on Cohesity DataHawk) | Probably correct math — verify and close | Cohesity screenshot confirmed the pattern: product with high individual Fit Score but low individual ACV genuinely IS `HIGH FIT · LOW ACV`. Expected to close without a code change after a quick verification pass. |
+| **Bug 12 — Audience populations flipped / use single values for known counts** (Cohesity: 13,000 customers + 7,500 employees, but Employee Training audience showed 15k-35k range) | Researcher prompt tightening | Prompt needs explicit guidance: "when employee count is known, use single value not range; customer count and employee count must not be swapped." |
+| **Bug 13 — Certification audience = 5% of total (customers + partners + employees)** | Deterministic math in `acv_calculator.py` | Derive certification audience from the other motion audiences rather than asking the AI to estimate. Python computes it, AI doesn't touch it. |
+| **Bug 18 — Increase MFA Required penalty weight** (Cohesity DataHawk: dropped Lab Access to 14/25 which Frank considers too soft) | Scoring config tuning | Investigate current penalty, propose new value, Frank decides. Look in Lab Access signal weights. |
+| **Bug 19 — Increase Orphan Risk penalty weight** (Cohesity DataHawk: dropped Teardown to 20/25) | Scoring config tuning | Same pattern as Bug 18 — investigate and propose. Look in Teardown signal weights. |
+
+### §2b — Still-open items from the original deferred list
 
 | Bug | Investigate when |
 |---|---|
-| **Discovery bloat + family picker under-grouping** — Trellix returns ~46-49 products vs ~22 real; then family picker collapses 42 under one "Cybersecurity" header making it useless as a filter. Two stacked bugs (upstream over-extraction + coarse grouping), one investigation. Test case: Trellix. | When touching discovery, or as a dedicated pass if external testers hit it first. Has a screenshot in the conversation log. |
-| **Pillar 2 extractor reliability** — intermittent empty `mastery_stakes` / `lab_versatility` / `market_demand` drawers even on products where facts clearly exist. Cross-pillar grader safety net in `rubric_grader.py::_product_shape_context` keeps grades flowing in the meantime, but the root cause is in the extractor. Requires investigate-first: look at a failing product, diagnose whether it's prompt, schema, or model behavior. | When touching Pillar 2 researcher / grader work, or as a dedicated pass. Not blocking anything right now. |
+| **Discovery bloat + family picker under-grouping** — Trellix returned ~46-49 products vs ~22 real; then family picker collapsed 42 under one "Cybersecurity" header making it useless as a filter. Two stacked bugs (upstream over-extraction + coarse grouping), one investigation. Test case: Trellix. Also causes Bug 3 (ACV total variance on refresh — downstream symptom of the same root cause). | When touching discovery, or as a dedicated pass if external testers hit it first. |
+| **Pillar 2 extractor reliability** — intermittent empty `mastery_stakes` / `lab_versatility` / `market_demand` drawers even on products where facts clearly exist. Cross-pillar grader safety net in `rubric_grader.py::_product_shape_context` keeps grades flowing in the meantime. Investigate-first. | When touching Pillar 2 researcher / grader work. |
+| **Bug 14 — Researcher missing flagship events** (Cohesity Catalyst was not captured) | Researcher prompt tightening — explicit guidance to search for the vendor's flagship annual event / user conference. |
 
-**Batch bugs during documentation work.** Frank will queue up small bugs during Job A / Job B sessions — pause at natural breakpoints (between extractor helper + wiring, between Job A and Job B) to batch them rather than context-switch mid-design-conversation.
+**Batch bugs during documentation work.** Frank queues small bugs during Job A / Job B sessions — pause at natural breakpoints to batch them rather than context-switch mid-design-conversation. Pattern worked well in the 2026-04-08 session that shipped 10 quick fixes as a single Phase 1 commit.
 
 ---
 

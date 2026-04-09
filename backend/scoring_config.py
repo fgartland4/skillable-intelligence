@@ -2060,15 +2060,20 @@ SANDBOX_API_RED_CAP_NOTHING_VIABLE = 5
 # classic sense, so the other dimensions' normal questions don't apply. You
 # can't penalize teardown when there's nothing to tear down. Lab access is
 # middle — learners just log into the sim. Scoring doesn't exist for sims
-# yet (feature request). Provisioning is low — it's a fallback, not a win."
+# yet (feature request). Provisioning, Lab Access, and Teardown are all
+# treated symmetrically — fallback credit, no badges, gray bars across
+# the board. No dimension gets "full credit" just because simulation
+# elides it; no dimension gets rock-bottom credit just because simulation
+# doesn't use it. 12 + 12 + 0 + 12 = 36 is the honest middle-ground total
+# for a product with no real per-learner provisioning path.
 #
-# Total Simulation Pillar 1 = 5 + 12 + 0 + 25 = 42/100 (Light Amber).
+# Total Simulation Pillar 1 = 12 + 12 + 0 + 12 = 36/100 (Amber).
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SIMULATION_PROVISIONING_POINTS = 5     # Fallback, low but nonzero
+SIMULATION_PROVISIONING_POINTS = 12    # Uniform with Lab Access / Teardown — gray bar, no badge
 SIMULATION_LAB_ACCESS_POINTS = 12      # Middle of Lab Access 25 cap
 SIMULATION_SCORING_POINTS = 0          # No scoring for sims today (feature request)
-SIMULATION_TEARDOWN_POINTS = 25        # Full — nothing to tear down = structurally equivalent to Datacenter automatic
+SIMULATION_TEARDOWN_POINTS = 12        # Uniform with Lab Access / Provisioning — gray bar, no badge
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

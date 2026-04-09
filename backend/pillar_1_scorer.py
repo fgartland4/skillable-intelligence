@@ -927,13 +927,13 @@ def _build_simulation_override_dimensions() -> list[DimensionScore]:
             name=_PROV_DIM.name,
             score=cfg.SIMULATION_PROVISIONING_POINTS,
             weight=_PROV_DIM.weight,
-            summary="Simulation is the chosen fabric — fallback when real provisioning isn't possible. Low Provisioning credit reflects the fallback nature.",
+            summary="Simulation is the chosen fabric — fallback when real provisioning isn't possible. Middle credit, no badges, gray bar: simulation elides the real fabric entirely, so nothing was evidenced to earn or lose points against.",
         ),
         DimensionScore(
             name=_LA_DIM.name,
             score=cfg.SIMULATION_LAB_ACCESS_POINTS,
             weight=_LA_DIM.weight,
-            summary="Simulation Lab Access — middle credit. Learners log into the simulation environment directly, no identity / licensing friction of the vendor's real product.",
+            summary="Simulation Lab Access — middle credit, no badges, gray bar. Learners log into the simulation environment directly, no identity / licensing friction of the vendor's real product. Symmetric with Provisioning and Teardown in the override state.",
         ),
         DimensionScore(
             name=_SC_DIM.name,
@@ -945,7 +945,7 @@ def _build_simulation_override_dimensions() -> list[DimensionScore]:
             name=_TD_DIM.name,
             score=cfg.SIMULATION_TEARDOWN_POINTS,
             weight=_TD_DIM.weight,
-            summary="Simulation Teardown — full credit. There is nothing to tear down when the session ends; structurally equivalent to Datacenter automatic cleanup. You don't lose teardown points for a fabric where teardown work doesn't apply.",
+            summary="Simulation Teardown — middle credit, no badges, gray bar. Simulation sessions end with the learner session, so there's no operational teardown to evaluate. Symmetric with Provisioning and Lab Access in the override state.",
         ),
     ]
 
@@ -957,7 +957,11 @@ def score_product_labability(facts: ProductLababilityFacts) -> PillarScore:
       - **Simulation hard override** (Frank 2026-04-08) — when the primary
         fabric resolves to Simulation, the composer skips the normal scorers
         for Lab Access, Scoring, and Teardown and uses the
-        SIMULATION_*_POINTS constants directly. Total Pillar 1 = 42/100.
+        SIMULATION_*_POINTS constants directly. Provisioning, Lab Access,
+        and Teardown all render symmetrically (12 / 12 / 0 / 12 = 36/100)
+        with no badges — gray bars only. No dimension gets "full credit"
+        just because simulation elides it; no dimension gets rock-bottom
+        credit just because simulation doesn't use it.
       - Sandbox API red cap (Pillar 1 ≤ 25 if Simulation viable, ≤ 5 otherwise)
       - bare_metal_required → Pillar 1 ≤ 5
 
@@ -975,7 +979,7 @@ def score_product_labability(facts: ProductLababilityFacts) -> PillarScore:
             dimensions=dimensions,
         )
         # No ceiling flags flipped here — the hard override IS the cap.
-        # Pillar total = sum of the four SIMULATION_*_POINTS constants = 42.
+        # Pillar total = sum of the four SIMULATION_*_POINTS constants = 36.
         from models import recompute_pillar_score
         recompute_pillar_score(pillar)
         return pillar

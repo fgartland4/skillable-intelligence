@@ -299,6 +299,16 @@
         </div>
 
         <div class="header-right">
+            {# Back navigation — links above the Deep Dive button, standardized
+               with full_analysis.html where the links also sit at the top of
+               the header-right column above any content that follows.
+               Frank 2026-04-08: "standardize on ABOVE the button on both pages". #}
+            <div class="header-nav">
+                {% if request.args.getlist('family') %}
+                  <a href="/inspector/product-selection/{{ discovery.discovery_id }}">← Change Product Family</a><br>
+                {% endif %}
+                <a href="/inspector">← Search Another Company</a>
+            </div>
             <form method="POST" action="/inspector/score" id="diveForm">
                 <input type="hidden" name="discovery_id" value="{{ discovery.discovery_id }}">
                 <div class="action-row">
@@ -309,15 +319,6 @@
                 <div class="sel-status" id="selStatus">0 of {{ non_tc_prods | length }} products selected</div>
                 <div class="sel-cached-hint" id="selCachedHint">&nbsp;</div>
             </form>
-            {# Back navigation — same pattern as full_analysis.html so all
-               Inspector pages share one navigation idiom in the upper-right
-               of the header. Per Frank's 2026-04-07 standardization directive. #}
-            <div class="header-nav">
-                {% if request.args.getlist('family') %}
-                  <a href="/inspector/product-selection/{{ discovery.discovery_id }}">← Change Product Family</a><br>
-                {% endif %}
-                <a href="/inspector">← Search Another Company</a>
-            </div>
         </div>
     </div>
 

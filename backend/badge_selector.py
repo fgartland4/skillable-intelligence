@@ -97,10 +97,13 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
     p = product.product_labability_facts.provisioning
     badges: list[Badge] = []
 
-    # ── Simulation hard override — only the Simulation badge fires ──
-    # If the scorer picked Simulation as the fabric, the pillar is at 42/100
-    # and the other dimension scorers were bypassed. The Provisioning badge
-    # here is just "Simulation" (gray context).
+    # ── Simulation hard override — no badges fire, gray bar only ──
+    # If the scorer picked Simulation as the fabric, Pillar 1 is in the hard
+    # override state (12 / 12 / 0 / 12 = 36). Provisioning, Lab Access, and
+    # Teardown all render as uniform gray bars with no badges — nothing was
+    # evidenced because simulation elides the real fabric entirely. Frank
+    # 2026-04-08: "treat Provisioning & Teardown exactly how we treat Lab
+    # Access — 12 points each = 36 and all gray bars."
     if product.fit_score.product_labability is not None:
         prov_dim_score = next(
             (d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"),
@@ -108,23 +111,12 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
         )
         if prov_dim_score is not None and prov_dim_score.score == cfg.SIMULATION_PROVISIONING_POINTS:
             # Verify we're in the Simulation hard override case — check that
-            # Scoring is also 0 and Teardown is the full override value
+            # Scoring is also at the override value and Teardown matches too
             sc = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Scoring"), None)
             td = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Teardown"), None)
             if (sc is not None and sc.score == cfg.SIMULATION_SCORING_POINTS and
                 td is not None and td.score == cfg.SIMULATION_TEARDOWN_POINTS):
-                badges.append(Badge(
-                    name="Simulation",
-                    color="gray",
-                    qualifier="Context",
-                    evidence=[_evidence(
-                        "Simulation is the chosen fabric — fallback when real provisioning isn't possible for this product. "
-                        "Skillable can deliver a scripted simulation lab. "
-                        "Something to explore: whether the learning objectives can be met in a guided simulation, "
-                        "or whether the customer has a roadmap for a vendor-provided sandbox API.",
-                        confidence="indicated",
-                    )],
-                ))
+                # Simulation override: return empty — no Provisioning badges
                 return badges
 
     # ── M365 fabric (highest-priority Pillar 1 fabric) ──
@@ -632,23 +624,16 @@ def _pillar_1_teardown_badges(product: Product) -> list[Badge]:
     p = product.product_labability_facts.provisioning
     badges: list[Badge] = []
 
-    # Simulation override has a special Teardown badge (full credit)
+    # Simulation override — no Teardown badges, gray bar only. Frank 2026-04-08:
+    # the four Pillar 1 dimensions render symmetrically in the override state
+    # (12 / 12 / 0 / 12 = 36), with Provisioning, Lab Access, and Teardown all
+    # as uniform gray bars because no real fabric was evidenced.
     if product.fit_score.product_labability is not None:
         td_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Teardown"), None)
         prov_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"), None)
         if (td_dim is not None and td_dim.score == cfg.SIMULATION_TEARDOWN_POINTS and
             prov_dim is not None and prov_dim.score == cfg.SIMULATION_PROVISIONING_POINTS):
-            # Simulation override — Teardown is full credit because nothing to tear down
-            badges.append(Badge(
-                name="Datacenter",
-                color="green",
-                qualifier="Strength",
-                evidence=[_evidence(
-                    "Simulation session ends with the learner session — no operational teardown work. "
-                    "Structurally equivalent to datacenter automatic cleanup.",
-                    confidence="confirmed",
-                )],
-            ))
+            # Simulation override: return empty — no Teardown badges
             return badges
 
     # Normal Teardown path
@@ -828,14 +813,39 @@ _BADGE_NAME_ACRONYMS: tuple[str, ...] = (
 _BADGE_NAME_MAX_CHARS = 24
 
 
+#: Phrase-level display overrides for signal_category -> badge name. Applied
+#: BEFORE Title Case / abbreviations / caps. Use this when the default
+#: word-by-word transformation can't produce the desired badge text -- e.g.
+#: when the display name should drop words, reorder, or include punctuation
+#: that snake_case can't carry. Frank 2026-04-08 Cohesity feedback:
+#:   - "Hands On Learning" too wordy -> "Hands On"
+#:   - "Instructor Authors Dual" awkward order -> "Dual Instructors/Authors"
+#: Extend here, never special-case inline. Values bypass the character cap
+#: because we author them directly -- the author is responsible for length.
+_SIGNAL_CATEGORY_DISPLAY_OVERRIDES: dict[str, str] = {
+    "hands_on_learning_language": "Hands On",
+    "instructor_authors_dual_role": "Dual Instructors/Authors",
+}
+
+
 def _prettify_signal_category(category: str) -> str:
     """Turn a signal_category snake-case key into a short display name.
 
-    Applies Title Case, then the abbreviation dictionary word-for-word,
-    then ALL-CAPS for standalone acronyms, then a hard character cap.
-    Single source of truth for grader-emitted badge naming — extend
-    _BADGE_NAME_ABBREVIATIONS or _BADGE_NAME_ACRONYMS, never inline.
+    First checks _SIGNAL_CATEGORY_DISPLAY_OVERRIDES for a phrase-level
+    override; if present, returns that directly (author is responsible
+    for length and formatting). Otherwise applies Title Case, then the
+    abbreviation dictionary word-for-word, then ALL-CAPS for standalone
+    acronyms, then a hard character cap. Single source of truth for
+    grader-emitted badge naming -- extend _SIGNAL_CATEGORY_DISPLAY_OVERRIDES
+    for phrase-level renames, _BADGE_NAME_ABBREVIATIONS for word-level
+    substitutions, or _BADGE_NAME_ACRONYMS for ALL-CAPS rules. Never
+    special-case inline.
     """
+    # Phrase-level override first -- skips all transforms and cap
+    override = _SIGNAL_CATEGORY_DISPLAY_OVERRIDES.get(category)
+    if override:
+        return override
+
     words = category.replace("_", " ").split()
     out_words: list[str] = []
     for w in words:
@@ -879,12 +889,24 @@ def _replace_whole_word(text: str, old: str, new: str) -> str:
 def _graded_signals_to_badges(
     grades: list[GradedSignal],
     max_badges: int = 4,
+    dynamic_overrides: dict[str, str] | None = None,
 ) -> list[Badge]:
     """Convert a list of rubric-grader GradedSignal records into display Badges.
 
     The grader already wrote evidence_text with confidence hedging. Badge
     selection sorts by strength, applies the abbreviation dictionary
     (`_prettify_signal_category`), and caps at max_badges per dimension.
+
+    `dynamic_overrides` lets callers substitute a fact-sourced display name
+    for a signal_category — for example, replacing the generic "Customer
+    Enablement Team" badge with the vendor's actual program name ("Cohesity
+    Academy") when the researcher captured it in the fact drawer. Dynamic
+    overrides take precedence over the static
+    `_SIGNAL_CATEGORY_DISPLAY_OVERRIDES`; the static dictionary still wins
+    over the prettifier for signal_categories not covered by the dynamic
+    dict. Dynamic override strings are respected at their authored length
+    (caller is responsible for sanity-checking against the _BADGE_NAME_MAX_CHARS
+    budget if strict-length compliance matters).
     """
     if not grades:
         return []
@@ -897,7 +919,11 @@ def _graded_signals_to_badges(
 
     badges: list[Badge] = []
     for g in sorted_grades[:max_badges]:
-        badge_name = _prettify_signal_category(g.signal_category)
+        # Dynamic fact-sourced override takes precedence over static rules
+        if dynamic_overrides and g.signal_category in dynamic_overrides:
+            badge_name = dynamic_overrides[g.signal_category]
+        else:
+            badge_name = _prettify_signal_category(g.signal_category)
         badges.append(Badge(
             name=badge_name,
             color=g.color or "gray",
@@ -922,10 +948,36 @@ def select_pillar_2_badges(product: Product) -> dict[str, list[Badge]]:
 
 
 def select_pillar_3_badges(company: CompanyAnalysis) -> dict[str, list[Badge]]:
-    """Select Pillar 3 (Customer Fit) display badges for a company."""
+    """Select Pillar 3 (Customer Fit) display badges for a company.
+
+    Builds a dynamic_overrides map from `customer_fit_facts` so that generic
+    signal_category labels get replaced by the vendor's actual named program
+    when the researcher captured it. Frank 2026-04-08: "Instead of 'Customer
+    Enablement Team' maybe logic should be to put a name like 'Cohesity
+    Academy' on the badge." Falls back to the generic prettified label when
+    the name fact is empty.
+    """
     grades_by_dim = company.customer_fit_rubric_grades or {}
+
+    # Dynamic overrides sourced from the Pillar 3 fact drawer. Keep names
+    # under the badge character budget so the layout stays uniform; longer
+    # author-supplied names get truncated at a word boundary.
+    dyn: dict[str, str] = {}
+    tc = company.customer_fit_facts.training_commitment if company.customer_fit_facts else None
+    if tc and tc.customer_enablement_team_name:
+        name = tc.customer_enablement_team_name.strip()
+        if len(name) > _BADGE_NAME_MAX_CHARS:
+            truncated = name[:_BADGE_NAME_MAX_CHARS]
+            last_space = truncated.rfind(" ")
+            name = truncated[:last_space] if last_space > 0 else truncated
+        if name:
+            dyn["customer_enablement_team"] = name
+
     return {
-        "Training Commitment": _graded_signals_to_badges(grades_by_dim.get("training_commitment", [])),
+        "Training Commitment": _graded_signals_to_badges(
+            grades_by_dim.get("training_commitment", []),
+            dynamic_overrides=dyn,
+        ),
         "Build Capacity": _graded_signals_to_badges(grades_by_dim.get("build_capacity", [])),
         "Delivery Capacity": _graded_signals_to_badges(grades_by_dim.get("delivery_capacity", [])),
         "Organizational DNA": _graded_signals_to_badges(grades_by_dim.get("organizational_dna", [])),

@@ -342,8 +342,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .acv-table col.acv-col-motion { width: auto; }
 .acv-table col.acv-col-aud    { width: 84px; }
 .acv-table col.acv-col-adopt  { width: 38px; }
-.acv-table col.acv-col-hrs    { width: 42px; }
-.acv-table col.acv-col-yr     { width: 74px; }
+.acv-table col.acv-col-hrs    { width: 52px; }    /* widened +10px to fit ANNUAL HOURS values */
+.acv-table col.acv-col-yr     { width: 96px; }    /* widened +22px so ANNUAL ACV POTENTIAL ranges don't truncate as "$522k – $1..." */
 /* Unified font: header labels stay a touch smaller for visual hierarchy,
    but body + total-row labels + methodology all share the same size. */
 .acv-table thead th {
@@ -357,6 +357,8 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .acv-table thead th.acv-center { text-align: center; }
 .acv-table tbody td {
     padding: 5px 3px;
+    font-size: 0.7rem;         /* explicit, not inherited, so every cell matches */
+    font-weight: 500;          /* medium weight so text cells match the visual density of number cells */
     color: var(--sk-text-body);
     border-bottom: 1px solid rgba(255,255,255,0.03);
     vertical-align: middle;
@@ -367,14 +369,30 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 .acv-table tbody td.acv-num    { text-align: right; }
 .acv-table tbody td.acv-center { text-align: center; }
 .acv-table .acv-motion {
-    font-weight: 500; color: var(--sk-text);
-    /* Truncate long motion names with an ellipsis; full name in title tooltip */
+    /* No property overrides — the Use Case column uses exactly the same
+       font-size, font-weight, and color as every other body cell. Frank
+       2026-04-08: iterated twice to get this right. Numbers are inherently
+       visually denser than text at the same font-weight, so all body cells
+       now run at weight 500 to equalize perceived density across columns.
+       Truncate long motion names with ellipsis; full name in title tooltip. */
 }
+/* Separator line above the first total row. Frank 2026-04-08: add a line
+   between the last use case row and the Annual Hours / Annual ACV Potential
+   rows so the totals visually sit below a divider. The existing border-top
+   on .acv-total-row td becomes that divider, but it only shows on the FIRST
+   total row — the second total row (ANNUAL ACV POTENTIAL) sits tight with
+   the first one, no extra line between them. */
 .acv-total-row td {
     padding-top: 8px; font-weight: 700;
     color: var(--sk-text); border-top: 1px solid var(--sk-border-card-org);
     border-bottom: none;
     /* inherit 0.7rem from .acv-table — matches body row font */
+}
+/* Second total row: suppress the separator so the two totals read as a
+   single stacked block under ONE divider line. */
+.acv-total-row + .acv-total-row td {
+    border-top: none;
+    padding-top: 3px;
 }
 .acv-total-row td.acv-num { color: var(--sk-score-high); }
 .acv-total-row.acv-total-label td:first-child {
@@ -707,7 +725,7 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
           </tr>
           {% if (acv.acv_low or 0) > 0 or (acv.acv_high or 0) > 0 %}
           <tr class="acv-total-row acv-total-label">
-            <td colspan="4">Annual Potential</td>
+            <td colspan="4">Annual ACV Potential</td>
             <td class="acv-num">{{ acv.acv_low | format_acv }} – {{ acv.acv_high | format_acv }}</td>
           </tr>
           {% endif %}

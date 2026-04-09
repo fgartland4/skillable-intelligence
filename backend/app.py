@@ -235,10 +235,17 @@ def bold_label_filter(value: str):
     Briefcase bullets come from the AI as 'Label — Description'. The wireframe
     bolds the label (in the green strong color from CSS). This filter splits on
     the first em-dash (or " - " hyphen) and bolds the leading label.
+
+    Frank 2026-04-08: the AI also wraps the label in Markdown-style `**...**`.
+    Since the filter is already doing the bolding via `<strong>`, the literal
+    asterisks are noise — strip them up front so the bolded label renders
+    clean instead of showing `**Label**` with escaped asterisks.
     """
     from markupsafe import Markup, escape
     if not value:
         return Markup("")
+    # Strip Markdown bold markers — the filter handles bolding itself
+    value = value.replace("**", "")
     # Try em-dash first, then hyphen with spaces, then colon
     for sep in ["\u2014", " - ", ":"]:
         if sep in value:
