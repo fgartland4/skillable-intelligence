@@ -328,6 +328,10 @@ def test_no_eventsource_outside_shared_search_modal():
             except Exception:
                 continue
             if "new EventSource(" in src:
+                # Allow files that carry the annotation for legitimate
+                # non-modal SSE (e.g., background batch status rows).
+                if "eventsource-exempt: background-batch-panel" in src:
+                    continue
                 offenders.append(str(path.relative_to(repo_root)))
 
     assert not offenders, (

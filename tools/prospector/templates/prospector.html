@@ -656,6 +656,10 @@
         return tr;
     }
 
+    // eventsource-exempt: background-batch-panel
+    // This EventSource is NOT a progress modal — it's a lightweight per-row
+    // status updater for the Batch Status Panel. The shared search modal is
+    // still used by Inspector discovery/Deep Dive. See prospector-background-batch-spec.md.
     function connectBatchSSE(jobId, batchId, total, estSeconds) {
         var startTime = Date.now();
         var es = new EventSource('/prospector/progress/' + jobId);

@@ -2864,6 +2864,26 @@ ACV_ORG_ADOPTION_OVERRIDES: dict[str, dict[str, float]] = {
 # detected as open source. Per Frank 2026-04-13.
 OPEN_SOURCE_ADOPTION_MULTIPLIER = 0.25  # 1/4 of normal adoption rate
 
+# ── ACV audience guardrails (R1–R5 from 2026-04-13 ACV audit) ─────────
+# Wrapper org types (GSI, university, training org, etc.) report the
+# underlying technology's global audience as their install_base. The real
+# audience is the org's own practice headcount. These constants cap the
+# audience to a reasonable fraction of the org's total employees.
+ACV_WRAPPER_ORG_TYPES = frozenset({
+    "SYSTEMS INTEGRATOR", "ACADEMIC", "TRAINING ORG",
+    "TECH DISTRIBUTOR", "PROFESSIONAL SERVICES", "LMS PROVIDER",
+    "CONTENT DEVELOPMENT",
+})
+# For wrapper orgs: Motion 1 audience capped at this fraction of total_employees
+ACV_WRAPPER_ORG_AUDIENCE_CAP_FRACTION = 0.25
+# Minimum audience cap for wrapper orgs — even small orgs have some training pop
+ACV_WRAPPER_ORG_AUDIENCE_FLOOR = 1_000
+# Cert audience can never exceed this fraction of the install_base for the same product
+ACV_CERT_MAX_FRACTION_OF_INSTALL_BASE = 0.10
+# Company-level ACV sanity cap: total ACV cannot exceed total_employees × this amount
+# Represents a rough ceiling on training spend per employee per year
+ACV_PER_EMPLOYEE_ANNUAL_CAP = 500
+
 ACV_ORG_MOTION_LABELS: dict[str, dict[str, str]] = {
     "ACADEMIC": {
         "Customer Training & Enablement": "Student Training",
@@ -3370,7 +3390,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-13.iv-badges-penalties-orphan-mfa"
+SCORING_LOGIC_VERSION = "2026-04-13.acv-audience-guardrails-r1-r5"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

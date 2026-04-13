@@ -251,6 +251,92 @@ def _read_population(source: str, product: Any, company_analysis: Any) -> tuple[
     return 0, 0
 
 
+def _discovery_install_base_fallback(product: Any) -> int:
+    """R3: When the Deep Dive fact extractor returns null install_base,
+    fall back to the discovery-level estimated_user_base for the same product.
+
+    Discovery already researched and stored this number — using it is
+    GP5 (intelligence compounds), not a guess.
+    """
+    disc_data = getattr(product, "discovery_data", None) or {}
+    if isinstance(disc_data, dict):
+        ub = disc_data.get("estimated_user_base", "")
+    else:
+        ub = ""
+    if not ub:
+        # Try the product dict directly (some paths store it here)
+        ub = getattr(product, "estimated_user_base", "") or ""
+    if not ub:
+        return 0
+    # Parse the discovery format: "~14M", "~50K", "~2000"
+    s = str(ub).replace("~", "").replace(",", "").strip()
+    try:
+        if s.upper().endswith("M"):
+            return int(float(s[:-1]) * 1_000_000)  # magic-allowed: million multiplier for parsing "~14M"
+        elif s.upper().endswith("K"):
+            return int(float(s[:-1]) * 1_000)  # magic-allowed: thousand multiplier for parsing "~50K"
+        elif s.upper().endswith("B"):
+            return int(float(s[:-1]) * 1_000_000_000)  # magic-allowed: billion multiplier for parsing "~1B"
+        else:
+            return int(float(s))
+    except (ValueError, IndexError):
+        return 0
+
+
+def _apply_wrapper_org_audience_cap(
+    pop_low: int, pop_high: int,
+    normalized_org: str,
+    company_analysis: Any,
+) -> tuple[int, int]:
+    """R1: For wrapper org types (GSI, university, training org, etc.),
+    cap Motion 1 audience to a fraction of the org's total employees.
+
+    The researcher often reports the underlying technology's global audience
+    (e.g., 4M AWS practitioners) instead of the org's own practice headcount
+    (e.g., 60K Accenture AWS consultants). This cap approximates the real
+    training population from the org's own size.
+    """
+    if normalized_org not in cfg.ACV_WRAPPER_ORG_TYPES:
+        return pop_low, pop_high
+
+    # Read total employees from the company's fact drawer
+    cf_facts = getattr(company_analysis, "customer_fit_facts", None)
+    if cf_facts is None:
+        return pop_low, pop_high
+
+    total_emp_range = getattr(cf_facts, "total_employees", None)
+    if total_emp_range is None:
+        return pop_low, pop_high
+
+    total_emp = 0
+    if hasattr(total_emp_range, "low"):
+        total_emp = int(total_emp_range.low or 0)
+    elif isinstance(total_emp_range, dict):
+        total_emp = int(total_emp_range.get("low", 0) or 0)
+
+    if total_emp <= 0:
+        return pop_low, pop_high
+
+    # Cap = fraction of total employees, with a floor
+    audience_cap = max(
+        int(total_emp * cfg.ACV_WRAPPER_ORG_AUDIENCE_CAP_FRACTION),
+        cfg.ACV_WRAPPER_ORG_AUDIENCE_FLOOR,
+    )
+
+    capped_low = min(pop_low, audience_cap)
+    capped_high = min(pop_high, audience_cap)
+
+    if capped_low < pop_low or capped_high < pop_high:
+        log.info(
+            "ACV wrapper org cap: %s employees × %.0f%% = %d cap. "
+            "Audience %d→%d",
+            total_emp, cfg.ACV_WRAPPER_ORG_AUDIENCE_CAP_FRACTION * 100,
+            audience_cap, pop_high, capped_high,
+        )
+
+    return capped_low, capped_high
+
+
 def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     """Build the five ConsumptionMotion records on a Product dataclass.
 
@@ -259,13 +345,15 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     audience facts from `company_analysis.customer_fit_facts`. Uses the
     locked adoption_pct and hours values from `cfg.CONSUMPTION_MOTIONS`.
 
+    Includes five audience guardrails from the 2026-04-13 ACV audit:
+      R1: Wrapper org audience cap (GSI/university install_base capped
+          to fraction of total employees)
+      R3: Null install_base fallback from discovery data
+      R4: Cert audience sanity cap (cert ≤ install_base × 10%)
+
     Mutates `product.acv_potential.motions` in place. Does NOT compute
     derived fields (hrs, acv, rate, tier) — call `compute_acv_on_product`
     after this if you want the full populated output.
-
-    Best-effort: any missing fact yields zero population for that motion,
-    which contributes zero to the final ACV. Honest zeros beat invented
-    numbers.
     """
     from models import ConsumptionMotion as ModelMotion, ACVPotential
 
@@ -299,10 +387,36 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
                 is_open_source = True
 
     motions: list[ModelMotion] = []
+    customer_motion_pop = 0  # Track for R4 cert cap
+
     for cfg_motion in cfg.CONSUMPTION_MOTIONS:
         pop_low, pop_high = _read_population(
             cfg_motion.population_source, product, company_analysis,
         )
+
+        # ── R3: Null install_base fallback ──
+        # When the Deep Dive fact extractor returned null for install_base
+        # but discovery already has the number, use it. GP5 — intelligence
+        # compounds, lighter research enriches deeper research.
+        is_customer_motion = cfg_motion.label == "Customer Training & Enablement"
+        if is_customer_motion and pop_low == 0 and pop_high == 0:
+            fallback = _discovery_install_base_fallback(product)
+            if fallback > 0:
+                pop_low = fallback
+                pop_high = fallback
+                log.info("ACV R3 fallback: using discovery install_base %d for %s",
+                         fallback, getattr(product, "name", "?"))
+
+        # ── R1: Wrapper org audience cap ──
+        # For GSIs, universities, etc., cap Motion 1 audience to a fraction
+        # of the org's total employees. The researcher often reports the
+        # underlying technology's global audience, not the org's own.
+        if is_customer_motion:
+            pop_low, pop_high = _apply_wrapper_org_audience_cap(
+                pop_low, pop_high, normalized_org, company_analysis,
+            )
+            customer_motion_pop = max(pop_low, pop_high)
+
         # Apply org-type overrides: adoption, label, hours
         adoption = adoption_overrides.get(cfg_motion.label, cfg_motion.adoption_pct)
         display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
@@ -322,22 +436,37 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
             rationale=cfg_motion.description,
         ))
 
-    # ── Bug 13 fix: derive cert audience deterministically when missing ──
-    # If the researcher didn't find cert_annual_sit_rate but install_base
-    # exists, derive it as ~2% of install_base (software companies) or
-    # ~10% (training orgs / industry authorities). Python computes, AI
-    # doesn't touch it. Per Platform-Foundation ACV adoption patterns.
-    # Find cert and customer motions by checking both default and overridden labels
+    # ── R4: Cert audience sanity cap ──
+    # Cert candidates can never exceed a fraction of the install_base.
+    # If Accenture has 60K AWS practitioners, they can't have 400K cert
+    # sitters. Mathematical constraint, not a heuristic.
     cert_labels = {"Certification (PBT)", "Course Exams"}
-    customer_labels = {"Customer Training & Enablement", "Student Training", "Training Participants", "Client End Users"}
+    customer_labels = {"Customer Training & Enablement", "Student Training",
+                       "Training Participants", "Client End Users"}
     cert_motion = next((m for m in motions if m.label in cert_labels), None)
     customer_motion = next((m for m in motions if m.label in customer_labels), None)
+
     if cert_motion and customer_motion:
-        if (cert_motion.population_low or 0) == 0 and (customer_motion.population_low or 0) > 0:
-            # Derive: ~2% of customer training audience for software companies
-            derived = max(1, int(customer_motion.population_low * cfg.CERT_SIT_DERIVATION_PCT))
-            cert_motion.population_low = derived
-            cert_motion.population_high = derived
+        customer_pop = max(customer_motion.population_low or 0,
+                          customer_motion.population_high or 0)
+        cert_pop = max(cert_motion.population_low or 0,
+                       cert_motion.population_high or 0)
+
+        if customer_pop > 0:
+            # R4: cap cert to fraction of customer audience
+            cert_cap = max(1, int(customer_pop * cfg.ACV_CERT_MAX_FRACTION_OF_INSTALL_BASE))
+            if cert_pop > cert_cap:
+                log.info("ACV R4 cert cap: %d → %d (%.0f%% of %d customer pop)",
+                         cert_pop, cert_cap,
+                         cfg.ACV_CERT_MAX_FRACTION_OF_INSTALL_BASE * 100,
+                         customer_pop)
+                cert_motion.population_low = cert_cap
+                cert_motion.population_high = cert_cap
+            elif cert_pop == 0:
+                # Bug 13 derivation: no cert data found, derive from customer pop
+                derived = max(1, int(customer_pop * cfg.CERT_SIT_DERIVATION_PCT))
+                cert_motion.population_low = derived
+                cert_motion.population_high = derived
 
     if getattr(product, "acv_potential", None) is None:
         product.acv_potential = ACVPotential()

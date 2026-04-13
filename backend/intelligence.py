@@ -700,6 +700,14 @@ def recompute_analysis(analysis: dict) -> None:
         if _default_motion.label in org_overrides:
             adopt = org_overrides[_default_motion.label]
 
+        # Apply tiered user base caps — same as discovery-level ACV.
+        # Prevents inflated user bases from blowing up the company total.
+        for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+            if user_base > threshold:
+                if cap is not None:
+                    user_base = cap
+                break
+
         deploy = (dp.get("deployment_model") or "").strip().lower()
         if deploy in ("cloud", "saas-only"):
             rate = cfg.CLOUD_LABS_RATE
@@ -713,6 +721,35 @@ def recompute_analysis(analysis: dict) -> None:
     company_acv_low = round(scored_acv_low + unscored_acv)
     company_acv_high = round(scored_acv_high + unscored_acv)
     discovered_count = analysis.get("total_products_discovered") or len(products)
+
+    # ── R5: Company-level ACV sanity cap ──
+    # Total ACV cannot exceed total_employees × per-employee annual cap.
+    # Backstop that catches any remaining inflation from any source.
+    total_employees = 0
+    disc_signals = discovery_data.get("company_signals", {})
+    if disc_signals:
+        # Try to parse total employee count from discovery signals
+        emp_str = disc_signals.get("total_employees", "")
+        if emp_str:
+            try:
+                emp_clean = str(emp_str).replace(",", "").replace("~", "").strip()
+                if emp_clean.upper().endswith("K"):
+                    total_employees = int(float(emp_clean[:-1]) * 1_000)
+                elif emp_clean.upper().endswith("M"):
+                    total_employees = int(float(emp_clean[:-1]) * 1_000_000)
+                else:
+                    total_employees = int(float(emp_clean))
+            except (ValueError, TypeError):
+                pass
+
+    if total_employees > 0:
+        employee_cap = total_employees * cfg.ACV_PER_EMPLOYEE_ANNUAL_CAP
+        if company_acv_high > employee_cap:
+            log.info("ACV R5 company cap: $%d → $%d (%d employees × $%d)",
+                     company_acv_high, employee_cap,
+                     total_employees, cfg.ACV_PER_EMPLOYEE_ANNUAL_CAP)
+            company_acv_high = min(company_acv_high, round(employee_cap))
+            company_acv_low = min(company_acv_low, company_acv_high)
 
     analysis["_company_acv"] = {
         "company_low": company_acv_low,
