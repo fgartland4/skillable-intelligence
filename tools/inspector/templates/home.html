@@ -1,14 +1,13 @@
 {# ────────────────────────────────────────────────────────────────────────
-   Inspector home — company + product search entry point.
+   Inspector home — unified search for a company or product.
 
-   SEARCH MODAL RULE (platform-wide, Inspector + Prospector + Designer):
-   this page POSTs to /inspector/discover which renders `discovering.html`,
-   which opens the SHARED search modal (`_search_modal.html`) as an overlay.
-   Every long-running progress UI in the platform lives in that ONE shared
-   modal. Do NOT build a custom progress experience on this page or any
-   other.  See `CLAUDE.md` → "The Standard Search Modal" and
-   `docs/Platform-Foundation.md` → "The Standard Search Modal — The One
-   and Only".
+   Single input field with typeahead from cached companies. The researcher
+   resolves whatever the user types — company names, product names, former
+   names. No disambiguation UI; ambiguity is handled by the researcher.
+
+   SEARCH MODAL RULE: this page POSTs to /inspector/discover which renders
+   `discovering.html`, which opens the SHARED search modal. Do NOT build
+   custom progress on this page.
    ──────────────────────────────────────────────────────────────────────── #}
 <!DOCTYPE html>
 <html lang="en">
@@ -52,27 +51,56 @@
             border-radius: 16px; padding: 36px;
             box-shadow: 0 0 0 1px rgba(36,237,155,0.05), 0 20px 60px rgba(0,0,0,0.4);
         }
-        .form-row {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-            margin-bottom: 8px;
-        }
-        .form-group label {
+
+        /* Unified search field */
+        .search-group { margin-bottom: 20px; position: relative; }
+        .search-group label {
             display: block; font-size: 0.8rem; color: var(--sk-text-muted);
             margin-bottom: 8px; font-weight: 600; letter-spacing: 0.04em;
             text-transform: uppercase;
         }
-        .form-group input {
-            width: 100%; padding: 13px 16px;
+        .search-input {
+            width: 100%; padding: 14px 18px;
             border-radius: 10px; border: 1px solid var(--sk-border);
             background: var(--sk-bg); color: var(--sk-text);
-            font-size: 1rem; outline: none;
+            font-size: 1.05rem; outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-group input:focus {
+        .search-input:focus {
             border-color: var(--sk-accent);
             box-shadow: 0 0 0 3px rgba(36,237,155,0.12);
         }
-        .form-group input::placeholder { color: var(--sk-text-dim); }
+        .search-input::placeholder { color: var(--sk-text-dim); }
+
+        /* Typeahead dropdown */
+        .typeahead {
+            display: none; position: absolute; left: 0; right: 0; top: 100%;
+            margin-top: 4px; z-index: 20;
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            max-height: 300px; overflow-y: auto;
+        }
+        .typeahead.visible { display: block; }
+        .typeahead-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px; cursor: pointer;
+            transition: background 0.12s;
+        }
+        .typeahead-item:hover { background: rgba(36,237,155,0.04); }
+        .typeahead-name { font-size: 0.88rem; font-weight: 600; color: var(--sk-text); }
+        .typeahead-badge {
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; color: var(--sk-classify-purple);
+            background: var(--sk-badge-purple-bg); border: 1px solid var(--sk-badge-purple-bdr);
+            padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+        }
+        .typeahead-url { font-size: 0.7rem; color: var(--sk-text-dim); margin-left: auto; }
+        .typeahead-hint {
+            padding: 8px 16px; font-size: 0.72rem; color: var(--sk-text-dim);
+            border-top: 1px solid var(--sk-border); font-style: italic;
+        }
+
         .form-hint {
             text-align: center; font-size: 0.75rem; color: var(--sk-text-dim);
             margin-bottom: 20px;
@@ -108,20 +136,15 @@
     <div class="container">
         <div class="search-card">
             <form method="POST" action="/inspector/discover" id="analyzeForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="company_name">Organization</label>
-                        <input type="text" id="company_name" name="company_name"
-                            placeholder="Company name..." autofocus>
-                    </div>
-                    <div class="form-group">
-                        <label for="product_name">Product</label>
-                        <input type="text" id="product_name" name="product_name"
-                            placeholder="Product name (optional)...">
-                    </div>
+                <div class="search-group">
+                    <label for="company_name">Search for a company or product</label>
+                    <input type="text" class="search-input" id="company_name" name="company_name"
+                        placeholder="Trellix, CompTIA, Arizona State University, RStudio..."
+                        autocomplete="off" autofocus>
+                    <div class="typeahead" id="typeahead"></div>
                 </div>
                 <div class="form-hint">
-                    If the company has a large product portfolio, please be specific in the product field.
+                    Type a company name, product name, or university. The platform figures out the rest.
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn" id="submitBtn" disabled>
@@ -140,21 +163,77 @@
     </div>
 
     <script>
-        const btn = document.getElementById('submitBtn');
-        const orgInput = document.getElementById('company_name');
-        const prodInput = document.getElementById('product_name');
+    (function() {
+        var btn = document.getElementById('submitBtn');
+        var input = document.getElementById('company_name');
+        var dropdown = document.getElementById('typeahead');
+        var debounceTimer = null;
+
         function checkReady() {
-            btn.disabled = !(orgInput.value.trim() || prodInput.value.trim());
+            btn.disabled = !input.value.trim();
             btn.innerHTML = '<span>Research</span><span>&#8594;</span>';
         }
-        orgInput.addEventListener('input', checkReady);
-        prodInput.addEventListener('input', checkReady);
+
+        input.addEventListener('input', function() {
+            checkReady();
+            clearTimeout(debounceTimer);
+            var q = input.value.trim();
+            if (q.length < 2) {
+                dropdown.classList.remove('visible');
+                return;
+            }
+            debounceTimer = setTimeout(function() {
+                fetch('/api/cached-companies?q=' + encodeURIComponent(q))
+                    .then(function(r) { return r.json(); })
+                    .then(function(items) {
+                        dropdown.innerHTML = '';
+                        if (items.length === 0) {
+                            dropdown.classList.remove('visible');
+                            return;
+                        }
+                        items.forEach(function(item) {
+                            var div = document.createElement('div');
+                            div.className = 'typeahead-item';
+                            div.innerHTML =
+                                '<span class="typeahead-name">' + item.name + '</span>' +
+                                (item.badge ? '<span class="typeahead-badge">' + item.badge + '</span>' : '') +
+                                (item.url ? '<span class="typeahead-url">' + item.url.replace(/^https?:\/\//, '') + '</span>' : '');
+                            div.addEventListener('click', function() {
+                                input.value = item.name;
+                                dropdown.classList.remove('visible');
+                                checkReady();
+                            });
+                            dropdown.appendChild(div);
+                        });
+                        var hint = document.createElement('div');
+                        hint.className = 'typeahead-hint';
+                        hint.textContent = 'Previously researched — select or keep typing for a new search';
+                        dropdown.appendChild(hint);
+                        dropdown.classList.add('visible');
+                    })
+                    .catch(function() { dropdown.classList.remove('visible'); });
+            }, 200);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-group')) {
+                dropdown.classList.remove('visible');
+            }
+        });
+
+        // Close on Escape
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') dropdown.classList.remove('visible');
+        });
+
         checkReady();
         window.addEventListener('pageshow', checkReady);
         document.getElementById('analyzeForm').addEventListener('submit', function() {
             btn.disabled = true;
             btn.innerHTML = '<span>Researching...</span>';
         });
+    })();
     </script>
 </body>
 </html>

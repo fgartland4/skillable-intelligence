@@ -260,6 +260,24 @@ def find_analysis_by_discovery_id(discovery_id: str) -> Optional[dict]:
     return candidates[0][1]
 
 
+def list_discoveries() -> list[dict]:
+    """List all discoveries, most recent first.
+
+    Used by the typeahead API to suggest cached companies.
+    Returns lightweight dicts — only the fields needed for display.
+    """
+    discoveries = []
+    for filename in os.listdir(_COMPANY_DIR):
+        if not filename.startswith("discovery_"):
+            continue
+        filepath = os.path.join(_COMPANY_DIR, filename)
+        data = _read_json(filepath)
+        if data:
+            discoveries.append(data)
+    discoveries.sort(key=lambda d: d.get("created_at", ""), reverse=True)
+    return discoveries
+
+
 def list_analyses() -> list[dict]:
     """List all analyses, most recent first."""
     analyses = []

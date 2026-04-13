@@ -3431,8 +3431,9 @@ def _build_modal_content() -> dict:
                 "Risk cap reduction: each amber risk badge shaves -3 from the dimension cap. Each red blocker shaves -8. Caps never go below the dimension floor."
             },
             # ── Embedded dimension sections ──
-            {"id": "dim_provisioning", "label": "Provisioning", "subtitle": "DIMENSION · 35 / 100 POINTS", "body":
-                "<strong>How do we get this product into Skillable?</strong> The scorer walks a priority order of deployment fabrics and picks the FIRST viable path."
+            {"id": "dim_provisioning", "label": "Provisioning", "subtitle": "DIMENSION · 35 / 100 POINTS · HEAVIEST IN PILLAR 1", "body":
+                "<strong>How do we get this product into Skillable?</strong> Provisioning is the heaviest dimension in Product Labability (35 of 100 points) because it determines difficulty for everything else. When a product runs in Skillable's own infrastructure (VM, container, Cloud Slice), Lab Access, Scoring, and Teardown are largely within Skillable's control. When it depends on a vendor's cloud API, every downstream dimension inherits that dependency. A provisioning failure cascades — if we can't deploy it, nothing else matters."
+                "<br><br>The scorer walks a priority order of deployment fabrics and picks the FIRST viable path:"
                 '<table class="info-modal-table"><thead><tr><th>Priority</th><th>Path</th><th>Badge</th><th>Green Credit</th></tr></thead><tbody>'
                 '<tr><td>1</td><td>M365 Tenant / Admin</td><td>M365 Tenant / M365 Admin</td><td>+25 / +18</td></tr>'
                 '<tr><td>2</td><td>VM fabric</td><td>Runs in VM / Runs in Container / ESX Required</td><td>+30 / +30 / +26</td></tr>'
@@ -3443,7 +3444,7 @@ def _build_modal_content() -> dict:
                 "Penalties: GPU Required (-5), Socket Licensing (-2). Multi-fabric optionality: +3 per extra fabric, capped at +6." + _back_top
             },
             {"id": "dim_lab_access", "label": "Lab Access", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
-                "<strong>Can each learner get an isolated environment with their own identity?</strong>"
+                "<strong>Can each learner get an isolated environment with their own identity?</strong> Provisioning gets the environment built. Lab Access gets the <em>learner</em> into the environment — with their own credentials, reliably, without manual intervention at scale. A product can provision perfectly and still fail Lab Access if there's no way to give 500 learners their own credential path. This is where identity lifecycle, credential management, training licenses, and learner isolation live."
                 '<table class="info-modal-table"><thead><tr><th>Badge</th><th>Green Credit</th><th>Notes</th></tr></thead><tbody>'
                 '<tr><td>Full Lifecycle API</td><td>+23</td><td>Complete user provisioning API</td></tr>'
                 '<tr><td>Entra ID SSO</td><td>+20</td><td>Azure-native only — zero credential management</td></tr>'
@@ -3455,7 +3456,7 @@ def _build_modal_content() -> dict:
                 "Penalties: MFA Required (-10), Rate Limits (-5), Anti-Automation Controls (-5). Training License defaults to amber — real SE conversations happen around almost every licensing arrangement." + _back_top
             },
             {"id": "dim_scoring", "label": "Scoring", "subtitle": "DIMENSION · 15 / 100 POINTS", "body":
-                "<strong>Can Skillable assess what the learner actually did?</strong> Full marks require more than one viable assessment path."
+                "<strong>Can Skillable assess what the learner actually did?</strong> A lab that can't be scored isn't a lab — it's a guided tour. Without scoring, there's no proof the learner practiced, no certification evidence, and no way to measure learning outcomes. Scoring is about OPTIONS — full marks require more than one viable assessment path, because no single method covers every lab scenario. When a dimension shows 0/15 with no badges, the seller knows immediately: we have no way to validate learner work on this product."
                 '<table class="info-modal-table"><thead><tr><th>Methods Present</th><th>Cap</th></tr></thead><tbody>'
                 '<tr><td>AI Vision + Script Scoring (Grand Slam, VM)</td><td><strong>15</strong></td></tr>'
                 '<tr><td>AI Vision + Scoring API (Grand Slam, cloud)</td><td><strong>15</strong></td></tr>'
@@ -3467,7 +3468,7 @@ def _build_modal_content() -> dict:
                 "AI Vision is a peer to API/Script, not a fallback. GUI-driven products where state is visually evident. A real Skillable differentiator." + _back_top
             },
             {"id": "dim_teardown", "label": "Teardown", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
-                "<strong>Can we clean it up when it's over?</strong>"
+                "<strong>Can we clean it up when it's over?</strong> Every lab has to end cleanly. Environment left behind = cost left behind, orphaned credentials left behind, data left behind, and the next learner contaminating the previous learner's session. Teardown failure is a Day 2 operational cost that outweighs Day 1 convenience. At 25 points, Teardown carries the same weight as Lab Access — cleanup is as important as setup."
                 '<table class="info-modal-table"><thead><tr><th>Badge</th><th>Green Credit</th><th>Notes</th></tr></thead><tbody>'
                 '<tr><td>Datacenter</td><td>+25 (full marks)</td><td>VM/ESX/Container — automatic teardown</td></tr>'
                 '<tr><td>Teardown API</td><td>+22</td><td>Vendor API covers cleanup</td></tr>'
@@ -3500,7 +3501,7 @@ def _build_modal_content() -> dict:
             },
             # ── Embedded dimension sections ──
             {"id": "dim_product_complexity", "label": "Product Complexity", "subtitle": "DIMENSION · 40 / 100 POINTS · HEAVIEST IN PILLAR 2", "body":
-                "<strong>Is this product hard enough that someone needs hands-on practice?</strong> Not abstract difficulty — whether hands-on repetition is the difference between someone who can use it and someone who can't."
+                "<strong>Is this product hard enough that someone needs hands-on practice?</strong> Product Complexity is the heaviest dimension in Instructional Value (40 of 100 points) because it answers the most fundamental instructional question: does hands-on practice actually matter for this product? A simple tool with a wizard UI doesn't need labs — reading the docs is enough. A multi-component security platform with 200+ configuration options, multiple admin roles, and cross-system integrations? Reading isn't enough. Practice is the difference between competence and confusion."
                 '<table class="info-modal-table"><thead><tr><th>Category</th><th>Baseline</th></tr></thead><tbody>'
                 '<tr><td>Cybersecurity, Cloud Infra, Networking, Data Science, DevOps, AI Platforms</td><td>32 / 40 (80%)</td></tr>'
                 '<tr><td>ERP, CRM, Healthcare IT, FinTech, Legal Tech, App Dev</td><td>28 / 40 (70%)</td></tr>'
@@ -3510,7 +3511,7 @@ def _build_modal_content() -> dict:
                 "Positive signals: multi_vm_architecture, deep_configuration, multi_phase_workflow, role_diversity, troubleshooting_depth, complex_networking, integration_complexity, ai_practice_required. Strong = +6, Moderate = +3." + _back_top
             },
             {"id": "dim_mastery_stakes", "label": "Mastery Stakes", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
-                "<strong>What are the consequences of getting it wrong?</strong> Breach, data loss, compliance failure, malpractice, downtime. High stakes = they MUST be competent before production."
+                "<strong>What are the consequences of getting it wrong?</strong> A product can be simple with high stakes (don't press the big red button) or complex with low stakes (a CI/CD pipeline where mistakes cost time, not money). Mastery Stakes asks whether getting it wrong in production has real consequences — breach, data loss, compliance failure, patient harm, financial damage. High stakes transform 'it's hard to learn' into 'they MUST be competent before they touch production.' This is why hands-on practice in a safe environment isn't just useful — it's necessary."
                 '<table class="info-modal-table"><thead><tr><th>Category</th><th>Baseline</th></tr></thead><tbody>'
                 '<tr><td>Cybersecurity, Healthcare IT, FinTech, Legal Tech, AI Platforms</td><td>22 / 25 (88%)</td></tr>'
                 '<tr><td>ERP, Data Protection, Industrial/OT, Cloud Infra, DevOps</td><td>20 / 25 (80%)</td></tr>'
@@ -3520,14 +3521,14 @@ def _build_modal_content() -> dict:
                 "Strong tier credit = <strong>+9</strong> (higher than Product Complexity's +6) because a single high-stakes finding carries more weight." + _back_top
             },
             {"id": "dim_lab_versatility", "label": "Lab Versatility", "subtitle": "DIMENSION · 15 / 100 POINTS", "body":
-                "<strong>What kinds of high-value hands-on experiences could we build?</strong> The bridge from Inspector to Designer."
+                "<strong>What kinds of high-value hands-on experiences could we build?</strong> Lab Versatility is the bridge from Inspector to Designer. It asks whether the product naturally supports diverse lab types — adversarial scenarios, break/fix, migration labs, compliance audits, performance tuning. A product that only supports one kind of lab is less commercially valuable than one that supports many. The lab types identified here become starting points for Designer's program recommendations and give sellers specific conversational competence points."
                 '<table class="info-modal-table"><thead><tr><th>Lab Types (from the Lab Type Menu)</th></tr></thead><tbody>'
                 '<tr><td>Red vs Blue · Simulated Attack · Incident Response · Break/Fix · Team Handoff · Bug Bounty · Cyber Range · Performance Tuning · Migration Lab · Architecture Challenge · Compliance Audit · Disaster Recovery · CTF</td></tr>'
                 '</tbody></table>'
                 "Cybersecurity, Cloud Infra, Networking = 14/15 (93%). Data Science = 13/15. ERP, Healthcare = 12/15. Social = 1/15. Strong = +5, Moderate = +3." + _back_top
             },
             {"id": "dim_market_demand", "label": "Market Demand", "subtitle": "DIMENSION · 20 / 100 POINTS", "body":
-                "<strong>How big is the worldwide population of people who need to learn this product?</strong> The legitimacy check."
+                "<strong>How big is the worldwide population of people who need to learn this product?</strong> Market Demand is the legitimacy check — does the outside world validate that training on this product is worth delivering? A product can be complex and high-stakes but if nobody's building training for it, the market may not be ready. ATP networks, cert exams, conference presence, and the independent training market (Coursera, Pluralsight, LinkedIn Learning) are strong signals. A perfect 20/20 is rare — reserved for products with demonstrably massive training demand like CrowdStrike or AWS."
                 '<table class="info-modal-table"><thead><tr><th>Category</th><th>Baseline</th></tr></thead><tbody>'
                 '<tr><td>Cybersecurity, Cloud Infra, AI Platforms</td><td>14 / 20 (70%)</td></tr>'
                 '<tr><td>Networking, DevOps</td><td>13 / 20 (65%)</td></tr>'
@@ -3562,7 +3563,7 @@ def _build_modal_content() -> dict:
             },
             # ── Embedded dimension sections ──
             {"id": "dim_training_commitment", "label": "Training Commitment", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
-                "<strong>Does this organization have a heart for teaching?</strong> Philosophical, not operational. Breadth of audiences matters as much as depth."
+                "<strong>Does this organization have a heart for teaching?</strong> Training Commitment is philosophical, not operational — it's about whether the company believes in investing in people's skills. A training catalog that exists is a start. Named leadership, multi-audience programs (customers AND partners AND employees), and a culture of investing in people show deeper commitment. This dimension separates companies that genuinely care about enablement from those that check a box."
                 '<table class="info-modal-table"><thead><tr><th>Org Type</th><th>Baseline</th></tr></thead><tbody>'
                 '<tr><td>Training Org</td><td>23 / 25 (92%)</td></tr>'
                 '<tr><td>Academic / Content Development</td><td>22 / 25 (88%)</td></tr>'
@@ -3573,7 +3574,7 @@ def _build_modal_content() -> dict:
                 "Audiences served: employees, customers, partners, end-users at scale. An organization that trains ONE audience is making some commitment. All three = highest level. Strong = +6, Moderate = +3. Penalties: no_customer_training (-4), thin_cert_program (-3)." + _back_top
             },
             {"id": "dim_build_capacity", "label": "Build Capacity", "subtitle": "DIMENSION · 20 / 100 POINTS · LOWEST WEIGHT — PROSERV CAN FILL THIS GAP", "body":
-                "<strong>Can they create the labs?</strong> Inward-facing and hard to verify. Cautious baselines — absence of evidence is NOT evidence of absence."
+                "<strong>Can they create the labs?</strong> Build Capacity carries the lowest weight in Pillar 3 (20 points) because Skillable Professional Services can fill this gap — if a company has strong Training Commitment and Delivery Capacity but weak Build Capacity, that's a ProServ opportunity, not a dead end. The dimension is also inward-facing and hard to verify from external research, so baselines are cautious and penalties fire only with direct evidence."
                 '<table class="info-modal-table"><thead><tr><th>Org Type</th><th>Baseline</th></tr></thead><tbody>'
                 '<tr><td>Content Development</td><td>14 / 20 (70%)</td></tr>'
                 '<tr><td>Academic / Training Org / Professional Services</td><td>12 / 20 (60%)</td></tr>'
@@ -3583,7 +3584,8 @@ def _build_modal_content() -> dict:
                 "Strongest signal: <strong>DIY Labs</strong> — already building hands-on labs today. CREATE roles, not delivery roles. Cautious penalties only: confirmed_outsourcing (-3), no_authoring_roles_found (-3, requires explicit evidence). Strong = +5, Moderate = +3." + _back_top
             },
             {"id": "dim_delivery_capacity", "label": "Delivery Capacity", "subtitle": "DIMENSION · 30 / 100 POINTS · HEAVIEST IN PILLAR 3", "body":
-                "<strong>Can they get labs to learners at scale?</strong> Having labs = cost. Delivering labs = value. Three layers that stack:"
+                "<strong>Can they get labs to learners at scale?</strong> Delivery Capacity is the heaviest dimension in Customer Fit (30 of 100 points) because having labs = cost, but delivering labs to learners = value. Without delivery infrastructure — ATPs, partner networks, ILT calendar, conference presence — labs are a cost center that never reaches the audience. This dimension is where commercial value lives. Penalties are aggressive: no training partners or no classroom delivery are both red blockers (-10 each)."
+                "<br><br>Three delivery layers that stack:"
                 '<table class="info-modal-table"><thead><tr><th>Layer</th><th>What it is</th><th>Tier credit</th></tr></thead><tbody>'
                 '<tr><td><strong>1. Vendor-Delivered</strong></td><td>Official ILT, self-paced portal, vendor-run labs</td><td>Base</td></tr>'
                 '<tr><td><strong>2. Third-Party-Delivered</strong></td><td>Independent training market + cert body curricula</td><td>Bonus</td></tr>'
@@ -3592,7 +3594,7 @@ def _build_modal_content() -> dict:
                 "Strong = <strong>+8</strong>, Moderate = +4 (highest tier credits in the framework). Aggressive penalties: no_training_partners (-10 red), no_classroom_delivery (-10 red), no_independent_training_market (-4 amber, cross-pillar with Market Demand)." + _back_top
             },
             {"id": "dim_organizational_dna", "label": "Organizational DNA", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
-                "<strong>If Skillable proposes a strategic relationship, will they see it as a partnership or a procurement line item?</strong>"
+                "<strong>If Skillable proposes a strategic relationship, will they see it as a partnership or a procurement line item?</strong> Organizational DNA is the most consequential partnership question. Some companies see outside platforms as strategic assets (Salesforce for CRM, Workday for HR, Okta for identity). Others see every vendor as a cost to control. The first kind makes a great Skillable customer. The second kind makes a painful one. This dimension captures the cultural pattern, not individual partnerships."
                 '<table class="info-modal-table"><thead><tr><th>Org Type</th><th>Baseline</th></tr></thead><tbody>'
                 '<tr><td>Training Org / Content Development</td><td>19 / 25 (76%)</td></tr>'
                 '<tr><td>Professional Services / Systems Integrator</td><td>18 / 25 (72%)</td></tr>'

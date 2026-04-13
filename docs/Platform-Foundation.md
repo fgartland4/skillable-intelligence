@@ -903,7 +903,7 @@ Prospector's principle: deliver intelligence to marketing where they work (HubSp
 | **Conversation Starters** | Haiku 4.5 | Pattern-matched, fast — product-specific talking points |
 | **Account Intelligence** | Haiku 4.5 | Pattern-matched, fast — surface organizational signals |
 
-Briefcase is **per-product**, not per-analysis. When the user picks a different product from the dropdown, the briefcase swaps. Cached products keep their cached briefcase — only newly scored products get a fresh generation.
+Briefcase scope: **Key Technical Questions and Conversation Starters are per-product** — they swap when the user picks a different product from the dropdown. **Account Intelligence is per-company** — it stays the same regardless of which product is selected because it's about the organization, not the product. Account Intelligence must never reference product-specific labability or product-specific capabilities. It covers company-level signals: leadership changes, funding rounds, new partnerships, events, competitive landscape, news. *(Clarified 2026-04-12)* Cached products keep their cached briefcase — only newly scored products get a fresh generation.
 
 ---
 
@@ -1200,7 +1200,7 @@ Each Pillar card header has two icons at the same size, muted color, green on ho
 - **Info icon (?)** — opens the framework documentation section explaining how that Pillar works
 - **Doc icon** — opens the full framework documentation
 
-All dimension names display in ALL CAPS within the cards. Score bars use a gradient green/amber fill.
+All dimension names display in ALL CAPS within the cards. Score bars use a **color gradient reflecting the score as a percentage of the dimension cap**: green for strong scores (≥70% of cap), transitioning through amber for moderate scores (40–69%), to red for weak scores (<40%). The gradient is continuous — a dimension at 60% of its cap shows a distinctly different hue than one at 90%. A green bar on a dimension at 4/30 is a trust failure (GP3). *(Locked 2026-04-12)*
 
 ### Badge System
 

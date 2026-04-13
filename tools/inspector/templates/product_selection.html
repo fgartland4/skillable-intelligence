@@ -408,11 +408,11 @@
                             {% if p.deployment_model %}
                             <span class="badge-deploy {{ p.deployment_model | deployment_color }}">{{ p.deployment_model | deployment_display }}</span>
                             {% endif %}
-                            {% if is_cached %}
-                            <span class="badge-cached" title="Already scored">In cache</span>
-                            {% endif %}
                         </div>
-                        {# Right: Skillable's judgment only #}
+                        {# Right: Skillable's judgment + cache status #}
+                        {% if is_cached %}
+                        <span class="badge-cached" title="Already scored — cached result will be reused">In cache</span>
+                        {% endif %}
                         <span class="badge-tier {{ tier_css }}">{{ tier_label }}</span>
                     </label>
                     {% endfor %}

@@ -100,6 +100,28 @@ The Fit Score, 70/30 split, pillar weights, and verdict grid are defined in `Pla
 | **No product names of the company being scored** | The dossier header has the company name — don't repeat it in badges. |
 | **No topic labels as names** | `Partner Ecosystem`, `Training Catalog`, `Integration Maturity` are topics, not answers. The badge must name the *finding*. |
 | **No signal_category names as badge names** | `deep_configuration` is the internal category, not the label. The badge is the finding that belongs in that category — `180+ Detection Rules`, `Multi-Phase Workflow`. |
+| **Name the specific provider, not the category** | `Pearson VUE` not `Cert Delivery Infra`. `iLabs` not `Has Lab Platform`. `ILT Calendar` not `Published Course`. The badge names the thing, not the type of thing. *(Locked 2026-04-12)* |
+| **Absence badges are mandatory, not optional** | When a dimension scores but has no positive badges, emit specific absence findings — `No Scoring API`, `No Script Access`, `SaaS-Only`. A dimension with a score and zero badges is a UX failure. Absence is a finding, not an empty space. *(Reinforced 2026-04-12)* |
+| **Coexistence of nuanced findings** | A dimension can carry both a strength and a concern about the same topic when both are evidence-specific. `~12 Pluralsight Courses` (green) alongside `Thin Training Market` (amber) — both true, no contradiction because the names are specific enough that the reader understands both. Avoid generic labels that would clash — use count-based findings (`~12 Pluralsight Courses`) and assessment findings (`Thin Training Market`, `Niche Audience`). *(Locked 2026-04-12)* |
+| **Standard badge name fixes** | `Content Team` not `Content Team Named`. `IDs on Staff` not `ID IDs`. `Niche Audience` (amber) for products with small training populations. *(Locked 2026-04-12)* |
+
+### Organization-Type Badge Language Overrides
+
+**Why.** A university has a curriculum, not a training catalog. A professor is faculty, not a training leader. Using software-company vocabulary for academic institutions produces badges that don't make sense to the reader. Badge language must match the organization type.
+
+**What — vocabulary overrides by org type:**
+
+| Standard (Software) | Academic Override | Why |
+|---|---|---|
+| Training Catalog | Curriculum | Universities publish curricula, not training catalogs |
+| Training Leadership | Faculty / Academic Leadership | Professors and deans, not VPs of Enablement |
+| Training Programs | Degree Programs | Degrees and certificates, not training programs |
+| Training Commitment | Academic Commitment | Teaching IS the mission |
+| Training Catalog Present | Strong Curriculum | More specific and natural |
+| Hands On | Lab-Based Courses | Academic framing |
+| Multi Audience Commit | Multi-Program Breadth | Undergrad + graduate + certificate + online |
+
+**How.** The rubric grader applies these overrides when the org_type is ACADEMIC. The scorer and badge selector are org-type-agnostic — they process whatever badge names the grader emits. The vocabulary shift happens at grading time, not scoring time.
 
 **How.** Pillar 1 enforces the canonical vocabulary via `_verify_canonical_names` in `pillar_1_scorer.py` — the scorer verifies at module load that every signal name it references matches a signal in `scoring_config.py`. Drift throws an immediate error. Pillars 2 and 3 enforce the rubric model by requiring every graded finding to carry a `signal_category` that matches the dimension's fixed category list; unknown categories are silently dropped by the scorer. The badge selector (`badge_selector.py`) then turns graded signals + canonical facts into display badges that honor the naming rules above.
 
@@ -536,9 +558,16 @@ Strong = +5. Moderate = +3.
 
 **Signal categories (positive):** `install_base_scale` (variable data — `~2M Users`), `enterprise_validation`, `geographic_reach`, `cert_body_mentions` (CompTIA / EC-Council / SANS / ISC2 curriculum mentions), `independent_training_market` (Coursera / Pluralsight / LinkedIn Learning counts), `cert_ecosystem`, `competitor_labs`, `funding_growth`, `category_demand`, `ai_signal`.
 
-**Signal categories (negative):** `no_independent_training_market` — amber penalty, fires when fewer than 3 courses found on the open market. Cross-pillar penalty with Delivery Capacity (Pillar 3).
+**Signal categories (negative):**
+
+| Signal | Color | Hit | When it fires |
+|---|---|---|---|
+| `no_independent_training_market` | Amber Risk | -4 | Fewer than 3 courses on the open market. Cross-pillar with Delivery Capacity. |
+| `niche_training_population` | Amber | -2 | Small addressable training market relative to install base. Badge: `Niche Audience`. The product is real but the training population is limited. *(Added 2026-04-12)* |
 
 Strong = +5. Moderate = +3.
+
+**Market Demand must differentiate product-level dominance.** A cybersecurity product from a category leader (CrowdStrike, Palo Alto) should score higher than a similar product from a mid-tier vendor (Trellix, Tanium). The category baseline provides the starting point; the grader must use product-specific evidence (install base scale, independent training market size, cert ecosystem breadth) to differentiate within the category. A perfect 20/20 should be rare — reserved for products with demonstrably massive training demand. *(Locked 2026-04-12)*
 
 ---
 

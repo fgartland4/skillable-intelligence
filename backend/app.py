@@ -284,8 +284,36 @@ def format_analyzed_date_filter(value) -> str:
 @app.route("/")
 @app.route("/inspector")
 def inspector_home():
-    """Inspector home — search for a company."""
+    """Inspector home — unified search for a company or product."""
     return render_template("home.html")
+
+
+@app.route("/api/cached-companies")
+def api_cached_companies():
+    """Return cached company names for typeahead suggestions.
+
+    Searches saved discoveries for company names matching the query.
+    Returns a lightweight list — name, badge, domain, discovery_id.
+    The cache grows organically as companies are researched.
+    """
+    q = (request.args.get("q") or "").strip().lower()
+    if len(q) < 2:  # magic-allowed: minimum query length for typeahead
+        return jsonify([])
+
+    from storage import list_discoveries
+    results = []
+    for disc in list_discoveries():
+        name = disc.get("company_name", "")
+        if q in name.lower():
+            results.append({
+                "name": name,
+                "badge": disc.get("_company_badge", ""),
+                "url": disc.get("company_url", ""),
+                "discovery_id": disc.get("discovery_id", ""),
+            })
+        if len(results) >= 10:  # magic-allowed: typeahead result limit
+            break
+    return jsonify(results)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
