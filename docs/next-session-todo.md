@@ -56,6 +56,12 @@ All fixes from the 2026-04-13 marathon session are in the code. Many were valida
 
 **After validation:** If scores, ACV, badges, and verdicts look right across all company types, the platform is demo-ready.
 
+### Known issues to fix during validation
+
+**PL Provisioning badge sparsity.** Products scoring 30/35 on Provisioning sometimes show only 2 badges (Runs in VM + Pre-Instancing?). That's not enough to defend the score. If a product earns 30 points, the badges must explain WHY — Multi-VM Lab, Complex Topology, container viability, etc. The badge selector needs to emit more provisioning badges when the facts support them. Observed on Sage 50 and Sage 100.
+
+**ACV end-user vs admin audience transparency.** Large companies like Sage serve millions of businesses, but the training population is administrators and accountants — not all end users. The ACV number may be correct for the admin population, but the seller needs to see WHY the ACV is modest for a large company. Consider a Market Demand badge like "Admin Training Focus" or "Niche Admin Audience" that explains the large user base doesn't translate to a large lab audience.
+
 ---
 
 ## §2 — PLANNED WORK
