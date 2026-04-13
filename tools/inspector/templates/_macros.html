@@ -57,22 +57,30 @@
      info_key: kept for future use but ? icons removed from dimensions
      in favor of consolidated pillar-level modals (Frank 2026-04-12). #}
   {% set pct = dim.score_percentage if dim.score_percentage is defined else (((dim.score or 0) * 100 / (dim.weight or 1)) | round(0, 'floor') | int) %}
-  {# Bar color gradient: green (≥70%) → amber (40-69%) → red (<40%)
-     Uses HSL hue interpolation: 0=red, 30=amber, 145=green.
-     Continuous gradient, not stepped. GP3: the visual must match the score. #}
+  {# Bar color: three discrete bands matching the scoring framework.
+     Green (≥70%) → Amber (40-69%) → Red (<40%).
+     Within each band, lightness varies slightly for subtle differentiation
+     but the HUE stays firmly in the band so 57% reads as amber, not lime.
+     GP3: the visual must match the score — a moderate score must LOOK moderate. #}
   {% if pct >= 70 %}
+    {# Green band: hue 145, lightness 38-48% (brighter as pct increases) #}
     {% set bar_hue = 145 %}
+    {% set bar_light = (38 + ((pct - 70) * 10 / 30)) | int %}
   {% elif pct >= 40 %}
-    {% set bar_hue = (30 + ((pct - 40) * 115 / 30)) | int %}
+    {# Amber band: hue 35-45 (warm amber), lightness 45-50% #}
+    {% set bar_hue = (35 + ((pct - 40) * 10 / 30)) | int %}
+    {% set bar_light = (45 + ((pct - 40) * 5 / 30)) | int %}
   {% else %}
-    {% set bar_hue = (pct * 30 / 40) | int %}
+    {# Red band: hue 0-15 (red to red-orange), lightness 40-45% #}
+    {% set bar_hue = (pct * 15 / 40) | int %}
+    {% set bar_light = (40 + (pct * 5 / 40)) | int %}
   {% endif %}
   <div class="dimension">
     <div class="dim-row">
       <span class="dim-name">{{ dim.name | dim_caps }}</span>
       <div class="dim-content">
         <div class="dim-bar-row">
-          <div class="dim-bar-bg"><div class="dim-bar" style="width: {{ pct }}%; background: hsl({{ bar_hue }}, 80%, 50%);"></div></div>
+          <div class="dim-bar-bg"><div class="dim-bar" style="width: {{ pct }}%; background: hsl({{ bar_hue }}, 80%, {{ bar_light }}%);"></div></div>
           <span class="dim-score">{{ dim.score or 0 }}/{{ dim.weight or 0 }}</span>
         </div>
         <div class="dim-badges">
