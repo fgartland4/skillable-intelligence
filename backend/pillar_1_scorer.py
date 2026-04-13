@@ -4,12 +4,8 @@ Reads ProductLababilityFacts typed primitives and produces a PillarScore
 directly.  No Claude.  No badge name inputs.  No hardcoded numbers.
 
 Architecture layer: SCORE (per docs/Platform-Foundation.md → Three Layers
-of Intelligence).  Companion to the rebuild described in
-docs/next-session-todo.md §0c Step 3.
-
-Runs alongside the legacy monolithic scoring Claude call as a comparison
-path during the rebuild.  Step 5 cutover replaces the legacy path with
-this one.
+of Intelligence).  The sole Pillar 1 scoring path — the legacy monolithic
+Claude call was removed in the April 2026 rebuild.
 
 ─── Architectural lock-ins honored here ────────────────────────────────────
   1. Score reads facts directly, never badges.

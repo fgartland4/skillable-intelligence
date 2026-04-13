@@ -113,7 +113,7 @@ _OD_VALID_CATS: set[str] = set(_OD_DIM.rubric.signal_categories) if _OD_DIM.rubr
 class _DimensionResult:
     dimension_score: DimensionScore
     baseline: int = 0
-    signals_credited: list[tuple[str, int]] = field(default_factory=list)
+    signals_credited: list[tuple] = field(default_factory=list)  # (cat, pts, strength) triples
     penalties_applied: list[tuple[str, int]] = field(default_factory=list)
     amber_risks: int = 0
     red_risks: int = 0
@@ -199,7 +199,7 @@ def _score_rubric_dimension(
 ) -> _DimensionResult:
     positive_total = baseline
     penalty_total = 0
-    signals_credited: list[tuple[str, int]] = []
+    signals_credited: list[tuple] = []  # (cat, pts, strength) triples
     penalties_applied: list[tuple[str, int]] = []
     amber_risks = 0
     red_risks = 0
@@ -234,15 +234,16 @@ def _score_rubric_dimension(
             continue
 
         # Fix 4 (2026-04-13): cap strong signals per dimension for differentiation.
+        # C3 audit fix: track by strength tier string, not point value match.
         effective_strength = grade.strength
         if effective_strength == "strong":
-            strong_count = sum(1 for _, p in signals_credited if p == tier_points.get("strong", 0))
+            strong_count = sum(1 for _, _, s in signals_credited if s == "strong")
             if strong_count >= cfg.MAX_STRONG_SIGNALS_PER_DIMENSION:
                 effective_strength = "moderate"
         pts = int(tier_points.get(effective_strength, 0))
         if pts:
             positive_total += pts
-            signals_credited.append((cat, pts))
+            signals_credited.append((cat, pts, effective_strength))
 
     score, effective_cap, positives_capped, floored = _apply_risk_cap_reduction(
         positive_total, penalty_total, dim, amber_risks, red_risks,

@@ -1183,6 +1183,9 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         # Pillar 3 company-level grading + scoring (runs once, broadcast
         # to every product so all products share the same Customer Fit
         # reading — Phase F rule).
+        # Attach discovery_data so Pillar 3 graders can read lab_platform
+        # for DIY lab platform detection (Fix 3 / C2 audit fix, 2026-04-13).
+        new_analysis.discovery_data = discovery_data
         cf_pillar_score = None
         try:
             cf_grades = grade_all_for_company(new_analysis)

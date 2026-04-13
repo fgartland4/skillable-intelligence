@@ -646,7 +646,14 @@
             '<td class="batch-started">' + now + '</td>' +
             '<td class="batch-progress">0 of ' + data.company_count + '</td>' +
             '<td class="batch-remaining">estimating…</td>' +
-            '<td class="batch-actions"><button class="batch-cancel-btn" onclick="cancelBatch(\'' + data.job_id + '\', \'' + data.batch_id + '\')">Cancel</button></td>';
+            '<td class="batch-actions"><button class="batch-cancel-btn">Cancel</button></td>';
+        // Wire cancel button via addEventListener (M2 audit fix — no inline onclick)
+        var cancelBtn = tr.querySelector('.batch-cancel-btn');
+        cancelBtn.dataset.jobId = data.job_id;
+        cancelBtn.dataset.batchId = data.batch_id;
+        cancelBtn.addEventListener('click', function() {
+            cancelBatch(this.dataset.jobId, this.dataset.batchId);
+        });
         // Insert at top
         if (tbody.firstChild) {
             tbody.insertBefore(tr, tbody.firstChild);

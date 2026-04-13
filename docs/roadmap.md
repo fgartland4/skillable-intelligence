@@ -27,36 +27,23 @@ Priority tags: **HIGH** / **MED** / **LOW** on every non-done item.
 
 ## §1 — Active Priorities
 
-### Prospector UX Batch (11 items — aligned 2026-04-13)
+### Prospector UX Batch (11 items — shipped 2026-04-13) ✓
+
+All 11 items shipped. See Done section for details.
+
+### Prospector Background Batch Processing (shipped 2026-04-13) ✓
+
+All 6 items shipped (PB1–PB6). `prospector_running.html` deleted. See Done section for details.
+
+### Background Processing + Toast Notifications (aligned 2026-04-13)
+
+Cross-platform feature: any long-running operation (Deep Dive, Prospector batch) can run in the background with a toast notification on completion — regardless of which page the user is on.
 
 | # | Item | Priority | Status |
 |---|---|---|---|
-| **P1** | **Collapse "How it works" to inline phrase** — reduce vertical space at top. One line under the description, not a green box. | HIGH | 🟢 |
-| **P2** | **"View Researched Companies" as button** — right-aligned next to description area. 70/30 layout at top. | HIGH | 🟢 |
-| **P3** | **Fix estimate font size on progress modal** — `(est. ~X min)` renders smaller than the timer. Same size. | HIGH | 🟢 |
-| **P4** | **Bump `TIME_PER_DISCOVERY` to 150s** — current 75s is unrealistic (Cisco took 189s). Honest mid-high estimate. Update both input page and running page constants. | HIGH | 🟢 |
-| **P5** | **Results as single-row table with truncation + tooltips** — columns per Platform-Foundation.md (Rank, Company, Est. ACV, Top Product, Why, tier counts, Lab Platform, Key Signal) + company-specific signals (cert program, channel sales). Long fields truncate with `...` and tooltip on hover. No truncation in the data. | HIGH | 🟢 |
-| **P6** | **Training relevance tier for discovery ACV** — three-tier classification (High ~60% / Moderate ~15% / Low ~3%) assigned alongside `target_personas` at discovery time. Feeds more realistic ACV estimate. Deep Dives sharpen the ratio retroactively. ACV Potential remains the ranking signal. | HIGH | 🟢 |
-| **P7** | **Post-run lands on full-page results** — after batch completes, redirect to a proper results page instead of rendering inline below the input form. | HIGH | 🟢 |
-| **P8** | **Two-tab toggle on results page** — "This Batch (N)" / "All Companies (N)". Default to batch after a run. Default to all companies when navigating from the "View Researched Companies" button. Same layout, same columns, different filter. | HIGH | 🟢 |
-| **P9** | **Export CSV + Send to HubSpot buttons on results page** — Export works on active tab (batch or all). "Send to HubSpot" disabled with "Coming Soon" tooltip. | HIGH | 🟢 |
-| **P10** | **Checkbox per row → "Run Deep Dive" button** — selecting any row lights up a "Run Deep Dive" button at top. Limited to one company for now. | HIGH | 🟢 |
-| **P11** | **Documentation modal placeholders on Prospector** — ? icon infrastructure wired but content deferred to a design conversation. | MED | 🟢 |
-
-### Prospector Background Batch Processing (aligned 2026-04-13)
-
-**Problem:** Running a batch takes over the entire app — 15–45 min of dead time for large batches. **Solution:** Batches run in the background. User stays on the Prospector home (or navigates anywhere). A Batch Status Panel on the Prospector home shows all active and recent batches with live progress.
-
-Full spec in `docs/prospector-background-batch-spec.md`.
-
-| # | Item | Priority | Status |
-|---|---|---|---|
-| **PB1** | **Batch Status Panel on Prospector home** — compact table below input form showing recent/active batches. Status dot, description, started, progress, est. remaining, actions. | HIGH | 🟢 Spec done, ready to build |
-| **PB2** | **Submit returns JSON, no redirect** — POST to `/prospector/run` returns `{ok, job_id, batch_id}`. JS adds row to panel and connects SSE. No modal, no page change. | HIGH | 🟢 |
-| **PB3** | **Batch metadata persistence** — extend batch JSON with status, description, started_at, company_count, deep_dive, progress. Write at start, update during, finalize at end. | HIGH | 🟢 |
-| **PB4** | **Cancel endpoint** — `/prospector/cancel/<job_id>` sets flag, thread checks between companies. | MED | 🟢 |
-| **PB5** | **Page reload resilience** — panel reads batch files on load, reconnects SSE for running batches. | MED | 🟢 |
-| **PB6** | **Remove `prospector_running.html`** — no longer needed after background processing ships. | LOW | 🟢 |
+| **BG1** | **"Run in Background" button on Deep Dive progress modal** — closes the modal, keeps SSE alive, shows a persistent mini-indicator. User can navigate freely. | HIGH | 🟢 Ready to build |
+| **BG2** | **Toast notification system** — small bar slides in from corner when a background operation completes. "Deep Dive for Cisco complete — View Results →". Stays 10 seconds, then fades. Works on any page. | HIGH | 🟢 Ready to build |
+| **BG3** | **Wire Prospector batch completion to toast** — when a background batch finishes, toast fires wherever the user is. | MED | 🟢 After BG2 |
 
 ### Other Active Items
 

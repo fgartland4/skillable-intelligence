@@ -126,6 +126,8 @@ def compute_acv_potential(product: dict) -> dict:
     """
     acv = product.get("acv_potential")
     if not isinstance(acv, dict):
+        log.warning("compute_acv_potential: product %s has no acv_potential dict",
+                    product.get("name", "?"))
         return {}
 
     motions = acv.get("motions") or []

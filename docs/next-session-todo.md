@@ -98,6 +98,8 @@ All fixes from the 2026-04-13 marathon session are in the code. Many were valida
 | **A7** | **ASU** | Research University | Degree programs consolidated (BS/MS → one entry). Academic ACV labels (Student Training, Faculty Development). 90% adoption. | ☐ |
 | **A8** | **Posit** | Small software company | Product count 3-5. ACV reasonable. | ☐ |
 | **A9** | **Pluralsight** | Enterprise Learning Platform | Course categories as products. Platform features excluded. Light-touch scoring. | ☐ |
+| **A10** | **Accenture** | Global Systems Integrator | ACV should reflect Accenture's practice headcount, not underlying tech's global audience. R1 wrapper org cap applied. Udacity should appear as a product (acquired 2024). | ☐ |
+| **A11** | **Google Cloud** | Enterprise Software | PL Provisioning should drop (Sandbox API amber for GCP). CF should show DIY lab amber (Qwiklabs). IV should differentiate across products (strong signal cap). | ☐ |
 
 ### Validation Batch B — Prospector UX Checks (shipped 2026-04-13)
 
@@ -123,7 +125,12 @@ All fixes from the 2026-04-13 marathon session are in the code. Many were valida
 | **C2** | **ACV audience transparency** | Large companies with small training populations — ACV is modest but no badge explains why. Consider "Admin Training Focus" or "Niche Admin Audience" badge. | ☐ |
 | **C3** | **Cisco: ACV motions empty** | Customer Training audience showing ~0 for first two products. `acv_motions` dict is `{}`. Investigate `acv_calculator.py` output path. | ☐ |
 | **C4** | **Cisco: Audiences not differentiating per product** | Secure Firewall (~400K) and Catalyst Wireless (~150K) should have different customer training audiences. All products sharing same numbers. | ☐ |
-| **C5** | **Cisco: 100/100 IV on all four products** | Cybersecurity baselines + strong signals overflow every cap. Calibration question: should scoring differentiate more within a category? | ☐ |
+| **C5** | **Cisco: 100/100 IV on all four products** | Cybersecurity baselines + strong signals overflow every cap. Fixed: strong signal cap at 2 per dimension (Fix 4). Re-verify after re-score. | ☐ |
+| **C6** | **Accenture: ACV Customer Training inflated** | AWS Practice showed ~4M audience (AWS global) instead of ~60K (Accenture's practice). Fixed: R1 wrapper org cap + R2 prompt fix. Re-verify after fresh Deep Dive. | ☐ |
+| **C7** | **Accenture: Cert audience inflated** | ~400K cert candidates (AWS global) instead of Accenture's own. Fixed: R4 cert cap at 10% of install_base. Re-verify. | ☐ |
+| **C8** | **Accenture: Udacity missing** | Acquired by Accenture in 2024. Should appear as a product. Researcher didn't surface it. Re-run discovery to verify. | ☐ |
+| **C9** | **Google Cloud: PL too high for GCP products** | Sandbox API firing green alongside No GCP Path. Fixed: Sandbox API downgrades to amber when needs_gcp. Re-verify. | ☐ |
+| **C10** | **Google Cloud: CF 100/100 — build-everything not detected** | Qwiklabs not triggering build_everything_culture penalty. Fixed: DIY lab platform injection in rubric grader (C2 audit fix threads discovery_data). Re-verify after fresh Deep Dive. | ☐ |
 
 ---
 
