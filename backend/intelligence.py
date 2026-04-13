@@ -657,20 +657,50 @@ def recompute_analysis(analysis: dict) -> None:
     scored_acv_low = 0
     scored_acv_high = 0
     scored_with_acv = 0
+    scored_product_names: set[str] = set()
     for p in products:
         acv = p.get("acv_potential") or {}
         if (acv.get("acv_high") or 0) > 0:
             scored_acv_low += acv.get("acv_low") or 0
             scored_acv_high += acv.get("acv_high") or 0
             scored_with_acv += 1
+            scored_product_names.add(p.get("name", ""))
 
+    # ── Per-product ACV extrapolation (replaces flat multiplier) ──────
+    # Instead of assuming unscored products have the same average ACV as
+    # scored ones, estimate each unscored product's ACV from its discovery
+    # data: estimated_user_base × conservative adoption × hours × rate.
+    # GP3: every number is traceable to a per-product estimate.
+    discovery_data = analysis.get("_discovery_data") or {}
+    all_discovered = discovery_data.get("products") or []
+    unscored_acv = 0
+    for dp in all_discovered:
+        dp_name = (dp.get("name") or "").strip()
+        if dp_name in scored_product_names:
+            continue  # already counted via real scoring
+        user_base = 0
+        try:
+            user_base = int(dp.get("estimated_user_base") or 0)
+        except (ValueError, TypeError):
+            pass
+        if user_base <= 0:
+            continue
+        # Conservative estimate: user_base × 4% adoption × 2 hrs × rate
+        # from deployment model. This is deliberately conservative — the
+        # deep dive will sharpen it.
+        deploy = (dp.get("deployment_model") or "").strip().lower()
+        if deploy in ("cloud", "saas-only"):
+            rate = cfg.CLOUD_LABS_RATE
+        elif deploy == "installable":
+            rate = cfg.VM_MID_RATE
+        else:
+            rate = cfg.VM_LOW_RATE
+        rough_acv = user_base * 0.04 * 2 * rate  # magic-allowed: conservative 4% adoption × 2 hrs default
+        unscored_acv += rough_acv
+
+    company_acv_low = round(scored_acv_low + unscored_acv)
+    company_acv_high = round(scored_acv_high + unscored_acv)
     discovered_count = analysis.get("total_products_discovered") or len(products)
-    if scored_with_acv > 0 and discovered_count > scored_with_acv:
-        company_acv_low = round(scored_acv_low * discovered_count / scored_with_acv)
-        company_acv_high = round(scored_acv_high * discovered_count / scored_with_acv)
-    else:
-        company_acv_low = scored_acv_low
-        company_acv_high = scored_acv_high
 
     analysis["_company_acv"] = {
         "company_low": company_acv_low,
@@ -780,6 +810,21 @@ def discover(company_name: str, known_products: list[str] | None = None,
     product_count = len(discovery.get("products", []))
     log.info("Intelligence.discover: Claude returned %d products for %s",
              product_count, company_name)
+
+    # ── Post-filter: remove delivery platforms, validate categories ──
+    import post_filters
+    company_signals = discovery.get("company_signals") or {}
+    discovery["products"] = post_filters.filter_discovery_products(
+        discovery.get("products", []),
+        company_signals,
+    )
+    if company_signals:
+        discovery["company_signals"] = company_signals
+    filtered_count = len(discovery.get("products", []))
+    if filtered_count < product_count:
+        log.info("Intelligence.discover: post-filter reduced %d → %d products",
+                 product_count, filtered_count)
+
     _progress("Mapping competitive products & vendor landscape…")
 
     # Preserve raw research signals alongside Claude output

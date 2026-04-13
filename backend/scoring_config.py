@@ -2761,6 +2761,47 @@ ORGANIZATION_TYPES: tuple[OrganizationType, ...] = (
 #  $/hour the platform quotes. Tweaking a rate is a one-line edit; no
 #  rescore needed because Python recomputes ACV at render time. Plus a
 #  separate Simulation rate (it's a real fabric, just priced differently).
+# ── ACV derivation constants ──────────────────────────────────────────────
+# Bug 13: when the researcher doesn't find cert_annual_sit_rate, derive
+# it as this percentage of the customer training audience. ~2% for software
+# companies per Platform-Foundation ACV adoption patterns.
+CERT_SIT_DERIVATION_PCT = 0.02
+
+# Org-type adoption rate overrides. The default adoption rates on
+# CONSUMPTION_MOTIONS apply to software companies. Other org types have
+# fundamentally different relationships to lab consumption.
+# Key: org type (matches ORG_TYPE_NORMALIZATION values or raw discovery).
+# Value: dict of motion label → overridden adoption_pct.
+# Per Platform-Foundation → "How Adoption Patterns Vary by Organization Type"
+ACV_ORG_ADOPTION_OVERRIDES: dict[str, dict[str, float]] = {
+    "ACADEMIC": {
+        "Customer Training & Enablement": 0.90,   # coursework is assigned, not optional
+        "Employee Training & Enablement": 0.30,    # faculty training
+        "Certification (PBT)": 1.00,               # exams are required
+        "Events & Conferences": 0.30,
+    },
+    "TRAINING ORG": {
+        "Customer Training & Enablement": 0.04,    # training candidates
+        "Certification (PBT)": 1.00,               # exam sitters — 100% by definition
+        "Events & Conferences": 0.30,
+    },
+    "LMS PROVIDER": {
+        "Customer Training & Enablement": 0.04,    # self-directed learners, low uptake
+        "Events & Conferences": 0.30,
+    },
+    "SYSTEMS INTEGRATOR": {
+        "Customer Training & Enablement": 0.04,    # client end users
+        "Employee Training & Enablement": 0.30,    # internal consultants — employer-driven
+        "Partner Training & Enablement": 0.15,
+        "Events & Conferences": 0.30,
+    },
+    # ILT training orgs — intensive classroom, high per-student consumption
+    # but adoption handled via the audience estimate (students in classes)
+    # rather than overriding adoption rate. Default 4% customer is fine
+    # because the audience IS the classroom students, not total prospects.
+}
+
+# ── Rate tiers ────────────────────────────────────────────────────────────
 CLOUD_LABS_RATE = 6.00    # Cloud Slice / BYOC — platform fee only, customer pays cloud bill
 VM_LOW_RATE     = 8.00    # Container or lightweight single VM
 VM_MID_RATE     = 14.00   # Clean single VM through 2-3 VMs with minor service deps

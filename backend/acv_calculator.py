@@ -269,20 +269,51 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     """
     from models import ConsumptionMotion as ModelMotion, ACVPotential
 
+    # Look up org-type adoption overrides. The default rates on
+    # CONSUMPTION_MOTIONS apply to software companies. Other org types
+    # (academic, training org, GSI, etc.) have fundamentally different
+    # adoption patterns — per Platform-Foundation.
+    org_type = ""
+    if company_analysis is not None:
+        org_type = getattr(company_analysis, "org_type", "") or ""
+        if not org_type:
+            # Try the discovery-level org_type
+            disc = getattr(company_analysis, "discovery_data", None) or {}
+            org_type = disc.get("organization_type") or ""
+    # Normalize to the CF baseline key format
+    normalized_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type.lower().replace(" ", "_"), "")
+    adoption_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(normalized_org, {})
+
     motions: list[ModelMotion] = []
     for cfg_motion in cfg.CONSUMPTION_MOTIONS:
         pop_low, pop_high = _read_population(
             cfg_motion.population_source, product, company_analysis,
         )
+        # Apply org-type adoption override if available
+        adoption = adoption_overrides.get(cfg_motion.label, cfg_motion.adoption_pct)
         motions.append(ModelMotion(
             label=cfg_motion.label,
             population_low=pop_low,
             population_high=pop_high,
             hours_low=cfg_motion.hours_low,
             hours_high=cfg_motion.hours_high,
-            adoption_pct=cfg_motion.adoption_pct,
+            adoption_pct=adoption,
             rationale=cfg_motion.description,
         ))
+
+    # ── Bug 13 fix: derive cert audience deterministically when missing ──
+    # If the researcher didn't find cert_annual_sit_rate but install_base
+    # exists, derive it as ~2% of install_base (software companies) or
+    # ~10% (training orgs / industry authorities). Python computes, AI
+    # doesn't touch it. Per Platform-Foundation ACV adoption patterns.
+    cert_motion = next((m for m in motions if m.label == "Certification (PBT)"), None)
+    customer_motion = next((m for m in motions if m.label == "Customer Training & Enablement"), None)
+    if cert_motion and customer_motion:
+        if (cert_motion.population_low or 0) == 0 and (customer_motion.population_low or 0) > 0:
+            # Derive: ~2% of customer training audience for software companies
+            derived = max(1, int(customer_motion.population_low * cfg.CERT_SIT_DERIVATION_PCT))
+            cert_motion.population_low = derived
+            cert_motion.population_high = derived
 
     if getattr(product, "acv_potential", None) is None:
         product.acv_potential = ACVPotential()
