@@ -4,7 +4,23 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
-## Session: 2026-04-13 (continued) — 14-fix batch, verdict recalibration, Prospector enhancements
+## Session: 2026-04-13 (continued) — 14-fix batch, validation fixes, Prospector features, open source ACV
+
+### Open source ACV discount + Market Demand reframing
+- **DECIDED:** Open source products get 25% of normal Customer Training adoption rate (`OPEN_SOURCE_ADOPTION_MULTIPLIER = 0.25`). Detected via `training_license = "none"`. Most OSS users learn from free docs, not paid labs.
+- **DECIDED:** Market Demand reframed as demand for PAID HANDS-ON TRAINING, not demand for the product itself. Open source products with millions of users but few paid training programs score lower than commercial software with established training ecosystems. GitHub stars and npm downloads are product signals, not training signals.
+- **Frank's framing:** "Market demand for training — that's what this is. MongoDB training demand is simply nowhere near Oracle."
+
+### Prospector features shipped
+- Deep Dive top product checkbox (optional, picks flagship by popularity)
+- Cost/time estimator (inline, mid-high estimates, updates live)
+- Per-company timeouts (3 min discovery, 5 min Deep Dive from config)
+- Parallel processing (3 concurrent companies)
+- SSE timeout 60 min + auto-reconnect (10 attempts, 2s delay)
+- History page (/prospector/history — all researched companies, links to product chooser)
+
+### Documentation Job A — confirmed DONE
+Modal infrastructure built and shipped. Content dynamically sourced from scoring_config.py via `_build_modal_content()`. WHY-WHAT-HOW for every pillar, every dimension, verdict grid, ACV explainer. All wired to ? icons. Content polish is a review session, not a build.
 
 ### 14-fix comprehensive batch
 All 14 planned fixes shipped in 7 commits: post-filters module, ACV per-product extrapolation, org-type adoption overrides, cert derivation constant, wrapper org pipeline, IV badge quality tightening, MFA penalty -15, Orphan Risk 3-tier spectrum, CF baseline recalibration, Pillar 2 extractor retry, Prospector search modal.
