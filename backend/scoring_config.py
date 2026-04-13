@@ -1916,9 +1916,9 @@ VERDICT_GRID: dict[tuple[int, str], VerdictDefinition] = {
     (65, "high"):   VerdictDefinition("High Potential", "Gaps to work through but significant upside justifies the investment.", "green"),
     (65, "medium"): VerdictDefinition("Worth Pursuing", "Good fundamentals all around. Give it attention.", "green"),
     (65, "low"):    VerdictDefinition("Solid Prospect", "Decent fit, modest opportunity. Steady.", "green"),
-    (45, "high"):   VerdictDefinition("High Potential", "Gaps to work through but significant upside justifies the investment.", "light_amber"),
-    (45, "medium"): VerdictDefinition("Worth Pursuing", "Good fundamentals all around. Give it attention.", "light_amber"),
-    (45, "low"):    VerdictDefinition("Solid Prospect", "Decent fit, modest opportunity. Steady.", "light_amber"),
+    (45, "high"):   VerdictDefinition("Assess First", "Low fit today, but the opportunity is big. Do the homework before deciding.", "light_amber"),
+    (45, "medium"): VerdictDefinition("Keep Watch", "Not ready today. Opportunity is big enough to stay close and revisit when conditions change.", "light_amber"),
+    (45, "low"):    VerdictDefinition("Deprioritize", "Low fit, small opportunity. Focus elsewhere.", "light_amber"),
     (25, "high"):   VerdictDefinition("Assess First", "Low fit today, but the opportunity is big. Do the homework before deciding.", "amber"),
     (25, "medium"): VerdictDefinition("Keep Watch", "Not ready today. Opportunity is big enough to stay close and revisit when conditions change.", "amber"),
     (25, "low"):    VerdictDefinition("Deprioritize", "Low fit, small opportunity. Focus elsewhere.", "amber"),
@@ -2069,6 +2069,14 @@ RED_RISK_CAP_REDUCTION = 8
 
 SCORING_AI_VISION_ALONE_CAP = 10
 SCORING_API_ALONE_CAP = 12
+
+# Amber credit fraction for the Scoring dimension. Uncertain/partial
+# scoring methods get this fraction of the green credit instead of the
+# default 1/2 used by other Pillar 1 dimensions. Two uncertain methods
+# at 1/3 credit each ≈ 6/15, which reads as "some potential but SE
+# needs to validate" rather than the over-generous 12/15 from 1/2.
+# Frank 2026-04-13: "should probably be around six out of fifteen."
+SCORING_AMBER_CREDIT_FRACTION = 3  # divisor — base // 3 = one-third credit
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3500,8 +3508,7 @@ def _build_modal_content() -> dict:
                 '<table class="info-modal-table"><thead><tr><th>Score</th><th>High ACV</th><th>Medium ACV</th><th>Low ACV</th></tr></thead><tbody>'
                 '<tr><td><strong>≥ 80</strong></td><td>Prime Target</td><td>Strong Prospect</td><td>Good Fit</td></tr>'
                 '<tr><td><strong>65–79</strong></td><td>High Potential</td><td>Worth Pursuing</td><td>Solid Prospect</td></tr>'
-                '<tr><td><strong>45–64</strong></td><td>High Potential</td><td>Worth Pursuing</td><td>Solid Prospect</td></tr>'
-                '<tr><td><strong>25–44</strong></td><td>Assess First</td><td>Keep Watch</td><td>Deprioritize</td></tr>'
+                '<tr><td><strong>25–64</strong></td><td>Assess First</td><td>Keep Watch</td><td>Deprioritize</td></tr>'
                 '<tr><td><strong>&lt; 25</strong></td><td>Keep Watch</td><td>Poor Fit</td><td>Poor Fit</td></tr>'
                 '</tbody></table>'
             },

@@ -758,12 +758,17 @@ def score_scoring(facts: ProductLababilityFacts) -> _DimensionResult:
     has_ai_vision = sc.gui_state_visually_evident_granularity in (_GRAN_FULL, _GRAN_PARTIAL)
 
     # ── Credit signals (color-aware via granularity) ────────────────────
+    # Scoring dimension uses a tighter amber fraction (1/3 vs 1/2) because
+    # "can't really tell" on scoring methods should not produce 12/15.
+    # Frank 2026-04-13: uncertain methods should land ~6/15.
+    _sc_amber_div = cfg.SCORING_AMBER_CREDIT_FRACTION
+
     if has_api:
         base = _signal_points(dim, _SIG_SCORING_API)
         if sc.state_validation_api_granularity == _GRAN_RICH:
             signals.append((_SIG_SCORING_API, base))
         else:
-            signals.append((_SIG_SCORING_API, base // 2))  # magic-allowed: amber fires at half the green signal credit
+            signals.append((_SIG_SCORING_API, base // _sc_amber_div))
             amber_risks += 1
 
     if has_script:
@@ -771,7 +776,7 @@ def score_scoring(facts: ProductLababilityFacts) -> _DimensionResult:
         if sc.scriptable_via_shell_granularity == _GRAN_FULL:
             signals.append((_SIG_SCRIPT_SCORING, base))
         else:
-            signals.append((_SIG_SCRIPT_SCORING, base // 2))  # magic-allowed: amber fires at half the green signal credit
+            signals.append((_SIG_SCRIPT_SCORING, base // _sc_amber_div))
             amber_risks += 1
 
     if has_ai_vision:
@@ -779,7 +784,7 @@ def score_scoring(facts: ProductLababilityFacts) -> _DimensionResult:
         if sc.gui_state_visually_evident_granularity == _GRAN_FULL:
             signals.append((_SIG_AI_VISION, base))
         else:
-            signals.append((_SIG_AI_VISION, base // 2))  # magic-allowed: amber fires at half the green signal credit
+            signals.append((_SIG_AI_VISION, base // _sc_amber_div))
             amber_risks += 1
 
     if sc.simulation_scoring_viable and not (has_api or has_script or has_ai_vision):
