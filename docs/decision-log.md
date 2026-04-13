@@ -27,6 +27,33 @@ Three features agreed:
 ### Typeahead deduplication
 - **DECIDED:** Search dropdown deduplicates by company name. Each company appears once.
 
+### Badge evidence names underlying technologies
+- **DECIDED:** For wrapper org products (certs, degrees, courses, practice areas), badge evidence text now names the underlying technologies. When a cert covers "Wireshark, Metasploit, Nmap," the badge evidence says so. The seller sees what's actually inside the wrapper without clicking through to research.
+
+### Context-aware absence badges
+- **DECIDED:** Governance/leadership cert products (e.g., CGEIT, CISM) that have no lab-oriented scoring path get gray Context badges, not red Blockers. The absence of API/script scoring is expected for governance content — it's not a deficiency, it's the nature of the subject matter. Red Blocker is reserved for products where scoring SHOULD exist but doesn't.
+
+### Product name truncation
+- **DECIDED:** Long product names truncate with CSS text-overflow ellipsis instead of wrapping or breaking layout. Hover shows the full name via title attribute.
+
+### BS/MS consolidation in discovery prompt
+- **DECIDED:** University discovery prompt consolidates Bachelor of Science and Master of Science programs that teach the same technology into a single product entry. "B.S. Computer Science" and "M.S. Computer Science" become one product. Reduces product list noise without losing information.
+
+### ACV org-type motion labels
+- **DECIDED:** ACV consumption motions get org-type-specific labels so the seller reads language that matches the customer. Academic: "Student Training" (not "Customer Training"), "Faculty Development" (not "Employee Training"), "Course Exams" (not "Certification (PBT)"), "Research Partnerships" (not "Partner Training"), "Campus Events" (not "Events & Conferences"). GSI: "Client End Users" (not "Customer Training"), "Internal Consultants" (not "Employee Training"). Labels are Define-Once in `ACV_ORG_MOTION_LABELS` in `scoring_config.py`.
+
+### ACV org-type hours overrides
+- **DECIDED:** Academic students spend more time in labs (coursework, not elective). Academic Motion 1 hours = 8 (not default 2). Assigned lab work is multiple sessions per course, not a one-time elective experience. Stored in `ACV_ORG_HOURS_OVERRIDES` in `scoring_config.py`.
+
+### ACV complexity-aware rate tier
+- **DECIDED:** Products with `Multi-VM Lab` or `Complex Topology` provisioning badges automatically resolve to the Large/complex VM rate tier ($45/hr, `cfg.VM_HIGH_RATE`). The orchestration method is auto-derived from Pillar 1 primary fabric after scoring, so the rate tier reflects what the lab actually requires, not a default guess.
+
+### Search modal last stage 10s dwell
+- **DECIDED:** The search modal's final stage (scoring complete, about to redirect) holds for 10 seconds so the user sees the completion state before the page transitions. Prevents the "did it work?" moment when the redirect is instant.
+
+### Hero ? icon alignment
+- **DECIDED:** The info (?) icon on the hero Fit Score widget is vertically centered with the score text, not floating above or below. CSS alignment fix.
+
 ---
 
 ## Session: 2026-04-12/13 — Validation round, scoring retune, researcher sharpening, wrapper org logic

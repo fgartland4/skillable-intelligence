@@ -45,7 +45,7 @@ The Fit Score, 70/30 split, pillar weights, and verdict grid are defined in `Pla
 
 | Pillar | Scoring model | Scope | What it measures |
 |---|---|---|---|
-| **1 — Product Labability** | **Canonical** — fixed badge vocabulary, deterministic scoring signal lookup from `scoring_config.py`, color-aware credit (green = full, amber = half, red = color fallback) | **Per-product** — each product has its own Pillar 1 reading because each product has its own technical fabric | Technical fact-finding. Hyper-V either supports the install or it doesn't. APIs exist or they don't. **Concrete and binary.** |
+| **1 — Product Labability** | **Canonical** — fixed badge vocabulary, deterministic scoring signal lookup from `scoring_config.py`, color-aware credit (green = full, amber = 1/2 except Scoring dimension which uses 1/3, red = color fallback) | **Per-product** — each product has its own Pillar 1 reading because each product has its own technical fabric | Technical fact-finding. Hyper-V either supports the install or it doesn't. APIs exist or they don't. **Concrete and binary.** |
 | **2 — Instructional Value** | **Rubric** — AI-synthesized variable badge names, strength tiers (strong / moderate / weak / informational), category-aware baselines, per-dimension signal_category tags | **Per-product** — product complexity, mastery stakes, lab versatility, and market demand are all properties of THIS product | Domain-specific judgment. Cybersecurity, legal, healthcare, banking are genuinely different. **Subjective and contextual.** |
 | **3 — Customer Fit** | **Rubric** — same architecture as Pillar 2 with organization-type baselines | **Per-COMPANY** — Customer Fit measures the ORGANIZATION, not the product. Every product from the same company gets the same Pillar 3 reading | Organizational pattern recognition. Training maturity, build capacity, delivery partners, partner culture — properties of the COMPANY, not any single product. |
 
@@ -155,7 +155,7 @@ Weights sum to 100 within the Pillar. Each dimension scores out of its weight (P
 - The AI extracts typed fact primitives into `ProductLababilityFacts` (`runs_as_installable`, `has_sandbox_api`, `sandbox_api_granularity`, `auth_model`, etc.) — this is the Research layer's job.
 - `pillar_1_scorer.py` reads those facts directly — zero Claude, pure Python — and produces a `DimensionScore` per dimension by walking a priority order and crediting named scoring signals from `scoring_config.py`.
 - Each canonical badge has a fixed name, fixed color criteria, and a fixed point value when emitted green.
-- **Color-aware credit**: green = full points, amber = half points, red = falls back to the color contribution table (negative points for red blockers).
+- **Color-aware credit**: green = full points, amber = half points (except the Scoring dimension which uses 1/3 credit — `cfg.SCORING_AMBER_CREDIT_FRACTION = 3` — because "can't really tell" on scoring methods should not produce near-full marks), red = falls back to the color contribution table (negative points for red blockers).
 - The math layer never reads badge names from Claude output. It reads the fact drawer, produces the dimension scores, and then `badge_selector.py` separately emits display badges based on the same facts.
 
 ### 1.1 Provisioning (35 points)

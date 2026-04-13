@@ -997,7 +997,7 @@ The multiplier lookup lives in `scoring_config.TECHNICAL_FIT_MULTIPLIERS`. Full 
 |:---:|:---:|:---:|:---:|
 | **≥80** | Prime Target · Dark Green | Strong Prospect · Dark Green | Good Fit · Dark Green |
 | **65–79** | High Potential · Green | Worth Pursuing · Green | Solid Prospect · Green |
-| **45–64** | High Potential · Light Amber | Worth Pursuing · Light Amber | Solid Prospect · Light Amber |
+| **45–64** | Assess First · Light Amber | Keep Watch · Light Amber | Deprioritize · Light Amber |
 | **25–44** | Assess First · Amber | Keep Watch · Amber | Deprioritize · Amber |
 | **<25** | Keep Watch · Red | Poor Fit · Red | Poor Fit · Red |
 

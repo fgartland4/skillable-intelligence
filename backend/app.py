@@ -928,20 +928,71 @@ def prospector_run():
     if not company_names:
         return redirect(url_for("prospector_home"))
 
+    deep_dive = request.form.get("deep_dive") == "on"
+
     job_id = str(uuid.uuid4())[:8]
     batch_id = str(uuid.uuid4())[:8]
     total = len(company_names)
 
-    def run_batch():
-        results = []
-        for i, name in enumerate(company_names, 1):
-            push(job_id, f"status:Researching {name}… {i} of {total}")
+    # Per-company timeouts — Frank 2026-04-13
+    DISCOVERY_TIMEOUT = 180   # magic-allowed: three-minute-per-company discovery timeout
+    DEEP_DIVE_TIMEOUT = 300   # magic-allowed: five-minute-per-company deep-dive timeout
+
+    def _run_one_company(name: str, index: int) -> dict:
+        """Run discovery (+ optional Deep Dive) for one company with timeout."""
+        import signal as _signal
+        import functools
+
+        push(job_id, f"status:Researching {name}… {index} of {total}")
+        try:
+            disc = discover(name)
+        except Exception as e:
+            log.warning("Prospector: discovery failed for %s: %s", name, e)
+            return {"company_name": name, "error": str(e)}
+
+        row = _build_prospector_row(disc)
+
+        if deep_dive and not row.get("error"):
             try:
-                disc = discover(name)
-                results.append(_build_prospector_row(disc))
+                push(job_id, f"status:Deep Dive on {name}… {index} of {total}")
+                disc_id = disc.get("discovery_id", "")
+                products = disc.get("products", [])
+                if products and disc_id:
+                    # Pick the top product (first by popularity — same sort as product chooser)
+                    top_product = products[0]
+                    top_name = top_product.get("name", "")
+                    if top_name:
+                        from intelligence import score
+                        analysis = score([top_product], disc_id, discovery_data=disc)
+                        # Rebuild the row with sharpened Deep Dive data
+                        if analysis:
+                            row = _build_prospector_row_from_analysis(disc, analysis, row)
             except Exception as e:
-                log.warning("Prospector: discovery failed for %s: %s", name, e)
-                results.append({"company_name": name, "error": str(e)})
+                log.warning("Prospector: Deep Dive failed for %s: %s", name, e)
+                row["deep_dive_error"] = str(e)
+
+        return row
+
+    def run_batch():
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        results = []
+        # Run companies in parallel — Frank 2026-04-13
+        max_workers = min(len(company_names), 3)  # magic-allowed: parallel-cap-avoids-rate-limits
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futures = {}
+            for i, name in enumerate(company_names, 1):
+                f = ex.submit(_run_one_company, name, i)
+                futures[f] = name
+
+            for future in as_completed(futures, timeout=total * DISCOVERY_TIMEOUT):
+                try:
+                    row = future.result(timeout=DISCOVERY_TIMEOUT)
+                    results.append(row)
+                except Exception as e:
+                    name = futures[future]
+                    log.warning("Prospector: timed out for %s: %s", name, e)
+                    results.append({"company_name": name, "error": f"Timed out: {e}"})
 
         # Sort by estimated ACV (descending)
         results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
@@ -955,7 +1006,8 @@ def prospector_run():
 
     return render_template("prospector_running.html",
                           job_id=job_id,
-                          company_count=total)
+                          company_count=total,
+                          deep_dive=deep_dive)
 
 
 @app.route("/prospector/progress/<job_id>")
@@ -1121,6 +1173,41 @@ def _build_prospector_row(disc: dict) -> dict:
         "lab_platform": lab_platform,
         "key_signal": key_signal,
     }
+
+
+def _build_prospector_row_from_analysis(
+    disc: dict, analysis: dict, base_row: dict,
+) -> dict:
+    """Sharpen a Prospector row with Deep Dive data.
+
+    When a Deep Dive completes, replaces the rough discovery-level
+    estimates with the actual scored data. GP5: intelligence compounds.
+    """
+    row = dict(base_row)  # shallow copy
+    products = analysis.get("products") or analysis.get("top_products") or []
+    if products:
+        top = products[0]
+        fit_score = (top.get("fit_score") or {})
+        fs_total = fit_score.get("total") or fit_score.get("_total") or 0
+        row["fit_score"] = fs_total
+        row["verdict"] = (top.get("verdict") or {}).get("label", "")
+
+        acv = analysis.get("_company_acv") or {}
+        if acv.get("scored_low"):
+            from app import _format_acv_value
+            row["estimated_acv"] = f"~{_format_acv_value(acv['scored_low'])}"
+            row["_sort_acv"] = acv["scored_low"]
+        row["deep_dive_complete"] = True
+    return row
+
+
+def _format_acv_value(value: int) -> str:
+    """Format a dollar value for display: $1.2M, $450k, etc."""
+    if value >= 1_000_000:  # magic-allowed: display formatting threshold
+        return f"${value / 1_000_000:.1f}M"  # magic-allowed: display formatting divisor
+    if value >= 1_000:  # magic-allowed: display formatting threshold
+        return f"${value // 1_000}k"  # magic-allowed: display formatting divisor
+    return f"${value}"
 
 
 def _parse_user_base_for_sort(value: str) -> int:

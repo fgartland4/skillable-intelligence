@@ -6,7 +6,7 @@
 
 ---
 
-**Last updated:** 2026-04-13 (extended validation + bug fix session with Frank. **Six workstreams landed.**)
+**Last updated:** 2026-04-13 (extended validation + bug fix session with Frank. **Six workstreams + 14-fix batch + continued validation fixes.**)
 
 **Workstream 1: Critical scoring plumbing fixes.** Bug A — `recompute_analysis` now always recalculates Fit Score from live config (never trusts cached `total_override`). Bug B — `orchestration_method` auto-derived from Pillar 1 primary fabric via Define-Once mapping in `pillar_1_scorer.py`. Fixes SaaS products defaulting to VM rate ($14/hr) instead of cloud ($6/hr) and ensures Technical Fit Multiplier correctly classifies non-datacenter products.
 
@@ -19,6 +19,12 @@
 **Workstream 5: Compliance grader sharpened.** Mastery Stakes `compliance_consequences` signal now has explicit "is_not_about" guidance — only fires when subject matter directly involves regulatory/audit/legal obligations. CompTIA A+ and Linux+ should no longer show compliance badges.
 
 **Workstream 6: Wrapper organization pattern.** Universal logic for all non-software org types — the wrapper (cert, degree, course, practice area) stays as the product entry; new `underlying_technologies` field captures labable technologies inside. Discovery prompt rewritten with universal extraction rules. CertMaster/iLabs/LMS platforms excluded as delivery platforms, not products.
+
+**14-fix batch (continued session).** Post-filters module, ACV per-product extrapolation, org-type adoption overrides, cert derivation constant, wrapper org pipeline, IV badge quality tightening, MFA penalty -15, Orphan Risk 3-tier spectrum, CF baseline recalibration, Pillar 2 extractor retry, Prospector search modal, SSE progress modal.
+
+**Continued validation fixes (post-batch).** Verdict grid 45-64 recalibrated (Assess First / Keep Watch / Deprioritize). Scoring amber credit reduced to 1/3 for Scoring dimension (`SCORING_AMBER_CREDIT_FRACTION = 3`). Bar color threshold: 70% is amber, green starts above 70%. Typeahead deduplication. Badge evidence names underlying technologies. Context-aware absence badges (governance/leadership certs get gray Context, not red Blocker). Product name truncation with CSS ellipsis. BS/MS consolidation in discovery prompt. ACV org-type motion labels (Student Training, Faculty Development, etc.). ACV org-type hours overrides (academic 8 hrs). ACV complexity-aware rate tier (multi-VM/complex topology -> Large VM $45/hr). Search modal last stage 10s dwell. Hero ? icon alignment.
+
+**Validation tested so far:** Trellix, Workday, EC-Council, ASU. Bugs found during validation drove the continued fixes above (verdict labels too optimistic at 45-64, amber credit too generous on Scoring dimension, bar colors off at 70% boundary, badge evidence missing underlying tech names for wrapper orgs).
 
 Prior context: Pillar weights locked at 50/20/30 (2026-04-12). Technical Fit Multiplier retuned — ≥60 full credit, 32-59 non-datacenter → 0.65 (2026-04-12). All 118 tests passing.
 
@@ -75,9 +81,9 @@ All scoring, researcher, and badge fixes from 2026-04-12/13 are in the code but 
 
 | Issue | Status | Fix when |
 |---|---|---|
-| **underlying_technologies not yet wired into Pillar 1 scoring** | Discovery prompt written, code not wired | During validation — need to see what the researcher returns and how to pass it to the scorer |
-| **CF baselines may need similar recalibration to IV** | Flagged, not urgent | After IV recalibration is validated — Training Commitment at 23/25 for Training Orgs has same near-cap problem |
-| **Pillar 2 extractor reliability** — intermittent empty mastery_stakes/lab_versatility drawers | Still open | When touching Pillar 2 researcher/grader work |
+| **underlying_technologies not yet wired into Pillar 1 scoring** | Discovery prompt written, badge evidence now names underlying technologies | Partial — evidence layer done, scoring layer wiring still needed during next validation pass |
+| **CF baselines may need similar recalibration to IV** | CF baselines recalibrated in 14-fix batch | Resolved — verify on fresh data |
+| **Pillar 2 extractor reliability** — intermittent empty mastery_stakes/lab_versatility drawers | Extractor retry logic added in 14-fix batch | Verify on fresh data — retry should handle transient failures |
 
 ---
 
