@@ -4,6 +4,44 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-12/13 — Validation round, scoring retune, researcher sharpening, wrapper org logic
+
+Two-day session spanning validation of the rebuilt scoring layer, multiple scoring retunes, researcher prompt sharpening, and the wrapper organization extraction pattern.
+
+### Pillar weight rebalance: 40/30/30 → 50/20/30
+- **DECIDED:** Product Labability weight increased to 50% (from 40%), Instructional Value decreased to 20% (from 30%), Customer Fit unchanged at 30%. Ran math on Cohesity (PL 95), Trellix TIE (PL 86), Workday (PL 22), Diligent (PL 25). Strong-PL companies unchanged; weak-PL companies moved down 4-6 points. Product Labability is the gatekeeper; the math now matches the philosophy.
+
+### Technical Fit Multiplier retune
+- **DECIDED:** Full-credit threshold raised from ≥32 to ≥60. New band: 32-59 non-datacenter → 0.65 (was 1.0). Workday HCM (PL 45, SaaS) now scores Fit ~49 instead of 66. Datacenter protection preserved: 32-59 datacenter products still get 1.0.
+
+### Fit Score always recalculates from live config (Bug A)
+- **DECIDED:** `recompute_analysis` now always recalculates the Fit Score from saved pillar scores using live config weights and multiplier table. Never trusts a cached `total_override`. Weight and multiplier retunes propagate instantly on page load.
+
+### Orchestration method auto-derived from Pillar 1 (Bug B)
+- **DECIDED:** After Pillar 1 scoring, `product.orchestration_method` is auto-derived from the primary fabric signal via a Define-Once mapping in `pillar_1_scorer.py`. Fixes SaaS products defaulting to VM rate ($14/hr) instead of cloud ($6/hr). Internal plumbing only — user-facing badges unchanged.
+
+### IV baseline recalibration
+- **DECIDED:** All IV_CATEGORY_BASELINES lowered to create proper differentiation bands. Old baselines were too close to caps (Lab Versatility 93%, Mastery Stakes 88%). New baselines represent a WEAK implementation of each category (~55-70% of cap). Two strong findings needed to reach the cap. Example: Cybersecurity Product Complexity 32→28, Mastery Stakes 22→16, Lab Versatility 14→10, Market Demand 14→12.
+
+### Compliance grader sharpened
+- **DECIDED:** `compliance_consequences` signal in Mastery Stakes now has explicit "is_not_about" guidance. Only fires when the product's subject matter directly involves regulatory/audit/legal obligations. General IT, Linux admin, and hardware troubleshooting are excluded.
+
+### Wrapper organization pattern — universal
+- **DECIDED:** For ALL non-software org types (universities, Industry Authorities, training orgs, GSIs, VARs, etc.), the wrapper (cert program, degree, course, practice area) stays as the product entry on the product chooser. The underlying technologies inside the wrapper drive Pillar 1 scoring and badge evidence. New `underlying_technologies` field on each product captures the labable technologies. Universal pattern — one set of logic, not per-org-type.
+
+### Badge naming enforcement
+- **DECIDED:** Deterministic post-processing overrides in `badge_selector.py` for known bad names. Prompt-only instructions are unreliable; code enforcement is reliable. "Content Team Named" → "Content Team", "ID IDs" → "IDs on Staff", "Published Course Calendar" → "ILT Calendar", plus 20+ additional signal category display overrides.
+
+### Researcher prompt fixes
+- Lab Access: `user_provisioning_api_granularity` "partial" is the default for SaaS unless specific endpoint documentation confirmed.
+- Audience estimates: training population, not total user base. Admin tools: count admins, not end users.
+- "Other" category removed — every real technology fits a real category.
+
+### Discovery tier labels
+- **DECIDED:** Renamed to Promising / Potential / Uncertain / Unlikely (from Seems Promising / Likely / Uncertain / Unlikely). Code, config, templates, and tests updated.
+
+---
+
 ## Session: 2026-04-07 overnight — Pillar 2 + Pillar 3 posture rewrite (default-positive baselines, penalty signals, cross-pillar compounding)
 
 A multi-hour rewrite of every Instructional Value and Customer Fit dimension — doc, code, prompt, tests, and dossier UX — driven by Frank's observation that Trellix GTI scored 12/40 on Product Complexity despite being a multi-VM threat-intelligence platform. The framework's default-pessimistic posture was punishing the right companies for the wrong reasons. This session replaces that posture with a default-positive model across Pillars 2 and 3.
