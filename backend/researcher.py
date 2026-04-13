@@ -763,7 +763,12 @@ lab_access.auth_model: how the END USER authenticates to the running product.
   - "api_key"             — Auth is via API key (developer-tool products)
   - "none"                — No documented auth model
 
-lab_access.user_provisioning_api_granularity: does the vendor expose an API to create per-learner users / roles?  Same rich/partial/none ladder.
+lab_access.user_provisioning_api_granularity: does the vendor expose an API to create per-learner users / roles?
+  - "rich"    = CONFIRMED: documented endpoints exist for creating users, assigning roles, AND managing lifecycle (update/delete) — with evidence from API reference docs, OpenAPI specs, or developer guides. If you cannot find specific endpoint documentation, this is NOT rich.
+  - "partial" = API exists but coverage is UNCERTAIN or incomplete — some endpoints documented but gaps in lifecycle management, undocumented areas, or you found general API mention without specific user-provisioning endpoint evidence. DEFAULT TO THIS when the product has an API but you cannot confirm full user lifecycle coverage.
+  - "none"    = no documented user provisioning API at all
+
+  CRITICAL: For SaaS products, "partial" is the honest default unless you find SPECIFIC user-provisioning endpoint documentation. Finding a general REST API or admin console does NOT qualify as "rich" — that's "partial" until confirmed.
 
 lab_access.credential_lifecycle:
   - "recyclable" — credentials can be reset and reused between learners
@@ -1109,7 +1114,12 @@ Use ONLY the signal category names listed below for each dimension.  If a signal
 
 These fields feed the ACV math directly — they are the AUDIENCE for three of the five consumption motions. The ACV calculation uses population × adoption_pct × hours × rate per motion. SINGLE ESTIMATED NUMBER for each — not a range. One number the seller can quote. Better to be approximately right than precisely uncertain. A range like "2,000–40,000" signals "we have no idea" and is FORBIDDEN.
 
-  - **install_base** → ACV Motion 1 (Customer Training). The total PEOPLE who actively use THIS product worldwide — the end learners who would take labs. NOT customer accounts (Tanium has ~4,000 customer accounts but ~50,000 security professionals who use it). NOT how many people know about the vendor. Count the USERS, not the logos. Includes people who train through ATPs — they are customers, not partners. Do NOT double-count them in partner training. Examples: mid-size enterprise cybersecurity product ~50,000 users. Microsoft 365 ~350M users. Niche SaaS admin tool ~5,000 admins. Single number. FOR UNIVERSITIES: this is students enrolled in technology-facing programs THIS YEAR, not total enrollment. GCU has ~120,000 students but maybe ~5,000 in engineering/CS/cybersecurity programs. Use the technology program enrollment. FOR INDUSTRY AUTHORITIES: this is training candidates per year (people interested in taking the cert), not lifetime cert holders.
+  - **install_base** → ACV Motion 1 (Customer Training). The TRAINING POPULATION for THIS product — people who would realistically take HANDS-ON TRAINING, not everyone who logs in. This is the critical distinction:
+    - For ADMIN/CONFIG TOOLS (Workday HCM, ServiceNow, Salesforce admin): count ADMINISTRATORS and CONFIGURATORS who need deep hands-on skills, NOT end users who just log in to view their paycheck or submit a ticket. Workday HCM may have 10M end users but only ~50K HR admins/configurators who would take training.
+    - For SECURITY TOOLS (Splunk, CrowdStrike): count security professionals/analysts who operate the tool.
+    - For DEVELOPER TOOLS (Terraform, Kubernetes): count practitioners who need hands-on depth.
+    - For GENERAL-PURPOSE TOOLS (Microsoft 365): count the full user base — everyone benefits from training.
+    NOT customer accounts (Tanium has ~4,000 customer accounts but ~50,000 security professionals who use it). NOT how many people know about the vendor. Count the PRACTITIONERS, not the logos. Includes people who train through ATPs — they are customers, not partners. Do NOT double-count them in partner training. Single number. FOR UNIVERSITIES: this is students enrolled in technology-facing programs THIS YEAR, not total enrollment. FOR INDUSTRY AUTHORITIES: this is training candidates per year (people interested in taking the cert), not lifetime cert holders.
 
   - **employee_subset_size** → ACV Motion 3 (Employee Training). People at the COMPANY BEING ANALYZED whose job involves meaningfully using or supporting THIS product — product team, SEs, support engineers, customer success, trainers. NOT people at customer companies (those are install_base users in Motion 1). NOT total company headcount. For a cybersecurity vendor with 3,000 employees: maybe 500-800 are in product-facing roles (engineering, SE, support, CS). For a large enterprise like Microsoft: the Azure team might be 5,000-10,000 people. This is always a SMALL number relative to company size. A single estimated number, not a range. If uncertain, estimate conservatively — better to undercount than to inflate.
 

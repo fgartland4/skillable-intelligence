@@ -126,7 +126,14 @@ For each product that passes the filter, capture ALL of the following:
   - "cloud": deployed on customer-controlled cloud infrastructure
   - "saas-only": vendor-managed only — no installer, no container
   DO NOT mark a product "saas-only" just because a cloud version exists. If it can be installed, use "installable" or "hybrid".
-- estimated_user_base: ONE estimated number of people who actively use this product worldwide. SINGLE NUMBER, NOT A RANGE. "~14M" or "~50K" or "~2000". Never "2,000-40,000" — that signals uncertainty, not an estimate. This is the TRAINING POPULATION — the total people using the product, not double-counted, not missing any. For consumer products with admin subsets, count the admins, not the consumers. Better to be approximately right than precisely uncertain.
+- estimated_user_base: ONE estimated number of people who would realistically take HANDS-ON TRAINING on this specific product. SINGLE NUMBER, NOT A RANGE. "~14M" or "~50K" or "~2000". Never "2,000-40,000" — that signals uncertainty, not an estimate.
+  THIS IS THE TRAINING POPULATION, NOT THE TOTAL USER BASE. Key distinctions:
+  - For ADMIN TOOLS (Workday, ServiceNow, Salesforce admin): count the administrators/configurators who need deep skills, NOT the end users who just log in. Workday HCM may have 10M end users but only ~50K admins who would take training.
+  - For DEVELOPER TOOLS (RStudio, Terraform, Kubernetes): count the practitioners who need hands-on depth.
+  - For SECURITY TOOLS (Splunk, CrowdStrike, Palo Alto): count the security professionals/analysts.
+  - For CONSUMER PRODUCTS with admin subsets: count the admins, not the consumers.
+  - If a product has 2M users but only 5K need deep training, the estimate is ~5K.
+  Better to be approximately right than precisely uncertain.
 - user_base_evidence: what sources informed the estimate — vendor marketing claims ("trusted by 14M data scientists"), Stack Overflow tag count, GitHub stars, job posting volume, analyst reports. Be specific.
 - user_base_confidence: "confirmed" (direct evidence from primary source) | "indicated" (strong indirect evidence) | "inferred" (AI assumption from patterns)
 - rough_labability_score: integer 0-100. This is a DIRECTIONAL ESTIMATE — pre-Deep Dive, not a conclusion. Score based on:
