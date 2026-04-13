@@ -882,10 +882,22 @@ def score_teardown(facts: ProductLababilityFacts) -> _DimensionResult:
                 )
                 red_risks += 1
 
-    # ── Orphan Risk stacks with partial teardown coverage ───────────────
+    # ── Orphan Risk three-tier spectrum (Frank 2026-04-13) ───────────────
+    # Low Orphan Risk (green, 0 pts): rich teardown API with minor gaps
+    # Orphan Risk (amber, -5): partial API, gaps remain
+    # High Orphan Risk (red, -15): no API or major cleanup gaps
     if td.has_orphan_risk:
-        penalties.append((_PEN_ORPHAN_RISK, _penalty_deduction(dim, _PEN_ORPHAN_RISK)))
-        amber_risks += 1
+        if td.vendor_teardown_api_granularity == _GRAN_RICH:
+            # Rich API but still flagged orphan risk → minor gaps → green context
+            signals.append(("Low Orphan Risk", 0))
+        elif td.vendor_teardown_api_granularity == _GRAN_PARTIAL:
+            # Partial API + orphan risk → amber
+            penalties.append((_PEN_ORPHAN_RISK, _penalty_deduction(dim, _PEN_ORPHAN_RISK)))
+            amber_risks += 1
+        else:
+            # No API + orphan risk → red, severe
+            penalties.append(("High Orphan Risk", _penalty_deduction(dim, "High Orphan Risk")))
+            red_risks += 1
 
     # ── Raw total + risk cap reduction ──────────────────────────────────
     raw_total = sum(pts for _, pts in signals) + sum(d for _, d in penalties)

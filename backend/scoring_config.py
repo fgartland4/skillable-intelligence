@@ -476,8 +476,8 @@ _lab_access_signals = (
 )
 
 _lab_access_penalties = (
-    Penalty("MFA Required", -10, "mfa_required",
-            "Blocks automated task scoring; falls back to MCQ/AI Vision only"),
+    Penalty("MFA Required", -15, "mfa_required",
+            "Blocks automated provisioning and scoring; severe friction for lab delivery"),
     Penalty("Anti-Automation Controls", -5, "anti_automation",
             "Platform actively blocks automated account creation"),
     Penalty("Rate Limits", -5, "rate_limits",
@@ -585,22 +585,31 @@ _teardown_badges = (
     Badge("Manual Teardown", (
         BadgeColor("red", "No teardown mechanism — manual cleanup required between learners"),
     ), notes="NEW red blocker badge. Replaces the hidden 'No Teardown API' penalty so SEs see the warning. When this fires, the seller knows teardown is going to be a real build task."),
+    Badge("Low Orphan Risk", (
+        BadgeColor("green", "Rich teardown API with minor gaps — low risk of orphaned resources"),
+    ), notes="Frank 2026-04-13: green tier for products with comprehensive cleanup APIs. Context badge — the seller sees cleanup is covered."),
     Badge("Orphan Risk", (
-        BadgeColor("amber", "Incomplete teardown may leave orphaned resources or accounts even when API exists"),
-    ), notes="Frank: keep this. Even Azure has services with orphan risk. Distinct from Manual Teardown — Orphan Risk fires alongside Teardown API amber when there's coverage but with gaps."),
+        BadgeColor("amber", "Partial teardown API — gaps remain that may leave orphaned resources or accounts"),
+    ), notes="Frank 2026-04-13: amber tier for products with teardown API coverage but known gaps. SE should verify cleanup completeness."),
+    Badge("High Orphan Risk", (
+        BadgeColor("red", "No teardown API or major cleanup gaps — significant orphan risk across services"),
+    ), notes="Frank 2026-04-13: red tier for products with no documented cleanup path for significant services."),
 )
 
 _teardown_signals = (
     ScoringSignal("Datacenter", 25, "Skillable-hosted environment teardown — automatic via snapshot revert or container destroy. VM/ESX/Container ONLY, NOT Simulation."),
     ScoringSignal("Simulation Reset", 0, "Simulation session ends with the session — display-only, zero credit (Frank 2026-04-07)."),
     ScoringSignal("Teardown API", 22, "Vendor API covers cleanup — green tier"),
+    ScoringSignal("Low Orphan Risk", 0, "Rich teardown API with minor gaps — green context badge"),
 )
 
 _teardown_penalties = (
     Penalty("Manual Teardown", -10, "manual_teardown",
             "No programmatic teardown — manual cleanup required between learners"),
     Penalty("Orphan Risk", -5, "orphan_risk",
-            "Incomplete teardown may leave orphaned resources, accounts, or data"),
+            "Partial teardown API — gaps remain, amber severity"),
+    Penalty("High Orphan Risk", -15, "high_orphan_risk",
+            "No teardown API or major cleanup gaps — significant orphan risk, red severity"),
 )
 
 _teardown_dimension = Dimension(
@@ -735,6 +744,11 @@ _product_complexity_rubric = Rubric(
         "Whether labs can be SCORED (that is Pillar 1 Scoring dimension)",
         "Whether the customer org has training infrastructure (that is Pillar 3)",
         "The mastery STAKES of getting it wrong (that is the Mastery Stakes dimension)",
+        "Generic complexity claims — 'enterprise-grade', 'comprehensive platform', 'powerful tool' "
+        "are not evidence of hands-on complexity. Look for SPECIFIC signals: how many distinct "
+        "configuration surfaces exist? How many admin roles operate independently? How many "
+        "workflow stages require different skills? If you can't name the specific complexity, "
+        "don't emit the signal.",
     ),
     signal_categories=(
         "multi_vm_architecture",   # cross-pillar with P1 Multi-VM Lab
@@ -843,12 +857,20 @@ _mastery_stakes_rubric = Rubric(
         "How HARD the product is to use (that is Product Complexity)",
         "Whether the product can be SCORED (that is Pillar 1 Scoring)",
         "How important the product is to the customer's business in general (that is Market Demand)",
-        "Generic compliance risk that applies to everything — 'compliance_consequences' is ONLY for "
-        "products/certs whose SUBJECT MATTER is directly about regulatory compliance, security policy, "
-        "audit, data protection, or legal obligations. General IT (CompTIA A+), Linux administration, "
-        "networking fundamentals, and hardware troubleshooting do NOT have compliance consequences "
-        "just because they involve technology. Ask: 'if a learner fails this topic, does a regulator "
-        "or auditor care?' If no, do NOT emit compliance_consequences.",
+        "Generic compliance risk — 'compliance_consequences' is ONLY for products whose SUBJECT "
+        "MATTER is directly about regulatory compliance, security policy, audit, data protection, "
+        "or legal obligations. General IT, Linux admin, RPA, collaboration tools do NOT have "
+        "compliance consequences just because they involve technology. Ask: 'if a learner fails "
+        "this topic, does a regulator or auditor care?' If no, do NOT emit compliance_consequences.",
+        "Generic breach exposure — 'breach_exposure' is ONLY for products in cybersecurity, "
+        "identity management, data protection, or network security where misconfiguration directly "
+        "enables unauthorized access. RPA tools (UiPath), ERP systems, collaboration platforms, "
+        "and general IT tools do not have breach exposure just because they process data. Ask: "
+        "'does misconfiguring THIS product directly open an attack vector?' If no, do NOT emit.",
+        "Generic business continuity — 'business_continuity' is ONLY for products that ARE the "
+        "continuity infrastructure (backup systems, DR platforms, HA clusters, load balancers) or "
+        "whose failure demonstrably causes organization-wide outages. A single application going "
+        "down is not business continuity — it's downtime for that application's users.",
     ),
     signal_categories=(
         "breach_exposure",
@@ -950,6 +972,11 @@ _lab_versatility_rubric = Rubric(
         "Standard step-by-step labs (those exist for every product, not credit-worthy here)",
         "How the lab is provisioned (that is Pillar 1)",
         "Whether the customer can deliver labs (that is Delivery Capacity)",
+        "Cybersecurity lab types forced onto non-security products — 'adversarial_scenario', "
+        "'simulated_attack', 'incident_response', 'cyber_range', 'ctf' are ONLY for cybersecurity, "
+        "network security, and identity management products. An RPA tool does not have adversarial "
+        "scenarios. An ERP system does not have a cyber range. Match the lab type to the product's "
+        "actual domain.",
     ),
     signal_categories=(
         "adversarial_scenario",
@@ -3245,7 +3272,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-13.iv-baseline-recalibration"
+SCORING_LOGIC_VERSION = "2026-04-13.iv-badges-penalties-orphan-mfa"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
@@ -3520,7 +3547,7 @@ def _build_modal_content() -> dict:
                 '<tr><td>Credential Pool / Training License</td><td>+16</td><td>Training License defaults to amber</td></tr>'
                 '<tr><td>Manual SSO</td><td>+12</td><td>Azure SSO with manual learner login</td></tr>'
                 '</tbody></table>'
-                "Penalties: MFA Required (-10), Rate Limits (-5), Anti-Automation Controls (-5). Training License defaults to amber — real SE conversations happen around almost every licensing arrangement." + _back_top
+                "Penalties: MFA Required (-15), Rate Limits (-5), Anti-Automation Controls (-5). Training License defaults to amber — real SE conversations happen around almost every licensing arrangement." + _back_top
             },
             {"id": "dim_scoring", "label": "Scoring", "subtitle": "DIMENSION · 15 / 100 POINTS", "body":
                 "<strong>Can Skillable assess what the learner actually did?</strong> A lab that can't be scored isn't a lab — it's a guided tour. Without scoring, there's no proof the learner practiced, no certification evidence, and no way to measure learning outcomes. Scoring is about OPTIONS — full marks require more than one viable assessment path, because no single method covers every lab scenario. When a dimension shows 0/15 with no badges, the seller knows immediately: we have no way to validate learner work on this product."
@@ -3541,7 +3568,7 @@ def _build_modal_content() -> dict:
                 '<tr><td>Teardown API</td><td>+22</td><td>Vendor API covers cleanup</td></tr>'
                 '<tr><td>Simulation Reset</td><td>0 (display only)</td><td>Nothing to tear down — no credit for work that isn\'t real</td></tr>'
                 '</tbody></table>'
-                "Penalties: Manual Teardown (-10 red), Orphan Risk (-5 amber). Orphan Risk can fire alongside Teardown API when there are gaps." + _back_top
+                "Penalties: Manual Teardown (-10 red). Orphan Risk spectrum: Low Orphan Risk (green, 0 — rich API with minor gaps), Orphan Risk (-5 amber — partial API, gaps remain), High Orphan Risk (-15 red — no API or major cleanup gaps)." + _back_top
             },
         ],
     }
