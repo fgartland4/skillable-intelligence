@@ -89,7 +89,7 @@ The Fit Score, 70/30 split, pillar weights, and verdict grid are defined in `Pla
 | Rule | What it means |
 |---|---|
 | **The badge IS the finding** | The name is the answer, not the topic. `Platform Buyer` is an answer. `Build vs Buy` is a topic. |
-| **Restricted canonical vocabulary** | Framework vocabulary is fixed — `Runs in VM`, `Runs in Azure`, `Runs in AWS`, `Runs in Container`, `Sandbox API`, `Training License`, `Orphan Risk`, `Pre-Instancing?`, `Custom Cloud`, `M365 Tenant`, `M365 Admin`, `No GCP Path`. These never abbreviate and never vary. |
+| **Restricted canonical vocabulary** | Framework vocabulary is fixed — `Runs in VM`, `Runs in Azure`, `Runs in AWS`, `Runs in Container`, `Sandbox API`, `Training License`, `Low Orphan Risk`, `Orphan Risk`, `High Orphan Risk`, `Pre-Instancing?`, `Custom Cloud`, `M365 Tenant`, `M365 Admin`, `No GCP Path`. These never abbreviate and never vary. |
 | **Everything else is free** | Variable badges (Pillar 2 and Pillar 3 rubric findings) can use any domain-specific wording — `Breach Exposure`, `~500 ATPs`, `Multi-Correlation Engine`. Abbreviate freely: Config, Admin, Auth, Dev, Ops. |
 | **Max length** | ~25 characters / ~4 words. Concise is the goal. Variable-data badges (counts, platform names) can run slightly longer. |
 | **Vendor acronyms — only when real** | Use a vendor's own acronym (Trellix `TIE`, Microsoft `SCCM`, Cisco `ISE`) only when the vendor themselves uses it in their own marketing or docs. **Never invented.** The `vendor_official_acronym` field on `Product` captures this; the researcher populates it from evidence. |
@@ -294,7 +294,7 @@ Provisioning gets the environment. Lab Access gets the *learner* into the enviro
 
 | Penalty | Deduction |
 |---|---|
-| `MFA Required` | -10 |
+| `MFA Required` | -15 |
 | `Rate Limits` | -5 |
 | `Anti-Automation Controls` | -5 |
 
@@ -355,11 +355,13 @@ Every lab has to end cleanly. Environment left behind = cost left behind, orphan
 | **Simulation Reset** | (gray Context only) Simulation session ends with the user session. No teardown work. **Earns ZERO Teardown points** (Frank 2026-04-07). | — | — |
 | **Teardown API** | Vendor API covers environment cleanup and deprovisioning | Some teardown API coverage but gaps remain | — |
 | **Manual Teardown** | — | — | No teardown mechanism — manual cleanup required between learners |
-| **Orphan Risk** | — | Incomplete teardown may leave orphaned resources or accounts even when API exists | — |
+| **Low Orphan Risk** | Rich teardown API with minor gaps — low residue risk | — | — |
+| **Orphan Risk** | — | Partial API, gaps remain — moderate residue risk | — |
+| **High Orphan Risk** | — | — | No API or major cleanup gaps — high residue risk |
 
 **The Simulation Reset rule (Frank 2026-04-07).** A Simulation lab for a SaaS web app doesn't have anything to "tear down" in the operational sense, so the historical "Datacenter green for Simulation" rule was misleading — it earned 25 / 25 for Teardown work that didn't happen. Simulation now uses its own `Simulation Reset` gray badge worth zero points. The seller sees Teardown was considered, but credit is not awarded for work that isn't real.
 
-**Orphan Risk and Teardown API can fire together.** `Orphan Risk` fires alongside `Teardown API` amber when there's API coverage but with gaps that could leave residue. Both badges render in the same dimension.
+**Orphan Risk is a three-tier spectrum.** `Low Orphan Risk` (green, 0 points) fires when the teardown API is rich but has minor gaps. `Orphan Risk` (amber, -5) fires when there's partial API coverage with meaningful gaps. `High Orphan Risk` (red, -15) fires when there is no API or major cleanup gaps remain. Orphan Risk badges fire alongside `Teardown API` when there's API coverage but with gaps that could leave residue. All three tiers render in the same dimension.
 
 #### How — scoring signals
 
@@ -374,7 +376,9 @@ Every lab has to end cleanly. Environment left behind = cost left behind, orphan
 | Penalty | Deduction |
 |---|---|
 | `Manual Teardown` | -10 |
+| `Low Orphan Risk` | 0 |
 | `Orphan Risk` | -5 |
+| `High Orphan Risk` | -15 |
 
 Floor: 0.
 
@@ -667,16 +671,16 @@ An organization that trains ONE audience is making some commitment. An organizat
 
 | Org type | Baseline |
 |---|---|
-| **TRAINING ORG** (CompTIA, SANS, EC-Council, Cybrary) | **23 / 25 (92%)** — training IS their business |
-| **ACADEMIC** (WGU, SLU, community colleges) | **22 / 25 (88%)** — teaching is the mission |
-| **CONTENT DEVELOPMENT** (GP Strategies) | **22 / 25 (88%)** — same tier as training orgs |
-| **ENTERPRISE SOFTWARE** (Microsoft, SAP, Oracle, Salesforce) | **18 / 25 (72%)** — invest heavily in training |
-| **PROFESSIONAL SERVICES** | **18 / 25 (72%)** — training built into offerings |
-| **SOFTWARE** (category-specific — Trellix, Cohesity, Nutanix) | **16 / 25 (64%)** — varies with breadth and depth |
-| **SYSTEMS INTEGRATOR** (Deloitte, Accenture, Cognizant) | **16 / 25 (64%)** — training in delivery motion |
-| **Unknown / uncategorized** | **13 / 25 (52%)** |
-| **LMS PROVIDER** (Cornerstone, Docebo) | **11 / 25 (44%)** — host others' training, rarely train themselves deeply |
-| **TECH DISTRIBUTOR** (Ingram, CDW, Arrow) | **9 / 25 (36%)** — distribution-first |
+| **TRAINING ORG** (CompTIA, SANS, EC-Council, Cybrary) | **17 / 25 (68%)** — training IS their business; baseline lowered to leave room for positive signal differentiation |
+| **ACADEMIC** (WGU, SLU, community colleges) | **16 / 25 (64%)** — teaching is the mission; calibrated to let breadth-of-audience signals lift the score |
+| **CONTENT DEVELOPMENT** (GP Strategies) | **16 / 25 (64%)** — content creation implies training commitment but not always multi-audience breadth |
+| **ENTERPRISE SOFTWARE** (Microsoft, SAP, Oracle, Salesforce) | **14 / 25 (56%)** — invest in training but depth varies; positive findings do the differentiating |
+| **PROFESSIONAL SERVICES** | **14 / 25 (56%)** — training built into offerings but not always formalized |
+| **SOFTWARE** (category-specific — Trellix, Cohesity, Nutanix) | **12 / 25 (48%)** — varies widely; baseline centered to let evidence drive |
+| **SYSTEMS INTEGRATOR** (Deloitte, Accenture, Cognizant) | **12 / 25 (48%)** — training in delivery motion but not always customer-facing |
+| **LMS PROVIDER** (Cornerstone, Docebo) | **9 / 25 (36%)** — host others' training, rarely train themselves deeply |
+| **TECH DISTRIBUTOR** (Ingram, CDW, Arrow) | **7 / 25 (28%)** — distribution-first, training is not core |
+| **Unknown / uncategorized** | **10 / 25 (40%)** — conservative default; positive evidence lifts |
 
 **Signal categories (positive):** `customer_enablement_team`, `partner_enablement_program`, `employee_learning_investment`, `multi_audience_commitment` (breadth signal), `cert_exam_active`, `onboarding_program`, `customer_success_investment`, `training_leadership_level`, `training_events_at_scale`, `hands_on_learning_language`, `compliance_training_program`, `training_catalog_present`.
 
@@ -703,11 +707,16 @@ Strong = +6. Moderate = +3.
 
 | Org type | Baseline |
 |---|---|
-| **CONTENT DEVELOPMENT** (GP Strategies) | **14 / 20 (70%)** |
-| **ACADEMIC, TRAINING ORG, PROFESSIONAL SERVICES** | **12 / 20 (60%)** |
-| **SYSTEMS INTEGRATOR, ENTERPRISE SOFTWARE** | **11 / 20 (55%)** |
-| **SOFTWARE, Unknown / uncategorized** | **10 / 20 (50%)** |
-| **LMS PROVIDER, TECH DISTRIBUTOR** | **9 / 20 (45%)** |
+| **CONTENT DEVELOPMENT** (GP Strategies) | **13 / 20 (65%)** — content creation is the core competency |
+| **TRAINING ORG** (CompTIA, SANS, EC-Council, Cybrary) | **12 / 20 (60%)** — training orgs build their own material |
+| **ACADEMIC** (WGU, SLU, community colleges) | **11 / 20 (55%)** — faculty create course material but lab authoring varies |
+| **PROFESSIONAL SERVICES** | **11 / 20 (55%)** — client-facing delivery often requires custom content |
+| **ENTERPRISE SOFTWARE** (Microsoft, SAP, Oracle, Salesforce) | **10 / 20 (50%)** — large vendors have content teams but evidence is inward-facing |
+| **SYSTEMS INTEGRATOR** (Deloitte, Accenture, Cognizant) | **10 / 20 (50%)** — build capacity exists but is project-scoped |
+| **SOFTWARE** (category-specific — Trellix, Cohesity, Nutanix) | **9 / 20 (45%)** — varies; positive findings differentiate |
+| **LMS PROVIDER** (Cornerstone, Docebo) | **8 / 20 (40%)** — platform providers, not content creators |
+| **TECH DISTRIBUTOR** (Ingram, CDW, Arrow) | **8 / 20 (40%)** — distribution-first, limited authoring |
+| **Unknown / uncategorized** | **9 / 20 (45%)** — conservative default; evidence drives |
 
 **Signal categories (positive):** `diy_labs` (the strongest signal), `content_team_named`, `instructional_designers`, `lab_authors`, `tech_writers`, `product_training_partnership`, `content_partnership`, `instructor_authors_dual_role`, `sme_content_authoring`.
 
@@ -739,12 +748,16 @@ Strong = +5. Moderate = +3.
 
 | Org type | Baseline |
 |---|---|
-| **TRAINING ORG, LMS PROVIDER** | **24 / 30 (80%)** — delivery IS their business |
-| **ENTERPRISE SOFTWARE, TECH DISTRIBUTOR** | **22 / 30 (73%)** |
-| **SYSTEMS INTEGRATOR** | **20 / 30 (67%)** |
-| **PROFESSIONAL SERVICES** | **18 / 30 (60%)** |
-| **SOFTWARE, ACADEMIC, Unknown / uncategorized** | **16 / 30 (53%)** |
-| **CONTENT DEVELOPMENT** | **14 / 30 (47%)** |
+| **TRAINING ORG** (CompTIA, SANS, EC-Council, Cybrary) | **18 / 30 (60%)** — delivery is core but evidence-based signals do the differentiating |
+| **LMS PROVIDER** (Cornerstone, Docebo) | **18 / 30 (60%)** — delivery infrastructure is the product |
+| **ENTERPRISE SOFTWARE** (Microsoft, SAP, Oracle, Salesforce) | **17 / 30 (57%)** — large vendor delivery channels but depth varies |
+| **TECH DISTRIBUTOR** (Ingram, CDW, Arrow) | **17 / 30 (57%)** — wide distribution reach, delivery breadth |
+| **SYSTEMS INTEGRATOR** (Deloitte, Accenture, Cognizant) | **16 / 30 (53%)** — delivery through client engagements |
+| **PROFESSIONAL SERVICES** | **15 / 30 (50%)** — project-based delivery, not always at scale |
+| **SOFTWARE** (category-specific — Trellix, Cohesity, Nutanix) | **14 / 30 (47%)** — varies widely; evidence drives |
+| **ACADEMIC** (WGU, SLU, community colleges) | **14 / 30 (47%)** — deliver to enrolled students, limited external reach |
+| **CONTENT DEVELOPMENT** (GP Strategies) | **12 / 30 (40%)** — create content, less often deliver at scale |
+| **Unknown / uncategorized** | **14 / 30 (47%)** — conservative default; positive evidence lifts |
 
 **Signal categories (positive):** `lab_platform` (variable — Skillable expansion, competitor displacement, `No Lab Platform` greenfield, `DIY Lab Platform` replacement), `atp_network`, `lms_partner`, `lms_other`, `instructor_delivery_network`, `training_events_scale`, `cert_delivery_infrastructure`, `geographic_reach`, `published_course_calendar`, `gray_market`, `lab_build_capability`, `vendor_published_on_third_party`.
 
@@ -779,11 +792,16 @@ Strong = +8. Moderate = +4.
 
 | Org type | Baseline |
 |---|---|
-| **TRAINING ORG, CONTENT DEVELOPMENT** | **19 / 25 (76%)** |
-| **PROFESSIONAL SERVICES, SYSTEMS INTEGRATOR** | **18 / 25 (72%)** |
-| **ENTERPRISE SOFTWARE, TECH DISTRIBUTOR** | **17 / 25 (68%)** |
-| **SOFTWARE, LMS PROVIDER** | **16 / 25 (64%)** |
-| **ACADEMIC, Unknown / uncategorized** | **15 / 25 (60%)** |
+| **TRAINING ORG** (CompTIA, SANS, EC-Council, Cybrary) | **15 / 25 (60%)** — partnership culture exists but evidence differentiates |
+| **CONTENT DEVELOPMENT** (GP Strategies) | **15 / 25 (60%)** — content partnerships are core to the model |
+| **ENTERPRISE SOFTWARE** (Microsoft, SAP, Oracle, Salesforce) | **14 / 25 (56%)** — large vendor ecosystems with established partner programs |
+| **PROFESSIONAL SERVICES** | **14 / 25 (56%)** — partnership-oriented by nature of delivery model |
+| **SYSTEMS INTEGRATOR** (Deloitte, Accenture, Cognizant) | **14 / 25 (56%)** — multi-vendor partnerships are the business |
+| **SOFTWARE** (category-specific — Trellix, Cohesity, Nutanix) | **13 / 25 (52%)** — varies; positive findings differentiate |
+| **LMS PROVIDER** (Cornerstone, Docebo) | **13 / 25 (52%)** — platform integration partnerships |
+| **ACADEMIC** (WGU, SLU, community colleges) | **13 / 25 (52%)** — academic partnerships exist but are less commercially oriented |
+| **TECH DISTRIBUTOR** (Ingram, CDW, Arrow) | **13 / 25 (52%)** — distribution partnerships are transactional, not always strategic |
+| **Unknown / uncategorized** | **12 / 25 (48%)** — conservative default; evidence drives |
 
 **Signal categories (positive):** `many_partnership_types`, `strategic_asset_partnerships`, `platform_buyer_behavior`, `formal_channel_program`, `nimble_engagement`, `named_alliance_leadership`.
 
@@ -926,7 +944,7 @@ Scoring logic evolves. When a Pillar weight changes, a penalty is retuned, a bas
 
 ### What
 
-`cfg.SCORING_LOGIC_VERSION` is a string stamped on every saved analysis and every saved discovery at write time. Format: `"YYYY-MM-DD.short-description"`. Current value: `"2026-04-08.rebuild-step-5b-pristine-cleanup"`.
+`cfg.SCORING_LOGIC_VERSION` is a string stamped on every saved analysis and every saved discovery at write time. Format: `"YYYY-MM-DD.short-description"`. Current value: `"2026-04-13.iv-badges-penalties-orphan-mfa"`.
 
 ### How
 
@@ -942,7 +960,7 @@ On every cache read:
 
 ## Worked Examples
 
-All examples assume `SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-5b-pristine-cleanup"`. Values come from `scoring_config.py` — nothing is hardcoded in this doc.
+All examples assume `SCORING_LOGIC_VERSION = "2026-04-13.iv-badges-penalties-orphan-mfa"`. Values come from `scoring_config.py` — nothing is hardcoded in this doc.
 
 ### Trellix Endpoint Security (SOFTWARE, Cybersecurity)
 
@@ -970,21 +988,21 @@ All examples assume `SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-5b-pristin
 
 | Dimension | Detail | Score |
 |---|---|---|
-| Training Commitment | SOFTWARE baseline 16 + Partner Academy strong (+6) + Customer Enablement Team strong (+6) + Multi-Audience Programs strong (+6) = 34, capped at 25 | **25 / 25** |
-| Build Capacity | SOFTWARE baseline 10 + Trellix Education Team content_team_named strong (+5) + DIY Labs strong (+5) = 20, capped at 20 | **20 / 20** |
-| Delivery Capacity | SOFTWARE baseline 16 + No Lab Platform moderate (+4) + Global Channel Network strong (+8) = 28, capped at 30 + No Training Partners red (-10) risk cap reduction = 20 effective cap, clamp 28 → **20 / 30** |
-| Organizational DNA | SOFTWARE baseline 16 + Multi-Type Partnerships strong (+6) + Strategic Alliance Program strong (+6) = 28, capped at 25 | **25 / 25** |
-| **CF total** | | **90 / 100** |
+| Training Commitment | SOFTWARE baseline 12 + Partner Academy strong (+6) + Customer Enablement Team strong (+6) + Multi-Audience Programs strong (+6) = 30, capped at 25 | **25 / 25** |
+| Build Capacity | SOFTWARE baseline 9 + Trellix Education Team content_team_named strong (+5) + DIY Labs strong (+5) = 19, capped at 20 | **19 / 20** |
+| Delivery Capacity | SOFTWARE baseline 14 + No Lab Platform moderate (+4) + Global Channel Network strong (+8) = 26, capped at 30 + No Training Partners red (-10) risk cap reduction = 20 effective cap, clamp 26 → **20 / 30** |
+| Organizational DNA | SOFTWARE baseline 13 + Multi-Type Partnerships strong (+6) + Strategic Alliance Program strong (+6) = 25, capped at 25 | **25 / 25** |
+| **CF total** | | **89 / 100** |
 
 **Fit Score composition**
 
-PL 92, IV 100, CF 90, orchestration = Hyper-V (datacenter method class).
+PL 92, IV 100, CF 89, orchestration = Hyper-V (datacenter method class).
 
 - Technical Fit Multiplier lookup: PL 92 is ≥ 60 → multiplier = **1.0**
 - PL contrib = 92 × 0.50 = 46.0
 - IV contrib = 100 × 0.20 × 1.0 = 20.0
-- CF contrib = 90 × 0.30 × 1.0 = 27.0
-- **Fit Score = round(93.0) = 93 → Dark Green → Prime Target**
+- CF contrib = 89 × 0.30 × 1.0 = 26.7
+- **Fit Score = round(92.7) = 93 → Dark Green → Prime Target**
 
 ### Diligent Boards (SOFTWARE, Content Management / Governance, SaaS-only)
 
