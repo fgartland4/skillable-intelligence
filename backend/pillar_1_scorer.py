@@ -542,6 +542,12 @@ def score_provisioning(facts: ProductLababilityFacts) -> _DimensionResult:
         if primary_fabric == _SIG_SANDBOX_API and p.sandbox_api_granularity == _GRAN_PARTIAL:
             signals.append((primary_fabric, base_points // 2))  # magic-allowed: amber fires at half the green signal credit
             amber_risks += 1
+        # Sandbox API downgrades to amber when needs_gcp — the product is
+        # GCP-native and Skillable has no native GCP fabric. Green Sandbox
+        # API + "No GCP Path" is a contradiction. (Fix 1, 2026-04-13)
+        elif primary_fabric == _SIG_SANDBOX_API and p.needs_gcp:
+            signals.append((primary_fabric, base_points // 2))  # magic-allowed: amber for GCP limitation
+            amber_risks += 1
         else:
             signals.append((primary_fabric, base_points))
 

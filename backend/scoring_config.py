@@ -2884,6 +2884,15 @@ ACV_CERT_MAX_FRACTION_OF_INSTALL_BASE = 0.10
 # Represents a rough ceiling on training spend per employee per year
 ACV_PER_EMPLOYEE_ANNUAL_CAP = 500
 
+# ── IV differentiation: strong signal cap per dimension ───────────────
+# When a dimension receives more than this many "strong" signals, the
+# extras are downgraded to "moderate" credit. This creates differentiation
+# within high-baseline categories (Cybersecurity, Cloud Infrastructure)
+# where every product would otherwise hit 100/100. A product with 2
+# strong signals + 1 moderate scores differently than 3+ strong.
+# Per Frank 2026-04-13 — Option A from the IV differentiation discussion.
+MAX_STRONG_SIGNALS_PER_DIMENSION = 2
+
 ACV_ORG_MOTION_LABELS: dict[str, dict[str, str]] = {
     "ACADEMIC": {
         "Customer Training & Enablement": "Student Training",
@@ -3390,7 +3399,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-13.acv-audience-guardrails-r1-r5"
+SCORING_LOGIC_VERSION = "2026-04-13.gcp-sandbox-fix-diy-lab-iv-differentiation"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

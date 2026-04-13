@@ -613,10 +613,28 @@ def grade_build_capacity(company: CompanyAnalysis) -> list[GradedSignal]:
     Also cross-reads lab_build_platforms_in_use which lives in
     BuildCapacityFacts but is shared with Delivery Capacity in the
     rebuild routing.
+
+    Fix 3 (2026-04-13): injects lab_platform signal so the grader can
+    emit a `diy_labs` amber finding when the company operates its own
+    lab platform (Qwiklabs, CML, etc.). The capability is real (they
+    CAN build), but the DIY platform is amber because the seller is
+    pitching against an internal solution.
     """
     cf_facts = company.customer_fit_facts
     vendor_published = _aggregate_vendor_published_counts(company.products)
-    facts_context = "\n\n".join([
+
+    # Lab platform signal — detect DIY / competitor / Skillable
+    disc = getattr(company, "discovery_data", None) or {}
+    lab_platform = (disc.get("company_signals", {}) or {}).get("lab_platform", "")
+    lab_platform_context = (
+        f"IMPORTANT: This company operates its own lab platform: '{lab_platform}'. "
+        f"A DIY lab platform means strong build capability (they CAN build labs) — "
+        f"but it is also an amber Risk signal because the seller must pitch against "
+        f"an internal solution. Emit `diy_labs` as amber Risk with evidence naming "
+        f"the specific platform."
+    ) if lab_platform and "no " not in lab_platform.lower() and lab_platform.lower() not in ("none", "greenfield", "no lab platform") else ""
+
+    facts_context = "\n\n".join(filter(None, [
         _format_facts_section(
             "Build Capacity facts (primary)",
             _json_dumps_dataclass(cf_facts.build_capacity),
@@ -625,7 +643,8 @@ def grade_build_capacity(company: CompanyAnalysis) -> list[GradedSignal]:
             "Cross-pillar read: vendor-published third-party course counts (aggregated across products)",
             _json_dumps_dataclass(vendor_published),
         ),
-    ])
+        lab_platform_context,
+    ]))
     return grade_dimension(
         _BUILD_CAPACITY_DIM,
         facts_context,
@@ -669,12 +688,33 @@ def grade_delivery_capacity(company: CompanyAnalysis) -> list[GradedSignal]:
 
 
 def grade_organizational_dna(company: CompanyAnalysis) -> list[GradedSignal]:
-    """Grade Organizational DNA signals for one company."""
+    """Grade Organizational DNA signals for one company.
+
+    Fix 3 (2026-04-13): injects lab_platform signal so the grader can
+    emit a `build_everything_culture` amber finding when the company
+    operates its own lab platform. A company that has already built
+    their own version of what Skillable does is less likely to partner.
+    """
     cf_facts = company.customer_fit_facts
-    facts_context = _format_facts_section(
-        "Organizational DNA facts",
-        _json_dumps_dataclass(cf_facts.organizational_dna),
-    )
+
+    # Lab platform signal — detect DIY / competitor as build-everything culture
+    disc = getattr(company, "discovery_data", None) or {}
+    lab_platform = (disc.get("company_signals", {}) or {}).get("lab_platform", "")
+    lab_platform_context = (
+        f"IMPORTANT: This company operates its own lab platform: '{lab_platform}'. "
+        f"A company that has already built their own lab delivery platform is "
+        f"exhibiting `build_everything_culture` — they prefer to build rather "
+        f"than partner. Emit `build_everything_culture` as amber Risk with "
+        f"evidence naming the specific platform."
+    ) if lab_platform and "no " not in lab_platform.lower() and lab_platform.lower() not in ("none", "greenfield", "no lab platform", "skillable") else ""
+
+    facts_context = "\n\n".join(filter(None, [
+        _format_facts_section(
+            "Organizational DNA facts",
+            _json_dumps_dataclass(cf_facts.organizational_dna),
+        ),
+        lab_platform_context,
+    ]))
     return grade_dimension(
         _ORGANIZATIONAL_DNA_DIM,
         facts_context,

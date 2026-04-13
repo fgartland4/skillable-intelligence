@@ -258,8 +258,15 @@ def _score_rubric_dimension(
             penalties_applied.append((cat, -penalty.hit))
             continue
 
-        # Positive rubric credit from tier points
-        pts = int(tier_points.get(grade.strength, 0))
+        # Positive rubric credit from tier points.
+        # Fix 4 (2026-04-13): cap strong signals at MAX_STRONG_SIGNALS_PER_DIMENSION.
+        # Extras are downgraded to moderate credit for IV differentiation.
+        effective_strength = grade.strength
+        if effective_strength == "strong":
+            strong_count = sum(1 for _, p in signals_credited if p == tier_points.get("strong", 0))
+            if strong_count >= cfg.MAX_STRONG_SIGNALS_PER_DIMENSION:
+                effective_strength = "moderate"  # downgrade to moderate credit
+        pts = int(tier_points.get(effective_strength, 0))
         if pts:
             positive_total += pts
             signals_credited.append((cat, pts))
