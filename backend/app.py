@@ -1267,11 +1267,25 @@ def _build_prospector_row(disc: dict) -> dict:
     # Same methodology as Deep Dive (audience × adoption × hours × rate)
     # but summed across ALL discovered products, not just the top one.
     # Per-product tiered caps keep inflated user bases honest.
+    # Org-type overrides for adoption and hours — aligned with Deep Dive.
     # Deep Dive replaces this with the full five-motion calculation.
     import scoring_config as _cfg
     estimated_acv = ""
     sort_acv = 0
     company_acv = 0
+
+    # Look up org-type overrides for adoption rate and hours —
+    # same overrides the Deep Dive ACV calculator uses. Define-Once.
+    org_type = (disc.get("organization_type") or "").lower().replace(" ", "_")
+    normalized_org = _cfg.ORG_TYPE_NORMALIZATION.get(org_type, "")
+    org_adoption_overrides = _cfg.ACV_ORG_ADOPTION_OVERRIDES.get(normalized_org, {})
+    org_hours_overrides = _cfg.ACV_ORG_HOURS_OVERRIDES.get(normalized_org, {})
+    # Customer Training is Motion 1 — use its override if available
+    adoption = org_adoption_overrides.get(
+        "Customer Training & Enablement", _cfg.DISCOVERY_ACV_ADOPTION_RATE)
+    hours = org_hours_overrides.get(
+        "Customer Training & Enablement", _cfg.DISCOVERY_ACV_HOURS)
+
     for p in products:
         ub_str = p.get("estimated_user_base", "")
         if not ub_str:
@@ -1288,8 +1302,7 @@ def _build_prospector_row(disc: dict) -> dict:
         deployment = (p.get("deployment_model") or "").lower()
         rate = _cfg.DISCOVERY_ACV_RATE_BY_DEPLOYMENT.get(
             deployment, _cfg.DISCOVERY_ACV_DEFAULT_RATE)
-        company_acv += int(user_count * _cfg.DISCOVERY_ACV_ADOPTION_RATE
-                           * _cfg.DISCOVERY_ACV_HOURS * rate)
+        company_acv += int(user_count * adoption * hours * rate)
     # Hard cap — no discovery estimate exceeds the ceiling
     company_acv = min(company_acv, _cfg.DISCOVERY_ACV_CAP)
     sort_acv = company_acv
