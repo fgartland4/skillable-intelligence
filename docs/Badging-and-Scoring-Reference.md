@@ -809,13 +809,17 @@ A pure 70/30 weighted sum lets a product with weak Product Labability (PL ≈ 20
 
 From `cfg.TECHNICAL_FIT_MULTIPLIERS`:
 
-| Product Labability score | Orchestration method class | Multiplier |
-|---|---|---|
-| ≥32 | Any | **1.0** |
-| 24–31 | Datacenter (Hyper-V, ESX, Container, Azure VM, AWS VM) | **1.0** |
-| 19–31 | Non-datacenter | **0.75** |
-| 10–18 | Any | **0.65** |
-| 0–9 | Any | **0.50** |
+| Product Labability score | Orchestration method class | Multiplier | Effect |
+|---|---|---|---|
+| ≥60 | Any | **1.0** | Full credit — strong product |
+| 32–59 | Datacenter (Hyper-V, ESX, Container, Azure VM, AWS VM) | **1.0** | Datacenter protected — VM/ESX/Container products keep full credit |
+| 32–59 | Non-datacenter | **0.65** | Meaningful drag — SaaS/cloud with uncertain provisioning |
+| 19–31 | Datacenter | **0.75** | Moderate drag even for datacenter |
+| 19–31 | Non-datacenter | **0.60** | Significant drag — weak SaaS labability |
+| 10–18 | Any | **0.50** | Heavy drag — very weak labability |
+| 0–9 | Any | **0.35** | Near-total drag — product is nearly unlabable |
+
+*(Retuned 2026-04-12 from the original 5-row table after Workday validation showed PL 45 non-datacenter was producing Fit 66 instead of ~49.)*
 
 The table is keyed on PL score band × method class. Method class comes from `cfg.DATACENTER_METHODS` — anything in that tuple is "datacenter," anything else (empty string, unknown) is "any." Walk order: method-specific match first, then "any" fallback.
 

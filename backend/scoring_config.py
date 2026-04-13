@@ -1904,11 +1904,19 @@ VERDICT_GRID: dict[tuple[int, str], VerdictDefinition] = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 TECHNICAL_FIT_MULTIPLIERS: tuple[TechnicalFitMultiplier, ...] = (
-    TechnicalFitMultiplier(32, 100, "any", 1.0),
-    TechnicalFitMultiplier(24, 31, "datacenter", 1.0),
-    TechnicalFitMultiplier(19, 31, "non-datacenter", 0.75),
-    TechnicalFitMultiplier(10, 18, "any", 0.65),
-    TechnicalFitMultiplier(0, 9, "any", 0.50),
+    # Full credit: strong PL, no drag on IV + CF
+    TechnicalFitMultiplier(60, 100, "any", 1.0),  # magic-allowed: threshold tuned 2026-04-12
+    # Datacenter protection: VM/ESX/Container products get full credit down to 32
+    TechnicalFitMultiplier(32, 59, "datacenter", 1.0),  # magic-allowed: datacenter carve-out
+    # Mid-range non-datacenter: meaningful drag — SaaS/cloud products with
+    # uncertain provisioning (Workday PL 45 → Fit ~49, not 66)
+    TechnicalFitMultiplier(32, 59, "non-datacenter", 0.65),  # magic-allowed: retuned 2026-04-12
+    # Weak-but-viable: significant drag
+    TechnicalFitMultiplier(19, 31, "datacenter", 0.75),  # magic-allowed: low-datacenter band
+    TechnicalFitMultiplier(19, 31, "non-datacenter", 0.60),  # magic-allowed: low-non-datacenter band
+    # Very weak: heavy drag
+    TechnicalFitMultiplier(10, 18, "any", 0.50),  # magic-allowed: very weak PL
+    TechnicalFitMultiplier(0, 9, "any", 0.35),  # magic-allowed: nearly unlabable
 )
 
 DATACENTER_METHODS = ("Hyper-V", "ESX", "Container", "Azure VM", "AWS VM")
@@ -3180,7 +3188,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-12.pillar-rebalance-50-20-30"
+SCORING_LOGIC_VERSION = "2026-04-13.technical-fit-multiplier-retune"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
@@ -3363,11 +3371,13 @@ def _build_modal_content() -> dict:
             },
             {"label": "How", "body": "Each Pillar scores out of 100 internally, then gets weighted. The <em>Technical Fit Multiplier</em> enforces an asymmetric rule:"
                 '<table class="info-modal-table"><thead><tr><th>Product Labability Score</th><th>Multiplier on IV + CF</th><th>Effect</th></tr></thead><tbody>'
-                '<tr><td>≥ 32</td><td>1.0</td><td>Full contribution — strong product, no drag</td></tr>'
-                '<tr><td>24–31 (datacenter)</td><td>1.0</td><td>Datacenter products get full credit in this range</td></tr>'
-                '<tr><td>19–31 (non-datacenter)</td><td>0.75</td><td>Moderate drag — IV + CF reduced by 25%</td></tr>'
-                '<tr><td>10–18</td><td>0.65</td><td>Significant drag — weak labability hurts the deal</td></tr>'
-                '<tr><td>0–9</td><td>0.50</td><td>Heavy drag — half of IV + CF contribution lost</td></tr>'
+                '<tr><td>≥ 60</td><td>1.0</td><td>Full contribution — strong product, no drag</td></tr>'
+                '<tr><td>32–59 (datacenter)</td><td>1.0</td><td>Datacenter products protected — VM/ESX/Container</td></tr>'
+                '<tr><td>32–59 (non-datacenter)</td><td>0.65</td><td>Meaningful drag — SaaS/cloud with uncertain provisioning</td></tr>'
+                '<tr><td>19–31 (datacenter)</td><td>0.75</td><td>Moderate drag even for datacenter products</td></tr>'
+                '<tr><td>19–31 (non-datacenter)</td><td>0.60</td><td>Significant drag — weak SaaS labability</td></tr>'
+                '<tr><td>10–18</td><td>0.50</td><td>Heavy drag — very weak labability</td></tr>'
+                '<tr><td>0–9</td><td>0.35</td><td>Near-total drag — product is nearly unlabable</td></tr>'
                 '</tbody></table>'
                 "Weak PL drags IV + CF down. Weak IV or CF does NOT drag PL down. A perfectly labable product with weak organizational signals is still a viable deal; a perfectly committed customer with an unlabable product is not."
             },

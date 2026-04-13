@@ -33,20 +33,20 @@
       {% for m in acv.motions %}
       <tr>
         <td class="acv-motion" title="{{ m.label }}">{{ m.label }}</td>
-        <td class="acv-num">{% if (m.population_low or 0) == (m.population_high or 0) %}{{ (m.population_low or 0) | format_count }}{% else %}{{ (m.population_low or 0) | format_count }}–{{ (m.population_high or 0) | format_count }}{% endif %}</td>
+        <td class="acv-num">{% if (m.population_low or 0) == (m.population_high or 0) %}~{{ (m.population_low or 0) | format_count }}{% elif (m.population_low or 0) > 0 %}~{{ (m.population_low or 0) | format_count }}{% else %}0{% endif %}</td>
         <td class="acv-num">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
-        <td class="acv-center">{% if (m.hours_low or 0) == (m.hours_high or 0) %}{{ (m.hours_low or 0) | int }}{% else %}{{ (m.hours_low or 0) | int }}–{{ (m.hours_high or 0) | int }}{% endif %}</td>
-        <td class="acv-num">{% if (m.hrs_low or 0) == (m.hrs_high or 0) %}{{ (m.hrs_low or 0) | format_count }}{% else %}{{ (m.hrs_low or 0) | format_count }}–{{ (m.hrs_high or 0) | format_count }}{% endif %}</td>
+        <td class="acv-center">{{ (m.hours_low or 0) | int }}</td>
+        <td class="acv-num">{% if (m.hrs_low or 0) == (m.hrs_high or 0) %}~{{ (m.hrs_low or 0) | format_count }}{% elif (m.hrs_low or 0) > 0 %}~{{ (m.hrs_low or 0) | format_count }}{% else %}0{% endif %}</td>
       </tr>
       {% endfor %}
       <tr class="acv-total-row acv-total-label">
         <td colspan="3">Annual Hours</td>
-        <td class="acv-num" colspan="2">{{ (acv.annual_hours_low or 0) | format_count }}–{{ (acv.annual_hours_high or 0) | format_count }}</td>
+        <td class="acv-num" colspan="2">~{{ (acv.annual_hours_low or 0) | format_count }}</td>
       </tr>
-      {% if (acv.acv_low or 0) > 0 or (acv.acv_high or 0) > 0 %}
+      {% if (acv.acv_low or 0) > 0 %}
       <tr class="acv-total-row acv-total-label">
         <td colspan="3">Annual ACV Potential</td>
-        <td class="acv-num" colspan="2">{{ acv.acv_low | format_acv }} – {{ acv.acv_high | format_acv }}</td>
+        <td class="acv-num" colspan="2">~{{ acv.acv_low | format_acv }}</td>
       </tr>
       {% endif %}
     </tbody>

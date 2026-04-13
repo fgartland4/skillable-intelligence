@@ -49,14 +49,14 @@
   {% set acv = analysis._company_acv or {} %}
   {% if acv.company_high and acv.company_high > 0 %}
     <div class="hero-acv-label">ACV Potential <span class="info-icon info-icon-inline" onclick="openInfoModal('acv_potential')" title="How is ACV Potential calculated?">?</span></div>
-    <div class="hero-acv-num">{{ acv.company_low | format_acv }} – {{ acv.company_high | format_acv }}</div>
+    <div class="hero-acv-num">~{{ acv.company_low | format_acv }}</div>
     <div class="hero-acv-detail">
       Estimated across all <strong>{{ acv.discovered_count }}</strong> discovered products
       <br>
       <span class="hero-acv-scored">
         Estimate for <strong>ONLY</strong> the <strong>{{ acv.scored_count }}</strong> scored
         product{% if acv.scored_count != 1 %}s{% endif %}:
-        <strong>{{ acv.scored_low | format_acv }} – {{ acv.scored_high | format_acv }}</strong>
+        <strong>~{{ acv.scored_low | format_acv }}</strong>
       </span>
     </div>
   {% endif %}
