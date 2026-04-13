@@ -663,7 +663,7 @@ window.openSearchModal = function(opts) {
       // already arrived?  Start the Claude phase now — the timer has
       // caught up to the queued request.
       if (currentResearchStage === RESEARCH_COUNT - 1 && claudePhasePending) {
-        setTimeout(startClaudePhase, 500);  // magic-allowed: brief dwell so the last stage is visibly active
+        setTimeout(startClaudePhase, STAGE_ADVANCE_MS);  // Full 10s dwell on last stage too — Frank 2026-04-13
       }
     }
   }, STAGE_ADVANCE_MS) : null;
@@ -674,7 +674,7 @@ window.openSearchModal = function(opts) {
   function requestClaudePhase() {
     if (claudeStarted) return;
     if (currentResearchStage >= RESEARCH_COUNT - 1) {
-      startClaudePhase();
+      setTimeout(startClaudePhase, STAGE_ADVANCE_MS);  // Full 10s dwell — Frank 2026-04-13
     } else {
       claudePhasePending = true;
     }
