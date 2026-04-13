@@ -887,12 +887,13 @@ def inspector_full_analysis(analysis_id: str):
 
 @app.route("/prospector")
 def prospector_home():
-    """Prospector home — results-first view with All Companies, Recent Batches, and dynamic batch tabs."""
+    """Prospector home — results-first view. Page loads instantly with
+    batches and header; the All Companies table loads async via
+    /prospector/api/companies to avoid the 2-3 second server delay."""
     import scoring_config as _cfg
     from datetime import date
 
     recent_batches = _list_recent_batches(limit=_cfg.PROSPECTOR_RECENT_BATCHES_LIMIT)
-    all_results = _deduped_all_discoveries()
 
     # Optional batch_id from query param (for viewing a specific batch)
     batch_id = request.args.get("batch")
@@ -911,11 +912,25 @@ def prospector_home():
 
     return render_template("prospector.html",
                           recent_batches=recent_batches,
-                          all_results=all_results,
+                          all_results=None,
                           batch_results=batch_results,
                           batch_id=batch_id,
                           initial_tab=initial_tab,
                           refresh_date=date.today().strftime("%B %d, %Y"))
+
+
+@app.route("/prospector/api/companies")
+def prospector_api_companies():
+    """Async API: return all deduplicated companies as JSON for the
+    All Companies tab. Called via fetch after the page renders so the
+    Prospector home loads instantly."""
+    from datetime import date
+    all_results = _deduped_all_discoveries()
+    return jsonify({
+        "companies": all_results,
+        "count": len(all_results),
+        "refresh_date": date.today().strftime("%B %d, %Y"),
+    })
 
 
 @app.route("/prospector/upload")

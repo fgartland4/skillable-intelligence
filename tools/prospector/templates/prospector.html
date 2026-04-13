@@ -46,10 +46,10 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
         }
         .action-grid a {
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-            padding: 10px 20px; background: transparent; color: var(--sk-accent);
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 7px 14px; background: transparent; color: var(--sk-accent);
             border: 1px solid var(--sk-accent); border-radius: 7px;
-            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer;
             transition: background 0.15s; font-family: inherit; text-decoration: none;
             white-space: nowrap;
         }
@@ -99,11 +99,12 @@
         }
         .btn-export.btn-disabled:hover { background: transparent; color: var(--sk-text-muted); }
 
-        /* ── Tabs ── */
+        /* ── Tabs + actions row ── */
         .results-tabs {
-            display: flex; gap: 0; margin-bottom: 18px;
+            display: flex; align-items: center; gap: 0; margin-bottom: 18px;
             border-bottom: 1px solid var(--sk-border);
         }
+        .results-tabs .results-actions { margin-left: auto; border-bottom: none; }
         .results-tab {
             padding: 10px 20px; font-size: 0.78rem; font-weight: 600;
             color: var(--sk-text-dim); cursor: pointer; border: none;
@@ -236,6 +237,19 @@
         /* ── Tab content panels ── */
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
+
+        /* ── Loading state ── */
+        .loading-indicator {
+            text-align: center; padding: 60px 20px;
+            color: var(--sk-text-dim); font-size: 0.82rem;
+        }
+        .loading-spinner {
+            display: inline-block; width: 20px; height: 20px;
+            border: 2px solid var(--sk-border); border-top-color: var(--sk-accent);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+            margin-right: 8px; vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -256,31 +270,27 @@
                 <a href="/prospector/upload">Upload List</a>
                 <a href="/prospector/paste">Paste List</a>
                 <a href="/prospector/lookalikes">Find Lookalikes</a>
-                <a href="/prospector/configure">Configure Integration</a>
+                <a href="/prospector/configure">Configure HubSpot</a>
             </div>
         </div>
     </div>
 
-    {# ── Action buttons (Research / Deep Dive / Export / HubSpot) ── #}
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
-        <div class="results-actions">
-            <a href="#" class="btn-deep-dive" id="btnResearch">Research &rarr;</a>
-            <a href="#" class="btn-deep-dive" id="btnDeepDive">Run Deep Dive &rarr;</a>
-            <a href="#" class="btn-export" id="btnExportCsv">Export CSV &darr;</a>
-            <span class="btn-export btn-disabled" title="Coming Soon — HubSpot integration is planned">Send to HubSpot &rarr;</span>
-        </div>
-    </div>
-
-    {# ── Tabs ── #}
+    {# ── Tabs + Action buttons on one row ── #}
     <div class="results-tabs" id="resultsTabs">
         <button class="results-tab" id="tab-all"
-                onclick="switchTab('all', this)">All Companies ({{ all_results | length }})</button>
+                onclick="switchTab('all', this)">All Companies <span id="all-count"></span></button>
         <button class="results-tab" id="tab-batches"
                 onclick="switchTab('batches', this)">Recent Batches</button>
         {% if batch_results is not none %}
         <button class="results-tab" id="tab-batch"
                 onclick="switchTab('batch', this)">Batch Results ({{ batch_results | length }}) <span class="tab-close" onclick="event.stopPropagation(); closeBatchTab();">&times;</span></button>
         {% endif %}
+        <div class="results-actions">
+            <a href="#" class="btn-deep-dive" id="btnResearch">Research &rarr;</a>
+            <a href="#" class="btn-deep-dive" id="btnDeepDive">Deep Dive &rarr;</a>
+            <a href="#" class="btn-export" id="btnExportCsv">Export CSV &darr;</a>
+            <span class="btn-export btn-disabled" title="Coming Soon — HubSpot integration is planned">Send to HubSpot &rarr;</span>
+        </div>
     </div>
 
     {# ── Tab: All Companies ── #}
@@ -362,7 +372,9 @@
                     <th class="col-channel">Sales Channel</th>
                 </tr>
             </thead>
-            {{ render_tbody(all_results, 'tbody-all') }}
+            <tbody id="tbody-all">
+                <tr id="all-loading-row"><td colspan="14" class="loading-indicator"><span class="loading-spinner"></span>Loading companies...</td></tr>
+            </tbody>
         </table>
     </div>
 
@@ -617,6 +629,58 @@
 
     // ── Initial state ──
     showTab(activeTab);
+
+    // ── Async load All Companies ──
+    fetch('/prospector/api/companies')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var tbody = document.getElementById('tbody-all');
+            var countEl = document.getElementById('all-count');
+            if (countEl) countEl.textContent = '(' + data.count + ')';
+            if (!data.companies || data.companies.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="14" class="empty-state">No companies found. Upload a list or paste company names to get started.</td></tr>';
+                return;
+            }
+            var html = '';
+            data.companies.forEach(function(r, i) {
+                var badgeColor = (r.badge_color || 'purple').replace(/_/g, '-');
+                var badgeHtml = r.company_badge ? '<span class="company-cell-badge badge-' + badgeColor + '">' + r.company_badge + '</span>' : '';
+                var labHtml = '';
+                if (r.lab_platform) {
+                    if (r.lab_platform.toLowerCase().indexOf('skillable') >= 0) {
+                        labHtml = '<span class="lab-skillable">' + r.lab_platform + '</span>';
+                    } else if (['none','no lab platform','greenfield'].indexOf(r.lab_platform.toLowerCase()) >= 0) {
+                        labHtml = '<span class="lab-none">None</span>';
+                    } else {
+                        labHtml = '<span class="lab-competitor">' + r.lab_platform + '</span>';
+                    }
+                } else {
+                    labHtml = '<span class="lab-none">&mdash;</span>';
+                }
+                var subHtml = r.top_product_subcategory ? '<div class="product-cell-sub">' + r.top_product_subcategory + '</div>' : '';
+                html += '<tr>' +
+                    '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
+                    '<td class="rank-num">' + (r.rank || (i+1)) + '</td>' +
+                    '<td title="' + (r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
+                    '<td class="acv-cell" title="' + (r.estimated_acv||'') + '">' + (r.estimated_acv||'&mdash;') + '</td>' +
+                    '<td title="' + (r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +
+                    '<td class="why-cell" title="' + (r.top_product_why||'') + '">' + (r.top_product_why||'') + '</td>' +
+                    '<td class="rank-num">' + (r.promising_count||0) + '</td>' +
+                    '<td class="rank-num">' + (r.potential_count||0) + '</td>' +
+                    '<td class="rank-num">' + (r.uncertain_count||0) + '</td>' +
+                    '<td class="rank-num">' + (r.unlikely_count||0) + '</td>' +
+                    '<td class="signal-cell" title="' + (r.lab_platform||'') + '">' + labHtml + '</td>' +
+                    '<td class="signal-cell" title="' + (r.key_signal||'') + '">' + (r.key_signal||'') + '</td>' +
+                    '<td class="signal-cell" title="' + (r.cert_program||'') + '">' + (r.cert_program||'') + '</td>' +
+                    '<td class="signal-cell" title="' + (r.sales_channel||'') + '">' + (r.sales_channel||'') + '</td>' +
+                    '</tr>';
+            });
+            tbody.innerHTML = html;
+        })
+        .catch(function(err) {
+            var tbody = document.getElementById('tbody-all');
+            tbody.innerHTML = '<tr><td colspan="14" class="empty-state">Failed to load companies: ' + err + '</td></tr>';
+        });
 })();
 </script>
 
