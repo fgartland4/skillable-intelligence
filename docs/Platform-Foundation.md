@@ -1252,9 +1252,10 @@ Company classification badge uses purple — same color as product subcategory b
 
 | Step | What happens |
 |---|---|
-| **1. Input** | Marketing pastes company names OR uploads a CSV. One input area — same unified search field as Inspector. |
-| **2. Discovery** | Prospector runs the standard discovery on each company — same research pass, same three-tier data shape, same caching. All discovered companies and their products are stored and available for Inspector Deep Dives immediately. |
-| **3. Results table** | All companies displayed in one view, sorted by ACV potential, with product-level evidence. This is the core of Prospector. |
+| **1. Input** | Marketing pastes company names OR uploads a CSV. One input area — same unified search field as Inspector. Optional checkbox: "Perform Deep Dive on top product" runs a full scoring pass on each company's flagship product automatically. |
+| **1a. Estimator** | A live cost/time estimator in a right-side column next to the input area. Updates as companies are added. Shows estimated API cost (mid-to-mid-high) and wall time. Updates when Deep Dive checkbox is toggled. GP1: right information at the right time — the user knows the commitment before clicking Run. |
+| **2. Discovery** | Prospector runs the standard discovery on each company — same research pass, same three-tier data shape, same caching. All discovered companies and their products are stored and available for Inspector Deep Dives immediately. Per-company timeout: 3 minutes for discovery, 5 minutes for Deep Dive. Failed companies show in results with an error flag — user can re-run. Companies process in parallel where possible. |
+| **3. Results table** | All companies displayed in one view, sorted by ACV potential, with product-level evidence. Companies with Deep Dive data show sharpened Fit Score and ACV. This is the core of Prospector. |
 | **4. Export** | CSV download with the same columns for import into HubSpot or other marketing tools. |
 
 **Intelligence sharpens automatically.** If a company in the Prospector list has already had a Deep Dive in Inspector, Prospector shows the sharpened Deep Dive data — actual Fit Score, actual ACV with all five motions, real badges — instead of rough discovery estimates. The more the platform is used, the better Prospector's data gets, without any extra work. GP5 in action.

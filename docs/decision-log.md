@@ -4,6 +4,31 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-13 (continued) — 14-fix batch, verdict recalibration, Prospector enhancements
+
+### 14-fix comprehensive batch
+All 14 planned fixes shipped in 7 commits: post-filters module, ACV per-product extrapolation, org-type adoption overrides, cert derivation constant, wrapper org pipeline, IV badge quality tightening, MFA penalty -15, Orphan Risk 3-tier spectrum, CF baseline recalibration, Pillar 2 extractor retry, Prospector search modal.
+
+### Verdict grid recalibrated
+- **DECIDED:** 45-64 row changed from High Potential / Worth Pursuing / Solid Prospect to Assess First / Keep Watch / Deprioritize (same as 25-44). Products with mid-range Fit Scores are marginal — the labels should communicate that honestly. Modal grid collapses 25-64 into one visual row to avoid visual duplication.
+
+### Scoring dimension amber credit reduced
+- **DECIDED:** Uncertain/partial scoring methods get 1/3 credit (not 1/2). `SCORING_AMBER_CREDIT_FRACTION = 3` in scoring_config.py. Two uncertain methods ≈ 6/15 instead of 12/15. "Can't really tell" should not produce near-full marks.
+
+### Prospector enhancements designed
+Three features agreed:
+1. **Deep Dive top product checkbox** — optional, runs full scoring on flagship product per company during batch
+2. **Cost/time estimator** — live counter next to input area, mid-to-mid-high estimates, updates when checkbox toggled
+3. **Per-company timeouts + parallel** — 3 min discovery, 5 min Deep Dive, skip on timeout, show failed in results. Products in parallel within Deep Dive.
+
+### Bar color threshold
+- **DECIDED:** 70% exactly is amber, not green. Green starts strictly above 70%.
+
+### Typeahead deduplication
+- **DECIDED:** Search dropdown deduplicates by company name. Each company appears once.
+
+---
+
 ## Session: 2026-04-12/13 — Validation round, scoring retune, researcher sharpening, wrapper org logic
 
 Two-day session spanning validation of the rebuilt scoring layer, multiple scoring retunes, researcher prompt sharpening, and the wrapper organization extraction pattern.

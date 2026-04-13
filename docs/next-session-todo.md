@@ -99,9 +99,34 @@ Prerequisite: Job A shipped. Decision needed from Frank's team.
 
 Design conversation needed first: what does a per-product report contain?
 
-### 4. Prospector — build
+### 4. Prospector — enhancements (design completed 2026-04-13)
 
-Design completed 2026-04-12. Full spec in Platform-Foundation.md → Prospector UX. Rewrite, not port.
+Three new features agreed with Frank 2026-04-13:
+
+**Feature A — "Deep Dive top product" checkbox.**
+A checkbox on the Prospector input form: "Perform Deep Dive on top product for each company." When checked, after discovery, automatically selects the top product (highest popularity ranking — same sort as the product chooser) and runs a full Deep Dive. Prospector results table shows sharpened Fit Score and ACV instead of rough discovery estimates. GP5: intelligence compounds — the Deep Dive data is immediately available in Inspector.
+
+**Feature B — Cost and time estimator.**
+A live counter in a right-side column next to the paste/upload input area. Updates as the user adds companies. Shows:
+- Estimated API cost (mid-to-mid-high estimate, never low)
+- Estimated wall time (fair estimate, close to actual)
+- Updates when "Deep Dive top product" is checked (adds ~$1.50-2.50 per company + ~3-5 min per company)
+
+Layout: narrow the paste list and upload list areas slightly to create space for the estimator column on the right. Same overall page width, just redistributed.
+
+Cost estimate basis: discovery ~$0.15-0.25 per company (one large Claude call). Deep Dive adds ~$1.50-2.50 per product (research + grading + briefcase). Use mid-tier model pricing.
+
+**Feature C — Per-company timeouts + parallel processing.**
+- Per-company timeout: 3 minutes for discovery, 5 minutes for Deep Dive
+- On timeout: log the error, skip to next company, show which ones failed in results so user can re-run
+- Run companies in parallel where possible to reduce wall time (same API cost, just faster)
+- Products within a Deep Dive run their extractors in parallel (already partially implemented — extend to score all products simultaneously)
+
+**Implementation notes:**
+- SSE progress modal already shipped (Fix 14 from this session)
+- Parallel processing: extend the ThreadPoolExecutor in intelligence.score() to run all products' extractors simultaneously instead of per-product rounds
+- Timeouts: wrap each company's discovery/scoring in a timeout context manager
+- Cost estimator: new Jinja template element + lightweight JS calculator, no backend needed (counts × rates)
 
 ### 5. Designer — design + build
 
