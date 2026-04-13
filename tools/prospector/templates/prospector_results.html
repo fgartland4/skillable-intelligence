@@ -121,7 +121,6 @@
         .results-table th.col-lab { width: 140px; }
         .results-table th.col-cert { width: 130px; }
         .results-table th.col-channel { width: 130px; }
-        .results-table th.col-action { width: 60px; }
         .results-table th.col-check { width: 36px; text-align: center; }
         .results-table td {
             padding: 10px 10px; font-size: 0.82rem;
@@ -150,8 +149,6 @@
         .lab-skillable { color: var(--sk-accent); font-weight: 600; }
         .lab-competitor { color: var(--sk-score-mid); }
         .signal-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
-        .deep-dive-link { font-size: 0.72rem; color: var(--sk-accent); }
-        .deep-dive-link:hover { text-decoration: underline; }
 
         .row-checkbox { accent-color: var(--sk-accent); width: 15px; height: 15px; cursor: pointer; }
         td.check-cell { text-align: center; overflow: visible; }
@@ -178,6 +175,7 @@
         <span class="results-page-title">Researched Companies</span>
         <span class="results-help-icon" title="Documentation — coming soon">?</span>
         <div class="results-actions">
+            <a href="#" class="btn-deep-dive" id="btnResearch">Research &rarr;</a>
             <a href="#" class="btn-deep-dive" id="btnDeepDive">Run Deep Dive &rarr;</a>
             <a href="#" class="btn-export" id="btnExportCsv">Export CSV &darr;</a>
             <span class="btn-export btn-disabled" title="Coming Soon — HubSpot integration is planned">Send to HubSpot &rarr;</span>
@@ -245,15 +243,10 @@
             <td class="signal-cell" title="{{ r.key_signal or '' }}">{{ r.key_signal or '' }}</td>
             <td class="signal-cell" title="{{ r.cert_program or '' }}">{{ r.cert_program or '' }}</td>
             <td class="signal-cell" title="{{ r.sales_channel or '' }}">{{ r.sales_channel or '' }}</td>
-            <td>
-                {% if r.discovery_id %}
-                <a href="/inspector/product-selection/{{ r.discovery_id }}" class="deep-dive-link">Inspect &rarr;</a>
-                {% endif %}
-            </td>
         </tr>
         {% endfor %}
         {% else %}
-        <tr><td colspan="15" class="empty-state">No companies found.</td></tr>
+        <tr><td colspan="14" class="empty-state">No companies found.</td></tr>
         {% endif %}
     </tbody>
     {% endmacro %}
@@ -275,7 +268,6 @@
                 <th class="col-signal">Key Signal</th>
                 <th class="col-cert">Cert Program</th>
                 <th class="col-channel">Sales Channel</th>
-                <th class="col-action"></th>
             </tr>
         </thead>
         {% if batch_results is not none %}
@@ -324,27 +316,34 @@
         }
     }
 
-    // ── Checkbox logic (single-select) ──
+    // ── Checkbox logic (single-select) — lights up both Research and Deep Dive ──
     window.handleCheckbox = function(cb) {
         // Uncheck all others
         document.querySelectorAll('.row-checkbox').forEach(function(other) {
             if (other !== cb) other.checked = false;
         });
-        var btn = document.getElementById('btnDeepDive');
+        var btnResearch = document.getElementById('btnResearch');
+        var btnDeepDive = document.getElementById('btnDeepDive');
         if (cb.checked) {
             var discId = cb.getAttribute('data-discovery-id');
-            btn.href = '/inspector/product-selection/' + discId;
-            btn.classList.add('visible');
+            btnResearch.href = '/inspector/product-selection/' + discId;
+            btnResearch.classList.add('visible');
+            btnDeepDive.href = '/inspector/product-selection/' + discId;
+            btnDeepDive.classList.add('visible');
         } else {
-            btn.classList.remove('visible');
-            btn.href = '#';
+            btnResearch.classList.remove('visible');
+            btnResearch.href = '#';
+            btnDeepDive.classList.remove('visible');
+            btnDeepDive.href = '#';
         }
     };
 
     function uncheckAll() {
         document.querySelectorAll('.row-checkbox').forEach(function(cb) { cb.checked = false; });
-        var btn = document.getElementById('btnDeepDive');
-        if (btn) { btn.classList.remove('visible'); btn.href = '#'; }
+        var btnResearch = document.getElementById('btnResearch');
+        var btnDeepDive = document.getElementById('btnDeepDive');
+        if (btnResearch) { btnResearch.classList.remove('visible'); btnResearch.href = '#'; }
+        if (btnDeepDive) { btnDeepDive.classList.remove('visible'); btnDeepDive.href = '#'; }
     }
 
     // ── Initial state ──
