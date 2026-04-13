@@ -24,133 +24,169 @@
         a:hover { color: var(--sk-accent-soft); }
 
         /* ── Wide container ── */
-        .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 36px 24px 80px; }
 
-        h1 { font-size: 1.8rem; font-weight: 800; color: var(--sk-text); letter-spacing: -0.02em; margin-bottom: 8px; }
-        .subtitle { color: var(--sk-text-muted); font-size: 0.875rem; margin-bottom: 36px; line-height: 1.6; }
-
-        /* ── Mode tabs ── */
-        .mode-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; overflow: hidden; border: 1px solid var(--sk-border); }
-        .mode-tab {
-            flex: 1; padding: 11px 16px; text-align: center; cursor: pointer;
-            font-size: 0.82rem; font-weight: 600; color: var(--sk-text-dim);
-            background: var(--sk-bg); border: none; transition: all 0.15s;
-            font-family: inherit;
+        /* ── Header area ── */
+        .page-header {
+            display: flex; align-items: flex-start; gap: 24px;
+            margin-bottom: 24px; flex-wrap: wrap;
         }
-        .mode-tab.active { background: var(--sk-surface); color: var(--sk-text-muted); }
-        .mode-tab:hover:not(.active) { color: var(--sk-text-muted); }
-
-        /* ── Form card ── */
-        .form-card {
-            background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 16px; padding: 28px; min-height: 380px;
-            display: flex; flex-direction: column;
+        .page-header-left { flex: 1; min-width: 300px; }
+        .page-header-left h1 {
+            font-size: 1.5rem; font-weight: 800; color: var(--sk-text);
+            letter-spacing: -0.02em; margin-bottom: 6px;
         }
-        .mode-panel { display: none; flex: 1; }
-        .mode-panel.active { display: flex; flex-direction: column; }
-        .mode-panel form { display: flex; flex-direction: column; flex: 1; }
-        .panel-footer { margin-top: auto; padding-top: 22px; text-align: center; }
-
-        .field-label {
-            display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.1em; color: var(--sk-text-dim); margin-bottom: 10px;
+        .page-header-left .subtitle {
+            color: var(--sk-text-muted); font-size: 0.82rem; line-height: 1.5;
         }
-
-        /* ── Drop zone ── */
-        .drop-zone {
-            width: 100%; background: var(--sk-bg); border: 1.5px dashed var(--sk-border);
-            border-radius: 10px; padding: 36px 24px; text-align: center;
-            cursor: pointer; transition: border-color 0.15s; position: relative;
-        }
-        .drop-zone:hover, .drop-zone.drag-over { border-color: rgba(36,237,155,0.4); }
-        .drop-zone input[type="file"] {
-            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-        }
-        .drop-icon { font-size: 1.6rem; margin-bottom: 10px; color: var(--sk-text-dim); }
-        .drop-label { font-size: 0.88rem; color: var(--sk-text-muted); }
-        .drop-label strong { color: var(--sk-accent); }
-        .drop-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 6px; }
-        .drop-selected { font-size: 0.82rem; color: var(--sk-text-muted); margin-top: 10px; display: none; }
-
-        /* ── Textarea ── */
-        textarea {
-            width: 100%; background: var(--sk-bg); border: 1px solid var(--sk-border);
-            border-radius: 10px; color: var(--sk-text); font-family: inherit;
-            font-size: 0.9rem; padding: 14px 16px; resize: vertical;
-            min-height: 180px; line-height: 1.6; transition: border-color 0.15s;
-        }
-        textarea:focus { outline: none; border-color: rgba(36,237,155,0.4); }
-        textarea::placeholder { color: var(--sk-text-dim); }
-
-        .field-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px; line-height: 1.5; text-align: center; }
-
-        /* ── Deep Dive checkbox ── */
-        .dd-option {
-            display: flex; align-items: center; gap: 8px;
-            margin-top: 14px; padding: 10px 14px;
-            background: rgba(36,237,155,0.03); border: 1px solid var(--sk-border);
-            border-radius: 8px; cursor: pointer;
-        }
-        .dd-option input[type="checkbox"] { accent-color: var(--sk-accent); width: 16px; height: 16px; cursor: pointer; }
-        .dd-option label { font-size: 0.82rem; color: var(--sk-text-muted); cursor: pointer; }
-        .dd-option .dd-hint { font-size: 0.68rem; color: var(--sk-text-dim); margin-left: auto; }
-
-        /* ── Compact inline estimator ── */
-        .estimator-inline {
-            display: none; margin-top: 10px; padding: 8px 14px;
-            background: rgba(36,237,155,0.04); border: 1px solid var(--sk-border);
-            border-radius: 8px; font-size: 0.78rem; color: var(--sk-text-muted);
-            text-align: center;
-        }
-        .estimator-inline.visible { display: block; }
-        .estimator-inline strong { color: var(--sk-accent); }
-
-        /* ── Buttons ── */
-        .btn-primary {
-            background: var(--sk-accent); color: var(--sk-bg); border: none;
-            padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
-            cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s;
-            font-family: inherit;
-        }
-        .btn-primary:hover { opacity: 0.88; }
-        .btn-primary:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
-
-        /* ── Page header row ── */
-        .page-header-row {
-            display: flex; align-items: center; gap: 24px; margin-bottom: 28px;
-        }
-        .page-header-left { flex: 1; }
         .page-header-right { flex-shrink: 0; }
 
-        /* ── Future panel placeholder ── */
-        .future-placeholder {
-            flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 12px; padding: 40px 20px;
+        /* ── 2x2 button grid ── */
+        .action-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
         }
-        .future-label { font-size: 0.88rem; color: var(--sk-text-muted); text-align: center; }
-        .future-hint { font-size: 0.72rem; color: var(--sk-text-dim); text-align: center; }
+        .action-grid a {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 10px 20px; background: transparent; color: var(--sk-accent);
+            border: 1px solid var(--sk-accent); border-radius: 7px;
+            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; font-family: inherit; text-decoration: none;
+            white-space: nowrap;
+        }
+        .action-grid a:hover { background: rgba(36,237,155,0.06); color: var(--sk-accent); }
 
-        /* ── Field mapper link ── */
-        .mapper-link {
-            display: inline-block; margin-top: 20px; font-size: 0.78rem;
-            color: var(--sk-accent); padding: 6px 14px;
-            border: 1px solid rgba(36,237,155,0.2); border-radius: 7px;
-            transition: background 0.15s;
+        /* ── Help icon ── */
+        .results-help-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            font-size: 0.72rem; font-weight: 700;
+            color: var(--sk-text-dim); border: 1px solid var(--sk-border);
+            cursor: default; transition: color 0.15s, border-color 0.15s;
+            margin-left: 4px;
         }
-        .mapper-link:hover { background: rgba(36,237,155,0.06); text-decoration: none; }
+        .results-help-icon:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+        .refresh-help-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 15px; height: 15px; border-radius: 50%;
+            font-size: 0.58rem; font-weight: 700;
+            color: var(--sk-text-dim); border: 1px solid var(--sk-border);
+            cursor: help; transition: color 0.15s, border-color 0.15s;
+        }
+        .refresh-help-icon:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+
+        /* ── Action buttons row ── */
+        .results-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+        .btn-deep-dive {
+            display: none; align-items: center; gap: 6px;
+            padding: 7px 16px; background: rgba(36,237,155,0.08); color: var(--sk-accent);
+            border: 1px solid var(--sk-accent); border-radius: 7px;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; font-family: inherit; text-decoration: none;
+        }
+        .btn-deep-dive:hover { background: rgba(36,237,155,0.15); color: var(--sk-accent); }
+        .btn-deep-dive.visible { display: inline-flex; }
+        .btn-export {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 16px; background: transparent; color: var(--sk-accent);
+            border: 1px solid var(--sk-accent); border-radius: 7px;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; font-family: inherit; text-decoration: none;
+        }
+        .btn-export:hover { background: rgba(36,237,155,0.06); color: var(--sk-accent); }
+        .btn-export.btn-disabled {
+            color: var(--sk-text-muted); border-color: var(--sk-border);
+            cursor: not-allowed; opacity: 0.7;
+        }
+        .btn-export.btn-disabled:hover { background: transparent; color: var(--sk-text-muted); }
+
+        /* ── Tabs ── */
+        .results-tabs {
+            display: flex; gap: 0; margin-bottom: 18px;
+            border-bottom: 1px solid var(--sk-border);
+        }
+        .results-tab {
+            padding: 10px 20px; font-size: 0.78rem; font-weight: 600;
+            color: var(--sk-text-dim); cursor: pointer; border: none;
+            background: none; font-family: inherit;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .results-tab:hover { color: var(--sk-text-muted); }
+        .results-tab.active { color: var(--sk-accent); border-bottom-color: var(--sk-accent); }
+        .results-tab .tab-close {
+            display: inline-block; margin-left: 8px; font-size: 0.68rem;
+            color: var(--sk-text-dim); cursor: pointer; vertical-align: middle;
+        }
+        .results-tab .tab-close:hover { color: var(--sk-accent); }
+
+        /* ── Results table ── */
+        .results-table {
+            width: 100%; border-collapse: collapse;
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; overflow: hidden;
+            table-layout: fixed;
+        }
+        .results-table th {
+            text-align: left; padding: 10px 10px;
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--sk-text-dim);
+            border-bottom: 1px solid var(--sk-border);
+            background: rgba(36,237,155,0.02);
+        }
+        .results-table th.col-num { width: 36px; text-align: center; }
+        .results-table th.col-acv { width: 100px; }
+        .results-table th.col-tier { width: 44px; text-align: center; }
+        .results-table th.col-company { width: 260px; }
+        .results-table th.col-product { width: 180px; }
+        .results-table th.col-why { width: 160px; }
+        .results-table th.col-signal { width: 160px; }
+        .results-table th.col-lab { width: 140px; }
+        .results-table th.col-cert { width: 130px; }
+        .results-table th.col-channel { width: 130px; }
+        .results-table th.col-check { width: 36px; text-align: center; }
+        .results-table td {
+            padding: 10px 10px; font-size: 0.82rem;
+            border-bottom: 1px solid var(--sk-border);
+            vertical-align: top;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .results-table tr:last-child td { border-bottom: none; }
+        .results-table tr:hover td { background: rgba(36,237,155,0.02); }
+
+        .rank-num { text-align: center; font-weight: 700; color: var(--sk-text-dim); }
+        .company-cell-name { font-weight: 600; color: var(--sk-text); }
+        .company-cell-badge {
+            display: inline-block; padding: 2px 7px; border-radius: 4px;
+            font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; white-space: nowrap; margin-left: 6px;
+        }
+        .badge-purple { background: var(--sk-classify-purple-bg); color: var(--sk-classify-purple); border: 1px solid var(--sk-classify-purple-bdr); }
+        .badge-teal { background: rgba(20,184,166,0.08); color: rgb(20,184,166); border: 1px solid rgba(20,184,166,0.25); }
+        .badge-warm-blue { background: rgba(59,130,246,0.08); color: rgb(96,165,250); border: 1px solid rgba(59,130,246,0.25); }
+        .acv-cell { font-weight: 600; color: var(--sk-accent); white-space: nowrap; }
+        .product-cell-name { font-weight: 600; }
+        .product-cell-sub { font-size: 0.72rem; color: var(--sk-text-dim); }
+        .why-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
+        .lab-none { color: var(--sk-text-dim); font-style: italic; }
+        .lab-skillable { color: var(--sk-accent); font-weight: 600; }
+        .lab-competitor { color: var(--sk-score-mid); }
+        .signal-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
+
+        .row-checkbox { accent-color: var(--sk-accent); width: 15px; height: 15px; cursor: pointer; }
+        td.check-cell { text-align: center; overflow: visible; }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: var(--sk-text-dim); font-size: 0.88rem;
+        }
 
         /* ── Batch Status Panel ── */
         .batch-panel {
-            margin-top: 28px; background: var(--sk-surface);
+            background: var(--sk-surface);
             border: 1px solid var(--sk-border); border-radius: 12px;
             overflow: hidden;
-        }
-        .batch-panel-header {
-            padding: 12px 18px; border-bottom: 1px solid var(--sk-border);
-        }
-        .batch-panel-title {
-            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--sk-text-dim);
         }
         .batch-table {
             width: 100%; border-collapse: collapse;
@@ -197,68 +233,9 @@
         }
         .batch-cancel-btn:hover { border-color: var(--sk-score-low); color: var(--sk-score-low); }
 
-        /* ── Results section ── */
-        .results-section { margin-top: 36px; }
-        .results-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 14px;
-        }
-        .results-title {
-            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--sk-text-dim);
-        }
-        .btn-export {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 7px 16px; background: transparent; color: var(--sk-accent);
-            border: 1px solid var(--sk-accent); border-radius: 7px;
-            font-size: 0.78rem; font-weight: 600; cursor: pointer;
-            transition: background 0.15s; font-family: inherit;
-        }
-        .btn-export:hover { background: rgba(36,237,155,0.06); }
-
-        .results-table {
-            width: 100%; border-collapse: collapse;
-            background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 10px; overflow: hidden;
-        }
-        .results-table th {
-            text-align: left; padding: 10px 12px;
-            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
-            text-transform: uppercase; color: var(--sk-text-dim);
-            border-bottom: 1px solid var(--sk-border);
-            background: rgba(36,237,155,0.02);
-        }
-        .results-table th.col-num { width: 40px; text-align: center; }
-        .results-table th.col-acv { width: 110px; }
-        .results-table th.col-tier { width: 50px; text-align: center; }
-        .results-table td {
-            padding: 10px 12px; font-size: 0.82rem;
-            border-bottom: 1px solid var(--sk-border);
-            vertical-align: top;
-        }
-        .results-table tr:last-child td { border-bottom: none; }
-        .results-table tr:hover td { background: rgba(36,237,155,0.02); }
-
-        .rank-num { text-align: center; font-weight: 700; color: var(--sk-text-dim); }
-        .company-cell-name { font-weight: 600; color: var(--sk-text); }
-        .company-cell-badge {
-            display: inline-block; padding: 2px 7px; border-radius: 4px;
-            font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
-            text-transform: uppercase; white-space: nowrap; margin-left: 6px;
-        }
-        .badge-purple { background: var(--sk-badge-purple-bg); color: var(--sk-classify-purple); border: 1px solid var(--sk-badge-purple-bdr); }
-        .badge-teal { background: rgba(20,184,166,0.08); color: rgb(20,184,166); border: 1px solid rgba(20,184,166,0.25); }
-        .badge-warm-blue { background: rgba(59,130,246,0.08); color: rgb(96,165,250); border: 1px solid rgba(59,130,246,0.25); }
-        .acv-cell { font-weight: 600; color: var(--sk-accent); white-space: nowrap; }
-        .product-cell-name { font-weight: 600; }
-        .product-cell-sub { font-size: 0.72rem; color: var(--sk-text-dim); }
-        .why-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
-        .lab-none { color: var(--sk-text-dim); font-style: italic; }
-        .lab-skillable { color: var(--sk-accent); font-weight: 600; }
-        .lab-competitor { color: var(--sk-score-mid); }
-        .signal-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
-        .deep-dive-link { font-size: 0.72rem; color: var(--sk-accent); }
-        .deep-dive-link:hover { text-decoration: underline; }
+        /* ── Tab content panels ── */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
     </style>
 </head>
 <body>
@@ -268,242 +245,196 @@
 
 <div class="container">
 
-    <div class="page-header-row">
+    {# ── Header ── #}
+    <div class="page-header">
         <div class="page-header-left">
             <h1>Prospector</h1>
-            <p class="subtitle">Prospector is a tool designed to help Marketing and RevOps integrate detailed product-centric data into the processes and procedures they already use.</p>
-            <p class="subtitle" style="margin-top: 6px; color: var(--sk-text-dim);">How it works: Upload a list or paste company names. Prospector researches each company and ranks them by ACV potential.</p>
+            <p class="subtitle">Prospector helps Marketing and RevOps integrate product-centric intelligence into HubSpot and their existing workflows.</p>
         </div>
         <div class="page-header-right">
-            <a href="/prospector/results" class="btn-export">View Researched Companies &rarr;</a>
-        </div>
-    </div>
-
-    {# ── Mode tabs ── #}
-    <div class="mode-tabs">
-        <button class="mode-tab active" onclick="switchMode('csv', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;">Upload List</button>
-        <button class="mode-tab" onclick="switchMode('paste', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;">Paste List</button>
-        <button class="mode-tab" onclick="switchMode('lookalikes', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;">Find Lookalikes</button>
-        <button class="mode-tab" onclick="switchMode('hubspot', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem; border-left: 1px solid var(--sk-border);">Configure Integration</button>
-    </div>
-
-    <div class="form-card">
-
-        {# ── Upload CSV ── #}
-        <div id="panel-csv" class="mode-panel active">
-            <form method="POST" action="/prospector/run" enctype="multipart/form-data">
-                <label class="field-label">CSV File</label>
-                <div class="drop-zone" id="dropZone">
-                    <input type="file" name="csv_file" accept=".csv" id="csvInput" onchange="fileSelected(this)">
-                    <div class="drop-icon">&#128196;</div>
-                    <div class="drop-label">Drop your CSV here or <strong>browse</strong></div>
-                    <div class="drop-hint">First column = company name. Header row is skipped automatically.</div>
-                    <div class="drop-selected" id="fileLabel"></div>
-                </div>
-                <div class="field-hint">Works with ZoomInfo exports or any CSV where the first column is the company name.</div>
-                <div class="dd-option">
-                    <input type="checkbox" name="deep_dive" id="ddCheckCsv">
-                    <label for="ddCheckCsv">Deep Dive top product for each company</label>
-                    <span class="dd-hint">Adds ~3-5 min per company</span>
-                </div>
-                <div class="estimator-inline" id="estimatorCsv"></div>
-                <div class="panel-footer">
-                    <button type="submit" class="btn-primary" id="btnCsv" disabled>Run Prospector →</button>
-                </div>
-            </form>
-        </div>
-
-        {# ── Paste List ── #}
-        <div id="panel-paste" class="mode-panel">
-            <form method="POST" action="/prospector/run">
-                <textarea name="companies" id="companyInput"
-                    placeholder="Type or paste organization names here"></textarea>
-                <div class="field-hint">One per line or comma-separated. Companies, universities, training organizations — any type. Limit to 25 per batch.</div>
-                <div class="dd-option">
-                    <input type="checkbox" name="deep_dive" id="ddCheckPaste">
-                    <label for="ddCheckPaste">Deep Dive top product for each company</label>
-                    <span class="dd-hint">Adds ~3-5 min per company</span>
-                </div>
-                <div class="estimator-inline" id="estimatorPaste"></div>
-                <div class="panel-footer">
-                    <button type="submit" class="btn-primary" id="btnPaste" disabled>Run Prospector →</button>
-                </div>
-            </form>
-        </div>
-
-        {# ── Configure Integration ── #}
-        <div id="panel-hubspot" class="mode-panel">
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
-
-                {# Top: HubSpot Connection ── compact horizontal bar #}
-                <div style="display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 10px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--sk-text-dim);"></div>
-                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--sk-text-dim);">Not connected</span>
-                    </div>
-                    <div style="flex: 1;">
-                        <input type="password" placeholder="Private App Token (pat-na1-xxxx...)"
-                               style="width: 100%; padding: 7px 12px; background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 6px; color: var(--sk-text); font-family: inherit; font-size: 0.78rem;"
-                               disabled>
-                    </div>
-                    <button type="button" class="btn-primary" style="padding: 8px 18px; font-size: 0.78rem; white-space: nowrap;" disabled>Connect to HubSpot →</button>
-                </div>
-
-                {# Bottom: Field Mapper ── full width #}
-                <div>
-                    <label class="field-label">Field Mapping</label>
-                    <div style="font-size: 0.75rem; color: var(--sk-text-dim); margin-bottom: 14px;">Map Skillable intelligence fields to HubSpot properties. Click each section to expand.</div>
-
-                    {# Field mapper sections follow the data flow:
-                       Discovery-level fields first (available without Deep Dive),
-                       then Deep Dive fields (ACV, Fit Score, Pillars → Dimensions),
-                       then Seller Briefcase last (only exists after full Deep Dive). #}
-                    {% set fm_sections = [
-                        ("Product Identity — Discovery", [
-                            ("top_product_name", "Top product name"),
-                            ("product_relationship", "Flagship / Secondary"),
-                            ("estimated_user_base", "Estimated users"),
-                            ("deployment_model", "Deployment model"),
-                            ("labability_tier", "Promising / Potential / Uncertain / Unlikely"),
-                        ]),
-                        ("Company Signals — Discovery", [
-                            ("company_badge", "Classification badge"),
-                            ("training_programs", "Training programs offered"),
-                            ("atp_program", "ATP program and size"),
-                            ("delivery_partners", "Who delivers training"),
-                            ("lab_platform", "Current lab platform"),
-                            ("sales_channel", "Sales channel partners"),
-                            ("events", "Flagship events"),
-                            ("partnership_pattern", "Partnership culture"),
-                        ]),
-                        ("ACV Potential — Deep Dive", [
-                            ("company_acv_potential", "Company-level ACV range"),
-                            ("acv_rate_tier", "Rate tier — Cloud / Small VM / Typical VM / Large VM"),
-                        ]),
-                        ("Fit Score — Deep Dive", [
-                            ("fit_score", "Composite Fit Score (0-100)"),
-                            ("verdict", "Prime Target / Strong Prospect / etc."),
-                        ]),
-                        ("Product Labability — Deep Dive (50%)", [
-                            ("product_labability_score", "Pillar score (0-100)"),
-                            ("provisioning_score", "Provisioning dimension"),
-                            ("lab_access_score", "Lab Access dimension"),
-                            ("scoring_score", "Scoring dimension"),
-                            ("teardown_score", "Teardown dimension"),
-                        ]),
-                        ("Instructional Value — Deep Dive (20%)", [
-                            ("instructional_value_score", "Pillar score (0-100)"),
-                            ("product_complexity_score", "Product Complexity dimension"),
-                            ("mastery_stakes_score", "Mastery Stakes dimension"),
-                            ("lab_versatility_score", "Lab Versatility dimension"),
-                            ("market_demand_score", "Market Demand dimension"),
-                        ]),
-                        ("Customer Fit — Deep Dive (30%)", [
-                            ("customer_fit_score", "Pillar score (0-100)"),
-                            ("training_commitment_score", "Training Commitment dimension"),
-                            ("build_capacity_score", "Build Capacity dimension"),
-                            ("delivery_capacity_score", "Delivery Capacity dimension"),
-                            ("organizational_dna_score", "Organizational DNA dimension"),
-                        ]),
-                        ("Seller Briefcase — Deep Dive Only", [
-                            ("key_technical_questions", "Key Technical Questions"),
-                            ("conversation_starters", "Conversation Starters"),
-                            ("account_intelligence", "Account Intelligence"),
-                        ]),
-                        ("Documentation", [
-                            ("doc_fit_score", "Fit Score documentation"),
-                            ("doc_product_labability", "Product Labability documentation"),
-                            ("doc_instructional_value", "Instructional Value documentation"),
-                            ("doc_customer_fit", "Customer Fit documentation"),
-                        ]),
-                    ] %}
-
-                    {% for section_name, fields in fm_sections %}
-                    <div style="background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 8px; margin-bottom: 6px; overflow: hidden;">
-                        <div onclick="this.parentElement.classList.toggle('open')"
-                             style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 0.78rem; font-weight: 600; color: var(--sk-text-muted);">
-                            <span>{{ section_name }}</span>
-                            <span style="font-size: 0.6rem; color: var(--sk-text-dim);">{{ fields | length }} fields</span>
-                        </div>
-                        <div style="display: none; border-top: 1px solid var(--sk-border); padding: 6px 0;">
-                            {% for field_name, field_desc in fields %}
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 5px 14px;">
-                                <span style="flex: 0 0 220px; font-family: monospace; font-size: 0.72rem; color: var(--sk-accent);">{{ field_name }}</span>
-                                <span style="flex: 1; font-size: 0.72rem; color: var(--sk-text-dim);">{{ field_desc }}</span>
-                                <input type="text" placeholder="hubspot_field"
-                                       style="flex: 0 0 200px; padding: 4px 8px; background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 4px; color: var(--sk-text-dim); font-size: 0.7rem; font-family: inherit;"
-                                       disabled>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <style>.open > div:last-child { display: block !important; }</style>
-                    {% endfor %}
-                </div>
-
+            <div class="action-grid">
+                <a href="/prospector/upload">Upload List</a>
+                <a href="/prospector/paste">Paste List</a>
+                <a href="/prospector/lookalikes">Find Lookalikes</a>
+                <a href="/prospector/configure">Configure Integration</a>
             </div>
         </div>
-
-        {# ── Find Lookalikes ── #}
-        <div id="panel-lookalikes" class="mode-panel">
-            <form style="flex: 1; display: flex; flex-direction: column; opacity: 0.5;">
-                <label class="field-label">What types of organizations should we find?</label>
-                <input type="text" disabled
-                    placeholder="e.g. Cybersecurity software companies with large install bases"
-                    style="width: 100%; padding: 12px 16px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 10px; color: var(--sk-text); font-family: inherit; font-size: 0.88rem;">
-                <div class="field-hint" style="text-align: left; margin-top: 10px; line-height: 1.7;">
-                    Examples: <em style="color: var(--sk-text-muted);">Cybersecurity software companies with 10,000+ users</em> · <em style="color: var(--sk-text-muted);">Engineering colleges with strong CS programs</em> · <em style="color: var(--sk-text-muted);">Industry authorities focused on cloud certifications</em>
-                    <br>Discovers NEW organizations not already in your ICP. Use Upload List or Paste List for companies you already know.
-                </div>
-                <div class="panel-footer">
-                    <button type="button" class="btn-primary" disabled>Find Organizations →</button>
-                    <div style="font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px;">Coming soon</div>
-                </div>
-            </form>
-        </div>
-
     </div>
 
-    {# ── Batch Status Panel ── #}
-    {% if recent_batches %}
-    <div class="batch-panel" id="batchPanel">
-        <div class="batch-panel-header">
-            <span class="batch-panel-title">Recent Batches</span>
+    {# ── Action buttons (Research / Deep Dive / Export / HubSpot) ── #}
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px;">
+        <div class="results-actions">
+            <a href="#" class="btn-deep-dive" id="btnResearch">Research &rarr;</a>
+            <a href="#" class="btn-deep-dive" id="btnDeepDive">Run Deep Dive &rarr;</a>
+            <a href="#" class="btn-export" id="btnExportCsv">Export CSV &darr;</a>
+            <span class="btn-export btn-disabled" title="Coming Soon — HubSpot integration is planned">Send to HubSpot &rarr;</span>
         </div>
-        <table class="batch-table">
+    </div>
+
+    {# ── Tabs ── #}
+    <div class="results-tabs" id="resultsTabs">
+        <button class="results-tab" id="tab-all"
+                onclick="switchTab('all', this)">All Companies ({{ all_results | length }})</button>
+        <button class="results-tab" id="tab-batches"
+                onclick="switchTab('batches', this)">Recent Batches</button>
+        {% if batch_results is not none %}
+        <button class="results-tab" id="tab-batch"
+                onclick="switchTab('batch', this)">Batch Results ({{ batch_results | length }}) <span class="tab-close" onclick="event.stopPropagation(); closeBatchTab();">&times;</span></button>
+        {% endif %}
+    </div>
+
+    {# ── Tab: All Companies ── #}
+    <div class="tab-panel" id="panel-all">
+        <div style="font-size: 0.68rem; color: var(--sk-text-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+            Estimates refreshed {{ refresh_date }}
+            <span class="refresh-help-icon" title="ACV estimates are calculated from cached research data using the current scoring methodology. Refreshing this page recalculates all estimates at zero additional cost — no new research or API calls required.">?</span>
+        </div>
+
+        {% macro render_tbody(rows, tbody_id) %}
+        <tbody id="{{ tbody_id }}">
+            {% if rows %}
+            {% for r in rows %}
+            <tr>
+                <td class="check-cell">
+                    {% if r.discovery_id %}
+                    <input type="checkbox" class="row-checkbox" data-discovery-id="{{ r.discovery_id }}" onchange="handleCheckbox(this)">
+                    {% endif %}
+                </td>
+                <td class="rank-num">{{ r.rank or loop.index }}</td>
+                <td title="{{ r.company_name }}" style="white-space: normal; overflow: visible;">
+                    <div class="company-cell-name">{{ r.company_name }}</div>
+                    {% if r.company_badge %}
+                    <span class="company-cell-badge badge-{{ (r.badge_color or 'purple') | replace('_', '-') }}">{{ r.company_badge }}</span>
+                    {% endif %}
+                </td>
+                <td class="acv-cell" title="{{ r.estimated_acv or '' }}">{{ r.estimated_acv or '—' }}</td>
+                <td title="{{ r.top_product_name or '' }}">
+                    <div class="product-cell-name">{{ r.top_product_name or '—' }}</div>
+                    {% if r.top_product_subcategory %}
+                    <div class="product-cell-sub">{{ r.top_product_subcategory }}</div>
+                    {% endif %}
+                </td>
+                <td class="why-cell" title="{{ r.top_product_why or '' }}">{{ r.top_product_why or '' }}</td>
+                <td class="rank-num">{{ r.promising_count or 0 }}</td>
+                <td class="rank-num">{{ r.potential_count or 0 }}</td>
+                <td class="rank-num">{{ r.uncertain_count or 0 }}</td>
+                <td class="rank-num">{{ r.unlikely_count or 0 }}</td>
+                <td class="signal-cell" title="{{ r.lab_platform or '' }}">
+                    {% if r.lab_platform %}
+                        {% if 'skillable' in (r.lab_platform | lower) %}
+                        <span class="lab-skillable">{{ r.lab_platform }}</span>
+                        {% elif r.lab_platform | lower in ('none', 'no lab platform', 'greenfield') %}
+                        <span class="lab-none">None</span>
+                        {% else %}
+                        <span class="lab-competitor">{{ r.lab_platform }}</span>
+                        {% endif %}
+                    {% else %}
+                    <span class="lab-none">—</span>
+                    {% endif %}
+                </td>
+                <td class="signal-cell" title="{{ r.key_signal or '' }}">{{ r.key_signal or '' }}</td>
+                <td class="signal-cell" title="{{ r.cert_program or '' }}">{{ r.cert_program or '' }}</td>
+                <td class="signal-cell" title="{{ r.sales_channel or '' }}">{{ r.sales_channel or '' }}</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="14" class="empty-state">No companies found.</td></tr>
+            {% endif %}
+        </tbody>
+        {% endmacro %}
+
+        <table class="results-table">
             <thead>
                 <tr>
-                    <th style="width: 120px;">Status</th>
-                    <th>Description</th>
-                    <th style="width: 140px;">Started</th>
-                    <th style="width: 110px;">Progress</th>
-                    <th style="width: 110px;">Est. Remaining</th>
-                    <th style="width: 120px;">Actions</th>
+                    <th class="col-check"></th>
+                    <th class="col-num">#</th>
+                    <th class="col-company">Company</th>
+                    <th class="col-acv">Est. ACV</th>
+                    <th class="col-product">Top Product</th>
+                    <th class="col-why">Why</th>
+                    <th class="col-tier">Prom.</th>
+                    <th class="col-tier">Pot.</th>
+                    <th class="col-tier">Unc.</th>
+                    <th class="col-tier">Unl.</th>
+                    <th class="col-lab">Lab Platform</th>
+                    <th class="col-signal">Key Signal</th>
+                    <th class="col-cert">Cert Program</th>
+                    <th class="col-channel">Sales Channel</th>
                 </tr>
             </thead>
-            <tbody id="batchTableBody">
-                {% for b in recent_batches %}
-                <tr id="batch-row-{{ b.batch_id }}" data-job-id="{{ b.get('job_id', '') }}" data-status="{{ b.status }}" data-total="{{ b.company_count }}" data-est-seconds="{{ b.get('est_seconds', 0) }}">
-                    <td>
-                        <span class="batch-status-dot batch-status-{{ b.status }}"></span>
-                        <span class="batch-status-label">{{ b.status | capitalize }}</span>
-                    </td>
-                    <td>{{ b.description }}</td>
-                    <td class="batch-started">{{ b.started_at[:16].replace('T', ' ') if b.started_at else '' }}</td>
-                    <td class="batch-progress">{{ b.progress or 0 }} of {{ b.company_count }}</td>
-                    <td class="batch-remaining">
-                        {% if b.status == 'running' %}estimating…{% endif %}
-                    </td>
-                    <td class="batch-actions">
-                        {% if b.status == 'complete' or b.status == 'cancelled' %}
-                        <a href="/prospector/results/{{ b.batch_id }}" class="batch-action-link">View Results →</a>
-                        {% elif b.status == 'running' %}
-                        <button class="batch-cancel-btn" onclick="cancelBatch('{{ b.get('job_id', '') }}', '{{ b.batch_id }}')">Cancel</button>
-                        {% endif %}
-                    </td>
+            {{ render_tbody(all_results, 'tbody-all') }}
+        </table>
+    </div>
+
+    {# ── Tab: Recent Batches ── #}
+    <div class="tab-panel" id="panel-batches">
+        <div class="batch-panel" id="batchPanel">
+            <table class="batch-table">
+                <thead>
+                    <tr>
+                        <th style="width: 120px;">Status</th>
+                        <th>Description</th>
+                        <th style="width: 140px;">Started</th>
+                        <th style="width: 110px;">Progress</th>
+                        <th style="width: 110px;">Est. Remaining</th>
+                        <th style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="batchTableBody">
+                    {% for b in recent_batches %}
+                    <tr id="batch-row-{{ b.batch_id }}" data-job-id="{{ b.get('job_id', '') }}" data-status="{{ b.status }}" data-total="{{ b.company_count }}" data-est-seconds="{{ b.get('est_seconds', 0) }}">
+                        <td>
+                            <span class="batch-status-dot batch-status-{{ b.status }}"></span>
+                            <span class="batch-status-label">{{ b.status | capitalize }}</span>
+                        </td>
+                        <td>{{ b.description }}</td>
+                        <td class="batch-started">{{ b.started_at[:16].replace('T', ' ') if b.started_at else '' }}</td>
+                        <td class="batch-progress">{{ b.progress or 0 }} of {{ b.company_count }}</td>
+                        <td class="batch-remaining">
+                            {% if b.status == 'running' %}estimating…{% endif %}
+                        </td>
+                        <td class="batch-actions">
+                            {% if b.status == 'complete' or b.status == 'cancelled' %}
+                            <a href="javascript:void(0)" class="batch-action-link" onclick="openBatchTab('{{ b.batch_id }}')">View Results &rarr;</a>
+                            {% elif b.status == 'running' %}
+                            <button class="batch-cancel-btn" onclick="cancelBatch('{{ b.get('job_id', '') }}', '{{ b.batch_id }}')">Cancel</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ── Tab: Dynamic Batch Results ── #}
+    {% if batch_results is not none %}
+    <div class="tab-panel" id="panel-batch">
+        <div style="font-size: 0.68rem; color: var(--sk-text-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+            Estimates refreshed {{ refresh_date }}
+            <span class="refresh-help-icon" title="ACV estimates are calculated from cached research data using the current scoring methodology. Refreshing this page recalculates all estimates at zero additional cost — no new research or API calls required.">?</span>
+        </div>
+
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th class="col-check"></th>
+                    <th class="col-num">#</th>
+                    <th class="col-company">Company</th>
+                    <th class="col-acv">Est. ACV</th>
+                    <th class="col-product">Top Product</th>
+                    <th class="col-why">Why</th>
+                    <th class="col-tier">Prom.</th>
+                    <th class="col-tier">Pot.</th>
+                    <th class="col-tier">Unc.</th>
+                    <th class="col-tier">Unl.</th>
+                    <th class="col-lab">Lab Platform</th>
+                    <th class="col-signal">Key Signal</th>
+                    <th class="col-cert">Cert Program</th>
+                    <th class="col-channel">Sales Channel</th>
                 </tr>
-                {% endfor %}
-            </tbody>
+            </thead>
+            {{ render_tbody(batch_results, 'tbody-batch') }}
         </table>
     </div>
     {% endif %}
@@ -517,151 +448,91 @@
 
 <script>
 (function() {
-    // ── Mode switching ──
-    window.switchMode = function(mode, btn) {
-        document.querySelectorAll('.mode-panel').forEach(function(p) { p.classList.remove('active'); });
-        document.querySelectorAll('.mode-tab').forEach(function(t) { t.classList.remove('active'); });
-        document.getElementById('panel-' + mode).classList.add('active');
-        btn.classList.add('active');
-        if (mode === 'paste') refreshPaste();
-    };
+    var activeTab = '{{ initial_tab }}';
+    var batchId = '{{ batch_id or "" }}';
 
-    // ── Drop zone drag-over styling ──
-    var dz = document.getElementById('dropZone');
-    if (dz) {
-        dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('drag-over'); });
-        dz.addEventListener('dragleave', function() { dz.classList.remove('drag-over'); });
-        dz.addEventListener('drop', function() { dz.classList.remove('drag-over'); });
+    // ── Tab switching ──
+    function showTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+        document.querySelectorAll('.results-tab').forEach(function(t) { t.classList.remove('active'); });
+
+        var panel = document.getElementById('panel-' + tab);
+        var tabBtn = document.getElementById('tab-' + tab);
+        if (panel) panel.classList.add('active');
+        if (tabBtn) tabBtn.classList.add('active');
+
+        updateExportLink();
+        uncheckAll();
     }
 
-    // ── Cost/time constants — mid-to-mid-high estimates per Frank ──
-    var COST_PER_DISCOVERY = 0.22;
-    var COST_PER_DEEP_DIVE = 2.20;
-    var TIME_PER_DISCOVERY = 150;
-    var TIME_PER_DEEP_DIVE = 240;
-    var PARALLEL_FACTOR = 3;
+    window.switchTab = function(tab, btn) {
+        showTab(tab);
+    };
 
-    function updateInlineEstimator(elId, count, ddChecked) {
-        var el = document.getElementById(elId);
+    // ── Close dynamic batch tab ──
+    window.closeBatchTab = function() {
+        var tabBtn = document.getElementById('tab-batch');
+        var panel = document.getElementById('panel-batch');
+        if (tabBtn) tabBtn.remove();
+        if (panel) panel.remove();
+        // Switch to All Companies
+        showTab('all');
+        // Update URL to remove batch param
+        var url = new URL(window.location);
+        url.searchParams.delete('batch');
+        window.history.replaceState({}, '', url);
+    };
+
+    // ── Open a batch tab dynamically (from "View Results" link) ──
+    window.openBatchTab = function(batchId) {
+        window.location.href = '/prospector?batch=' + batchId;
+    };
+
+    // ── Export link ──
+    function updateExportLink() {
+        var el = document.getElementById('btnExportCsv');
         if (!el) return;
-        if (count === 0) { el.classList.remove('visible'); return; }
-        var cost = count * COST_PER_DISCOVERY;
-        var timeSec = Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DISCOVERY;
-        if (ddChecked) {
-            cost += count * COST_PER_DEEP_DIVE;
-            timeSec += Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DEEP_DIVE;
+        if (activeTab === 'batch' && batchId) {
+            el.href = '/prospector/export/' + batchId;
+        } else {
+            el.href = '/prospector/export-all';
         }
-        var costStr = cost < 1 ? '~$' + cost.toFixed(2) : '~$' + cost.toFixed(1);
-        var mins = Math.ceil(timeSec / 60);
-        var timeStr = mins < 2 ? '~1 min' : '~' + mins + ' min';
-        el.innerHTML = '<strong>' + count + ' companies</strong> · ' + costStr + ' est. cost · ' + timeStr + ' est. time';
-        el.classList.add('visible');
     }
 
-    // ── Paste list ──
-    var textarea = document.getElementById('companyInput');
-    var btnPaste = document.getElementById('btnPaste');
-    var ddCheckPaste = document.getElementById('ddCheckPaste');
-
-    function countPasteCompanies() {
-        if (!textarea) return 0;
-        var text = textarea.value.trim();
-        if (!text) return 0;
-        var names = [];
-        text.split('\n').forEach(function(line) {
-            line.split(',').forEach(function(n) { n = n.trim(); if (n) names.push(n); });
+    // ── Checkbox logic (single-select) — lights up both Research and Deep Dive ──
+    window.handleCheckbox = function(cb) {
+        // Uncheck all others
+        document.querySelectorAll('.row-checkbox').forEach(function(other) {
+            if (other !== cb) other.checked = false;
         });
-        return names.length;
-    }
-
-    function refreshPaste() {
-        var count = countPasteCompanies();
-        if (btnPaste) btnPaste.disabled = count === 0;
-        updateInlineEstimator('estimatorPaste', count, ddCheckPaste && ddCheckPaste.checked);
-    }
-
-    if (textarea) textarea.addEventListener('input', refreshPaste);
-    if (ddCheckPaste) ddCheckPaste.addEventListener('change', refreshPaste);
-
-    // ── CSV file ──
-    var ddCheckCsv = document.getElementById('ddCheckCsv');
-    var csvRowCount = 0;
-
-    window.fileSelected = function(input) {
-        var label = document.getElementById('fileLabel');
-        var btn = document.getElementById('btnCsv');
-        if (input.files && input.files.length > 0) {
-            label.textContent = input.files[0].name;
-            label.style.display = 'block';
-            btn.disabled = false;
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var lines = e.target.result.split('\n').filter(function(l) { return l.trim(); });
-                csvRowCount = Math.max(0, lines.length - 1);
-                updateInlineEstimator('estimatorCsv', csvRowCount, ddCheckCsv && ddCheckCsv.checked);
-            };
-            reader.readAsText(input.files[0]);
+        var btnResearch = document.getElementById('btnResearch');
+        var btnDeepDive = document.getElementById('btnDeepDive');
+        if (cb.checked) {
+            var discId = cb.getAttribute('data-discovery-id');
+            btnResearch.href = '/inspector/product-selection/' + discId;
+            btnResearch.classList.add('visible');
+            btnDeepDive.href = '/inspector/product-selection/' + discId;
+            btnDeepDive.classList.add('visible');
+        } else {
+            btnResearch.classList.remove('visible');
+            btnResearch.href = '#';
+            btnDeepDive.classList.remove('visible');
+            btnDeepDive.href = '#';
         }
     };
 
-    if (ddCheckCsv) {
-        ddCheckCsv.addEventListener('change', function() {
-            updateInlineEstimator('estimatorCsv', csvRowCount, ddCheckCsv.checked);
-        });
+    function uncheckAll() {
+        document.querySelectorAll('.row-checkbox').forEach(function(cb) { cb.checked = false; });
+        var btnResearch = document.getElementById('btnResearch');
+        var btnDeepDive = document.getElementById('btnDeepDive');
+        if (btnResearch) { btnResearch.classList.remove('visible'); btnResearch.href = '#'; }
+        if (btnDeepDive) { btnDeepDive.classList.remove('visible'); btnDeepDive.href = '#'; }
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // Background Batch Submission + Status Panel
+    // Background Batch Status Panel — SSE reconnection + cancel
     // ═══════════════════════════════════════════════════════════════════════
-
-    function ensurePanelVisible() {
-        var panel = document.getElementById('batchPanel');
-        if (!panel) {
-            // Create the panel if it doesn't exist yet (first batch ever)
-            var container = document.querySelector('.container');
-            var panelHtml = '<div class="batch-panel" id="batchPanel">' +
-                '<div class="batch-panel-header"><span class="batch-panel-title">Recent Batches</span></div>' +
-                '<table class="batch-table"><thead><tr>' +
-                '<th style="width:120px">Status</th><th>Description</th>' +
-                '<th style="width:140px">Started</th><th style="width:110px">Progress</th>' +
-                '<th style="width:110px">Est. Remaining</th><th style="width:120px">Actions</th>' +
-                '</tr></thead><tbody id="batchTableBody"></tbody></table></div>';
-            container.insertAdjacentHTML('beforeend', panelHtml);
-        }
-    }
-
-    function addBatchRow(data) {
-        ensurePanelVisible();
-        var tbody = document.getElementById('batchTableBody');
-        var now = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-        var tr = document.createElement('tr');
-        tr.id = 'batch-row-' + data.batch_id;
-        tr.dataset.jobId = data.job_id;
-        tr.dataset.status = 'running';
-        tr.dataset.total = data.company_count;
-        tr.dataset.estSeconds = data.est_seconds;
-        tr.innerHTML =
-            '<td><span class="batch-status-dot batch-status-running"></span><span class="batch-status-label">Running</span></td>' +
-            '<td>' + data.description + '</td>' +
-            '<td class="batch-started">' + now + '</td>' +
-            '<td class="batch-progress">0 of ' + data.company_count + '</td>' +
-            '<td class="batch-remaining">estimating…</td>' +
-            '<td class="batch-actions"><button class="batch-cancel-btn">Cancel</button></td>';
-        // Wire cancel button via addEventListener (M2 audit fix — no inline onclick)
-        var cancelBtn = tr.querySelector('.batch-cancel-btn');
-        cancelBtn.dataset.jobId = data.job_id;
-        cancelBtn.dataset.batchId = data.batch_id;
-        cancelBtn.addEventListener('click', function() {
-            cancelBatch(this.dataset.jobId, this.dataset.batchId);
-        });
-        // Insert at top
-        if (tbody.firstChild) {
-            tbody.insertBefore(tr, tbody.firstChild);
-        } else {
-            tbody.appendChild(tr);
-        }
-        return tr;
-    }
 
     // eventsource-exempt: background-batch-panel
     // This EventSource is NOT a progress modal — it's a lightweight per-row
@@ -694,7 +565,7 @@
                 row.querySelector('.batch-status-label').textContent = 'Complete';
                 row.querySelector('.batch-progress').textContent = total + ' of ' + total;
                 row.querySelector('.batch-remaining').textContent = '';
-                row.querySelector('.batch-actions').innerHTML = '<a href="/prospector/results/' + completedBatchId + '" class="batch-action-link">View Results →</a>';
+                row.querySelector('.batch-actions').innerHTML = '<a href="javascript:void(0)" class="batch-action-link" onclick="openBatchTab(\'' + completedBatchId + '\')">View Results \u2192</a>';
                 es.close();
             } else if (msg.startsWith('error:')) {
                 row.dataset.status = 'failed';
@@ -715,46 +586,6 @@
         };
     }
 
-    // ── Intercept form submissions — submit via fetch, stay on page ──
-    function interceptFormSubmit(form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var formData = new FormData(form);
-            var submitBtn = form.querySelector('.btn-primary');
-            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Starting…'; }
-
-            fetch('/prospector/run', { method: 'POST', body: formData })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.ok) {
-                        addBatchRow(data);
-                        connectBatchSSE(data.job_id, data.batch_id, data.company_count, data.est_seconds);
-                        // Reset the form
-                        form.reset();
-                        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Run Prospector →'; }
-                        // Clear file label if CSV
-                        var fileLabel = document.getElementById('fileLabel');
-                        if (fileLabel) fileLabel.style.display = 'none';
-                        // Clear estimator
-                        var estCsv = document.getElementById('estimatorCsv');
-                        var estPaste = document.getElementById('estimatorPaste');
-                        if (estCsv) estCsv.classList.remove('visible');
-                        if (estPaste) estPaste.classList.remove('visible');
-                    } else {
-                        alert('Error: ' + (data.error || 'Unknown error'));
-                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector →'; }
-                    }
-                })
-                .catch(function(err) {
-                    alert('Network error: ' + err);
-                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector →'; }
-                });
-        });
-    }
-
-    // Intercept both forms
-    document.querySelectorAll('.mode-panel form[action="/prospector/run"]').forEach(interceptFormSubmit);
-
     // ── Cancel batch ──
     window.cancelBatch = function(jobId, batchId) {
         fetch('/prospector/cancel/' + jobId, { method: 'POST' })
@@ -767,7 +598,7 @@
                         row.querySelector('.batch-status-dot').className = 'batch-status-dot batch-status-cancelled';
                         row.querySelector('.batch-status-label').textContent = 'Cancelled';
                         row.querySelector('.batch-remaining').textContent = '';
-                        row.querySelector('.batch-actions').innerHTML = '<a href="/prospector/results/' + batchId + '" class="batch-action-link">View Results →</a>';
+                        row.querySelector('.batch-actions').innerHTML = '<a href="javascript:void(0)" class="batch-action-link" onclick="openBatchTab(\'' + batchId + '\')">View Results \u2192</a>';
                     }
                 }
             });
@@ -776,13 +607,16 @@
     // ── Reconnect SSE for any running batches on page load ──
     document.querySelectorAll('#batchTableBody tr[data-status="running"]').forEach(function(row) {
         var jobId = row.dataset.jobId;
-        var batchId = row.id.replace('batch-row-', '');
+        var rowBatchId = row.id.replace('batch-row-', '');
         var total = parseInt(row.dataset.total) || 0;
         var estSeconds = parseInt(row.dataset.estSeconds) || 0;
         if (jobId) {
-            connectBatchSSE(jobId, batchId, total, estSeconds);
+            connectBatchSSE(jobId, rowBatchId, total, estSeconds);
         }
     });
+
+    // ── Initial state ──
+    showTab(activeTab);
 })();
 </script>
 

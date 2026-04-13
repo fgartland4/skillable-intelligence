@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Find Lookalikes — Prospector — Skillable Intelligence</title>
+    <style>
+        {% include '_theme.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, textarea { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: var(--sk-accent-soft); }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 48px 24px 80px; }
+
+        .back-link {
+            display: block; text-align: right; margin-bottom: 12px;
+            font-size: 0.78rem; color: var(--sk-accent);
+        }
+        .back-link:hover { color: var(--sk-accent-soft); }
+
+        h1 { font-size: 1.5rem; font-weight: 800; color: var(--sk-text); letter-spacing: -0.02em; margin-bottom: 28px; }
+
+        .form-card {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 16px; padding: 28px; min-height: 380px;
+            display: flex; flex-direction: column;
+        }
+
+        .field-label {
+            display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: var(--sk-text-dim); margin-bottom: 10px;
+        }
+        .field-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px; line-height: 1.5; }
+
+        .btn-primary {
+            background: var(--sk-accent); color: var(--sk-bg); border: none;
+            padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s;
+            font-family: inherit;
+        }
+        .btn-primary:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
+
+        .future-placeholder {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 12px; padding: 40px 20px;
+        }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'prospector' %}
+{% include '_nav.html' %}
+
+<div class="container">
+
+    <a href="/prospector" class="back-link">&larr; Back to Prospector</a>
+    <h1>Find Lookalikes</h1>
+
+    <div class="form-card">
+        <form style="flex: 1; display: flex; flex-direction: column; opacity: 0.5;">
+            <label class="field-label">What types of organizations should we find?</label>
+            <input type="text" disabled
+                placeholder="e.g. Cybersecurity software companies with large install bases"
+                style="width: 100%; padding: 12px 16px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 10px; color: var(--sk-text); font-family: inherit; font-size: 0.88rem;">
+            <div class="field-hint" style="text-align: left; margin-top: 10px; line-height: 1.7;">
+                Examples: <em style="color: var(--sk-text-muted);">Cybersecurity software companies with 10,000+ users</em> &middot; <em style="color: var(--sk-text-muted);">Engineering colleges with strong CS programs</em> &middot; <em style="color: var(--sk-text-muted);">Industry authorities focused on cloud certifications</em>
+                <br>Discovers NEW organizations not already in your ICP. Use Upload List or Paste List for companies you already know.
+            </div>
+            <div style="margin-top: auto; padding-top: 22px; text-align: center;">
+                <button type="button" class="btn-primary" disabled>Find Organizations &rarr;</button>
+                <div style="font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px;">Coming soon</div>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>

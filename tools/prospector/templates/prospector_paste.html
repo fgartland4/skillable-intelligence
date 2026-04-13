@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Paste Company List — Prospector — Skillable Intelligence</title>
+    <style>
+        {% include '_theme.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, textarea { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: var(--sk-accent-soft); }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 48px 24px 80px; }
+
+        .back-link {
+            display: block; text-align: right; margin-bottom: 12px;
+            font-size: 0.78rem; color: var(--sk-accent);
+        }
+        .back-link:hover { color: var(--sk-accent-soft); }
+
+        h1 { font-size: 1.5rem; font-weight: 800; color: var(--sk-text); letter-spacing: -0.02em; margin-bottom: 28px; }
+
+        .form-card {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 16px; padding: 28px; min-height: 380px;
+            display: flex; flex-direction: column;
+        }
+        .form-card form { display: flex; flex-direction: column; flex: 1; }
+        .panel-footer { margin-top: auto; padding-top: 22px; text-align: center; }
+
+        .field-label {
+            display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: var(--sk-text-dim); margin-bottom: 10px;
+        }
+
+        /* ── Textarea ── */
+        textarea {
+            width: 100%; background: var(--sk-bg); border: 1px solid var(--sk-border);
+            border-radius: 10px; color: var(--sk-text); font-family: inherit;
+            font-size: 0.9rem; padding: 14px 16px; resize: vertical;
+            min-height: 180px; line-height: 1.6; transition: border-color 0.15s;
+        }
+        textarea:focus { outline: none; border-color: rgba(36,237,155,0.4); }
+        textarea::placeholder { color: var(--sk-text-dim); }
+
+        .field-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px; line-height: 1.5; text-align: center; }
+
+        /* ── Deep Dive checkbox ── */
+        .dd-option {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 14px; padding: 10px 14px;
+            background: rgba(36,237,155,0.03); border: 1px solid var(--sk-border);
+            border-radius: 8px; cursor: pointer;
+        }
+        .dd-option input[type="checkbox"] { accent-color: var(--sk-accent); width: 16px; height: 16px; cursor: pointer; }
+        .dd-option label { font-size: 0.82rem; color: var(--sk-text-muted); cursor: pointer; }
+        .dd-option .dd-hint { font-size: 0.68rem; color: var(--sk-text-dim); margin-left: auto; }
+
+        /* ── Compact inline estimator ── */
+        .estimator-inline {
+            display: none; margin-top: 10px; padding: 8px 14px;
+            background: rgba(36,237,155,0.04); border: 1px solid var(--sk-border);
+            border-radius: 8px; font-size: 0.78rem; color: var(--sk-text-muted);
+            text-align: center;
+        }
+        .estimator-inline.visible { display: block; }
+        .estimator-inline strong { color: var(--sk-accent); }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            background: var(--sk-accent); color: var(--sk-bg); border: none;
+            padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s;
+            font-family: inherit;
+        }
+        .btn-primary:hover { opacity: 0.88; }
+        .btn-primary:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'prospector' %}
+{% include '_nav.html' %}
+
+<div class="container">
+
+    <a href="/prospector" class="back-link">&larr; Back to Prospector</a>
+    <h1>Paste Company List</h1>
+
+    <div class="form-card">
+        <form method="POST" action="/prospector/run" id="pasteForm">
+            <textarea name="companies" id="companyInput"
+                placeholder="Type or paste organization names here"></textarea>
+            <div class="field-hint">One per line or comma-separated. Companies, universities, training organizations — any type. Limit to 25 per batch.</div>
+            <div class="dd-option">
+                <input type="checkbox" name="deep_dive" id="ddCheckPaste">
+                <label for="ddCheckPaste">Deep Dive top product for each company</label>
+                <span class="dd-hint">Adds ~3-5 min per company</span>
+            </div>
+            <div class="estimator-inline" id="estimatorPaste"></div>
+            <div class="panel-footer">
+                <button type="submit" class="btn-primary" id="btnPaste" disabled>Run Prospector &rarr;</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    // ── Cost/time constants ──
+    var COST_PER_DISCOVERY = 0.22;
+    var COST_PER_DEEP_DIVE = 2.20;
+    var TIME_PER_DISCOVERY = 150;
+    var TIME_PER_DEEP_DIVE = 240;
+    var PARALLEL_FACTOR = 3;
+
+    function updateInlineEstimator(elId, count, ddChecked) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        if (count === 0) { el.classList.remove('visible'); return; }
+        var cost = count * COST_PER_DISCOVERY;
+        var timeSec = Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DISCOVERY;
+        if (ddChecked) {
+            cost += count * COST_PER_DEEP_DIVE;
+            timeSec += Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DEEP_DIVE;
+        }
+        var costStr = cost < 1 ? '~$' + cost.toFixed(2) : '~$' + cost.toFixed(1);
+        var mins = Math.ceil(timeSec / 60);
+        var timeStr = mins < 2 ? '~1 min' : '~' + mins + ' min';
+        el.innerHTML = '<strong>' + count + ' companies</strong> · ' + costStr + ' est. cost · ' + timeStr + ' est. time';
+        el.classList.add('visible');
+    }
+
+    // ── Paste list ──
+    var textarea = document.getElementById('companyInput');
+    var btnPaste = document.getElementById('btnPaste');
+    var ddCheckPaste = document.getElementById('ddCheckPaste');
+
+    function countPasteCompanies() {
+        if (!textarea) return 0;
+        var text = textarea.value.trim();
+        if (!text) return 0;
+        var names = [];
+        text.split('\n').forEach(function(line) {
+            line.split(',').forEach(function(n) { n = n.trim(); if (n) names.push(n); });
+        });
+        return names.length;
+    }
+
+    function refreshPaste() {
+        var count = countPasteCompanies();
+        if (btnPaste) btnPaste.disabled = count === 0;
+        updateInlineEstimator('estimatorPaste', count, ddCheckPaste && ddCheckPaste.checked);
+    }
+
+    if (textarea) textarea.addEventListener('input', refreshPaste);
+    if (ddCheckPaste) ddCheckPaste.addEventListener('change', refreshPaste);
+
+    // ── Intercept form submission — submit via fetch, redirect to batches tab ──
+    var form = document.getElementById('pasteForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(form);
+        var submitBtn = form.querySelector('.btn-primary');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Starting\u2026'; }
+
+        fetch('/prospector/run', { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    window.location.replace('/prospector?tab=batches');
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector \u2192'; }
+                }
+            })
+            .catch(function(err) {
+                alert('Network error: ' + err);
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector \u2192'; }
+            });
+    });
+})();
+</script>
+
+</body>
+</html>

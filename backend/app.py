@@ -887,10 +887,59 @@ def inspector_full_analysis(analysis_id: str):
 
 @app.route("/prospector")
 def prospector_home():
-    """Prospector landing — input form + batch status panel."""
+    """Prospector home — results-first view with All Companies, Recent Batches, and dynamic batch tabs."""
     import scoring_config as _cfg
+    from datetime import date
+
     recent_batches = _list_recent_batches(limit=_cfg.PROSPECTOR_RECENT_BATCHES_LIMIT)
-    return render_template("prospector.html", recent_batches=recent_batches)
+    all_results = _deduped_all_discoveries()
+
+    # Optional batch_id from query param (for viewing a specific batch)
+    batch_id = request.args.get("batch")
+    batch_results = None
+    if batch_id:
+        batch_results = _load_prospector_batch(batch_id)
+
+    # Optional tab from query param ('batches' to auto-select Recent Batches tab)
+    tab = request.args.get("tab", "")
+    if batch_results is not None:
+        initial_tab = "batch"
+    elif tab == "batches":
+        initial_tab = "batches"
+    else:
+        initial_tab = "all"
+
+    return render_template("prospector.html",
+                          recent_batches=recent_batches,
+                          all_results=all_results,
+                          batch_results=batch_results,
+                          batch_id=batch_id,
+                          initial_tab=initial_tab,
+                          refresh_date=date.today().strftime("%B %d, %Y"))
+
+
+@app.route("/prospector/upload")
+def prospector_upload():
+    """Focused upload page — CSV drop zone."""
+    return render_template("prospector_upload.html")
+
+
+@app.route("/prospector/paste")
+def prospector_paste():
+    """Focused paste page — textarea input."""
+    return render_template("prospector_paste.html")
+
+
+@app.route("/prospector/lookalikes")
+def prospector_lookalikes():
+    """Focused lookalikes page — coming soon."""
+    return render_template("prospector_lookalikes.html")
+
+
+@app.route("/prospector/configure")
+def prospector_configure():
+    """Focused configure page — HubSpot connection + field mapper."""
+    return render_template("prospector_configure.html")
 
 
 @app.route("/prospector/run", methods=["POST"])
@@ -1412,28 +1461,8 @@ _BATCH_CANCEL_FLAGS: dict[str, bool] = {}
 
 @app.route("/prospector/history")
 def prospector_history():
-    """List all previously researched companies across all discoveries."""
-    from storage import list_discoveries
-    best: dict[str, dict] = {}
-    for disc in list_discoveries():
-        name = disc.get("company_name", "")
-        key = _normalize_company_name(name)
-        if not key:
-            continue
-        existing = best.get(key)
-        if existing is None or disc.get("created_at", "") > existing.get("created_at", ""):
-            best[key] = disc
-    companies = []
-    for disc in best.values():
-        companies.append({
-            "name": disc.get("company_name", ""),
-            "badge": disc.get("_company_badge", ""),
-            "discovery_id": disc.get("discovery_id", ""),
-            "product_count": len(disc.get("products", [])),
-            "created_at": disc.get("created_at", ""),
-        })
-    companies.sort(key=lambda c: c.get("created_at", ""), reverse=True)
-    return render_template("prospector_history.html", companies=companies)
+    """Legacy history URL — redirect to the new home page (All Companies tab)."""
+    return redirect("/prospector")
 
 
 def _normalize_company_name(name: str) -> str:
@@ -1465,22 +1494,10 @@ def _deduped_all_discoveries() -> list[dict]:
 @app.route("/prospector/results")
 @app.route("/prospector/results/<batch_id>")
 def prospector_results(batch_id=None):
-    """Full-page results view with batch/all tabs."""
-    # Load batch results if batch_id provided
-    batch_results = None
+    """Legacy results URL — redirect to the new home page."""
     if batch_id:
-        batch_results = _load_prospector_batch(batch_id)
-
-    # Load ALL researched companies — deduped by normalized name
-    all_results = _deduped_all_discoveries()
-
-    from datetime import date
-    return render_template("prospector_results.html",
-                          batch_results=batch_results,
-                          batch_id=batch_id,
-                          all_results=all_results,
-                          active_tab="batch" if batch_id else "all",
-                          refresh_date=date.today().strftime("%B %d, %Y"))
+        return redirect(f"/prospector?batch={batch_id}")
+    return redirect("/prospector")
 
 
 @app.route("/prospector/export-all")

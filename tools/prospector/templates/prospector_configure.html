@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Configure Integration — Prospector — Skillable Intelligence</title>
+    <style>
+        {% include '_theme.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, textarea { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: var(--sk-accent-soft); }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
+
+        .back-link {
+            display: block; text-align: right; margin-bottom: 12px;
+            font-size: 0.78rem; color: var(--sk-accent);
+        }
+        .back-link:hover { color: var(--sk-accent-soft); }
+
+        h1 { font-size: 1.5rem; font-weight: 800; color: var(--sk-text); letter-spacing: -0.02em; margin-bottom: 28px; }
+
+        .field-label {
+            display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: var(--sk-text-dim); margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: var(--sk-accent); color: var(--sk-bg); border: none;
+            padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s;
+            font-family: inherit;
+        }
+        .btn-primary:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
+
+        .mapper-link {
+            display: inline-block; margin-top: 20px; font-size: 0.78rem;
+            color: var(--sk-accent); padding: 6px 14px;
+            border: 1px solid rgba(36,237,155,0.2); border-radius: 7px;
+            transition: background 0.15s;
+        }
+        .mapper-link:hover { background: rgba(36,237,155,0.06); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'prospector' %}
+{% include '_nav.html' %}
+
+<div class="container">
+
+    <a href="/prospector" class="back-link">&larr; Back to Prospector</a>
+    <h1>Configure Integration</h1>
+
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        {# Top: HubSpot Connection -- compact horizontal bar #}
+        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--sk-text-dim);"></div>
+                <span style="font-size: 0.75rem; font-weight: 600; color: var(--sk-text-dim);">Not connected</span>
+            </div>
+            <div style="flex: 1;">
+                <input type="password" placeholder="Private App Token (pat-na1-xxxx...)"
+                       style="width: 100%; padding: 7px 12px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 6px; color: var(--sk-text); font-family: inherit; font-size: 0.78rem;"
+                       disabled>
+            </div>
+            <button type="button" class="btn-primary" style="padding: 8px 18px; font-size: 0.78rem; white-space: nowrap;" disabled>Connect to HubSpot &rarr;</button>
+        </div>
+
+        {# Bottom: Field Mapper #}
+        <div>
+            <label class="field-label">Field Mapping</label>
+            <div style="font-size: 0.75rem; color: var(--sk-text-dim); margin-bottom: 14px;">Map Skillable intelligence fields to HubSpot properties. Click each section to expand.</div>
+
+            {% set fm_sections = [
+                ("Product Identity — Discovery", [
+                    ("top_product_name", "Top product name"),
+                    ("product_relationship", "Flagship / Secondary"),
+                    ("estimated_user_base", "Estimated users"),
+                    ("deployment_model", "Deployment model"),
+                    ("labability_tier", "Promising / Potential / Uncertain / Unlikely"),
+                ]),
+                ("Company Signals — Discovery", [
+                    ("company_badge", "Classification badge"),
+                    ("training_programs", "Training programs offered"),
+                    ("atp_program", "ATP program and size"),
+                    ("delivery_partners", "Who delivers training"),
+                    ("lab_platform", "Current lab platform"),
+                    ("sales_channel", "Sales channel partners"),
+                    ("events", "Flagship events"),
+                    ("partnership_pattern", "Partnership culture"),
+                ]),
+                ("ACV Potential — Deep Dive", [
+                    ("company_acv_potential", "Company-level ACV range"),
+                    ("acv_rate_tier", "Rate tier — Cloud / Small VM / Typical VM / Large VM"),
+                ]),
+                ("Fit Score — Deep Dive", [
+                    ("fit_score", "Composite Fit Score (0-100)"),
+                    ("verdict", "Prime Target / Strong Prospect / etc."),
+                ]),
+                ("Product Labability — Deep Dive (50%)", [
+                    ("product_labability_score", "Pillar score (0-100)"),
+                    ("provisioning_score", "Provisioning dimension"),
+                    ("lab_access_score", "Lab Access dimension"),
+                    ("scoring_score", "Scoring dimension"),
+                    ("teardown_score", "Teardown dimension"),
+                ]),
+                ("Instructional Value — Deep Dive (20%)", [
+                    ("instructional_value_score", "Pillar score (0-100)"),
+                    ("product_complexity_score", "Product Complexity dimension"),
+                    ("mastery_stakes_score", "Mastery Stakes dimension"),
+                    ("lab_versatility_score", "Lab Versatility dimension"),
+                    ("market_demand_score", "Market Demand dimension"),
+                ]),
+                ("Customer Fit — Deep Dive (30%)", [
+                    ("customer_fit_score", "Pillar score (0-100)"),
+                    ("training_commitment_score", "Training Commitment dimension"),
+                    ("build_capacity_score", "Build Capacity dimension"),
+                    ("delivery_capacity_score", "Delivery Capacity dimension"),
+                    ("organizational_dna_score", "Organizational DNA dimension"),
+                ]),
+                ("Seller Briefcase — Deep Dive Only", [
+                    ("key_technical_questions", "Key Technical Questions"),
+                    ("conversation_starters", "Conversation Starters"),
+                    ("account_intelligence", "Account Intelligence"),
+                ]),
+                ("Documentation", [
+                    ("doc_fit_score", "Fit Score documentation"),
+                    ("doc_product_labability", "Product Labability documentation"),
+                    ("doc_instructional_value", "Instructional Value documentation"),
+                    ("doc_customer_fit", "Customer Fit documentation"),
+                ]),
+            ] %}
+
+            {% for section_name, fields in fm_sections %}
+            <div style="background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 8px; margin-bottom: 6px; overflow: hidden;">
+                <div onclick="this.parentElement.classList.toggle('open')"
+                     style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 0.78rem; font-weight: 600; color: var(--sk-text-muted);">
+                    <span>{{ section_name }}</span>
+                    <span style="font-size: 0.6rem; color: var(--sk-text-dim);">{{ fields | length }} fields</span>
+                </div>
+                <div style="display: none; border-top: 1px solid var(--sk-border); padding: 6px 0;">
+                    {% for field_name, field_desc in fields %}
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 5px 14px;">
+                        <span style="flex: 0 0 220px; font-family: monospace; font-size: 0.72rem; color: var(--sk-accent);">{{ field_name }}</span>
+                        <span style="flex: 1; font-size: 0.72rem; color: var(--sk-text-dim);">{{ field_desc }}</span>
+                        <input type="text" placeholder="hubspot_field"
+                               style="flex: 0 0 200px; padding: 4px 8px; background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 4px; color: var(--sk-text-dim); font-size: 0.7rem; font-family: inherit;"
+                               disabled>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <style>.open > div:last-child { display: block !important; }</style>
+            {% endfor %}
+
+            <a href="/prospector/field-mapper" class="mapper-link">Open Full Field Reference &rarr;</a>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
