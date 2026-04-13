@@ -685,9 +685,21 @@ def recompute_analysis(analysis: dict) -> None:
             pass
         if user_base <= 0:
             continue
-        # Conservative estimate: user_base × 4% adoption × 2 hrs × rate
-        # from deployment model. This is deliberately conservative — the
-        # deep dive will sharpen it.
+        # Conservative estimate using the default Customer Training motion
+        # config (adoption_pct + hours) × rate from deployment model.
+        # Org-type overrides apply to scored products via populate_acv_motions;
+        # unscored rough estimates use the default motion as a floor.
+        _default_motion = cfg.CONSUMPTION_MOTIONS[0]  # Customer Training & Enablement
+        adopt = _default_motion.adoption_pct
+        hrs = _default_motion.hours_low
+
+        # Org-type adoption override if available
+        org_type = (discovery_data.get("organization_type") or "").lower().replace(" ", "_")
+        norm_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type, "")
+        org_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(norm_org, {})
+        if _default_motion.label in org_overrides:
+            adopt = org_overrides[_default_motion.label]
+
         deploy = (dp.get("deployment_model") or "").strip().lower()
         if deploy in ("cloud", "saas-only"):
             rate = cfg.CLOUD_LABS_RATE
@@ -695,7 +707,7 @@ def recompute_analysis(analysis: dict) -> None:
             rate = cfg.VM_MID_RATE
         else:
             rate = cfg.VM_LOW_RATE
-        rough_acv = user_base * 0.04 * 2 * rate  # magic-allowed: conservative 4% adoption × 2 hrs default
+        rough_acv = user_base * adopt * hrs * rate
         unscored_acv += rough_acv
 
     company_acv_low = round(scored_acv_low + unscored_acv)
