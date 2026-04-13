@@ -894,16 +894,13 @@ def prospector_home():
 
 @app.route("/prospector/run", methods=["POST"])
 def prospector_run():
-    """Run batch discovery on a list of company names.
+    """Start batch discovery — returns a progress page with SSE modal.
 
-    Accepts a textarea of company names (one per line). Runs discovery on
-    each sequentially, builds the results summary, saves the batch, and
-    redirects to the results view.
+    Accepts a textarea of company names (one per line). Kicks off a
+    background thread that runs discovery on each company sequentially,
+    emitting SSE progress per company via the standard search modal.
     """
-    import scoring_config as cfg
-
     # Accept company names from textarea OR CSV upload
-    # Supports one-per-line OR comma-separated OR mixed
     raw = request.form.get("companies", "")
     company_names = []
     for line in raw.strip().split("\n"):
@@ -922,35 +919,47 @@ def prospector_run():
         for row in reader:
             if row and row[0].strip():
                 name = row[0].strip()
-                # Skip header rows that look like column labels
                 if name.lower() not in ("company", "company name", "name", "organization"):
                     company_names.append(name)
 
     if not company_names:
         return redirect(url_for("prospector_home"))
 
+    job_id = str(uuid.uuid4())[:8]
     batch_id = str(uuid.uuid4())[:8]
-    results = []
+    total = len(company_names)
 
-    for name in company_names:
-        try:
-            disc = discover(name)
-        except Exception as e:
-            log.warning("Prospector: discovery failed for %s: %s", name, e)
-            results.append({"company_name": name, "error": str(e)})
-            continue
+    def run_batch():
+        results = []
+        for i, name in enumerate(company_names, 1):
+            push(job_id, f"status:Researching {name}… {i} of {total}")
+            try:
+                disc = discover(name)
+                results.append(_build_prospector_row(disc))
+            except Exception as e:
+                log.warning("Prospector: discovery failed for %s: %s", name, e)
+                results.append({"company_name": name, "error": str(e)})
 
-        results.append(_build_prospector_row(disc))
+        # Sort by estimated ACV (descending)
+        results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
+        for i, r in enumerate(results, 1):
+            r["rank"] = i
 
-    # Sort by estimated ACV (descending) — the primary Prospector ranking
-    results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
+        _save_prospector_batch(batch_id, results)
+        push(job_id, f"done:{batch_id}")
 
-    # Assign ranks after sorting
-    for i, r in enumerate(results, 1):
-        r["rank"] = i
+    threading.Thread(target=run_batch, daemon=True).start()
 
-    _save_prospector_batch(batch_id, results)
-    return redirect(url_for("prospector_home", batch=batch_id))
+    return render_template("prospector_running.html",
+                          job_id=job_id,
+                          company_count=total)
+
+
+@app.route("/prospector/progress/<job_id>")
+def prospector_progress(job_id: str):
+    """SSE stream for Prospector batch progress."""
+    return Response(stream_with_context(sse_stream(job_id)),
+                    content_type="text/event-stream")
 
 
 @app.route("/prospector/export/<batch_id>")
