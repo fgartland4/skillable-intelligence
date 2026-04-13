@@ -469,18 +469,25 @@ The cap clamps positives **only**. Penalties are subtracted AFTER the clamp so t
 
 | Category | Baseline | Rationale |
 |---|---|---|
-| **Cybersecurity** | **32 / 40 (80%)** | Multi-system, cross-role, deep configuration |
-| **Cloud Infrastructure** | **32 / 40 (80%)** | Inherently multi-component |
-| **Networking / SDN** | **32 / 40 (80%)** | Topology learned by manipulation |
-| **Data Science & Engineering** | **32 / 40 (80%)** | Pipelines, tuning, iteration |
-| **Data & Analytics** | **32 / 40 (80%)** | Modeling, query tuning |
-| **DevOps** | **32 / 40 (80%)** | CI/CD, IaC, config management |
-| **AI Platforms & Tooling** | **32 / 40 (80%)** | Prompt / tune / verify cycles |
-| **Data Protection** | **30 / 40 (75%)** | Complex multi-layer systems |
-| **ERP, CRM, Healthcare IT, FinTech, Legal Tech, Industrial / OT, Infrastructure / Virtualization, App Development** | **28 / 40 (70%)** | Deep configuration, workflow depth, regulated workflows |
-| **Collaboration** | **24 / 40 (60%)** | SharePoint, Microsoft 365, Teams — administrative depth |
-| **Content Management** | **24 / 40 (60%)** | Documentum, Alfresco — workflow depth |
-| **Unknown / uncategorized** | **22 / 40 (55%)** | Neutral fallback — triggers the classification review flag |
+| **Cybersecurity** | **28 / 40 (70%)** | Multi-system, cross-role, deep configuration |
+| **Cloud Infrastructure** | **28 / 40 (70%)** | Inherently multi-component |
+| **Networking / SDN** | **28 / 40 (70%)** | Topology learned by manipulation |
+| **Data Science & Engineering** | **28 / 40 (70%)** | Pipelines, tuning, iteration |
+| **Data & Analytics** | **26 / 40 (65%)** | Modeling, query tuning |
+| **DevOps** | **28 / 40 (70%)** | CI/CD, IaC, config management |
+| **AI Platforms & Tooling** | **28 / 40 (70%)** | Prompt / tune / verify cycles |
+| **Data Protection** | **26 / 40 (65%)** | Complex multi-layer systems |
+| **ERP** | **24 / 40 (60%)** | Deep configuration, financial workflow depth |
+| **CRM** | **22 / 40 (55%)** | Workflow depth, but typically shallower configuration |
+| **Healthcare IT** | **24 / 40 (60%)** | Regulated workflows, clinical configuration |
+| **FinTech** | **24 / 40 (60%)** | Regulated workflows, transaction complexity |
+| **Legal Tech** | **22 / 40 (55%)** | Workflow depth, compliance configuration |
+| **Industrial / OT** | **24 / 40 (60%)** | Control systems, safety-critical configuration |
+| **Infrastructure / Virtualization** | **24 / 40 (60%)** | Multi-component, hypervisor-level depth |
+| **App Development** | **22 / 40 (55%)** | IDE / framework depth varies widely |
+| **Collaboration** | **18 / 40 (45%)** | SharePoint, Microsoft 365, Teams — administrative depth |
+| **Content Management** | **18 / 40 (45%)** | Documentum, Alfresco — workflow depth |
+| **Unknown / uncategorized** | **18 / 40 (45%)** | Neutral fallback — triggers the classification review flag |
 | **Social / Entertainment** (Facebook, Instagram, TikTok, Netflix, Spotify) | **4 / 40 (10%)** | No professional training market |
 
 **Signal categories (positive):** `multi_vm_architecture`, `deep_configuration`, `multi_phase_workflow`, `role_diversity`, `troubleshooting_depth`, `complex_networking`, `integration_complexity`, `ai_practice_required`, `state_persistence`, `compliance_depth`.
@@ -495,12 +502,25 @@ The cap clamps positives **only**. Penalties are subtracted AFTER the clamp so t
 
 | Category | Baseline | Rationale |
 |---|---|---|
-| **Cybersecurity, Healthcare IT, FinTech, Legal Tech, Data Science & Engineering, AI Platforms & Tooling** | **22 / 25 (88%)** | Breach, patient safety, money, malpractice, garbage-in-garbage-out — definitional stakes |
-| **ERP, Data Protection, Industrial / OT, Cloud Infrastructure, Networking / SDN, DevOps, Infrastructure / Virtualization** | **20 / 25 (80%)** | Financial records, data loss, downtime, configuration errors at scale |
-| **Data & Analytics** | **18 / 25 (72%)** | Business-skills layer — dashboards drive decisions |
-| **CRM, Content Management, Collaboration** | **16 / 25 (64%)** | Real consequences, but usually recoverable |
-| **App Development** | **14 / 25 (56%)** | Stakes depend on what's being built — neutral-moderate |
-| **Unknown / uncategorized** | **14 / 25 (56%)** | Neutral fallback |
+| **Cybersecurity** | **16 / 25 (64%)** | Breach exposure, incident response — definitional stakes |
+| **Healthcare IT** | **16 / 25 (64%)** | Patient safety, regulated clinical workflows |
+| **FinTech** | **16 / 25 (64%)** | Financial loss, regulatory compliance |
+| **Legal Tech** | **16 / 25 (64%)** | Malpractice, compliance consequences |
+| **Data Science & Engineering** | **16 / 25 (64%)** | Garbage-in-garbage-out, model integrity |
+| **AI Platforms & Tooling** | **16 / 25 (64%)** | Model safety, hallucination risk, deployment stakes |
+| **Cloud Infrastructure** | **15 / 25 (60%)** | Data loss, downtime, configuration errors at scale |
+| **Networking / SDN** | **15 / 25 (60%)** | Outage impact, topology misconfiguration |
+| **DevOps** | **15 / 25 (60%)** | Pipeline failures, deployment risk |
+| **Data Protection** | **15 / 25 (60%)** | Data loss, compliance failure |
+| **ERP** | **15 / 25 (60%)** | Financial records, business continuity |
+| **Industrial / OT** | **15 / 25 (60%)** | Safety-critical systems, physical harm potential |
+| **Infrastructure / Virtualization** | **15 / 25 (60%)** | Downtime, resource misconfiguration |
+| **Data & Analytics** | **13 / 25 (52%)** | Business-skills layer — dashboards drive decisions |
+| **CRM** | **12 / 25 (48%)** | Real consequences, but usually recoverable |
+| **Collaboration** | **10 / 25 (40%)** | Low stakes, typically recoverable |
+| **Content Management** | **10 / 25 (40%)** | Low stakes, typically recoverable |
+| **App Development** | **10 / 25 (40%)** | Stakes depend on what's being built — neutral-moderate |
+| **Unknown / uncategorized** | **10 / 25 (40%)** | Neutral fallback |
 | **Social / Entertainment** | **2 / 25 (8%)** | No professional stakes |
 
 **Signal categories:** `breach_exposure`, `compliance_consequences`, `data_integrity`, `business_continuity`, `safety_regulated`, `legal_liability`, `reputation_damage`, `financial_impact`.
@@ -521,11 +541,25 @@ A product with Lab Versatility doesn't need to support ALL lab types — it need
 
 | Category | Baseline | Natural lab types |
 |---|---|---|
-| **Cybersecurity, Cloud Infrastructure, Networking / SDN, DevOps, AI Platforms & Tooling** | **14 / 15 (93%)** | Red vs Blue, Simulated Attack, Incident Response, Cyber Range, CTF, Migration, Performance Tuning |
-| **Data Science & Engineering** | **13 / 15 (87%)** | Pipeline building, Performance Tuning, Break/Fix |
-| **Data Protection, Industrial / OT, Infrastructure / Virtualization, Data & Analytics, App Development, ERP, Healthcare IT, FinTech** | **12 / 15 (80%)** | DR, Compliance Audit, Break/Fix, Migration, Workflow, Configuration |
-| **Legal Tech, CRM, Collaboration, Content Management** | **11 / 15 (73%)** | Workflow, Compliance Audit, Permission Modeling |
-| **Unknown / uncategorized** | **11 / 15 (73%)** | Neutral fallback |
+| **Cybersecurity** | **10 / 15 (67%)** | Red vs Blue, Simulated Attack, Incident Response, Cyber Range, CTF |
+| **Cloud Infrastructure** | **10 / 15 (67%)** | Migration, Architecture Challenge, DR, Performance Tuning |
+| **Networking / SDN** | **10 / 15 (67%)** | Break/Fix, Topology, Performance Tuning, DR |
+| **DevOps** | **10 / 15 (67%)** | CI/CD Pipeline, Migration, Break/Fix, Performance Tuning |
+| **AI Platforms & Tooling** | **10 / 15 (67%)** | Model Tuning, Pipeline, Architecture Challenge |
+| **Data Science & Engineering** | **9 / 15 (60%)** | Pipeline building, Performance Tuning, Break/Fix |
+| **Data & Analytics** | **8 / 15 (53%)** | Break/Fix, Compliance Audit, Configuration |
+| **Data Protection** | **8 / 15 (53%)** | DR, Compliance Audit, Break/Fix |
+| **ERP** | **8 / 15 (53%)** | Workflow, Configuration, Compliance Audit |
+| **Healthcare IT** | **8 / 15 (53%)** | Compliance Audit, Workflow, Configuration |
+| **FinTech** | **8 / 15 (53%)** | Compliance Audit, Workflow, Configuration |
+| **Industrial / OT** | **8 / 15 (53%)** | DR, Break/Fix, Safety Scenario |
+| **Infrastructure / Virtualization** | **8 / 15 (53%)** | DR, Migration, Break/Fix, Configuration |
+| **App Development** | **8 / 15 (53%)** | Break/Fix, Architecture Challenge, Performance Tuning |
+| **CRM** | **7 / 15 (47%)** | Workflow, Compliance Audit, Permission Modeling |
+| **Legal Tech** | **7 / 15 (47%)** | Workflow, Compliance Audit, Permission Modeling |
+| **Collaboration** | **7 / 15 (47%)** | Workflow, Permission Modeling |
+| **Content Management** | **7 / 15 (47%)** | Workflow, Permission Modeling |
+| **Unknown / uncategorized** | **7 / 15 (47%)** | Neutral fallback |
 | **Social / Entertainment** | **1 / 15 (7%)** | Rarely fits any lab type |
 
 **Signal categories** map directly to `LAB_TYPE_MENU` entries: `adversarial_scenario`, `simulated_attack`, `incident_response`, `break_fix`, `team_handoff`, `bug_bounty`, `cyber_range`, `performance_tuning`, `migration_lab`, `architecture_challenge`, `compliance_audit`, `disaster_recovery`, `ctf`.
@@ -544,14 +578,25 @@ Strong = +5. Moderate = +3.
 
 | Category | Baseline |
 |---|---|
-| **Cybersecurity, Cloud Infrastructure, AI Platforms & Tooling** | **14 / 20 (70%)** |
-| **Networking / SDN, DevOps** | **13 / 20 (65%)** |
-| **Data Science & Engineering** | **12 / 20 (60%)** |
-| **Data & Analytics, App Development** | **11 / 20 (55%)** |
-| **ERP, Infrastructure / Virtualization, Healthcare IT, FinTech, Industrial / OT** | **10 / 20 (50%)** |
-| **Data Protection, Legal Tech** | **9 / 20 (45%)** |
-| **Unknown / uncategorized** | **9 / 20 (45%)** |
-| **CRM, Collaboration, Content Management** | **8 / 20 (40%)** |
+| **Cybersecurity** | **12 / 20 (60%)** |
+| **Cloud Infrastructure** | **12 / 20 (60%)** |
+| **AI Platforms & Tooling** | **12 / 20 (60%)** |
+| **Networking / SDN** | **11 / 20 (55%)** |
+| **DevOps** | **11 / 20 (55%)** |
+| **Data Science & Engineering** | **10 / 20 (50%)** |
+| **Data & Analytics** | **9 / 20 (45%)** |
+| **App Development** | **9 / 20 (45%)** |
+| **ERP** | **8 / 20 (40%)** |
+| **Data Protection** | **8 / 20 (40%)** |
+| **Healthcare IT** | **8 / 20 (40%)** |
+| **FinTech** | **8 / 20 (40%)** |
+| **Industrial / OT** | **8 / 20 (40%)** |
+| **Infrastructure / Virtualization** | **8 / 20 (40%)** |
+| **CRM** | **7 / 20 (35%)** |
+| **Legal Tech** | **7 / 20 (35%)** |
+| **Unknown / uncategorized** | **7 / 20 (35%)** |
+| **Collaboration** | **6 / 20 (30%)** |
+| **Content Management** | **6 / 20 (30%)** |
 | **Social / Entertainment** | **0 / 20 (0%)** |
 
 **Why baselines are lower than for Complexity and Stakes.** Market Demand baselines leave room for product-specific differentiation. Microsoft-scale cybersecurity products land at 18–19. Trellix-scale products land at 15–16. Niche products at 12–13. The baseline gives the category ceiling; the product-specific evidence determines where THIS product lands within it.
@@ -915,10 +960,10 @@ All examples assume `SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-5b-pristin
 
 | Dimension | Detail | Score |
 |---|---|---|
-| Product Complexity | Cybersecurity baseline 32 + Multi-Correlation Engine strong (+6) + Analyst+Automation role_diversity strong (+6) = 44, capped at 40 | **40 / 40** |
-| Mastery Stakes | Cybersecurity baseline 22 + Breach Detection Gap strong (+9) = 31, capped at 25 | **25 / 25** |
-| Lab Versatility | Cybersecurity baseline 14 + SOC Alert Triage strong (+5) = 19, capped at 15 | **15 / 15** |
-| Market Demand | Cybersecurity baseline 14 + Top 5 EDR install base scale (+5) + Active Cert Track (+5) = 24, capped at 20 | **20 / 20** |
+| Product Complexity | Cybersecurity baseline 28 + Multi-Correlation Engine strong (+6) + Analyst+Automation role_diversity strong (+6) = 40, capped at 40 | **40 / 40** |
+| Mastery Stakes | Cybersecurity baseline 16 + Breach Detection Gap strong (+9) = 25, capped at 25 | **25 / 25** |
+| Lab Versatility | Cybersecurity baseline 10 + SOC Alert Triage strong (+5) = 15, capped at 15 | **15 / 15** |
+| Market Demand | Cybersecurity baseline 12 + Top 5 EDR install base scale (+5) + Active Cert Track (+5) = 22, capped at 20 | **20 / 20** |
 | **IV total** | | **100 / 100** |
 
 **Pillar 3 — Customer Fit** (Trellix at the COMPANY level, shared by every Trellix product)
@@ -957,23 +1002,23 @@ PL 92, IV 100, CF 90, orchestration = Hyper-V (datacenter method class).
 
 | Dimension | Detail | Score |
 |---|---|---|
-| Product Complexity | CM baseline 24 + Agenda+Voting Workflow moderate (+3) + Committee Role Separation moderate (+3) + Document Permission Tree moderate (+3) = 33 | **33 / 40** |
-| Mastery Stakes | CM baseline 16 + Board Privilege Exposure strong (+9) = 25, capped | **25 / 25** |
-| Lab Versatility | CM baseline 11 + Workflow strong (+5) = 16, capped at 15 | **15 / 15** |
-| Market Demand | CM baseline 8 + Specialist admin population moderate (+3) = 11 | **11 / 20** |
-| **IV total** | | **84 / 100** |
+| Product Complexity | CM baseline 18 + Agenda+Voting Workflow moderate (+3) + Committee Role Separation moderate (+3) + Document Permission Tree moderate (+3) = 27 | **27 / 40** |
+| Mastery Stakes | CM baseline 10 + Board Privilege Exposure strong (+9) = 19 | **19 / 25** |
+| Lab Versatility | CM baseline 7 + Workflow strong (+5) = 12 | **12 / 15** |
+| Market Demand | CM baseline 6 + Specialist admin population moderate (+3) = 9 | **9 / 20** |
+| **IV total** | | **67 / 100** |
 
 **Pillar 3** Customer Fit — Diligent as a company — assume moderate Training Commitment, moderate Delivery (Layer 1 vendor-delivered, no ATP), Organizational DNA strong. Rough **CF total ≈ 68**.
 
 **Fit Score composition**
 
-PL 25, IV 84, CF 68, orchestration = SaaS (non-datacenter).
+PL 25, IV 67, CF 68, orchestration = SaaS (non-datacenter).
 
 - Technical Fit Multiplier lookup: PL 25 is in 19–31, method = non-datacenter → multiplier = **0.60**
 - PL contrib = 25 × 0.50 = 12.5
-- IV contrib = 84 × 0.20 × 0.60 = 10.1
+- IV contrib = 67 × 0.20 × 0.60 = 8.0
 - CF contrib = 68 × 0.30 × 0.60 = 12.2
-- **Fit Score = round(34.8) = 35 → Amber → Keep Watch**
+- **Fit Score = round(32.7) = 33 → Amber → Keep Watch**
 
 Honest outcome: strong instructional case and decent customer, but the Sandbox API red cap honestly reflects that Skillable can't run per-learner labs on Diligent Boards today.
 
