@@ -2416,18 +2416,23 @@ def build_scoring_context(raw_org_type: str | None, raw_product_category: str | 
 
 
 # Shape: org_type -> {dimension_key: baseline}
+# Recalibrated 2026-04-13 — same principle as IV baselines: baselines represent
+# a WEAK implementation of each org type. The grader's findings earn the score
+# from baseline to cap. Two strong findings should reach the cap.
+# Target: ~55-70% of cap for top-tier orgs, proportionally lower for others.
+# Caps: TC=25, BC=20, DC=30, DNA=25.
 CF_ORG_BASELINES: dict[str, dict[str, int]] = {
-    "TRAINING ORG": {"training_commitment": 23, "build_capacity": 12, "delivery_capacity": 24, "organizational_dna": 19},
-    "ACADEMIC": {"training_commitment": 22, "build_capacity": 12, "delivery_capacity": 16, "organizational_dna": 15},
-    "CONTENT DEVELOPMENT": {"training_commitment": 22, "build_capacity": 14, "delivery_capacity": 14, "organizational_dna": 19},
-    "ENTERPRISE SOFTWARE": {"training_commitment": 18, "build_capacity": 11, "delivery_capacity": 22, "organizational_dna": 17},
-    "PROFESSIONAL SERVICES": {"training_commitment": 18, "build_capacity": 12, "delivery_capacity": 18, "organizational_dna": 18},
-    "SOFTWARE": {"training_commitment": 16, "build_capacity": 10, "delivery_capacity": 16, "organizational_dna": 16},
-    "SYSTEMS INTEGRATOR": {"training_commitment": 16, "build_capacity": 11, "delivery_capacity": 20, "organizational_dna": 18},
-    "LMS PROVIDER": {"training_commitment": 11, "build_capacity": 9, "delivery_capacity": 24, "organizational_dna": 16},
-    "TECH DISTRIBUTOR": {"training_commitment": 9, "build_capacity": 9, "delivery_capacity": 22, "organizational_dna": 17},
+    "TRAINING ORG": {"training_commitment": 17, "build_capacity": 12, "delivery_capacity": 18, "organizational_dna": 15},
+    "ACADEMIC": {"training_commitment": 16, "build_capacity": 11, "delivery_capacity": 14, "organizational_dna": 13},
+    "CONTENT DEVELOPMENT": {"training_commitment": 16, "build_capacity": 13, "delivery_capacity": 12, "organizational_dna": 15},
+    "ENTERPRISE SOFTWARE": {"training_commitment": 14, "build_capacity": 10, "delivery_capacity": 17, "organizational_dna": 14},
+    "PROFESSIONAL SERVICES": {"training_commitment": 14, "build_capacity": 11, "delivery_capacity": 15, "organizational_dna": 14},
+    "SOFTWARE": {"training_commitment": 12, "build_capacity": 9, "delivery_capacity": 14, "organizational_dna": 13},
+    "SYSTEMS INTEGRATOR": {"training_commitment": 12, "build_capacity": 10, "delivery_capacity": 16, "organizational_dna": 14},
+    "LMS PROVIDER": {"training_commitment": 9, "build_capacity": 8, "delivery_capacity": 18, "organizational_dna": 13},
+    "TECH DISTRIBUTOR": {"training_commitment": 7, "build_capacity": 8, "delivery_capacity": 17, "organizational_dna": 13},
     # Keyed by the canonical UNKNOWN_CLASSIFICATION constant (Define-Once).
-    UNKNOWN_CLASSIFICATION: {"training_commitment": 13, "build_capacity": 10, "delivery_capacity": 16, "organizational_dna": 15},
+    UNKNOWN_CLASSIFICATION: {"training_commitment": 10, "build_capacity": 9, "delivery_capacity": 14, "organizational_dna": 12},
 }
 
 
