@@ -601,27 +601,33 @@ def recompute_analysis(analysis: dict) -> None:
         # was saved, so this re-run keeps the displayed ACV fresh.
         acv_calculator.compute_acv_potential(p)
 
-        # Fit Score total — composer-written override wins, else weighted
-        # sum with the Technical Fit Multiplier lookup from config. Mirrors
-        # fit_score_composer.compose_fit_score.
-        fit_total = fs.get("total_override")
-        if fit_total is None:
-            pl = pillar_scores.get("product_labability", 0)
-            iv = pillar_scores.get("instructional_value", 0)
-            cf = pillar_scores.get("customer_fit", 0)
-            pl_w = pillar_weights.get("product_labability", 40)
-            iv_w = pillar_weights.get("instructional_value", 30)
-            cf_w = pillar_weights.get("customer_fit", 30)
-            # Look up the multiplier the same way the composer does, so
-            # a cache reload of a pre-composer analysis still applies it.
-            from fit_score_composer import get_technical_fit_multiplier
-            mult = get_technical_fit_multiplier(pl, p.get("orchestration_method") or "")
-            weighted = (
-                pl * (pl_w / 100)
-                + iv * (iv_w / 100) * mult
-                + cf * (cf_w / 100) * mult
-            )
-            fit_total = max(0, min(100, round(weighted)))
+        # Fit Score total — ALWAYS recalculate from saved pillar scores
+        # using the live composer config (weights, multiplier table).
+        # Never trust a cached total_override — weight or multiplier
+        # retunes must propagate instantly on every page load.
+        pl = pillar_scores.get("product_labability", 0)
+        iv = pillar_scores.get("instructional_value", 0)
+        cf = pillar_scores.get("customer_fit", 0)
+        # Read weights from LIVE config, not cached data — weight
+        # retunes must propagate instantly.
+        _cfg_weights = {
+            p.name.lower().replace(" ", "_"): p.weight
+            for p in cfg.PILLARS
+        }
+        pl_w = _cfg_weights.get("product_labability", 50)
+        iv_w = _cfg_weights.get("instructional_value", 20)
+        cf_w = _cfg_weights.get("customer_fit", 30)
+        from fit_score_composer import get_technical_fit_multiplier
+        mult = get_technical_fit_multiplier(pl, p.get("orchestration_method") or "")
+        weighted = (
+            pl * (pl_w / 100)
+            + iv * (iv_w / 100) * mult
+            + cf * (cf_w / 100) * mult
+        )
+        fit_total = max(0, min(100, round(weighted)))
+        # Write back so the cached data stays current
+        fs["total_override"] = int(fit_total)
+        fs["technical_fit_multiplier"] = float(mult)
 
         acv_tier = (p.get("acv_potential") or {}).get("acv_tier") or "low"
         new_verdict = assign_verdict(int(fit_total), acv_tier)
@@ -1068,7 +1074,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         # composes the final Fit Score with the Technical Fit Multiplier
         # applied to IV + CF contributions — the asymmetric coupling rule
         # that enforces "weak PL drags IV + CF contribution down."
-        from pillar_1_scorer import score_product_labability
+        from pillar_1_scorer import score_product_labability, derive_orchestration_method
         from rubric_grader import grade_all_for_company, grade_all_for_product
         from pillar_2_scorer import score_instructional_value
         from pillar_3_scorer import score_customer_fit
@@ -1105,6 +1111,13 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         for product in new_analysis.products:
             try:
                 product.fit_score.product_labability = score_product_labability(
+                    product.product_labability_facts
+                )
+                # Derive orchestration_method from the same facts the scorer
+                # used.  This internal field drives ACV rate tier lookup and
+                # Technical Fit Multiplier — the user never sees it.  Badges
+                # remain fabric-neutral ("Runs in VM", not "Hyper-V").
+                product.orchestration_method = derive_orchestration_method(
                     product.product_labability_facts
                 )
             except Exception:

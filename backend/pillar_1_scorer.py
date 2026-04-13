@@ -1033,3 +1033,52 @@ def score_product_labability(facts: ProductLababilityFacts) -> PillarScore:
     recompute_pillar_score(pillar)
 
     return pillar
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Orchestration method derivation — internal plumbing for ACV rate tier
+# and Technical Fit Multiplier.
+#
+# The user-facing badge is fabric-neutral ("Runs in VM" — the SE decides
+# whether it's Hyper-V or ESX).  The orchestration_method string is
+# INTERNAL ONLY — it drives two things behind the scenes:
+#   1. ACV rate tier lookup (cloud $6/hr vs VM $14/hr vs large VM $45/hr)
+#   2. Technical Fit Multiplier (datacenter vs non-datacenter method class)
+#
+# The user never sees this field.  Badges are unchanged.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Map primary-fabric signal name → internal orchestration_method string.
+# These strings must match the keys in scoring_config.ORCHESTRATION_TO_RATE_TIER
+# and the values checked in scoring_config.DATACENTER_METHODS.
+_SIGNAL_TO_ORCHESTRATION: dict[str, str] = {
+    _SIG_VM:          "Hyper-V",
+    _SIG_ESX:         "ESX",
+    _SIG_CONTAINER:   "Container",
+    _SIG_AZURE:       "Azure Cloud Slice",
+    _SIG_AWS:         "AWS Cloud Slice",
+    _SIG_SANDBOX_API: "Custom API",
+    _SIG_M365_TENANT: "Hyper-V",       # M365 labs run on Hyper-V VMs
+    _SIG_M365_ADMIN:  "Hyper-V",       # M365 Admin also runs on Hyper-V VMs
+    _SIG_SIMULATION:  "Simulation",
+}
+
+
+def derive_orchestration_method(facts: ProductLababilityFacts) -> str:
+    """Derive the internal orchestration_method from Pillar 1 facts.
+
+    Reuses _pick_primary_fabric (the same logic the scorer uses) to
+    determine which fabric won, then maps it to the orchestration_method
+    string that drives ACV rate tier and Technical Fit Multiplier lookups.
+
+    Returns an empty string only when no fabric is pickable at all
+    (bare metal / GCP-only with no alternative).
+    """
+    primary = _pick_primary_fabric(facts.provisioning)
+    if primary is None:
+        # Check if Simulation is the fallback (not bare metal / GCP blocked)
+        if not facts.provisioning.needs_bare_metal and not facts.provisioning.needs_gcp:
+            primary = _SIG_SIMULATION
+        else:
+            return ""
+    return _SIGNAL_TO_ORCHESTRATION.get(primary, "")
