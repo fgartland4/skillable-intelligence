@@ -1,0 +1,365 @@
+{% import '_search_modal.html' as sm %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Prospector Results — Skillable Intelligence</title>
+    <style>
+        {% include '_theme.html' %}
+        {{ sm.styles() }}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, textarea { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: var(--sk-accent-soft); }
+
+        /* ── Wide container ── */
+        .container { max-width: 1300px; margin: 0 auto; padding: 36px 24px 80px; }
+
+        /* ── Header area ── */
+        .results-page-header {
+            display: flex; align-items: center; gap: 16px;
+            margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .results-back {
+            font-size: 0.78rem; color: var(--sk-text-dim);
+            margin-right: 8px;
+        }
+        .results-back:hover { color: var(--sk-accent); }
+        .results-page-title {
+            font-size: 1.5rem; font-weight: 800; color: var(--sk-text);
+            letter-spacing: -0.02em;
+        }
+        .results-help-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            font-size: 0.72rem; font-weight: 700;
+            color: var(--sk-text-dim); border: 1px solid var(--sk-border);
+            cursor: default; transition: color 0.15s, border-color 0.15s;
+            margin-left: 4px;
+        }
+        .results-help-icon:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+        .refresh-help-icon {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 15px; height: 15px; border-radius: 50%;
+            font-size: 0.58rem; font-weight: 700;
+            color: var(--sk-text-dim); border: 1px solid var(--sk-border);
+            cursor: help; transition: color 0.15s, border-color 0.15s;
+        }
+        .refresh-help-icon:hover { color: var(--sk-accent); border-color: rgba(36,237,155,0.4); }
+        .results-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+        .btn-deep-dive {
+            display: none; align-items: center; gap: 6px;
+            padding: 7px 16px; background: rgba(36,237,155,0.08); color: var(--sk-accent);
+            border: 1px solid var(--sk-accent); border-radius: 7px;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; font-family: inherit; text-decoration: none;
+        }
+        .btn-deep-dive:hover { background: rgba(36,237,155,0.15); color: var(--sk-accent); }
+        .btn-deep-dive.visible { display: inline-flex; }
+        .btn-export {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 16px; background: transparent; color: var(--sk-accent);
+            border: 1px solid var(--sk-accent); border-radius: 7px;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; font-family: inherit; text-decoration: none;
+        }
+        .btn-export:hover { background: rgba(36,237,155,0.06); color: var(--sk-accent); }
+        .btn-export.btn-disabled {
+            color: var(--sk-text-muted); border-color: var(--sk-border);
+            cursor: not-allowed; opacity: 0.7;
+        }
+        .btn-export.btn-disabled:hover { background: transparent; color: var(--sk-text-muted); }
+
+        /* ── Tabs ── */
+        .results-tabs {
+            display: flex; gap: 0; margin-bottom: 18px;
+            border-bottom: 1px solid var(--sk-border);
+        }
+        .results-tab {
+            padding: 10px 20px; font-size: 0.78rem; font-weight: 600;
+            color: var(--sk-text-dim); cursor: pointer; border: none;
+            background: none; font-family: inherit;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .results-tab:hover { color: var(--sk-text-muted); }
+        .results-tab.active { color: var(--sk-accent); border-bottom-color: var(--sk-accent); }
+
+        /* ── Results table ── */
+        .results-table {
+            width: 100%; border-collapse: collapse;
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; overflow: hidden;
+            table-layout: fixed;
+        }
+        .results-table th {
+            text-align: left; padding: 10px 10px;
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--sk-text-dim);
+            border-bottom: 1px solid var(--sk-border);
+            background: rgba(36,237,155,0.02);
+        }
+        .results-table th.col-num { width: 36px; text-align: center; }
+        .results-table th.col-acv { width: 100px; }
+        .results-table th.col-tier { width: 44px; text-align: center; }
+        .results-table th.col-company { width: 260px; }
+        .results-table th.col-product { width: 180px; }
+        .results-table th.col-why { width: 200px; }
+        .results-table th.col-signal { width: 200px; }
+        .results-table th.col-lab { width: 140px; }
+        .results-table th.col-cert { width: 130px; }
+        .results-table th.col-channel { width: 130px; }
+        .results-table th.col-action { width: 60px; }
+        .results-table th.col-check { width: 36px; text-align: center; }
+        .results-table td {
+            padding: 10px 10px; font-size: 0.82rem;
+            border-bottom: 1px solid var(--sk-border);
+            vertical-align: top;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .results-table tr:last-child td { border-bottom: none; }
+        .results-table tr:hover td { background: rgba(36,237,155,0.02); }
+
+        .rank-num { text-align: center; font-weight: 700; color: var(--sk-text-dim); }
+        .company-cell-name { font-weight: 600; color: var(--sk-text); }
+        .company-cell-badge {
+            display: inline-block; padding: 2px 7px; border-radius: 4px;
+            font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; white-space: nowrap; margin-left: 6px;
+        }
+        .badge-purple { background: var(--sk-classify-purple-bg); color: var(--sk-classify-purple); border: 1px solid var(--sk-classify-purple-bdr); }
+        .badge-teal { background: rgba(20,184,166,0.08); color: rgb(20,184,166); border: 1px solid rgba(20,184,166,0.25); }
+        .badge-warm-blue { background: rgba(59,130,246,0.08); color: rgb(96,165,250); border: 1px solid rgba(59,130,246,0.25); }
+        .acv-cell { font-weight: 600; color: var(--sk-accent); white-space: nowrap; }
+        .product-cell-name { font-weight: 600; }
+        .product-cell-sub { font-size: 0.72rem; color: var(--sk-text-dim); }
+        .why-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
+        .lab-none { color: var(--sk-text-dim); font-style: italic; }
+        .lab-skillable { color: var(--sk-accent); font-weight: 600; }
+        .lab-competitor { color: var(--sk-score-mid); }
+        .signal-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
+        .deep-dive-link { font-size: 0.72rem; color: var(--sk-accent); }
+        .deep-dive-link:hover { text-decoration: underline; }
+
+        .row-checkbox { accent-color: var(--sk-accent); width: 15px; height: 15px; cursor: pointer; }
+        td.check-cell { text-align: center; overflow: visible; }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: var(--sk-text-dim); font-size: 0.88rem;
+        }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'prospector' %}
+{% include '_nav.html' %}
+
+<div class="container">
+
+    {# ── Header ── #}
+    <div style="text-align: right; margin-bottom: 12px;">
+        <a href="/prospector" style="font-size: 0.78rem; color: var(--sk-accent);">&larr; Back to Prospector</a>
+    </div>
+    <div class="results-page-header">
+        <span class="results-page-title">Researched Companies</span>
+        <span class="results-help-icon" title="Documentation — coming soon">?</span>
+        <div class="results-actions">
+            <a href="#" class="btn-deep-dive" id="btnDeepDive">Run Deep Dive &rarr;</a>
+            <a href="#" class="btn-export" id="btnExportCsv">Export CSV &darr;</a>
+            <span class="btn-export btn-disabled" title="Coming Soon — HubSpot integration is planned">Send to HubSpot &rarr;</span>
+        </div>
+    </div>
+
+    {# ── Tabs ── #}
+    <div class="results-tabs">
+        {% if batch_results is not none %}
+        <button class="results-tab {% if active_tab == 'batch' %}active{% endif %}"
+                onclick="switchTab('batch', this)">This Batch ({{ batch_results | length }})</button>
+        {% endif %}
+        <button class="results-tab {% if active_tab == 'all' or batch_results is none %}active{% endif %}"
+                onclick="switchTab('all', this)">All Companies ({{ all_results | length }})</button>
+    </div>
+
+    <div style="font-size: 0.68rem; color: var(--sk-text-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
+        Estimates refreshed {{ refresh_date }}
+        <span class="refresh-help-icon" title="ACV estimates are calculated from cached research data using the current scoring methodology. Refreshing this page recalculates all estimates at zero additional cost — no new research or API calls required.">?</span>
+    </div>
+
+    {# ── Table ── #}
+    {% macro render_tbody(rows, tbody_id) %}
+    <tbody id="{{ tbody_id }}">
+        {% if rows %}
+        {% for r in rows %}
+        <tr>
+            <td class="check-cell">
+                {% if r.discovery_id %}
+                <input type="checkbox" class="row-checkbox" data-discovery-id="{{ r.discovery_id }}" onchange="handleCheckbox(this)">
+                {% endif %}
+            </td>
+            <td class="rank-num">{{ r.rank or loop.index }}</td>
+            <td title="{{ r.company_name }}" style="white-space: normal; overflow: visible;">
+                <div class="company-cell-name">{{ r.company_name }}</div>
+                {% if r.company_badge %}
+                <span class="company-cell-badge badge-{{ (r.badge_color or 'purple') | replace('_', '-') }}">{{ r.company_badge }}</span>
+                {% endif %}
+            </td>
+            <td class="acv-cell" title="{{ r.estimated_acv or '' }}">{{ r.estimated_acv or '—' }}</td>
+            <td title="{{ r.top_product_name or '' }}">
+                <div class="product-cell-name">{{ r.top_product_name or '—' }}</div>
+                {% if r.top_product_subcategory %}
+                <div class="product-cell-sub">{{ r.top_product_subcategory }}</div>
+                {% endif %}
+            </td>
+            <td class="why-cell" title="{{ r.top_product_why or '' }}">{{ r.top_product_why or '' }}</td>
+            <td class="rank-num">{{ r.promising_count or 0 }}</td>
+            <td class="rank-num">{{ r.potential_count or 0 }}</td>
+            <td class="rank-num">{{ r.uncertain_count or 0 }}</td>
+            <td class="rank-num">{{ r.unlikely_count or 0 }}</td>
+            <td class="signal-cell" title="{{ r.lab_platform or '' }}">
+                {% if r.lab_platform %}
+                    {% if 'skillable' in (r.lab_platform | lower) %}
+                    <span class="lab-skillable">{{ r.lab_platform }}</span>
+                    {% elif r.lab_platform | lower in ('none', 'no lab platform', 'greenfield') %}
+                    <span class="lab-none">None</span>
+                    {% else %}
+                    <span class="lab-competitor">{{ r.lab_platform }}</span>
+                    {% endif %}
+                {% else %}
+                <span class="lab-none">—</span>
+                {% endif %}
+            </td>
+            <td class="signal-cell" title="{{ r.key_signal or '' }}">{{ r.key_signal or '' }}</td>
+            <td class="signal-cell" title="{{ r.cert_program or '' }}">{{ r.cert_program or '' }}</td>
+            <td class="signal-cell" title="{{ r.sales_channel or '' }}">{{ r.sales_channel or '' }}</td>
+            <td>
+                {% if r.discovery_id %}
+                <a href="/inspector/product-selection/{{ r.discovery_id }}" class="deep-dive-link">Inspect &rarr;</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr><td colspan="16" class="empty-state">No companies found.</td></tr>
+        {% endif %}
+    </tbody>
+    {% endmacro %}
+
+    <table class="results-table">
+        <thead>
+            <tr>
+                <th class="col-check"></th>
+                <th class="col-num">#</th>
+                <th class="col-company">Company</th>
+                <th class="col-acv">Est. ACV</th>
+                <th class="col-product">Top Product</th>
+                <th class="col-why">Why</th>
+                <th class="col-tier">Prom.</th>
+                <th class="col-tier">Pot.</th>
+                <th class="col-tier">Unc.</th>
+                <th class="col-tier">Unl.</th>
+                <th class="col-lab">Lab Platform</th>
+                <th class="col-signal">Key Signal</th>
+                <th class="col-cert">Cert Program</th>
+                <th class="col-channel">Sales Channel</th>
+                <th class="col-action"></th>
+            </tr>
+        </thead>
+        {% if batch_results is not none %}
+        {{ render_tbody(batch_results, 'tbody-batch') }}
+        {% endif %}
+        {{ render_tbody(all_results, 'tbody-all') }}
+    </table>
+
+</div>
+
+{{ sm.markup() }}
+<script>
+{{ sm.js() }}
+</script>
+
+<script>
+(function() {
+    var activeTab = '{{ active_tab }}';
+    var batchId = '{{ batch_id or "" }}';
+
+    // ── Tab switching ──
+    function showTab(tab) {
+        activeTab = tab;
+        var batchTbody = document.getElementById('tbody-batch');
+        var allTbody = document.getElementById('tbody-all');
+        if (batchTbody) batchTbody.style.display = (tab === 'batch') ? '' : 'none';
+        if (allTbody) allTbody.style.display = (tab === 'all') ? '' : 'none';
+        updateExportLink();
+        uncheckAll();
+    }
+
+    window.switchTab = function(tab, btn) {
+        document.querySelectorAll('.results-tab').forEach(function(t) { t.classList.remove('active'); });
+        btn.classList.add('active');
+        showTab(tab);
+    };
+
+    // ── Export link ──
+    function updateExportLink() {
+        var el = document.getElementById('btnExportCsv');
+        if (!el) return;
+        if (activeTab === 'batch' && batchId) {
+            el.href = '/prospector/export/' + batchId;
+        } else {
+            el.href = '/prospector/export-all';
+        }
+    }
+
+    // ── Checkbox logic (single-select) ──
+    window.handleCheckbox = function(cb) {
+        // Uncheck all others
+        document.querySelectorAll('.row-checkbox').forEach(function(other) {
+            if (other !== cb) other.checked = false;
+        });
+        var btn = document.getElementById('btnDeepDive');
+        if (cb.checked) {
+            var discId = cb.getAttribute('data-discovery-id');
+            btn.href = '/inspector/product-selection/' + discId;
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+            btn.href = '#';
+        }
+    };
+
+    function uncheckAll() {
+        document.querySelectorAll('.row-checkbox').forEach(function(cb) { cb.checked = false; });
+        var btn = document.getElementById('btnDeepDive');
+        if (btn) { btn.classList.remove('visible'); btn.href = '#'; }
+    }
+
+    // ── Initial state ──
+    {% if batch_results is none %}
+    // No batch — force all tab
+    activeTab = 'all';
+    {% endif %}
+    showTab(activeTab);
+    // Ensure correct tab button is active on load
+    document.querySelectorAll('.results-tab').forEach(function(t) {
+        if (activeTab === 'batch' && t.textContent.indexOf('This Batch') >= 0) t.classList.add('active');
+        else if (activeTab === 'all' && t.textContent.indexOf('All Companies') >= 0) t.classList.add('active');
+    });
+})();
+</script>
+
+</body>
+</html>

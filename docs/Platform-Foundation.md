@@ -1258,6 +1258,28 @@ Company classification badge uses purple — same color as product subcategory b
 | **3. Results table** | All companies displayed in one view, sorted by ACV potential, with product-level evidence. Companies with Deep Dive data show sharpened Fit Score and ACV. This is the core of Prospector. |
 | **4. Export** | CSV download with the same columns for import into HubSpot or other marketing tools. |
 
+### Discovery-Level ACV Estimation
+
+**Why.** Marketing needs to rank companies by ACV potential without running Deep Dives on every one. The discovery data already contains every product's estimated training population and deployment model. The same methodology as the Deep Dive ACV model — `audience × adoption × hours × rate` — applies at discovery level, just with rougher inputs.
+
+**What.** The discovery-level ACV estimate sums across **all discovered products** for a company, not just the top product. Each product's estimated training population is capped by a tiered sanity check (the researcher sometimes reports total users instead of training population), then run through the standard formula. The company-wide sum is capped at $5M — discovery estimates should never exceed that ceiling. The Deep Dive replaces this with the full five-motion calculation.
+
+**Per-product tiered caps** (from `scoring_config.DISCOVERY_ACV_USER_BASE_TIERS`):
+
+| User base reported | Effective training pop | Rationale |
+|---|---|---|
+| >10M | 200,000 | Mass-market products — training pop is a tiny fraction |
+| 3M–10M | 150,000 | Large products — most users are not training candidates |
+| 1M–3M | 100,000 | Mid-scale — significant but still inflated |
+| 500K–1M | No adjustment | Likely already training population |
+| <500K | No adjustment | Below the inflation threshold |
+
+**Per-product formula:** `min(training_pop, tier_cap) × 4% adoption × 2 hours × rate_from_deployment_model`
+
+**Rate from deployment model:** installable/hybrid → $14/hr (VM mid rate). cloud/saas-only → $6/hr (cloud rate). Same rates as the Deep Dive model — Define-Once.
+
+**Company-wide:** sum all products, cap at $5M. Displayed as `~$X` with the tilde signaling estimate.
+
 **Intelligence sharpens automatically.** If a company in the Prospector list has already had a Deep Dive in Inspector, Prospector shows the sharpened Deep Dive data — actual Fit Score, actual ACV with all five motions, real badges — instead of rough discovery estimates. The more the platform is used, the better Prospector's data gets, without any extra work. GP5 in action.
 
 | Company state | What Prospector shows |
@@ -1352,23 +1374,42 @@ Column headers use "Promising Products" (not just "Promising") for clarity in sp
 
 **How.** No mixing these domains in the same database tables, API responses, or service calls in ways that would be hard to untangle later. The hard wall between Skillable and Customer roles is enforced at the data access layer.
 
-### RBAC Roles (Tentative)
+---
 
-Every data field, API endpoint, and UX element must be permission-aware from the start. When RBAC is implemented, assigning and revoking access should be straightforward.
+## Authentication and Access Control
 
-| Role | Tools | Data access |
+**Why.** The platform serves two fundamentally different audiences — Skillable internal users and customers — and the data they can see is not the same. Company intelligence (fit scores, ACV, badges, contacts) is commercially sensitive. Skillable's self-knowledge (capabilities, delivery patterns, competitive landscape) drives every analysis the platform produces. Lab programs may contain pre-release product information a customer doesn't want shared. These are three distinct protection problems that require explicit access boundaries.
+
+**Current state (Prototype).** No authentication exists today. No login, no user sessions, no RBAC. API keys (`ANTHROPIC_API_KEY`, `SERPER_API_KEY`) are loaded from environment variables and never committed to the repo. The Flask secret key uses a dev fallback that must be replaced before deployment. The three-domain data architecture enforces structural separation, but there is no auth layer on top of it yet. Auth implementation is blocked on the deployment decision (Render vs Azure Web App).
+
+### Roles — Seven Roles, Four Boundary Lines
+
+**Why seven.** The original design had 11+ roles with fine-grained splits (Seller vs SE, Designer Admin vs Instructional Designer vs SME). In practice, the real access boundaries are coarser. A seller and an SE are both Skillable-internal users consuming the same intelligence — the difference is depth of interest, not access level. An Instructional Designer and an SME on the same team see the same programs — the difference is workflow, not permissions. Admin vs contributor distinctions within a role are configuration (can publish, can assign), not separate roles. Seven roles capture the four real boundary lines without creating friction.
+
+| Role | What they need to do | What they must NOT do |
 |---|---|---|
-| Skillable Admin | All | Full platform access |
-| Skillable Prospector Admin | Prospector | Company intelligence, product data, contacts, ACV |
-| Skillable CRM Integration Admin | HubSpot integration config | Company intelligence sent to HubSpot, field mappings |
-| Skillable Seller (SAD / AE / CSM) | Inspector (via HubSpot + dossier) | Company intelligence (read), product data, seller briefcase |
-| Skillable Solution Consultant (SE / TSM) | Inspector (full depth) | Company intelligence (read), product data, full evidence detail |
-| Skillable Designer Admin | Designer (all programs) | Product data, all Skillable programs |
-| Skillable Instructional Designer | Designer | Product data, assigned programs |
-| Skillable SME | Designer | Product data, assigned programs |
-| Customer Designer Admin | Designer (own programs only) | Product data (open), own programs only. **Never company intelligence.** |
-| Customer Instructional Designer | Designer (own programs only) | Product data (open), assigned programs only |
-| Customer SME | Designer (own programs only) | Product data (open), assigned programs only |
+| **Skillable Admin** | Full platform access. Configure all tools, manage users, manage roles, view all data across all three domains. | No restrictions — superuser. |
+| **Skillable Prospector Admin** | Run batch discovery, view/export results, configure HubSpot field mappings, view company intelligence + ACV + contacts. | Cannot modify scoring config, knowledge files, or Designer programs. |
+| **Skillable CRM Integration Admin** | Configure HubSpot write-back, manage field mappings, control what intelligence flows to HubSpot and when. | Cannot run analyses, cannot modify scoring logic, cannot access Designer programs. |
+| **Skillable User** (AE / CSM / SE / TSM) | View company intelligence, run Deep Dives, view full evidence detail, access Seller Briefcase, drill into dimension-level facts. | Cannot modify scoring config, knowledge files, or Designer programs. |
+| **Skillable Capabilities Editor** | Edit Skillable's self-knowledge — `skillable_capabilities.json`, `delivery_patterns.json`, `competitors.json`. Define what Skillable can do and how it competes. Limited to Sales Engineering + Product. | Cannot modify scoring math (`scoring_config.py`). Cannot access company intelligence or customer Designer programs. Changes are high-impact — this role is deliberately restricted. |
+| **Skillable Designer** | Create and manage lab programs across all Skillable-authored and customer Designer programs. ProServ builds on behalf of customers through this role. Admin vs contributor permissions are configuration within the role, not separate roles. | Cannot access company intelligence (Prospector/Inspector data). Cannot modify scoring config or knowledge files. |
+| **Customer Designer** | Create and manage lab programs for THEIR organization only. Product visibility controlled by their org's admin — pre-release products can be restricted. Admin vs contributor permissions are configuration within the role. | **Never sees company intelligence — ever.** Cannot see other customers' programs. Cannot see Prospector or Inspector data. Cannot modify Skillable-authored programs. Cannot see products their admin has restricted. |
+
+### Four Boundary Lines
+
+These are the four real access boundaries an engineer needs to internalize. Every permission decision maps to one of these.
+
+| Boundary | What it enforces |
+|---|---|
+| **Skillable ↔ Customer** | Customers never see company intelligence (fit scores, badges, ACV, contacts). Architectural — no code path from Designer to `company_intel/` domain. This is the hardest wall in the system. |
+| **Skillable Capabilities ↔ everyone else** | Knowledge files that encode Skillable's platform self-knowledge are editable only by the Skillable Capabilities Editor role. These files drive how the Research layer understands what Skillable can do — fabrics, scoring methods, delivery patterns, competitive landscape. Uncontrolled edits here change every analysis the platform produces. |
+| **Read ↔ Write on scoring** | Nobody outside Skillable Admin touches `scoring_config.py`. The Define-Once source of truth for all scoring parameters is not editable through the application — it is a code change with a version bump and a test run. |
+| **Program scoping** | Skillable Designer sees all programs (theirs and customers'). Customer Designer sees only their own organization's programs. Pre-release product visibility is controlled at the customer org level — a customer building labs on unreleased products can restrict visibility so other customers don't see those products in Designer. |
+
+### Auth Implementation Status
+
+Authentication is deliberately deferred — it is blocked on the deployment decision (Render vs Azure Web App). The role table and boundary lines above are the design intent that deployment and auth implementation will enforce. When RBAC is built, it should be a configuration layer on top of the already-clean three-domain data architecture, not a retrofit.
 
 ---
 

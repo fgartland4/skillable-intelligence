@@ -115,13 +115,12 @@
         .btn-primary:hover { opacity: 0.88; }
         .btn-primary:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
 
-        /* ── Info box ── */
-        .info-box {
-            background: rgba(36,237,155,0.04); border-left: 2px solid rgba(36,237,155,0.3);
-            border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 28px;
-            font-size: 0.82rem; color: var(--sk-text-muted); line-height: 1.6;
+        /* ── Page header row ── */
+        .page-header-row {
+            display: flex; align-items: center; gap: 24px; margin-bottom: 28px;
         }
-        .info-box strong { color: var(--sk-text); }
+        .page-header-left { flex: 1; }
+        .page-header-right { flex-shrink: 0; }
 
         /* ── Future panel placeholder ── */
         .future-placeholder {
@@ -139,6 +138,64 @@
             transition: background 0.15s;
         }
         .mapper-link:hover { background: rgba(36,237,155,0.06); text-decoration: none; }
+
+        /* ── Batch Status Panel ── */
+        .batch-panel {
+            margin-top: 28px; background: var(--sk-surface);
+            border: 1px solid var(--sk-border); border-radius: 12px;
+            overflow: hidden;
+        }
+        .batch-panel-header {
+            padding: 12px 18px; border-bottom: 1px solid var(--sk-border);
+        }
+        .batch-panel-title {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--sk-text-dim);
+        }
+        .batch-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .batch-table th {
+            text-align: left; padding: 8px 14px;
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--sk-text-dim);
+            border-bottom: 1px solid var(--sk-border);
+        }
+        .batch-table td {
+            padding: 10px 14px; font-size: 0.78rem;
+            border-bottom: 1px solid var(--sk-border);
+            color: var(--sk-text-muted);
+        }
+        .batch-table tr:last-child td { border-bottom: none; }
+
+        .batch-status-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+            margin-right: 6px; vertical-align: middle;
+        }
+        .batch-status-running {
+            background: var(--sk-accent);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        .batch-status-complete { background: var(--sk-accent); }
+        .batch-status-failed { background: var(--sk-score-low); }
+        .batch-status-cancelled { background: var(--sk-text-dim); }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .batch-status-label { font-size: 0.72rem; font-weight: 600; }
+        .batch-started { font-size: 0.72rem; color: var(--sk-text-dim); }
+        .batch-action-link {
+            font-size: 0.72rem; color: var(--sk-accent); font-weight: 600;
+        }
+        .batch-action-link:hover { text-decoration: underline; }
+        .batch-cancel-btn {
+            font-size: 0.72rem; color: var(--sk-text-muted); background: none;
+            border: 1px solid var(--sk-border); border-radius: 5px;
+            padding: 3px 10px; cursor: pointer; font-family: inherit;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .batch-cancel-btn:hover { border-color: var(--sk-score-low); color: var(--sk-score-low); }
 
         /* ── Results section ── */
         .results-section { margin-top: 36px; }
@@ -211,15 +268,15 @@
 
 <div class="container">
 
-    <h1>Prospector</h1>
-    <p class="subtitle">Prospector is a tool designed to help Marketing and RevOps integrate detailed product-centric data into the processes and procedures they already use.</p>
-
-    <div class="info-box">
-        <strong>How it works:</strong> While the aim is to cleanly push requests from HubSpot then pull specific data into specific HubSpot fields, cards, and related components via HubSpot integration, Prospector also supports uploading lists of companies, schools, and other types of organizations — or just copy/pasting them directly.
-    </div>
-
-    <div style="margin-bottom: 20px; text-align: right;">
-        <a href="/prospector/history" style="font-size: 0.78rem; color: var(--sk-accent);">View researched companies →</a>
+    <div class="page-header-row">
+        <div class="page-header-left">
+            <h1>Prospector</h1>
+            <p class="subtitle">Prospector is a tool designed to help Marketing and RevOps integrate detailed product-centric data into the processes and procedures they already use.</p>
+            <p class="subtitle" style="margin-top: 6px; color: var(--sk-text-dim);">How it works: Upload a list or paste company names. Prospector researches each company and ranks them by ACV potential.</p>
+        </div>
+        <div class="page-header-right">
+            <a href="/prospector/results" class="btn-export">View Researched Companies &rarr;</a>
+        </div>
     </div>
 
     {# ── Mode tabs ── #}
@@ -407,70 +464,41 @@
 
     </div>
 
-    {# ── Results ── #}
-    {% if results %}
-    <div class="results-section">
-        <div class="results-header">
-            <span class="results-title">{{ results | length }} companies — ranked by ACV potential</span>
-            <a href="/prospector/export/{{ batch_id }}" class="btn-export">Export CSV ↓</a>
+    {# ── Batch Status Panel ── #}
+    {% if recent_batches %}
+    <div class="batch-panel" id="batchPanel">
+        <div class="batch-panel-header">
+            <span class="batch-panel-title">Recent Batches</span>
         </div>
-
-        <table class="results-table">
+        <table class="batch-table">
             <thead>
                 <tr>
-                    <th class="col-num">#</th>
-                    <th>Company</th>
-                    <th class="col-acv">Est. ACV</th>
-                    <th>Top Product</th>
-                    <th>Why</th>
-                    <th class="col-tier">Promising</th>
-                    <th class="col-tier">Potential</th>
-                    <th class="col-tier">Uncertain</th>
-                    <th class="col-tier">Unlikely</th>
-                    <th>Lab Platform</th>
-                    <th>Key Signal</th>
-                    <th></th>
+                    <th style="width: 120px;">Status</th>
+                    <th>Description</th>
+                    <th style="width: 100px;">Started</th>
+                    <th style="width: 80px;">Progress</th>
+                    <th style="width: 110px;">Est. Remaining</th>
+                    <th style="width: 120px;">Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                {% for r in results %}
-                <tr>
-                    <td class="rank-num">{{ loop.index }}</td>
+            <tbody id="batchTableBody">
+                {% for b in recent_batches %}
+                <tr id="batch-row-{{ b.batch_id }}" data-job-id="{{ b.get('job_id', '') }}" data-status="{{ b.status }}" data-total="{{ b.company_count }}" data-est-seconds="{{ b.get('est_seconds', 0) }}">
                     <td>
-                        <span class="company-cell-name">{{ r.company_name }}</span>
-                        {% if r.company_badge %}
-                        <span class="company-cell-badge badge-{{ r.badge_color or 'purple' }}">{{ r.company_badge }}</span>
-                        {% endif %}
+                        <span class="batch-status-dot batch-status-{{ b.status }}"></span>
+                        <span class="batch-status-label">{{ b.status | capitalize }}</span>
                     </td>
-                    <td class="acv-cell">{{ r.estimated_acv or '—' }}</td>
-                    <td>
-                        <div class="product-cell-name">{{ r.top_product_name or '—' }}</div>
-                        {% if r.top_product_subcategory %}
-                        <div class="product-cell-sub">{{ r.top_product_subcategory }}</div>
-                        {% endif %}
+                    <td>{{ b.description }}</td>
+                    <td class="batch-started">{{ b.started_at[:16].replace('T', ' ') if b.started_at else '' }}</td>
+                    <td class="batch-progress">{{ b.progress or 0 }} of {{ b.company_count }}</td>
+                    <td class="batch-remaining">
+                        {% if b.status == 'running' %}estimating…{% endif %}
                     </td>
-                    <td class="why-cell">{{ r.top_product_why or '' }}</td>
-                    <td class="rank-num">{{ r.promising_count or 0 }}</td>
-                    <td class="rank-num">{{ r.potential_count or 0 }}</td>
-                    <td class="rank-num">{{ r.uncertain_count or 0 }}</td>
-                    <td class="rank-num">{{ r.unlikely_count or 0 }}</td>
-                    <td class="signal-cell">
-                        {% if r.lab_platform %}
-                            {% if 'skillable' in (r.lab_platform | lower) %}
-                            <span class="lab-skillable">{{ r.lab_platform }}</span>
-                            {% elif r.lab_platform | lower in ('none', 'no lab platform', 'greenfield') %}
-                            <span class="lab-none">None</span>
-                            {% else %}
-                            <span class="lab-competitor">{{ r.lab_platform }}</span>
-                            {% endif %}
-                        {% else %}
-                        <span class="lab-none">—</span>
-                        {% endif %}
-                    </td>
-                    <td class="signal-cell">{{ r.key_signal or '' }}</td>
-                    <td>
-                        {% if r.discovery_id %}
-                        <a href="/inspector/product-selection/{{ r.discovery_id }}" class="deep-dive-link">Inspect →</a>
+                    <td class="batch-actions">
+                        {% if b.status == 'complete' or b.status == 'cancelled' %}
+                        <a href="/prospector/results/{{ b.batch_id }}" class="batch-action-link">View Results →</a>
+                        {% elif b.status == 'running' %}
+                        <button class="batch-cancel-btn" onclick="cancelBatch('{{ b.get('job_id', '') }}', '{{ b.batch_id }}')">Cancel</button>
                         {% endif %}
                     </td>
                 </tr>
@@ -495,17 +523,7 @@
         document.querySelectorAll('.mode-tab').forEach(function(t) { t.classList.remove('active'); });
         document.getElementById('panel-' + mode).classList.add('active');
         btn.classList.add('active');
-    };
-
-    // ── CSV file selection ──
-    window.fileSelected = function(input) {
-        var label = document.getElementById('fileLabel');
-        var btn = document.getElementById('btnCsv');
-        if (input.files && input.files.length > 0) {
-            label.textContent = input.files[0].name;
-            label.style.display = 'block';
-            btn.disabled = false;
-        }
+        if (mode === 'paste') refreshPaste();
     };
 
     // ── Drop zone drag-over styling ──
@@ -519,7 +537,7 @@
     // ── Cost/time constants — mid-to-mid-high estimates per Frank ──
     var COST_PER_DISCOVERY = 0.22;
     var COST_PER_DEEP_DIVE = 2.20;
-    var TIME_PER_DISCOVERY = 75;
+    var TIME_PER_DISCOVERY = 150;
     var TIME_PER_DEEP_DIVE = 240;
     var PARALLEL_FACTOR = 3;
 
@@ -592,15 +610,168 @@
         });
     }
 
-    // ── Fix button state on tab switch ──
-    window.switchMode = function(mode, btn) {
-        document.querySelectorAll('.mode-panel').forEach(function(p) { p.classList.remove('active'); });
-        document.querySelectorAll('.mode-tab').forEach(function(t) { t.classList.remove('active'); });
-        document.getElementById('panel-' + mode).classList.add('active');
-        btn.classList.add('active');
-        // Re-check button state for the newly active panel
-        if (mode === 'paste') refreshPaste();
+    // ═══════════════════════════════════════════════════════════════════════
+    // Background Batch Submission + Status Panel
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function ensurePanelVisible() {
+        var panel = document.getElementById('batchPanel');
+        if (!panel) {
+            // Create the panel if it doesn't exist yet (first batch ever)
+            var container = document.querySelector('.container');
+            var panelHtml = '<div class="batch-panel" id="batchPanel">' +
+                '<div class="batch-panel-header"><span class="batch-panel-title">Recent Batches</span></div>' +
+                '<table class="batch-table"><thead><tr>' +
+                '<th style="width:120px">Status</th><th>Description</th>' +
+                '<th style="width:100px">Started</th><th style="width:80px">Progress</th>' +
+                '<th style="width:110px">Est. Remaining</th><th style="width:120px">Actions</th>' +
+                '</tr></thead><tbody id="batchTableBody"></tbody></table></div>';
+            container.insertAdjacentHTML('beforeend', panelHtml);
+        }
+    }
+
+    function addBatchRow(data) {
+        ensurePanelVisible();
+        var tbody = document.getElementById('batchTableBody');
+        var now = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+        var tr = document.createElement('tr');
+        tr.id = 'batch-row-' + data.batch_id;
+        tr.dataset.jobId = data.job_id;
+        tr.dataset.status = 'running';
+        tr.dataset.total = data.company_count;
+        tr.dataset.estSeconds = data.est_seconds;
+        tr.innerHTML =
+            '<td><span class="batch-status-dot batch-status-running"></span><span class="batch-status-label">Running</span></td>' +
+            '<td>' + data.description + '</td>' +
+            '<td class="batch-started">' + now + '</td>' +
+            '<td class="batch-progress">0 of ' + data.company_count + '</td>' +
+            '<td class="batch-remaining">estimating…</td>' +
+            '<td class="batch-actions"><button class="batch-cancel-btn" onclick="cancelBatch(\'' + data.job_id + '\', \'' + data.batch_id + '\')">Cancel</button></td>';
+        // Insert at top
+        if (tbody.firstChild) {
+            tbody.insertBefore(tr, tbody.firstChild);
+        } else {
+            tbody.appendChild(tr);
+        }
+        return tr;
+    }
+
+    function connectBatchSSE(jobId, batchId, total, estSeconds) {
+        var startTime = Date.now();
+        var es = new EventSource('/prospector/progress/' + jobId);
+        es.onmessage = function(e) {
+            var msg = e.data;
+            var row = document.getElementById('batch-row-' + batchId);
+            if (!row) { es.close(); return; }
+
+            if (msg.startsWith('progress:')) {
+                var parts = msg.substring(9).split('/');
+                var done = parseInt(parts[0]);
+                var tot = parseInt(parts[1]);
+                row.querySelector('.batch-progress').textContent = done + ' of ' + tot;
+                // Estimate remaining
+                if (done > 0 && estSeconds > 0) {
+                    var elapsed = (Date.now() - startTime) / 1000;
+                    var perCompany = elapsed / done;
+                    var remaining = Math.ceil(perCompany * (tot - done) / 60);
+                    row.querySelector('.batch-remaining').textContent = remaining > 0 ? '~' + remaining + ' min' : '<1 min';
+                }
+            } else if (msg.startsWith('done:')) {
+                var completedBatchId = msg.substring(5);
+                row.dataset.status = 'complete';
+                row.querySelector('.batch-status-dot').className = 'batch-status-dot batch-status-complete';
+                row.querySelector('.batch-status-label').textContent = 'Complete';
+                row.querySelector('.batch-progress').textContent = total + ' of ' + total;
+                row.querySelector('.batch-remaining').textContent = '';
+                row.querySelector('.batch-actions').innerHTML = '<a href="/prospector/results/' + completedBatchId + '" class="batch-action-link">View Results →</a>';
+                es.close();
+            } else if (msg.startsWith('error:')) {
+                row.dataset.status = 'failed';
+                row.querySelector('.batch-status-dot').className = 'batch-status-dot batch-status-failed';
+                row.querySelector('.batch-status-label').textContent = 'Failed';
+                row.querySelector('.batch-remaining').textContent = '';
+                row.querySelector('.batch-actions').innerHTML = '<span style="color: var(--sk-score-low); font-size: 0.72rem;">Error</span>';
+                es.close();
+            }
+            // status: messages — update the progress text contextually
+            if (msg.startsWith('status:')) {
+                // Could show company name being researched — for now just let progress handle it
+            }
+        };
+        es.onerror = function() {
+            // SSE connection lost — don't crash, just stop updating
+            es.close();
+        };
+    }
+
+    // ── Intercept form submissions — submit via fetch, stay on page ──
+    function interceptFormSubmit(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(form);
+            var submitBtn = form.querySelector('.btn-primary');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Starting…'; }
+
+            fetch('/prospector/run', { method: 'POST', body: formData })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.ok) {
+                        addBatchRow(data);
+                        connectBatchSSE(data.job_id, data.batch_id, data.company_count, data.est_seconds);
+                        // Reset the form
+                        form.reset();
+                        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Run Prospector →'; }
+                        // Clear file label if CSV
+                        var fileLabel = document.getElementById('fileLabel');
+                        if (fileLabel) fileLabel.style.display = 'none';
+                        // Clear estimator
+                        var estCsv = document.getElementById('estimatorCsv');
+                        var estPaste = document.getElementById('estimatorPaste');
+                        if (estCsv) estCsv.classList.remove('visible');
+                        if (estPaste) estPaste.classList.remove('visible');
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector →'; }
+                    }
+                })
+                .catch(function(err) {
+                    alert('Network error: ' + err);
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector →'; }
+                });
+        });
+    }
+
+    // Intercept both forms
+    document.querySelectorAll('.mode-panel form[action="/prospector/run"]').forEach(interceptFormSubmit);
+
+    // ── Cancel batch ──
+    window.cancelBatch = function(jobId, batchId) {
+        fetch('/prospector/cancel/' + jobId, { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    var row = document.getElementById('batch-row-' + batchId);
+                    if (row) {
+                        row.dataset.status = 'cancelled';
+                        row.querySelector('.batch-status-dot').className = 'batch-status-dot batch-status-cancelled';
+                        row.querySelector('.batch-status-label').textContent = 'Cancelled';
+                        row.querySelector('.batch-remaining').textContent = '';
+                        row.querySelector('.batch-actions').innerHTML = '<a href="/prospector/results/' + batchId + '" class="batch-action-link">View Results →</a>';
+                    }
+                }
+            });
     };
+
+    // ── Reconnect SSE for any running batches on page load ──
+    document.querySelectorAll('#batchTableBody tr[data-status="running"]').forEach(function(row) {
+        var jobId = row.dataset.jobId;
+        var batchId = row.id.replace('batch-row-', '');
+        var total = parseInt(row.dataset.total) || 0;
+        var estSeconds = parseInt(row.dataset.estSeconds) || 0;
+        if (jobId) {
+            connectBatchSSE(jobId, batchId, total, estSeconds);
+        }
+    });
 })();
 </script>
 

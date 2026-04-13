@@ -779,7 +779,7 @@ window.openSearchModal = function(opts) {
     const ss = String(s % 60).padStart(2, '0');
     let timerHtml = 'running for <strong>' + mm + ':' + ss + '</strong>';
     if (estMinutes > 0) {
-      timerHtml += ' <span style="color: var(--sk-text-dim); font-size: 0.78em;">(est. ~' + estMinutes + ' min)</span>';
+      timerHtml += ' <span style="color: var(--sk-text-dim);">(est. ~' + estMinutes + ' min)</span>';
     }
     document.getElementById('searchModalTimer').innerHTML = timerHtml;
   }, 1000);

@@ -48,7 +48,7 @@
         // divided by parallel factor of 3. Mid-high estimate.
         var count = {{ company_count }};
         var dd = {{ 'true' if deep_dive else 'false' }};
-        var perCompanySec = dd ? (75 + 240) : 75;
+        var perCompanySec = dd ? (150 + 240) : 150;
         var estMin = Math.ceil((count / 3) * perCompanySec / 60);
 
         openSearchModal({
@@ -64,7 +64,7 @@
                 'Building ACV estimates\u2026',
             ],
             onComplete: function(batchId) {
-                window.location.replace('/prospector?batch=' + batchId);
+                window.location.replace('/prospector/results/' + batchId);
             },
             onError: function(message) {
                 // Error state shown inside the shared modal

@@ -6,7 +6,54 @@
 
 ---
 
-**Last updated:** 2026-04-13 (marathon session with Frank — largest single session of work on the platform to date)
+**Last updated:** 2026-04-13 (two marathon sessions — second session focused on ADR, Prospector UX, and background batch processing)
+
+**What shipped in session 2 (2026-04-13 afternoon/evening):**
+
+**ADR + Auth Design:**
+- ADR-0000 Solution Overview written and sent to engineering team (`docs/adr/adr-0000-solution-overview.md`)
+- RBAC refined from 12 roles → 7 roles with 4 boundary lines
+- New role: Skillable Capabilities Editor (Sales Engineering + Product — gates knowledge files)
+- Customer product visibility scoping documented (pre-release products in Designer)
+- New standalone "Authentication and Access Control" section in Platform-Foundation.md
+- ADR references Platform-Foundation.md as single source of truth for auth (Define-Once)
+
+**Prospector UX Batch (P1–P11):**
+- P1: "How it works" collapsed to separate inline line
+- P2: "View Researched Companies" as button, right-aligned
+- P3: Estimate font matches timer on progress modal
+- P4: TIME_PER_DISCOVERY bumped to 150s (Cisco took 189s at 75s estimate)
+- P5: Full-page results with truncation, tooltips, cert/sales columns
+- P6: Discovery ACV — company-wide dollar estimate summed across all products with tiered user base caps
+- P7: Post-run redirects to results page
+- P8: Two-tab toggle: "This Batch (N)" / "All Companies (N)"
+- P9: Export CSV per active tab + disabled "Send to HubSpot" with tooltip
+- P10: Checkbox per row → "Run Deep Dive" button (single-select, moved to far left)
+- P11: ? icon placeholder on results page
+
+**Prospector Background Batch Processing (PB1–PB6):**
+- Batches run in background — no more app lockout during batch runs
+- Batch Status Panel on Prospector home (status dot, description, started, progress, est. remaining, actions)
+- Submit returns JSON, adds row to panel, connects SSE — no page redirect
+- Cancel endpoint for running batches
+- Page reload resilience — reconnects SSE for running batches
+- Full spec saved to `docs/prospector-background-batch-spec.md`
+
+**Additional fixes:**
+- Discovery timeout bumped 180→300s, Deep Dive 300→420s
+- Dedup: 51 discovery files → 43 unique companies (normalized names catch Cisco/Cisco Systems, VMware variants)
+- Badge display fix: underscore→hyphen CSS class mapping
+- ACV cap at $5M + tiered user base caps for inflated numbers
+- Cert column mapped to product-level data (was reading empty company signals)
+- Export filenames: `prospector-YYYY-MM-DD-batch-{id}.csv` / `prospector-YYYY-MM-DD-all.csv`
+- "Estimates refreshed [date]" line with ? icon tooltip explaining zero-cost refresh
+- Company column widened + badge wrapping fix
+- Back to Prospector link moved above buttons
+- HubSpot button visibility improved
+
+**Roadmap rewritten** as single prioritized list (was scattered across 3 files). `next-session-todo.md` trimmed to point at `docs/roadmap.md` for everything beyond "start here."
+
+**Discovery-level ACV model documented** in Platform-Foundation.md → "Discovery-Level ACV Estimation" section.
 
 **What shipped:** Three phases of work landed across ~20 commits.
 
@@ -26,13 +73,7 @@ Prior context: Pillar weights locked at 50/20/30. Technical Fit Multiplier retun
 
 ## Format
 
-Three layers, in priority order:
-
-1. **Start here** — the single first action of the next session
-2. **Planned work** — sequenced items
-3. **Big projects** — the major workstreams
-
-Everything else is in `docs/roadmap.md`. Everything shipped is in `git log` and `docs/decision-log.md`.
+This file names the **first action** of the next session and provides focused context for that action. The **complete prioritized list** of everything — active, backlog, decisions needed, and done — lives in `docs/roadmap.md`. That is the single source of truth for priorities. This file points there for everything beyond "start here."
 
 ---
 
@@ -42,82 +83,53 @@ Everything else is in `docs/roadmap.md`. Everything shipped is in `git log` and 
 
 All fixes from the 2026-04-13 marathon session are in the code. Many were validated during the session but on data that preceded later fixes (open source ACV discount, Market Demand training-not-product, ACV complexity rate tier, academic motion labels). A clean validation with ALL fixes active will tell us if the platform is demo-ready.
 
-| Company | Type | What to verify |
-|---|---|---|
-| **Trellix** | Cybersecurity software | ACV should be ~$1-2M (complexity rate $45/hr). IV should differentiate (not 97-100 for every product). Badge names clean. |
-| **Workday** | SaaS ERP | Fit Score ~49. ACV rate $6/hr (cloud). Lab Access amber. Audience ~50K admins. Verdict = Keep Watch. |
-| **MongoDB** | Open source database | ACV discount applied (25% adoption). Market Demand reflects paid training demand, not product popularity. |
-| **CompTIA** | Industry Authority | Cert programs as products. No CertMaster in list. Underlying technologies in badge evidence. Compliance only on Security+/CySA+. |
-| **EC-Council** | Cybersecurity Industry Authority | Same wrapper pattern. Underlying technologies in evidence. iLabs excluded. |
-| **ASU** | Research University | Degree programs consolidated (BS/MS → one entry). Academic ACV labels (Student Training, Faculty Development). 90% adoption. |
-| **Posit** | Small software company | Product count 3-5. ACV reasonable. |
-| **Pluralsight** | Enterprise Learning Platform | Course categories as products. Platform features excluded. Light-touch scoring. |
-| **Prospector batch** | 5-7 companies | Search modal with estimated time. Deep Dive checkbox. History page. Parallel processing. No timeout. |
-
 **After validation:** If scores, ACV, badges, and verdicts look right across all company types, the platform is demo-ready.
 
-### Known issues to fix during validation
+### Validation Batch A — Per-Company Deep Dive Checks
 
-**PL Provisioning badge sparsity.** Products scoring 30/35 on Provisioning sometimes show only 2 badges (Runs in VM + Pre-Instancing?). That's not enough to defend the score. If a product earns 30 points, the badges must explain WHY — Multi-VM Lab, Complex Topology, container viability, etc. The badge selector needs to emit more provisioning badges when the facts support them. Observed on Sage 50 and Sage 100.
+| # | Company | Type | What to verify | Status |
+|---|---|---|---|---|
+| **A1** | **Cisco** | Enterprise Software | See Cisco-specific findings below. ACV motions populating per product. IV differentiation across products. Events captured. | ☐ |
+| **A2** | **Trellix** | Cybersecurity software | ACV ~$1-2M (complexity rate $45/hr). IV should differentiate (not 97-100 for every product). Badge names clean. | ☐ |
+| **A3** | **Workday** | SaaS ERP | Fit Score ~49. ACV rate $6/hr (cloud). Lab Access amber. Audience ~50K admins. Verdict = Keep Watch. | ☐ |
+| **A4** | **MongoDB** | Open source database | ACV discount applied (25% adoption). Market Demand reflects paid training demand, not product popularity. | ☐ |
+| **A5** | **CompTIA** | Industry Authority | Cert programs as products. No CertMaster in list. Underlying technologies in badge evidence. Compliance only on Security+/CySA+. | ☐ |
+| **A6** | **EC-Council** | Cybersecurity Industry Authority | Same wrapper pattern. Underlying technologies in evidence. iLabs excluded. | ☐ |
+| **A7** | **ASU** | Research University | Degree programs consolidated (BS/MS → one entry). Academic ACV labels (Student Training, Faculty Development). 90% adoption. | ☐ |
+| **A8** | **Posit** | Small software company | Product count 3-5. ACV reasonable. | ☐ |
+| **A9** | **Pluralsight** | Enterprise Learning Platform | Course categories as products. Platform features excluded. Light-touch scoring. | ☐ |
 
-**ACV end-user vs admin audience transparency.** Large companies like Sage serve millions of businesses, but the training population is administrators and accountants — not all end users. The ACV number may be correct for the admin population, but the seller needs to see WHY the ACV is modest for a large company. Consider a Market Demand badge like "Admin Training Focus" or "Niche Admin Audience" that explains the large user base doesn't translate to a large lab audience.
+### Validation Batch B — Prospector UX Checks (shipped 2026-04-13)
 
----
+| # | What to verify | Status |
+|---|---|---|
+| **B1** | **Home page layout** — "How it works" is inline phrase, not green box. "View Researched Companies" is a button, right-aligned next to description. | ☐ |
+| **B2** | **Time estimates** — estimate font matches timer on progress modal. Estimated time for 1 company is ~3 min, not ~1 min. | ☐ |
+| **B3** | **Post-run redirect** — after batch completes, lands on `/prospector/results/<batch_id>`, not inline below the form. | ☐ |
+| **B4** | **Results page tabs** — "This Batch (N)" active after a run. "All Companies (N)" active when navigating from button. Switching tabs works. | ☐ |
+| **B5** | **Results table** — single-row per company. Long fields truncated with `...` and tooltip on hover. Cert Program and Sales Channel columns populated. | ☐ |
+| **B6** | **Discovery ACV** — shows dollar estimate (`~$448k` for Cisco, not `~2M users`). Estimates in the right neighborhood. | ☐ |
+| **B7** | **"Estimates refreshed" line** — shows today's date. ? icon tooltip explains zero-cost refresh. | ☐ |
+| **B8** | **Export CSV** — works on both tabs (batch export + export-all). File downloads correctly. | ☐ |
+| **B9** | **"Send to HubSpot"** — disabled with "Coming Soon" tooltip. Not clickable. | ☐ |
+| **B10** | **Checkbox → Run Deep Dive** — selecting a row shows the button. Only one checkbox at a time. Links to product selection for that company. | ☐ |
+| **B11** | **Prospector batch** — run 5-7 companies. No timeout. Progress modal shows estimated time. Parallel processing reduces wall time. | ☐ |
 
-## §2 — PLANNED WORK
+### Validation Batch C — Known Issues to Fix During Validation
 
-### 1. Prospector testing and validation
-
-Run Prospector on a batch of 5-10 companies. Verify:
-- Deep Dive checkbox works (top product scored, results sharpened)
-- Cost/time estimator updates correctly
-- Progress modal shows company names and estimated time
-- No SSE timeout (auto-reconnect working)
-- History page lists all researched companies
-- Parallel processing reduces wall time
-- Results table sorted by ACV, all columns populated
-
-### 2. Documentation Job B — per-product report (doc icons)
-
-Design conversation needed first. Three options on the table:
-- Three-pillar summary modal
-- Word doc preview
-- Executive briefing
-
-Frank's framing: "if somebody wants the Instructional Value report for a particular product" — suggests dimension-level drill-down. Modal vs separate tab — defer until content shape is clear.
-
-### 3. Deployment — Render or Azure Web App
-
-Decision needed from Frank's team. Frank won't demo on localhost.
-
-Scope once decided: secrets loading, gunicorn entry point, persistent storage, auth decision (public URL + obscurity, or allowlist).
-
-### 4. Designer — design + build
-
-Biggest workstream. Existing design docs:
-- `docs/Designer-Session-Prep.md`
-- `docs/Designer-Session-Guide.md`
-
-Read both before the design conversation. People → Purpose → Principles → Rubrics → UX.
+| # | Issue | What to look for | Status |
+|---|---|---|---|
+| **C1** | **PL Provisioning badge sparsity** | Products scoring 30/35 showing only 2 badges (Runs in VM + Pre-Instancing?). Badge selector needs to emit more when facts support them. Observed on Sage 50 and Sage 100. | ☐ |
+| **C2** | **ACV audience transparency** | Large companies with small training populations — ACV is modest but no badge explains why. Consider "Admin Training Focus" or "Niche Admin Audience" badge. | ☐ |
+| **C3** | **Cisco: ACV motions empty** | Customer Training audience showing ~0 for first two products. `acv_motions` dict is `{}`. Investigate `acv_calculator.py` output path. | ☐ |
+| **C4** | **Cisco: Audiences not differentiating per product** | Secure Firewall (~400K) and Catalyst Wireless (~150K) should have different customer training audiences. All products sharing same numbers. | ☐ |
+| **C5** | **Cisco: 100/100 IV on all four products** | Cybersecurity baselines + strong signals overflow every cap. Calibration question: should scoring differentiate more within a category? | ☐ |
 
 ---
 
-## §3 — INFRASTRUCTURE + POLISH
+## Full Priority List
 
-| Item | When |
-|---|---|
-| **Parallel product scoring in Deep Dive** | Slot into next performance pass — run all products' extractors simultaneously instead of per-product rounds |
-| **Skillable customer identification UX** | When an analyzed company is already a Skillable customer, show it. Source: CRM lookup / static config / HubSpot |
-| **GP4 cleanup: centralize 8 dimension name constants** | Low priority — duplicated across pillar scorers and rubric_grader. Code quality, not a scoring bug. |
-
----
-
-## §4 — DELIBERATELY DEFERRED
-
-- **Auth** — tied to deployment decision
-- **HubSpot write-back field mapping** — Stage 1 Company Records, Stage 2 Deal Records. Needs RevOps conversation.
-- **Skillable customer identification source** — CRM / static config / HubSpot
-- **Render vs Azure Web App** — Frank's team decision
+**See `docs/roadmap.md`** — the single consolidated inventory of everything active, backlog, decisions needed, and done. This file does not duplicate that list.
 
 ---
 

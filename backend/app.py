@@ -887,21 +887,19 @@ def inspector_full_analysis(analysis_id: str):
 
 @app.route("/prospector")
 def prospector_home():
-    """Prospector landing — input form + results if a batch was just run."""
-    batch_id = request.args.get("batch")
-    results = None
-    if batch_id:
-        results = _load_prospector_batch(batch_id)
-    return render_template("prospector.html", results=results, batch_id=batch_id)
+    """Prospector landing — input form + batch status panel."""
+    import scoring_config as _cfg
+    recent_batches = _list_recent_batches(limit=_cfg.PROSPECTOR_RECENT_BATCHES_LIMIT)
+    return render_template("prospector.html", recent_batches=recent_batches)
 
 
 @app.route("/prospector/run", methods=["POST"])
 def prospector_run():
-    """Start batch discovery — returns a progress page with SSE modal.
+    """Start batch discovery — returns JSON. Batch runs in background.
 
-    Accepts a textarea of company names (one per line). Kicks off a
-    background thread that runs discovery on each company sequentially,
-    emitting SSE progress per company via the standard search modal.
+    Accepts company names from textarea or CSV upload. Kicks off a
+    background thread, returns immediately with job_id and batch_id.
+    The front-end connects SSE to track progress without blocking the UI.
     """
     # Accept company names from textarea OR CSV upload
     raw = request.form.get("companies", "")
@@ -926,7 +924,7 @@ def prospector_run():
                     company_names.append(name)
 
     if not company_names:
-        return redirect(url_for("prospector_home"))
+        return jsonify({"ok": False, "error": "No company names provided"}), 400  # magic-allowed: HTTP status
 
     deep_dive = request.form.get("deep_dive") == "on"
 
@@ -937,13 +935,32 @@ def prospector_run():
     # Per-company timeouts from config — Frank 2026-04-13
     import scoring_config as _cfg
     DISCOVERY_TIMEOUT = _cfg.PROSPECTOR_DISCOVERY_TIMEOUT
-    DEEP_DIVE_TIMEOUT = _cfg.PROSPECTOR_DEEP_DIVE_TIMEOUT
+
+    # Build description for the batch status panel
+    dd_label = " · discovery + Deep Dive" if deep_dive else " · discovery only"
+    description = f"{total} companies{dd_label}"
+
+    # Compute estimated time for the panel
+    per_company_sec = (150 + 240) if deep_dive else 150  # magic-allowed: matches front-end constants
+    est_seconds = int((total / _cfg.PROSPECTOR_MAX_PARALLEL) * per_company_sec)
+
+    # Write initial batch metadata (status=running, no results yet)
+    from datetime import datetime, timezone
+    metadata = {
+        "status": "running",
+        "description": description,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "company_count": total,
+        "deep_dive": deep_dive,
+        "progress": 0,
+        "job_id": job_id,
+        "est_seconds": est_seconds,
+    }
+    _save_prospector_batch(batch_id, [], metadata=metadata)
+    _BATCH_CANCEL_FLAGS[job_id] = False
 
     def _run_one_company(name: str, index: int) -> dict:
-        """Run discovery (+ optional Deep Dive) for one company with timeout."""
-        import signal as _signal
-        import functools
-
+        """Run discovery (+ optional Deep Dive) for one company."""
         push(job_id, f"status:Researching {name}… {index} of {total}")
         try:
             disc = discover(name)
@@ -959,13 +976,11 @@ def prospector_run():
                 disc_id = disc.get("discovery_id", "")
                 products = disc.get("products", [])
                 if products and disc_id:
-                    # Pick the top product (first by popularity — same sort as product chooser)
                     top_product = products[0]
                     top_name = top_product.get("name", "")
                     if top_name:
                         from intelligence import score
                         analysis = score([top_product], disc_id, discovery_data=disc)
-                        # Rebuild the row with sharpened Deep Dive data
                         if analysis:
                             row = _build_prospector_row_from_analysis(disc, analysis, row)
             except Exception as e:
@@ -978,37 +993,74 @@ def prospector_run():
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         results = []
-        # Run companies in parallel — Frank 2026-04-13
+        completed = 0
         max_workers = min(len(company_names), _cfg.PROSPECTOR_MAX_PARALLEL)
-        with ThreadPoolExecutor(max_workers=max_workers) as ex:
-            futures = {}
-            for i, name in enumerate(company_names, 1):
-                f = ex.submit(_run_one_company, name, i)
-                futures[f] = name
 
-            for future in as_completed(futures, timeout=total * DISCOVERY_TIMEOUT):
-                try:
-                    row = future.result(timeout=DISCOVERY_TIMEOUT)
-                    results.append(row)
-                except Exception as e:
-                    name = futures[future]
-                    log.warning("Prospector: timed out for %s: %s", name, e)
-                    results.append({"company_name": name, "error": f"Timed out: {e}"})
+        try:
+            with ThreadPoolExecutor(max_workers=max_workers) as ex:
+                futures = {}
+                for i, name in enumerate(company_names, 1):
+                    # Check cancellation before submitting
+                    if _BATCH_CANCEL_FLAGS.get(job_id):
+                        break
+                    f = ex.submit(_run_one_company, name, i)
+                    futures[f] = name
+
+                for future in as_completed(futures, timeout=total * DISCOVERY_TIMEOUT):
+                    if _BATCH_CANCEL_FLAGS.get(job_id):
+                        break
+                    try:
+                        row = future.result(timeout=DISCOVERY_TIMEOUT)
+                        results.append(row)
+                    except Exception as e:
+                        name = futures[future]
+                        log.warning("Prospector: timed out for %s: %s", name, e)
+                        results.append({"company_name": name, "error": f"Timed out: {e}"})
+
+                    completed += 1
+                    # Update metadata with progress
+                    metadata["progress"] = completed
+                    push(job_id, f"progress:{completed}/{total}")
+                    _save_prospector_batch(batch_id, results, metadata=metadata)
+
+        except Exception as e:
+            log.error("Prospector batch failed: %s", e)
+            metadata["status"] = "failed"
+            metadata["error"] = str(e)
+            _save_prospector_batch(batch_id, results, metadata=metadata)
+            push(job_id, f"error:{e}")
+            return
+
+        # Check if cancelled
+        if _BATCH_CANCEL_FLAGS.get(job_id):
+            metadata["status"] = "cancelled"
+            metadata["progress"] = completed
+            _save_prospector_batch(batch_id, results, metadata=metadata)
+            push(job_id, f"done:{batch_id}")
+            _BATCH_CANCEL_FLAGS.pop(job_id, None)
+            return
 
         # Sort by estimated ACV (descending)
         results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
         for i, r in enumerate(results, 1):
             r["rank"] = i
 
-        _save_prospector_batch(batch_id, results)
+        metadata["status"] = "complete"
+        metadata["progress"] = total
+        _save_prospector_batch(batch_id, results, metadata=metadata)
         push(job_id, f"done:{batch_id}")
+        _BATCH_CANCEL_FLAGS.pop(job_id, None)
 
     threading.Thread(target=run_batch, daemon=True).start()
 
-    return render_template("prospector_running.html",
-                          job_id=job_id,
-                          company_count=total,
-                          deep_dive=deep_dive)
+    return jsonify({
+        "ok": True,
+        "job_id": job_id,
+        "batch_id": batch_id,
+        "description": description,
+        "company_count": total,
+        "est_seconds": est_seconds,
+    })
 
 
 @app.route("/prospector/progress/<job_id>")
@@ -1018,11 +1070,21 @@ def prospector_progress(job_id: str):
                     content_type="text/event-stream")
 
 
+@app.route("/prospector/cancel/<job_id>", methods=["POST"])
+def prospector_cancel(job_id: str):
+    """Cancel a running Prospector batch."""
+    if job_id in _BATCH_CANCEL_FLAGS:
+        _BATCH_CANCEL_FLAGS[job_id] = True
+        return jsonify({"ok": True, "message": "Cancellation requested"})
+    return jsonify({"ok": False, "message": "Batch not found or already complete"}), 404  # magic-allowed: HTTP status
+
+
 @app.route("/prospector/export/<batch_id>")
 def prospector_export(batch_id):
     """Export a Prospector batch as CSV."""
     import csv
     import io
+    from datetime import date
 
     results = _load_prospector_batch(batch_id)
     if not results:
@@ -1035,7 +1097,8 @@ def prospector_export(batch_id):
         "Top Product", "Subcategory", "Why",
         "Promising Products", "Potential Products",
         "Uncertain Products", "Unlikely Products",
-        "Lab Platform", "Key Signal", "Discovery ID",
+        "Lab Platform", "Key Signal", "Cert Program", "Sales Channel",
+        "Discovery ID",
     ])
     for r in results:
         writer.writerow([
@@ -1052,6 +1115,8 @@ def prospector_export(batch_id):
             r.get("unlikely_count", 0),
             r.get("lab_platform", ""),
             r.get("key_signal", ""),
+            r.get("cert_program", ""),
+            r.get("sales_channel", ""),
             r.get("discovery_id", ""),
         ])
 
@@ -1059,7 +1124,7 @@ def prospector_export(batch_id):
     return Response(
         csv_content,
         mimetype="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=prospector-{batch_id}.csv"},
+        headers={"Content-Disposition": f"attachment; filename=prospector-{date.today().strftime('%Y-%m-%d')}-batch-{batch_id}.csv"},
     )
 
 
@@ -1134,15 +1199,37 @@ def _build_prospector_row(disc: dict) -> dict:
         elif signals.get("delivery_partners"):
             key_signal = signals["delivery_partners"][:80]  # magic-allowed: truncation for display
 
-    # Estimated ACV — rough estimate from user base + product count
-    # For now, use the top product's user base as the ACV proxy
-    # Full ACV calculation happens during Deep Dive
+    # Estimated ACV — company-wide rough dollar estimate.
+    # Same methodology as Deep Dive (audience × adoption × hours × rate)
+    # but summed across ALL discovered products, not just the top one.
+    # Per-product tiered caps keep inflated user bases honest.
+    # Deep Dive replaces this with the full five-motion calculation.
+    import scoring_config as _cfg
     estimated_acv = ""
     sort_acv = 0
-    if top and top.get("estimated_user_base"):
-        estimated_acv = f"~{top['estimated_user_base']} users"
-        # Parse rough numeric for sorting
-        sort_acv = _parse_user_base_for_sort(top.get("estimated_user_base", ""))
+    company_acv = 0
+    for p in products:
+        ub_str = p.get("estimated_user_base", "")
+        if not ub_str:
+            continue
+        user_count = _parse_user_base_for_sort(ub_str)
+        if user_count <= 0:
+            continue
+        # Tiered caps — inflated user bases get capped per product
+        for threshold, cap in _cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+            if user_count > threshold:
+                if cap is not None:
+                    user_count = cap
+                break
+        deployment = (p.get("deployment_model") or "").lower()
+        rate = _cfg.DISCOVERY_ACV_RATE_BY_DEPLOYMENT.get(
+            deployment, _cfg.DISCOVERY_ACV_DEFAULT_RATE)
+        company_acv += int(user_count * _cfg.DISCOVERY_ACV_ADOPTION_RATE
+                           * _cfg.DISCOVERY_ACV_HOURS * rate)
+    # Hard cap — no discovery estimate exceeds the ceiling
+    company_acv = min(company_acv, _cfg.DISCOVERY_ACV_CAP)
+    sort_acv = company_acv
+    estimated_acv = f"~{_format_acv_value(company_acv)}" if company_acv > 0 else ""
 
     # Build why string for top product
     top_why = ""
@@ -1173,6 +1260,8 @@ def _build_prospector_row(disc: dict) -> dict:
         "unlikely_count": tier_counts["unlikely"],
         "lab_platform": lab_platform,
         "key_signal": key_signal,
+        "cert_program": top.get("cert_inclusion", "") if top else "",
+        "sales_channel": signals.get("sales_channel", "") if signals else "",
     }
 
 
@@ -1234,48 +1323,213 @@ def _parse_user_base_for_sort(value: str) -> int:
         return 0
 
 
-def _save_prospector_batch(batch_id: str, results: list[dict]) -> None:
-    """Save a Prospector batch to the data directory."""
+def _save_prospector_batch(batch_id: str, results: list[dict],
+                           metadata: dict | None = None) -> None:
+    """Save a Prospector batch to the data directory.
+
+    Stores both results and metadata (status, description, progress, etc.)
+    in a single JSON file. Metadata is written at batch start and updated
+    throughout the run. Results accumulate as companies complete.
+    """
     import json
     batch_dir = Path("data/prospector_batches")
     batch_dir.mkdir(parents=True, exist_ok=True)
+    payload = {"results": results}
+    if metadata:
+        payload["_metadata"] = metadata
     with open(batch_dir / f"{batch_id}.json", "w") as f:
-        json.dump(results, f, indent=2)  # magic-allowed: JSON formatting indent
+        json.dump(payload, f, indent=2)  # magic-allowed: JSON formatting indent
 
 
 def _load_prospector_batch(batch_id: str) -> list[dict] | None:
-    """Load a saved Prospector batch."""
+    """Load a saved Prospector batch — returns the results list."""
     import json
     batch_path = Path("data/prospector_batches") / f"{batch_id}.json"
     if not batch_path.exists():
         return None
     with open(batch_path) as f:
-        return json.load(f)
+        data = json.load(f)
+    # Support both old format (plain list) and new format (dict with _metadata)
+    if isinstance(data, list):
+        return data
+    return data.get("results", [])
+
+
+def _load_prospector_batch_metadata(batch_id: str) -> dict | None:
+    """Load just the metadata for a batch."""
+    import json
+    batch_path = Path("data/prospector_batches") / f"{batch_id}.json"
+    if not batch_path.exists():
+        return None
+    with open(batch_path) as f:
+        data = json.load(f)
+    if isinstance(data, list):
+        return None
+    return data.get("_metadata")
+
+
+def _list_recent_batches(limit: int = 0) -> list[dict]:
+    """List recent Prospector batches with metadata, sorted by started_at descending."""
+    import json
+    batch_dir = Path("data/prospector_batches")
+    if not batch_dir.exists():
+        return []
+    batches = []
+    for f in batch_dir.glob("*.json"):
+        batch_id = f.stem
+        try:
+            with open(f) as fh:
+                data = json.load(fh)
+            if isinstance(data, dict) and "_metadata" in data:
+                meta = data["_metadata"]
+                meta["batch_id"] = batch_id
+                meta["result_count"] = len(data.get("results", []))
+                batches.append(meta)
+            elif isinstance(data, list):
+                # Old format — synthesize metadata from file and contents
+                import os
+                file_mtime = os.path.getmtime(f)
+                from datetime import datetime, timezone
+                started = datetime.fromtimestamp(file_mtime, tz=timezone.utc).isoformat()
+                batches.append({
+                    "batch_id": batch_id,
+                    "status": "complete",
+                    "description": f"{len(data)} companies · discovery only",
+                    "started_at": started,
+                    "company_count": len(data),
+                    "progress": len(data),
+                    "result_count": len(data),
+                })
+        except Exception:
+            continue
+    batches.sort(key=lambda b: b.get("started_at", ""), reverse=True)
+    return batches[:limit]
+
+
+# ── Cancellation registry for background batches ──
+_BATCH_CANCEL_FLAGS: dict[str, bool] = {}
 
 
 @app.route("/prospector/history")
 def prospector_history():
     """List all previously researched companies across all discoveries."""
     from storage import list_discoveries
-    companies = []
-    seen: set[str] = set()
+    best: dict[str, dict] = {}
     for disc in list_discoveries():
         name = disc.get("company_name", "")
-        name_key = name.lower().strip()
-        if name_key in seen:
+        key = _normalize_company_name(name)
+        if not key:
             continue
-        seen.add(name_key)
-        product_count = len(disc.get("products", []))
+        existing = best.get(key)
+        if existing is None or disc.get("created_at", "") > existing.get("created_at", ""):
+            best[key] = disc
+    companies = []
+    for disc in best.values():
         companies.append({
-            "name": name,
+            "name": disc.get("company_name", ""),
             "badge": disc.get("_company_badge", ""),
             "discovery_id": disc.get("discovery_id", ""),
-            "product_count": product_count,
+            "product_count": len(disc.get("products", [])),
             "created_at": disc.get("created_at", ""),
         })
-    # Sort by most recently researched first
     companies.sort(key=lambda c: c.get("created_at", ""), reverse=True)
     return render_template("prospector_history.html", companies=companies)
+
+
+def _normalize_company_name(name: str) -> str:
+    """Normalize company name for dedup — catches 'Cisco' vs 'Cisco Systems',
+    'VMware (by Broadcom)' vs 'VMware by Broadcom', etc.
+
+    Strips: parentheticals, common suffixes (Inc, Corp, LLC, Ltd, Systems,
+    Technologies, Group), leading/trailing whitespace, casing.
+    """
+    import re
+    key = name.lower().strip()
+    key = re.sub(r'\s*\(.*?\)', '', key)          # remove parentheticals
+    key = re.sub(r'\s+by\s+\w+$', '', key)         # "VMware by Broadcom" → "VMware"
+    key = re.sub(r',?\s*(inc\.?|corp\.?|llc|ltd\.?|limited|plc|systems|technologies|group|corporation)\s*$', '', key)
+    key = re.sub(r'\s+', ' ', key).strip()         # collapse whitespace
+    return key
+
+
+def _deduped_all_discoveries() -> list[dict]:
+    """Load all discoveries, dedup by normalized company name, prefer most recent."""
+    from storage import list_discoveries
+    best: dict[str, dict] = {}  # normalized name → most recent discovery
+    for disc in list_discoveries():
+        name = disc.get("company_name", "")
+        key = _normalize_company_name(name)
+        if not key:
+            continue
+        existing = best.get(key)
+        if existing is None or disc.get("created_at", "") > existing.get("created_at", ""):
+            best[key] = disc
+    results = [_build_prospector_row(disc) for disc in best.values()]
+    results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
+    for i, r in enumerate(results, 1):
+        r["rank"] = i
+    return results
+
+
+@app.route("/prospector/results")
+@app.route("/prospector/results/<batch_id>")
+def prospector_results(batch_id=None):
+    """Full-page results view with batch/all tabs."""
+    # Load batch results if batch_id provided
+    batch_results = None
+    if batch_id:
+        batch_results = _load_prospector_batch(batch_id)
+
+    # Load ALL researched companies — deduped by normalized name
+    all_results = _deduped_all_discoveries()
+
+    from datetime import date
+    return render_template("prospector_results.html",
+                          batch_results=batch_results,
+                          batch_id=batch_id,
+                          all_results=all_results,
+                          active_tab="batch" if batch_id else "all",
+                          refresh_date=date.today().strftime("%B %d, %Y"))
+
+
+@app.route("/prospector/export-all")
+def prospector_export_all():
+    """Export ALL researched companies as CSV."""
+    import csv
+    import io
+    from datetime import date
+
+    all_results = _deduped_all_discoveries()
+    all_results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Rank", "Company", "Badge", "Estimated ACV",
+        "Top Product", "Subcategory", "Why",
+        "Promising Products", "Potential Products",
+        "Uncertain Products", "Unlikely Products",
+        "Lab Platform", "Key Signal", "Cert Program", "Sales Channel",
+        "Discovery ID",
+    ])
+    for i, r in enumerate(all_results, 1):
+        writer.writerow([
+            i, r.get("company_name", ""), r.get("company_badge", ""),
+            r.get("estimated_acv", ""),
+            r.get("top_product_name", ""), r.get("top_product_subcategory", ""),
+            r.get("top_product_why", ""),
+            r.get("promising_count", 0), r.get("potential_count", 0),
+            r.get("uncertain_count", 0), r.get("unlikely_count", 0),
+            r.get("lab_platform", ""), r.get("key_signal", ""),
+            r.get("cert_program", ""), r.get("sales_channel", ""),
+            r.get("discovery_id", ""),
+        ])
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=prospector-{date.today().strftime('%Y-%m-%d')}-all.csv"},
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

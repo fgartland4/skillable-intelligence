@@ -2893,9 +2893,10 @@ ACV_ORG_HOURS_OVERRIDES: dict[str, dict[str, float]] = {
 }
 
 # ── Prospector batch processing constants ─────────────────────────────────
-PROSPECTOR_DISCOVERY_TIMEOUT = 180   # 3 minutes per company discovery
-PROSPECTOR_DEEP_DIVE_TIMEOUT = 300   # 5 minutes per company deep dive
+PROSPECTOR_DISCOVERY_TIMEOUT = 300   # 5 minutes per company discovery (Cisco took 189s with 21 products)
+PROSPECTOR_DEEP_DIVE_TIMEOUT = 420   # 7 minutes per company deep dive
 PROSPECTOR_MAX_PARALLEL = 3          # concurrent companies to avoid rate limits
+PROSPECTOR_RECENT_BATCHES_LIMIT = 10 # max recent batches shown in the status panel
 
 # ── Rate tiers ────────────────────────────────────────────────────────────
 CLOUD_LABS_RATE = 6.00    # Cloud Slice / BYOC — platform fee only, customer pays cloud bill
@@ -2971,6 +2972,31 @@ ORCHESTRATION_TO_RATE_TIER = {
     "simulation":        "Simulation",
     "simulated":         "Simulation",
 }
+
+# ── Discovery-level ACV estimation (rough, pre-Deep Dive) ─────────────────
+# Same methodology as the full ACV model (audience × adoption × hours × rate)
+# but with only discovery-level data. One product, one motion (customer training).
+# Deep Dive replaces this with the full five-motion calculation.
+DISCOVERY_ACV_ADOPTION_RATE = 0.04    # Motion 1 default adoption rate
+DISCOVERY_ACV_HOURS = 2               # Motion 1 default hours per learner
+DISCOVERY_ACV_RATE_BY_DEPLOYMENT = {
+    "installable": VM_MID_RATE,       # $14/hr — typical VM
+    "hybrid": VM_MID_RATE,            # $14/hr — assume VM path
+    "cloud": CLOUD_LABS_RATE,         # $6/hr — cloud labs
+    "saas-only": CLOUD_LABS_RATE,     # $6/hr — BYOC/cloud path
+}
+DISCOVERY_ACV_DEFAULT_RATE = VM_MID_RATE  # fallback when deployment model unknown
+DISCOVERY_ACV_CAP = 5_000_000            # hard cap — no discovery estimate exceeds $5M
+# Tiered discount for inflated user bases — more aggressive as the number grows.
+# The researcher is supposed to report training population, not total users,
+# but compliance varies. These tiers approximate real training populations.
+DISCOVERY_ACV_USER_BASE_TIERS = [
+    # (threshold, effective_training_pop) — if user_base > threshold, use the fixed pop
+    (10_000_000, 200_000),   # 10M+ users → ~200K realistic training pop (Docker, GitHub)
+    (3_000_000, 150_000),    # 3-10M users → ~150K (Posit, MongoDB, NVIDIA)
+    (1_000_000, 100_000),    # 1-3M users → ~100K (Cisco, UiPath, Databricks)
+    (500_000, None),         # 500K-1M → no adjustment, likely already training pop
+]
 
 PRODUCT_CATEGORY_RATE_PRIORS = (
     {"category": "Networking", "typical_vms": "2-6", "rate_tier": "complex", "rate_range": "$45-55/hr", "seat_time": "60-90+ min",
