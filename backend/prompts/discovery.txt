@@ -101,9 +101,40 @@ EXAMPLES:
 
 PRODUCT COUNT: Identify ALL products that pass the definition filter. There is NO target count. The filter determines the count. Posit yields 3-5. Cisco yields 20-30. Both are correct.
 
-For non-software org types (universities, GSIs, Industry Authorities, etc.), apply the TWO-STEP EXTRACTION:
-1. Find the wrapper (academic program, practice area, certification, course catalog category)
-2. Extract the underlying technologies — THOSE are what get assessed for labability
+═══ WRAPPER ORGANIZATIONS — UNIVERSAL RULE FOR ALL NON-SOFTWARE ORG TYPES ═══
+
+For ANY organization that is NOT a software company — universities, Industry Authorities, training organizations, GSIs, VARs, distributors, enterprise learning platforms, ILT training orgs — the "products" are the org's actual offerings: cert programs, degree programs, courses, practice areas, service lines. THESE ARE WHAT APPEAR ON THE PRODUCT CHOOSER — they are what the org sells.
+
+However, the LABABILITY of each offering is determined by the UNDERLYING TECHNOLOGIES inside it. A cert program is labable because the technologies it teaches are labable. The underlying technologies drive Pillar 1 scoring, badge evidence, and briefcase content.
+
+HOW THIS WORKS:
+1. OUTPUT the wrapper as the product entry (e.g., "CompTIA Security+", "BS Cybersecurity", "SAP Practice")
+2. For each wrapper product, populate the `underlying_technologies` field with the specific software technologies taught/deployed/certified inside it
+3. These technologies determine the product's deployment_model, labability score, and badge evidence
+4. The deployment_model of the PRODUCT ENTRY reflects the technologies inside, NOT the wrapper delivery platform
+
+UNDERLYING TECHNOLOGIES FIELD:
+Each technology entry captures: name, deployment_model (installable/cloud/hybrid/saas-only), and a brief note.
+Example for CompTIA Security+:
+  [{"name": "Wireshark", "deployment_model": "installable", "note": "Network protocol analyzer"},
+   {"name": "Splunk", "deployment_model": "hybrid", "note": "SIEM platform"},
+   {"name": "pfSense", "deployment_model": "installable", "note": "Open-source firewall"},
+   {"name": "Kali Linux", "deployment_model": "installable", "note": "Penetration testing distribution"}]
+
+DEPLOYMENT MODEL FOR WRAPPER PRODUCTS:
+The wrapper's deployment_model reflects the DOMINANT deployment model of the technologies inside it, NOT the delivery platform. If Security+ teaches Wireshark, pfSense, and Kali (all installable), the deployment_model is "installable" — even though CompTIA delivers exams via SaaS. The question is: "how would Skillable provision labs for this?" The answer comes from the technologies, not the cert delivery mechanism.
+
+CATEGORY FOR WRAPPER PRODUCTS:
+The category comes from the technologies inside. Security+ teaches cybersecurity tools → category is "Cybersecurity". A cloud computing degree teaches AWS and Azure → category is "Cloud Infrastructure".
+
+THE ORG'S OWN PLATFORMS ARE NOT PRODUCTS:
+- CompTIA CertMaster Learn/Labs/Practice/CE = CompTIA's DELIVERY PLATFORM, not a labable product. Goes in `company_signals.lab_platform` instead.
+- EC-Council iLabs = same — delivery platform, not a product
+- University LMS (Canvas, Blackboard) = same — delivery platform
+- Exception: if the org IS an LMS company (Cornerstone, Docebo), their LMS is BOTH a delivery platform AND a scorable product.
+
+SKIP NON-TECHNOLOGY WRAPPERS:
+If a cert/course/program contains nothing that involves hands-on technology interaction — a project management methodology course, a compliance reading course, a leadership program — skip it. No lab opportunity. No product entry.
 
 ═══════════════════════════════════════════════════════════════════════════════
 STEP 3 — GATHER PER-PRODUCT DATA (THREE TIERS)
@@ -118,7 +149,8 @@ For each product that passes the filter, capture ALL of the following:
 - description: 2-3 sentences. What the product does, what problem it solves, who uses it. Include enough context for downstream scoring decisions.
 - is_core_product: true if it passes the product definition filter. false if uncertain (these get filtered out).
 - product_relationship: "flagship" (independently licensed, high popularity — a company can have MULTIPLE flagships across different categories or at similar popularity levels) | "secondary" (lower popularity or depends on a flagship for context) | "standalone" (independent product, focused company with few products)
-- category: One of: Cloud Infrastructure, Cybersecurity, Data Protection, Networking / SDN, DevOps, Application Development, Data & Analytics, Data Science & Engineering, Collaboration, ERP, CRM, Healthcare IT, Industrial / OT, Content Management, Legal Tech, FinTech, AI Platforms & Tooling, Infrastructure / Virtualization, Other
+- category: One of: Cloud Infrastructure, Cybersecurity, Data Protection, Networking / SDN, DevOps, Application Development, Data & Analytics, Data Science & Engineering, Collaboration, ERP, CRM, Healthcare IT, Industrial / OT, Content Management, Legal Tech, FinTech, AI Platforms & Tooling, Infrastructure / Virtualization. NEVER use "Other" — every real technology fits one of these categories. If you cannot categorize it, the product definition filter likely should have excluded it.
+- underlying_technologies: For non-software org types ONLY. List of specific software technologies taught/deployed/certified inside this wrapper offering. Each entry: {"name": "<tech name>", "deployment_model": "<installable|cloud|hybrid|saas-only>", "note": "<1 sentence>"}. Empty list for software companies where the product IS the technology. These drive Pillar 1 scoring and badge evidence.
 - subcategory: Concise industry-standard subcategory (2-3 words). Examples: "Endpoint Protection", "Detection & Response", "Statistical Computing IDE"
 - deployment_model: "installable" | "cloud" | "hybrid" | "saas-only"
   - "installable": downloadable installer, container image, or VM image

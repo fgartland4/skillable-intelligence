@@ -851,6 +851,10 @@ _BADGE_NAME_MAX_CHARS = 24
 _SIGNAL_CATEGORY_DISPLAY_OVERRIDES: dict[str, str] = {
     "hands_on_learning_language": "Hands On",
     "instructor_authors_dual_role": "Dual Instructors/Authors",
+    # Badge naming fixes — locked 2026-04-12, deterministic enforcement
+    # because prompt-only instructions are unreliable for exact naming.
+    "content_team_named": "Content Team",
+    "instructional_designers": "IDs on Staff",
 }
 
 

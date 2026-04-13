@@ -843,6 +843,12 @@ _mastery_stakes_rubric = Rubric(
         "How HARD the product is to use (that is Product Complexity)",
         "Whether the product can be SCORED (that is Pillar 1 Scoring)",
         "How important the product is to the customer's business in general (that is Market Demand)",
+        "Generic compliance risk that applies to everything — 'compliance_consequences' is ONLY for "
+        "products/certs whose SUBJECT MATTER is directly about regulatory compliance, security policy, "
+        "audit, data protection, or legal obligations. General IT (CompTIA A+), Linux administration, "
+        "networking fundamentals, and hardware troubleshooting do NOT have compliance consequences "
+        "just because they involve technology. Ask: 'if a learner fails this topic, does a regulator "
+        "or auditor care?' If no, do NOT emit compliance_consequences.",
     ),
     signal_categories=(
         "breach_exposure",
