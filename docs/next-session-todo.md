@@ -85,16 +85,11 @@ All scoring, researcher, and badge fixes from 2026-04-12/13 are in the code but 
 
 In priority order — do not parallelize. Each one has its own design conversation before build.
 
-### 1. Documentation Job A — the ? modal (how does this work)
+### 1. Documentation Job A — content polish on the ? modals
 
-Prerequisite: Validation round complete. Frank won't demo without documentation in place.
+**Already built.** The info modal infrastructure is shipped: `MODAL_CONTENT` in `scoring_config.py` builds WHY-WHAT-HOW content dynamically from pillar/dimension config. The `openInfoModal()` JS in `full_analysis.html` renders it. ? icons are wired on every Pillar card, Fit Score, ACV, and Seller Briefcase.
 
-**Scope:**
-- Reformat Platform-Foundation.md and Badging-and-Scoring-Reference.md to mark extractable sections
-- Tone polish for seller-facing read
-- Small Python extractor helper
-- Wire the existing reusable info modal, themed per job
-- Content flows automatically from docs → UI on next refresh (Define-Once for documentation)
+**What's left:** Content polish — verify the seller-facing copy reads well, tone is right, per-dimension WHY text is sharp enough for a demo. Frank won't demo without reviewing the modal content. This is a review + edit session, not a build.
 
 ### 2. Deployment — Render or Azure Web App
 
