@@ -238,6 +238,10 @@
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
 
+        /* ── Sortable headers ── */
+        .sortable-header { cursor: pointer; user-select: none; }
+        .sortable-header:hover { color: var(--sk-accent); }
+
         /* ── Loading state ── */
         .loading-indicator {
             text-align: center; padding: 60px 20px;
@@ -295,9 +299,14 @@
 
     {# ── Tab: All Companies ── #}
     <div class="tab-panel" id="panel-all">
-        <div style="font-size: 0.68rem; color: var(--sk-text-dim); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
-            Estimates refreshed {{ refresh_date }}
-            <span class="refresh-help-icon" title="ACV estimates are calculated from cached research data using the current scoring methodology. Refreshing this page recalculates all estimates at zero additional cost — no new research or API calls required.">?</span>
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+            <input type="text" id="companySearch" placeholder="Search companies..."
+                   style="padding: 6px 12px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 7px; color: var(--sk-text); font-family: inherit; font-size: 0.78rem; width: 220px;"
+                   oninput="filterCompanies(this.value)">
+            <div style="font-size: 0.68rem; color: var(--sk-text-dim); display: flex; align-items: center; gap: 6px;">
+                Estimates refreshed {{ refresh_date }}
+                <span class="refresh-help-icon" title="ACV estimates are calculated from cached research data using the current scoring methodology. Refreshing this page recalculates all estimates at zero additional cost — no new research or API calls required.">?</span>
+            </div>
         </div>
 
         {% macro render_tbody(rows, tbody_id) %}
@@ -358,8 +367,8 @@
                 <tr>
                     <th class="col-check"></th>
                     <th class="col-num">#</th>
-                    <th class="col-company">Company</th>
-                    <th class="col-acv">Est. ACV</th>
+                    <th class="col-company sortable-header" onclick="sortCompanies('company')" title="Sort by company name">Company ↕</th>
+                    <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Sort by estimated ACV">Est. ACV ↕</th>
                     <th class="col-product">Top Product</th>
                     <th class="col-why">Why</th>
                     <th class="col-tier">Prom.</th>
@@ -630,52 +639,102 @@
     // ── Initial state ──
     showTab(activeTab);
 
+    // ── All Companies data store (for filter + sort) ──
+    var allCompaniesData = [];
+    var currentSort = 'acv';  // default sort
+    var sortAscending = false; // default descending for ACV
+
+    function renderAllCompanies(companies) {
+        var tbody = document.getElementById('tbody-all');
+        if (!companies || companies.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="14" class="empty-state">No companies found.</td></tr>';
+            return;
+        }
+        var html = '';
+        companies.forEach(function(r, i) {
+            var badgeColor = (r.badge_color || 'purple').replace(/_/g, '-');
+            var badgeHtml = r.company_badge ? '<span class="company-cell-badge badge-' + badgeColor + '">' + r.company_badge + '</span>' : '';
+            var labHtml = '';
+            if (r.lab_platform) {
+                if (r.lab_platform.toLowerCase().indexOf('skillable') >= 0) {
+                    labHtml = '<span class="lab-skillable">' + r.lab_platform + '</span>';
+                } else if (['none','no lab platform','greenfield'].indexOf(r.lab_platform.toLowerCase()) >= 0) {
+                    labHtml = '<span class="lab-none">None</span>';
+                } else {
+                    labHtml = '<span class="lab-competitor">' + r.lab_platform + '</span>';
+                }
+            } else {
+                labHtml = '<span class="lab-none">&mdash;</span>';
+            }
+            var subHtml = r.top_product_subcategory ? '<div class="product-cell-sub">' + r.top_product_subcategory + '</div>' : '';
+            html += '<tr>' +
+                '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
+                '<td class="rank-num">' + (i + 1) + '</td>' +
+                '<td title="' + (r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
+                '<td class="acv-cell" title="' + (r.estimated_acv||'') + '">' + (r.estimated_acv||'&mdash;') + '</td>' +
+                '<td title="' + (r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +
+                '<td class="why-cell" title="' + (r.top_product_why||'') + '">' + (r.top_product_why||'') + '</td>' +
+                '<td class="rank-num">' + (r.promising_count||0) + '</td>' +
+                '<td class="rank-num">' + (r.potential_count||0) + '</td>' +
+                '<td class="rank-num">' + (r.uncertain_count||0) + '</td>' +
+                '<td class="rank-num">' + (r.unlikely_count||0) + '</td>' +
+                '<td class="signal-cell" title="' + (r.lab_platform||'') + '">' + labHtml + '</td>' +
+                '<td class="signal-cell" title="' + (r.key_signal||'') + '">' + (r.key_signal||'') + '</td>' +
+                '<td class="signal-cell" title="' + (r.cert_program||'') + '">' + (r.cert_program||'') + '</td>' +
+                '<td class="signal-cell" title="' + (r.sales_channel||'') + '">' + (r.sales_channel||'') + '</td>' +
+                '</tr>';
+        });
+        tbody.innerHTML = html;
+    }
+
+    window.filterCompanies = function(query) {
+        query = (query || '').toLowerCase().trim();
+        if (!query) {
+            renderAllCompanies(allCompaniesData);
+            return;
+        }
+        var filtered = allCompaniesData.filter(function(r) {
+            return (r.company_name || '').toLowerCase().indexOf(query) >= 0 ||
+                   (r.company_badge || '').toLowerCase().indexOf(query) >= 0 ||
+                   (r.top_product_name || '').toLowerCase().indexOf(query) >= 0 ||
+                   (r.key_signal || '').toLowerCase().indexOf(query) >= 0;
+        });
+        renderAllCompanies(filtered);
+    };
+
+    window.sortCompanies = function(column) {
+        if (currentSort === column) {
+            sortAscending = !sortAscending;
+        } else {
+            currentSort = column;
+            sortAscending = (column === 'company'); // A-Z default for company, high-to-low for ACV
+        }
+        allCompaniesData.sort(function(a, b) {
+            var va, vb;
+            if (column === 'company') {
+                va = (a.company_name || '').toLowerCase();
+                vb = (b.company_name || '').toLowerCase();
+            } else {
+                va = a._sort_acv || 0;
+                vb = b._sort_acv || 0;
+            }
+            if (va < vb) return sortAscending ? -1 : 1;
+            if (va > vb) return sortAscending ? 1 : -1;
+            return 0;
+        });
+        // Re-apply search filter if active
+        var query = (document.getElementById('companySearch') || {}).value || '';
+        filterCompanies(query);
+    };
+
     // ── Async load All Companies ──
     fetch('/prospector/api/companies')
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            var tbody = document.getElementById('tbody-all');
             var countEl = document.getElementById('all-count');
             if (countEl) countEl.textContent = '(' + data.count + ')';
-            if (!data.companies || data.companies.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="14" class="empty-state">No companies found. Upload a list or paste company names to get started.</td></tr>';
-                return;
-            }
-            var html = '';
-            data.companies.forEach(function(r, i) {
-                var badgeColor = (r.badge_color || 'purple').replace(/_/g, '-');
-                var badgeHtml = r.company_badge ? '<span class="company-cell-badge badge-' + badgeColor + '">' + r.company_badge + '</span>' : '';
-                var labHtml = '';
-                if (r.lab_platform) {
-                    if (r.lab_platform.toLowerCase().indexOf('skillable') >= 0) {
-                        labHtml = '<span class="lab-skillable">' + r.lab_platform + '</span>';
-                    } else if (['none','no lab platform','greenfield'].indexOf(r.lab_platform.toLowerCase()) >= 0) {
-                        labHtml = '<span class="lab-none">None</span>';
-                    } else {
-                        labHtml = '<span class="lab-competitor">' + r.lab_platform + '</span>';
-                    }
-                } else {
-                    labHtml = '<span class="lab-none">&mdash;</span>';
-                }
-                var subHtml = r.top_product_subcategory ? '<div class="product-cell-sub">' + r.top_product_subcategory + '</div>' : '';
-                html += '<tr>' +
-                    '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
-                    '<td class="rank-num">' + (r.rank || (i+1)) + '</td>' +
-                    '<td title="' + (r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
-                    '<td class="acv-cell" title="' + (r.estimated_acv||'') + '">' + (r.estimated_acv||'&mdash;') + '</td>' +
-                    '<td title="' + (r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +
-                    '<td class="why-cell" title="' + (r.top_product_why||'') + '">' + (r.top_product_why||'') + '</td>' +
-                    '<td class="rank-num">' + (r.promising_count||0) + '</td>' +
-                    '<td class="rank-num">' + (r.potential_count||0) + '</td>' +
-                    '<td class="rank-num">' + (r.uncertain_count||0) + '</td>' +
-                    '<td class="rank-num">' + (r.unlikely_count||0) + '</td>' +
-                    '<td class="signal-cell" title="' + (r.lab_platform||'') + '">' + labHtml + '</td>' +
-                    '<td class="signal-cell" title="' + (r.key_signal||'') + '">' + (r.key_signal||'') + '</td>' +
-                    '<td class="signal-cell" title="' + (r.cert_program||'') + '">' + (r.cert_program||'') + '</td>' +
-                    '<td class="signal-cell" title="' + (r.sales_channel||'') + '">' + (r.sales_channel||'') + '</td>' +
-                    '</tr>';
-            });
-            tbody.innerHTML = html;
+            allCompaniesData = data.companies || [];
+            renderAllCompanies(allCompaniesData);
         })
         .catch(function(err) {
             var tbody = document.getElementById('tbody-all');
