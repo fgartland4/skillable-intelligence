@@ -1437,19 +1437,10 @@ def prospector_history():
 
 
 def _normalize_company_name(name: str) -> str:
-    """Normalize company name for dedup — catches 'Cisco' vs 'Cisco Systems',
-    'VMware (by Broadcom)' vs 'VMware by Broadcom', etc.
-
-    Strips: parentheticals, common suffixes (Inc, Corp, LLC, Ltd, Systems,
-    Technologies, Group), leading/trailing whitespace, casing.
-    """
-    import re
-    key = name.lower().strip()
-    key = re.sub(r'\s*\(.*?\)', '', key)          # remove parentheticals
-    key = re.sub(r'\s+by\s+\w+$', '', key)         # "VMware by Broadcom" → "VMware"
-    key = re.sub(r',?\s*(inc\.?|corp\.?|llc|ltd\.?|limited|plc|systems|technologies|group|corporation)\s*$', '', key)
-    key = re.sub(r'\s+', ' ', key).strip()         # collapse whitespace
-    return key
+    """Normalize company name for dedup. Delegates to the shared
+    function in storage.py — Define-Once for name normalization."""
+    from storage import _normalize_company_name as _normalize
+    return _normalize(name)
 
 
 def _deduped_all_discoveries() -> list[dict]:

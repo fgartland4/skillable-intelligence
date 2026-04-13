@@ -102,11 +102,34 @@ def load_discovery(discovery_id: str) -> Optional[dict]:
     return _read_json(filepath)
 
 
+def _normalize_company_name(name: str) -> str:
+    """Normalize company name for matching — catches 'Cisco' vs 'Cisco Systems',
+    'Google' vs 'Google Cloud', 'VMware (by Broadcom)' vs 'VMware by Broadcom'.
+
+    Used by find_discovery_by_company_name and the Prospector dedup logic.
+    Shared function — Define-Once for name normalization.
+    """
+    import re
+    key = name.lower().strip()
+    key = re.sub(r'\s*\(.*?\)', '', key)          # remove parentheticals
+    key = re.sub(r'\s+by\s+\w+$', '', key)         # "VMware by Broadcom" → "VMware"
+    key = re.sub(r',?\s*(inc\.?|corp\.?|llc|ltd\.?|limited|plc|systems|technologies|group|corporation)\s*$', '', key)
+    # Remove common product/division suffixes that differ between searches
+    key = re.sub(r'\s+(cloud|platform|software|labs|digital|online|services)\s*$', '', key)
+    key = re.sub(r'\s+', ' ', key).strip()
+    return key
+
+
 def find_discovery_by_company_name(company_name: str) -> Optional[dict]:
-    """Find the most recent discovery for a company by name."""
+    """Find the most recent discovery for a company by normalized name.
+
+    Uses _normalize_company_name to match 'Google' → 'Google Cloud',
+    'Cisco' → 'Cisco Systems', etc. Returns the most recent discovery
+    when multiple exist for the same normalized name.
+    """
     if not company_name:
         return None
-    target = company_name.lower().strip()
+    target = _normalize_company_name(company_name)
     best = None
     best_time = ""
     for filename in os.listdir(_COMPANY_DIR):
@@ -114,7 +137,7 @@ def find_discovery_by_company_name(company_name: str) -> Optional[dict]:
             continue
         filepath = os.path.join(_COMPANY_DIR, filename)
         data = _read_json(filepath)
-        if data and data.get("company_name", "").lower().strip() == target:
+        if data and _normalize_company_name(data.get("company_name", "")) == target:
             created = data.get("created_at", "")
             if created > best_time:
                 best = data
@@ -213,10 +236,10 @@ def load_analysis(analysis_id: str) -> Optional[dict]:
 
 
 def find_analysis_by_company_name(company_name: str) -> Optional[dict]:
-    """Find the most recent analysis for a company by name."""
+    """Find the most recent analysis for a company by normalized name."""
     if not company_name:
         return None
-    target = company_name.lower().strip()
+    target = _normalize_company_name(company_name)
     best = None
     best_time = ""
     for filename in os.listdir(_COMPANY_DIR):
@@ -224,7 +247,7 @@ def find_analysis_by_company_name(company_name: str) -> Optional[dict]:
             continue
         filepath = os.path.join(_COMPANY_DIR, filename)
         data = _read_json(filepath)
-        if data and data.get("company_name", "").lower().strip() == target:
+        if data and _normalize_company_name(data.get("company_name", "")) == target:
             analyzed = data.get("analyzed_at", "")
             if analyzed > best_time:
                 best = data
