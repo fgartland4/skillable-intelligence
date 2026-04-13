@@ -302,9 +302,12 @@ def api_cached_companies():
 
     from storage import list_discoveries
     results = []
+    seen_names: set[str] = set()
     for disc in list_discoveries():
         name = disc.get("company_name", "")
-        if q in name.lower():
+        name_key = name.lower().strip()
+        if q in name_key and name_key not in seen_names:
+            seen_names.add(name_key)
             results.append({
                 "name": name,
                 "badge": disc.get("_company_badge", ""),

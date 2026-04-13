@@ -62,8 +62,9 @@
      Within each band, lightness varies slightly for subtle differentiation
      but the HUE stays firmly in the band so 57% reads as amber, not lime.
      GP3: the visual must match the score — a moderate score must LOOK moderate. #}
-  {% if pct >= 70 %}
-    {# Green band: hue 145, lightness 38-48% (brighter as pct increases) #}
+  {% if pct > 70 %}
+    {# Green band: hue 145, lightness 38-48% (brighter as pct increases).
+       70% exactly is amber — green starts ABOVE 70%. Frank 2026-04-13. #}
     {% set bar_hue = 145 %}
     {% set bar_light = (38 + ((pct - 70) * 10 / 30)) | int %}
   {% elif pct >= 40 %}
