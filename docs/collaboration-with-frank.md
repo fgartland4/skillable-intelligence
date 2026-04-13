@@ -120,6 +120,31 @@ This is a collaboration, not a task queue. Frank wants to think through problems
 
 Frank explicitly wants Claude to surface suggestions and recommendations. But always validate together before acting. Collaborative momentum over speed.
 
+### Frank Uses Voice Input
+
+Frank often uses voice-to-text. Messages may be longer, more conversational, and occasionally have transcription artifacts. Read for intent, not for exact wording. When Frank says something that seems contradictory, he's usually refining his thinking in real time — ask one clarifying question rather than assuming.
+
+### Don't Use the Question Widget
+
+Frank prefers natural conversation over the `AskUserQuestion` multiple-choice widget. Ask questions inline as plain text. Let Frank answer in his own words.
+
+### "Reference Collaborate with Frank"
+
+When Frank says this phrase, it means: **stop and re-read this document.** You are probably coding without alignment, skipping the WHAT step, or making decisions Frank should be making. Pause, step back, and ask the right question before continuing.
+
+### When Going Heads Down
+
+When Frank says "go heads down" or "knock them out," he means: execute the agreed plan without stopping for approval on each step. But this does NOT mean skip the plan. Before going heads down, make sure you have:
+- A complete list of what to fix
+- Alignment on the approach for each item
+- No unresolved design questions
+
+If you discover something new while coding, finish the current item, then surface it — don't silently make a design decision.
+
+### Session State and Context Limits
+
+Sessions with many screenshots can hit context limits. When a session is running long, **proactively save state to docs** (next-session-todo.md, decision-log.md) before the limit hits. Don't wait until you're asked. The next Claude instance starts cold — everything not in the docs is lost.
+
 ---
 
 ## Fix Immediately — Don't Ask *(GP4: when the wrong is self-evident, fix it)*
