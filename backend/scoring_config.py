@@ -2873,6 +2873,11 @@ ACV_ORG_HOURS_OVERRIDES: dict[str, dict[str, float]] = {
     },
 }
 
+# ── Prospector batch processing constants ─────────────────────────────────
+PROSPECTOR_DISCOVERY_TIMEOUT = 180   # 3 minutes per company discovery
+PROSPECTOR_DEEP_DIVE_TIMEOUT = 300   # 5 minutes per company deep dive
+PROSPECTOR_MAX_PARALLEL = 3          # concurrent companies to avoid rate limits
+
 # ── Rate tiers ────────────────────────────────────────────────────────────
 CLOUD_LABS_RATE = 6.00    # Cloud Slice / BYOC — platform fee only, customer pays cloud bill
 VM_LOW_RATE     = 8.00    # Container or lightweight single VM

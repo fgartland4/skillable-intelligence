@@ -934,9 +934,10 @@ def prospector_run():
     batch_id = str(uuid.uuid4())[:8]
     total = len(company_names)
 
-    # Per-company timeouts — Frank 2026-04-13
-    DISCOVERY_TIMEOUT = 180   # magic-allowed: three-minute-per-company discovery timeout
-    DEEP_DIVE_TIMEOUT = 300   # magic-allowed: five-minute-per-company deep-dive timeout
+    # Per-company timeouts from config — Frank 2026-04-13
+    import scoring_config as _cfg
+    DISCOVERY_TIMEOUT = _cfg.PROSPECTOR_DISCOVERY_TIMEOUT
+    DEEP_DIVE_TIMEOUT = _cfg.PROSPECTOR_DEEP_DIVE_TIMEOUT
 
     def _run_one_company(name: str, index: int) -> dict:
         """Run discovery (+ optional Deep Dive) for one company with timeout."""
@@ -978,7 +979,7 @@ def prospector_run():
 
         results = []
         # Run companies in parallel — Frank 2026-04-13
-        max_workers = min(len(company_names), 3)  # magic-allowed: parallel-cap-avoids-rate-limits
+        max_workers = min(len(company_names), _cfg.PROSPECTOR_MAX_PARALLEL)
         with ThreadPoolExecutor(max_workers=max_workers) as ex:
             futures = {}
             for i, name in enumerate(company_names, 1):
