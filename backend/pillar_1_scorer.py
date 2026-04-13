@@ -1064,19 +1064,52 @@ _SIGNAL_TO_ORCHESTRATION: dict[str, str] = {
 }
 
 
-def derive_orchestration_method(facts: ProductLababilityFacts) -> str:
+def derive_orchestration_method(
+    facts: ProductLababilityFacts,
+    underlying_technologies: list[dict] | None = None,
+) -> str:
     """Derive the internal orchestration_method from Pillar 1 facts.
 
     Reuses _pick_primary_fabric (the same logic the scorer uses) to
     determine which fabric won, then maps it to the orchestration_method
     string that drives ACV rate tier and Technical Fit Multiplier lookups.
 
+    For wrapper org products (certs, degrees, courses): when provisioning
+    facts are empty or SaaS-only but underlying_technologies exist, derive
+    the orchestration method from the dominant deployment_model of the
+    technologies inside the wrapper. This ensures a cybersecurity cert
+    (wrapper = SaaS) gets the VM rate (underlying tools are installable),
+    not the cloud rate.
+
     Returns an empty string only when no fabric is pickable at all
     (bare metal / GCP-only with no alternative).
     """
     primary = _pick_primary_fabric(facts.provisioning)
+
+    # ── Wrapper org fallback: use underlying technologies ──
+    # When the provisioning facts point to SaaS/Simulation but the product
+    # has underlying technologies with real deployment models, use the
+    # dominant technology deployment model instead.
+    if (primary in (_SIG_SIMULATION, _SIG_SANDBOX_API, None)
+            and underlying_technologies):
+        deploy_counts: dict[str, int] = {}
+        for tech in underlying_technologies:
+            dm = (tech.get("deployment_model") or "").lower()
+            if dm:
+                deploy_counts[dm] = deploy_counts.get(dm, 0) + 1
+        if deploy_counts:
+            dominant = max(deploy_counts, key=deploy_counts.get)  # type: ignore[arg-type]
+            _DEPLOY_TO_SIGNAL = {
+                "installable": _SIG_VM,
+                "hybrid": _SIG_VM,
+                "cloud": _SIG_AZURE,
+                "saas-only": _SIG_SANDBOX_API,
+            }
+            tech_signal = _DEPLOY_TO_SIGNAL.get(dominant)
+            if tech_signal:
+                return _SIGNAL_TO_ORCHESTRATION.get(tech_signal, "")
+
     if primary is None:
-        # Check if Simulation is the fallback (not bare metal / GCP blocked)
         if not facts.provisioning.needs_bare_metal and not facts.provisioning.needs_gcp:
             primary = _SIG_SIMULATION
         else:

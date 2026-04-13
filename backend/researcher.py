@@ -801,15 +801,45 @@ If the research doesn't say, use the conservative neutral value (false / "none" 
 Return ONLY the JSON object.  No prose, no markdown, no code fence."""
 
 
-def _build_pillar_1_fact_context(name: str, search_results: dict, page_contents: dict) -> str:
+def _build_pillar_1_fact_context(
+    name: str,
+    search_results: dict,
+    page_contents: dict,
+    underlying_technologies: list[dict] | None = None,
+) -> str:
     """Build the per-product research context for Pillar 1 fact extraction.
 
     Mirrors `scorer._build_product_context` shape so the AI sees the same
     raw research the legacy scoring path sees — but only the search keys
     relevant to Pillar 1 dimensions (provisioning, lab access, scoring,
     teardown).  Pillar 2 / Pillar 3 keys are intentionally excluded.
+
+    For wrapper org products (certs, degrees, courses, practice areas),
+    `underlying_technologies` provides the specific technologies inside
+    the wrapper. The fact extractor should assess labability based on
+    THESE technologies, not the wrapper's delivery mechanism.
     """
     lines = [f"# Research for: {name}"]
+
+    # When the product is a wrapper (cert, degree, course), inject the
+    # underlying technologies so the AI researches THOSE for labability.
+    if underlying_technologies:
+        lines.append("")
+        lines.append("## WRAPPER PRODUCT — ASSESS UNDERLYING TECHNOLOGIES")
+        lines.append(f"'{name}' is a wrapper (cert program / degree / course / practice area).")
+        lines.append("The labability assessment must be based on the UNDERLYING TECHNOLOGIES")
+        lines.append("taught inside this wrapper, NOT the wrapper's own delivery mechanism.")
+        lines.append("The deployment_model should reflect how these technologies can be")
+        lines.append("provisioned for hands-on labs (installable, cloud, hybrid), NOT the")
+        lines.append("cert/course delivery platform (which is irrelevant to lab provisioning).")
+        lines.append("")
+        lines.append("Technologies inside this wrapper:")
+        for tech in underlying_technologies:
+            t_name = tech.get("name", "")
+            t_deploy = tech.get("deployment_model", "")
+            t_note = tech.get("note", "")
+            lines.append(f"  - {t_name} ({t_deploy}): {t_note}")
+        lines.append("")
 
     pillar_1_keys = [
         f"tech_{name}", f"deploy_{name}", f"docker_{name}", f"nfr_{name}",
@@ -929,6 +959,7 @@ def extract_product_labability_facts(
     product_name: str,
     search_results: dict,
     page_contents: dict,
+    underlying_technologies: list[dict] | None = None,
 ) -> ProductLababilityFacts:
     """Extract Pillar 1 facts for one product from raw research.
 
@@ -948,7 +979,10 @@ def extract_product_labability_facts(
     dedicated llm_client module if the cycle bites.
     """
     from scorer import _call_claude  # local import to avoid early cycle
-    context = _build_pillar_1_fact_context(product_name, search_results, page_contents)
+    context = _build_pillar_1_fact_context(
+        product_name, search_results, page_contents,
+        underlying_technologies=underlying_technologies,
+    )
     log.info("Pillar 1 fact extraction starting for %s", product_name)
     try:
         raw = _call_claude(

@@ -1042,6 +1042,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                 f1 = ex.submit(
                     extract_product_labability_facts,
                     pname, search_results, page_contents,
+                    underlying_technologies=p.get("underlying_technologies"),
                 )
                 futures[f1] = ("p1", pname)
                 f2 = ex.submit(
@@ -1163,7 +1164,8 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                 # Technical Fit Multiplier — the user never sees it.  Badges
                 # remain fabric-neutral ("Runs in VM", not "Hyper-V").
                 product.orchestration_method = derive_orchestration_method(
-                    product.product_labability_facts
+                    product.product_labability_facts,
+                    underlying_technologies=product.underlying_technologies,
                 )
             except Exception:
                 log.exception(

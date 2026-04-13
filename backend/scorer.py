@@ -355,6 +355,12 @@ def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis
             or ""
         )
 
+        underlying_technologies = (
+            p.get("underlying_technologies")
+            or disc_entry.get("underlying_technologies")
+            or []
+        )
+
         product = Product(
             name=name,
             category=category,
@@ -364,6 +370,7 @@ def score_selected_products(research: dict, progress_cb=None) -> CompanyAnalysis
             deployment_model=deployment_model,
             orchestration_method=orchestration_method,
             vendor_official_acronym=vendor_official_acronym,
+            underlying_technologies=underlying_technologies,
         )
 
         facts = facts_by_product.get(name)

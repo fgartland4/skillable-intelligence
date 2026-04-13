@@ -796,6 +796,12 @@ class Product:
     # badge name when the full name exceeds the length limit. NEVER invented;
     # only used when the researcher finds vendor evidence of the acronym.
     vendor_official_acronym: str = ""
+    # For wrapper orgs (universities, Industry Authorities, training orgs,
+    # GSIs, etc.): the labable technologies taught/certified/deployed inside
+    # this offering. Each entry: {"name": str, "deployment_model": str, "note": str}.
+    # Drives Pillar 1 scoring and badge evidence. Empty for software companies
+    # where the product IS the technology.
+    underlying_technologies: list[dict] = field(default_factory=list)
     user_personas: list[str] = field(default_factory=list)
     lab_highlight: str = ""        # Why this is a great hands-on candidate
     lab_concepts: list[str] = field(default_factory=list)
