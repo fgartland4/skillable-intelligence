@@ -133,6 +133,13 @@ THE ORG'S OWN PLATFORMS ARE NOT PRODUCTS:
 - University LMS (Canvas, Blackboard) = same — delivery platform
 - Exception: if the org IS an LMS company (Cornerstone, Docebo), their LMS is BOTH a delivery platform AND a scorable product.
 
+CONSOLIDATE SAME-DISCIPLINE OFFERINGS:
+When a wrapper org offers the same discipline at multiple levels (BS Computer Science + MS Computer Science, CompTIA Security+ exam + CompTIA Security+ training), consolidate into ONE product entry with combined enrollment. "BS/MS Computer Science" instead of two rows. Same underlying technologies, same labability — one entry saves research time and avoids duplication. This applies to ALL wrapper org types:
+  - Universities: BS + MS in the same discipline → "BS/MS Computer Science"
+  - Industry Authorities: exam + training for the same cert → one entry
+  - Training orgs: beginner + advanced courses on the same technology → one entry
+  - GSIs: related practice areas covering the same technology stack → one entry
+
 SKIP NON-TECHNOLOGY WRAPPERS:
 If a cert/course/program contains nothing that involves hands-on technology interaction — a project management methodology course, a compliance reading course, a leadership program — skip it. No lab opportunity. No product entry.
 

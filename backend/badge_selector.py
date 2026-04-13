@@ -86,6 +86,24 @@ def _evidence(
 # Pillar 1 — deterministic badge selection from facts
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _underlying_tech_summary(product: Product) -> str:
+    """Build a short summary of underlying technologies for badge evidence.
+
+    For wrapper orgs (certs, degrees, courses), names the specific
+    technologies inside the wrapper. Returns empty string for software
+    companies where the product IS the technology.
+    """
+    techs = getattr(product, "underlying_technologies", None) or []
+    if not techs:
+        return ""
+    names = [t.get("name", "") for t in techs if t.get("name")]
+    if not names:
+        return ""
+    if len(names) <= 4:
+        return " (" + ", ".join(names) + ")"
+    return " (" + ", ".join(names[:3]) + f", +{len(names) - 3} more)"
+
+
 def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
     """Build the Provisioning dimension badges from ProductLababilityFacts.
 
@@ -96,6 +114,7 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
     """
     p = product.product_labability_facts.provisioning
     badges: list[Badge] = []
+    tech_summary = _underlying_tech_summary(product)
 
     # ── Simulation hard override — no badges fire, gray bar only ──
     # If the scorer picked Simulation as the fabric, Pillar 1 is in the hard
@@ -153,7 +172,7 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
                 color="green",
                 qualifier="Strength",
                 evidence=[_evidence(
-                    "Installable on Windows / Linux confirmed — Skillable hosts in Hyper-V by default "
+                    f"Installable on Windows / Linux confirmed{tech_summary} — Skillable hosts in Hyper-V by default "
                     "(or ESX when nested virtualization is required). Clean VM deployment path.",
                     confidence="confirmed",
                 )],
@@ -711,20 +730,56 @@ def select_pillar_1_badges(product: Product) -> dict[str, list[Badge]]:
     badges must emit an absence finding so the seller sees WHY the score
     is what it is. "Absence is a finding, not a blank."
     """
-    # Default absence badges per dimension — emitted only when the
-    # dimension-specific function returns zero badges.
-    _absence_defaults = {
-        "Provisioning": Badge(name="No Deployment Method", color="red",
-            evidence="No provisioning path identified — research did not find "
-            "installable, cloud, container, or API-based deployment options."),
-        "Lab Access": Badge(name="No Access Path", color="red",
-            evidence="No identity, credential, or learner isolation mechanism identified."),
-        "Scoring": Badge(name="No Scoring Method", color="red",
-            evidence="No API, script, or AI Vision scoring path identified. "
-            "Without scoring, labs cannot validate learner work."),
-        "Teardown": Badge(name="No Teardown Path", color="red",
-            evidence="No automated cleanup mechanism identified."),
-    }
+    # Context-aware absence badges — emitted only when the dimension-specific
+    # function returns zero badges. Checks product context to provide richer
+    # evidence than generic "not found" text. Frank 2026-04-13.
+    _GOVERNANCE_KEYWORDS = {"governance", "leadership", "management", "awareness",
+                            "strategy", "compliance", "ethics", "policy", "risk management",
+                            "program management", "executive", "officer", "ciso", "cscu"}
+
+    def _is_governance_product() -> bool:
+        sub = (product.subcategory or "").lower()
+        name = (product.name or "").lower()
+        return bool(_GOVERNANCE_KEYWORDS & set(sub.split()) or
+                     _GOVERNANCE_KEYWORDS & set(name.split()))
+
+    def _absence_badge(dim_name: str) -> Badge:
+        is_gov = _is_governance_product()
+        has_techs = bool(getattr(product, "underlying_technologies", None))
+        defaults = {
+            "Provisioning": (
+                "No Deployment Method",
+                ("Leadership/governance offering — hands-on tool labs are not applicable. "
+                 "Consider simulation-based scenarios (tabletop exercises, risk simulations).")
+                if is_gov else
+                ("No provisioning path identified — research did not find "
+                 "installable, cloud, container, or API-based deployment options.")
+            ),
+            "Lab Access": (
+                "No Access Path",
+                ("Leadership/governance offering — no learner identity or credential management needed "
+                 "for simulation-based scenarios.")
+                if is_gov else
+                "No identity, credential, or learner isolation mechanism identified."
+            ),
+            "Scoring": (
+                "No Scoring Method",
+                ("Leadership/governance offering — assessment would be scenario-based "
+                 "(decision quality, response effectiveness) rather than technical validation.")
+                if is_gov else
+                ("No API, script, or AI Vision scoring path identified. "
+                 "Without scoring, labs cannot validate learner work.")
+            ),
+            "Teardown": (
+                "No Teardown Path",
+                ("Leadership/governance offering — simulation-based scenarios have no "
+                 "infrastructure to tear down.")
+                if is_gov else
+                "No automated cleanup mechanism identified."
+            ),
+        }
+        name, evidence = defaults.get(dim_name, ("Unknown", ""))
+        return Badge(name=name, color="red" if not is_gov else "gray", evidence=evidence)
 
     result = {
         "Provisioning": _pillar_1_provisioning_badges(product),
@@ -735,8 +790,8 @@ def select_pillar_1_badges(product: Product) -> dict[str, list[Badge]]:
 
     # Emit absence badge for any dimension that has zero badges
     for dim_name, badges in result.items():
-        if not badges and dim_name in _absence_defaults:
-            result[dim_name] = [_absence_defaults[dim_name]]
+        if not badges:
+            result[dim_name] = [_absence_badge(dim_name)]
 
     return result
 
