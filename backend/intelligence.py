@@ -823,10 +823,16 @@ def discover(company_name: str, known_products: list[str] | None = None,
     if not force_refresh:
         cached = find_discovery_by_company_name(company_name)
         if cached and cache_is_fresh(cached.get("created_at", "")):
+            # Discovery data (products, user bases, company signals) is still
+            # valid even when SCORING_LOGIC_VERSION changes. Only SCORING
+            # needs to re-run — not research. Return the cached discovery
+            # regardless of version. The scoring path checks the version
+            # separately and triggers a fresh Deep Dive when needed.
             if not cfg.is_cached_logic_current(cached):
                 log.info(
-                    "Intelligence.discover: cached discovery for %s is stale "
-                    "(logic version %r vs current %r) — re-running",
+                    "Intelligence.discover: cached discovery for %s has older "
+                    "logic version %r (current %r) — returning cached data "
+                    "(scoring will re-run on Deep Dive, not re-research)",
                     company_name,
                     cached.get("_scoring_logic_version", "<missing>"),
                     cfg.SCORING_LOGIC_VERSION,
@@ -834,7 +840,7 @@ def discover(company_name: str, known_products: list[str] | None = None,
             else:
                 log.info("Intelligence.discover: cache hit for %s → %s",
                          company_name, cached.get("discovery_id"))
-                return cached
+            return cached
 
     log.info("Intelligence.discover: running research for %s", company_name)
     _progress("Locating the company website…")
