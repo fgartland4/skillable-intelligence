@@ -202,6 +202,8 @@ Provisioning determines difficulty for everything else. When a product runs in S
 | **No Deployment Method** | — | — | Ultimate dead end — no real provisioning AND no Simulation viable |
 | **No GCP Path** | — | Product runs on GCP but another viable fabric exists — workaround path | GCP is required or preferred by the vendor AND no native Skillable GCP path |
 
+**Sandbox API + GCP path contradiction.** When a product has `needs_gcp=true` AND the primary fabric is Sandbox API, the Sandbox API badge downgrades from green to amber (half credit). A GCP-native product using Sandbox API (BYOC) inherits the GCP limitation — Skillable has no native GCP fabric, so the BYOC path has known friction. Green Sandbox API alongside No GCP Path amber was a scoring contradiction: the framework was saying "clean BYOC path" and "no GCP path" simultaneously. The amber downgrade resolves it — the BYOC path exists but carries the same GCP friction that No GCP Path names. *(Locked 2026-04-13.)*
+
 **Container disqualifiers.** `Runs in Container` fires green only when the container is **production-native** AND none of the three disqualifiers apply: production_native = True AND NOT dev_only AND NOT needs_windows_gui AND NOT needs_multi_vm_network. If any disqualifier fires, the container path is not viable and the scorer falls through to the next priority.
 
 **Simulation hard override.** When the scorer picks Simulation as the fabric (nothing else viable), all four Pillar 1 dimensions get hard override values that bypass normal dimension scoring:
@@ -446,6 +448,8 @@ Weights sum to 100 within the Pillar.
 - **moderate**: about half of strong — typically +3.
 - **weak**: don't emit — too thin to carry its own badge.
 - **informational**: 0 points — context-only, renders as gray Context badge.
+
+**Strong signal cap per dimension.** Each dimension caps strong-tier signals at `MAX_STRONG_SIGNALS_PER_DIMENSION = 2` (from `scoring_config.py`). When a dimension receives more than 2 strong-tier graded signals, the 3rd and beyond are downgraded to moderate credit (+3 instead of +6 for Product Complexity, +3 instead of +9 for Mastery Stakes, etc.). This creates differentiation within high-baseline categories (Cybersecurity, Cloud Infrastructure) where every product would otherwise hit the dimension cap. A product with 2 strong + 1 moderate scores differently than one with 3+ strong. Applies to both Pillar 2 and Pillar 3 rubric dimensions. *(Locked 2026-04-13.)*
 
 **Signal categories are fixed per dimension.** The grader picks ONE `signal_category` per finding from the dimension's locked list. Categories outside the list are silently dropped. The AI gets freedom in naming the badge itself (variable, domain-specific, finding-as-name) but not in what the category *means*.
 
@@ -720,6 +724,8 @@ Strong = +6. Moderate = +3.
 
 **Signal categories (positive):** `diy_labs` (the strongest signal), `content_team_named`, `instructional_designers`, `lab_authors`, `tech_writers`, `product_training_partnership`, `content_partnership`, `instructor_authors_dual_role`, `sme_content_authoring`.
 
+**DIY lab platform — strength AND amber risk.** When the company operates its own lab platform (Qwiklabs for Google, CML for Cisco, iLabs for EC-Council), it is a Build Capacity strength — they CAN build and they understand hands-on value. But it is also an amber Risk signal: the seller is pitching Skillable against an internal solution the company already invested in. Emitted as `diy_labs` amber Risk with evidence naming the specific platform (e.g., "Operates Qwiklabs internally"). The positive `diy_labs` signal and the amber risk coexist — same `signal_category`, different color badges on the same dimension card. *(Locked 2026-04-13.)*
+
 **Signal categories (negative — cautious penalties):**
 
 | Signal | Color | Hit | When it fires |
@@ -812,6 +818,7 @@ Strong = +8. Moderate = +4.
 | `long_rfp_process` | Amber Risk | -4 |
 | `heavy_procurement` | Amber Risk | -3 |
 | `build_everything_culture` | Amber Risk | -4 |
+| `diy_labs` | Amber Risk | -3 — company operates its own lab platform (Qwiklabs, CML, iLabs); indicates build-everything posture |
 | `closed_platform_culture` | Amber Risk | -3 |
 | `hard_to_engage` | Red Blocker | -6 |
 
