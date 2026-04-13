@@ -28,7 +28,7 @@ Platform-Foundation.md):
 
 Why the Technical Fit Multiplier exists
 ---------------------------------------
-The 40/30/30 weighted sum alone lets a product with weak Product
+The 50/20/30 weighted sum alone lets a product with weak Product
 Labability (i.e., "we basically can't lab this") still score Solid
 Prospect when Instructional Value and Customer Fit are strong.  That
 is not honest — if we cannot run the lab, great instructional signals

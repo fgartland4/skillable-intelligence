@@ -54,22 +54,41 @@ function openInfoModal(key) {
   (content.sections || []).forEach(function(section) {
     const wrap = document.createElement('div');
     wrap.className = 'info-modal-section';
+    // Support anchor IDs for scroll-to navigation
+    if (section.id) {
+      wrap.id = section.id;
+      wrap.classList.add('info-modal-dim-anchor');
+    }
     const label = document.createElement('div');
-    label.className = 'info-modal-section-label';
+    label.className = section.id ? 'info-modal-dim-title' : 'info-modal-section-label';
     label.textContent = section.label || '';
+    if (section.subtitle) {
+      const sub = document.createElement('div');
+      sub.className = 'info-modal-dim-subtitle';
+      sub.textContent = section.subtitle;
+      wrap.appendChild(label);
+      wrap.appendChild(sub);
+    } else {
+      wrap.appendChild(label);
+    }
     const text = document.createElement('div');
     text.className = 'info-modal-section-text';
     text.innerHTML = section.body || '';
-    wrap.appendChild(label);
     wrap.appendChild(text);
     body.appendChild(wrap);
   });
   document.getElementById('infoModal').classList.add('visible');
   document.body.style.overflow = 'hidden';
+  // Scroll modal to top on open
+  document.querySelector('.info-modal').scrollTop = 0;
 }
 function closeInfoModal() {
   document.getElementById('infoModal').classList.remove('visible');
   document.body.style.overflow = '';
+}
+function scrollToModalSection(sectionId) {
+  const el = document.getElementById(sectionId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeInfoModal();
@@ -221,8 +240,23 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
    the user is trying to click the row. Frank 2026-04-08. */
 .product-option .badge { cursor: pointer; }
 
-.info-icon { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--sk-text-dim); color: var(--sk-text-dim); font-size: 0.5rem; font-weight: 600; text-align: center; line-height: 1; cursor: pointer; vertical-align: middle; }
-.info-icon:hover { border-color: var(--sk-score-high); color: var(--sk-score-high); }
+/* ── ? info icon — one canonical style, used everywhere ──
+   Centered circle with a clear ?, professional, not dominant.
+   Same rendering in pillar headers, hero section, briefcase, product chooser. */
+.info-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid var(--sk-text-dim);
+    color: var(--sk-text-dim);
+    font-size: 0.65rem; font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-align: center; line-height: 1;
+    cursor: pointer; vertical-align: middle;
+    transition: border-color 0.15s, color 0.15s, opacity 0.15s;
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+.info-icon:hover { border-color: var(--sk-accent); color: var(--sk-accent); opacity: 1; }
 
 .doc-icon { display: inline-block; cursor: pointer; vertical-align: middle; margin-left: 3px; transition: opacity 0.15s; }
 .doc-icon:hover svg path, .doc-icon:hover svg line { stroke: var(--sk-score-high); }
@@ -548,66 +582,145 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
    One modal, two content sources:
      - ? icons → per-pillar WHY/WHAT/HOW (loaded from INFO_MODAL_CONTENT below)
      - doc icons → per-product report (placeholder until report content lands) */
+/* ── Info modal — white background, wide, scrollable, WCAG AA ── */
 .info-modal-overlay {
     display: none;
     position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,0.7);
-    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.55);
+    align-items: flex-start; justify-content: center;
     padding: 40px 20px;
+    overflow-y: auto;
     animation: info-modal-fade-in 0.18s ease-out;
 }
 .info-modal-overlay.visible { display: flex; }
 @keyframes info-modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
 .info-modal {
-    background: var(--sk-bg-card);
-    border: 1px solid var(--sk-border-card);
-    border-top: 3px solid var(--sk-classify-purple);
-    border-radius: 10px;
-    max-width: 720px; width: 100%;
-    max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    background: var(--sk-modal-bg);
+    border: none;
+    border-radius: 12px;
+    max-width: 920px; width: 100%;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    margin: 20px auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
     position: relative;
+    color: var(--sk-modal-text);
+    scrollbar-width: thin;
+    scrollbar-color: var(--sk-accent) var(--sk-modal-border-light);
 }
 .info-modal-close {
-    position: absolute; top: 12px; right: 16px;
-    background: transparent; border: none;
-    color: var(--sk-text-muted); font-size: 1.6rem;
+    position: sticky; top: 0; float: right;
+    background: var(--sk-modal-close-bg); border: 1px solid var(--sk-modal-border);
+    color: var(--sk-modal-text-muted); font-size: 1.2rem;
     cursor: pointer; line-height: 1;
-    padding: 0; width: 28px; height: 28px;
-    transition: color 0.15s;
+    padding: 6px 10px; margin: 12px 12px 0 0;
+    border-radius: 6px; z-index: 1;
+    transition: color 0.15s, background 0.15s;
     font-family: inherit;
 }
-.info-modal-close:hover { color: var(--sk-text); }
+.info-modal-close:hover { color: var(--sk-modal-text); background: var(--sk-modal-border-light); }
 .info-modal-header {
-    padding: 22px 28px 16px;
-    border-bottom: 1px solid var(--sk-border-card);
+    padding: 28px 36px 20px;
+    border-bottom: 2px solid var(--sk-accent);
 }
 .info-modal-eyebrow {
     font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--sk-classify-purple); font-weight: 700;
+    color: var(--sk-accent); font-weight: 700;
     display: block;
 }
 .info-modal-title {
-    font-size: 1.4rem; font-weight: 800; color: var(--sk-text);
-    margin-top: 4px; line-height: 1.2;
+    font-size: 1.6rem; font-weight: 800; color: var(--sk-modal-text);
+    margin-top: 6px; line-height: 1.2;
     letter-spacing: -0.01em;
 }
-.info-modal-body { padding: 18px 28px 24px; }
-.info-modal-section { margin-bottom: 18px; }
+.info-modal-body { padding: 24px 36px 32px; }
+
+/* ── Section labels: WHY / WHAT / HOW ── */
+.info-modal-section { margin-bottom: 24px; }
 .info-modal-section:last-child { margin-bottom: 0; }
 .info-modal-section-label {
-    font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--sk-text-muted); font-weight: 700;
-    margin-bottom: 6px;
+    font-size: 0.68rem; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--sk-accent); font-weight: 800;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(36,237,155,0.2);
 }
 .info-modal-section-text {
-    font-size: 0.88rem; line-height: 1.6; color: var(--sk-text-body);
+    font-size: 0.92rem; line-height: 1.7; color: var(--sk-modal-text-body);
 }
-.info-modal-section-text strong { color: var(--sk-text); }
-.info-modal-section-text em { color: var(--sk-classify-purple); font-style: normal; }
-/* Make the ? icon visibly clickable */
-.info-icon { cursor: pointer; transition: border-color 0.15s, color 0.15s; }
-.info-icon:hover { border-color: var(--sk-classify-purple); color: var(--sk-classify-purple); }
+.info-modal-section-text strong { color: var(--sk-modal-text); }
+.info-modal-section-text em { color: var(--sk-modal-link); font-style: normal; font-weight: 600; }
+
+/* ── Dimension navigation links inside pillar modals ── */
+.info-modal-dim-nav {
+    list-style: none; padding: 0; margin: 12px 0 0;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.info-modal-dim-nav li {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 8px;
+    background: var(--sk-modal-bg-nav); border: 1px solid var(--sk-modal-border-nav);
+    transition: background 0.12s, border-color 0.12s;
+}
+.info-modal-dim-nav li:hover {
+    background: var(--sk-modal-bg-hover); border-color: var(--sk-accent);
+}
+.info-modal-dim-link {
+    color: var(--sk-modal-link); text-decoration: none; font-weight: 600;
+    font-size: 0.88rem;
+}
+.info-modal-dim-link:hover { text-decoration: underline; }
+.info-modal-dim-weight {
+    font-size: 0.72rem; color: var(--sk-modal-text-dim); font-weight: 400;
+}
+
+/* ── Tables inside modals ── */
+.info-modal-table {
+    width: 100%; border-collapse: collapse; margin: 12px 0;
+    font-size: 0.82rem;
+}
+.info-modal-table th {
+    text-align: left; padding: 8px 10px;
+    font-size: 0.65rem; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--sk-modal-text-muted);
+    border-bottom: 2px solid var(--sk-modal-border);
+    background: var(--sk-modal-bg-table);
+}
+.info-modal-table td {
+    padding: 7px 10px; border-bottom: 1px solid var(--sk-modal-border-light);
+    color: var(--sk-modal-text-body); vertical-align: top;
+}
+.info-modal-table tr:last-child td { border-bottom: none; }
+.info-modal-table tr:hover td { background: var(--sk-modal-bg-hover); }
+
+/* ── Dimension anchors for scroll-to navigation ── */
+.info-modal-dim-anchor {
+    scroll-margin-top: 20px;
+    padding-top: 16px; margin-top: 8px;
+    border-top: 1px solid var(--sk-modal-border-light);
+}
+.info-modal-dim-title {
+    font-size: 1.1rem; font-weight: 700; color: var(--sk-modal-text);
+    margin-bottom: 8px;
+}
+.info-modal-dim-subtitle {
+    font-size: 0.72rem; color: var(--sk-modal-text-dim); font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* ── Back-to-top link ── */
+.info-modal-back-top {
+    display: inline-block; font-size: 0.72rem; color: var(--sk-accent);
+    text-decoration: none; margin-top: 8px;
+}
+.info-modal-back-top:hover { text-decoration: underline; }
+
+/* Inline ? icons in hero section — same circle, slightly smaller to blend with text */
+.info-icon-inline {
+    width: 16px; height: 16px; font-size: 0.6rem;
+    margin-left: 4px;
+}
 </style>
 </head>
 <body>

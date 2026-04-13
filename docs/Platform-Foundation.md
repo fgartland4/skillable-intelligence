@@ -64,7 +64,7 @@ GP3 and GP4 are partners. Explainably Trustworthy is the standard. Self-Evident 
 Every interaction makes the data sharper. No update loses prior knowledge. The platform builds on what it already knows.
 
 - Every analysis enriches what came before
-- Deeper research (a full Deep Dive) automatically sharpens lighter data (a Prospector record)
+- Deeper research (a full Deep Dive) automatically sharpens lighter data (a discovery-level record used by Prospector and the Inspector product chooser)
 - Cache updates preserve and sharpen, not wipe and restart
 - Prompt and logic changes trigger smart cache invalidation via `SCORING_LOGIC_VERSION`, not silent drift
 - **One persistent analysis per company.** Each company has a single stable URL. Every Deep Dive run accumulates products into the same analysis without breaking the URL. Re-running with the same products is instant (cached). Re-running with new products scores only the new ones and appends them.
@@ -103,7 +103,7 @@ After reading the GPs, scan this table. It is the key that makes the rest of the
 
 ## The Center of Everything: Products
 
-**Why.** A product's fit with Skillable determines whether we can help a company at all. If the underlying technology cannot be labbed, nothing else — customer size, training maturity, budget — matters. Starting anywhere else produces answers that look right and don't hold up.
+**Why.** A product's fit with Skillable determines whether we can help a company at all. If the underlying technology cannot be labbed, nothing else — customer size, training maturity, budget — matters. Starting anywhere else produces answers that look right and don't hold up. And if the platform cannot distinguish a real product from a feature, a library, or a marketing term, every downstream score, badge, and ACV estimate is built on garbage. Getting the product definition right is the upstream fix for everything.
 
 **What.** The platform is **product-up**. It does not start with "what kind of company is this?" and guess at their products. It starts with the products, and the products tell you everything else.
 
@@ -114,7 +114,53 @@ Products (the atomic unit)
       → map to → People (who builds training for THESE products)
 ```
 
-**How.** Every label, category, description, and piece of messaging derives from the product data. Organization type is a variable. Motivation is a variable. Product category is a variable. All flow from the data, and all shape how intelligence is presented.
+### What IS a Product
+
+A product is something a customer **licenses or deploys as a standalone thing**. It has its own installation or subscription, its own access model, its own identity, and it does meaningful work on its own. It has a real user population worth measuring.
+
+| A product IS... | A product IS NOT... |
+|---|---|
+| Something you license or subscribe to as a standalone thing | A feature inside a product |
+| Has its own deployment / installation | An add-on toggle within a parent product |
+| Has its own identity and access model | A library or package you install from a repository |
+| Does meaningful work on its own | A marketing umbrella or brand family name |
+| Has a real user population worth measuring | A licensing tier of something else (Pro, Enterprise, Premium) |
+
+**Examples.** RStudio IDE is a product. Posit Connect is a product. An R package installed via `install.packages()` is not. "RStudio Pro" is a licensing tier of RStudio — same product, different entitlement. The Trellix product portfolio has ~8 real products, not the 46 the old researcher returned — the rest were modules, integrations, and marketing labels.
+
+### Product Relationships
+
+**Why.** A flat list of products doesn't tell the seller which ones anchor the business and which ones orbit. Posit Connect makes no sense without RStudio — the seller needs to know RStudio is the flagship and Connect is a satellite. Without this distinction, the product chooser treats every product as equal, the ACV model weights them equally, and the seller walks into a conversation without knowing where to start. Product relationships tell the seller what matters most (GP1 — right information, right context).
+
+| Relationship | What it means | Example |
+|---|---|---|
+| **Flagship** | The anchor product — largest user base, most recognizable, drives the ecosystem | RStudio IDE (Posit), Catalyst Switches (Cisco), Oracle Database (Oracle) |
+| **Satellite** | Extends or depends on a flagship — meaningful on its own but smaller audience | Posit Connect (publishes what RStudio builds), Meraki (Cisco cloud networking) |
+| **Standalone** | Independent product, no flagship dependency | Products at focused companies like Commvault |
+
+A company can have multiple flagships across different categories — Cisco has flagships in Networking, Cybersecurity, and Collaboration. A focused company like Posit has one flagship and a few satellites. The relationship type, combined with estimated user base, drives product ranking.
+
+### Product Popularity
+
+**Why.** If the platform identifies 20 products for a company but cannot tell the seller which ones matter most, the seller wastes time on satellites while the flagship sits buried in the list. Worse: ACV estimates extrapolated from scored products to all discovered products are wildly inflated when the product count includes features and libraries that shouldn't be there. Popularity is the ranking signal that makes the product list commercially useful.
+
+**What.** Every discovered product carries a rough estimated user base — not an exact number, but enough to separate a flagship with millions of users from a niche tool with thousands. The estimate is triangulated from vendor marketing claims ("trusted by 14M data scientists"), third-party signals (Stack Overflow tag counts, GitHub stars), analyst reports, and job posting volume.
+
+**How.** The estimated user base feeds three things simultaneously:
+
+| Where it lands | What it does |
+|---|---|
+| **Product chooser ranking** | Most popular products sort to the top — the seller sees what matters first |
+| **ACV Motion 1 (Customer Training)** | Install base IS the audience for the biggest revenue motion |
+| **Pillar 2 Market Demand** | A product with 2M users has a different training population than one with 5K |
+
+This is a Define-Once fact: one estimate, used everywhere.
+
+### How — Discovery and the Product Definition Filter
+
+Every label, category, description, and piece of messaging derives from the product data. Organization type is a variable. Motivation is a variable. Product category is a variable. All flow from the data, and all shape how intelligence is presented.
+
+The researcher's job during discovery is to be **selective, not exhaustive**. Identify all products that meet the product definition. Rank by estimated user base. There is no target count — the filter determines the count. A focused company like Posit yields 3–5 products. A broad company like Cisco or Oracle yields 20–30. Both are correct because both reflect the real portfolio.
 
 **Product Labability applies to the underlying technology — always.** Regardless of organization type, the four Product Labability dimensions always apply to the *underlying technology*, never to a training wrapper or organizational structure.
 
@@ -128,6 +174,80 @@ Products (the atomic unit)
 | Distributor | Products they distribute → labability assessment → fit |
 
 If a course or curriculum doesn't teach anything that involves hands-on interaction with technology — a leadership course, a compliance reading course, a soft-skills workshop — there's nothing to provision. No lab opportunity. Move on.
+
+---
+
+## Discovery Data Shape — What the Researcher Captures Before a Deep Dive
+
+**Why.** Discovery is the first intelligence pass on a company. It has to be rich enough to rank products meaningfully — so the seller picks the right ones for a Deep Dive — without being so heavy that it costs as much as a Deep Dive itself. The discovery data also serves a dual purpose: it feeds the Inspector product chooser AND it feeds Prospector for marketing ICP targeting. One research pass, two consumers.
+
+**What.** Discovery captures three tiers of data in a single research pass:
+
+### Tier 1 — Per-product (light)
+
+Captured for every product that passes the product definition filter.
+
+| Field | What it captures |
+|---|---|
+| **name** | Product name |
+| **vendor_official_acronym** | Official acronym only — never invented |
+| **description** | 2–3 sentences with downstream-useful context: what the product does, what problem it solves, who uses it |
+| **is_core_product** | True = standalone licensed product. False = feature / library / tier (filtered out) |
+| **product_relationship** | flagship / satellite / standalone |
+| **category** | One of the standard categories (Cybersecurity, Cloud Infrastructure, etc.) |
+| **subcategory** | Industry-standard subcategory (2–3 words: Endpoint Protection, Statistical Computing IDE) |
+| **deployment_model** | installable / cloud / hybrid / saas-only |
+| **estimated_user_base** | Single estimated number — directionally right, not a range. "~14M" or "~50K" or "~2000". One number the seller can quote. |
+| **user_base_evidence** | What sources informed the estimate — vendor claims, Stack Overflow tag count, GitHub stars, analyst reports, job posting volume |
+| **user_base_confidence** | confirmed / indicated / inferred |
+| **rough_labability_score** | 0–100 directional estimate of lab promise. Clearly pre-Deep Dive — must be validated. See "Discovery Tier Labels" below |
+
+### Tier 2 — Per-product (hints)
+
+Lightweight signals that give a rough read on Pillar 1 and Pillar 2 potential without full extraction.
+
+| Field | What it captures |
+|---|---|
+| **complexity_signals** | Is this a multi-component system with deep configuration? Or a simple single-purpose tool? Enough to rough-estimate Product Complexity |
+| **target_personas** | Who uses it — admins, developers, analysts, end users. Tells us the training audience |
+| **api_surface** | comprehensive / moderate / minimal / none + short description. Directly feeds Pillar 1 Lab Access and Scoring potential |
+| **cert_inclusion** | Which certification programs include this product, if any. Feeds Market Demand and ACV Motion 4 |
+
+### Tier 3 — Per-company (gathered once, applied to every product)
+
+Company-level signals mapped to Customer Fit dimensions. Researched once during discovery and broadcast to every product — because Customer Fit measures the organization, not the product.
+
+| Field | CF dimension | What it captures |
+|---|---|---|
+| **training_programs** | Training Commitment | What training does this company offer, and to whom? |
+| **training_leadership** | Training Commitment | Named training/enablement org or leader |
+| **training_breadth** | Training Commitment | How many audiences — customers, partners, employees |
+| **sales_channel** | Market Demand / ACV | GSIs, VARs, distributors — who sells the product (channel = sales) |
+| **atp_program** | Delivery Capacity | Authorized training partners, roughly how many |
+| **delivery_partners** | Delivery Capacity | Who delivers training — vendor, third-party, ATPs (not "delivery channels") |
+| **events** | Delivery Capacity | Flagship conferences, attendance estimates |
+| **partnership_pattern** | Organizational DNA | Strategic partnerships or build-everything culture |
+| **engagement_model** | Organizational DNA | Easy to engage or heavy procurement |
+| **content_team_signals** | Build Capacity (thin) | Any evidence of internal authoring capability. Deliberately light — Build Capacity is inward-facing and hard to verify externally |
+| **org_type** | Pillar 3 baseline lookup | Organization type for scoring baselines — ENTERPRISE SOFTWARE, SOFTWARE, TRAINING ORG, ACADEMIC, SYSTEMS INTEGRATOR, etc. Separate from `company_category` (the user-facing badge). See "Company Classification" below. |
+| **lab_platform** | Delivery Capacity + Competitive | Already using a lab platform? Which one? |
+
+**How.** The researcher makes a single Claude call during discovery. The product definition filter keeps the product count honest — no features, libraries, tiers, or marketing terms. Fewer products with richer context per product means the discovery call is actually **faster** than the old "find 40–60 everything" approach, not slower.
+
+### Discovery Tier Labels
+
+**Why.** The `rough_labability_score` is a pre-Deep Dive directional estimate. The seller and marketing need to know how much confidence to place in it — enough to prioritize, not enough to promise. The four tier labels communicate confidence level without overpromising (GP3 — Explainably Trustworthy at the discovery level).
+
+**What.** The score maps to four tiers. Thresholds align with the scoring framework's existing color bands so the confidence language is consistent from discovery through Deep Dive:
+
+| Tier | Label | Score range | Aligns with | What it communicates |
+|---|---|---|---|---|
+| 1 (highest) | **Promising** | ≥ 65 | Green band (≥ 65 in the Verdict Grid) | Strong signals — this looks good |
+| 2 | **Potential** | ≥ 45 | Light Amber band (45–64) | Something here, needs validation |
+| 3 | **Uncertain** | ≥ 25 | Amber band (25–44) | Could go either way |
+| 4 (lowest) | **Unlikely** | < 25 | Red band (< 25) | Significant barriers visible |
+
+**How.** Thresholds are sourced from `scoring_config.SCORE_THRESHOLDS` (Define-Once). The tier assignment is deterministic — `core.discovery_tier(score)` reads the thresholds and returns the tier key. No AI judgment in the tier assignment itself; the AI's judgment is in the score.
 
 ---
 
@@ -183,7 +303,7 @@ Cache reloads go through `intelligence.recompute_analysis()`, which trusts saved
 |---|---|---|
 | **Intelligence layer** (shared) | Research, discovery, per-pillar scoring, fit-score composition, ACV calculation, badge selection, rubric grading, cache versioning, validation, briefcase generation, model definitions, locked vocabulary, classification, verdicts | `intelligence.py`, `scorer.py`, `researcher.py`, `pillar_1_scorer.py`, `pillar_2_scorer.py`, `pillar_3_scorer.py`, `rubric_grader.py`, `fit_score_composer.py`, `acv_calculator.py`, `badge_selector.py`, `scoring_config.py`, `storage.py`, `models.py`, `core.py` |
 | **Inspector** (tool) | Inspector-specific routes, request parsing, template selection, view orchestration | `app.py` Inspector route handlers, `tools/inspector/templates/*.html` |
-| **Prospector** (tool) | Prospector-specific routes, batch orchestration, lookalikes UI, HubSpot integration glue | (future) |
+| **Prospector** (tool) | Prospector-specific routes, batch discovery orchestration, results table, CSV export, HubSpot integration glue | `tools/prospector/` |
 | **Designer** (tool) | Designer-specific routes, program-design pipeline, customer-facing views | (future) |
 
 **How.** The litmus test for any new function is: "would Prospector or Designer also need this if they were calling it?" If yes, it's shared. If no, it's tool-specific. **When in doubt, default to shared.** Intelligence logic mistakenly placed in tool files is a **bug class**, not a style preference — it's graded with the same severity as cache-version lies and vocabulary drift.
@@ -242,20 +362,425 @@ All UX elements must meet WCAG AA contrast standards (4.5:1 for normal text, 3.0
 
 ## Organization Types
 
-**Why.** Skillable serves a broad landscape. "Software companies" is the anchor — they create the products that everything else orbits around — but they are far from the only audience. The organization type determines how you find the products and how you approach the conversation, but the underlying intelligence logic is the same for all.
+**Why.** Skillable serves a broad landscape. Software companies are the anchor — they create the products that everything else orbits around — but they are far from the only audience. The organization type determines how you find the products, what counts as the training population, and how the conversation with the seller is framed. The underlying intelligence logic — Pillars, dimensions, scoring, ACV — is the same for all.
 
-**What.**
+### Software Companies — The Anchor
 
-| Organization Type | Examples | Their relationship to products | How you find the products |
+**Why.** Software companies are the baseline the entire framework is built on. The product definition, the scoring dimensions, the badge vocabulary, the ACV motions — all designed for software companies first. Every other org type is an adaptation of this baseline.
+
+**What.** The product IS the product. No wrapper extraction needed. For universities we extract technologies from academic programs. For GSIs we extract from practice areas. For software companies, the product is already the thing we're scoring. RStudio is the product. Azure is the product. That directness is why software companies are the simplest path through the framework.
+
+**The full framework applies without adaptation:**
+
+| Element | Software company application |
+|---|---|
+| **Product definition** | Their products — directly. Licensed/deployed as standalone things. |
+| **Product Labability** | How do we get this product into Skillable? |
+| **Instructional Value** | Does this product warrant hands-on training? |
+| **Customer Fit** | Is this organization a training buyer? |
+| **ACV** | Users of the product (not customers — Bank of America is one customer, but 10,000 engineers using Azure are the learners) × adoption × lab hours × rate |
+| **Deep Dive** | Full scoring — all three Pillars, all twelve dimensions |
+
+**Software companies span a huge range.** Posit has one flagship product. Cisco has 25+. Both are software companies. The framework handles both because the product definition filter and popularity ranking adapt naturally — the number of products is an outcome of the filter, not an input.
+
+**Company badge — derived from products, not generic labels:**
+
+| Company | Badge | Why |
+|---|---|---|
+| Cisco | Networking | Clear primary category |
+| Posit | Data Science & Engineering | One flagship, one category |
+| Trellix | Cybersecurity | Focused portfolio |
+| Commvault | Data Protection | Single-category company |
+| Sage | ERP / Accounting | Primary ERP, secondary HR |
+
+**Enterprise Software — earned by breadth.** A rare few companies are genuinely too broad to categorize with a single label. These earn the "Enterprise Software" badge — reserved for companies where no single category captures even half their product portfolio.
+
+| Company | Badge | Why it earns Enterprise Software |
+|---|---|---|
+| **Microsoft** | Enterprise Software | Cloud + Productivity + Security + ERP + DevOps — 5+ major categories |
+| **Oracle** | Enterprise Software | Database + Cloud Infrastructure + ERP + HCM + Healthcare IT — genuinely unrelated product lines |
+| **SAP** | Enterprise Software | ERP + HCM + Supply Chain + Analytics + Cloud Platform |
+| **IBM** | Enterprise Software | AI + Cloud + Security + Automation + Mainframe |
+| **Broadcom** | Enterprise Software | Infrastructure/Virtualization (VMware) + Cybersecurity (Symantec) + Networking |
+
+Companies that are expanding but still have a clear primary category keep the specific badge: Salesforce = CRM, ServiceNow = IT Service Management, Adobe = Creative / Digital Experience, Palo Alto Networks = Cybersecurity. The product chooser shows the category breakdown regardless of the badge.
+
+**This is the primary Prospector audience.** Marketing is mostly targeting software companies — "find companies whose products are labable and whose organizations are training buyers." The ICP signal for marketing is the Fit Score + ACV combination. Every other org type has a modified Prospector story (partnership flags, distribution opportunities, cert prep volume), but software companies get the pure "should we pursue this deal" output.
+
+### How the Framework Adapts to Other Organization Types
+
+The scoring framework is universal — the same Pillars, dimensions, and math apply to every organization type. What changes is **how the researcher finds the products**, **what counts as the training population**, and in some cases **whether a full Deep Dive applies at all**. Most non-software org types follow a two-step extraction pattern: find the wrapper (program, practice area, course catalog), then extract the underlying technologies.
+
+**The org-type summary:**
+
+| Organization Type | Examples | Their relationship to products | How you find the products | Deep Dive? |
+|---|---|---|---|---|
+| **Software companies** | Cisco, Posit, Trellix, Commvault, Microsoft | They *create* the products | Product pages, documentation, API docs | Yes — full |
+| **Universities & schools** | Arizona State, Rose-Hulman, WGU | Their *programs* teach technologies | Published curriculum — extract underlying technologies | Yes — on the technologies |
+| **GSIs** | Deloitte, Accenture, Cognizant | They *deploy and implement* products | Practice areas — extract underlying technologies | Yes — on the technologies |
+| **VARs** | Regional technology consultancies | They *implement and train on* products | Consulting practices — extract underlying technologies | Yes — on the technologies |
+| **Technology Distributors** | CDW, Tech Data, Ingram, Arrow | They *sell and service* products | Service groups — extract underlying technologies | Yes — on the technologies |
+| **Industry Authorities** | CompTIA, EC-Council, SANS, ISACA | They *certify professional competence* | Certification programs + cert prep — extract underlying technologies | Yes — on the technologies |
+| **Enterprise Learning Platforms** | Skillsoft, Pluralsight, Coursera Business | They *sell massive course catalogs* | Technology portion of catalog — extract underlying technologies | Yes — on the technologies |
+| **ILT Training Organizations** | New Horizons, QA | They *deliver instructor-led training* | Course offerings — extract underlying technologies | Yes — on the technologies |
+| **LMS / Learning Platforms** | Cornerstone, Docebo, Degreed, Moodle | They *host and deliver* learning + they have a scorable product | Their LMS product + their distribution opportunity | Yes — hybrid (product + partnership) |
+| **Content Development firms** | GP Strategies | They *build learning programs* for other companies | Technologies they cover + build capacity signals | **No** — partnership assessment only |
+
+#### Universities & Schools
+
+**Why this matters.** Universities are a significant Skillable audience. Their "products" are academic programs and courses. The labability question isn't about the course itself — it's about the **underlying technologies taught in that course**. A cybersecurity degree program that teaches Splunk, Wireshark, and Kali Linux is labable. An English literature program is not.
+
+**Discovery — two-step extraction:**
+
+| Step | What the researcher finds | Example |
+|---|---|---|
+| **1. Technology-facing departments and programs** | Degrees, certificates, focus areas that involve technology | BS Computer Science, MS Cybersecurity, Data Science certificate, Engineering school |
+| **2. Underlying technologies taught** | The actual software products students use in those programs | AWS, Azure, Splunk, Wireshark, Cisco IOS, Python/Jupyter |
+
+Programs are the "products" at the university level. The underlying technologies are what gets assessed for labability — which is no different from assessing those same technologies at a software company. Splunk is Splunk whether it's taught at Arizona State or deployed at Trellix.
+
+**Product chooser display.** What appears on the product chooser depends on the university's scale:
+
+- **Large university (Arizona State):** Show the 5–10 technology-facing programs/departments. The seller needs to know which department to talk to.
+- **Small technical school (Rose-Hulman):** Show the underlying technologies directly — nearly every program is relevant.
+- **Liberal arts college (Vassar):** May show only a small CS department, or nothing labable at all.
+
+**Estimated user base = students in technology-facing programs, not total enrollment.**
+
+| University | Total enrollment | Technology-facing students | What matters for Skillable |
 |---|---|---|---|
-| **Software companies** | Microsoft, Trellix, Dragos, Opswat, Hyland, UiPath, NICE, Tableau, Nutanix, NVIDIA, F5, Commvault, Cisco | They *create* the products | Product pages, documentation, API docs |
-| **Training & certification organizations** | CompTIA, EC-Council, ISACA, SANS, Cybrary, Skillsoft, QA | Their *products are courses and certifications* | Course catalogs — extract the underlying technologies taught |
-| **GSIs (Global System Integrators)** | Deloitte, Accenture, Cognizant | They *implement and deploy* other companies' products | Client engagements — what technologies are involved |
-| **Content development firms** | GP Strategies | They *build learning programs* around other companies' products | Program portfolio |
-| **LMS companies** | Cornerstone, Docebo | They *host and deliver* learning programs | Their customers' products |
-| **Distributors** | Ingram, CDW, Arrow | They *sell and resell* products and build training | Training catalogs and distribution portfolio |
-| **Universities & schools** | Saint Louis University, Grand Canyon University, WGU | Their *courses and degrees* cover technologies | Published curriculum |
-| **Enterprise / multi-product** | Microsoft, Cisco, Siemens | Dozens of products across categories — each is a separate opportunity | Product portfolio — each assessed independently |
+| Arizona State | ~120,000 | ~15,000 | 15,000 — large engineering/CS/data science population |
+| Rose-Hulman | ~2,200 | ~2,200 | 2,200 — nearly 100% relevant, small but concentrated |
+| Vassar | ~2,400 | ~100 | 100 — small CS department, likely not a priority |
+
+Same principle as the general rule: the training population is the relevant subset, not the headline number.
+
+**Company badge for universities:**
+
+| University type | Badge | What it signals |
+|---|---|---|
+| Engineering-focused | Engineering College | Nearly everything is relevant |
+| Large research university | Research University | Big school — find the right departments |
+| Liberal arts | Liberal Arts College | Probably not a fit — verify before investing time |
+
+**How the Pillars apply:**
+
+| Pillar / Dimension | University interpretation |
+|---|---|
+| **Product Labability** | Are the underlying technologies labable? Same assessment as any software product |
+| **IV — Product Complexity** | Are these technologies complex enough for hands-on practice? |
+| **IV — Market Demand** | How many students are in these programs? How many graduates enter the workforce needing these skills? |
+| **CF — Training Commitment** | Do they invest in hands-on learning? Do they already have lab-based courses? |
+| **CF — Build Capacity** | Does their CDD (content design and development) group build technology content? How many engineering/CS professors? Instructional designers focused on technical curriculum? One professor = weak. A full CDD team focused on technology = strong. |
+| **CF — Delivery Capacity** | How many technology-facing courses? 3 courses vs 100 is a fundamentally different delivery footprint. Online, in-person, hybrid? |
+| **CF — Org DNA** | Do they partner with technology vendors? AWS Academy, Microsoft Imagine Academy, Cisco Networking Academy memberships are direct Skillable signals — they already value external platform partnerships for hands-on learning. |
+
+**For Prospector / marketing targeting:** Key filters are technology-facing student population, number of lab-relevant programs, and existing technology vendor partnerships (AWS Academy, Cisco Networking Academy, etc.). Marketing doesn't need the full Deep Dive — "15,000 engineering students, AWS Academy partner" is enough to prioritize outreach.
+
+#### GSIs, VARs, and Distributors
+
+**Why this matters.** GSIs (Deloitte, Accenture, Cognizant), VARs, and distributors (CDW, Tech Data) all consult on, deploy, sell, and train on other companies' products. Their "products" are practice areas and service lines built around underlying technologies — structurally similar to how universities wrap academic programs around technologies. The lines between these org types are blurring — distributors are adding consulting groups to compete on services — but the distinction still matters for Pillar 3 baselines because their organizational capabilities are different.
+
+**Discovery — same two-step extraction pattern as universities:**
+
+| Step | What the researcher finds | Example (Deloitte) |
+|---|---|---|
+| **1. Practice areas / service lines** | Disciplines the company consults on and deploys | SAP Practice, Cybersecurity Practice, AWS Practice, Azure Practice |
+| **2. Underlying technologies** | The actual software products deployed within each practice | SAP S/4HANA, SAP SuccessFactors, Splunk, Palo Alto, CrowdStrike |
+
+The granularity of practice areas adapts to the company. A GSI with a dedicated AWS practice and a separate Azure practice shows those separately. A smaller VAR with one general "Cloud Infrastructure" practice shows that as one line. The researcher determines the right level based on what the company actually has.
+
+**Product Labability — same as universities.** The underlying technology is the technology. SAP S/4HANA has the same labability characteristics whether you're analyzing Deloitte or SAP directly. The practice area is the wrapper; the technology gets scored.
+
+| Org type | Their "product" | What gets scored for labability |
+|---|---|---|
+| GSI | Practice area / service line | Underlying technologies deployed |
+| VAR | Consulting practice | Underlying technologies implemented |
+| Distributor | Service group | Underlying technologies trained on |
+
+**Estimated user base — two distinct training populations:**
+
+| Audience | Who they are | Example (Deloitte SAP) |
+|---|---|---|
+| **Internal practitioners** | The company's own consultants who deploy and configure the technology | ~15,000 SAP consultants who need deep hands-on skills |
+| **Client end users** | Technical staff at client organizations who manage the technology after handoff | Technical teams at every client engagement (e.g., Bank of America's SAP administrators) |
+
+Internal practitioners are a known, countable population. Client end users are harder to estimate — every new engagement creates a new batch. Conservative, believable estimates are better than inflated guesses. The seller understands this is rough.
+
+**ACV motions map naturally to the standard five:**
+
+| Standard motion | GSI interpretation |
+|---|---|
+| **Employee Training** | The company's own consultants/practitioners |
+| **Customer Training** | Clients' end users — the handoff training population |
+| **Partner Training** | Subcontractors, offshore teams, partner firms |
+| **Certification** | Practice-specific certs (SAP certification, AWS certification) |
+| **Events** | Internal summits, client training events |
+
+**Company badges — keep the distinction:**
+
+| Badge | Org behavior | Why separate |
+|---|---|---|
+| **Global Systems Integrator** | Deep consulting, large practice areas, strong build and delivery capacity | Different CF baselines — GSIs have mature build teams and global delivery |
+| **Value Added Reseller** | Services growing but still secondary to resale | Moderate capabilities — services arm is meaningful but not primary |
+| **Technology Distributor** | Services arm is new, primarily a sales channel | Lower build capacity, higher delivery volume — they move product at scale but consulting is emerging |
+
+**How the Pillars apply:**
+
+| Pillar / Dimension | GSI / VAR / Distributor interpretation |
+|---|---|
+| **Product Labability** | Underlying technologies scored identically to software companies. The practice area is the wrapper, not the subject of scoring. |
+| **IV — Product Complexity** | Same as software — the technology's complexity doesn't change because a GSI deploys it |
+| **IV — Market Demand** | Practitioner population + client end user population across all engagements |
+| **CF — Training Commitment** | Do they invest in training their own consultants? Do they train client teams post-deployment? |
+| **CF — Build Capacity** | Do they have a lab practice? Content development team? Instructional designers building technical training? GSIs often have strong build capacity; distributors are earlier in the journey. |
+| **CF — Delivery Capacity** | How many consultants deliver training? How many client engagements per year? Global vs regional reach? |
+| **CF — Org DNA** | Do they partner with technology vendors strategically? Are they already a Skillable partner? Do they value platform partnerships for hands-on learning? |
+
+#### Industry Authorities (Certification Bodies)
+
+**Why this matters.** Organizations like CompTIA, SANS Institute, EC-Council, ISACA, and the Swiss Cyber Security Institute are **Industry Authorities** — they define what professional competence looks like in their field, validate it through certifications, and maintain the standard. They are among Skillable's strongest existing customers. Their training programs and certification exams drive massive lab demand.
+
+**Company badge:** Industry Authority.
+
+**Discovery — same two-step extraction pattern:**
+
+| Step | What the researcher finds | Example (CompTIA) |
+|---|---|---|
+| **1. Certification programs and training programs** | The wrapper — what they offer | CompTIA Security+, CompTIA Network+, CompTIA CySA+, CompTIA A+ |
+| **2. Underlying technologies** | The labable products inside those programs | Wireshark, Splunk, pfSense, Linux CLI, Windows Server, Cisco IOS |
+
+The certification program is the product. The technologies inside it are what gets scored for labability. CompTIA Security+ isn't labable by itself — it's the tools and environments that candidates need hands-on practice with that are labable.
+
+**Estimated user base — two distinct populations, not one:**
+
+| Population | Size | Why it matters |
+|---|---|---|
+| **Training participants** | Much larger | People taking courses to learn — this is the bigger lab opportunity for Skillable |
+| **Certification candidates** | Smaller subset | People actually sitting for the exam — important but not the whole story |
+
+The seller needs both numbers separately. "500,000 people take CompTIA Security+ training annually, 200,000 sit for the exam" tells a different story than just "200,000 certification candidates." The training population is the primary Skillable opportunity. The certification population is a subset with 100% adoption.
+
+**Cert prep is where the lab volume lives.** Industry Authorities are known for their certifications — EC-Council's Certified Ethical Hacker, CompTIA's Security+, SANS GIAC. That's the marketing headline and why they're popular. But the lab opportunity is in the **certification preparation training**, not the exam itself. Cert prep courses, boot camps, and self-paced study programs generate far more lab hours than the exam does. The researcher should look for cert prep volume alongside exam candidate volume — "cert prep" is a keyword signal.
+
+**ACV motions:**
+
+| Motion | Population |
+|---|---|
+| **Training (the big one)** | All training participants across all delivery partners — the larger number |
+| **Certification (PBT)** | Exam candidates only — smaller but 100% adoption per the standard model |
+| **Partner Training** | ATPs and delivery partners who need to be trained to deliver the programs |
+
+**Delivery partner network — Seller Briefcase context.** Industry Authorities typically have large partner networks delivering their programs. Pearson delivers certifications. ATPs deliver training. Knowing who delivers what helps the seller understand the ecosystem. "CompTIA has ~3,000 ATPs globally, Pearson handles exam delivery" is Seller Briefcase material — Account Intelligence, not Key Technical Questions.
+
+**How the Pillars apply:**
+
+| Pillar / Dimension | Industry Authority interpretation |
+|---|---|
+| **Product Labability** | Underlying technologies scored identically to software companies. The certification program is the wrapper. |
+| **IV — Product Complexity** | Are the technologies covered by these certifications complex enough for hands-on practice? (Almost always yes — these certifications exist because the skills require practice.) |
+| **IV — Market Demand** | Training participant volume + certification candidate volume. Industry Authorities often have the strongest Market Demand signals of any org type. |
+| **CF — Training Commitment** | Definitionally strong — training IS their mission. Highest baseline tier. |
+| **CF — Build Capacity** | Do they build labs themselves? Do they have content development teams? Many Industry Authorities partner with Skillable for lab building. |
+| **CF — Delivery Capacity** | ATP network size, geographic reach, delivery modalities (ILT, self-paced, virtual). Often extremely strong. |
+| **CF — Org DNA** | Typically strong partnership culture — they work through partners by design. Existing Skillable partnership is a direct signal. |
+
+#### Enterprise Learning Platforms
+
+**Why this matters.** Companies like Skillsoft, Pluralsight, Coursera (especially Coursera Business), and Udacity (acquired by Accenture) sell massive course catalogs to enterprises as all-you-can-eat training subscriptions. Their value proposition: "If you need training for anyone on anything, buy this catalog and all your needs are covered." The reality is that many organizations are realizing that checkbox training — watching videos and passing quizzes — doesn't ensure people actually develop skills or build confidence in doing things. As a result, these platforms are actively trying to embed hands-on labs within their learning journeys. Skillsoft is already one of Skillable's biggest customers for exactly this reason.
+
+**Company badge:** Enterprise Learning Platform.
+
+**Discovery — same two-step extraction, filtered to the technology catalog:**
+
+| Step | What the researcher finds | Example (Skillsoft) |
+|---|---|---|
+| **1. Technology categories within the catalog** | The labable slice of their total course catalog | AWS Courses (450 courses), Cybersecurity Courses (300 courses), DevOps Courses (200 courses), Data Science Courses (150 courses) |
+| **2. Underlying technologies** | The actual software products covered in those courses | AWS EC2/S3/Lambda, Splunk, Terraform, Kubernetes, Python/Jupyter |
+
+The technology catalog is a subset of the total catalog. Leadership courses, soft skills, compliance — those aren't labable and should be filtered out. Only the technology portion matters for Skillable.
+
+**Delivery modalities — context, not the product:**
+
+| Modality | What it means | Scale | Examples |
+|---|---|---|---|
+| **On-demand / self-paced** | Labs embedded in the learning path — learner launches independently | Very high — millions of learners | Skillsoft catalog, Pluralsight, Coursera |
+| **Instructor-led (ILT/VILT)** | Labs as part of a classroom experience — instructor guides learners | Lower per-session but high-value | Global Knowledge (now Skillsoft), New Horizons, QA |
+| **Blended / hybrid** | Both — self-paced prep with instructor-led lab sessions | Growing model | Skillsoft post-merger, Pluralsight expanding into ILT |
+
+The delivery modality is the HOW, not the WHAT. It affects Delivery Capacity scoring and how labs get embedded, but the technology categories are the products on the product chooser.
+
+**Cert prep courses exist but are a subset.** Some catalog courses target specific certifications (CompTIA Security+ prep, AWS Solutions Architect prep). These are valuable but represent one slice of the total technology catalog. The broader opportunity is all technology courses that could benefit from labs, whether cert-aligned or not.
+
+**Estimated user base — a learner funnel:**
+
+| Step | What you're estimating |
+|---|---|
+| **1. Total learners on the platform** | Individual subscribers + enterprise client employees with access |
+| **2. What % take technology courses** | Technology catalog is a slice of the total |
+| **3. What % would consume labs** | Not every technology course has or needs labs — the labable subset |
+| **4. Lab hours per learner** | Depends on learner type and course depth |
+
+**Assigned vs self-directed learners — different consumption patterns:**
+
+| Learner type | Behavior | Lab hours per learner |
+|---|---|---|
+| **Assigned (enterprise)** | Company assigns a course with 5 labs — they complete the full path | Higher consumption |
+| **Self-directed (subscriber)** | Preparing on their own schedule, picks and chooses | Lower consumption — they take what they need |
+
+The researcher can estimate which type dominates for each platform. Skillsoft is mostly enterprise-assigned (higher lab hours). Coursera skews more self-directed (lower lab hours). This distinction directly affects ACV without requiring impossible precision.
+
+**ACV — lab hours consumed is the unit:**
+
+The ACV opportunity is fundamentally about **lab hours consumed**. To estimate it:
+
+- Number of learners likely to encounter a lab (the funnel above)
+- Lab hours per learner (driven by assigned vs self-directed mix)
+- Rate per lab hour (from the standard rate tier lookup)
+
+The researcher won't get exact numbers. But it can get directional signals — total platform learner count (often published), relative size of the technology catalog, and the enterprise vs individual mix. That's enough for a believable range.
+
+**How the Pillars apply:**
+
+| Pillar / Dimension | Enterprise Learning Platform interpretation |
+|---|---|
+| **Product Labability** | Underlying technologies in the catalog scored identically to software companies. The course is the wrapper. |
+| **IV — Product Complexity** | Are the technologies covered in the catalog complex enough for hands-on practice? |
+| **IV — Market Demand** | Total learner volume on the platform taking technology courses. Often very large for major platforms. |
+| **CF — Training Commitment** | Definitionally strong — training IS the entire business. Highest baseline tier. |
+| **CF — Build Capacity** | Do they build labs? Do they have content development teams for technical courses? Post-merger companies (Skillsoft + Global Knowledge) may have strong ILT build capacity. |
+| **CF — Delivery Capacity** | On-demand reach (millions of learners) + ILT capacity (classrooms, instructors, schedule). Both count. A platform that does both on-demand AND ILT has more paths to get labs in front of learners. |
+| **CF — Org DNA** | Are they actively seeking to embed labs? Existing Skillable partnership is a direct signal. Platform openness to third-party integrations matters. |
+
+#### ILT Training Organizations
+
+**Why this matters.** Organizations like New Horizons, QA, and Global Knowledge (now part of Skillsoft) are primarily **instructor-led training** companies. Their business is classroom-based delivery — an instructor teaches a class, learners follow along in a lab environment, and the experience is guided and personalized. ILT organizations tend to be smaller than enterprise learning platforms but have high concentration: nearly every course is technology-focused and nearly every learner is hands-on.
+
+**Company badge:** ILT Training Organization.
+
+**Discovery — same two-step extraction:**
+
+| Step | What the researcher finds | Example (QA) |
+|---|---|---|
+| **1. Technology categories in the course catalog** | What they teach | Microsoft Azure (45 classes), Cybersecurity (30 classes), AWS (25 classes), DevOps (20 classes) |
+| **2. Underlying technologies** | The actual products used in those classes | Azure Portal, Azure CLI, Splunk, Terraform, Kubernetes, Cisco IOS |
+
+**Key difference from enterprise learning platforms:** ILT organizations have much higher technology concentration. Most of their catalog IS technology training — there's less filtering needed. A company like QA may have some business skills courses, but the overwhelming majority are technical.
+
+**Estimated user base = students per year in classrooms.**
+
+| Signal | What it tells you |
+|---|---|
+| **Annual student count** | How many people literally sit in classes each year — often published or estimable from class schedule × class size |
+| **Course schedule density** | How many classes run per week/month — a proxy for throughput |
+| **Geographic reach** | One city vs national vs global — multiplier on student count |
+
+These are countable, concrete numbers. An ILT org running 50 classes per week at 15 students each has ~39,000 student-seats per year. That's more precise than estimating enterprise learning platform funnels.
+
+**Lab hours per learner — high by nature.** ILT courses are typically 3–5 day intensive classes where learners spend significant time in hands-on environments. An ILT student might consume 20–30 lab hours in a single week-long course. This is dramatically higher per-learner consumption than on-demand, where a learner might touch a lab for 30 minutes.
+
+**ACV — same universal funnel:**
+
+- Students per year in technology classes (the learner count)
+- Lab hours per student (high — intensive classroom format)
+- Rate per lab hour (standard rate tier from the technology's delivery path)
+
+**How the Pillars apply:**
+
+| Pillar / Dimension | ILT Training Organization interpretation |
+|---|---|
+| **Product Labability** | Underlying technologies scored identically — the class is the wrapper |
+| **IV — Product Complexity** | ILT organizations naturally select for complex technologies — simple tools don't warrant a 5-day class |
+| **IV — Market Demand** | Annual student volume, geographic reach, course schedule density |
+| **CF — Training Commitment** | Definitionally strong — training IS the entire business. Highest baseline tier. |
+| **CF — Build Capacity** | Do they author their own courseware and labs? Or do they deliver vendor-authored content? Authoring = strong build capacity. Delivery-only = lower. |
+| **CF — Delivery Capacity** | Number of classrooms, instructors, locations. ILT delivery is inherently capacity-constrained (instructor + room + schedule), unlike on-demand which scales without friction. |
+| **CF — Org DNA** | Partnership culture varies. Some ILT orgs are vendor-authorized (Microsoft CPLS, AWS Training Partner). Others are independent. Vendor authorization is a strong partnership signal. |
+
+#### Content Development Firms
+
+**Why this matters.** Companies like GP Strategies build learning programs on behalf of other companies. They don't own products, they don't typically deliver training, and they don't certify anyone. They are hired to create courseware, lab guides, and curriculum — built around their clients' products.
+
+**Company badge:** Content Development Partner.
+
+**Product Labability and Instructional Value do not apply.** Content development firms don't have their own labable products. They build for whatever technologies their clients need. Scoring Product Labability or Instructional Value for "GP Strategies" is meaningless — it would be scoring an empty wrapper.
+
+**No Deep Dive.** There are no products to select and no scoring to do. The discovery pass gives you everything you need.
+
+**How — the discovery workflow for content development firms.** The researcher runs the same discovery call but skips Tier 1 and Tier 2 (per-product fields) — there are no products to capture. It gathers Tier 3 (per-company signals) plus the technologies the firm covers and their build capacity indicators. The result is a partnership assessment stored in the same cache infrastructure as any other company — available to Prospector and Inspector.
+
+**What discovery produces — a partnership assessment, not a product study:**
+
+| What shows on the product chooser | What it means |
+|---|---|
+| **"Content Development Partner"** — no products listed, no Deep Dive button | This is a partner, not a prospect. The seller sees that immediately. |
+| **Technologies they cover** | What kinds of programs they build — cybersecurity, cloud, data science, etc. |
+| **Build capacity signals** | Team size, program volume, client portfolio |
+
+**What marketing gets:** Partnership signal — build capacity, technologies they cover, potential Skillable content partner. Not ICP scoring, not product fit, not ACV. The conversation is different: "Can we partner with these people to help our mutual customers build labs?"
+
+**Customer Fit dimensions still tell the partnership story:**
+
+| Dimension | What it reveals |
+|---|---|
+| **Training Commitment** | How deep is their commitment to quality training content? |
+| **Build Capacity** | This IS their core — team size, programs built, technologies covered |
+| **Delivery Capacity** | Probably low — they build, they don't deliver. That's expected. |
+| **Org DNA** | Platform partnership orientation? Do they work with technology vendors strategically? |
+
+#### LMS / Learning Experience Platforms
+
+**Why this matters.** Companies like Cornerstone, Docebo, Degreed, and Moodle sell learning management systems and learning experience platforms. They are a **hybrid** — they have a real, scorable software product AND they are a partnership opportunity. Their LMS is a deployed product with users, APIs, and identity management. But the bigger story is that their enterprise clients have thousands of technical courses in the LMS that could benefit from Skillable labs.
+
+**Company badge:** LMS / Learning Platform.
+
+**Two signals, one company:**
+
+| Signal | What it does |
+|---|---|
+| **Product scoring** | Their LMS/LXP product gets scored normally — Product Labability, Instructional Value, Customer Fit. Can we embed Skillable labs inside their platform? |
+| **Partnership flag** | Additionally flagged as a distribution partner — their customers' technical courses are lab opportunities for Skillable |
+
+**Deep Dive: Yes — on their software product.** Unlike content development firms, LMS companies have a real product to score. Cornerstone's LMS has provisioning paths, identity management, APIs, scoring hooks. That's a legitimate Product Labability assessment.
+
+**Discovery — two layers:**
+
+| Layer | What the researcher finds |
+|---|---|
+| **Their product** | The LMS/LXP itself — deployment model, API surface, integration capabilities |
+| **Their distribution opportunity** | How many enterprise clients, how many learners on the platform, what percentage of content is technical |
+
+**ACV — two components:**
+
+| Component | What it measures |
+|---|---|
+| **Product ACV** | Standard ACV for the LMS product — learners using the platform |
+| **Distribution opportunity** | Downstream potential — if Skillable labs were embedded in their clients' technical courses, how many additional lab hours? This is the partnership upside. |
+
+**How the Pillars apply:**
+
+| Pillar / Dimension | LMS company interpretation |
+|---|---|
+| **Product Labability** | Their LMS software scored normally — can Skillable integrate with it? |
+| **IV — Product Complexity** | LMS administration, configuration, integration — genuinely complex for admins |
+| **IV — Market Demand** | Total learners on the platform + admin population |
+| **CF — Training Commitment** | Definitionally strong — they exist to facilitate training |
+| **CF — Build Capacity** | Do they build content or just host it? Hosting-only = lower build capacity |
+| **CF — Delivery Capacity** | Platform reach — how many enterprise clients, how many learners |
+| **CF — Org DNA** | Integration partnership culture? Open APIs? Marketplace for third-party content? These are direct Skillable integration signals |
+
+### Company Classification
+
+Company classification rules — badge derivation, the Enterprise Software threshold, specific company examples, and the `company_category` vs `org_type` two-field separation — are documented in **"Software Companies — The Anchor"** above. That section is the authoritative home for classification logic.
+
+**Disambiguation — related but distinct companies.** Some company names resolve to multiple distinct organizations. The unified search field handles this:
+
+| Search input | Disambiguation |
+|---|---|
+| "Siemens" | Siemens (Industrial / OT) vs Siemens Healthineers (Healthcare IT) — separate companies, separate products, separate scoring paths |
+| "CSU" | Colorado State University vs California State University System — typeahead dropdown, user picks |
+
+These are different companies with different badges, different products, and different scoring — not subdivisions of one analysis.
 
 ---
 
@@ -290,7 +815,26 @@ All motivations lead to confidence. None are negative. All genuinely care about 
 
 ### Personas by Tool
 
-**Prospector (Targeting)** serves Marketing and RevOps. It delivers three things: **Enrichment** (deeper intelligence about companies you already know, scored against product fit), **Product Lookalikes** (companies you didn't know about, found because they use products that pass Product Labability — product-fit matching, not firmographic matching), and **Contacts** (specific humans responsible for training / enablement for products Skillable can serve). Prospector's principle: deliver intelligence to marketing where they work (HubSpot), not where we work.
+**Prospector (ICP Validation & Prioritization)** serves Marketing and RevOps. Its primary job is to take marketing's existing company lists — ICP targets and expansion targets — and return them **re-ranked by ACV potential with evidence-based rationale**. Marketing currently ranks by company size; Prospector ranks by labable products × real users × training buyer signals. That shift — from "big company = good target" to "labable products with real demand from a real training buyer = good target" — is the core value.
+
+Prospector uses the **same discovery data** as Inspector. Every company Prospector researches is cached and immediately available for a Deep Dive in Inspector. Intelligence compounds (GP5) — the more companies Prospector processes, the richer the platform's data gets for everyone.
+
+**What Prospector delivers today:**
+
+| Capability | What it does |
+|---|---|
+| **ICP reprioritization** | Take marketing's target list, run discovery on each company, return the list re-ranked by ACV potential with product-level evidence |
+| **Expansion targeting** | Same intelligence applied to existing Skillable customers — "here's what else this customer could be doing with us" |
+
+**What Prospector delivers later (in priority order):**
+
+| Capability | What it does |
+|---|---|
+| **HubSpot integration** | Authenticated write-back — discovery intelligence flows directly into HubSpot company and deal records, shown to the right person at the right time |
+| **Product Lookalikes** | Companies marketing didn't know about, found because they use products that pass Product Labability — product-fit matching, not firmographic matching |
+| **Contacts** | Specific humans responsible for training / enablement for products Skillable can serve |
+
+Prospector's principle: deliver intelligence to marketing where they work (HubSpot), not where we work. The CSV/spreadsheet output is the interim step; HubSpot integration is the destination.
 
 **Inspector (Evaluation & Research)** serves the spectrum from sellers to deep technical roles:
 
@@ -334,7 +878,7 @@ All motivations lead to confidence. None are negative. All genuinely care about 
 | Layer | What you see | Who starts here |
 |---|---|---|
 | HubSpot card | Fit confirmation, key badges, "worth pursuing" confidence, ACV signal, HubSpot ICP Context | Marketing, Sellers, CSMs |
-| Inspector Product Selection | All discovered products for a company — early tiers (Seems Promising / Likely / Uncertain / Unlikely), subcategory badges | SEs, TSMs (or anyone who clicked deeper) |
+| Inspector Product Selection | All discovered products for a company — sorted by popularity, labability tier badges (Promising / Potential / Uncertain / Unlikely), subcategory, deployment model | SEs, TSMs (or anyone who clicked deeper) |
 | Inspector Full Analysis (dossier) | Overall assessment, three Pillar cards, Seller Briefcase, bottom row | Anyone exploring a company |
 | Pillar cards with evidence on hover | Technical detail — labability dimensions, features, orchestration specifics | SEs, TSMs digging into a specific product |
 | Designer | Lab series, lab breakdown, activities, scoring, instructions, bill of materials | Program Owners, IDs, SMEs, Tech Writers, ProServ |
@@ -347,8 +891,8 @@ All motivations lead to confidence. None are negative. All genuinely care about 
 
 | Section | Under which Pillar | What it gives the seller |
 |---|---|---|
-| **Key Technical Questions** | Product Labability | Who to find at the customer, what department, and the specific technical questions that unblock the lab build. Includes a verbatim question the champion can send. |
-| **Conversation Starters** | Instructional Value | Product-specific talking points about why hands-on training matters for this product. Makes the seller credible without being technical. |
+| **Key Technical Questions** | Product Labability | Who to find at the customer, what department, and the specific technical questions that unblock the lab build. Includes a verbatim question the champion can send. **These are questions TO ASK the customer** — action items for the seller, not evidence about the product. |
+| **Conversation Starters** | Instructional Value | Product-specific talking points about why hands-on training matters for this product. Makes the seller credible without being technical. **Market Demand evidence** (Stack Overflow activity, install base size, cert ecosystem presence) belongs here as proof the training market exists — it is NOT a Key Technical Question. |
 | **Account Intelligence** | Customer Fit | Organizational signals — training leadership, org complexity, LMS platform, competitive signals, news. Context that shows the seller has done their homework. |
 
 **How.** Each section is a **separate Claude call with its own focused system prompt**, on the model best suited to its purpose. All three per product run in parallel:
@@ -385,11 +929,13 @@ Briefcase is **per-product**, not per-analysis. When the user picks a different 
 
 | Pillar | Weight | Level | UX Question |
 |---|---|---|---|
-| **Product Labability** | 40% | Product | How labable is this product? |
-| **Instructional Value** | 30% | Product | Does this product warrant hands-on training? |
+| **Product Labability** | 50% | Product | How labable is this product? |
+| **Instructional Value** | 20% | Product | Does this product warrant hands-on training? |
 | **Customer Fit** | 30% | Organization | Is this organization a good match for Skillable? |
 
-**How.** Each Pillar scores out of 100 internally, then gets weighted. A Product Labability score of 85 contributes 85 × 0.40 = 34 points to the Fit Score. **Full operational detail — every dimension, every scoring signal, every baseline, every penalty, every strength tier — lives in `Badging-and-Scoring-Reference.md`.** This document does not duplicate that detail.
+Product Labability is weighted 50% because it is the gatekeeper — if Skillable cannot get the product into its platform, nothing else matters. Instructional Value and Customer Fit are important supporting signals, but they cannot compensate for an unlabable product. The 50/20/30 split makes the math match the philosophy. *(Rebalanced from 40/30/30 on 2026-04-12 after reviewing Workday, Trellix, Cohesity, and Diligent scored analyses.)*
+
+**How.** Each Pillar scores out of 100 internally, then gets weighted. A Product Labability score of 85 contributes 85 × 0.50 = 42.5 points to the Fit Score. **Full operational detail — every dimension, every scoring signal, every baseline, every penalty, every strength tier — lives in `Badging-and-Scoring-Reference.md`.** This document does not duplicate that detail.
 
 ### Fit Score Composition
 
@@ -421,7 +967,7 @@ The multiplier lookup lives in `scoring_config.TECHNICAL_FIT_MULTIPLIERS`. Full 
 | Metric | What it answers | Type |
 |---|---|---|
 | **Fit Score** | Should we pursue this? | Qualitative composite of three Pillars (0–100) |
-| **ACV Potential** | How big is this if we win? | Calculated business metric — dollars per year |
+| **ACV Potential** | How big is this if we win? | Calculated business metric — dollars per year. Built on Mark Mangelson's (CRO) labability prompt framework, refined with product-level precision. See `ACV Potential Model` below. |
 
 **How.** Both render in the hero section at the top of every company view and caseboard entry. The Fit Score is per-product; the ACV Potential hero widget is **company-level** and does not change as the user switches products in the dropdown. ACV values use lowercase `k` for thousands and uppercase `M` for millions (e.g., `$250k`, `$1.2M`).
 
@@ -474,21 +1020,55 @@ The grid and definitions are configured in `scoring_config.VERDICT_GRID`. This d
 
 ## ACV Potential Model
 
-**Why.** A product sold through a global channel with a large certification ecosystem and a flagship event has fundamentally different annual revenue potential than a niche product with a regional footprint — even if both score identically on fit. ACV Potential answers "how big is this if we win?" — expressed as the estimated annual contract value if the customer standardized on Skillable across all training and enablement motions for the product. This is the Define-Once home for the ACV model; `Badging-and-Scoring-Reference.md` references this section rather than restating it.
+**Why.** A product sold through a global channel with a large certification ecosystem and a flagship event has fundamentally different annual revenue potential than a niche product with a regional footprint — even if both score identically on fit. ACV Potential answers "how big is this if we win?" — expressed as the estimated annual contract value if the customer standardized on Skillable across all training and enablement motions for the product. Mark Mangelson's (CRO) labability estimation prompt identified nine audience/revenue categories that shaped the consumption motions below — the intelligence platform builds on Mark's commercial framing with product-level precision and technology-specific rate tiers (see "Relationship to Mark's Labability Prompt" below for the full mapping). This is the Define-Once home for the ACV model; `Badging-and-Scoring-Reference.md` references this section rather than restating it.
+
+**The universal unit: lab hours consumed.** Across every org type — software companies, universities, GSIs, Industry Authorities, enterprise learning platforms, ILT organizations — the ACV calculation bottoms out at the same unit: **lab hours consumed**. The funnel is universal:
+
+| Step | Universal question | What changes by org type |
+|---|---|---|
+| **Who are the learners?** | Always the first question | Software company = users of the product (not customers — Bank of America is one customer, but 10,000 engineers using Azure are the learners). University = students in technology programs. GSI = consultants + client staff. Industry Authority = training participants + cert candidates. Enterprise Learning Platform = subscribers taking technology courses. ILT org = students in classrooms. |
+| **How many would encounter a lab?** | Always a subset of the total | Depends on the product/program/catalog and how labs are embedded |
+| **How many lab hours per learner?** | Always the multiplier | Assigned learners consume more than self-directed. ILT students consume 20–30 hours in a week. On-demand learners may touch a lab for 30 minutes. |
+| **Lab hours × rate = ACV** | Always the math | Rate comes from the technology's delivery path (standard rate tier lookup) |
+
+The five consumption motions below are the categories. The funnel is the logic. The org type provides the context for estimating each step. One framework, applied everywhere.
 
 **What — five consumption motions.** Each motion reflects both a reason people take labs AND a path for reaching them:
 
 | # | Motion | Audience | Adoption | Hours | Zero when... |
 |---|---|---|---:|---:|---|
-| **1** | **Customer Training & Enablement** | Install base — total customers using the product this year | ~4% | 2 | Never (every product has customers) |
-| **2** | **Partner Training & Enablement** | Global partner community — people reselling, deploying, supporting the product | ~15% | 5 | Company doesn't sell through a channel |
-| **3** | **Employee Training & Enablement** | Relevant-employee subset — product team, support, SE, CS. **Not total headcount.** | ~30% | 8 | Never in practice |
+| **1** | **Customer Training & Enablement** | End learners — anyone taking a lab to learn the product, regardless of whether they enrolled directly or through an ATP. This is the total user population of the product. Do NOT double-count people who train through ATPs — they are customers, not partners. | ~4% | 2 | Never (every product has users) |
+| **2** | **Partner Training & Enablement** | People at CHANNEL PARTNER organizations (GSIs, VARs, distributors, resellers) who need product knowledge to sell, deploy, implement, or support it. The partner's own consultants, SEs, solution architects — NOT the end customers who learn through partners (those are Motion 1). | ~15% | 5 | Company doesn't sell through a channel |
+| **3** | **Employee Training & Enablement** | People at the COMPANY BEING ANALYZED who work on the product — product team, SEs, support engineers, CS, trainers. **Not total headcount. Not people at customer companies (those are Motion 1).** Always a small number relative to company size. | ~30% | 8 | Never in practice |
 | **4** | **Certification (PBT)** | People in the world who sit for the certification exam | **100%** | 1 | Product has no cert, or the cert has no lab component |
 | **5** | **Events & Conferences** | Total attendees at the company's events (e.g., ~15,000 at Tableau Conference) | ~30% | 1 | Company doesn't run events. Events without labs today are the *opportunity*, not zero. |
 
-**Motion 3 framing:** the audience must be narrowed to the relevant subset BEFORE the adoption % is applied. Applying ~30% to total headcount would massively overshoot. The researcher estimates the subset size per product.
+**Motion 1 is the big one.** The total user population of the product is typically the largest audience. ATPs and training partners are delivery channels for reaching these users — the users themselves are counted once in Motion 1, not again in Motion 2.
 
-**Motion 4 framing:** 100% is exact — if a lab is in the cert exam, everyone who sits for the cert takes the lab.
+**Motion 2 is channel partner employees.** For Tanium, this is a few hundred GSI/VAR SEs. For a product like SAP analyzed through Deloitte's lens, this is thousands of Deloitte consultants. The size depends on how many partners sell and implement the product.
+
+**Motion 3 is always small.** The company's own people who build, support, sell, and train on the product. Tanium has ~500-1,000 such employees. Microsoft's Azure team might be 5,000-10,000. Never a large fraction of total headcount.
+
+**Motion 4 framing:** 100% adoption is exact — if a lab is in the exam, everyone who sits takes the lab. But the AUDIENCE must be the actual annual exam sitters, not the training population. The funnel drops dramatically at each step.
+
+### How Adoption Patterns Vary by Organization Type
+
+**Why.** The flat adoption rates above are defaults for software companies. Different org types have fundamentally different relationships between their audiences and lab experiences. A university student doesn't choose whether to take the lab — it's assigned coursework. A software user decides whether to bother with training. This changes the math.
+
+**What — the adoption funnel by org type:**
+
+| Org type | Motion 1 audience | Motion 1 adoption | Motion 4 audience | Motion 4 adoption | Why the pattern is different |
+|---|---|---|---|---|---|
+| **Software company** | Product users worldwide | ~4% | Annual exam sitters (~2% of training population) | 100% of sitters | Voluntary — users choose to train and certify |
+| **Industry Authority** | Training candidates per year (interested in cert) | ~4% | Annual exam sitters (~10% of training population) | 100% of sitters | Intentional — candidates pursue a career credential |
+| **Academic** | Students enrolled in technology programs | ~90% | Students taking exams (~95% of enrolled) | 100% | Required — coursework is assigned, not optional |
+| **GSI** | Consultants in practice area | ~30% | Practice-specific cert sitters | 100% of sitters | Employer-driven — firm invests in consultant skills |
+| **ILT Training Org** | Students per year in classes | ~80% | N/A (they deliver training, not certifications) | — | High — every student in a class does the labs |
+| **Enterprise Learning Platform** | Subscribers taking technology courses | ~4% | Cert prep subset who sit exams | 100% of sitters | Varies — assigned learners higher than self-directed |
+
+**The critical insight for Industry Authorities:** ~250,000 people may be interested in CEH. ~50,000 actually take training. ~5,000 sit the exam. The install_base (Motion 1) is the training candidate population. The cert_annual_sit_rate (Motion 4) is the exam sitters. These are very different numbers — putting 250,000 in both fields double-counts the audience.
+
+**The critical insight for academics:** Adoption is near-100% because the professor assigns the lab. If 500 students are enrolled in a cybersecurity course with 10 labs, ~475 of them complete all 10 labs. The "adoption" question barely applies — it's coursework.
 
 **How — per-motion calculation:**
 
@@ -497,7 +1077,7 @@ Audience × Adoption × Hours = Annual Hours
 Annual Hours × Rate = Annual Potential
 ```
 
-Single values everywhere except audience. Audience is the only source of range in the final number — because that's where the real uncertainty lives. One source of range keeps the math clean and the final number defendable.
+**Single values everywhere — including audience.** Every input is one estimated number, not a range. One number per motion, one number out. The seller can quote the result without caveats. Better to be approximately right with a single defensible number than to hedge with a range that communicates uncertainty.
 
 **Rate tier lookup — derived from Product Labability:**
 
@@ -512,7 +1092,7 @@ Rates use `~` to signal estimate. **One number per tier** — the final ACV rang
 
 **Install base and partner community are Define-Once.** The same install base estimate feeds both Motion 1 audience AND Pillar 2 Market Demand. The researcher produces one install base number per product, and that number is used everywhere. Same rule applies to the global partner community size (feeds Motion 2 and Pillar 3 Delivery Capacity) and the delivery path (feeds the rate tier lookup and Pillar 1 badge display). Three Define-Once facts power the ACV model — all computed once, referenced everywhere.
 
-**Range discipline.** Estimates must be **believable**. A range of 2,000–40,000 signals "we have no idea." The researcher produces tight, defendable ranges the seller can quote without caveats.
+**Estimation discipline.** Single estimated numbers, not ranges. "~14M users" is something a seller can quote. "2,000–40,000 users" signals "we have no idea." The researcher produces one directionally right number per product — the total people using the product, not double-counted, not missing any. Better to be approximately right than precisely uncertain.
 
 **The ACV Potential hero widget has three lines:**
 
@@ -526,9 +1106,75 @@ The word `ONLY` on line 3 is intentional and uppercase — it signals to the sel
 
 All ACV math is implemented in `acv_calculator.py`. Rate lookups come from `scoring_config.RATE_TABLES` + `ORCHESTRATION_TO_RATE_TIER`. Tier thresholds come from `ACV_TIER_HIGH_THRESHOLD` and `ACV_TIER_MEDIUM_THRESHOLD`.
 
+### Relationship to Mark's Labability Prompt
+
+Mark Mangelson (CRO) developed a labability estimation prompt that identifies nine audience/revenue categories for any given company. The Skillable Intelligence ACV model was designed to cover every category Mark identified, with product-level precision on top.
+
+**How Mark's nine categories map to this framework:**
+
+| Mark's category | Our coverage | Why our approach sharpens it |
+|---|---|---|
+| **#1 — Technical employees** (engineers, IT, devs) at $100/person for general tech + AI training | **Motion 3: Employee Training** — relevant employee subset × adoption × hours × rate | Product-specific rate tiers ($6–$45/hr based on delivery path) replace the flat $100. A cloud lab and a multi-VM cybersecurity lab are different economics. |
+| **#2 — Total employees** at $20/person for general + AI training | **Intentionally narrower in our model** — we count the relevant subset, not total headcount | Counting all employees at a low rate inflates ACV for companies with large non-technical workforces. Our approach counts only people who would actually take labs. More defensible in a sales conversation. |
+| **#3 — B2B customers** trained on proprietary software at $100/customer for cert + enablement | **Motion 1: Customer Training + Motion 4: Certification** | We separate training volume (larger) from cert candidates (smaller, 100% adoption). Mark combines them. Our separation gives the seller two distinct talking points. |
+| **#4 — Technical SKUs** × $25/customer/year per SKU | **Per-product ACV model** — each product gets its own full ACV calculation | Mark multiplies a flat rate by SKU count. Our product definition filter ensures only real products are counted (Posit has 3–5 real products, not 48 SKUs). Each product gets a technology-specific rate tier. This is the biggest accuracy improvement over Mark's approach. |
+| **#5 — Partners** (GSIs, consultants) at $100/partner for cert + enablement | **Motion 2: Partner Training** | Direct match. Our discovery Tier 3 captures the sales channel and ATP program separately — channel partners who sell the product vs ATPs who train on it. Both feed ACV but through different motions. |
+| **#6 — Enterprise sales personnel** (SEs, AEs, CS) at $25/person for demo + cert | **Bundled into Motion 3 employee subset** | Mark breaks this out as a separate audience — smart, because SE demo training is a distinct Skillable use case. **Seller Briefcase opportunity:** "Trellix has ~200 SEs who need demo environments" is a conversation starter. The researcher captures this in `target_personas` even though the ACV math bundles it into Motion 3. |
+| **#7 — Customer support personnel** at $25/person for demo + cert | **Bundled into Motion 3 employee subset** | Same as #6 — Mark's breakout is useful for Seller Briefcase context ("500 support agents need product training") even though the ACV math doesn't need a separate motion for it. |
+| **#8 — Customer events** at $50/attendee | **Motion 5: Events & Conferences** | Direct match. Our discovery Tier 3 captures events with attendance estimates. |
+| **#9 — Enterprise SKU baseline** — flat $75K/year for TMS, Premium Support, Lab Dev Licenses | **Not modeled in the intelligence platform** | This is Skillable platform revenue (licensing, support, implementation) independent of lab hours consumed. It belongs in the sales/pricing layer, not in product fit intelligence. The intelligence platform's job is to estimate the lab opportunity; Skillable's pricing team layers platform fees on top. |
+
+**Why product-level precision matters more than flat rates (GP4 — Self-Evident Design applied to ACV; Define-Once — one install base number, used everywhere).** Mark's prompt applies the same dollar rate to every audience regardless of what product is being trained on. A $100/person rate makes sense as an enterprise average, but it hides real variation: a cloud lab costs ~$6/hr while a multi-VM cybersecurity range costs ~$45/hr. The intelligence platform's technology-specific rate tiers produce ACV estimates the seller can defend at the product level, not just the company level. When the seller says "your Endpoint Security training program is a $400K annual opportunity," the number is grounded in how that specific product would be delivered as labs.
+
+**Why we filter products before counting.** Mark's #4 multiplies a flat rate by SKU count. If the researcher returns 48 "products" for Posit (the old behavior before the product definition filter), that multiplier is wildly inflated. The product definition filter — only standalone licensed products with real user bases — ensures the SKU count reflects actual lab opportunities. Fewer products, higher confidence per product.
+
+**Where Mark's breakouts sharpen the Seller Briefcase.** Mark's #6 (sales personnel) and #7 (support personnel) identify audiences that are meaningful for Seller Briefcase even though they don't need separate ACV motions. "Trellix has ~200 SEs who need demo environments" and "Cohesity has ~500 support engineers who need product certification" are Conversation Starters (Pillar 2 briefcase) — they give the seller specific talking points grounded in the customer's own team structure. The discovery `target_personas` field captures these audiences at the product level; the Seller Briefcase synthesizes them into actionable bullets.
+
 ---
 
 ## Inspector UX
+
+### Unified Search Field
+
+**Why.** Users shouldn't have to know whether they're searching for a company or a product — the system figures it out. A single search field reduces friction and handles the common case where someone types a product name when they mean the company behind it.
+
+**What.** One input field: "Search for a company or product." The system resolves the input before running discovery.
+
+| Input | Resolution |
+|---|---|
+| Exact company match (e.g., "Cisco") | Straight to discovery |
+| Ambiguous match (e.g., "CSU") | Typeahead dropdown with disambiguation: "Colorado State University," "California State University System," etc. User picks, then discovery runs |
+| Product name (e.g., "Trellix Endpoint Security") | System resolves automatically — runs discovery on Trellix (the parent company) with Endpoint Security identified as a product. No confirmation needed. |
+| Company and product are the same name (e.g., "Splunk") | Works directly — no disambiguation needed |
+| Former name (e.g., "RStudio") | Resolves automatically to Posit. No confirmation needed. |
+
+**How.** Resolution happens before discovery fires. Ambiguous matches (multiple companies with similar names) use a typeahead dropdown — the user must pick. Everything else resolves automatically: product-to-company mapping, former names, and exact matches just go. No unnecessary confirmation steps. The system makes the right call and moves.
+
+### Product Family Interstitial
+
+**Why.** When a company has a large product portfolio (Cisco, Oracle, Microsoft), showing all 20–30 products on one screen is overwhelming. The interstitial lets the seller narrow by category before seeing individual products.
+
+**What.** The interstitial groups discovered products by **category** (not product family — categories are derived from the products themselves). Each category row shows the count of products in that category and the flagship products within it.
+
+**When it appears.** Only when the discovered product count exceeds ~15–20 products. Below that threshold, the interstitial is skipped entirely and the seller goes straight to the product chooser. For Posit (3–5 products), Sage (5–8), Commvault (3–4) — no interstitial. For Cisco (25+), Oracle (30+) — the interstitial earns its place.
+
+### Product Chooser
+
+**Why.** The product chooser is where the seller decides which products to Deep Dive. It must answer two questions at a glance: **which products matter most** (popularity) and **which products can Skillable likely serve** (labability). The same discovery data that populates this page feeds the Prospector results table — one research pass, two consumers.
+
+**What.** Products are sorted by **estimated user base** (most popular first), not by labability tier. Labability is shown as a badge on each product, not as the grouping mechanism. The layout has three columns:
+
+| Left column | Middle column | Right column |
+|---|---|---|
+| **About the product** | **How it works** | **Labability judgment** |
+| Product name | Deployment model (installable / cloud / hybrid / saas-only) | Promising / Potential / Uncertain / Unlikely |
+| Subcategory | | |
+| Popularity indicator | | |
+| Flagship / Satellite tag | | |
+
+The right column is **visually separated** from the other two — it is the one judgment call in the row. Everything else is factual. The labability tier is the researcher's rough pre-Deep Dive estimate and must read as directional, not definitive.
+
+**How.** Ranking is derived from the discovery data — `estimated_user_base` drives sort order, `rough_labability_score` maps to the four tier labels, `subcategory` and `deployment_model` provide context. No separate ranking step needed.
 
 ### Hero Section
 
@@ -596,6 +1242,78 @@ Company classification badge uses purple — same color as product subcategory b
 
 ---
 
+## Prospector UX
+
+**Why.** Marketing currently ranks their ICP by company size using firmographic data from tools like ZoomInfo. Prospector replaces that with product-level intelligence — which products are labable, how many people use them, and whether the organization is a training buyer. The shift from "big company" to "labable products with real demand" is how Skillable avoids wasting outreach on companies that look good on paper but can't use the platform.
+
+**What — the workflow:**
+
+| Step | What happens |
+|---|---|
+| **1. Input** | Marketing pastes company names OR uploads a CSV. One input area — same unified search field as Inspector. |
+| **2. Discovery** | Prospector runs the standard discovery on each company — same research pass, same three-tier data shape, same caching. All discovered companies and their products are stored and available for Inspector Deep Dives immediately. |
+| **3. Results table** | All companies displayed in one view, sorted by ACV potential, with product-level evidence. This is the core of Prospector. |
+| **4. Export** | CSV download with the same columns for import into HubSpot or other marketing tools. |
+
+**Intelligence sharpens automatically.** If a company in the Prospector list has already had a Deep Dive in Inspector, Prospector shows the sharpened Deep Dive data — actual Fit Score, actual ACV with all five motions, real badges — instead of rough discovery estimates. The more the platform is used, the better Prospector's data gets, without any extra work. GP5 in action.
+
+| Company state | What Prospector shows |
+|---|---|
+| **Discovery only** | Rough estimates — discovery-level ACV, labability tiers, company signals |
+| **Deep Dive cached** | Sharpened data — actual Fit Score, scored Pillar readings, precise ACV |
+
+### Prospector Results Table
+
+**Why.** Marketing needs to scan 100+ companies and immediately see which ones matter and why. The table must be scannable — glance and know.
+
+**What — the columns:**
+
+| Column | What it shows | Why marketing needs it |
+|---|---|---|
+| **Rank** | Auto-numbered by ACV potential | Where this company falls |
+| **Company** | Name + badge (Cybersecurity, Enterprise Software, Industry Authority, etc.) | What kind of company — immediately sets context |
+| **Estimated ACV** | Rough range from discovery data (sharpened if Deep Dive exists) | The primary sort — how big is this opportunity |
+| **Top Product** | Flagship product name + subcategory | The lead story — what's the biggest opportunity at this company |
+| **Why** | One line — "14M users, installable, strong API surface" | The rationale — why this product is the lead |
+| **Promising Products** | Count of products in this tier | Portfolio breadth at a glance |
+| **Potential Products** | Count | |
+| **Uncertain Products** | Count | |
+| **Unlikely Products** | Count | |
+| **Lab Platform** | Current platform or "None" | Competitive signal — expansion vs displacement vs greenfield |
+| **Key Signal** | Strongest CF signal — "Global ATP network" or "No training program" | The one thing that most affects whether this deal happens |
+
+Column headers use "Promising Products" (not just "Promising") for clarity in spreadsheet context where the labability tier labels lack surrounding UX context. GP4 — self-evident even outside the tool.
+
+**Partnership flags.** Content Development firms show as "Content Development Partner" with no products — partnership assessment only, no Deep Dive available. LMS companies show normally but with an additional "Distribution Partner" flag. See org-type models above for the full logic.
+
+### Prospector for Marketing Documentation
+
+**Why.** When marketing reads the in-app documentation (the ? modal), they need to understand how Prospector works and why they should trust it. Key points the documentation must communicate:
+
+| Point | What it says |
+|---|---|
+| **Products, not companies** | "We don't put companies into labs. We put products into labs. That's why we rank by product fit, not company size." |
+| **ACV is product-driven** | "ACV potential is based on how many people use each product and how those products would be delivered as labs — not on company revenue or headcount." |
+| **Intelligence compounds** | "The more companies we analyze, the better the data gets. Every Deep Dive sharpens the Prospector view. Every Prospector run caches data for future Deep Dives." |
+| **Two lists, same intelligence** | "Whether it's a new target or an existing customer, the intelligence is the same. Expansion opportunities and new targets are scored identically." |
+
+### Prospector → HubSpot Integration (Future)
+
+**Why.** The CSV is the interim step. The destination is HubSpot — intelligence flows directly into company and deal records, shown to the right person at the right time with the right context (GP1).
+
+**What.** Authenticated integration via HubSpot API. Discovery intelligence writes to custom properties on HubSpot company records. The field mapping is a RevOps conversation — which Skillable intelligence fields map to which HubSpot properties.
+
+**How.** Two stages:
+
+| Stage | What it does |
+|---|---|
+| **Stage 1 — Company Record** | ACV potential, top product, labability summary, key signals, lab platform → HubSpot company properties |
+| **Stage 2 — Deal Records** | Per-product intelligence attached to deals — Fit Score, Pillar readings, Seller Briefcase content |
+
+**Sequencing.** Stage 1 is the priority and stands alone as a complete solution — marketing gets company-level intelligence in HubSpot. Stage 2 layers on per-product deal intelligence and depends on how RevOps structures deals in HubSpot. The in-app Prospector results table and CSV export remain available regardless — HubSpot integration adds a delivery channel, it doesn't replace the in-app experience.
+
+---
+
 ## Designer: The Complete Pipeline
 
 **Why.** Designer turns product intelligence into an actionable build plan. It lives in the Intelligence Platform because every phase depends on deep product knowledge — what's possible, what's scorable, what infrastructure is required.
@@ -657,7 +1375,7 @@ Rough cost estimates per operation. These will be updated with actual measuremen
 
 | Operation | What it does | AI Calls |
 |---|---|---|
-| **Discovery** (Prospector / Caseboard) | Find products, build the product list | 1 discovery call + targeted product research calls |
+| **Discovery** (Inspector + Prospector) | Find products, build the product list, populate three-tier discovery data | 1 discovery call per company. Prospector runs this in batch across all input companies. |
 | **Deep Dive** (Inspector full analysis) | Three parallel fact extractors per product + rubric grader calls for Pillars 2 / 3 + three parallel briefcase calls per product (Opus KTQ + Haiku Conv + Haiku Intel) | ~3 extractors × N products + 8 grader calls × N products + 3 briefcase calls × N products |
 | **Cache reload** (re-visit a saved analysis) | Recompute ACV, reassign verdict, sort | **Zero AI calls** — pure Python |
 | **Re-score after logic change** (`SCORING_LOGIC_VERSION` bump) | Fresh Deep Dive on next load | Same as Deep Dive |

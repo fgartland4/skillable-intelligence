@@ -145,8 +145,8 @@ class Pillar:
     """A top-level scoring component.
 
     Three Pillars compose the Fit Score.  Each scores out of 100 internally,
-    then gets weighted.  A score of 85/100 on a 40% Pillar contributes
-    85 x 0.40 = 34 points to the Fit Score.
+    then gets weighted.  A score of 85/100 on a 50% Pillar contributes
+    85 x 0.50 = 42.5 points to the Fit Score.
     """
     name: str
     weight: int          # Percentage of Fit Score (e.g., 40)
@@ -283,7 +283,7 @@ class LockedTerm:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PILLAR 1 — PRODUCT LABABILITY (40%)
+# PILLAR 1 — PRODUCT LABABILITY (50%)
 #
 # The gatekeeper.  If this fails, nothing else matters.  Measures whether
 # Skillable can deliver a complete lab lifecycle for this product.  70% of
@@ -619,7 +619,7 @@ _teardown_dimension = Dimension(
 
 PILLAR_PRODUCT_LABABILITY = Pillar(
     name="Product Labability",
-    weight=40,
+    weight=50,
     level="product",
     question="How labable is this product?",
     dimensions=(
@@ -632,7 +632,7 @@ PILLAR_PRODUCT_LABABILITY = Pillar(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# PILLAR 2 — INSTRUCTIONAL VALUE (30%)
+# PILLAR 2 — INSTRUCTIONAL VALUE (20%)
 #
 # The commercial case.  Measures whether this product genuinely warrants
 # hands-on lab experiences.  Combined with Product Labability, these two
@@ -1181,7 +1181,7 @@ _market_demand_dimension = Dimension(
 
 PILLAR_INSTRUCTIONAL_VALUE = Pillar(
     name="Instructional Value",
-    weight=30,
+    weight=20,
     level="product",
     question="Does this product have instructional value for hands-on training?",
     dimensions=(
@@ -2842,23 +2842,33 @@ CONSUMPTION_MOTIONS: tuple[ConsumptionMotion, ...] = (
         adoption_pct=0.04,
         hours_low=2.0, hours_high=2.0,
         population_source="product:install_base",
-        description="Install base — total customers using the product this year. "
-                    "Every product has customers; this motion never zeroes out."),
+        description="End learners — anyone taking a lab to learn the product, "
+                    "regardless of whether they enrolled directly or through an "
+                    "ATP or training partner. This is the total user population "
+                    "of the product. Do NOT double-count people who happen to "
+                    "train through an ATP — they are customers, not partners."),
     ConsumptionMotion(
         label="Partner Training & Enablement",
         adoption_pct=0.15,
         hours_low=5.0, hours_high=5.0,
         population_source="company:channel_partner_se_population",
-        description="Global partner community — sales engineers and solution "
-                    "architects across the channel partner ecosystem. Zero when "
-                    "the company doesn't sell through a channel."),
+        description="People at CHANNEL PARTNER organizations (GSIs, VARs, "
+                    "distributors, resellers) who need product knowledge to "
+                    "sell, deploy, implement, or support the product. These are "
+                    "the partner's own employees — consultants, SEs, solution "
+                    "architects. NOT the end customers who learn through "
+                    "partners (those are in Motion 1). Zero when the company "
+                    "doesn't sell through a channel."),
     ConsumptionMotion(
         label="Employee Training & Enablement",
         adoption_pct=0.30,
         hours_low=8.0, hours_high=8.0,
         population_source="product:employee_subset_size",
-        description="Relevant-employee subset — product team, support, sales "
-                    "engineering, customer success. NOT total headcount."),
+        description="People at the COMPANY BEING ANALYZED who work on the "
+                    "product — product team, SEs, support engineers, customer "
+                    "success, trainers. NOT total headcount. NOT people at "
+                    "customer companies (those are in Motion 1). This is always "
+                    "a small number relative to company size."),
     ConsumptionMotion(
         label="Certification (PBT)",
         adoption_pct=1.00,
@@ -2882,6 +2892,42 @@ CONSUMPTION_MOTIONS: tuple[ConsumptionMotion, ...] = (
 # Motion 4 (Certification) is exempt — its 100% is exact by definition.
 ADOPTION_CEILING_EVENTS = 0.80
 ADOPTION_CEILING_NON_EVENTS = 0.35
+
+# ── Org-type adoption rate guidance ──────────────────────────────────
+#
+# The flat adoption rates in CONSUMPTION_MOTIONS above are the DEFAULT
+# for software companies. Different org types have fundamentally
+# different adoption patterns because the relationship between the
+# audience and the lab experience is different.
+#
+# Software companies: voluntary — users choose to train and certify.
+# Industry Authorities: intentional — candidates pursue a credential.
+# Academic: required — coursework is assigned, not optional.
+#
+# This table documents the expected adoption rate adjustments by org
+# type. The researcher should use these as guidance when estimating
+# audience sizes — the adoption rate in the ACV calculator is applied
+# to the audience number the researcher provides, so if the researcher
+# gives us the RIGHT audience, the default adoption rates work.
+# The key is: the researcher must give the right AUDIENCE for each
+# org type, not adjust the rate.
+#
+# | Context           | Motion 1 audience             | Motion 4 audience              | Adoption pattern              |
+# |-------------------|-------------------------------|--------------------------------|-------------------------------|
+# | Software company  | Product users worldwide       | Annual exam sitters (~2% of    | Voluntary — low adoption      |
+# |                   |                               | training population)           |                               |
+# | Industry Authority| Training candidates per year  | Annual exam sitters (~10% of   | Intentional — moderate        |
+# |                   | (people interested in cert)   | training population)           | adoption                      |
+# | Academic          | Students enrolled in tech     | Students taking exams (~95%    | Required — near-100%          |
+# |                   | programs this year            | of enrolled, it's coursework)  | adoption                      |
+# | GSI               | Consultants in practice area  | Practice-specific cert sitters | Varies by practice            |
+# | ILT Training Org  | Students per year in classes  | N/A (they deliver, not certify)| High — every student labs      |
+#
+# The critical insight: for Industry Authorities, the cert_annual_sit_rate
+# must be the ACTUAL annual exam volume (people who literally sit the exam),
+# NOT the training candidate population. The training population goes in
+# install_base (Motion 1). These are very different numbers — ~250K people
+# may be interested in CEH, ~50K take training, ~5K sit the exam.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3134,7 +3180,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-5b-pristine-cleanup"
+SCORING_LOGIC_VERSION = "2026-04-12.pillar-rebalance-50-20-30"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
@@ -3210,8 +3256,8 @@ DEEP_DIVE_MAX_NEW_PRODUCTS = 4
 # tier is added to DISCOVERY_TIER_LABELS, its CSS class lives next to it
 # rather than buried in a hardcoded dict in the route file.
 TIER_CSS_CLASSES = {
-    "seems_promising": "t-sp",
-    "likely": "t-l",
+    "promising": "t-pr",
+    "potential": "t-po",
     "uncertain": "t-u",
     "unlikely": "t-ul",
 }
@@ -3234,7 +3280,7 @@ DEPLOYMENT_MODEL_BADGE_CLASSES = {
 # Why-What-How explanations for each Pillar and the ACV by Use Case widget.
 # Surfaces in the dossier when the user clicks the (?) icon. Lives here in
 # scoring_config rather than in the template JavaScript so:
-#   1. Pillar weight references (40%, 30%, 30%) are computed dynamically
+#   1. Pillar weight references (50%, 20%, 30%) are computed dynamically
 #      from PILLARS instead of hardcoded — they can never drift if you
 #      change a pillar weight in this file.
 #   2. Prospector and Designer can render the same explanations from the
@@ -3245,89 +3291,383 @@ DEPLOYMENT_MODEL_BADGE_CLASSES = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _build_modal_content() -> dict:
-    """Build the dossier info modal content from current pillar weights.
+    """Build all info modal content from current pillar/dimension config.
 
-    Eyebrow strings reference PILLARS dynamically so the weight numbers
-    in the user-facing explanations can never drift from the actual config.
+    WHY → WHAT → HOW at every level. In-modal navigation via dimension
+    links inside pillar modals. Eyebrow strings reference PILLARS
+    dynamically so weight numbers never drift from config.
+
+    Content hierarchy mirrors the scoring framework:
+      Hero metrics (Fit Score, ACV Potential, Verdict)
+        → Pillars (3)
+          → Dimensions (4 per pillar = 12)
+        → Seller Briefcase (3 sections)
+        → Labability Tiers (discovery)
     """
     pl = next(p for p in PILLARS if p.name == "Product Labability")
     iv = next(p for p in PILLARS if p.name == "Instructional Value")
     cf = next(p for p in PILLARS if p.name == "Customer Fit")
 
-    return {
-        "product_labability": {
-            "eyebrow": f"PILLAR · GATEKEEPER · {pl.weight}% OF FIT SCORE",
-            "title": pl.name,
-            "sections": [
-                {
-                    "label": "Why this matters",
-                    "body": "Product Labability answers the most fundamental question: <strong>can we actually build a hands-on lab for this product?</strong> If we can't provision it, give every learner an isolated environment, automatically score what they do, and tear it down between sessions, no amount of instructional value or customer demand changes that. <em>Product Labability is the gatekeeper</em> — it caps the entire Fit Score. A perfect 100 here lets the other pillars contribute fully; a low score here means the deal can't work no matter how much the customer loves training.",
-                },
-                {
-                    "label": "What we measure",
-                    "body": "<strong>Provisioning</strong> — can we deploy the product in our infrastructure (Hyper-V, ESX, Docker, Cloud Slice, BYOC)? <strong>Lab Access</strong> — can each learner get an isolated environment without sharing credentials or stepping on each other? <strong>Scoring</strong> — can we automatically validate learner work via API, CLI, PowerShell, Resource Graph, or AI Vision? <strong>Teardown</strong> — can we cleanly reset between learner sessions without orphaned data or accounts?",
-                },
-                {
-                    "label": "How we score it",
-                    "body": "Each dimension earns points from positive badges (REST API, Docker image, marketplace listing, NFR program, sandbox tenant API) and loses points from negative ones. <strong>Ceiling flags</strong> hard-cap the pillar regardless of other badges. The pillar score is then used as the floor for the overall Fit Score — a great Instructional Value or Customer Fit can pull the total <em>up</em> a little, but never below the Product Labability score.",
-                },
-            ],
-        },
-        "instructional_value": {
-            "eyebrow": f"PILLAR · {iv.weight}% OF FIT SCORE",
-            "title": iv.name,
-            "sections": [
-                {
-                    "label": "Why this matters",
-                    "body": "A product can be perfectly labable and still be a bad lab investment. Instructional Value asks: <strong>is there enough depth here that hands-on practice is the best way to learn it?</strong> Shallow workflows, trivial configurations, and \"click these three buttons\" UIs don't justify the cost of building and maintaining labs. The best lab products are the ones where reading the docs leaves you stuck and only practice gets you over the hump.",
-                },
-                {
-                    "label": "What we measure",
-                    "body": "<strong>Product Complexity</strong> — depth of features, configuration surface area, role diversity, AI capabilities that require iterative practice. <strong>Mastery Stakes</strong> — what's the cost of doing it wrong in production? Security breaches, compliance failures, financial loss, customer impact. <strong>Lab Versatility</strong> — how many distinct lab scenarios does the product support across difficulty levels and personas? <strong>Market Demand</strong> — are people actively looking for training? Certifications, partner training, search volume, course catalogs.",
-                },
-                {
-                    "label": "How we score it",
-                    "body": "We weight evidence of <strong>depth over breadth</strong> — a product with five distinct admin workflows scores higher than one with twenty trivial features. AI features get an extra lift because hands-on practice is the only way to build fluency. Mastery Stakes scores higher when failures have visible blast radius (security, compliance, money). Market Demand draws from documented certification programs, ATP partners, and existing training catalogs. Instructional Value contributes to Fit Score through the <em>Technical Fit Multiplier</em> — its impact is scaled by how labable the product actually is.",
-                },
-            ],
-        },
-        "customer_fit": {
-            "eyebrow": f"PILLAR · {cf.weight}% OF FIT SCORE",
-            "title": cf.name,
-            "sections": [
-                {
-                    "label": "Why this matters",
-                    "body": "A product can be labable AND have huge instructional value, but if the company doesn't sell training, doesn't have a partner channel, and doesn't talk to learners, the deal economics don't work. Customer Fit asks: <strong>is this organization actually a likely Skillable customer?</strong> The pillar is about the company, not the product — it captures the organizational signals that turn a good product fit into a closeable deal.",
-                },
-                {
-                    "label": "What we measure",
-                    "body": "<strong>Training Commitment</strong> — has the company invested in training? Certifications, ATP programs, learning partners, on-demand catalogs. <strong>Build Capacity</strong> — can they actually create the labs themselves, or do they need help? <strong>Delivery Capacity</strong> — partner networks, resellers, system integrators, training delivery partners — these multiply our reach. <strong>Organizational DNA</strong> — are they the kind of company that partners and builds training programs, or do they keep everything in-house?",
-                },
-                {
-                    "label": "How we score it",
-                    "body": "We look for <em>concrete</em> training signals — a published certification, a named ATP program, an on-demand training catalog, partner delivery networks. Stated intent without execution scores low. We weight existing training infrastructure heavily because it means the company already understands the value of training and has the org muscle to buy it. Like Instructional Value, Customer Fit contributes through the Technical Fit Multiplier — the strongest training story in the world doesn't close a deal if the underlying product can't actually be lab-delivered.",
-                },
-            ],
-        },
-        "acv_use_case": {
-            "eyebrow": "WIDGET · DEAL STORY BY MOTION",
-            "title": "ACV by Use Case",
-            "sections": [
-                {
-                    "label": "Why this matters",
-                    "body": "A single ACV range hides the real story. <strong>Where does the deal actually live?</strong> Is it driven by partner channel training? Annual conference events? Certification PBT? Internal employee enablement? The use cases that make up the total are not interchangeable — sellers need to know which motion to talk to the customer about first, which one is the volume driver, and which one is the long-tail upside. This widget gives you that breakdown at a glance.",
-                },
-                {
-                    "label": "What we measure",
-                    "body": "For each use case (motion) we capture: <strong>Audience</strong> — the realistic population of learners who could consume labs through this motion. <strong>Adoption %</strong> — the percentage of that audience we expect to actually engage in any given year. <strong>Hours per Learner</strong> — how many hands-on hours one engaged learner consumes. <em>Estimated Hours / Year</em> per row is the product: <em>Audience × Adoption × Hours</em>. The total row sums every motion and converts to a dollar range using the platform's realized rate.",
-                },
-                {
-                    "label": "How we score it",
-                    "body": "Each motion is sized from concrete signals discovered during research — partner program size, conference attendance, certification volume, employee count, customer base. Conservative on the low end, ambitious on the high end. <em>Adoption percentages reflect realistic engagement</em>, not theoretical reach — we don't assume every employee in a 100,000-person company is a target lab learner. The total row should match the ACV Potential range shown in the hero. If a row looks wrong, the underlying audience or adoption assumption needs adjustment, not the widget itself.",
-                },
-            ],
-        },
+    # Helper: scroll-to link for in-modal dimension navigation
+    def _dim_scroll(anchor_id: str, label: str) -> str:
+        return f'<a href="javascript:scrollToModalSection(\'{anchor_id}\')" class="info-modal-dim-link">{label}</a>'
+
+    # Helper: dimension nav list with scroll-to links (stays within the same modal)
+    def _dim_nav(dims: list[tuple[str, str, int]]) -> str:
+        items = [f'<li>{_dim_scroll(k, n)} <span class="info-modal-dim-weight">({w} pts)</span></li>' for k, n, w in dims]
+        return '<ul class="info-modal-dim-nav">' + ''.join(items) + '</ul>'
+
+    # Helper: back-to-top link after each dimension section
+    _back_top = '<a href="javascript:document.querySelector(\'.info-modal\').scrollTop=0" class="info-modal-back-top">↑ Back to top</a>'
+
+    # ── Pillar 1 dimensions ──
+    p1_dims = [
+        ("dim_provisioning", "Provisioning", 35),  # magic-allowed: dimension weight display
+        ("dim_lab_access", "Lab Access", 25),  # magic-allowed: dimension weight display
+        ("dim_scoring", "Scoring", 15),  # magic-allowed: dimension weight display
+        ("dim_teardown", "Teardown", 25),  # magic-allowed: dimension weight display
+    ]
+    # ── Pillar 2 dimensions ──
+    p2_dims = [
+        ("dim_product_complexity", "Product Complexity", 40),  # magic-allowed: dimension weight display
+        ("dim_mastery_stakes", "Mastery Stakes", 25),  # magic-allowed: dimension weight display
+        ("dim_lab_versatility", "Lab Versatility", 15),  # magic-allowed: dimension weight display
+        ("dim_market_demand", "Market Demand", 20),  # magic-allowed: dimension weight display
+    ]
+    # ── Pillar 3 dimensions ──
+    p3_dims = [
+        ("dim_training_commitment", "Training Commitment", 25),  # magic-allowed: dimension weight display
+        ("dim_build_capacity", "Build Capacity", 20),  # magic-allowed: dimension weight display
+        ("dim_delivery_capacity", "Delivery Capacity", 30),  # magic-allowed: dimension weight display
+        ("dim_organizational_dna", "Organizational DNA", 25),  # magic-allowed: dimension weight display
+    ]
+
+    content = {}
+
+    # ═══════════════════════════════════════════════════════════════════
+    # HERO METRICS
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["fit_score"] = {
+        "eyebrow": "HERO METRIC · COMPOSITE SCORE",
+        "title": "Fit Score",
+        "sections": [
+            {"label": "Why", "body": "Sellers and executives ask one question about every opportunity: <strong>should we pursue this?</strong> The Fit Score answers it with a single number (0–100) grounded in evidence — not gut feel, not company size, not industry hype. A high Fit Score means Skillable can deliver real lab value for this product at this company. A low one means the path isn't there today."},
+            {"label": "What", "body": f"The Fit Score is a weighted composite of three Pillars:"
+                f'<table class="info-modal-table"><thead><tr><th>Pillar</th><th>Weight</th><th>Level</th><th>Question</th></tr></thead><tbody>'
+                f'<tr><td><a href="javascript:openInfoModal(\'product_labability\')" class="info-modal-dim-link">Product Labability</a></td><td><strong>{pl.weight}%</strong></td><td>Product</td><td>Can we build a lab for this product?</td></tr>'
+                f'<tr><td><a href="javascript:openInfoModal(\'instructional_value\')" class="info-modal-dim-link">Instructional Value</a></td><td><strong>{iv.weight}%</strong></td><td>Product</td><td>Does this product warrant hands-on training?</td></tr>'
+                f'<tr><td><a href="javascript:openInfoModal(\'customer_fit\')" class="info-modal-dim-link">Customer Fit</a></td><td><strong>{cf.weight}%</strong></td><td>Organization</td><td>Is this organization a good match for Skillable?</td></tr>'
+                f'</tbody></table>'
+                f"{pl.weight + iv.weight}% of the score is about the product (Product Labability + Instructional Value). {cf.weight}% is about the organization. The product is the hard constraint — a great customer with an unlabable product is not a Skillable opportunity."
+            },
+            {"label": "How", "body": "Each Pillar scores out of 100 internally, then gets weighted. The <em>Technical Fit Multiplier</em> enforces an asymmetric rule:"
+                '<table class="info-modal-table"><thead><tr><th>Product Labability Score</th><th>Multiplier on IV + CF</th><th>Effect</th></tr></thead><tbody>'
+                '<tr><td>≥ 32</td><td>1.0</td><td>Full contribution — strong product, no drag</td></tr>'
+                '<tr><td>24–31 (datacenter)</td><td>1.0</td><td>Datacenter products get full credit in this range</td></tr>'
+                '<tr><td>19–31 (non-datacenter)</td><td>0.75</td><td>Moderate drag — IV + CF reduced by 25%</td></tr>'
+                '<tr><td>10–18</td><td>0.65</td><td>Significant drag — weak labability hurts the deal</td></tr>'
+                '<tr><td>0–9</td><td>0.50</td><td>Heavy drag — half of IV + CF contribution lost</td></tr>'
+                '</tbody></table>'
+                "Weak PL drags IV + CF down. Weak IV or CF does NOT drag PL down. A perfectly labable product with weak organizational signals is still a viable deal; a perfectly committed customer with an unlabable product is not."
+            },
+        ],
     }
+
+    content["acv_potential"] = {
+        "eyebrow": "HERO METRIC · DEAL SIZE",
+        "title": "ACV Potential",
+        "sections": [
+            {"label": "Why", "body": "<strong>How big is this if we win?</strong> The Fit Score tells you whether to pursue. ACV Potential tells you how much the pursuit is worth. A product with a high Fit Score and low ACV is a real opportunity but a small one. A product with high ACV and low Fit Score is big but blocked. The seller needs both numbers to prioritize."},
+            {"label": "What", "body": "ACV Potential is the estimated annual contract value if the customer standardized on Skillable across all training motions for the product. It's built from five consumption motions: Customer Training, Partner Training, Employee Training, Certification, and Events. Each motion has an audience (the people), an adoption rate (what percentage engage), and lab hours per learner. The bottom line is always <strong>lab hours consumed</strong>."},
+            {"label": "How", "body": "Audience × Adoption × Hours = Annual Lab Hours. Annual Lab Hours × Rate = ACV."
+                '<table class="info-modal-table"><thead><tr><th>Delivery Path</th><th>Rate</th><th>When it applies</th></tr></thead><tbody>'
+                '<tr><td>Cloud Labs</td><td>~$6/hr</td><td>Azure-native, AWS-native, or Sandbox API products</td></tr>'
+                '<tr><td>Small VM / Container / Simulation</td><td>~$9/hr</td><td>Single VM, container-native, or simulation</td></tr>'
+                '<tr><td>Typical VM</td><td>~$14/hr</td><td>1–3 VMs, standard footprint</td></tr>'
+                '<tr><td>Large / Complex VM</td><td>~$45/hr</td><td>Multi-VM labs, complex topology, networking</td></tr>'
+                '</tbody></table>'
+                "Every input is a single estimated number, not a range. The rate is determined once during Product Labability scoring — the ACV calculation looks it up, never redefines it. Better to be approximately right than precisely uncertain."
+            },
+        ],
+    }
+
+    content["verdict"] = {
+        "eyebrow": "HERO METRIC · ACTION LABEL",
+        "title": "Verdict",
+        "sections": [
+            {"label": "Why", "body": "\"Score = 74\" doesn't tell a seller what to <em>do</em>. The verdict combines the Fit Score and ACV Potential into an action label — <strong>Prime Target</strong>, <strong>Worth Pursuing</strong>, <strong>Keep Watch</strong>, <strong>Poor Fit</strong> — so the seller can prioritize without interpreting the numbers."},
+            {"label": "What", "body": "Ten verdict labels on a grid. Fit Score determines the row. ACV tier determines the column. The intersection is the verdict."
+                '<table class="info-modal-table"><thead><tr><th>Score</th><th>High ACV</th><th>Medium ACV</th><th>Low ACV</th></tr></thead><tbody>'
+                '<tr><td><strong>≥ 80</strong></td><td>Prime Target</td><td>Strong Prospect</td><td>Good Fit</td></tr>'
+                '<tr><td><strong>65–79</strong></td><td>High Potential</td><td>Worth Pursuing</td><td>Solid Prospect</td></tr>'
+                '<tr><td><strong>45–64</strong></td><td>High Potential</td><td>Worth Pursuing</td><td>Solid Prospect</td></tr>'
+                '<tr><td><strong>25–44</strong></td><td>Assess First</td><td>Keep Watch</td><td>Deprioritize</td></tr>'
+                '<tr><td><strong>&lt; 25</strong></td><td>Keep Watch</td><td>Poor Fit</td><td>Poor Fit</td></tr>'
+                '</tbody></table>'
+            },
+            {"label": "How", "body": "The verdict is computed deterministically from Fit Score + ACV tier — no AI judgment. It updates automatically when the Fit Score or ACV changes. <strong>Prime Target</strong> = best possible combination, build a strategy. <strong>Poor Fit</strong> = products don't align, be honest about it."},
+        ],
+    }
+
+    # ═══════════════════════════════════════════════════════════════════
+    # PILLAR 1 — PRODUCT LABABILITY
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["product_labability"] = {
+        "eyebrow": f"PILLAR · GATEKEEPER · {pl.weight}% OF FIT SCORE",
+        "title": pl.name,
+        "sections": [
+            {"label": "Why", "body": "<strong>Can we actually build a hands-on lab for this product?</strong> If Skillable cannot provision it, give every learner an isolated environment, automatically score what they do, and tear it down between sessions, nothing else matters. Product Labability is the gatekeeper — it carries the heaviest weight in the Fit Score because the product truth is the hard constraint."},
+            {"label": "What", "body": "Four dimensions, each answering one step of the lab lifecycle:" + _dim_nav(p1_dims)},
+            {"label": "How", "body":
+                "Product Labability uses the <strong>canonical scoring model</strong> — fixed badge vocabulary, deterministic point lookup, color-aware credit (green = full points, amber = half, red = penalty). Zero AI in the scoring math."
+                '<table class="info-modal-table"><thead><tr><th>Color</th><th>Meaning</th><th>Credit</th></tr></thead><tbody>'
+                '<tr><td><strong>Green</strong></td><td>Works — confident, no action needed</td><td>Full points</td></tr>'
+                '<tr><td><strong>Amber</strong></td><td>Uneasy — needs SE validation</td><td>Half points</td></tr>'
+                '<tr><td><strong>Red</strong></td><td>Blocked — this specific thing is unavailable</td><td>Penalty</td></tr>'
+                '<tr><td><strong>Gray</strong></td><td>Context — informational, no scoring impact</td><td>0 points</td></tr>'
+                '</tbody></table>'
+                "Risk cap reduction: each amber risk badge shaves -3 from the dimension cap. Each red blocker shaves -8. Caps never go below the dimension floor."
+            },
+            # ── Embedded dimension sections ──
+            {"id": "dim_provisioning", "label": "Provisioning", "subtitle": "DIMENSION · 35 / 100 POINTS", "body":
+                "<strong>How do we get this product into Skillable?</strong> The scorer walks a priority order of deployment fabrics and picks the FIRST viable path."
+                '<table class="info-modal-table"><thead><tr><th>Priority</th><th>Path</th><th>Badge</th><th>Green Credit</th></tr></thead><tbody>'
+                '<tr><td>1</td><td>M365 Tenant / Admin</td><td>M365 Tenant / M365 Admin</td><td>+25 / +18</td></tr>'
+                '<tr><td>2</td><td>VM fabric</td><td>Runs in VM / Runs in Container / ESX Required</td><td>+30 / +30 / +26</td></tr>'
+                '<tr><td>3</td><td>Cloud Slice</td><td>Runs in Azure / Runs in AWS</td><td>+30</td></tr>'
+                '<tr><td>4</td><td>Sandbox API (BYOC)</td><td>Sandbox API</td><td>+22</td></tr>'
+                '<tr><td>5</td><td>Simulation</td><td>Simulation (gray)</td><td>Hard override: PL = 42</td></tr>'
+                '</tbody></table>'
+                "Penalties: GPU Required (-5), Socket Licensing (-2). Multi-fabric optionality: +3 per extra fabric, capped at +6." + _back_top
+            },
+            {"id": "dim_lab_access", "label": "Lab Access", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
+                "<strong>Can each learner get an isolated environment with their own identity?</strong>"
+                '<table class="info-modal-table"><thead><tr><th>Badge</th><th>Green Credit</th><th>Notes</th></tr></thead><tbody>'
+                '<tr><td>Full Lifecycle API</td><td>+23</td><td>Complete user provisioning API</td></tr>'
+                '<tr><td>Entra ID SSO</td><td>+20</td><td>Azure-native only — zero credential management</td></tr>'
+                '<tr><td>Identity API</td><td>+19</td><td>Create users and assign roles per learner</td></tr>'
+                '<tr><td>Cred Recycling</td><td>+18</td><td>Self-sustaining credential pool</td></tr>'
+                '<tr><td>Credential Pool / Training License</td><td>+16</td><td>Training License defaults to amber</td></tr>'
+                '<tr><td>Manual SSO</td><td>+12</td><td>Azure SSO with manual learner login</td></tr>'
+                '</tbody></table>'
+                "Penalties: MFA Required (-10), Rate Limits (-5), Anti-Automation Controls (-5). Training License defaults to amber — real SE conversations happen around almost every licensing arrangement." + _back_top
+            },
+            {"id": "dim_scoring", "label": "Scoring", "subtitle": "DIMENSION · 15 / 100 POINTS", "body":
+                "<strong>Can Skillable assess what the learner actually did?</strong> Full marks require more than one viable assessment path."
+                '<table class="info-modal-table"><thead><tr><th>Methods Present</th><th>Cap</th></tr></thead><tbody>'
+                '<tr><td>AI Vision + Script Scoring (Grand Slam, VM)</td><td><strong>15</strong></td></tr>'
+                '<tr><td>AI Vision + Scoring API (Grand Slam, cloud)</td><td><strong>15</strong></td></tr>'
+                '<tr><td>Script Scoring alone</td><td><strong>15</strong> (VM — anything goes with shell access)</td></tr>'
+                '<tr><td>Scoring API alone</td><td>12</td></tr>'
+                '<tr><td>AI Vision alone</td><td>10</td></tr>'
+                '<tr><td>Nothing (only MCQ or zero methods)</td><td>0</td></tr>'
+                '</tbody></table>'
+                "AI Vision is a peer to API/Script, not a fallback. GUI-driven products where state is visually evident. A real Skillable differentiator." + _back_top
+            },
+            {"id": "dim_teardown", "label": "Teardown", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
+                "<strong>Can we clean it up when it's over?</strong>"
+                '<table class="info-modal-table"><thead><tr><th>Badge</th><th>Green Credit</th><th>Notes</th></tr></thead><tbody>'
+                '<tr><td>Datacenter</td><td>+25 (full marks)</td><td>VM/ESX/Container — automatic teardown</td></tr>'
+                '<tr><td>Teardown API</td><td>+22</td><td>Vendor API covers cleanup</td></tr>'
+                '<tr><td>Simulation Reset</td><td>0 (display only)</td><td>Nothing to tear down — no credit for work that isn\'t real</td></tr>'
+                '</tbody></table>'
+                "Penalties: Manual Teardown (-10 red), Orphan Risk (-5 amber). Orphan Risk can fire alongside Teardown API when there are gaps." + _back_top
+            },
+        ],
+    }
+
+    # ═══════════════════════════════════════════════════════════════════
+    # PILLAR 2 — INSTRUCTIONAL VALUE
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["instructional_value"] = {
+        "eyebrow": f"PILLAR · {iv.weight}% OF FIT SCORE",
+        "title": iv.name,
+        "sections": [
+            {"label": "Why", "body": "Product Labability tells us <em>can</em> we lab this product. Instructional Value tells us <strong>should</strong> we — does this product genuinely warrant hands-on lab experiences, or is it a read-the-manual product? Combined with Product Labability, Instructional Value makes up 70% of the Fit Score."},
+            {"label": "What", "body": "Four dimensions:" + _dim_nav(p2_dims)},
+            {"label": "How", "body":
+                "Instructional Value uses the <strong>rubric scoring model</strong> — category-aware baselines, AI-synthesized variable badge names, strength tiers (strong +6, moderate +3, informational 0). The posture is <em>default-positive</em>: most real software has instructional value for the right audience."
+                '<table class="info-modal-table"><thead><tr><th>Strength Tier</th><th>Points (typical)</th><th>What it means</th></tr></thead><tbody>'
+                '<tr><td><strong>Strong</strong></td><td>+5 to +9</td><td>Clear, compelling evidence</td></tr>'
+                '<tr><td><strong>Moderate</strong></td><td>+3</td><td>Present but not dominant</td></tr>'
+                '<tr><td><strong>Weak</strong></td><td>Don\'t emit</td><td>Too thin to carry a badge</td></tr>'
+                '<tr><td><strong>Informational</strong></td><td>0</td><td>Context only — gray badge</td></tr>'
+                '</tbody></table>'
+                "Contributes to the Fit Score through the Technical Fit Multiplier — scaled by how labable the product actually is."
+            },
+            # ── Embedded dimension sections ──
+            {"id": "dim_product_complexity", "label": "Product Complexity", "subtitle": "DIMENSION · 40 / 100 POINTS · HEAVIEST IN PILLAR 2", "body":
+                "<strong>Is this product hard enough that someone needs hands-on practice?</strong> Not abstract difficulty — whether hands-on repetition is the difference between someone who can use it and someone who can't."
+                '<table class="info-modal-table"><thead><tr><th>Category</th><th>Baseline</th></tr></thead><tbody>'
+                '<tr><td>Cybersecurity, Cloud Infra, Networking, Data Science, DevOps, AI Platforms</td><td>32 / 40 (80%)</td></tr>'
+                '<tr><td>ERP, CRM, Healthcare IT, FinTech, Legal Tech, App Dev</td><td>28 / 40 (70%)</td></tr>'
+                '<tr><td>Collaboration, Content Management</td><td>24 / 40 (60%)</td></tr>'
+                '<tr><td>Social / Entertainment</td><td>4 / 40 (10%)</td></tr>'
+                '</tbody></table>'
+                "Positive signals: multi_vm_architecture, deep_configuration, multi_phase_workflow, role_diversity, troubleshooting_depth, complex_networking, integration_complexity, ai_practice_required. Strong = +6, Moderate = +3." + _back_top
+            },
+            {"id": "dim_mastery_stakes", "label": "Mastery Stakes", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
+                "<strong>What are the consequences of getting it wrong?</strong> Breach, data loss, compliance failure, malpractice, downtime. High stakes = they MUST be competent before production."
+                '<table class="info-modal-table"><thead><tr><th>Category</th><th>Baseline</th></tr></thead><tbody>'
+                '<tr><td>Cybersecurity, Healthcare IT, FinTech, Legal Tech, AI Platforms</td><td>22 / 25 (88%)</td></tr>'
+                '<tr><td>ERP, Data Protection, Industrial/OT, Cloud Infra, DevOps</td><td>20 / 25 (80%)</td></tr>'
+                '<tr><td>CRM, Collaboration</td><td>16 / 25 (64%)</td></tr>'
+                '<tr><td>Social / Entertainment</td><td>2 / 25 (8%)</td></tr>'
+                '</tbody></table>'
+                "Strong tier credit = <strong>+9</strong> (higher than Product Complexity's +6) because a single high-stakes finding carries more weight." + _back_top
+            },
+            {"id": "dim_lab_versatility", "label": "Lab Versatility", "subtitle": "DIMENSION · 15 / 100 POINTS", "body":
+                "<strong>What kinds of high-value hands-on experiences could we build?</strong> The bridge from Inspector to Designer."
+                '<table class="info-modal-table"><thead><tr><th>Lab Types (from the Lab Type Menu)</th></tr></thead><tbody>'
+                '<tr><td>Red vs Blue · Simulated Attack · Incident Response · Break/Fix · Team Handoff · Bug Bounty · Cyber Range · Performance Tuning · Migration Lab · Architecture Challenge · Compliance Audit · Disaster Recovery · CTF</td></tr>'
+                '</tbody></table>'
+                "Cybersecurity, Cloud Infra, Networking = 14/15 (93%). Data Science = 13/15. ERP, Healthcare = 12/15. Social = 1/15. Strong = +5, Moderate = +3." + _back_top
+            },
+            {"id": "dim_market_demand", "label": "Market Demand", "subtitle": "DIMENSION · 20 / 100 POINTS", "body":
+                "<strong>How big is the worldwide population of people who need to learn this product?</strong> The legitimacy check."
+                '<table class="info-modal-table"><thead><tr><th>Category</th><th>Baseline</th></tr></thead><tbody>'
+                '<tr><td>Cybersecurity, Cloud Infra, AI Platforms</td><td>14 / 20 (70%)</td></tr>'
+                '<tr><td>Networking, DevOps</td><td>13 / 20 (65%)</td></tr>'
+                '<tr><td>Data Science</td><td>12 / 20 (60%)</td></tr>'
+                '<tr><td>CRM, Collaboration, Content Management</td><td>8 / 20 (40%)</td></tr>'
+                '<tr><td>Social / Entertainment</td><td>0 / 20 (0%)</td></tr>'
+                '</tbody></table>'
+                "Signals: install base scale, cert ecosystem, independent training market (Coursera/Pluralsight/LinkedIn Learning counts), competitor labs. Important: user population is NOT training population — 2 billion casual users with 200 admins = small Market Demand. Strong = +5, Moderate = +3." + _back_top
+            },
+        ],
+    }
+
+    # ═══════════════════════════════════════════════════════════════════
+    # PILLAR 3 — CUSTOMER FIT
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["customer_fit"] = {
+        "eyebrow": f"PILLAR · {cf.weight}% OF FIT SCORE",
+        "title": cf.name,
+        "sections": [
+            {"label": "Why", "body": "Even the most labable product with the highest instructional value goes nowhere if the customer isn't a training buyer. <strong>Is this organization actually the kind of place Skillable can help?</strong> Customer Fit measures the organization, not the product — every product from the same company gets the same Customer Fit reading."},
+            {"label": "What", "body": "Four dimensions, in the order a seller naturally thinks about a customer's training maturity:" + _dim_nav(p3_dims)},
+            {"label": "How", "body":
+                "Customer Fit uses the <strong>rubric scoring model</strong> with organization-type baselines (not product category baselines like Pillar 2)."
+                '<table class="info-modal-table"><thead><tr><th>Organization Type</th><th>Typical Baseline Range</th></tr></thead><tbody>'
+                '<tr><td>Training Org / Industry Authority</td><td>80–92%</td></tr>'
+                '<tr><td>Enterprise Software / Professional Services</td><td>64–72%</td></tr>'
+                '<tr><td>Software (category-specific)</td><td>50–64%</td></tr>'
+                '<tr><td>LMS Provider / Tech Distributor</td><td>36–45%</td></tr>'
+                '</tbody></table>'
+                "Like Instructional Value, Customer Fit contributes through the Technical Fit Multiplier — the strongest training story doesn't close a deal if the product can't be lab-delivered."
+            },
+            # ── Embedded dimension sections ──
+            {"id": "dim_training_commitment", "label": "Training Commitment", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
+                "<strong>Does this organization have a heart for teaching?</strong> Philosophical, not operational. Breadth of audiences matters as much as depth."
+                '<table class="info-modal-table"><thead><tr><th>Org Type</th><th>Baseline</th></tr></thead><tbody>'
+                '<tr><td>Training Org</td><td>23 / 25 (92%)</td></tr>'
+                '<tr><td>Academic / Content Development</td><td>22 / 25 (88%)</td></tr>'
+                '<tr><td>Enterprise Software / Professional Services</td><td>18 / 25 (72%)</td></tr>'
+                '<tr><td>Software / Systems Integrator</td><td>16 / 25 (64%)</td></tr>'
+                '<tr><td>Tech Distributor</td><td>9 / 25 (36%)</td></tr>'
+                '</tbody></table>'
+                "Audiences served: employees, customers, partners, end-users at scale. An organization that trains ONE audience is making some commitment. All three = highest level. Strong = +6, Moderate = +3. Penalties: no_customer_training (-4), thin_cert_program (-3)." + _back_top
+            },
+            {"id": "dim_build_capacity", "label": "Build Capacity", "subtitle": "DIMENSION · 20 / 100 POINTS · LOWEST WEIGHT — PROSERV CAN FILL THIS GAP", "body":
+                "<strong>Can they create the labs?</strong> Inward-facing and hard to verify. Cautious baselines — absence of evidence is NOT evidence of absence."
+                '<table class="info-modal-table"><thead><tr><th>Org Type</th><th>Baseline</th></tr></thead><tbody>'
+                '<tr><td>Content Development</td><td>14 / 20 (70%)</td></tr>'
+                '<tr><td>Academic / Training Org / Professional Services</td><td>12 / 20 (60%)</td></tr>'
+                '<tr><td>Systems Integrator / Enterprise Software</td><td>11 / 20 (55%)</td></tr>'
+                '<tr><td>Software / Unknown</td><td>10 / 20 (50%)</td></tr>'
+                '</tbody></table>'
+                "Strongest signal: <strong>DIY Labs</strong> — already building hands-on labs today. CREATE roles, not delivery roles. Cautious penalties only: confirmed_outsourcing (-3), no_authoring_roles_found (-3, requires explicit evidence). Strong = +5, Moderate = +3." + _back_top
+            },
+            {"id": "dim_delivery_capacity", "label": "Delivery Capacity", "subtitle": "DIMENSION · 30 / 100 POINTS · HEAVIEST IN PILLAR 3", "body":
+                "<strong>Can they get labs to learners at scale?</strong> Having labs = cost. Delivering labs = value. Three layers that stack:"
+                '<table class="info-modal-table"><thead><tr><th>Layer</th><th>What it is</th><th>Tier credit</th></tr></thead><tbody>'
+                '<tr><td><strong>1. Vendor-Delivered</strong></td><td>Official ILT, self-paced portal, vendor-run labs</td><td>Base</td></tr>'
+                '<tr><td><strong>2. Third-Party-Delivered</strong></td><td>Independent training market + cert body curricula</td><td>Bonus</td></tr>'
+                '<tr><td><strong>3. Auth-Partner-Delivered</strong></td><td>Formal ATP/ALP program at scale</td><td>Top bonus</td></tr>'
+                '</tbody></table>'
+                "Strong = <strong>+8</strong>, Moderate = +4 (highest tier credits in the framework). Aggressive penalties: no_training_partners (-10 red), no_classroom_delivery (-10 red), no_independent_training_market (-4 amber, cross-pillar with Market Demand)." + _back_top
+            },
+            {"id": "dim_organizational_dna", "label": "Organizational DNA", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
+                "<strong>If Skillable proposes a strategic relationship, will they see it as a partnership or a procurement line item?</strong>"
+                '<table class="info-modal-table"><thead><tr><th>Org Type</th><th>Baseline</th></tr></thead><tbody>'
+                '<tr><td>Training Org / Content Development</td><td>19 / 25 (76%)</td></tr>'
+                '<tr><td>Professional Services / Systems Integrator</td><td>18 / 25 (72%)</td></tr>'
+                '<tr><td>Enterprise Software / Tech Distributor</td><td>17 / 25 (68%)</td></tr>'
+                '<tr><td>Software / LMS Provider</td><td>16 / 25 (64%)</td></tr>'
+                '</tbody></table>'
+                "Positive: many_partnership_types, strategic_asset_partnerships, platform_buyer_behavior, named_alliance_leadership. Penalties: long_rfp_process (-4), build_everything_culture (-4), heavy_procurement (-3), hard_to_engage (-6 red)." + _back_top
+            },
+        ],
+    }
+
+    # ═══════════════════════════════════════════════════════════════════
+    # SELLER BRIEFCASE
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["briefcase_ktq"] = {
+        "eyebrow": "SELLER BRIEFCASE · PRODUCT LABABILITY",
+        "title": "Key Technical Questions",
+        "sections": [
+            {"label": "Why", "body": "The seller needs to know <strong>who to find at the customer, what department, and what specific technical questions unblock the lab build</strong>. These are questions TO ASK — action items for the seller, not evidence about the product."},
+            {"label": "What", "body": "2–3 sharp, specific, answerable questions. Each names the person or department to find and includes a verbatim question the champion can send. The questions target gaps discovered during Product Labability research — licensing clarity, API access, identity provisioning, environment availability."},
+            {"label": "How", "body": "Generated by a focused Claude call (Opus) using the Product Labability fact drawer. The prompt emphasizes: specific, answerable, names a person. Not generic. Not a list of everything we don't know."},
+        ],
+    }
+
+    content["briefcase_conversation"] = {
+        "eyebrow": "SELLER BRIEFCASE · INSTRUCTIONAL VALUE",
+        "title": "Conversation Starters",
+        "sections": [
+            {"label": "Why", "body": "Sellers talking to technical buyers need conversational competence — <strong>they need to understand the product well enough to be credible without being technical</strong>. Conversation Starters make the seller sound prepared, not scripted."},
+            {"label": "What", "body": "2–3 product-specific talking points about why hands-on training matters for THIS product. Market Demand evidence belongs here — \"47,000 Stack Overflow questions\" or \"~14M active users\" is proof the training market exists. This is NOT a Key Technical Question — it's ammunition for the conversation."},
+            {"label": "How", "body": "Generated by a focused Claude call (Haiku) using the Instructional Value fact drawer. Pattern-matched, fast. Product-specific, not boilerplate."},
+        ],
+    }
+
+    content["briefcase_intel"] = {
+        "eyebrow": "SELLER BRIEFCASE · CUSTOMER FIT",
+        "title": "Account Intelligence",
+        "sections": [
+            {"label": "Why", "body": "<strong>Context that shows the seller has done their homework.</strong> When the seller walks into a meeting knowing the customer's training leadership, LMS platform, competitive lab landscape, and recent news, the conversation starts at a higher level."},
+            {"label": "What", "body": "Organizational signals — training leadership (names and titles), org complexity, LMS platform, competitive signals (who else is in the lab space for this customer), recent news. Delivery partner network context: \"CompTIA has ~3,000 ATPs globally, Pearson handles exam delivery.\""},
+            {"label": "How", "body": "Generated by a focused Claude call (Haiku) using the Customer Fit fact drawer and company signals. Surfaces organizational patterns, not product details."},
+        ],
+    }
+
+    # ═══════════════════════════════════════════════════════════════════
+    # ACV USE CASE WIDGET
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["acv_use_case"] = {
+        "eyebrow": "WIDGET · DEAL STORY BY MOTION",
+        "title": "ACV by Use Case",
+        "sections": [
+            {"label": "Why", "body": "A single ACV number hides the real story. <strong>Where does the deal actually live?</strong> Is it driven by partner channel training? Annual conference events? Certification? Internal enablement? The motions that make up the total are not interchangeable — sellers need to know which one to talk about first."},
+            {"label": "What", "body": "Five consumption motions: <strong>Customer Training</strong> (total product users × ~4% × 2 hrs — the big one, includes learners who train through ATPs), <strong>Partner Training</strong> (channel partner employees — GSI/VAR consultants and SEs who sell, deploy, implement × ~15% × 5 hrs), <strong>Employee Training</strong> (the company's own product team, support, SEs × ~30% × 8 hrs — always small), <strong>Certification</strong> (exam candidates × 100% × 1 hr), <strong>Events</strong> (conference attendees × ~30% × 1 hr). Each row: Audience × Adoption × Hours = Annual Lab Hours."},
+            {"label": "How", "body": "Every input is a single estimated number — not a range. The rate comes from the product's delivery path (determined during Pillar 1 scoring). Audiences are concrete research signals: partner program size, conference attendance, certification volume, employee count, install base. The total should match the ACV Potential in the hero section."
+                "<br><br><strong>Adoption varies by org type.</strong> Software companies: voluntary (~4% training adoption). Industry Authorities: intentional (~4% training, but cert exam audience is much smaller than training audience — ~10% of trainees sit the exam). Academic: required (~90%+ adoption — coursework is assigned). The audience numbers in each row reflect these patterns — the adoption rate is applied to the right-sized audience for this organization type."},
+        ],
+    }
+
+    # ═══════════════════════════════════════════════════════════════════
+    # LABABILITY TIERS (DISCOVERY)
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["labability_tiers"] = {
+        "eyebrow": "DISCOVERY · PRE-DEEP DIVE ESTIMATES",
+        "title": "Labability Tiers",
+        "sections": [
+            {"label": "Why", "body": "Before a full Deep Dive, the platform provides a <strong>directional estimate</strong> of how likely each product is to work on Skillable. These tiers help the seller and marketing prioritize which products to investigate further — without overpromising."},
+            {"label": "What", "body": "<strong>Promising</strong> (score ≥ 65) — strong signals, this looks good. <strong>Potential</strong> (score ≥ 45) — something here, needs validation. <strong>Uncertain</strong> (score ≥ 25) — could go either way. <strong>Unlikely</strong> (score < 25) — significant barriers visible. These are pre-Deep Dive estimates, not conclusions."},
+            {"label": "How", "body": "The score is based on deployment model (installable = 65–90, cloud = 50–75, SaaS with API = 30–45, SaaS without API = 10–25), technical depth, market category, and training signals. Thresholds align with the Verdict Grid color bands (Green ≥ 65, Light Amber ≥ 45, Amber ≥ 25, Red < 25) for consistency across the platform."},
+        ],
+    }
+
+    return content
 
 
 MODAL_CONTENT = _build_modal_content()

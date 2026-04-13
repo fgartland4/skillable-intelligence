@@ -154,7 +154,7 @@ def _fit_label(score: int) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Discovery Tier Labels — Seems Promising / Likely / Uncertain / Unlikely
+# Discovery Tier Labels — Promising / Potential / Uncertain / Unlikely
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def discovery_tier(score: int) -> str:
@@ -167,19 +167,21 @@ def discovery_tier(score: int) -> str:
 
     Tier-to-threshold mapping (MED-10 — was previously documented only in
     comments, now expressed as code):
-      seems_promising  →  >= green        (e.g. 65+)
-      likely           →  >= light_amber  (e.g. 45+)
-      uncertain        →  >= amber        (e.g. 25+)
-      unlikely         →  below amber
+      promising   →  >= green        (e.g. 65+)
+      potential   →  >= light_amber  (e.g. 45+)
+      uncertain   →  >= amber        (e.g. 25+)
+      unlikely    →  below amber
+
+    Renamed 2026-04-12: Seems Promising → Promising, Likely → Potential.
     """
     green_threshold = cfg.SCORE_THRESHOLDS["green"]
     amber_threshold = cfg.SCORE_THRESHOLDS["light_amber"]
     red_threshold = cfg.SCORE_THRESHOLDS["amber"]
 
     if score >= green_threshold:
-        return "seems_promising"
+        return "promising"
     elif score >= amber_threshold:
-        return "likely"
+        return "potential"
     elif score >= red_threshold:
         return "uncertain"
     else:
@@ -187,8 +189,8 @@ def discovery_tier(score: int) -> str:
 
 
 DISCOVERY_TIER_LABELS = {
-    "seems_promising": "Seems Promising",
-    "likely": "Likely",
+    "promising": "Promising",
+    "potential": "Potential",
     "uncertain": "Uncertain",
     "unlikely": "Unlikely",
 }
@@ -222,51 +224,79 @@ def score_products_and_sort(analysis: CompanyAnalysis) -> None:
 # Company Classification Badge
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def company_classification_label(org_type: str, products: list[Product]) -> str:
+def company_classification_label(org_type: str, products: list[Product],
+                                  company_badge_hint: str = "") -> str:
     """Generate the company classification badge text.
 
-    Software companies: {CATEGORY} SOFTWARE (or ENTERPRISE SOFTWARE if 3+ categories)
-    All others: mapped from organization type.
+    Badge pattern: [Category] + [Org Type].
+    - Software companies: "{CATEGORY} SOFTWARE" (or "ENTERPRISE SOFTWARE"
+      when 5+ unrelated product categories — earned by breadth).
+    - Non-software org types: mapped from organization type, with category
+      prefix when focused (e.g. "Cybersecurity Industry Authority").
+
+    company_badge_hint: optional badge suggested by the researcher during
+    discovery. Used as the primary source when available — the researcher
+    has context about how the company positions itself. Python derivation
+    serves as fallback when the hint is missing (old cached discoveries).
+
+    Locked 2026-04-12: badge pattern, Enterprise Software threshold (5+),
+    academic badge types, Industry Authority category prefix.
     """
+    # If the researcher provided a badge, trust it — the researcher has
+    # richer context about the company than category-counting can provide.
+    if company_badge_hint:
+        return company_badge_hint
+
+    # Non-software org types — fixed badges
     org_labels = {
-        "training_organization": "TRAINING ORG",
-        "academic_institution": "ACADEMIC",
-        "systems_integrator": "SYSTEMS INTEGRATOR",
-        "technology_distributor": "TECH DISTRIBUTOR",
-        "professional_services": "PROFESSIONAL SERVICES",
-        "content_development": "CONTENT DEVELOPMENT",
-        "lms_company": "LMS PROVIDER",
+        "industry_authority": "Industry Authority",
+        "enterprise_learning_platform": "Enterprise Learning Platform",
+        "ilt_training_organization": "ILT Training Organization",
+        "systems_integrator": "Global Systems Integrator",
+        "var": "Value Added Reseller",
+        "technology_distributor": "Technology Distributor",
+        "professional_services": "Professional Services",
+        "content_development": "Content Development Partner",
+        "lms_company": "LMS / Learning Platform",
+        # Legacy org types — map to closest current badge
+        "training_organization": "Industry Authority",
+        "academic_institution": "Research University",
     }
 
     if org_type in org_labels:
         return org_labels[org_type]
 
-    # Software companies — derive from product categories
+    # Software companies — derive badge from product categories
     if products:
-        # Exclude Training & Certification from category count
         categories = set(p.category for p in products
                         if p.category and p.category != "Training & Certification")
-        if len(categories) >= 3:
-            return "ENTERPRISE SOFTWARE"
+        if len(categories) >= 5:
+            return "Enterprise Software"
         elif len(categories) == 2:
             cats = sorted(categories)
-            return f"{cats[0].upper()} & {cats[1].upper()} SOFTWARE"
+            return f"{cats[0]} & {cats[1]} Software"
         elif len(categories) == 1:
-            return f"{next(iter(categories)).upper()} SOFTWARE"
+            return f"{next(iter(categories))} Software"
 
-    return "SOFTWARE"
+    return "Software"
 
 
 def org_badge_color_group(org_type: str) -> str:
     """Return the color group for an org type badge.
 
     Purple — Product creators (software, enterprise)
-    Teal — Learning-focused (training, academic)
-    Warm blue — Channel/partners (GSI, distributor, services, LMS, content dev)
+    Teal — Learning-focused (training, academic, industry authority,
+            enterprise learning platform, ILT training org)
+    Warm blue — Channel/partners (GSI, VAR, distributor, services,
+                LMS, content dev)
     """
-    learning_focused = {"training_organization", "academic_institution"}
+    learning_focused = {
+        "training_organization", "academic_institution",
+        "industry_authority", "enterprise_learning_platform",
+        "ilt_training_organization",
+    }
     channel_partners = {
-        "systems_integrator", "technology_distributor",
+        "systems_integrator", "technology_distributor", "var",
         "professional_services", "content_development", "lms_company",
     }
 

@@ -5,6 +5,24 @@
 {% set prod_pillar = top.fit_score.product_labability %}
 {% set inst_pillar = top.fit_score.instructional_value %}
 {% set cust_pillar = top.fit_score.customer_fit %}
+{# Dimension ? icons removed 2026-04-12 — dimensions are now embedded
+   in the pillar-level modal with scroll-to navigation. One modal per
+   pillar, scrollable, with tables. See scoring_config.MODAL_CONTENT.
+   The dim_keys map is kept but unused — render_dimension gets no info_key. #}
+{% set dim_keys = {
+  'Provisioning': 'dim_provisioning',
+  'Lab Access': 'dim_lab_access',
+  'Scoring': 'dim_scoring',
+  'Teardown': 'dim_teardown',
+  'Product Complexity': 'dim_product_complexity',
+  'Mastery Stakes': 'dim_mastery_stakes',
+  'Lab Versatility': 'dim_lab_versatility',
+  'Market Demand': 'dim_market_demand',
+  'Training Commitment': 'dim_training_commitment',
+  'Build Capacity': 'dim_build_capacity',
+  'Delivery Capacity': 'dim_delivery_capacity',
+  'Organizational DNA': 'dim_organizational_dna',
+} %}
 
 <div class="section-row">
   <div style="flex: 7;"><span class="section-label">Product · <strong>{{ (prod_pillar.weight or 0) + (inst_pillar.weight or 0) }}%</strong> of Fit Score</span></div>

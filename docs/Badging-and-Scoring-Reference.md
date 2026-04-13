@@ -33,7 +33,7 @@ Pillars 1, 2, and 3 use this same structure. Find your bearings in one, and you 
 
 ```
 Fit Score (0–100)
-  └─ Pillar (three of them, weighted 40 / 30 / 30)
+  └─ Pillar (three of them, weighted 50 / 20 / 30)
        └─ Dimension (four per Pillar, weights sum to 100 within a Pillar)
             └─ Signal or graded finding (facts extracted by the researcher)
                  └─ Badge (the 2–4 display items per dimension that tell the story)
@@ -47,7 +47,7 @@ The Fit Score, 70/30 split, pillar weights, and verdict grid are defined in `Pla
 |---|---|---|---|
 | **1 — Product Labability** | **Canonical** — fixed badge vocabulary, deterministic scoring signal lookup from `scoring_config.py`, color-aware credit (green = full, amber = half, red = color fallback) | **Per-product** — each product has its own Pillar 1 reading because each product has its own technical fabric | Technical fact-finding. Hyper-V either supports the install or it doesn't. APIs exist or they don't. **Concrete and binary.** |
 | **2 — Instructional Value** | **Rubric** — AI-synthesized variable badge names, strength tiers (strong / moderate / weak / informational), category-aware baselines, per-dimension signal_category tags | **Per-product** — product complexity, mastery stakes, lab versatility, and market demand are all properties of THIS product | Domain-specific judgment. Cybersecurity, legal, healthcare, banking are genuinely different. **Subjective and contextual.** |
-| **3 — Customer Fit** | **Rubric** — same architecture as Pillar 2 with organization-type baselines | **Per-COMPANY** — Customer Fit measures the ORGANIZATION, not the product. Every product from the same company gets the same Pillar 3 reading | Organizational pattern recognition. Training maturity, build capacity, delivery channels, partner culture — properties of the COMPANY, not any single product. |
+| **3 — Customer Fit** | **Rubric** — same architecture as Pillar 2 with organization-type baselines | **Per-COMPANY** — Customer Fit measures the ORGANIZATION, not the product. Every product from the same company gets the same Pillar 3 reading | Organizational pattern recognition. Training maturity, build capacity, delivery partners, partner culture — properties of the COMPANY, not any single product. |
 
 ---
 
@@ -105,13 +105,13 @@ The Fit Score, 70/30 split, pillar weights, and verdict grid are defined in `Pla
 
 ---
 
-## Pillar 1 — Product Labability (40%)
+## Pillar 1 — Product Labability (50%)
 
 ### Why this Pillar exists
 
 **Product Labability is the gatekeeper.** If Skillable cannot deliver a complete lab lifecycle for this product, nothing else matters — not the instructional case, not the customer maturity, not the deal size. The four dimensions below collectively answer one question: **can we run a hands-on lab on this product, at scale, for learners we've never met?** A failure in any one dimension is a signal. A failure in multiple dimensions is a wall.
 
-Pillar 1 is weighted 40% because 70% of the Fit Score is about the product and Product Labability is the foundation of that 70%. When Pillar 1 is weak, the `fit_score_composer` Technical Fit Multiplier drags the downstream pillars' contribution down — weak PL means strong instructional signals can't fully compensate. See `Platform-Foundation.md → Fit Score Composition` for the asymmetric coupling rule.
+Pillar 1 is weighted 50% — the heaviest single Pillar — because Product Labability is the gatekeeper. If Skillable cannot get the product into its platform, nothing else matters. When Pillar 1 is weak, the `fit_score_composer` Technical Fit Multiplier drags the downstream pillars' contribution down — weak PL means strong instructional signals can't fully compensate. See `Platform-Foundation.md → Fit Score Composition` for the asymmetric coupling rule. *(Rebalanced from 40% on 2026-04-12.)*
 
 ### What it measures — four dimensions
 
@@ -384,7 +384,7 @@ Linear compounding. Two ambers = -6. Three reds = -24. Hard floor at the dimensi
 
 ---
 
-## Pillar 2 — Instructional Value (30%)
+## Pillar 2 — Instructional Value (20%)
 
 ### Why this Pillar exists
 
@@ -563,7 +563,7 @@ Presented in chronological reading order — how a seller naturally thinks about
 
 Same architectural pattern as Pillar 2, with two adaptations:
 
-1. **Baselines are keyed on organization type**, not product category. Sourced from `cfg.CF_ORG_BASELINES`. Org types come from the company classification badge assigned at discovery: ENTERPRISE SOFTWARE, SOFTWARE (category-specific), TRAINING ORG, ACADEMIC, SYSTEMS INTEGRATOR, PROFESSIONAL SERVICES, CONTENT DEVELOPMENT, LMS PROVIDER, TECH DISTRIBUTOR, Unknown.
+1. **Baselines are keyed on organization type**, not product category. Sourced from `cfg.CF_ORG_BASELINES`. Org types used for baseline lookup: ENTERPRISE SOFTWARE, SOFTWARE (category-specific), TRAINING ORG, ACADEMIC, SYSTEMS INTEGRATOR, PROFESSIONAL SERVICES, CONTENT DEVELOPMENT, LMS PROVIDER, TECH DISTRIBUTOR, Unknown. **Note:** these org-type categories are internal scoring labels for baseline selection, not the user-facing company classification badge. The company classification badge shown in the UI is derived from discovered product categories (see `Platform-Foundation.md → Company Classification`). Both coexist — one drives scoring math, the other drives the display.
 
 2. **Customer Fit is per-COMPANY, not per-product.** Every product from the same company must show the same Pillar 3 reading. Enforced by two helpers in `intelligence.py` — `_build_unified_customer_fit(products)` and `_apply_customer_fit_to_products(products, cf)` — that merge per-product Customer Fit blocks using a "best showing wins" rule and broadcast the unified result onto every product before the Pillar 3 scorer runs. See "Pillar 3 Unification" below for the merge rule.
 
@@ -813,7 +813,7 @@ The multiplier applies ONLY to IV + CF contributions (the "downstream" pillars).
 
 ### Why this section is here
 
-The full ACV Potential model — the five consumption motions, the per-motion math, the three-line hero widget, the Define-Once install base rule, and range discipline — lives in `Platform-Foundation.md → ACV Potential Model`. This document does not duplicate that content. What DOES live here is the operational detail of how the **rate tier** is computed from Pillar 1 facts, because the rate lookup is Pillar-aware and belongs with the scoring math.
+The full ACV Potential model — the five consumption motions, the per-motion math, the three-line hero widget, the Define-Once install base rule, and estimation discipline (single numbers, not ranges) — lives in `Platform-Foundation.md → ACV Potential Model`. This document does not duplicate that content. What DOES live here is the operational detail of how the **rate tier** is computed from Pillar 1 facts, because the rate lookup is Pillar-aware and belongs with the scoring math.
 
 ### What — the rate tier table
 
@@ -836,7 +836,7 @@ Simulation rate is pinned to `VM_LOW_RATE` — Sims are priced the same as VM Lo
 4. Reads the rate from the matched entry in `cfg.RATE_TABLES`.
 5. Computes per-motion annual hours × rate, sums to total ACV, assigns the ACV tier from `cfg.ACV_TIER_HIGH_THRESHOLD` ($250k) and `cfg.ACV_TIER_MEDIUM_THRESHOLD` ($50k).
 
-Rates use `~` to signal estimate. **One number per tier** — the final ACV range comes from audience variation, not rate variation. Rate ranges compound noise without adding precision and are forbidden here.
+Rates use `~` to signal estimate. **One number per tier.** Audience is also a single estimated number — not a range. Every input is one number, one number out. Rate ranges and audience ranges both compound noise without adding precision and are forbidden.
 
 ---
 
@@ -996,6 +996,14 @@ The 2026-04-07 fix: cap clamps positives only, penalties always visible. Both pe
 | Blocker | Red (in badge context) |
 | Uneasy | Risk *(color-meaning vocabulary locked 2026-04-08 — "uneasy, needs validation" replaces "risk")* |
 | HubSpot ICP Context | Notes / Generic notes field |
+| Delivery partners | Delivery channels *(locked 2026-04-12 — "channel" always means sales channel; training delivery uses "delivery partners")* |
+| Channel / Sales channel | Delivery channels (when referring to GSIs, VARs, distributors who sell the product) |
+| Promising / Potential / Uncertain / Unlikely | Seems Promising / Likely / Uncertain / Unlikely *(discovery tier labels locked 2026-04-12)* |
+| Company classification (derived from products) | Enterprise Software / generic single-label classification *(locked 2026-04-12 — classification derived from discovered product categories, not a separate AI judgment)* |
+| Flagship / Satellite / Standalone | (no prior term) *(product relationship vocabulary locked 2026-04-12)* |
+| Industry Authority | Certification Body / Industry Association / Training & Certification Organization *(locked 2026-04-12 — organizations that define and certify professional competence)* |
+| Enterprise Learning Platform | Training Company / E-Learning Company *(locked 2026-04-12 — companies selling massive course catalogs to enterprises)* |
+| ILT Training Organization | Instructor-Led Training Company / Training Delivery Company *(locked 2026-04-12 — organizations that deliver instructor-led training on other companies' products)* |
 
 ---
 
@@ -1017,7 +1025,7 @@ These need validation against real company data. Current values are best current
 
 | Item | Question |
 |---|---|
-| **Pillar weights (40 / 30 / 30)** | Do these produce the right Fit Scores for known companies? |
+| **Pillar weights (50 / 20 / 30)** | Do these produce the right Fit Scores for known companies? Rebalanced 2026-04-12 from 40/30/30 after Workday/Trellix/Cohesity/Diligent review. |
 | **Dimension weights within Pillars** | Do the internal weights rank dimensions correctly? |
 | **Score thresholds (80 / 65 / 45 / 25)** | Do these produce the right verdict distribution? |
 | **Technical Fit Multiplier ranges** | After seeing a handful of real Trellix-class scores, do the PL score bands and multiplier values need retuning? |

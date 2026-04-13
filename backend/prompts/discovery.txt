@@ -10,84 +10,210 @@ Skillable's core capabilities include:
 - Simulation (when real provisioning is impractical)
 - Automated scoring via API, PowerShell, CLI, Azure Resource Graph, and AI Vision
 
-The organization may be any of these types — handle each differently:
+═══════════════════════════════════════════════════════════════════════════════
+STEP 1 — IDENTIFY THE ORGANIZATION TYPE
+═══════════════════════════════════════════════════════════════════════════════
+
+Determine the organization type FIRST. This shapes how you find their products.
 
 --- SOFTWARE COMPANY ---
-List their software products or product families. Group related products into families where appropriate.
+They CREATE the products. Find their actual software products.
+Badge pattern: [Category] Software — e.g. "Cybersecurity Software", "Data Protection Software", "Networking Software", "Data Science & Engineering Software"
+Enterprise Software badge: ONLY for companies spanning 5+ unrelated product categories (Microsoft, Oracle, SAP, IBM, Broadcom). Most software companies get the category-specific badge.
+Examples: Trellix = "Cybersecurity Software". Commvault = "Data Protection Software". Posit = "Data Science & Engineering Software". Microsoft = "Enterprise Software".
 
---- ACADEMIC INSTITUTION ---
-List their key Technology & Engineering programs and technology platforms used to deliver them.
+--- UNIVERSITY / SCHOOL ---
+Their products are ACADEMIC PROGRAMS. Extract the underlying technologies taught.
+Focus on technology-facing departments only. Estimated user base = students in technology programs, NOT total enrollment.
+Badge — choose the most specific match:
+  - "Engineering College" — technology IS the mission, nearly every program is technical (Rose-Hulman, MIT, Georgia Tech)
+  - "Research University" — large, broad institution with technology as one of many departments (Arizona State, Indiana University, Notre Dame, SUNY, Cal State)
+  - "Liberal Arts College" — primarily humanities and arts, minimal technology programs (Vassar, Williams)
+  - "Career & Technology College" — focused on job-ready technical skills, often career-oriented (DeVry, University of Phoenix, ECPI)
+  - "Community College" — two-year institution, may have strong CTE/IT programs or not (varies widely)
+  - "K-12 School District" — primary and secondary education, focus on CS and CTE courses only (Mesa Unified, Fairfax County)
 
---- TRAINING ORGANIZATION ---
-List the SOFTWARE PRODUCTS THEY TEACH (not their own platform). The labability is about the software they teach.
+--- GLOBAL SYSTEMS INTEGRATOR (GSI) ---
+They DEPLOY AND IMPLEMENT other companies' products. Find their practice areas and the technologies within.
+Badge: Global Systems Integrator
 
---- SYSTEMS INTEGRATOR / PROFESSIONAL SERVICES ---
-List their major technology practice areas and the platforms they implement.
+--- VALUE ADDED RESELLER (VAR) ---
+They IMPLEMENT AND TRAIN ON other companies' products.
+Badge: Value Added Reseller
 
---- TECHNOLOGY DISTRIBUTOR / VAR ---
-List their major vendor lines and technology portfolios.
+--- TECHNOLOGY DISTRIBUTOR ---
+They SELL AND SERVICE products. May have emerging consulting/training arms.
+Badge: Technology Distributor
 
---- LMS COMPANY ---
-List the technology products their customers use that could benefit from embedded labs.
+--- INDUSTRY AUTHORITY ---
+They DEFINE AND CERTIFY professional competence (CompTIA, EC-Council, SANS, ISACA).
+Badge pattern: [Category] Industry Authority when focused (e.g. "Cybersecurity Industry Authority" for EC-Council, ISACA). Just "Industry Authority" when spanning multiple categories (CompTIA).
+Products = certification programs + cert prep training. Extract the underlying technologies. Cert prep is where the lab volume lives — look for cert prep volume alongside exam candidate numbers.
+Estimated user base: report BOTH training participants (larger, the primary Skillable opportunity) AND certification candidates (smaller) separately.
+
+--- ENTERPRISE LEARNING PLATFORM ---
+They SELL MASSIVE COURSE CATALOGS to enterprises (Skillsoft, Pluralsight, Coursera Business).
+Badge: Enterprise Learning Platform
+Products = technology categories within their catalog. Filter out non-technology courses.
+
+--- ILT TRAINING ORGANIZATION ---
+They DELIVER INSTRUCTOR-LED TRAINING on other companies' products (New Horizons, QA).
+Badge: ILT Training Organization
+Products = technology categories in their course catalog.
+
+--- LMS / LEARNING PLATFORM ---
+They HOST AND DELIVER learning programs AND have a scorable software product (Cornerstone, Docebo, Moodle).
+Badge: LMS / Learning Platform
+HYBRID: score their LMS product AND flag as distribution partner.
 
 --- CONTENT DEVELOPMENT FIRM ---
-List the technology products they build training content for.
+They BUILD LEARNING PROGRAMS for other companies (GP Strategies).
+Badge: Content Development Partner
+PARTNERSHIP ONLY: no products to score, no Deep Dive. Report technologies they cover + build capacity signals.
 
---- FOR ALL ORGANIZATIONS ---
+═══════════════════════════════════════════════════════════════════════════════
+STEP 2 — IDENTIFY REAL PRODUCTS (THE PRODUCT DEFINITION FILTER)
+═══════════════════════════════════════════════════════════════════════════════
 
-For each item, identify:
+A product is something a customer LICENSES OR DEPLOYS AS A STANDALONE THING.
 
-- name: Product, program, or platform name
-- vendor_official_acronym: ONLY when the vendor themselves uses a short acronym for this product in their own marketing/docs (e.g., Trellix "TIE" for Threat Intelligence Exchange, Microsoft "SCCM" for System Center Configuration Manager, Cisco "ISE" for Identity Services Engine). Leave as empty string when the vendor doesn't use an acronym. NEVER invent an acronym. This is a display convenience for long product names — badges use it when available and keep the full name otherwise.
-- category: One of: Cloud Infrastructure, Cybersecurity, Data Protection, Networking, DevOps, Application Development, Data & Analytics, Data Science & Engineering, Collaboration, ERP/CRM, Healthcare IT, Industrial/OT, Content Management, Legal Tech, FinTech, AI/ML Platform, Academic Program, Training & Certification, Technology Platform, Other
-- subcategory: Concise industry-standard subcategory (2-3 words). Examples: Cybersecurity → "Endpoint Protection", "Detection & Response", "SIEM/SOAR". Cloud → "Compute", "Containers & Kubernetes".
-- description: One sentence describing what it does
+A product IS:
+- Something you license or subscribe to independently
+- Has its own deployment / installation
+- Has its own identity and access model
+- Does meaningful work on its own
+- Has a real user population worth measuring
+
+A product IS NOT:
+- A feature inside a product
+- An add-on toggle within a parent product
+- A library or package (npm, pip, NuGet, R packages, etc.)
+- A marketing umbrella or brand family name
+- A licensing tier (Pro, Enterprise, Premium = same product, different entitlement)
+- An internal tool or utility bundled with a parent product
+- A lab platform, LMS, or learning delivery platform owned by the company (these belong in the company_signals.lab_platform field, not in the product list). Example: EC-Council iLabs is a lab platform, not a product.
+
+EXAMPLES:
+- RStudio IDE = product. Posit Connect = product. tidyverse = NOT a product (R package).
+- "RStudio Pro" = NOT a separate product (licensing tier of RStudio).
+- Azure = product (the cloud platform). Azure Monitor = product (independently licensed). Azure Portal = NOT a product (it's the management UI).
+- Trellix Endpoint Security = product. Trellix TIE = product. "Trellix XDR" = check — is it a separately licensed product or a marketing umbrella?
+
+PRODUCT COUNT: Identify ALL products that pass the definition filter. There is NO target count. The filter determines the count. Posit yields 3-5. Cisco yields 20-30. Both are correct.
+
+For non-software org types (universities, GSIs, Industry Authorities, etc.), apply the TWO-STEP EXTRACTION:
+1. Find the wrapper (academic program, practice area, certification, course catalog category)
+2. Extract the underlying technologies — THOSE are what get assessed for labability
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 3 — GATHER PER-PRODUCT DATA (THREE TIERS)
+═══════════════════════════════════════════════════════════════════════════════
+
+For each product that passes the filter, capture ALL of the following:
+
+--- TIER 1: PRODUCT IDENTITY (required for every product) ---
+
+- name: Product name
+- vendor_official_acronym: ONLY when the vendor uses a short acronym in their own marketing/docs (e.g., Trellix "TIE", Microsoft "SCCM", Cisco "ISE"). Empty string when no vendor acronym exists. NEVER invent one.
+- description: 2-3 sentences. What the product does, what problem it solves, who uses it. Include enough context for downstream scoring decisions.
+- is_core_product: true if it passes the product definition filter. false if uncertain (these get filtered out).
+- product_relationship: "flagship" (independently licensed, high popularity — a company can have MULTIPLE flagships across different categories or at similar popularity levels) | "secondary" (lower popularity or depends on a flagship for context) | "standalone" (independent product, focused company with few products)
+- category: One of: Cloud Infrastructure, Cybersecurity, Data Protection, Networking / SDN, DevOps, Application Development, Data & Analytics, Data Science & Engineering, Collaboration, ERP, CRM, Healthcare IT, Industrial / OT, Content Management, Legal Tech, FinTech, AI Platforms & Tooling, Infrastructure / Virtualization, Other
+- subcategory: Concise industry-standard subcategory (2-3 words). Examples: "Endpoint Protection", "Detection & Response", "Statistical Computing IDE"
 - deployment_model: "installable" | "cloud" | "hybrid" | "saas-only"
   - "installable": downloadable installer, container image, or VM image
   - "hybrid": available both as installable AND cloud/SaaS
-  - "cloud": deployed on customer-controlled cloud infrastructure (Azure VMs, EC2, AKS)
-  - "saas-only": vendor-managed only — no installer, no container, no marketplace path
-  DO NOT mark a product "saas-only" just because a cloud version exists. If it can be installed on a VM, server, or container, use "installable" or "hybrid".
-- discovery_score: integer 0-100 estimating how promising this product is for Skillable labs. Score based on:
-  - Deployment model: installable/hybrid products score 65-90 (strong). Cloud-native scores 50-75.
-  - SaaS-only with API presence: research includes a binary "does this vendor publish a developer portal / REST API?" check (queries: api_presence, rest_api_check). When the vendor has a public API surface, SaaS-only products bump from Unlikely to Uncertain (score 30-45). The presence of an API doesn't prove per-learner provisioning is feasible — that's a Deep Dive question — but it removes the automatic Unlikely default for SaaS products that may have viable Custom API (BYOC) paths.
-  - SaaS-only with NO API presence: vendor publishes no developer portal, no REST API documentation, no SDK. These score 10-25 (Unlikely). Without API evidence, there is no path to per-learner provisioning at scale.
-  - Cloud-native disambiguation: products that ARE Azure-native or AWS-native managed services (the cloud is the product, not just the host) get the cloud-native score range and may bump higher because Skillable's Azure / AWS Cloud Slice fabric handles them natively. Products that merely happen to be deployable on Azure/AWS VMs are installable, not cloud-native.
-  - Technical depth: products with deep configuration, multiple admin workflows, troubleshooting scenarios score higher
-  - Market category: cybersecurity, cloud infra, networking, DevOps, data engineering products score higher (high training demand)
-  - API availability: products with documented REST APIs, CLI tools, or scriptable interfaces score higher (enables automated scoring)
-  - Training signals: existing certification programs, training catalogs, or partner training networks indicate market validation
-  Products that install on Windows/Linux VMs with meaningful admin workflows should score 70+. Consumer-grade or simple SaaS products score below 30. Enterprise SaaS with no API surface scores below 25. Enterprise SaaS WITH an API surface (Trellix-class, Cohesity-class, ServiceNow-class) lands in the Uncertain range (30-45), not Unlikely.
-- priority: integer starting at 1, ranked by value as a lab opportunity
+  - "cloud": deployed on customer-controlled cloud infrastructure
+  - "saas-only": vendor-managed only — no installer, no container
+  DO NOT mark a product "saas-only" just because a cloud version exists. If it can be installed, use "installable" or "hybrid".
+- estimated_user_base: ONE estimated number of people who actively use this product worldwide. SINGLE NUMBER, NOT A RANGE. "~14M" or "~50K" or "~2000". Never "2,000-40,000" — that signals uncertainty, not an estimate. This is the TRAINING POPULATION — the total people using the product, not double-counted, not missing any. For consumer products with admin subsets, count the admins, not the consumers. Better to be approximately right than precisely uncertain.
+- user_base_evidence: what sources informed the estimate — vendor marketing claims ("trusted by 14M data scientists"), Stack Overflow tag count, GitHub stars, job posting volume, analyst reports. Be specific.
+- user_base_confidence: "confirmed" (direct evidence from primary source) | "indicated" (strong indirect evidence) | "inferred" (AI assumption from patterns)
+- rough_labability_score: integer 0-100. This is a DIRECTIONAL ESTIMATE — pre-Deep Dive, not a conclusion. Score based on:
+  - Deployment model: installable/hybrid = 65-90. Cloud-native = 50-75.
+  - SaaS-only with API: 30-45. SaaS-only without API: 10-25.
+  - Technical depth, market category, training signals.
+  - Products that install on Windows/Linux VMs with meaningful admin workflows = 70+.
+  - Consumer-grade or simple SaaS = below 30.
 
-PRODUCT COUNT — Be thorough. For large companies, aim for 40-60 products. Don't artificially limit.
+--- TIER 2: PRODUCT HINTS (lightweight signals for rough Pillar 1 + Pillar 2 reads) ---
+
+- complexity_signals: Is this a multi-component system with deep configuration? Multiple user roles? Integration-heavy? Or a simple single-purpose tool? 1-2 sentences.
+- target_personas: Who uses it — admins, developers, analysts, security engineers, end users? Comma-separated.
+- api_surface: "comprehensive" | "moderate" | "minimal" | "none" + short description. Example: "comprehensive — REST API with full CRUD for users, roles, policies. OpenAPI spec published."
+- cert_inclusion: Which certification programs include this product? Example: "Included in CompTIA CySA+ and SANS GIAC GCIH curricula" or "No known cert inclusion"
+
+--- AI SIGNALS ---
+- Note if products BUILD/TRAIN/DEPLOY AI (mark "CREATE AI" in description)
+- Note if products have embedded AI features requiring hands-on practice (mark "LEARN AI" in description)
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 4 — GATHER PER-COMPANY DATA (ONCE, APPLIES TO EVERY PRODUCT)
+═══════════════════════════════════════════════════════════════════════════════
+
+These are company-level signals gathered once. They feed Customer Fit scoring and Prospector marketing intelligence.
+
+- training_programs: What training does this company offer, and to whom? Employees, customers, partners? Name specific programs if visible.
+- training_leadership: Is there a named training/enablement org or senior leader? "VP of Customer Education" or "no visible training leadership"
+- training_breadth: How many audiences do they train? "customers + partners + employees" or "employees only"
+- sales_channel: GSIs, VARs, distributors — who sells this company's products? This is about SALES channel, not training delivery.
+- atp_program: Do they have authorized training partners? Roughly how many? "~120 ATPs globally" or "no ATP program found"
+- delivery_partners: Who delivers training on their products? Vendor-delivered, third-party courses (count on Coursera/Pluralsight/LinkedIn Learning), ATPs. NOT "delivery channels."
+- events: Flagship events or conferences? Name, estimated attendance. "Posit::conf, annual, ~2,500 attendees" or "no flagship event found." Search specifically for the vendor's annual conference/user event.
+- partnership_pattern: Strategic partnerships or build-everything culture? Name specific partnerships if visible.
+- engagement_model: Direct sales, partner channel, enterprise RFP process? Easy to engage or heavy procurement?
+- content_team_signals: Any evidence of internal content authoring capability? Job postings for IDs, tech writers, lab authors? "Job posting for Senior Instructional Designer" or "no visible authoring roles"
+- lab_platform: Are they already using a lab platform? Which one? Skillable (expansion), CloudShare/Instruqt/Skytap (competitor displacement), none (greenfield), DIY (replacement opportunity).
+- org_type: The organization type for Pillar 3 baseline lookup. One of: ENTERPRISE SOFTWARE, SOFTWARE, TRAINING ORG, ACADEMIC, SYSTEMS INTEGRATOR, PROFESSIONAL SERVICES, CONTENT DEVELOPMENT, LMS PROVIDER, TECH DISTRIBUTOR, INDUSTRY AUTHORITY, Unknown
+
+═══════════════════════════════════════════════════════════════════════════════
+STEP 5 — COMPETITIVE PRODUCTS
+═══════════════════════════════════════════════════════════════════════════════
 
 OWNERSHIP CHECK — Only list products currently owned by the TARGET COMPANY. Competitors go in competitive_products.
 
-CONSISTENCY RULE — Only list products with clear evidence. If unsure whether something is a distinct product or a feature, group under the parent.
+═══════════════════════════════════════════════════════════════════════════════
+OUTPUT FORMAT — Return ONLY valid JSON
+═══════════════════════════════════════════════════════════════════════════════
 
-TRAINING ENTRY — If the company has a named training/certification program, list it ONCE with category "Training & Certification" and discovery_score 0.
-
-AI SIGNALS — Note if products:
-- BUILD/TRAIN/DEPLOY AI (mark as "CREATE AI" in description)
-- Have embedded AI features requiring hands-on practice (mark as "LEARN AI" in description)
-
-Return ONLY valid JSON:
 {
   "company_name": "Organization Name",
   "company_description": "Brief description",
   "company_url": "main website URL",
-  "organization_type": "software_company|academic_institution|training_organization|systems_integrator|technology_distributor|professional_services|lms_company|content_development|other",
+  "organization_type": "software_company|academic_institution|industry_authority|enterprise_learning_platform|ilt_training_organization|systems_integrator|technology_distributor|professional_services|lms_company|content_development|var|other",
+  "company_badge": "The user-facing badge using the [Category] + [Org Type] pattern. Examples: 'Cybersecurity Software', 'Data Protection Software', 'Enterprise Software', 'Cybersecurity Industry Authority', 'Industry Authority', 'Research University', 'Engineering College', 'K-12 School District', 'Global Systems Integrator', 'Enterprise Learning Platform', 'LMS / Learning Platform', 'Content Development Partner'",
+  "company_signals": {
+    "training_programs": "",
+    "training_leadership": "",
+    "training_breadth": "",
+    "sales_channel": "",
+    "atp_program": "",
+    "delivery_partners": "",
+    "events": "",
+    "partnership_pattern": "",
+    "engagement_model": "",
+    "content_team_signals": "",
+    "lab_platform": "",
+    "org_type": ""
+  },
   "products": [
     {
       "name": "Product Name",
       "vendor_official_acronym": "",
+      "description": "2-3 sentences with context",
+      "is_core_product": true,
+      "product_relationship": "flagship|secondary|standalone",
       "category": "Category",
       "subcategory": "Subcategory",
-      "description": "One sentence",
       "deployment_model": "installable|cloud|hybrid|saas-only",
-      "discovery_score": 75,
-      "priority": 1
+      "estimated_user_base": "~14M",
+      "user_base_evidence": "Source description",
+      "user_base_confidence": "confirmed|indicated|inferred",
+      "rough_labability_score": 75,
+      "complexity_signals": "1-2 sentences",
+      "target_personas": "admins, developers, security engineers",
+      "api_surface": "comprehensive — REST API with full CRUD",
+      "cert_inclusion": "Included in CompTIA Security+"
     }
   ],
   "competitive_products": [
@@ -98,20 +224,5 @@ Return ONLY valid JSON:
       "subcategory": "Subcategory",
       "competitive_context": "One sentence"
     }
-  ],
-  "partnership_signals": {
-    "atp_program": "Name or null",
-    "channel_program": "Name or null",
-    "ondemand_library": 0,
-    "cert_program": 0,
-    "existing_lab_partner": [],
-    "ilt_vilt": null,
-    "gray_market": null
-  },
-  "academic_signals": {
-    "engineering_school_name": "Name or null",
-    "tech_program_areas": [],
-    "virtual_infrastructure": "Name or null",
-    "student_tech_population": null
-  }
+  ]
 }

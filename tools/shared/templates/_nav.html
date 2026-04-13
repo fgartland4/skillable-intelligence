@@ -27,10 +27,8 @@
              onerror="this.src='https://www.skillable.com/wp-content/uploads/2023/10/Skillable-Logo-color-1.svg'; this.onerror=null;">
     </div>
     <div class="nav-tools">
-        {# Prospector and Designer point to the legacy app on port 5000 — completely
-           separate Python process, no code mixing. Inspector is the new app. #}
-        <a href="http://localhost:5000/prospector" class="nav-tool">Prospector</a>
+        <a href="/prospector" class="nav-tool {% if active_tool == 'prospector' %}active{% endif %}">Prospector</a>
         <a href="/inspector" class="nav-tool {% if active_tool == 'inspector' %}active{% endif %}">Inspector</a>
-        <a href="http://localhost:5000/designer" class="nav-tool">Designer</a>
+        <a href="/designer" class="nav-tool {% if active_tool == 'designer' %}active{% endif %}">Designer</a>
     </div>
 </nav>

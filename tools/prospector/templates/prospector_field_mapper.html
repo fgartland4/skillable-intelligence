@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Field Mapper — Prospector — Skillable Intelligence</title>
+    <style>
+        {% include '_theme.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: var(--sk-accent-soft); }
+
+        .page { max-width: 1000px; margin: 0 auto; padding: 28px 24px 80px; }
+        .back-link { font-size: 0.72rem; color: var(--sk-accent-soft); margin-bottom: 16px; display: block; }
+
+        .page-title { font-size: 1.1rem; font-weight: 700; color: var(--sk-text); margin-bottom: 6px; }
+        .page-subtitle { font-size: 0.82rem; color: var(--sk-text-muted); margin-bottom: 28px; }
+
+        /* ── Collapsible sections ── */
+        .fm-section {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; margin-bottom: 8px; overflow: hidden;
+        }
+        .fm-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; cursor: pointer; user-select: none;
+            transition: background 0.12s;
+        }
+        .fm-header:hover { background: rgba(36,237,155,0.03); }
+        .fm-header-left { display: flex; align-items: center; gap: 10px; }
+        .fm-arrow {
+            font-size: 0.65rem; color: var(--sk-text-dim); transition: transform 0.15s;
+            width: 12px; text-align: center;
+        }
+        .fm-section.open .fm-arrow { transform: rotate(90deg); }
+        .fm-title { font-size: 0.82rem; font-weight: 700; color: var(--sk-text); }
+        .fm-desc { font-size: 0.72rem; color: var(--sk-text-dim); }
+        .fm-body { display: none; border-top: 1px solid var(--sk-border); }
+        .fm-section.open .fm-body { display: block; }
+
+        /* ── Nested sub-sections (pillars → dimensions) ── */
+        .fm-sub {
+            border-bottom: 1px solid var(--sk-border);
+        }
+        .fm-sub:last-child { border-bottom: none; }
+        .fm-sub-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 16px 9px 32px; cursor: pointer; user-select: none;
+            transition: background 0.12s;
+        }
+        .fm-sub-header:hover { background: rgba(36,237,155,0.02); }
+        .fm-sub-title { font-size: 0.78rem; font-weight: 600; color: var(--sk-text-muted); }
+        .fm-sub-body { display: none; }
+        .fm-sub.open .fm-sub-body { display: block; }
+
+        /* ── Field rows ── */
+        .fm-field {
+            display: flex; align-items: center; gap: 12px;
+            padding: 7px 16px 7px 48px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .fm-field:last-child { border-bottom: none; }
+        .fm-field-name {
+            flex: 0 0 200px; font-family: monospace; font-size: 0.74rem;
+            font-weight: 600; color: var(--sk-accent);
+        }
+        .fm-field-desc {
+            flex: 1; font-size: 0.74rem; color: var(--sk-text-muted);
+        }
+        .fm-field-hubspot { flex: 0 0 180px; }
+        .hubspot-input {
+            width: 100%; padding: 3px 7px;
+            background: var(--sk-bg); color: var(--sk-text-dim);
+            border: 1px solid var(--sk-border); border-radius: 4px;
+            font-size: 0.7rem; font-family: inherit;
+        }
+        .hubspot-input:focus { outline: none; border-color: var(--sk-accent); color: var(--sk-text); }
+        .hubspot-input::placeholder { color: var(--sk-border); }
+
+        /* Top-level field row (no nesting) */
+        .fm-field-top {
+            padding-left: 32px;
+        }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'prospector' %}
+{% include '_nav.html' %}
+
+<div class="page">
+
+    <a href="/prospector" class="back-link">&larr; Back to Prospector</a>
+    <div class="page-title">Intelligence Field Mapper</div>
+    <div class="page-subtitle">Every field the platform produces, organized by how the framework works. Click to expand. Plan HubSpot property mappings by typing the target field name.</div>
+
+    {# ═══ ACV Potential ═══ #}
+    <div class="fm-section">
+        <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="fm-header-left">
+                <span class="fm-arrow">&#9654;</span>
+                <span class="fm-title">ACV Potential</span>
+                <span class="fm-desc">— estimated annual contract value across all products</span>
+            </div>
+        </div>
+        <div class="fm-body">
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">company_acv_potential</span>
+                <span class="fm-field-desc">Company-level ACV range</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">acv_rate_tier</span>
+                <span class="fm-field-desc">Rate tier — Cloud Labs / Small VM / Typical VM / Large VM</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            <div class="fm-sub">
+                <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="fm-sub-title"><span class="fm-arrow">&#9654;</span> Consumption Motions</span>
+                </div>
+                <div class="fm-sub-body">
+                    {% for motion in ["customer_training_audience", "customer_training_acv", "partner_training_audience", "partner_training_acv", "employee_training_audience", "employee_training_acv", "certification_audience", "certification_acv", "events_audience", "events_acv"] %}
+                    <div class="fm-field">
+                        <span class="fm-field-name">{{ motion }}</span>
+                        <span class="fm-field-desc">{{ motion | replace("_", " ") | title }}</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ═══ Fit Score ═══ #}
+    <div class="fm-section">
+        <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="fm-header-left">
+                <span class="fm-arrow">&#9654;</span>
+                <span class="fm-title">Fit Score</span>
+                <span class="fm-desc">— weighted score (0-100) from three Pillars</span>
+            </div>
+        </div>
+        <div class="fm-body">
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">fit_score</span>
+                <span class="fm-field-desc">Composite Fit Score (0-100)</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">verdict</span>
+                <span class="fm-field-desc">Prime Target / Strong Prospect / Worth Pursuing / etc.</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">technical_fit_multiplier</span>
+                <span class="fm-field-desc">Multiplier applied to IV + CF when PL is weak (0.50-1.0)</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+
+            {# ── Pillar 1 ── #}
+            <div class="fm-sub">
+                <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="fm-sub-title"><span class="fm-arrow">&#9654;</span> Product Labability (50%)</span>
+                </div>
+                <div class="fm-sub-body">
+                    <div class="fm-field">
+                        <span class="fm-field-name">product_labability_score</span>
+                        <span class="fm-field-desc">Pillar score (0-100)</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                    {% for dim in [("provisioning_score", "Provisioning (35pts)"), ("lab_access_score", "Lab Access (25pts)"), ("scoring_score", "Scoring (15pts)"), ("teardown_score", "Teardown (25pts)")] %}
+                    <div class="fm-field">
+                        <span class="fm-field-name">{{ dim[0] }}</span>
+                        <span class="fm-field-desc">{{ dim[1] }}</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                    {% endfor %}
+                    <div class="fm-field">
+                        <span class="fm-field-name">orchestration_method</span>
+                        <span class="fm-field-desc">Delivery path — Hyper-V, ESX, Container, Azure, AWS, Sandbox API, Simulation</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                </div>
+            </div>
+
+            {# ── Pillar 2 ── #}
+            <div class="fm-sub">
+                <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="fm-sub-title"><span class="fm-arrow">&#9654;</span> Instructional Value (20%)</span>
+                </div>
+                <div class="fm-sub-body">
+                    <div class="fm-field">
+                        <span class="fm-field-name">instructional_value_score</span>
+                        <span class="fm-field-desc">Pillar score (0-100)</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                    {% for dim in [("product_complexity_score", "Product Complexity (40pts)"), ("mastery_stakes_score", "Mastery Stakes (25pts)"), ("lab_versatility_score", "Lab Versatility (15pts)"), ("market_demand_score", "Market Demand (20pts)")] %}
+                    <div class="fm-field">
+                        <span class="fm-field-name">{{ dim[0] }}</span>
+                        <span class="fm-field-desc">{{ dim[1] }}</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# ── Pillar 3 ── #}
+            <div class="fm-sub">
+                <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="fm-sub-title"><span class="fm-arrow">&#9654;</span> Customer Fit (30%)</span>
+                </div>
+                <div class="fm-sub-body">
+                    <div class="fm-field">
+                        <span class="fm-field-name">customer_fit_score</span>
+                        <span class="fm-field-desc">Pillar score (0-100) — company-level, same for all products</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                    {% for dim in [("training_commitment_score", "Training Commitment (25pts)"), ("build_capacity_score", "Build Capacity (20pts)"), ("delivery_capacity_score", "Delivery Capacity (30pts)"), ("organizational_dna_score", "Organizational DNA (25pts)")] %}
+                    <div class="fm-field">
+                        <span class="fm-field-name">{{ dim[0] }}</span>
+                        <span class="fm-field-desc">{{ dim[1] }}</span>
+                        <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ═══ Seller Briefcase ═══ #}
+    <div class="fm-section">
+        <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="fm-header-left">
+                <span class="fm-arrow">&#9654;</span>
+                <span class="fm-title">Seller Briefcase</span>
+                <span class="fm-desc">— actionable bullets for seller conversations</span>
+            </div>
+        </div>
+        <div class="fm-body">
+            {% for section in [("key_technical_questions", "Key Technical Questions", "Who to find, what to ask — unblocks the lab build"), ("conversation_starters", "Conversation Starters", "Product-specific talking points + Market Demand evidence"), ("account_intelligence", "Account Intelligence", "Organizational signals — training leadership, LMS, competitive context")] %}
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">{{ section[0] }}</span>
+                <span class="fm-field-desc">{{ section[1] }} — {{ section[2] }}</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ═══ Company Signals (Discovery Tier 3) ═══ #}
+    <div class="fm-section">
+        <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="fm-header-left">
+                <span class="fm-arrow">&#9654;</span>
+                <span class="fm-title">Company Signals</span>
+                <span class="fm-desc">— company-level discovery data (gathered once, applies to every product)</span>
+            </div>
+        </div>
+        <div class="fm-body">
+            {% for f in [("company_name", "Company name"), ("company_badge", "Classification badge — e.g. Cybersecurity Software"), ("organization_type", "Org type for scoring baselines"), ("company_description", "Brief company description"), ("company_url", "Company website URL"), ("training_programs", "Training programs offered and to whom"), ("training_leadership", "Named training/enablement org or leader"), ("training_breadth", "Audience breadth — customers + partners + employees"), ("sales_channel", "Who sells their products — GSIs, VARs, distributors"), ("atp_program", "ATP program and approximate size"), ("delivery_partners", "Who delivers training — vendor, third-party, ATPs"), ("events", "Flagship events/conferences with attendance"), ("partnership_pattern", "Strategic partnerships or build-everything culture"), ("engagement_model", "Direct sales, partner channel, enterprise RFP"), ("content_team_signals", "Evidence of internal content authoring capability"), ("lab_platform", "Current lab platform — Skillable, competitor, none, DIY"), ("total_products_discovered", "Total real products identified")] %}
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">{{ f[0] }}</span>
+                <span class="fm-field-desc">{{ f[1] }}</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ═══ Product Identity (Discovery Tier 1 + 2) ═══ #}
+    <div class="fm-section">
+        <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="fm-header-left">
+                <span class="fm-arrow">&#9654;</span>
+                <span class="fm-title">Product Identity</span>
+                <span class="fm-desc">— per-product discovery fields</span>
+            </div>
+        </div>
+        <div class="fm-body">
+            {% for f in [("name", "Product name"), ("vendor_official_acronym", "Vendor's own acronym"), ("description", "2-3 sentence product description"), ("product_relationship", "Flagship / Satellite / Standalone"), ("category", "Product category"), ("subcategory", "Industry-standard subcategory"), ("deployment_model", "Installable / Cloud / Hybrid / SaaS-only"), ("estimated_user_base", "Estimated users worldwide — single number"), ("user_base_evidence", "Sources for the user base estimate"), ("user_base_confidence", "Confirmed / Indicated / Inferred"), ("rough_labability_score", "Pre-Deep Dive labability estimate (0-100)"), ("labability_tier", "Promising / Potential / Uncertain / Unlikely"), ("complexity_signals", "Multi-component? Deep config? Multiple roles?"), ("target_personas", "Who uses it — admins, developers, analysts"), ("api_surface", "Comprehensive / Moderate / Minimal / None"), ("cert_inclusion", "Which cert programs include this product")] %}
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">{{ f[0] }}</span>
+                <span class="fm-field-desc">{{ f[1] }}</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ═══ Documentation Content (in-app explainability) ═══ #}
+    <div class="fm-section">
+        <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+            <div class="fm-header-left">
+                <span class="fm-arrow">&#9654;</span>
+                <span class="fm-title">Documentation Content</span>
+                <span class="fm-desc">— in-app explainability content from the ? modals, available as fields for HubSpot</span>
+            </div>
+        </div>
+        <div class="fm-body">
+            {% for f in [("doc_fit_score", "Fit Score documentation — WHY/WHAT/HOW for the weighted score"), ("doc_product_labability", "Product Labability documentation — WHY/WHAT/HOW + all four dimensions with scoring tables"), ("doc_instructional_value", "Instructional Value documentation — WHY/WHAT/HOW + all four dimensions with baselines"), ("doc_customer_fit", "Customer Fit documentation — WHY/WHAT/HOW + all four dimensions with org-type baselines"), ("doc_acv_potential", "ACV Potential documentation — WHY/WHAT/HOW for the deal size estimate"), ("doc_verdict", "Verdict documentation — WHY/WHAT/HOW for the action label"), ("doc_acv_use_case", "ACV by Use Case documentation — five consumption motions explained"), ("doc_key_technical_questions", "Key Technical Questions documentation — what they are, how they're generated"), ("doc_conversation_starters", "Conversation Starters documentation — what they are, Market Demand evidence distinction"), ("doc_account_intelligence", "Account Intelligence documentation — organizational signals for seller homework"), ("doc_labability_tiers", "Labability Tiers documentation — Promising/Potential/Uncertain/Unlikely definitions")] %}
+            <div class="fm-field fm-field-top">
+                <span class="fm-field-name">{{ f[0] }}</span>
+                <span class="fm-field-desc">{{ f[1] }}</span>
+                <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field"></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,495 @@
+{% import '_search_modal.html' as sm %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Prospector — Skillable Intelligence</title>
+    <style>
+        {% include '_theme.html' %}
+        {{ sm.styles() }}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, textarea { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: var(--sk-accent-soft); }
+
+        /* ── Wide container ── */
+        .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
+
+        h1 { font-size: 1.8rem; font-weight: 800; color: var(--sk-text); letter-spacing: -0.02em; margin-bottom: 8px; }
+        .subtitle { color: var(--sk-text-muted); font-size: 0.875rem; margin-bottom: 36px; line-height: 1.6; }
+
+        /* ── Mode tabs ── */
+        .mode-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; overflow: hidden; border: 1px solid var(--sk-border); }
+        .mode-tab {
+            flex: 1; padding: 11px 16px; text-align: center; cursor: pointer;
+            font-size: 0.82rem; font-weight: 600; color: var(--sk-text-dim);
+            background: var(--sk-bg); border: none; transition: all 0.15s;
+            font-family: inherit;
+        }
+        .mode-tab.active { background: var(--sk-surface); color: var(--sk-text-muted); }
+        .mode-tab:hover:not(.active) { color: var(--sk-text-muted); }
+
+        /* ── Form card ── */
+        .form-card {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 16px; padding: 28px; min-height: 380px;
+            display: flex; flex-direction: column;
+        }
+        .mode-panel { display: none; flex: 1; }
+        .mode-panel.active { display: flex; flex-direction: column; }
+        .mode-panel form { display: flex; flex-direction: column; flex: 1; }
+        .panel-footer { margin-top: auto; padding-top: 22px; text-align: center; }
+
+        .field-label {
+            display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: var(--sk-text-dim); margin-bottom: 10px;
+        }
+
+        /* ── Drop zone ── */
+        .drop-zone {
+            width: 100%; background: var(--sk-bg); border: 1.5px dashed var(--sk-border);
+            border-radius: 10px; padding: 36px 24px; text-align: center;
+            cursor: pointer; transition: border-color 0.15s; position: relative;
+        }
+        .drop-zone:hover, .drop-zone.drag-over { border-color: rgba(36,237,155,0.4); }
+        .drop-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .drop-icon { font-size: 1.6rem; margin-bottom: 10px; color: var(--sk-text-dim); }
+        .drop-label { font-size: 0.88rem; color: var(--sk-text-muted); }
+        .drop-label strong { color: var(--sk-accent); }
+        .drop-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 6px; }
+        .drop-selected { font-size: 0.82rem; color: var(--sk-text-muted); margin-top: 10px; display: none; }
+
+        /* ── Textarea ── */
+        textarea {
+            width: 100%; background: var(--sk-bg); border: 1px solid var(--sk-border);
+            border-radius: 10px; color: var(--sk-text); font-family: inherit;
+            font-size: 0.9rem; padding: 14px 16px; resize: vertical;
+            min-height: 180px; line-height: 1.6; transition: border-color 0.15s;
+        }
+        textarea:focus { outline: none; border-color: rgba(36,237,155,0.4); }
+        textarea::placeholder { color: var(--sk-text-dim); }
+
+        .field-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px; line-height: 1.5; text-align: center; }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            background: var(--sk-accent); color: var(--sk-bg); border: none;
+            padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s;
+            font-family: inherit;
+        }
+        .btn-primary:hover { opacity: 0.88; }
+        .btn-primary:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
+
+        /* ── Info box ── */
+        .info-box {
+            background: rgba(36,237,155,0.04); border-left: 2px solid rgba(36,237,155,0.3);
+            border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 28px;
+            font-size: 0.82rem; color: var(--sk-text-muted); line-height: 1.6;
+        }
+        .info-box strong { color: var(--sk-text); }
+
+        /* ── Future panel placeholder ── */
+        .future-placeholder {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 12px; padding: 40px 20px;
+        }
+        .future-label { font-size: 0.88rem; color: var(--sk-text-muted); text-align: center; }
+        .future-hint { font-size: 0.72rem; color: var(--sk-text-dim); text-align: center; }
+
+        /* ── Field mapper link ── */
+        .mapper-link {
+            display: inline-block; margin-top: 20px; font-size: 0.78rem;
+            color: var(--sk-accent); padding: 6px 14px;
+            border: 1px solid rgba(36,237,155,0.2); border-radius: 7px;
+            transition: background 0.15s;
+        }
+        .mapper-link:hover { background: rgba(36,237,155,0.06); text-decoration: none; }
+
+        /* ── Results section ── */
+        .results-section { margin-top: 36px; }
+        .results-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .results-title {
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--sk-text-dim);
+        }
+        .btn-export {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 16px; background: transparent; color: var(--sk-accent);
+            border: 1px solid var(--sk-accent); border-radius: 7px;
+            font-size: 0.78rem; font-weight: 600; cursor: pointer;
+            transition: background 0.15s; font-family: inherit;
+        }
+        .btn-export:hover { background: rgba(36,237,155,0.06); }
+
+        .results-table {
+            width: 100%; border-collapse: collapse;
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 10px; overflow: hidden;
+        }
+        .results-table th {
+            text-align: left; padding: 10px 12px;
+            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--sk-text-dim);
+            border-bottom: 1px solid var(--sk-border);
+            background: rgba(36,237,155,0.02);
+        }
+        .results-table th.col-num { width: 40px; text-align: center; }
+        .results-table th.col-acv { width: 110px; }
+        .results-table th.col-tier { width: 50px; text-align: center; }
+        .results-table td {
+            padding: 10px 12px; font-size: 0.82rem;
+            border-bottom: 1px solid var(--sk-border);
+            vertical-align: top;
+        }
+        .results-table tr:last-child td { border-bottom: none; }
+        .results-table tr:hover td { background: rgba(36,237,155,0.02); }
+
+        .rank-num { text-align: center; font-weight: 700; color: var(--sk-text-dim); }
+        .company-cell-name { font-weight: 600; color: var(--sk-text); }
+        .company-cell-badge {
+            display: inline-block; padding: 2px 7px; border-radius: 4px;
+            font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; white-space: nowrap; margin-left: 6px;
+        }
+        .badge-purple { background: var(--sk-badge-purple-bg); color: var(--sk-classify-purple); border: 1px solid var(--sk-badge-purple-bdr); }
+        .badge-teal { background: rgba(20,184,166,0.08); color: rgb(20,184,166); border: 1px solid rgba(20,184,166,0.25); }
+        .badge-warm-blue { background: rgba(59,130,246,0.08); color: rgb(96,165,250); border: 1px solid rgba(59,130,246,0.25); }
+        .acv-cell { font-weight: 600; color: var(--sk-accent); white-space: nowrap; }
+        .product-cell-name { font-weight: 600; }
+        .product-cell-sub { font-size: 0.72rem; color: var(--sk-text-dim); }
+        .why-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
+        .lab-none { color: var(--sk-text-dim); font-style: italic; }
+        .lab-skillable { color: var(--sk-accent); font-weight: 600; }
+        .lab-competitor { color: var(--sk-score-mid); }
+        .signal-cell { font-size: 0.75rem; color: var(--sk-text-muted); }
+        .deep-dive-link { font-size: 0.72rem; color: var(--sk-accent); }
+        .deep-dive-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'prospector' %}
+{% include '_nav.html' %}
+
+<div class="container">
+
+    <h1>Prospector</h1>
+    <p class="subtitle">Prospector is a tool designed to help Marketing and RevOps integrate detailed product-centric data into the processes and procedures they already use.</p>
+
+    <div class="info-box">
+        <strong>How it works:</strong> While the aim is to cleanly push requests from HubSpot then pull specific data into specific HubSpot fields, cards, and related components via HubSpot integration, Prospector also supports uploading lists of companies, schools, and other types of organizations — or just copy/pasting them directly.
+    </div>
+
+    {# ── Mode tabs ── #}
+    <div class="mode-tabs">
+        <button class="mode-tab active" onclick="switchMode('csv', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;">Upload List</button>
+        <button class="mode-tab" onclick="switchMode('paste', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;">Paste List</button>
+        <button class="mode-tab" onclick="switchMode('lookalikes', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;">Find Lookalikes</button>
+        <button class="mode-tab" onclick="switchMode('hubspot', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem; border-left: 1px solid var(--sk-border);">Configure Integration</button>
+    </div>
+
+    <div class="form-card">
+
+        {# ── Upload CSV ── #}
+        <div id="panel-csv" class="mode-panel active">
+            <form method="POST" action="/prospector/run" enctype="multipart/form-data">
+                <label class="field-label">CSV File</label>
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" name="csv_file" accept=".csv" id="csvInput" onchange="fileSelected(this)">
+                    <div class="drop-icon">&#128196;</div>
+                    <div class="drop-label">Drop your CSV here or <strong>browse</strong></div>
+                    <div class="drop-hint">First column = company name. Header row is skipped automatically.</div>
+                    <div class="drop-selected" id="fileLabel"></div>
+                </div>
+                <div class="field-hint">Works with ZoomInfo exports, ABM lists, or any CSV where the first column is the company name.</div>
+                <div class="panel-footer">
+                    <button type="submit" class="btn-primary" id="btnCsv" disabled>Run Prospector →</button>
+                </div>
+            </form>
+        </div>
+
+        {# ── Paste List ── #}
+        <div id="panel-paste" class="mode-panel">
+            <form method="POST" action="/prospector/run">
+                <textarea name="companies" id="companyInput"
+                    placeholder="Type or paste organization names here"></textarea>
+                <div class="field-hint">One per line or comma-separated. Companies, universities, training organizations — any type. Limit to 25 per batch.</div>
+                <div class="panel-footer">
+                    <button type="submit" class="btn-primary" id="btnPaste" disabled>Run Prospector →</button>
+                </div>
+            </form>
+        </div>
+
+        {# ── Configure Integration ── #}
+        <div id="panel-hubspot" class="mode-panel">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+
+                {# Top: HubSpot Connection ── compact horizontal bar #}
+                <div style="display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--sk-text-dim);"></div>
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--sk-text-dim);">Not connected</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="password" placeholder="Private App Token (pat-na1-xxxx...)"
+                               style="width: 100%; padding: 7px 12px; background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 6px; color: var(--sk-text); font-family: inherit; font-size: 0.78rem;"
+                               disabled>
+                    </div>
+                    <button type="button" class="btn-primary" style="padding: 8px 18px; font-size: 0.78rem; white-space: nowrap;" disabled>Connect to HubSpot →</button>
+                </div>
+
+                {# Bottom: Field Mapper ── full width #}
+                <div>
+                    <label class="field-label">Field Mapping</label>
+                    <div style="font-size: 0.75rem; color: var(--sk-text-dim); margin-bottom: 14px;">Map Skillable intelligence fields to HubSpot properties. Click each section to expand.</div>
+
+                    {# Field mapper sections follow the data flow:
+                       Discovery-level fields first (available without Deep Dive),
+                       then Deep Dive fields (ACV, Fit Score, Pillars → Dimensions),
+                       then Seller Briefcase last (only exists after full Deep Dive). #}
+                    {% set fm_sections = [
+                        ("Product Identity — Discovery", [
+                            ("top_product_name", "Top product name"),
+                            ("product_relationship", "Flagship / Secondary"),
+                            ("estimated_user_base", "Estimated users"),
+                            ("deployment_model", "Deployment model"),
+                            ("labability_tier", "Promising / Potential / Uncertain / Unlikely"),
+                        ]),
+                        ("Company Signals — Discovery", [
+                            ("company_badge", "Classification badge"),
+                            ("training_programs", "Training programs offered"),
+                            ("atp_program", "ATP program and size"),
+                            ("delivery_partners", "Who delivers training"),
+                            ("lab_platform", "Current lab platform"),
+                            ("sales_channel", "Sales channel partners"),
+                            ("events", "Flagship events"),
+                            ("partnership_pattern", "Partnership culture"),
+                        ]),
+                        ("ACV Potential — Deep Dive", [
+                            ("company_acv_potential", "Company-level ACV range"),
+                            ("acv_rate_tier", "Rate tier — Cloud / Small VM / Typical VM / Large VM"),
+                        ]),
+                        ("Fit Score — Deep Dive", [
+                            ("fit_score", "Composite Fit Score (0-100)"),
+                            ("verdict", "Prime Target / Strong Prospect / etc."),
+                        ]),
+                        ("Product Labability — Deep Dive (50%)", [
+                            ("product_labability_score", "Pillar score (0-100)"),
+                            ("provisioning_score", "Provisioning dimension"),
+                            ("lab_access_score", "Lab Access dimension"),
+                            ("scoring_score", "Scoring dimension"),
+                            ("teardown_score", "Teardown dimension"),
+                        ]),
+                        ("Instructional Value — Deep Dive (20%)", [
+                            ("instructional_value_score", "Pillar score (0-100)"),
+                            ("product_complexity_score", "Product Complexity dimension"),
+                            ("mastery_stakes_score", "Mastery Stakes dimension"),
+                            ("lab_versatility_score", "Lab Versatility dimension"),
+                            ("market_demand_score", "Market Demand dimension"),
+                        ]),
+                        ("Customer Fit — Deep Dive (30%)", [
+                            ("customer_fit_score", "Pillar score (0-100)"),
+                            ("training_commitment_score", "Training Commitment dimension"),
+                            ("build_capacity_score", "Build Capacity dimension"),
+                            ("delivery_capacity_score", "Delivery Capacity dimension"),
+                            ("organizational_dna_score", "Organizational DNA dimension"),
+                        ]),
+                        ("Seller Briefcase — Deep Dive Only", [
+                            ("key_technical_questions", "Key Technical Questions"),
+                            ("conversation_starters", "Conversation Starters"),
+                            ("account_intelligence", "Account Intelligence"),
+                        ]),
+                        ("Documentation", [
+                            ("doc_fit_score", "Fit Score documentation"),
+                            ("doc_product_labability", "Product Labability documentation"),
+                            ("doc_instructional_value", "Instructional Value documentation"),
+                            ("doc_customer_fit", "Customer Fit documentation"),
+                        ]),
+                    ] %}
+
+                    {% for section_name, fields in fm_sections %}
+                    <div style="background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 8px; margin-bottom: 6px; overflow: hidden;">
+                        <div onclick="this.parentElement.classList.toggle('open')"
+                             style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 0.78rem; font-weight: 600; color: var(--sk-text-muted);">
+                            <span>{{ section_name }}</span>
+                            <span style="font-size: 0.6rem; color: var(--sk-text-dim);">{{ fields | length }} fields</span>
+                        </div>
+                        <div style="display: none; border-top: 1px solid var(--sk-border); padding: 6px 0;">
+                            {% for field_name, field_desc in fields %}
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 5px 14px;">
+                                <span style="flex: 0 0 220px; font-family: monospace; font-size: 0.72rem; color: var(--sk-accent);">{{ field_name }}</span>
+                                <span style="flex: 1; font-size: 0.72rem; color: var(--sk-text-dim);">{{ field_desc }}</span>
+                                <input type="text" placeholder="hubspot_field"
+                                       style="flex: 0 0 200px; padding: 4px 8px; background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 4px; color: var(--sk-text-dim); font-size: 0.7rem; font-family: inherit;"
+                                       disabled>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <style>.open > div:last-child { display: block !important; }</style>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+
+        {# ── Find Lookalikes ── #}
+        <div id="panel-lookalikes" class="mode-panel">
+            <form style="flex: 1; display: flex; flex-direction: column; opacity: 0.5;">
+                <label class="field-label">What types of organizations should we find?</label>
+                <input type="text" disabled
+                    placeholder="e.g. Cybersecurity software companies with large install bases"
+                    style="width: 100%; padding: 12px 16px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 10px; color: var(--sk-text); font-family: inherit; font-size: 0.88rem;">
+                <div class="field-hint" style="text-align: left; margin-top: 10px; line-height: 1.7;">
+                    Examples: <em style="color: var(--sk-text-muted);">Cybersecurity software companies with 10,000+ users</em> · <em style="color: var(--sk-text-muted);">Engineering colleges with strong CS programs</em> · <em style="color: var(--sk-text-muted);">Industry authorities focused on cloud certifications</em>
+                    <br>Discovers NEW organizations not already in your ICP. Use Upload List or Paste List for companies you already know.
+                </div>
+                <div class="panel-footer">
+                    <button type="button" class="btn-primary" disabled>Find Organizations →</button>
+                    <div style="font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px;">Coming soon</div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    {# ── Results ── #}
+    {% if results %}
+    <div class="results-section">
+        <div class="results-header">
+            <span class="results-title">{{ results | length }} companies — ranked by ACV potential</span>
+            <a href="/prospector/export/{{ batch_id }}" class="btn-export">Export CSV ↓</a>
+        </div>
+
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+                    <th>Company</th>
+                    <th class="col-acv">Est. ACV</th>
+                    <th>Top Product</th>
+                    <th>Why</th>
+                    <th class="col-tier">Promising</th>
+                    <th class="col-tier">Potential</th>
+                    <th class="col-tier">Uncertain</th>
+                    <th class="col-tier">Unlikely</th>
+                    <th>Lab Platform</th>
+                    <th>Key Signal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td class="rank-num">{{ loop.index }}</td>
+                    <td>
+                        <span class="company-cell-name">{{ r.company_name }}</span>
+                        {% if r.company_badge %}
+                        <span class="company-cell-badge badge-{{ r.badge_color or 'purple' }}">{{ r.company_badge }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="acv-cell">{{ r.estimated_acv or '—' }}</td>
+                    <td>
+                        <div class="product-cell-name">{{ r.top_product_name or '—' }}</div>
+                        {% if r.top_product_subcategory %}
+                        <div class="product-cell-sub">{{ r.top_product_subcategory }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="why-cell">{{ r.top_product_why or '' }}</td>
+                    <td class="rank-num">{{ r.promising_count or 0 }}</td>
+                    <td class="rank-num">{{ r.potential_count or 0 }}</td>
+                    <td class="rank-num">{{ r.uncertain_count or 0 }}</td>
+                    <td class="rank-num">{{ r.unlikely_count or 0 }}</td>
+                    <td class="signal-cell">
+                        {% if r.lab_platform %}
+                            {% if 'skillable' in (r.lab_platform | lower) %}
+                            <span class="lab-skillable">{{ r.lab_platform }}</span>
+                            {% elif r.lab_platform | lower in ('none', 'no lab platform', 'greenfield') %}
+                            <span class="lab-none">None</span>
+                            {% else %}
+                            <span class="lab-competitor">{{ r.lab_platform }}</span>
+                            {% endif %}
+                        {% else %}
+                        <span class="lab-none">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="signal-cell">{{ r.key_signal or '' }}</td>
+                    <td>
+                        {% if r.discovery_id %}
+                        <a href="/inspector/product-selection/{{ r.discovery_id }}" class="deep-dive-link">Inspect →</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+
+{{ sm.markup() }}
+<script>
+{{ sm.js() }}
+</script>
+
+<script>
+(function() {
+    // ── Mode switching ──
+    window.switchMode = function(mode, btn) {
+        document.querySelectorAll('.mode-panel').forEach(function(p) { p.classList.remove('active'); });
+        document.querySelectorAll('.mode-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.getElementById('panel-' + mode).classList.add('active');
+        btn.classList.add('active');
+    };
+
+    // ── CSV file selection ──
+    window.fileSelected = function(input) {
+        var label = document.getElementById('fileLabel');
+        var btn = document.getElementById('btnCsv');
+        if (input.files && input.files.length > 0) {
+            label.textContent = input.files[0].name;
+            label.style.display = 'block';
+            btn.disabled = false;
+        }
+    };
+
+    // ── Drop zone drag-over styling ──
+    var dz = document.getElementById('dropZone');
+    if (dz) {
+        dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('drag-over'); });
+        dz.addEventListener('dragleave', function() { dz.classList.remove('drag-over'); });
+        dz.addEventListener('drop', function() { dz.classList.remove('drag-over'); });
+    }
+
+    // ── Paste list validation ──
+    var textarea = document.getElementById('companyInput');
+    var btnPaste = document.getElementById('btnPaste');
+    if (textarea && btnPaste) {
+        textarea.addEventListener('input', function() {
+            var lines = this.value.trim().split('\n').filter(function(l) { return l.trim(); });
+            btnPaste.disabled = lines.length === 0;
+        });
+    }
+})();
+</script>
+
+</body>
+</html>

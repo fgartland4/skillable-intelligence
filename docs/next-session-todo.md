@@ -6,7 +6,17 @@
 
 ---
 
-**Last updated:** 2026-04-08 (late session, Phase 1 live-bug batch shipped. Earlier in session: `dd62c87` viable_fabrics + No Scoring Methods canonical label, `a296e29` researcher SaaS/cloud contradiction fix, `9682ba2` docs audit + refresh. This update adds the Phase 1 live-bug commit which resolved 10 small items from the late-session testing round: Simulation override normalized to 12/12/0/12 with gray bars across all three symmetric dims, briefcase markdown stripped, ACV table separator + wider columns + ANNUAL ACV POTENTIAL rename + Use Case column font uniformity, "Hands On Learning" renamed to "Hands On", "Instructor Authors Dual" renamed to "Dual Instructors/Authors", "Customer Enablement Team" label now pulls the vendor's actual named program from `customer_enablement_team_name` fact (e.g. "Cohesity Academy"), and product chooser link placement standardized above the Deep Dive button. Phase 2 queue in §2a is what to pick up next session. Read this doc first, then `docs/roadmap.md` for the long arc.)
+**Last updated:** 2026-04-12 (extended requirements + coding session with Frank. **Three workstreams landed.**
+
+**Workstream 1: Researcher/discovery sharpening.** Product definition locked (what IS vs IS NOT a product), discovery data shape defined (three tiers: per-product light, per-product hints, per-company once), product relationships vocabulary locked (flagship/satellite/standalone), discovery tier labels renamed Promising/Potential/Uncertain/Unlikely, product chooser redesign agreed (popularity sort, labability as badge, three-column layout, interstitial only when 15-20+ products), unified search field (single input handles company names, product names, disambiguation, former names), company classification derived from products (`company_category`) separate from Pillar 3 baseline (`org_type`), "delivery partners" replaces "delivery channels," Seller Briefcase clarified Key Technical Questions vs Market Demand evidence, ACV estimation discipline changed from ranges to single numbers ("~14M" not "2,000-40,000").
+
+**Workstream 2: Org-type models + strategic decisions.** Pillar weights locked at 50/20/30 (from 40/30/30) after running math on Cohesity/Trellix/Workday/Diligent. Company badge pattern locked: [Category] + [Org Type] (e.g. "Cybersecurity Software," "Cybersecurity Industry Authority"). Full org-type models written for: Software Companies (anchor/baseline), Universities (6 academic badge types: Engineering College, Research University, Liberal Arts College, Career & Technology College, Community College, K-12 School District), GSIs/VARs/Distributors, Industry Authorities, Enterprise Learning Platforms, ILT Training Organizations, Content Development Firms (partnership only, no Deep Dive), LMS/Learning Platforms (hybrid: product + partnership). ACV funnel clarified as universal — lab hours consumed is always the unit. Mark Mangelson's (CRO) labability prompt mapped to our framework — all 9 categories covered, product-level precision added. Prospector design completed — batch discovery, results table sorted by ACV, CSV export, partnership flags, intelligence sharpening from cached Deep Dives.
+
+**Workstream 3: Code changes shipped.** Pillar weights changed to 50/20/30 in `scoring_config.py` + SCORING_LOGIC_VERSION bumped. Discovery tier labels changed to Promising/Potential/Uncertain/Unlikely across `core.py`, `intelligence.py`, `scoring_config.py`, `product_selection.html`, `_theme.html`, and tests. All 116 tests passing.
+
+**Code safeguard rules agreed:** typed discovery schema, template never computes, classification is derived never assigned, old cache loads clean, one commit one concern. Discovery prompt v2 drafted (`backend/prompts/discovery_v2_draft.txt`) — ready to replace old prompt and wire parsing.
+
+Prior context: Phase 1 live-bug batch shipped 2026-04-08, Phase 2 bugs still queued in §2a.)
 
 ---
 
@@ -24,22 +34,42 @@ Everything else is in `docs/roadmap.md`. Everything shipped is in `git log` and 
 
 ## §1 — START HERE NEXT SESSION
 
-**Documentation Job A — content design conversation.**
+**Implement researcher/discovery sharpening — the upstream fix.**
 
-Walk `docs/Platform-Foundation.md` and `docs/Badging-and-Scoring-Reference.md` together with Frank and decide:
-- Which sections of each doc become extractable "pull into UI" content
-- Where the tone needs polish to read as seller-facing (30-second read target)
-- How to mark extractable sections (proposed: HTML-comment anchors like `<!-- modal:pillar-1-why -->...<!-- /modal:pillar-1-why -->`)
-- How Platform-Foundation (WHY / WHAT) and Badging-and-Scoring (HOW) compose into one pillar modal
+Decisions are locked and written into Platform-Foundation.md (see "The Center of Everything: Products" and "Discovery Data Shape" sections). Now build it.
 
-**Why this first:** Frank needs to get external eyeballs on the platform. Without the ? modal content in place, every demo generates the question "how are you scoring this?" and he ends up explaining the methodology manually. The content already exists in the Foundation docs — what's missing is the design of how to surface it in the UI without duplicating anything.
+**Step 1: Rewrite the discovery prompt** (`backend/prompts/discovery.txt`)
+- Replace "aim for 40-60 products" with the product definition filter
+- Add the three-tier data shape (per-product light, per-product hints, per-company once)
+- Add product relationship field (flagship/satellite/standalone)
+- Add estimated user base + evidence + confidence fields
+- Add complexity signals, target personas, api_surface, cert_inclusion
+- Add per-company fields (training programs, sales channel, atp_program, delivery partners, events, partnership pattern, engagement model, content team signals, lab platform)
 
-**Slow part:** the design conversation. Must happen live. Do not skip.
+**Step 2: Update discovery processing code**
+- `backend/intelligence.py` discover() — parse and store the enriched discovery data
+- `backend/core.py` — rename discovery tier labels (Promising/Potential/Uncertain/Unlikely), update thresholds
+- `backend/scoring_config.py` — update tier label constants
+- Company classification — derive from discovered product categories
 
-**Fast parts after design:**
-1. Write small Python extractor helper (~20 lines — reads MD file, pulls section by anchor name)
-2. Wire the existing reusable info modal to consume extracted content, themed per job (Job A = green/blue, Job B = orange — Frank's direction)
-3. Per-pillar ? icon content lands automatically on next app refresh
+**Step 3: Update product chooser UX**
+- Sort by estimated user base (popularity), not labability tier
+- Labability tier as badge in right column
+- Three-column layout: product info | deployment | labability judgment
+- Interstitial only when product count exceeds ~15-20
+
+**Step 4: Test with Posit, Trellix, Cisco, Commvault, Sage**
+- Verify product counts are sane (Posit: 3-5, Trellix: ~8, Cisco: 20-30)
+- Verify flagship/satellite relationships are correct
+- Verify popularity ranking puts the right products on top
+
+**Why this first:** Bad product identification is the root cause of the Trellix 46-product bloat (§2b), the Posit 48-product bloat, and the ACV extrapolation inflation. Fixing the researcher is upstream of everything — scoring tuning, ACV accuracy, product chooser UX, and Prospector data quality.
+
+**Still queued — Documentation Job A** (the ? modal content design conversation). Moved to §3 Big Projects. Still important — Frank won't demo without it — but the researcher fix is upstream and improves the data the documentation will explain.
+
+**Open threads from 2026-04-12 session (continue if time permits):**
+- ~~How enriched discovery data serves Prospector~~ — **RESOLVED.** Prospector design conversation completed. Full spec in Platform-Foundation.md → Prospector UX. Same discovery data, batch processing, results table sorted by ACV potential.
+- ACV extrapolation — does the enriched discovery data change how we estimate company-level ACV? (The enriched discovery with real product counts and user bases should make the extrapolation dramatically more accurate than the old proportional scaling.)
 
 ---
 
@@ -61,9 +91,9 @@ Phase 1 of the live-bug batch shipped in the commit that landed this doc update.
 | **Bug 21 — Workday Training Commitment 25/25 may be too high** (Workday is notoriously hard to do business with — enterprise procurement friction, long sales cycles, partner lock-in) | Investigate-first | Frank suspects the Training Commitment dimension isn't capturing the "friction to partner with this vendor" signal strongly enough. Look at the graded signals for Training Commitment on Workday. Is the maximum score a fair read? If not, what signal / penalty is missing? Likely pairs with a scoring config adjustment but depends on the investigation. |
 | **Bug 22 — Weak Product Labability should drag Fit Score down harder** (Workday HCM: PL 45/100 — amber — but overall Fit Score 74 = HIGH POTENTIAL) | Tuning — requires the 50/20/30 pillar weight decision below first | Technical Fit Multiplier exists but may not be biting hard enough for mid-range PL scores (PL 19-49 band). This item is downstream of the bigger strategic question: should the pillar weights be rebalanced from 40/30/30 to 50/20/30? See §2c below. |
 
-### §2c — Big strategic question raised during Workday pass
+### §2c — ~~Big strategic question raised during Workday pass~~ DECIDED 2026-04-12
 
-**Pillar weight rebalance: 40/30/30 → 50/20/30?** Frank 2026-04-08: "SHOULD our model be 50/20/30 and not 40/30/30?" The Workday HCM case (Fit 74 HIGH POTENTIAL with PL 45 amber) suggests weak Product Labability isn't dragging the Fit Score down hard enough. Rebalancing to PL 50% + IV 20% + CF 30% would make PL more dominant. **This is a strategic decision, not a bug fix.** It touches `scoring_config.py` pillar weights, the Technical Fit Multiplier tuning, the Verdict Grid thresholds, every shipped analysis recomputes, and both Foundation docs need rewriting. Decision captured in `docs/roadmap.md` §I. Walk through 5-10 scored companies under both weight schemes before deciding. Pairs with Bug 22 above (which is downstream of whichever decision is made here).
+**Pillar weight rebalance: 40/30/30 → 50/20/30 — LOCKED.** Ran the math on Cohesity (PL 95), Trellix TIE (PL 86), Workday (PL 22), and Diligent (PL 25). Results: strong-PL companies unchanged or slightly up; weak-PL companies moved down 4–6 points. Workday dropped from 54 to 48 — honest. No company that should be strong got hurt. Product Labability is the gatekeeper; the math now matches the philosophy. Both Foundation docs updated. Code change: `scoring_config.py` pillar weights — one line, propagates everywhere.
 
 ---
 
@@ -71,9 +101,9 @@ Phase 1 of the live-bug batch shipped in the commit that landed this doc update.
 
 | Bug | Investigate when |
 |---|---|
-| **Discovery bloat + family picker under-grouping** — Trellix returned ~46-49 products vs ~22 real; then family picker collapsed 42 under one "Cybersecurity" header making it useless as a filter. Two stacked bugs (upstream over-extraction + coarse grouping), one investigation. Test case: Trellix. Also causes Bug 3 (ACV total variance on refresh — downstream symptom of the same root cause). | When touching discovery, or as a dedicated pass if external testers hit it first. |
+| **Discovery bloat + family picker under-grouping** — Trellix returned ~46-49 products vs ~22 real; Posit returned 48 products vs ~5 real. Two stacked bugs (upstream over-extraction + coarse grouping). **Root cause identified 2026-04-12: researcher lacks a product definition filter.** Fix is §1 Step 1 (discovery prompt rewrite). Also causes Bug 3 (ACV total variance on refresh — downstream symptom of inflated product count in the extrapolation denominator). | **Resolved by §1 researcher sharpening work.** |
 | **Pillar 2 extractor reliability** — intermittent empty `mastery_stakes` / `lab_versatility` / `market_demand` drawers even on products where facts clearly exist. Cross-pillar grader safety net in `rubric_grader.py::_product_shape_context` keeps grades flowing in the meantime. Investigate-first. | When touching Pillar 2 researcher / grader work. |
-| **Bug 14 — Researcher missing flagship events** (Cohesity Catalyst was not captured) | Researcher prompt tightening — explicit guidance to search for the vendor's flagship annual event / user conference. |
+| **Bug 14 — Researcher missing flagship events** (Cohesity Catalyst was not captured) | **Resolved by §1 Step 1** — per-company `events` field is now part of the discovery data shape. Researcher explicitly searches for flagship annual event / user conference. |
 
 **Batch bugs during documentation work.** Frank queues small bugs during Job A / Job B sessions — pause at natural breakpoints to batch them rather than context-switch mid-design-conversation. Pattern worked well in the 2026-04-08 session that shipped 10 quick fixes as a single Phase 1 commit.
 
@@ -115,13 +145,19 @@ Prerequisite: Job A shipped. Frank has said he will not put this in front of peo
 - Modal vs separate tab — defer the decision until the content shape is clear (3-page content wants a tab, 1-screen wants a modal)
 - Same shared info-modal infrastructure as Job A, different theme color
 
-### 4. Prospector — design + build
+### 4. Prospector — build (design conversation completed 2026-04-12)
+
+**Design is done.** Full Prospector UX spec written into `Platform-Foundation.md → Prospector UX`. No legacy code or thinking — 100% new design based on the enriched discovery data shape.
 
 **Scope:**
-- Design conversation first. UX may differ from the old Prospector based on what we've learned
-- **Rewrite, not port.** Old Prospector exists in a different git repo and should be read as reference only. CLAUDE.md Legacy Boundary rule applies — no silent reuse of pre-rebuild code, prompts, or data
-- Core workstream: batch scoring (import list → research → output spreadsheet) then lookalikes (product-fit matching from competitor pairings)
-- Relies on the shared Intelligence layer already built in this repo
+- **Rewrite, not port.** Zero legacy code. CLAUDE.md Legacy Boundary rule applies.
+- Input: paste company names OR upload CSV. Unified search field with disambiguation.
+- Processing: batch discovery on all input companies using the standard three-tier discovery data shape. All results cached for Inspector Deep Dives.
+- Output: results table sorted by ACV potential — columns: Rank, Company + badge, Estimated ACV, Top Product, Why, Promising/Potential/Uncertain/Unlikely product counts, Lab Platform, Key Signal.
+- CSV export with "Promising Products" / "Potential Products" column headers for spreadsheet context.
+- Intelligence sharpens automatically — companies with existing Deep Dives show scored data instead of discovery estimates.
+- Partnership flags: Content Development firms show as partners (no Deep Dive), LMS companies show as hybrid (product + distribution partner).
+- Future: HubSpot authenticated write-back (Stage 1 company records, Stage 2 deal records). RevOps conversation needed for field mapping.
 
 ### 5. Designer — design + build
 

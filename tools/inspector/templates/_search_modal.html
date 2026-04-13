@@ -648,15 +648,11 @@ window.openSearchModal = function(opts) {
   // the trigger arrives before the timer has reached the last research
   // stage, we set a pending flag and the timer picks it up when ready.
   //
-  // Frank 2026-04-08: with the old 2000ms the first four stages
-  // flashed past in 8 seconds while real research takes 20-40 seconds.
-  // Bumped to 6000ms so the five research stages span ~30 seconds,
-  // matching typical Deep Dive research duration. If the backend
-  // finishes faster, claudePhasePending below catches the trigger and
-  // the timer advances the remaining stages + jumps to Claude in order.
-  // If the backend runs longer, stage 4 sits active until the real
-  // trigger arrives — honest "still working" state, not fake progress.
-  const STAGE_ADVANCE_MS = 6000;
+  // Frank 2026-04-12: stages 1-5 should each be visible for ~10 seconds
+  // so the user can read them. Stage 6 (Claude scoring) takes over with
+  // cycling hints for all remaining time. Five stages × 10s = ~50s of
+  // research visibility before Claude phase.
+  const STAGE_ADVANCE_MS = 10000;  // magic-allowed: 10 seconds per research stage
   const stageAdvanceInterval = useStages ? setInterval(function() {
     if (claudeStarted) return;
     if (currentResearchStage < RESEARCH_COUNT - 1) {

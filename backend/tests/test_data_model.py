@@ -73,8 +73,9 @@ def test_confidence_level_values_restricted():
 # ── Fit Score calculation ───────────────────────────────────────────────────
 
 def test_fit_score_calculation():
-    """Fit Score = (PL x 0.40) + (IV x 0.30) + (CF x 0.30).
+    """Fit Score = (PL x 0.50) + (IV x 0.20) + (CF x 0.30).
 
+    Rebalanced 2026-04-12 from 40/30/30 to 50/20/30.
     Verified against hand-calculated examples.
     """
     pytest.skip("Awaiting new data model — rebuild in progress")

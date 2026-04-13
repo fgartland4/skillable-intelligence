@@ -6,7 +6,7 @@
   <div class="briefcase-product">
     {% if bc.key_technical_questions %}
     <div class="briefcase-card">
-      <div class="briefcase-title">{{ bc.key_technical_questions.heading or 'Key Technical Questions' }} <span class="info-icon">?</span></div>
+      <div class="briefcase-title">{{ bc.key_technical_questions.heading or 'Key Technical Questions' }} <span class="info-icon" onclick="openInfoModal('briefcase_ktq')" title="What are Key Technical Questions?">?</span></div>
       {% for bullet in bc.key_technical_questions.bullets or [] %}
         <div class="briefcase-item">{{ bullet | bold_label }}</div>
       {% endfor %}
@@ -14,7 +14,7 @@
     {% endif %}
     {% if bc.conversation_starters %}
     <div class="briefcase-card">
-      <div class="briefcase-title">{{ bc.conversation_starters.heading or 'Conversation Starters' }} <span class="info-icon">?</span></div>
+      <div class="briefcase-title">{{ bc.conversation_starters.heading or 'Conversation Starters' }} <span class="info-icon" onclick="openInfoModal('briefcase_conversation')" title="What are Conversation Starters?">?</span></div>
       {% for bullet in bc.conversation_starters.bullets or [] %}
         <div class="briefcase-item">{{ bullet | bold_label }}</div>
       {% endfor %}
@@ -24,7 +24,7 @@
   <div class="briefcase-org">
     {% if bc.account_intelligence %}
     <div class="briefcase-card-org">
-      <div class="briefcase-title-org">{{ bc.account_intelligence.heading or 'Account Intelligence' }} <span class="info-icon">?</span></div>
+      <div class="briefcase-title-org">{{ bc.account_intelligence.heading or 'Account Intelligence' }} <span class="info-icon" onclick="openInfoModal('briefcase_intel')" title="What is Account Intelligence?">?</span></div>
       {% for bullet in bc.account_intelligence.bullets or [] %}
         <div class="briefcase-item">{{ bullet | bold_label }}</div>
       {% endfor %}
@@ -34,17 +34,17 @@
 {% else %}
   <div class="briefcase-product">
     <div class="briefcase-card">
-      <div class="briefcase-title">Key Technical Questions <span class="info-icon">?</span></div>
+      <div class="briefcase-title">Key Technical Questions <span class="info-icon" onclick="openInfoModal('briefcase_ktq')" title="What are Key Technical Questions?">?</span></div>
       <div class="briefcase-loading-dots"><span></span><span></span><span></span></div>
     </div>
     <div class="briefcase-card">
-      <div class="briefcase-title">Conversation Starters <span class="info-icon">?</span></div>
+      <div class="briefcase-title">Conversation Starters <span class="info-icon" onclick="openInfoModal('briefcase_conversation')" title="What are Conversation Starters?">?</span></div>
       <div class="briefcase-loading-dots"><span></span><span></span><span></span></div>
     </div>
   </div>
   <div class="briefcase-org">
     <div class="briefcase-card-org">
-      <div class="briefcase-title-org">Account Intelligence <span class="info-icon">?</span></div>
+      <div class="briefcase-title-org">Account Intelligence <span class="info-icon" onclick="openInfoModal('briefcase_intel')" title="What is Account Intelligence?">?</span></div>
       <div class="briefcase-loading-dots"><span></span><span></span><span></span></div>
     </div>
   </div>

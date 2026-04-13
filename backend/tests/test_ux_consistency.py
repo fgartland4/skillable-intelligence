@@ -161,11 +161,15 @@ def test_deployment_data_value_is_installable():
 # ── Discovery tier labels ──────────────────────────────────────────────────
 
 def test_discovery_tier_labels():
-    """Discovery tier labels must be: Seems Promising, Likely, Uncertain, Unlikely.
+    """Discovery tier labels must be: Promising, Potential, Uncertain, Unlikely.
 
+    Renamed 2026-04-12: Seems Promising → Promising, Likely → Potential.
     These communicate confidence at discovery depth — not conclusions.
     """
-    pytest.skip("Awaiting new templates — rebuild in progress")
+    from core import DISCOVERY_TIER_LABELS
+    expected = {"promising": "Promising", "potential": "Potential",
+                "uncertain": "Uncertain", "unlikely": "Unlikely"}
+    assert DISCOVERY_TIER_LABELS == expected
 
 
 # ── Product selection limit ─────────────────────────────────────────────────
@@ -472,4 +476,60 @@ def test_product_selection_uses_cached_product_names():
     )
     assert "badge-cached" in src or "In cache" in src, (
         "Product Selection should render an 'In cache' indicator on cached products."
+    )
+
+
+def test_deep_dive_redirect_uses_replace_not_href():
+    """Deep Dive redirect must use window.location.replace(), not
+    window.location.href, so the browser back button skips the modal
+    state and goes straight to product selection.
+
+    Regression test — this bug has recurred multiple times. Frank 2026-04-12:
+    'When I click back I should never go back to the search modal.'
+    """
+    from pathlib import Path
+
+    template_path = (Path(__file__).resolve().parents[2]
+                     / "tools" / "inspector" / "templates" / "product_selection.html")
+    src = template_path.read_text(encoding="utf-8")
+
+    # Must NOT have window.location.href pointing to analysis pages
+    import re
+    href_to_analysis = re.findall(r"window\.location\.href\s*=.*analysis", src)
+    assert not href_to_analysis, (
+        f"Found window.location.href redirect to analysis page — must use "
+        f"window.location.replace() instead so back button skips the modal. "
+        f"Matches: {href_to_analysis}"
+    )
+
+    # Must HAVE window.location.replace pointing to analysis pages
+    replace_to_analysis = re.findall(r"window\.location\.replace\(.*analysis", src)
+    assert replace_to_analysis, (
+        "Product Selection must use window.location.replace() for Deep Dive "
+        "redirects to analysis pages. This prevents the back button from "
+        "returning to the modal state."
+    )
+
+
+def test_product_selection_forces_reload_on_back_navigation():
+    """Product Selection must force a page reload when restored from the
+    browser's bfcache (back button) so cached product badges and state
+    reflect any Deep Dive that ran since the user left.
+
+    Frank 2026-04-12: 'When I click back it must also refresh the page
+    to show what products are now in the cache.'
+    """
+    from pathlib import Path
+
+    template_path = (Path(__file__).resolve().parents[2]
+                     / "tools" / "inspector" / "templates" / "product_selection.html")
+    src = template_path.read_text(encoding="utf-8")
+
+    assert "event.persisted" in src, (
+        "Product Selection must check event.persisted in the pageshow handler "
+        "to detect bfcache restoration and force a reload."
+    )
+    assert "window.location.reload()" in src, (
+        "Product Selection must call window.location.reload() when the page "
+        "is restored from bfcache."
     )

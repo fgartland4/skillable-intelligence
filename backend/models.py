@@ -4,7 +4,7 @@ Built from Platform-Foundation.md and Badging-and-Scoring-Reference.md.
 All field names use locked vocabulary (GP4 — Self-Evident Design).
 
 Hierarchy: Fit Score → Pillars → Dimensions → Requirements (badges)
-Three Pillars (40/30/30): Product Labability, Instructional Value, Customer Fit
+Three Pillars (50/20/30): Product Labability, Instructional Value, Customer Fit
 Each Pillar scores out of 100 internally, then weighted to Fit Score.
 """
 
@@ -110,7 +110,7 @@ class PillarScore:
     that matched; the override only affects the pillar-level score.
     """
     name: str
-    weight: int                    # Percentage of Fit Score (40, 30, or 30)
+    weight: int                    # Percentage of Fit Score (50, 20, or 30)
     dimensions: list[DimensionScore] = field(default_factory=list)
     score: int = 0                 # Stored — set by the pillar scorer via recompute_pillar_score()
     score_override: Optional[int] = None  # Set by pillar_1_scorer when bare-metal / sandbox ceiling enforced
@@ -183,9 +183,9 @@ def _build_default_pillar(pillar_key: str) -> "PillarScore":
 
 @dataclass
 class FitScore:
-    """The composite Fit Score — three Pillars weighted 40/30/30.
+    """The composite Fit Score — three Pillars weighted 50/20/30.
 
-    Product Labability (40%) + Instructional Value (30%) = 70% product
+    Product Labability (50%) + Instructional Value (20%) = 70% product
     Customer Fit (30%) = 30% organization
 
     Math layer audit trail:

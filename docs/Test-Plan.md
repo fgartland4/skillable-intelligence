@@ -229,7 +229,7 @@ Closes the long-standing roadmap "Cache versioning" gap. Cached analyses scored 
 | Org type badges use correct color groups | Purple for software/enterprise, teal for training/academic, warm blue for channel/partners |
 | Deployment model badges use correct colors and labels | Installable (green), Hybrid (gray), Cloud-Native (green), SaaS-Only (amber) |
 | Deployment model data value is `installable` not `self-hosted` | GP4 — data matches display |
-| Discovery tier labels match new vocabulary | Seems Promising, Likely, Uncertain, Unlikely — no legacy labels |
+| Discovery tier labels match current vocabulary | Promising, Potential, Uncertain, Unlikely — no legacy labels (Seems Promising / Likely retired 2026-04-12) |
 | Product selection limit is configurable | Not hardcoded — pulled from config |
 | No forbidden page names in user-facing text | No "Seller Action Plan", "Dossier", "Caseboard" visible to users |
 | All classification badges use group color, not scoring color | Classification colors (purple/teal/warm blue) never overlap with scoring colors (green/amber/red) |

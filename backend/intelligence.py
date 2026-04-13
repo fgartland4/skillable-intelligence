@@ -397,6 +397,27 @@ def hydrate_analysis(analysis: dict) -> None:
         analysis["_org_color"] = disc.get("_org_color", "")
 
 
+def _parse_user_base(value: str) -> int:
+    """Parse estimated_user_base string to int for sorting.
+
+    Handles "~14M", "~50K", "~2000", "14000000". Returns 0 on failure.
+    """
+    if not value:
+        return 0
+    s = str(value).replace("~", "").replace(",", "").strip().upper()
+    try:
+        if s.endswith("M"):
+            return int(float(s[:-1]) * 1_000_000)  # magic-allowed: million multiplier
+        elif s.endswith("K"):
+            return int(float(s[:-1]) * 1_000)  # magic-allowed: thousand multiplier
+        elif s.endswith("B"):
+            return int(float(s[:-1]) * 1_000_000_000)  # magic-allowed: billion multiplier
+        else:
+            return int(float(s))
+    except (ValueError, IndexError):
+        return 0
+
+
 def enrich_discovery(discovery: dict) -> None:
     """Idempotently add tier / badge / color fields to a discovery dict.
 
@@ -426,11 +447,33 @@ def enrich_discovery(discovery: dict) -> None:
     from models import Product
 
     for p in discovery.get("products", []) or []:
-        score = p.get("discovery_score", 0)
+        # Normalize satellite → secondary for old cached data
+        if p.get("product_relationship") == "satellite":
+            p["product_relationship"] = "secondary"
+        # Format estimated_user_base with commas for display (e.g. ~40000 → ~40,000)
+        raw_ub = str(p.get("estimated_user_base", ""))
+        if raw_ub and raw_ub.replace("~", "").replace(",", "").strip().isdigit():
+            num = int(raw_ub.replace("~", "").replace(",", "").strip())
+            p["estimated_user_base"] = f"~{num:,}"
+        # Support both old field name (discovery_score) and new (rough_labability_score)
+        score = p.get("rough_labability_score", p.get("discovery_score", 0))
         if not p.get("_tier"):
             p["_tier"] = discovery_tier(score)
         if not p.get("_tier_label"):
             p["_tier_label"] = DISCOVERY_TIER_LABELS.get(p["_tier"], p["_tier"])
+
+    # Sort products: flagship first, then by estimated user base (popularity)
+    # descending. This is the intelligence layer's decision — the UX just
+    # renders in the order it receives. GP4: the sort IS the ranking logic.
+    def _popularity_sort_key(p: dict) -> tuple:
+        relationship = 0 if p.get("product_relationship") == "flagship" else 1  # magic-allowed: sort priority
+        user_base = _parse_user_base(p.get("estimated_user_base", ""))
+        return (relationship, -user_base)
+
+    products = discovery.get("products", []) or []
+    if products:
+        products.sort(key=_popularity_sort_key)
+        discovery["products"] = products
 
     org_type = discovery.get("organization_type", "software_company")
     if not discovery.get("_company_badge"):
@@ -438,7 +481,11 @@ def enrich_discovery(discovery: dict) -> None:
             Product(name=p.get("name", ""), category=p.get("category", ""))
             for p in discovery.get("products", []) or []
         ]
-        discovery["_company_badge"] = company_classification_label(org_type, product_objs)
+        # Use researcher's classification hint when available (v2 discoveries)
+        badge_hint = discovery.get("company_badge", "")
+        discovery["_company_badge"] = company_classification_label(
+            org_type, product_objs, company_badge_hint=badge_hint,
+        )
     if not discovery.get("_org_color"):
         discovery["_org_color"] = org_badge_color_group(org_type)
 
@@ -595,6 +642,39 @@ def recompute_analysis(analysis: dict) -> None:
     analysis["top_products"] = products
     analysis["products"] = products
 
+    # ── Company-level ACV computation ──────────────────────────────────
+    # Sum per-product ACV across all scored products, then extrapolate
+    # to all discovered products proportionally. This is the intelligence
+    # layer's job — the template just reads the pre-computed values.
+    # Moved from _hero_section.html template 2026-04-12 (template never
+    # computes — GP4 Layer Discipline).
+    scored_acv_low = 0
+    scored_acv_high = 0
+    scored_with_acv = 0
+    for p in products:
+        acv = p.get("acv_potential") or {}
+        if (acv.get("acv_high") or 0) > 0:
+            scored_acv_low += acv.get("acv_low") or 0
+            scored_acv_high += acv.get("acv_high") or 0
+            scored_with_acv += 1
+
+    discovered_count = analysis.get("total_products_discovered") or len(products)
+    if scored_with_acv > 0 and discovered_count > scored_with_acv:
+        company_acv_low = round(scored_acv_low * discovered_count / scored_with_acv)
+        company_acv_high = round(scored_acv_high * discovered_count / scored_with_acv)
+    else:
+        company_acv_low = scored_acv_low
+        company_acv_high = scored_acv_high
+
+    analysis["_company_acv"] = {
+        "company_low": company_acv_low,
+        "company_high": company_acv_high,
+        "scored_low": scored_acv_low,
+        "scored_high": scored_acv_high,
+        "scored_count": scored_with_acv,
+        "discovered_count": discovered_count,
+    }
+
 
 def _stamp_for_save(data: dict, timestamp_field: str = "analyzed_at") -> dict:
     """Stamp an analysis or discovery dict with the current SCORING_LOGIC_VERSION
@@ -620,8 +700,8 @@ def _stamp_for_save(data: dict, timestamp_field: str = "analyzed_at") -> dict:
 
 # Discovery tier ordering for discrepancy detection
 _TIER_ORDER = {
-    "seems_promising": 0,
-    "likely": 1,
+    "promising": 0,
+    "potential": 1,
     "uncertain": 2,
     "unlikely": 3,
 }
@@ -689,6 +769,11 @@ def discover(company_name: str, known_products: list[str] | None = None,
 
     _progress("Detecting deployment models & tech stack…")
     discovery = discover_products_with_claude(findings)
+    # Log product count for validation — the product definition filter
+    # should produce fewer, real products (not 40-60 features/libraries)
+    product_count = len(discovery.get("products", []))
+    log.info("Intelligence.discover: Claude returned %d products for %s",
+             product_count, company_name)
     _progress("Mapping competitive products & vendor landscape…")
 
     # Preserve raw research signals alongside Claude output
@@ -1429,12 +1514,12 @@ def qualify(company_name: str, force_refresh: bool = False) -> dict | None:
 
     products = disc.get("products", [])
 
-    # Find top product by discovery score
-    sorted_prods = sorted(products, key=lambda p: p.get("discovery_score", 0), reverse=True)
+    # Find top product by rough labability score (v2) with discovery_score fallback (v1)
+    sorted_prods = sorted(products, key=lambda p: p.get("rough_labability_score", p.get("discovery_score", 0)), reverse=True)
     top = sorted_prods[0]
 
     # Use discovery-level data to build Prospector row
-    fit = top.get("discovery_score", 0)
+    fit = top.get("rough_labability_score", top.get("discovery_score", 0))
     tier = discovery_tier(fit)
 
     # Contacts

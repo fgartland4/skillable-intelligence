@@ -147,7 +147,7 @@ def discover_products_with_claude(findings: dict) -> dict:
             lines.append(f"\n### {key}:")
             lines.append(content[:2000])
 
-    return _call_claude(DISCOVERY_PROMPT, "\n".join(lines), max_tokens=8000)
+    return _call_claude(DISCOVERY_PROMPT, "\n".join(lines), max_tokens=16000)  # magic-allowed: discovery needs room for enriched three-tier data shape
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

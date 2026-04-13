@@ -49,11 +49,13 @@
 {%- endfor -%}
 {%- endmacro %}
 
-{% macro render_dimension(dim) %}
+{% macro render_dimension(dim, info_key='') %}
   {# dim.score_percentage and dim.dominant_color are precomputed by
      intelligence.recompute_analysis() — see HIGH-3 in
      docs/code-review-2026-04-07.md. Falls back to inline math for any
-     legacy dimension dict that hasn't been through recompute yet. #}
+     legacy dimension dict that hasn't been through recompute yet.
+     info_key: kept for future use but ? icons removed from dimensions
+     in favor of consolidated pillar-level modals (Frank 2026-04-12). #}
   {% set pct = dim.score_percentage if dim.score_percentage is defined else (((dim.score or 0) * 100 / (dim.weight or 1)) | round(0, 'floor') | int) %}
   {% set dcolor = dim.dominant_color or 'gray' %}
   <div class="dimension">

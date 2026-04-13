@@ -89,10 +89,23 @@
         }
         @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
 
-        /* ── Tier sections ── */
-        .tier-section { margin-bottom: 20px; }
-        .tier-section.tier-empty .tier-hdr { opacity: 0.35; }
+        /* ── Product list (popularity-sorted) ── */
+        .product-list-section { margin-bottom: 20px; }
+        .product-list-hdr {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+        }
+        .product-list-lbl {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em;
+            text-transform: uppercase; white-space: nowrap; color: var(--sk-text-dim);
+        }
+        .product-list-rule {
+            flex: 1; height: 1px;
+            background: linear-gradient(to right, var(--sk-accent), transparent);
+            opacity: 0.18;
+        }
 
+        /* ── Legacy tier section styles (kept for competitive landscape) ── */
+        .tier-section { margin-bottom: 20px; }
         .tier-hdr {
             display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
         }
@@ -107,7 +120,38 @@
         }
 
         /* ── Product cards ── */
-        .tier-cards { display: flex; flex-direction: column; gap: 4px; }
+        .product-cards { display: flex; flex-direction: column; gap: 4px; }
+
+        /* ── Labability tier badge (right column of product card) ── */
+        .badge-tier {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 0.58rem; font-weight: 800; letter-spacing: 0.06em;
+            text-transform: uppercase; white-space: nowrap;
+            border: 1px solid; flex-shrink: 0;
+        }
+        .badge-tier.t-pr { color: var(--sk-accent); border-color: rgba(36,237,155,0.3); background: rgba(36,237,155,0.06); }
+        .badge-tier.t-po { color: var(--sk-accent-pale); border-color: rgba(36,237,155,0.2); background: rgba(36,237,155,0.04); }
+        .badge-tier.t-u  { color: var(--sk-score-mid); border-color: rgba(245,166,35,0.25); background: rgba(245,166,35,0.05); }
+        .badge-tier.t-ul { color: var(--sk-score-low-soft); border-color: rgba(224,82,82,0.2); background: rgba(224,82,82,0.04); }
+
+        /* ── Product relationship tag ── */
+        .badge-relationship {
+            display: inline-block; padding: 1px 6px; border-radius: 3px;
+            font-size: 0.55rem; font-weight: 700; letter-spacing: 0.04em;
+            text-transform: uppercase; white-space: nowrap;
+            color: var(--sk-text-dim); border: 1px solid var(--sk-border);
+        }
+
+        /* ── Card layout: facts horizontal left, tier badge pinned right ── */
+        .card-facts {
+            flex: 1 1 auto; min-width: 0;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* ── Popularity indicator ── */
+        .card-popularity {
+            font-size: 0.68rem; color: var(--sk-text-dim); white-space: nowrap;
+        }
 
         .product-card {
             display: flex; align-items: center; gap: 10px;
@@ -155,8 +199,8 @@
         }
 
         .card-name {
-            flex: 1 1 auto; font-size: 0.87rem; font-weight: 600; color: var(--sk-text);
-            overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+            font-size: 0.87rem; font-weight: 600; color: var(--sk-text);
+            white-space: nowrap; margin-right: 8px;
         }
 
         .tier-empty-hint {
@@ -277,8 +321,8 @@
 {# ── Computed sets using new tier labels ── #}
 {% set tc_prods = discovery.products | selectattr('category', 'equalto', 'Training & Certification') | list %}
 {% set non_tc_prods = discovery.products | rejectattr('category', 'equalto', 'Training & Certification') | list %}
-{% set sp_prods = non_tc_prods | selectattr('_tier', 'equalto', 'seems_promising') | list %}
-{% set l_prods  = non_tc_prods | selectattr('_tier', 'equalto', 'likely') | list %}
+{% set sp_prods = non_tc_prods | selectattr('_tier', 'equalto', 'promising') | list %}
+{% set l_prods  = non_tc_prods | selectattr('_tier', 'equalto', 'potential') | list %}
 {% set u_prods  = non_tc_prods | selectattr('_tier', 'equalto', 'uncertain') | list %}
 {% set ul_prods = non_tc_prods | selectattr('_tier', 'equalto', 'unlikely') | list %}
 
@@ -325,25 +369,23 @@
     {# ── Two-column board ── #}
     <div class="board">
 
-        {# ── Left: tier sections ── #}
+        {# ── Left: products sorted by popularity ── #}
         <div class="left-col">
-            {% set tiers = [
-                ('seems_promising', 'SEEMS PROMISING', 'sp', sp_prods),
-                ('likely',          'LIKELY',           'l',  l_prods),
-                ('uncertain',       'UNCERTAIN',        'u',  u_prods),
-                ('unlikely',        'UNLIKELY',         'ul', ul_prods)
-            ] %}
-            {% for tier_key, tier_label, tier_cls, tier_prods in tiers %}
-            <div class="tier-section {% if tier_prods | length == 0 %}tier-empty{% endif %}">
-                <div class="tier-hdr">
-                    <span class="tier-lbl t-{{ tier_cls }}">{{ tier_label }}</span>
-                    <span class="tier-rule" style="color: {% if tier_cls == 'sp' %}var(--sk-accent){% elif tier_cls == 'l' %}var(--sk-accent-pale){% elif tier_cls == 'u' %}var(--sk-score-mid){% else %}var(--sk-score-low-soft){% endif %}"></span>
+            {# Products pre-sorted by the route: flagship first, then by
+               estimated user base (popularity) descending. No Jinja2 sort needed. #}
+            <div class="product-list-section">
+                <div class="product-list-hdr">
+                    <span class="product-list-lbl">Products — by popularity</span>
+                    <span class="product-list-rule"></span>
                 </div>
 
-                {% if tier_prods %}
-                <div class="tier-cards">
-                    {% for p in tier_prods | sort(attribute='priority') %}
+                {% if non_tc_prods %}
+                <div class="product-cards">
+                    {% for p in non_tc_prods %}
                     {% set is_cached = p.name in cached_product_names %}
+                    {% set tier_key = p._tier or 'uncertain' %}
+                    {% set tier_label = p._tier_label or 'Uncertain' %}
+                    {% set tier_css = {'promising':'t-pr','potential':'t-po','uncertain':'t-u','unlikely':'t-ul'}.get(tier_key, 't-u') %}
                     <label class="product-card{% if is_cached %} card-cached{% endif %}">
                         <input type="checkbox" name="products" value="{{ p.name }}"
                                form="diveForm" class="product-cb"
@@ -351,24 +393,34 @@
                         <div class="cb-visual">
                             <span class="cb-tick">✓</span>
                         </div>
-                        <span class="card-name">{{ p.name }}</span>
-                        {% if p.subcategory or p.category %}
-                        <span class="badge-cat">{{ p.subcategory or p.category }}</span>
-                        {% endif %}
-                        {% if p.deployment_model %}
-                        <span class="badge-deploy {{ p.deployment_model | deployment_color }}">{{ p.deployment_model | deployment_display }}</span>
-                        {% endif %}
-                        {% if is_cached %}
-                        <span class="badge-cached" title="Already scored — cached result will be reused">In cache</span>
-                        {% endif %}
+                        {# Left: product facts listed horizontally #}
+                        <div class="card-facts">
+                            <span class="card-name">{{ p.name }}</span>
+                            {% if p.product_relationship and p.product_relationship != 'standalone' %}
+                            <span class="badge-relationship">{{ p.product_relationship }}</span>
+                            {% endif %}
+                            {% if p.subcategory or p.category %}
+                            <span class="badge-cat">{{ p.subcategory or p.category }}</span>
+                            {% endif %}
+                            {% if p.estimated_user_base %}
+                            <span class="card-popularity" title="{{ p.user_base_evidence or '' }}">{{ p.estimated_user_base }}</span>
+                            {% endif %}
+                            {% if p.deployment_model %}
+                            <span class="badge-deploy {{ p.deployment_model | deployment_color }}">{{ p.deployment_model | deployment_display }}</span>
+                            {% endif %}
+                            {% if is_cached %}
+                            <span class="badge-cached" title="Already scored">In cache</span>
+                            {% endif %}
+                        </div>
+                        {# Right: Skillable's judgment only #}
+                        <span class="badge-tier {{ tier_css }}">{{ tier_label }}</span>
                     </label>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="tier-empty-hint">No products in this tier</div>
+                <div class="tier-empty-hint">No products discovered</div>
                 {% endif %}
             </div>
-            {% endfor %}
 
             {# Competitive Landscape #}
             {% if discovery.competitive_landscape %}
@@ -398,14 +450,14 @@
         <div class="right-col">
 
             <div class="panel-box">
-                <div class="panel-label">At a Glance</div>
+                <div class="panel-label">At a Glance <span class="info-icon" onclick="openInfoModal('labability_tiers')" title="What do these tiers mean?">?</span></div>
                 <div class="glance-rows">
                     <div class="glance-row {% if sp_prods | length == 0 %}glance-muted{% endif %}">
-                        <span class="glance-tier-name t-sp">Seems Promising</span>
+                        <span class="glance-tier-name t-pr">Promising</span>
                         <span class="glance-count">{{ sp_prods | length }}</span>
                     </div>
                     <div class="glance-row {% if l_prods | length == 0 %}glance-muted{% endif %}">
-                        <span class="glance-tier-name t-l">Likely</span>
+                        <span class="glance-tier-name t-po">Potential</span>
                         <span class="glance-count">{{ l_prods | length }}</span>
                     </div>
                     <div class="glance-row {% if u_prods | length == 0 %}glance-muted{% endif %}">
@@ -479,6 +531,82 @@
 {{ sm.markup() }}
 <script>
 {{ sm.js() }}
+</script>
+
+{# ── Info modal — same component as full_analysis.html, shared content ── #}
+<style>
+.info-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,0.7); align-items: center; justify-content: center;
+    padding: 40px 20px; animation: info-modal-fade-in 0.18s ease-out;
+}
+.info-modal-overlay.visible { display: flex; }
+@keyframes info-modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.info-modal {
+    background: var(--sk-surface); border: 1px solid var(--sk-border);
+    border-top: 3px solid var(--sk-accent); border-radius: 10px;
+    max-width: 720px; width: 100%; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6); position: relative;
+}
+.info-modal-close {
+    position: absolute; top: 12px; right: 16px; background: transparent; border: none;
+    color: var(--sk-text-muted); font-size: 1.6rem; cursor: pointer; line-height: 1;
+    padding: 0; width: 28px; height: 28px; font-family: inherit;
+}
+.info-modal-close:hover { color: var(--sk-text); }
+.info-modal-header { padding: 22px 28px 16px; border-bottom: 1px solid var(--sk-border); }
+.info-modal-eyebrow { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--sk-accent); font-weight: 700; }
+.info-modal-title { font-size: 1.4rem; font-weight: 800; color: var(--sk-text); margin-top: 4px; line-height: 1.2; }
+.info-modal-body { padding: 18px 28px 24px; }
+.info-modal-section { margin-bottom: 18px; }
+.info-modal-section:last-child { margin-bottom: 0; }
+.info-modal-section-label { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--sk-text-muted); font-weight: 700; margin-bottom: 6px; }
+.info-modal-section-text { font-size: 0.88rem; line-height: 1.6; color: var(--sk-text-muted); }
+.info-modal-section-text strong { color: var(--sk-text); }
+.info-modal-section-text em { color: var(--sk-accent); font-style: normal; }
+/* ── ? info icon — same canonical style as full_analysis.html ── */
+.info-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid var(--sk-text-dim);
+    color: var(--sk-text-dim);
+    font-size: 0.65rem; font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    text-align: center; line-height: 1;
+    cursor: pointer; vertical-align: middle;
+    transition: border-color 0.15s, color 0.15s, opacity 0.15s;
+    opacity: 0.6; flex-shrink: 0;
+}
+.info-icon:hover { border-color: var(--sk-accent); color: var(--sk-accent); opacity: 1; }
+</style>
+<div class="info-modal-overlay" id="infoModal" onclick="if(event.target===this) closeInfoModal()">
+  <div class="info-modal" role="dialog">
+    <button class="info-modal-close" type="button" onclick="closeInfoModal()">×</button>
+    <div class="info-modal-header">
+      <span class="info-modal-eyebrow" id="infoModalEyebrow"></span>
+      <div class="info-modal-title" id="infoModalTitle"></div>
+    </div>
+    <div class="info-modal-body" id="infoModalBody"></div>
+  </div>
+</div>
+<script>
+const INFO_MODAL_CONTENT = {{ modal_content_json | safe }};
+function openInfoModal(key) {
+  const content = INFO_MODAL_CONTENT[key];
+  if (!content) return;
+  document.getElementById('infoModalEyebrow').textContent = content.eyebrow || '';
+  document.getElementById('infoModalTitle').textContent = content.title || '';
+  const body = document.getElementById('infoModalBody');
+  body.innerHTML = '';
+  (content.sections || []).forEach(function(s) {
+    const w = document.createElement('div'); w.className = 'info-modal-section';
+    const l = document.createElement('div'); l.className = 'info-modal-section-label'; l.textContent = s.label || '';
+    const t = document.createElement('div'); t.className = 'info-modal-section-text'; t.innerHTML = s.body || '';
+    w.appendChild(l); w.appendChild(t); body.appendChild(w);
+  });
+  document.getElementById('infoModal').classList.add('visible');
+}
+function closeInfoModal() { document.getElementById('infoModal').classList.remove('visible'); }
 </script>
 
 <script>
@@ -610,7 +738,14 @@
     }
 
     updateState();
-    window.addEventListener('pageshow', function() {
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            // Page restored from bfcache (back button) — force reload
+            // so cached product badges and state reflect any Deep Dive
+            // that ran since the user left this page.
+            window.location.reload();
+            return;
+        }
         btn.innerHTML = 'Deep Dive \u2192';
         updateState();
     });
@@ -646,7 +781,9 @@
                     onComplete: function(payload) {
                         // payload is the analysis_id (or analysis_id + ?selected=...)
                         // emitted by run_scoring()'s `done:` push.
-                        window.location.href = '/inspector/analysis/' + payload;
+                        // replace (not href) so the back button skips the modal
+                        // state and goes straight to product selection
+                        window.location.replace('/inspector/analysis/' + payload);
                     },
                 });
             })
@@ -714,7 +851,7 @@
                             middle:  'stages',  // refresh re-runs the Deep Dive pipeline
                             sseUrl:  '/inspector/score/progress/' + d.job_id,
                             onComplete: function() {
-                                window.location.href = {{ ('/inspector/analysis/' + existing_analysis.analysis_id) | tojson }};
+                                window.location.replace({{ ('/inspector/analysis/' + existing_analysis.analysis_id) | tojson }});
                             }
                         });
                     })

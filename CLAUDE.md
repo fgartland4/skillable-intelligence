@@ -195,7 +195,7 @@ Route the concept. Do not reconstruct the module.
 | Product selection | **Product Selection** |
 | Deep dive results | **Full Analysis** |
 
-Discovery tier labels: Seems Promising, Likely, Uncertain, Unlikely
+Discovery tier labels: Promising, Potential, Uncertain, Unlikely
 
 ---
 

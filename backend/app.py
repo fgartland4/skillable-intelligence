@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import threading
+import json
 import uuid
 from pathlib import Path
 
@@ -486,7 +487,8 @@ def inspector_product_selection(discovery_id: str):
                           cached_product_names=cached_product_names,
                           cached_is_stale=cached_is_stale,
                           deep_dive_max_new=cfg.DEEP_DIVE_MAX_NEW_PRODUCTS,
-                          show_family_picker=show_family_picker)
+                          show_family_picker=show_family_picker,
+                          modal_content_json=json.dumps(cfg.MODAL_CONTENT))
 
 
 @app.route("/inspector/score", methods=["POST"])
@@ -840,12 +842,285 @@ def inspector_full_analysis(analysis_id: str):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Prospector Routes (placeholder — redesign pending)
+# Prospector Routes — ICP Validation & Prioritization
+#
+# Prospector takes a list of company names, runs discovery on each, and
+# returns them ranked by ACV potential. Same discovery data as Inspector —
+# every company Prospector researches is cached and immediately available
+# for Deep Dives in Inspector. Intelligence compounds (GP5).
+#
+# Design completed 2026-04-12. See Platform-Foundation.md → Prospector UX.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @app.route("/prospector")
 def prospector_home():
-    return render_template("prospector.html")
+    """Prospector landing — input form + results if a batch was just run."""
+    batch_id = request.args.get("batch")
+    results = None
+    if batch_id:
+        results = _load_prospector_batch(batch_id)
+    return render_template("prospector.html", results=results, batch_id=batch_id)
+
+
+@app.route("/prospector/run", methods=["POST"])
+def prospector_run():
+    """Run batch discovery on a list of company names.
+
+    Accepts a textarea of company names (one per line). Runs discovery on
+    each sequentially, builds the results summary, saves the batch, and
+    redirects to the results view.
+    """
+    import scoring_config as cfg
+
+    # Accept company names from textarea OR CSV upload
+    # Supports one-per-line OR comma-separated OR mixed
+    raw = request.form.get("companies", "")
+    company_names = []
+    for line in raw.strip().split("\n"):
+        for name in line.split(","):
+            name = name.strip()
+            if name:
+                company_names.append(name)
+
+    # CSV upload — extract company names from the first column
+    csv_file = request.files.get("csv_file")
+    if csv_file and csv_file.filename:
+        import csv
+        import io
+        content = csv_file.read().decode("utf-8-sig")
+        reader = csv.reader(io.StringIO(content))
+        for row in reader:
+            if row and row[0].strip():
+                name = row[0].strip()
+                # Skip header rows that look like column labels
+                if name.lower() not in ("company", "company name", "name", "organization"):
+                    company_names.append(name)
+
+    if not company_names:
+        return redirect(url_for("prospector_home"))
+
+    batch_id = str(uuid.uuid4())[:8]
+    results = []
+
+    for name in company_names:
+        try:
+            disc = discover(name)
+        except Exception as e:
+            log.warning("Prospector: discovery failed for %s: %s", name, e)
+            results.append({"company_name": name, "error": str(e)})
+            continue
+
+        results.append(_build_prospector_row(disc))
+
+    # Sort by estimated ACV (descending) — the primary Prospector ranking
+    results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
+
+    # Assign ranks after sorting
+    for i, r in enumerate(results, 1):
+        r["rank"] = i
+
+    _save_prospector_batch(batch_id, results)
+    return redirect(url_for("prospector_home", batch=batch_id))
+
+
+@app.route("/prospector/export/<batch_id>")
+def prospector_export(batch_id):
+    """Export a Prospector batch as CSV."""
+    import csv
+    import io
+
+    results = _load_prospector_batch(batch_id)
+    if not results:
+        return "Batch not found", 404  # magic-allowed: HTTP status
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Rank", "Company", "Badge", "Estimated ACV",
+        "Top Product", "Subcategory", "Why",
+        "Promising Products", "Potential Products",
+        "Uncertain Products", "Unlikely Products",
+        "Lab Platform", "Key Signal", "Discovery ID",
+    ])
+    for r in results:
+        writer.writerow([
+            r.get("rank", ""),
+            r.get("company_name", ""),
+            r.get("company_badge", ""),
+            r.get("estimated_acv", ""),
+            r.get("top_product_name", ""),
+            r.get("top_product_subcategory", ""),
+            r.get("top_product_why", ""),
+            r.get("promising_count", 0),
+            r.get("potential_count", 0),
+            r.get("uncertain_count", 0),
+            r.get("unlikely_count", 0),
+            r.get("lab_platform", ""),
+            r.get("key_signal", ""),
+            r.get("discovery_id", ""),
+        ])
+
+    csv_content = output.getvalue()
+    return Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=prospector-{batch_id}.csv"},
+    )
+
+
+@app.route("/prospector/field-mapper")
+def prospector_field_mapper():
+    """Display all intelligence fields available for HubSpot mapping.
+
+    Hierarchical, collapsible view that mirrors the scoring framework:
+    ACV Potential → Fit Score (Pillars → Dimensions) → Seller Briefcase →
+    Company Signals → Product Identity.
+
+    Treats RevOps as first-class citizens — same care in UX design as
+    sellers, CSMs, and SEs get. GP1: right information, right context,
+    right way — for the RevOps persona.
+
+    Field hierarchy is built directly in the template because the
+    structure IS the framework (GP4). No flat field lists needed.
+    """
+    # Hierarchical view is built directly in the template — the hierarchy
+    # IS the template structure (GP4 — self-evident at the UX layer).
+    # No flat field lists needed from the route.
+    return render_template("prospector_field_mapper.html")
+
+
+
+
+def _build_prospector_row(disc: dict) -> dict:
+    """Build a single Prospector results row from a discovery dict.
+
+    Extracts the fields the results table needs. Handles both v1 (old)
+    and v2 (new) discovery formats gracefully — missing fields default
+    to empty/zero rather than erroring.
+    """
+    from intelligence import enrich_discovery
+    enrich_discovery(disc)
+
+    products = [p for p in disc.get("products", [])
+                if p.get("category") != "Training & Certification"]
+
+    # Tier counts
+    tier_counts = {"promising": 0, "potential": 0, "uncertain": 0, "unlikely": 0}
+    for p in products:
+        tier = p.get("_tier", "uncertain")
+        if tier in tier_counts:
+            tier_counts[tier] += 1
+
+    # Top product — highest rough_labability_score / discovery_score
+    top = None
+    if products:
+        top = max(products, key=lambda p: p.get("rough_labability_score",
+                                                 p.get("discovery_score", 0)))
+
+    # Company signals (v2 discoveries have these in company_signals)
+    signals = disc.get("company_signals", {})
+    lab_platform = signals.get("lab_platform", "") if signals else ""
+    # Fallback for v1 discoveries that have lab_platform_detections
+    if not lab_platform:
+        detections = disc.get("_lab_platform_detections", [])
+        if detections:
+            lab_platform = detections[0].get("platform", "")
+
+    # Key signal — pick the strongest company-level signal
+    key_signal = ""
+    if signals:
+        # Priority order for key signal selection
+        if signals.get("atp_program") and "no" not in signals["atp_program"].lower():
+            key_signal = signals["atp_program"]
+        elif signals.get("events") and "no" not in signals["events"].lower():
+            key_signal = signals["events"]
+        elif signals.get("training_programs"):
+            key_signal = signals["training_programs"][:80]  # magic-allowed: truncation for display
+        elif signals.get("delivery_partners"):
+            key_signal = signals["delivery_partners"][:80]  # magic-allowed: truncation for display
+
+    # Estimated ACV — rough estimate from user base + product count
+    # For now, use the top product's user base as the ACV proxy
+    # Full ACV calculation happens during Deep Dive
+    estimated_acv = ""
+    sort_acv = 0
+    if top and top.get("estimated_user_base"):
+        estimated_acv = f"~{top['estimated_user_base']} users"
+        # Parse rough numeric for sorting
+        sort_acv = _parse_user_base_for_sort(top.get("estimated_user_base", ""))
+
+    # Build why string for top product
+    top_why = ""
+    if top:
+        parts = []
+        if top.get("estimated_user_base"):
+            parts.append(top["estimated_user_base"] + " users")
+        if top.get("deployment_model"):
+            parts.append(top["deployment_model"])
+        if top.get("api_surface") and top["api_surface"] != "none":
+            api_short = top["api_surface"].split("—")[0].strip() if "—" in top.get("api_surface", "") else top.get("api_surface", "")
+            parts.append(api_short + " API")
+        top_why = ", ".join(parts)
+
+    return {
+        "company_name": disc.get("company_name", ""),
+        "company_badge": disc.get("_company_badge", ""),
+        "badge_color": disc.get("_org_color", "purple"),
+        "discovery_id": disc.get("discovery_id", ""),
+        "estimated_acv": estimated_acv,
+        "_sort_acv": sort_acv,
+        "top_product_name": top.get("name", "") if top else "",
+        "top_product_subcategory": top.get("subcategory", "") if top else "",
+        "top_product_why": top_why,
+        "promising_count": tier_counts["promising"],
+        "potential_count": tier_counts["potential"],
+        "uncertain_count": tier_counts["uncertain"],
+        "unlikely_count": tier_counts["unlikely"],
+        "lab_platform": lab_platform,
+        "key_signal": key_signal,
+    }
+
+
+def _parse_user_base_for_sort(value: str) -> int:
+    """Parse estimated_user_base string to an integer for sorting.
+
+    Handles formats like "~14M", "~50K", "~2000", "14000000".
+    Returns 0 on parse failure — safe fallback for sorting.
+    """
+    if not value:
+        return 0
+    # Strip tilde and whitespace
+    s = value.replace("~", "").replace(",", "").strip().upper()
+    try:
+        if s.endswith("M"):
+            return int(float(s[:-1]) * 1_000_000)  # magic-allowed: million multiplier
+        elif s.endswith("K"):
+            return int(float(s[:-1]) * 1_000)  # magic-allowed: thousand multiplier
+        elif s.endswith("B"):
+            return int(float(s[:-1]) * 1_000_000_000)  # magic-allowed: billion multiplier
+        else:
+            return int(float(s))
+    except (ValueError, IndexError):
+        return 0
+
+
+def _save_prospector_batch(batch_id: str, results: list[dict]) -> None:
+    """Save a Prospector batch to the data directory."""
+    import json
+    batch_dir = Path("data/prospector_batches")
+    batch_dir.mkdir(parents=True, exist_ok=True)
+    with open(batch_dir / f"{batch_id}.json", "w") as f:
+        json.dump(results, f, indent=2)  # magic-allowed: JSON formatting indent
+
+
+def _load_prospector_batch(batch_id: str) -> list[dict] | None:
+    """Load a saved Prospector batch."""
+    import json
+    batch_path = Path("data/prospector_batches") / f"{batch_id}.json"
+    if not batch_path.exists():
+        return None
+    with open(batch_path) as f:
+        return json.load(f)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
