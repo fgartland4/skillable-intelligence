@@ -1333,16 +1333,37 @@ def extract_instructional_value_facts(
     from scorer import _call_claude  # local import to avoid circular dep
     context = _build_pillar_2_fact_context(product_name, search_results, page_contents)
     log.info("Pillar 2 fact extraction starting for %s", product_name)
-    try:
-        raw = _call_claude(
-            _INSTRUCTIONAL_VALUE_FACTS_PROMPT,
-            context,
-            max_tokens=4000,
-        )
-    except Exception as e:
-        log.warning("Pillar 2 fact extraction Claude call failed for %s: %s", product_name, e)
-        return InstructionalValueFacts()
-    return _coerce_iv_facts_dict_to_dataclass(raw)
+
+    # Retry once on failure — Pillar 2 extractions intermittently return
+    # empty drawers due to Claude call timeouts or malformed responses.
+    # One retry catches transient failures without burning excessive tokens.
+    max_attempts = 2  # magic-allowed: retry count for transient failures
+    for attempt in range(max_attempts):
+        try:
+            raw = _call_claude(
+                _INSTRUCTIONAL_VALUE_FACTS_PROMPT,
+                context,
+                max_tokens=4000,
+            )
+            result = _coerce_iv_facts_dict_to_dataclass(raw)
+            # Check if the result is substantive — retry if key drawers are empty
+            has_complexity = bool(getattr(result.product_complexity, "signals", None))
+            has_stakes = bool(getattr(result.mastery_stakes, "signals", None))
+            if has_complexity or has_stakes or attempt == max_attempts - 1:
+                return result
+            log.warning(
+                "Pillar 2 fact extraction for %s returned empty drawers on "
+                "attempt %d — retrying", product_name, attempt + 1,
+            )
+        except Exception as e:
+            log.warning(
+                "Pillar 2 fact extraction Claude call failed for %s "
+                "(attempt %d): %s", product_name, attempt + 1, e,
+            )
+            if attempt == max_attempts - 1:
+                return InstructionalValueFacts()
+
+    return InstructionalValueFacts()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
