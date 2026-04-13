@@ -844,73 +844,9 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 
   </div>
 
-  <!-- ORG ZONE: ACV by Use Case widget. Sits under Account Intelligence
-       so the org-side column tells a complete deal story. -->
-  <div class="bottom-row-org">
-    {% set acv = top.acv_potential %}
-    <div class="acv-widget">
-      <div class="acv-widget-header">
-        <span class="acv-widget-title" title="ACV by Use Case | {{ top.name }}">
-          <span class="acv-widget-title-prefix">ACV by Use Case&nbsp;|&nbsp;</span>
-          <span class="acv-widget-title-product">{{ top.name | upper }}</span>
-        </span>
-        <span class="info-icon" onclick="openInfoModal('acv_use_case')" title="What is ACV by Use Case?">?</span>
-      </div>
-      {% if acv and acv.motions %}
-      <table class="acv-table">
-        <colgroup>
-          <col class="acv-col-motion">
-          <col class="acv-col-aud">
-          <col class="acv-col-adopt">
-          <col class="acv-col-hrs">
-          <col class="acv-col-yr">
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Use Case</th>
-            <th class="acv-num">Audience</th>
-            <th class="acv-num">Adopt</th>
-            <th class="acv-center">Hrs</th>
-            <th class="acv-num">Hrs / Yr</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for m in acv.motions %}
-          <tr>
-            <td class="acv-motion" title="{{ m.label }}">{{ m.label }}</td>
-            <td class="acv-num">{% if (m.population_low or 0) == (m.population_high or 0) %}{{ (m.population_low or 0) | format_count }}{% else %}{{ (m.population_low or 0) | format_count }}–{{ (m.population_high or 0) | format_count }}{% endif %}</td>
-            <td class="acv-num">{{ ((m.adoption_pct or 0) * 100) | round | int }}%</td>
-            <td class="acv-center">{% if (m.hours_low or 0) == (m.hours_high or 0) %}{{ (m.hours_low or 0) | int }}{% else %}{{ (m.hours_low or 0) | int }}–{{ (m.hours_high or 0) | int }}{% endif %}</td>
-            <td class="acv-num">{% if (m.hrs_low or 0) == (m.hrs_high or 0) %}{{ (m.hrs_low or 0) | format_count }}{% else %}{{ (m.hrs_low or 0) | format_count }}–{{ (m.hrs_high or 0) | format_count }}{% endif %}</td>
-          </tr>
-          {% endfor %}
-          {# Total rows use colspan on BOTH the label and the value so the big number cell
-             borrows width from the Hrs column. Label spans motion+aud+adopt (3 cols);
-             value spans hrs+yr (2 cols). This lets acv-col-hrs and acv-col-yr stay
-             narrow for the first five rows (which only hold small numeric values),
-             while the two total rows still have room for wide values like
-             "$16.9M – $50.7M". Frank 2026-04-08 Workday. #}
-          <tr class="acv-total-row acv-total-label">
-            <td colspan="3">Annual Hours</td>
-            <td class="acv-num" colspan="2">{{ (acv.annual_hours_low or 0) | format_count }}–{{ (acv.annual_hours_high or 0) | format_count }}</td>
-          </tr>
-          {% if (acv.acv_low or 0) > 0 or (acv.acv_high or 0) > 0 %}
-          <tr class="acv-total-row acv-total-label">
-            <td colspan="3">Annual ACV Potential</td>
-            <td class="acv-num" colspan="2">{{ acv.acv_low | format_acv }} – {{ acv.acv_high | format_acv }}</td>
-          </tr>
-          {% endif %}
-        </tbody>
-      </table>
-      {% if acv.rate_per_hour %}
-      <div class="acv-methodology">
-        Rate: <strong>${{ acv.rate_per_hour | int }}/hr</strong>{% if acv.rate_tier_name %} · {{ acv.rate_tier_name }}{% endif %}
-      </div>
-      {% endif %}
-      {% else %}
-      <div class="acv-empty">No use case breakdown available for this product yet.</div>
-      {% endif %}
-    </div>
+  <!-- ORG ZONE: ACV by Use Case widget — per-product, swaps on product change. -->
+  <div class="bottom-row-org" id="acv-widget-section">
+    {% include '_acv_widget.html' %}
   </div>
 
 </div>
@@ -963,9 +899,11 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
                 const hero = document.getElementById('hero-section');
                 const pillars = document.getElementById('pillars-section');
                 const briefcase = document.getElementById('briefcase-section');
+                const acvWidget = document.getElementById('acv-widget-section');
                 if (hero && d.hero_html) hero.innerHTML = d.hero_html;
                 if (pillars && d.pillars_html) pillars.innerHTML = d.pillars_html;
                 if (briefcase && d.briefcase_html) briefcase.innerHTML = d.briefcase_html;
+                if (acvWidget && d.acv_html) acvWidget.innerHTML = d.acv_html;
                 currentProductIndex = productIndex;
                 // Close dropdown
                 document.querySelectorAll('.product-selector.open').forEach(function(el) {

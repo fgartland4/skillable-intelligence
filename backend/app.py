@@ -794,6 +794,8 @@ def inspector_product_fragment(analysis_id: str, product_index: int):
         "briefcase_html": render_template("_briefcase_section.html",
                                           analysis=analysis,
                                           selected_product=selected_product),
+        "acv_html": render_template("_acv_widget.html",
+                                     selected_product=selected_product),
     })
 
 

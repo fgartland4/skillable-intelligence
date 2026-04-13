@@ -22,14 +22,16 @@
     {% endif %}
   </div>
   <div class="briefcase-org">
-    {% if bc.account_intelligence %}
     <div class="briefcase-card-org">
-      <div class="briefcase-title-org">{{ bc.account_intelligence.heading or 'Account Intelligence' }} <span class="info-icon" onclick="openInfoModal('briefcase_intel')" title="What is Account Intelligence?">?</span></div>
-      {% for bullet in bc.account_intelligence.bullets or [] %}
-        <div class="briefcase-item">{{ bullet | bold_label }}</div>
-      {% endfor %}
+      <div class="briefcase-title-org">{{ (bc.account_intelligence.heading if bc.account_intelligence else '') or 'Account Intelligence' }} <span class="info-icon" onclick="openInfoModal('briefcase_intel')" title="What is Account Intelligence?">?</span></div>
+      {% if bc.account_intelligence and bc.account_intelligence.bullets %}
+        {% for bullet in bc.account_intelligence.bullets %}
+          <div class="briefcase-item">{{ bullet | bold_label }}</div>
+        {% endfor %}
+      {% else %}
+        <div class="briefcase-item" style="color: var(--sk-text-dim); font-style: italic;">Account intelligence is being generated. Refresh to check status.</div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
 {% else %}
   <div class="briefcase-product">

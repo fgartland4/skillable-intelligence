@@ -584,6 +584,13 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
             (f"marketplace_{name}", f"{name} marketplace integrations ecosystem"),
         ])
 
+        # ── Popularity signals (Stack Overflow + GitHub) ──
+        # These inform estimated_user_base and Market Demand evidence.
+        all_queries.extend([
+            (f"so_{name}", f"site:stackoverflow.com {name} tagged questions"),
+            (f"gh_{name}", f"site:github.com {name} stars repository"),
+        ])
+
     log.info("Deep research: running %d queries for %d products",
              len(all_queries), len(selected_products))
     search_results = _run_searches_parallel(all_queries)
