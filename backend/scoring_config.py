@@ -1952,7 +1952,7 @@ TECHNICAL_FIT_MULTIPLIERS: tuple[TechnicalFitMultiplier, ...] = (
     TechnicalFitMultiplier(0, 9, "any", 0.35),  # magic-allowed: nearly unlabable
 )
 
-DATACENTER_METHODS = ("Hyper-V", "ESX", "Container", "Azure VM", "AWS VM")
+DATACENTER_METHODS = ("Hyper-V", "ESX", "Container", "Azure VM", "AWS VM", "Large VM")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2841,6 +2841,38 @@ ACV_ORG_ADOPTION_OVERRIDES: dict[str, dict[str, float]] = {
     # because the audience IS the classroom students, not total prospects.
 }
 
+# Org-type motion LABEL overrides. Different org types use different
+# language for the same economic motions. The math is the same — only the
+# display label changes so the seller reads language appropriate to the
+# org type. Per Platform-Foundation → org-type sections.
+ACV_ORG_MOTION_LABELS: dict[str, dict[str, str]] = {
+    "ACADEMIC": {
+        "Customer Training & Enablement": "Student Training",
+        "Partner Training & Enablement": "Research Partnerships",
+        "Employee Training & Enablement": "Faculty Development",
+        "Certification (PBT)": "Course Exams",
+        "Events & Conferences": "Campus Events",
+    },
+    "TRAINING ORG": {
+        "Customer Training & Enablement": "Training Participants",
+        "Employee Training & Enablement": "Internal Trainers",
+    },
+    "SYSTEMS INTEGRATOR": {
+        "Customer Training & Enablement": "Client End Users",
+        "Employee Training & Enablement": "Internal Consultants",
+    },
+}
+
+# Org-type hours overrides. Academic students spend more time in labs
+# (coursework, not elective). ILT students do 20-30 hours in a week.
+# Per Platform-Foundation → "How Adoption Patterns Vary by Organization Type"
+ACV_ORG_HOURS_OVERRIDES: dict[str, dict[str, float]] = {
+    "ACADEMIC": {
+        "Customer Training & Enablement": 8.0,    # assigned coursework — multiple lab sessions
+        "Certification (PBT)": 2.0,               # exam practice labs
+    },
+}
+
 # ── Rate tiers ────────────────────────────────────────────────────────────
 CLOUD_LABS_RATE = 6.00    # Cloud Slice / BYOC — platform fee only, customer pays cloud bill
 VM_LOW_RATE     = 8.00    # Container or lightweight single VM
@@ -2908,6 +2940,9 @@ ORCHESTRATION_TO_RATE_TIER = {
     "esx":               "Standard VM (1-3 VMs)",
     "esxi":              "Standard VM (1-3 VMs)",
     "vmware":            "Standard VM (1-3 VMs)",
+    # Large/complex VM — multi-VM, complex topology, or large footprint
+    "large vm":          "Large/complex VM",
+    "large/complex vm":  "Large/complex VM",
     # Simulation
     "simulation":        "Simulation",
     "simulated":         "Simulation",

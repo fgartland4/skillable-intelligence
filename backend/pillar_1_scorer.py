@@ -1131,4 +1131,18 @@ def derive_orchestration_method(
             primary = _SIG_SIMULATION
         else:
             return ""
-    return _SIGNAL_TO_ORCHESTRATION.get(primary, "")
+
+    base_method = _SIGNAL_TO_ORCHESTRATION.get(primary, "")
+
+    # ── Complexity escalation for VM products ──────────────────────────
+    # When the product runs on VMs (Hyper-V/ESX) and has multi-VM or
+    # complex topology facts, escalate to the large/complex VM rate tier.
+    # This ensures Trellix-class cybersecurity platforms get $45/hr
+    # instead of $14/hr. The rate tier is internal plumbing — badges
+    # are unchanged.
+    if base_method in ("Hyper-V", "ESX"):
+        p = facts.provisioning
+        if p.is_multi_vm_lab or p.has_complex_topology or p.is_large_lab:
+            return "Large VM"  # maps to VM_HIGH_RATE via ORCHESTRATION_TO_RATE_TIER
+
+    return base_method

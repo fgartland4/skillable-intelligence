@@ -269,34 +269,38 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     """
     from models import ConsumptionMotion as ModelMotion, ACVPotential
 
-    # Look up org-type adoption overrides. The default rates on
+    # Look up org-type overrides. The default rates, labels, and hours on
     # CONSUMPTION_MOTIONS apply to software companies. Other org types
     # (academic, training org, GSI, etc.) have fundamentally different
-    # adoption patterns — per Platform-Foundation.
+    # adoption patterns, audience language, and lab hours — per
+    # Platform-Foundation → "How Adoption Patterns Vary by Organization Type."
     org_type = ""
     if company_analysis is not None:
         org_type = getattr(company_analysis, "org_type", "") or ""
         if not org_type:
-            # Try the discovery-level org_type
             disc = getattr(company_analysis, "discovery_data", None) or {}
             org_type = disc.get("organization_type") or ""
     # Normalize to the CF baseline key format
     normalized_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type.lower().replace(" ", "_"), "")
     adoption_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(normalized_org, {})
+    label_overrides = cfg.ACV_ORG_MOTION_LABELS.get(normalized_org, {})
+    hours_overrides = cfg.ACV_ORG_HOURS_OVERRIDES.get(normalized_org, {})
 
     motions: list[ModelMotion] = []
     for cfg_motion in cfg.CONSUMPTION_MOTIONS:
         pop_low, pop_high = _read_population(
             cfg_motion.population_source, product, company_analysis,
         )
-        # Apply org-type adoption override if available
+        # Apply org-type overrides: adoption, label, hours
         adoption = adoption_overrides.get(cfg_motion.label, cfg_motion.adoption_pct)
+        display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
+        hrs = hours_overrides.get(cfg_motion.label, cfg_motion.hours_low)
         motions.append(ModelMotion(
-            label=cfg_motion.label,
+            label=display_label,
             population_low=pop_low,
             population_high=pop_high,
-            hours_low=cfg_motion.hours_low,
-            hours_high=cfg_motion.hours_high,
+            hours_low=hrs,
+            hours_high=hrs,
             adoption_pct=adoption,
             rationale=cfg_motion.description,
         ))
@@ -306,8 +310,11 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     # exists, derive it as ~2% of install_base (software companies) or
     # ~10% (training orgs / industry authorities). Python computes, AI
     # doesn't touch it. Per Platform-Foundation ACV adoption patterns.
-    cert_motion = next((m for m in motions if m.label == "Certification (PBT)"), None)
-    customer_motion = next((m for m in motions if m.label == "Customer Training & Enablement"), None)
+    # Find cert and customer motions by checking both default and overridden labels
+    cert_labels = {"Certification (PBT)", "Course Exams"}
+    customer_labels = {"Customer Training & Enablement", "Student Training", "Training Participants", "Client End Users"}
+    cert_motion = next((m for m in motions if m.label in cert_labels), None)
+    customer_motion = next((m for m in motions if m.label in customer_labels), None)
     if cert_motion and customer_motion:
         if (cert_motion.population_low or 0) == 0 and (customer_motion.population_low or 0) > 0:
             # Derive: ~2% of customer training audience for software companies
