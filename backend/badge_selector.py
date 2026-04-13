@@ -813,6 +813,8 @@ _BADGE_NAME_ACRONYMS: tuple[str, ...] = (
     "Diy", "Lms", "Gpu", "Cpu", "Nfr", "Mcq", "Kyc", "Pii", "Rest",
     # AI / ML — Frank 2026-04-08
     "Ai", "Ml", "Llm", "Rag", "Nlp", "Gpt", "Mlops",
+    # Cybersecurity / general
+    "Ctf", "Siem", "Edr", "Soc", "Ilt",
     # Security stack
     "Soc", "Siem", "Edr", "Xdr", "Soar", "Iam", "Dlp", "Waf", "Ids",
     "Ips", "Zta", "Ztna", "Casb", "Sase",
@@ -855,6 +857,37 @@ _SIGNAL_CATEGORY_DISPLAY_OVERRIDES: dict[str, str] = {
     # because prompt-only instructions are unreliable for exact naming.
     "content_team_named": "Content Team",
     "instructional_designers": "IDs on Staff",
+    # Naming rules from Badging-and-Scoring-Reference.md line 103:
+    # "Name the specific provider, not the category."
+    "published_course_calendar": "ILT Calendar",
+    "vendor_published_on_third_party": "Third-Party Courses",
+    "cert_delivery_infrastructure": "Cert Delivery Infra",  # grader should emit provider name; this is fallback
+    # Academic vocabulary overrides
+    "training_catalog_present": "Training Catalog",
+    "customer_success_investment": "Customer Success",
+    "customer_enablement_team": "Enablement Team",
+    "multi_audience_commitment": "Multi Audience Commit",
+    "training_leadership_level": "Training Leadership",
+    "training_events_at_scale": "Events at Scale",
+    "compliance_training_program": "Compliance Training",
+    "employee_learning_investment": "Employee Learning",
+    "partner_enablement_program": "Partner Enablement",
+    # Delivery Capacity
+    "atp_network": "ATP ALP Program",
+    "instructor_delivery_network": "Instructor Network",
+    "geographic_reach": "Geo Reach",
+    # Organizational DNA
+    "many_partnership_types": "Many Partner Types",
+    "strategic_asset_partnerships": "Strategic Asset Partners",
+    "platform_buyer_behavior": "Platform Buyer Behavior",
+    "formal_channel_program": "Formal Channel Program",
+    "nimble_engagement": "Nimble Engagement",
+    "named_alliance_leadership": "Named Alliance",
+    # Build Capacity
+    "lab_build_capability": "Lab Build Capability",
+    "sme_content_authoring": "SME Content Authoring",
+    "product_training_partnership": "Training Partnership",
+    "content_partnership": "Content Partnership",
 }
 
 

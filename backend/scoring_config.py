@@ -2237,12 +2237,22 @@ UNKNOWN_CLASSIFICATION = "Unknown"
 # Baseline values are in dimension-native units (Product Complexity cap 40,
 # Mastery Stakes cap 25, Lab Versatility cap 15, Market Demand cap 20).
 #
-# Per Frank's calibration 2026-04-07:
-#   - Cybersecurity-tier bumped to 32 (Product Complexity 80% cap)
-#   - Data Protection at 30 (special high)
-#   - ERP/CRM/Healthcare/FinTech/Legal/Industrial/Infra/App Dev at 28
-#   - Collaboration/Content Management at 24 (SharePoint-level)
-#   - Social/Entertainment floor at 4 (no professional training market)
+# Per Frank's calibration 2026-04-07, retuned 2026-04-13 to fix the
+# differentiation problem: baselines were too close to caps (Lab Versatility
+# at 93%, Mastery Stakes at 88%), leaving no room for grader findings to
+# differentiate strong from weak products within a category.
+#
+# Design principle: baselines represent a WEAK implementation of the
+# category — the starting point for a product that has category membership
+# but no standout signals. The grader's findings earn the score FROM
+# baseline TO cap. Two strong findings should reach the cap; baseline
+# alone should be mid-range (50-65% of cap), not near-cap.
+#
+# Target differentiation bands:
+#   Product Complexity (cap 40): ~12 point gap → baseline 26-28
+#   Mastery Stakes (cap 25):     ~10 point gap → baseline 14-16
+#   Lab Versatility (cap 15):    ~6 point gap  → baseline 8-10
+#   Market Demand (cap 20):      ~8 point gap  → baseline 10-12
 #
 # Canonical source: docs/Badging-and-Scoring-Reference.md Pillar 2 sections.
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2252,37 +2262,37 @@ UNKNOWN_CLASSIFICATION = "Unknown"
 # callers reference the canonical label without re-typing the literal.
 IV_CATEGORY_BASELINES: dict[str, dict[str, int]] = {
     # Top tier — technical / specialist categories with deep multi-system work
-    "Cybersecurity": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 14},
-    "Cloud Infrastructure": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 14},
-    "Networking/SDN": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 13},
-    "Data Science & Engineering": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 13, "market_demand": 12},
-    "Data & Analytics": {"product_complexity": 32, "mastery_stakes": 18, "lab_versatility": 12, "market_demand": 11},
-    "DevOps": {"product_complexity": 32, "mastery_stakes": 20, "lab_versatility": 14, "market_demand": 13},
-    "AI Platforms & Tooling": {"product_complexity": 32, "mastery_stakes": 22, "lab_versatility": 14, "market_demand": 14},
+    "Cybersecurity": {"product_complexity": 28, "mastery_stakes": 16, "lab_versatility": 10, "market_demand": 12},
+    "Cloud Infrastructure": {"product_complexity": 28, "mastery_stakes": 15, "lab_versatility": 10, "market_demand": 12},
+    "Networking/SDN": {"product_complexity": 28, "mastery_stakes": 15, "lab_versatility": 10, "market_demand": 11},
+    "Data Science & Engineering": {"product_complexity": 28, "mastery_stakes": 16, "lab_versatility": 9, "market_demand": 10},
+    "Data & Analytics": {"product_complexity": 26, "mastery_stakes": 13, "lab_versatility": 8, "market_demand": 9},
+    "DevOps": {"product_complexity": 28, "mastery_stakes": 15, "lab_versatility": 10, "market_demand": 11},
+    "AI Platforms & Tooling": {"product_complexity": 28, "mastery_stakes": 16, "lab_versatility": 10, "market_demand": 12},
 
     # Very high
-    "Data Protection": {"product_complexity": 30, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 9},
+    "Data Protection": {"product_complexity": 26, "mastery_stakes": 15, "lab_versatility": 8, "market_demand": 8},
 
     # High — enterprise business systems with real depth and stakes
-    "ERP": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 10},
-    "CRM": {"product_complexity": 28, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 8},
-    "Healthcare IT": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 10},
-    "FinTech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 12, "market_demand": 10},
-    "Legal Tech": {"product_complexity": 28, "mastery_stakes": 22, "lab_versatility": 11, "market_demand": 9},
-    "Industrial/OT": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 10},
-    "Infrastructure/Virtualization": {"product_complexity": 28, "mastery_stakes": 20, "lab_versatility": 12, "market_demand": 10},
-    "App Development": {"product_complexity": 28, "mastery_stakes": 14, "lab_versatility": 12, "market_demand": 11},
+    "ERP": {"product_complexity": 24, "mastery_stakes": 15, "lab_versatility": 8, "market_demand": 8},
+    "CRM": {"product_complexity": 22, "mastery_stakes": 12, "lab_versatility": 7, "market_demand": 7},
+    "Healthcare IT": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 8, "market_demand": 8},
+    "FinTech": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 8, "market_demand": 8},
+    "Legal Tech": {"product_complexity": 22, "mastery_stakes": 16, "lab_versatility": 7, "market_demand": 7},
+    "Industrial/OT": {"product_complexity": 24, "mastery_stakes": 15, "lab_versatility": 8, "market_demand": 8},
+    "Infrastructure/Virtualization": {"product_complexity": 24, "mastery_stakes": 15, "lab_versatility": 8, "market_demand": 8},
+    "App Development": {"product_complexity": 22, "mastery_stakes": 10, "lab_versatility": 8, "market_demand": 9},
 
     # Moderate — collaboration and content with real but bounded depth
-    "Collaboration": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 8},
-    "Content Management": {"product_complexity": 24, "mastery_stakes": 16, "lab_versatility": 11, "market_demand": 8},
+    "Collaboration": {"product_complexity": 18, "mastery_stakes": 10, "lab_versatility": 7, "market_demand": 6},
+    "Content Management": {"product_complexity": 18, "mastery_stakes": 10, "lab_versatility": 7, "market_demand": 6},
 
     # No professional training market
     "Social / Entertainment": {"product_complexity": 4, "mastery_stakes": 2, "lab_versatility": 1, "market_demand": 0},
 
     # Neutral fallback — flagged for classification review in UX.
     # Keyed by the canonical UNKNOWN_CLASSIFICATION constant (Define-Once).
-    UNKNOWN_CLASSIFICATION: {"product_complexity": 22, "mastery_stakes": 14, "lab_versatility": 11, "market_demand": 9},
+    UNKNOWN_CLASSIFICATION: {"product_complexity": 18, "mastery_stakes": 10, "lab_versatility": 7, "market_demand": 7},
 }
 
 
@@ -3194,7 +3204,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-13.technical-fit-multiplier-retune"
+SCORING_LOGIC_VERSION = "2026-04-13.iv-baseline-recalibration"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
