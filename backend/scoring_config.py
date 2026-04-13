@@ -4296,7 +4296,9 @@ SELLER_BRIEFCASE: tuple[BriefcaseSection, ...] = (
         instructions="Identify the specific technical blocker for this product's lab build. "
                      "Name the department or role at the customer most likely to have the answer. "
                      "Write a verbatim question the champion can send in Slack or email. "
-                     "Explain why this question matters — what it unblocks if answered.",
+                     "Explain why this question matters — what it unblocks if answered. "
+                     "FORMAT: Each bullet starts with a **Bold Label:** (colon, not em dash) "
+                     "followed by the content. Example: **Confirm NFR Path:** Solution Architect...",
     ),
     BriefcaseSection(
         pillar_name="Instructional Value",
@@ -4307,18 +4309,27 @@ SELLER_BRIEFCASE: tuple[BriefcaseSection, ...] = (
                      "meeting. Each should reference a specific aspect of this product — "
                      "its complexity, the stakes of getting it wrong, or the types of labs "
                      "that would be valuable. Frame each as why hands-on matters for THIS "
-                     "product, not generically.",
+                     "product, not generically. Market Demand evidence (Stack Overflow activity, "
+                     "install base size, cert ecosystem) belongs here as proof the training "
+                     "market exists — this is NOT a Key Technical Question. "
+                     "FORMAT: Each bullet starts with a **Bold Label:** (colon, not em dash) "
+                     "followed by the content.",
     ),
     BriefcaseSection(
         pillar_name="Customer Fit",
         section_title="Account Intelligence",
-        description="Organizational signals — training leadership, org complexity, "
-                    "LMS platform, competitive signals, news.",
-        instructions="Surface the most important organizational context a seller should "
-                     "know before a meeting. Include: key contacts and their relevance, "
-                     "organizational complexity or dynamics (mergers, growth, restructuring), "
-                     "training infrastructure signals (LMS, competitors, DIY labs), and any "
-                     "signal that affects how to approach the account.",
+        description="COMPANY-LEVEL organizational signals — same regardless of which product "
+                    "is selected. Training leadership, org complexity, LMS, competitive context, news.",
+        instructions="Surface the most important COMPANY-LEVEL context a seller should "
+                     "know before a meeting. This section is about the ORGANIZATION, not "
+                     "the product. Do NOT reference product-specific labability or product-specific "
+                     "capabilities. Include: key contacts and their relevance, leadership changes, "
+                     "funding rounds, new partnerships, organizational dynamics (mergers, growth, "
+                     "restructuring), training infrastructure signals (LMS platform, lab platform, "
+                     "competitor presence), events, and news. This section must make sense "
+                     "regardless of which product the seller is viewing. "
+                     "FORMAT: Each bullet starts with a **Bold Label:** (colon, not em dash) "
+                     "followed by the content.",
     ),
 )
 

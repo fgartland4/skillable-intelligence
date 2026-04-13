@@ -706,13 +706,39 @@ def select_pillar_1_badges(product: Product) -> dict[str, list[Badge]]:
     Reads the fact drawer + fit_score.product_labability (for Simulation
     override detection) and emits display-only badges per the rules locked
     in Chunk 1 Issue #3 on 2026-04-08.
+
+    Absence badge rule (2026-04-12): a dimension with a score but zero
+    badges must emit an absence finding so the seller sees WHY the score
+    is what it is. "Absence is a finding, not a blank."
     """
-    return {
+    # Default absence badges per dimension — emitted only when the
+    # dimension-specific function returns zero badges.
+    _absence_defaults = {
+        "Provisioning": Badge(name="No Deployment Method", color="red",
+            evidence="No provisioning path identified — research did not find "
+            "installable, cloud, container, or API-based deployment options."),
+        "Lab Access": Badge(name="No Access Path", color="red",
+            evidence="No identity, credential, or learner isolation mechanism identified."),
+        "Scoring": Badge(name="No Scoring Method", color="red",
+            evidence="No API, script, or AI Vision scoring path identified. "
+            "Without scoring, labs cannot validate learner work."),
+        "Teardown": Badge(name="No Teardown Path", color="red",
+            evidence="No automated cleanup mechanism identified."),
+    }
+
+    result = {
         "Provisioning": _pillar_1_provisioning_badges(product),
         "Lab Access": _pillar_1_lab_access_badges(product),
         "Scoring": _pillar_1_scoring_badges(product),
         "Teardown": _pillar_1_teardown_badges(product),
     }
+
+    # Emit absence badge for any dimension that has zero badges
+    for dim_name, badges in result.items():
+        if not badges and dim_name in _absence_defaults:
+            result[dim_name] = [_absence_defaults[dim_name]]
+
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

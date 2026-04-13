@@ -162,7 +162,7 @@ Every label, category, description, and piece of messaging derives from the prod
 
 The researcher's job during discovery is to be **selective, not exhaustive**. Identify all products that meet the product definition. Rank by estimated user base. There is no target count — the filter determines the count. A focused company like Posit yields 3–5 products. A broad company like Cisco or Oracle yields 20–30. Both are correct because both reflect the real portfolio.
 
-**Product Labability applies to the underlying technology — always.** Regardless of organization type, the four Product Labability dimensions always apply to the *underlying technology*, never to a training wrapper or organizational structure.
+**Product Labability applies to the underlying technology — always.** Regardless of organization type, the four Product Labability dimensions always apply to the *underlying technology*, never to a training wrapper or organizational structure. This applies at BOTH discovery time (the product definition filter extracts technologies from wrappers) AND Deep Dive time (the Pillar 1 fact extractors research the technology's provisioning, lab access, scoring, and teardown characteristics, not the wrapper program's). A "BS in Cybersecurity" is not the subject of a Pillar 1 assessment — Wireshark, Kali Linux, and Splunk are. *(Reinforced 2026-04-12)*
 
 | Organization type | Intelligence path |
 |---|---|
@@ -904,6 +904,8 @@ Prospector's principle: deliver intelligence to marketing where they work (HubSp
 | **Account Intelligence** | Haiku 4.5 | Pattern-matched, fast — surface organizational signals |
 
 Briefcase scope: **Key Technical Questions and Conversation Starters are per-product** — they swap when the user picks a different product from the dropdown. **Account Intelligence is per-company** — it stays the same regardless of which product is selected because it's about the organization, not the product. Account Intelligence must never reference product-specific labability or product-specific capabilities. It covers company-level signals: leadership changes, funding rounds, new partnerships, events, competitive landscape, news. *(Clarified 2026-04-12)* Cached products keep their cached briefcase — only newly scored products get a fresh generation.
+
+**Briefcase formatting:** Each bullet uses **Bold Label:** followed by the content. Use a colon after the bold label, not an em dash. Example: **Confirm NFR Path:** Solution Architect or Sales Engineering Lead... *(Locked 2026-04-12)*
 
 ---
 

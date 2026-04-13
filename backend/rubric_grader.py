@@ -135,6 +135,25 @@ _SHARED_HARD_RULES = """
    - positive weak → don't emit
    - informational → gray
    - negative → amber for soft penalties, red for hard blockers
+9. **Badge naming rules — the evidence_text IS the badge name source.**
+   - Name the SPECIFIC provider, not the category: "Pearson VUE" not
+     "Cert Delivery Infra". "ILT Calendar" not "Published Course".
+   - "Content Team" not "Content Team Named". "IDs on Staff" not "ID IDs".
+   - Use count-based names when data exists: "~12 Pluralsight Courses"
+     not "Indep Training Market".
+   - Evidence-specific names allow nuanced findings to coexist: "~12
+     Pluralsight Courses" (green) alongside "Thin Training Market" (amber)
+     is not a contradiction — both are true.
+   - For small training populations, use "Niche Audience" (amber).
+10. **Academic vocabulary override.** When the organization is a university
+    or school, use academic language: "Curriculum" not "Training Catalog",
+    "Faculty" not "Training Leadership", "Degree Programs" not "Training
+    Programs", "Lab-Based Courses" not "Hands On".
+11. **Market Demand differentiation.** A perfect 20/20 is rare. Within a
+    category (e.g. cybersecurity), differentiate product-level market
+    position. A market leader (CrowdStrike, Palo Alto) scores higher than
+    a mid-tier vendor (Trellix, Tanium). Use install base scale, independent
+    training market size, and cert ecosystem breadth to differentiate.
 """
 
 _OUTPUT_SCHEMA = """

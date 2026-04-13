@@ -625,6 +625,8 @@ def research_products(company_name: str, selected_products: list[dict]) -> dict:
 
 _PRODUCT_LABABILITY_FACTS_PROMPT = """You are a research analyst extracting structured facts about a software product so they can be scored later by a separate system.
 
+IMPORTANT: For non-software organizations (universities, GSIs, Industry Authorities, training companies), the "product" name you receive may be a degree program, practice area, or certification. Product Labability applies to the UNDERLYING TECHNOLOGY, not the wrapper. If you receive "BS in Cybersecurity" as the product, research the labability of the technologies taught in that program (Wireshark, Kali Linux, Splunk, etc.) — not the degree program itself. If you receive "SAP Practice" from a GSI, research SAP S/4HANA's labability.
+
 Your job is TRUTH ONLY.  You are not scoring, not classifying as good/bad, not picking winners.  You are extracting typed facts about how the product can be deployed, how learners log in, how state can be validated, and how cleanup works.
 
 Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no markdown):
@@ -1037,22 +1039,19 @@ Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no m
   "market_demand": {{
     "description": "<1-3 sentence narrative of the worldwide market for training on this product>",
     "install_base": {{
-      "low": <int or null>,
-      "high": <int or null>,
+      "value": <int or null>,
       "source_url": "<url>",
       "confidence": "<confirmed|indicated|inferred>",
       "notes": "<any unusual context>"
     }},
     "employee_subset_size": {{
-      "low": <int or null>,
-      "high": <int or null>,
+      "value": <int or null>,
       "source_url": "<url>",
       "confidence": "<confirmed|indicated|inferred>",
       "notes": ""
     }},
     "cert_annual_sit_rate": {{
-      "low": <int or null>,
-      "high": <int or null>,
+      "value": <int or null>,
       "source_url": "<url>",
       "confidence": "<confirmed|indicated|inferred>",
       "notes": ""
@@ -1103,7 +1102,7 @@ Use ONLY the signal category names listed below for each dimension.  If a signal
 
 These fields feed the ACV math directly — they are the AUDIENCE for three of the five consumption motions. The ACV calculation uses population × adoption_pct × hours × rate per motion. SINGLE ESTIMATED NUMBER for each — not a range. One number the seller can quote. Better to be approximately right than precisely uncertain. A range like "2,000–40,000" signals "we have no idea" and is FORBIDDEN.
 
-  - **install_base** → ACV Motion 1 (Customer Training). The total PEOPLE who actively use THIS product worldwide — the end learners who would take labs. NOT customer accounts (Tanium has ~4,000 customer accounts but ~50,000 security professionals who use it). NOT how many people know about the vendor. Count the USERS, not the logos. Includes people who train through ATPs — they are customers, not partners. Do NOT double-count them in partner training. Examples: mid-size enterprise cybersecurity product ~50,000 users. Microsoft 365 ~350M users. Niche SaaS admin tool ~5,000 admins. Single number.
+  - **install_base** → ACV Motion 1 (Customer Training). The total PEOPLE who actively use THIS product worldwide — the end learners who would take labs. NOT customer accounts (Tanium has ~4,000 customer accounts but ~50,000 security professionals who use it). NOT how many people know about the vendor. Count the USERS, not the logos. Includes people who train through ATPs — they are customers, not partners. Do NOT double-count them in partner training. Examples: mid-size enterprise cybersecurity product ~50,000 users. Microsoft 365 ~350M users. Niche SaaS admin tool ~5,000 admins. Single number. FOR UNIVERSITIES: this is students enrolled in technology-facing programs THIS YEAR, not total enrollment. GCU has ~120,000 students but maybe ~5,000 in engineering/CS/cybersecurity programs. Use the technology program enrollment. FOR INDUSTRY AUTHORITIES: this is training candidates per year (people interested in taking the cert), not lifetime cert holders.
 
   - **employee_subset_size** → ACV Motion 3 (Employee Training). People at the COMPANY BEING ANALYZED whose job involves meaningfully using or supporting THIS product — product team, SEs, support engineers, customer success, trainers. NOT people at customer companies (those are install_base users in Motion 1). NOT total company headcount. For a cybersecurity vendor with 3,000 employees: maybe 500-800 are in product-facing roles (engineering, SE, support, CS). For a large enterprise like Microsoft: the Azure team might be 5,000-10,000 people. This is always a SMALL number relative to company size. A single estimated number, not a range. If uncertain, estimate conservatively — better to undercount than to inflate.
 
@@ -1171,9 +1170,19 @@ def _coerce_numeric_range(raw: dict | None) -> NumericRange:
             return int(v)
         except (TypeError, ValueError):
             return None
+    # Support both old format (low/high) and new format (single value).
+    # New schema uses "value" → stored as low == high (single number).
+    # Old cached data still uses low/high and is honored as-is.
+    val = _opt_int(raw.get("value"))
+    if val is not None:
+        low = val
+        high = val
+    else:
+        low = _opt_int(raw.get("low"))
+        high = _opt_int(raw.get("high"))
     return NumericRange(
-        low=_opt_int(raw.get("low")),
-        high=_opt_int(raw.get("high")),
+        low=low,
+        high=high,
         source_url=str(raw.get("source_url") or ""),
         confidence=str(raw.get("confidence") or ""),
         notes=str(raw.get("notes") or ""),
