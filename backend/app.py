@@ -1501,8 +1501,13 @@ def _normalize_company_name(name: str) -> str:
 
 
 def _deduped_all_discoveries() -> list[dict]:
-    """Load all discoveries, dedup by normalized company name, prefer most recent."""
-    from storage import list_discoveries
+    """Load all discoveries, dedup by normalized company name, prefer most recent.
+
+    GP5: when a Deep Dive exists for a company, overlay the scored ACV
+    and verdict onto the discovery row. Intelligence compounds — the
+    Deep Dive sharpens the discovery estimate.
+    """
+    from storage import list_discoveries, find_analysis_by_discovery_id
     best: dict[str, dict] = {}  # normalized name → most recent discovery
     for disc in list_discoveries():
         name = disc.get("company_name", "")
@@ -1512,7 +1517,18 @@ def _deduped_all_discoveries() -> list[dict]:
         existing = best.get(key)
         if existing is None or disc.get("created_at", "") > existing.get("created_at", ""):
             best[key] = disc
-    results = [_build_prospector_row(disc) for disc in best.values()]
+
+    results = []
+    for disc in best.values():
+        row = _build_prospector_row(disc)
+        # Sharpen with Deep Dive data if an analysis exists
+        disc_id = disc.get("discovery_id", "")
+        if disc_id:
+            analysis = find_analysis_by_discovery_id(disc_id)
+            if analysis:
+                row = _build_prospector_row_from_analysis(disc, analysis, row)
+        results.append(row)
+
     results.sort(key=lambda r: r.get("_sort_acv", 0), reverse=True)
     for i, r in enumerate(results, 1):
         r["rank"] = i
