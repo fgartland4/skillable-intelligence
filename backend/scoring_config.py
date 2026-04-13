@@ -1137,8 +1137,13 @@ _market_demand_rubric = Rubric(
         ),
     ),
     is_about=(
-        "Whether the broader market validates the need for hands-on training on this product",
-        "Install base scale (~2M Users, ~50K Users, ~500 Users)",
+        "Whether the broader market validates the need for PAID HANDS-ON TRAINING on this product — "
+        "not demand for the product itself. A product can have millions of users but low training "
+        "demand if most users learn for free (open source, community docs, YouTube). Market Demand "
+        "measures whether people PAY to learn this product through structured training programs.",
+        "Install base scale (~2M Users, ~50K Users, ~500 Users) — but DISCOUNT for open source: "
+        "MongoDB has 40M+ developers but most learn for free. The PAID training population is a "
+        "fraction of the total user base. Score based on the paid training market, not the user base.",
         "Geographic reach (Global, NAMER+EMEA, Regional)",
         "Certification ecosystem (Active Cert, Emerging Cert)",
         "Funding and growth signals (IPO, Series D, Rapid Growth, Layoffs)",
@@ -1166,6 +1171,12 @@ _market_demand_rubric = Rubric(
         "Vendor-direct training (Delivery Capacity — Layer 1 vendor-delivered)",
         "LMS infrastructure (Delivery Capacity)",
         "Lab infrastructure / lab platforms (Build Capacity)",
+        "Raw product popularity for OPEN SOURCE products — GitHub stars, Stack Overflow questions, "
+        "npm downloads, and Docker Hub pulls measure PRODUCT adoption, not TRAINING demand. For open "
+        "source products (MongoDB, PostgreSQL, Redis, Kubernetes, Terraform), score Market Demand "
+        "based on PAID training signals (enterprise training programs, cert ecosystems, paid course "
+        "platforms with 10+ courses) NOT free community usage. Open source with 40M users but 3 paid "
+        "courses scores LOWER than commercial software with 500K users and 50 paid courses + a cert.",
     ),
     signal_categories=(
         # Scale + population answers (for product-specific differentiation within a category)
@@ -2845,6 +2856,14 @@ ACV_ORG_ADOPTION_OVERRIDES: dict[str, dict[str, float]] = {
 # language for the same economic motions. The math is the same — only the
 # display label changes so the seller reads language appropriate to the
 # org type. Per Platform-Foundation → org-type sections.
+# Open source adoption discount. Open source products have fundamentally
+# different training economics — most users learn from free docs, YouTube,
+# and Stack Overflow. The percentage who pay for structured hands-on labs
+# is much smaller than for commercial enterprise software. Applied as a
+# multiplier on the Customer Training adoption rate when the product is
+# detected as open source. Per Frank 2026-04-13.
+OPEN_SOURCE_ADOPTION_MULTIPLIER = 0.25  # 1/4 of normal adoption rate
+
 ACV_ORG_MOTION_LABELS: dict[str, dict[str, str]] = {
     "ACADEMIC": {
         "Customer Training & Enablement": "Student Training",

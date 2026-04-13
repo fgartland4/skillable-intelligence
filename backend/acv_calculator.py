@@ -286,6 +286,18 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     label_overrides = cfg.ACV_ORG_MOTION_LABELS.get(normalized_org, {})
     hours_overrides = cfg.ACV_ORG_HOURS_OVERRIDES.get(normalized_org, {})
 
+    # Detect open source — training_license "none" (OSS, no license needed)
+    # or "low_friction" (free tier / dev tier available). Open source products
+    # have lower paid training demand. Per Frank 2026-04-13.
+    is_open_source = False
+    pl_facts = getattr(product, "product_labability_facts", None)
+    if pl_facts:
+        la = getattr(pl_facts, "lab_access", None)
+        if la:
+            license_val = getattr(la, "training_license", "") or ""
+            if license_val == "none":
+                is_open_source = True
+
     motions: list[ModelMotion] = []
     for cfg_motion in cfg.CONSUMPTION_MOTIONS:
         pop_low, pop_high = _read_population(
@@ -295,6 +307,11 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
         adoption = adoption_overrides.get(cfg_motion.label, cfg_motion.adoption_pct)
         display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
         hrs = hours_overrides.get(cfg_motion.label, cfg_motion.hours_low)
+
+        # Open source discount on Customer Training adoption
+        if is_open_source and cfg_motion.label == "Customer Training & Enablement":
+            adoption *= cfg.OPEN_SOURCE_ADOPTION_MULTIPLIER
+
         motions.append(ModelMotion(
             label=display_label,
             population_low=pop_low,
