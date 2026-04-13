@@ -1086,8 +1086,8 @@ Annual Hours × Rate = Annual Potential
 | Delivery path (from Pillar 1) | Badges / facts that trigger this tier | Rate |
 |---|---|---|
 | **Cloud labs** | `Runs in Azure`, `Runs in AWS`, `Sandbox API` (green) | **~$6/hr** |
-| **Small VM, Container, or Simulation** | `Runs in VM` alone (no Multi-VM / Complex Topology / is_large_lab), `Runs in Container`, `Simulation` | **~$9/hr** |
-| **Typical VM** | `Runs in VM` with 1–3 VMs, standard footprint | **~$13/hr** |
+| **Small VM, Container, or Simulation** | `Runs in VM` alone (no Multi-VM / Complex Topology / is_large_lab), `Runs in Container`, `Simulation` | **~$8/hr** |
+| **Typical VM** | `Runs in VM` with 1–3 VMs, standard footprint | **~$14/hr** |
 | **Large or complex VM** | `Multi-VM Lab` OR `Complex Topology` fires on top of `Runs in VM` / `ESX Required`, OR `ProvisioningFacts.is_large_lab` is set | **~$45/hr** |
 
 Rates use `~` to signal estimate. **One number per tier** — the final ACV range comes from audience variation, not from the rate. Rate ranges compound noise without adding precision and are forbidden here. Delivery path is determined once during Pillar 1 scoring — the ACV calculation looks it up, never redefines it. This is Define-Once: one source of truth for how a product gets delivered.
