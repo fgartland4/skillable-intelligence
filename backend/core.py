@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 # SSE Progress Streaming — framework-agnostic infrastructure
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_SSE_TIMEOUT = 600  # 10 minutes max for any operation
+_SSE_TIMEOUT = 3600  # 60 minutes — must support Prospector batches of 25+ companies
 
 _progress: dict[str, list[str]] = {}
 _progress_timestamps: dict[str, float] = {}

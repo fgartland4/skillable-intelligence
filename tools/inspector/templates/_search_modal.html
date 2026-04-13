@@ -724,8 +724,29 @@ window.openSearchModal = function(opts) {
     markStageDone(RESEARCH_COUNT);  // mark Claude stage done
   }
 
-  // Subscribe to SSE
-  const source = new EventSource(opts.sseUrl);
+  // Subscribe to SSE with auto-reconnect on connection loss.
+  // The batch thread keeps running in the background even if the
+  // SSE connection drops — reconnecting picks up where we left off.
+  let source = new EventSource(opts.sseUrl);
+  let reconnectAttempts = 0;
+  const MAX_RECONNECTS = 10;  // magic-allowed: reconnect limit
+
+  function reconnectSSE() {
+    if (reconnectAttempts >= MAX_RECONNECTS) return;
+    reconnectAttempts++;
+    setTimeout(function() {
+      source = new EventSource(opts.sseUrl);
+      wireSSE(source);
+    }, 2000);  // magic-allowed: 2s reconnect delay
+  }
+
+  function wireSSE(src) {
+    src.onmessage = handleSSEMessage;
+    src.onerror = function() {
+      src.close();
+      reconnectSSE();
+    };
+  }
   const startTime = Date.now();
   let pct = 0;
   let stage = 0;  // 0 = i pulsing, 1 = l1 pulsing, 2 = l2 pulsing
@@ -750,13 +771,17 @@ window.openSearchModal = function(opts) {
     }
   }, 300);
 
-  // Elapsed timer (verbose "running for M:SS" format — shared across flows).
+  // Elapsed timer + estimated time (verbose format — shared across flows).
+  const estMinutes = opts.estimatedMinutes || 0;
   const timerInterval = setInterval(function() {
     const s = Math.floor((Date.now() - startTime) / 1000);
     const mm = Math.floor(s / 60);
     const ss = String(s % 60).padStart(2, '0');
-    document.getElementById('searchModalTimer').innerHTML =
-      'running for <strong>' + mm + ':' + ss + '</strong>';
+    let timerHtml = 'running for <strong>' + mm + ':' + ss + '</strong>';
+    if (estMinutes > 0) {
+      timerHtml += ' <span style="color: var(--sk-text-dim); font-size: 0.78em;">(est. ~' + estMinutes + ' min)</span>';
+    }
+    document.getElementById('searchModalTimer').innerHTML = timerHtml;
   }, 1000);
 
   function cleanup() {
@@ -844,7 +869,7 @@ window.openSearchModal = function(opts) {
       showStatus(hints[hintIdxSimple]);
     }, HINT_CYCLE_MS) : null;
 
-  source.onmessage = function(e) {
+  function handleSSEMessage(e) {
     const msg = e.data || '';
     if (msg.startsWith('status:')) {
       const text = msg.slice(7);
@@ -893,12 +918,10 @@ window.openSearchModal = function(opts) {
         showError(errMsg);
       }
     }
-  };
+  }
 
-  source.onerror = function() {
-    cleanup();
-    showError('Connection lost. Please try again.');
-  };
+  // Wire initial SSE connection + auto-reconnect
+  wireSSE(source);
 
   // Cancel button
   document.getElementById('searchModalCancel').onclick = close;

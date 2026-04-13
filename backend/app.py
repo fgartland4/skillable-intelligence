@@ -1253,6 +1253,31 @@ def _load_prospector_batch(batch_id: str) -> list[dict] | None:
         return json.load(f)
 
 
+@app.route("/prospector/history")
+def prospector_history():
+    """List all previously researched companies across all discoveries."""
+    from storage import list_discoveries
+    companies = []
+    seen: set[str] = set()
+    for disc in list_discoveries():
+        name = disc.get("company_name", "")
+        name_key = name.lower().strip()
+        if name_key in seen:
+            continue
+        seen.add(name_key)
+        product_count = len(disc.get("products", []))
+        companies.append({
+            "name": name,
+            "badge": disc.get("_company_badge", ""),
+            "discovery_id": disc.get("discovery_id", ""),
+            "product_count": product_count,
+            "created_at": disc.get("created_at", ""),
+        })
+    # Sort by most recently researched first
+    companies.sort(key=lambda c: c.get("created_at", ""), reverse=True)
+    return render_template("prospector_history.html", companies=companies)
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Designer Routes (placeholder — Foundation Session pending)
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -95,19 +95,15 @@
         .dd-option label { font-size: 0.82rem; color: var(--sk-text-muted); cursor: pointer; }
         .dd-option .dd-hint { font-size: 0.68rem; color: var(--sk-text-dim); margin-left: auto; }
 
-        /* ── Estimator sidebar ── */
-        .input-with-estimator { display: flex; gap: 18px; }
-        .input-main { flex: 1; min-width: 0; }
-        .estimator-sidebar {
-            width: 200px; flex-shrink: 0;
-            background: var(--sk-bg); border: 1px solid var(--sk-border);
-            border-radius: 10px; padding: 16px;
-            display: flex; flex-direction: column; gap: 14px;
-            align-self: flex-start;
+        /* ── Compact inline estimator ── */
+        .estimator-inline {
+            display: none; margin-top: 10px; padding: 8px 14px;
+            background: rgba(36,237,155,0.04); border: 1px solid var(--sk-border);
+            border-radius: 8px; font-size: 0.78rem; color: var(--sk-text-muted);
+            text-align: center;
         }
-        .est-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sk-text-dim); }
-        .est-value { font-size: 1.1rem; font-weight: 700; color: var(--sk-accent); margin-top: 2px; }
-        .est-note { font-size: 0.65rem; color: var(--sk-text-dim); margin-top: 2px; }
+        .estimator-inline.visible { display: block; }
+        .estimator-inline strong { color: var(--sk-accent); }
 
         /* ── Buttons ── */
         .btn-primary {
@@ -222,6 +218,10 @@
         <strong>How it works:</strong> While the aim is to cleanly push requests from HubSpot then pull specific data into specific HubSpot fields, cards, and related components via HubSpot integration, Prospector also supports uploading lists of companies, schools, and other types of organizations — or just copy/pasting them directly.
     </div>
 
+    <div style="margin-bottom: 20px; text-align: right;">
+        <a href="/prospector/history" style="font-size: 0.78rem; color: var(--sk-accent);">View researched companies →</a>
+    </div>
+
     {# ── Mode tabs ── #}
     <div class="mode-tabs">
         <button class="mode-tab active" onclick="switchMode('csv', this)" style="text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.72rem;">Upload List</button>
@@ -235,39 +235,21 @@
         {# ── Upload CSV ── #}
         <div id="panel-csv" class="mode-panel active">
             <form method="POST" action="/prospector/run" enctype="multipart/form-data">
-                <div class="input-with-estimator">
-                    <div class="input-main">
-                        <label class="field-label">CSV File</label>
-                        <div class="drop-zone" id="dropZone">
-                            <input type="file" name="csv_file" accept=".csv" id="csvInput" onchange="fileSelected(this)">
-                            <div class="drop-icon">&#128196;</div>
-                            <div class="drop-label">Drop your CSV here or <strong>browse</strong></div>
-                            <div class="drop-hint">First column = company name. Header row is skipped automatically.</div>
-                            <div class="drop-selected" id="fileLabel"></div>
-                        </div>
-                        <div class="field-hint">Works with ZoomInfo exports, ABM lists, or any CSV where the first column is the company name.</div>
-                        <div class="dd-option">
-                            <input type="checkbox" name="deep_dive" id="ddCheckCsv">
-                            <label for="ddCheckCsv">Deep Dive top product for each company</label>
-                            <span class="dd-hint">Adds ~3-5 min per company</span>
-                        </div>
-                    </div>
-                    <div class="estimator-sidebar" id="estimatorCsv">
-                        <div>
-                            <div class="est-label">Companies</div>
-                            <div class="est-value" id="estCountCsv">0</div>
-                        </div>
-                        <div>
-                            <div class="est-label">Est. Cost</div>
-                            <div class="est-value" id="estCostCsv">—</div>
-                            <div class="est-note">Mid-high estimate</div>
-                        </div>
-                        <div>
-                            <div class="est-label">Est. Time</div>
-                            <div class="est-value" id="estTimeCsv">—</div>
-                        </div>
-                    </div>
+                <label class="field-label">CSV File</label>
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" name="csv_file" accept=".csv" id="csvInput" onchange="fileSelected(this)">
+                    <div class="drop-icon">&#128196;</div>
+                    <div class="drop-label">Drop your CSV here or <strong>browse</strong></div>
+                    <div class="drop-hint">First column = company name. Header row is skipped automatically.</div>
+                    <div class="drop-selected" id="fileLabel"></div>
                 </div>
+                <div class="field-hint">Works with ZoomInfo exports or any CSV where the first column is the company name.</div>
+                <div class="dd-option">
+                    <input type="checkbox" name="deep_dive" id="ddCheckCsv">
+                    <label for="ddCheckCsv">Deep Dive top product for each company</label>
+                    <span class="dd-hint">Adds ~3-5 min per company</span>
+                </div>
+                <div class="estimator-inline" id="estimatorCsv"></div>
                 <div class="panel-footer">
                     <button type="submit" class="btn-primary" id="btnCsv" disabled>Run Prospector →</button>
                 </div>
@@ -277,33 +259,15 @@
         {# ── Paste List ── #}
         <div id="panel-paste" class="mode-panel">
             <form method="POST" action="/prospector/run">
-                <div class="input-with-estimator">
-                    <div class="input-main">
-                        <textarea name="companies" id="companyInput"
-                            placeholder="Type or paste organization names here"></textarea>
-                        <div class="field-hint">One per line or comma-separated. Companies, universities, training organizations — any type. Limit to 25 per batch.</div>
-                        <div class="dd-option">
-                            <input type="checkbox" name="deep_dive" id="ddCheckPaste">
-                            <label for="ddCheckPaste">Deep Dive top product for each company</label>
-                            <span class="dd-hint">Adds ~3-5 min per company</span>
-                        </div>
-                    </div>
-                    <div class="estimator-sidebar" id="estimatorPaste">
-                        <div>
-                            <div class="est-label">Companies</div>
-                            <div class="est-value" id="estCountPaste">0</div>
-                        </div>
-                        <div>
-                            <div class="est-label">Est. Cost</div>
-                            <div class="est-value" id="estCostPaste">—</div>
-                            <div class="est-note">Mid-high estimate</div>
-                        </div>
-                        <div>
-                            <div class="est-label">Est. Time</div>
-                            <div class="est-value" id="estTimePaste">—</div>
-                        </div>
-                    </div>
+                <textarea name="companies" id="companyInput"
+                    placeholder="Type or paste organization names here"></textarea>
+                <div class="field-hint">One per line or comma-separated. Companies, universities, training organizations — any type. Limit to 25 per batch.</div>
+                <div class="dd-option">
+                    <input type="checkbox" name="deep_dive" id="ddCheckPaste">
+                    <label for="ddCheckPaste">Deep Dive top product for each company</label>
+                    <span class="dd-hint">Adds ~3-5 min per company</span>
                 </div>
+                <div class="estimator-inline" id="estimatorPaste"></div>
                 <div class="panel-footer">
                     <button type="submit" class="btn-primary" id="btnPaste" disabled>Run Prospector →</button>
                 </div>
@@ -552,17 +516,34 @@
         dz.addEventListener('drop', function() { dz.classList.remove('drag-over'); });
     }
 
-    // ── Paste list validation + estimator ──
+    // ── Cost/time constants — mid-to-mid-high estimates per Frank ──
+    var COST_PER_DISCOVERY = 0.22;
+    var COST_PER_DEEP_DIVE = 2.20;
+    var TIME_PER_DISCOVERY = 75;
+    var TIME_PER_DEEP_DIVE = 240;
+    var PARALLEL_FACTOR = 3;
+
+    function updateInlineEstimator(elId, count, ddChecked) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        if (count === 0) { el.classList.remove('visible'); return; }
+        var cost = count * COST_PER_DISCOVERY;
+        var timeSec = Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DISCOVERY;
+        if (ddChecked) {
+            cost += count * COST_PER_DEEP_DIVE;
+            timeSec += Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DEEP_DIVE;
+        }
+        var costStr = cost < 1 ? '~$' + cost.toFixed(2) : '~$' + cost.toFixed(1);
+        var mins = Math.ceil(timeSec / 60);
+        var timeStr = mins < 2 ? '~1 min' : '~' + mins + ' min';
+        el.innerHTML = '<strong>' + count + ' companies</strong> · ' + costStr + ' est. cost · ' + timeStr + ' est. time';
+        el.classList.add('visible');
+    }
+
+    // ── Paste list ──
     var textarea = document.getElementById('companyInput');
     var btnPaste = document.getElementById('btnPaste');
     var ddCheckPaste = document.getElementById('ddCheckPaste');
-
-    // Cost/time constants — mid-to-mid-high estimates per Frank
-    var COST_PER_DISCOVERY = 0.22;   // ~$0.15-0.25, use mid-high
-    var COST_PER_DEEP_DIVE = 2.20;   // ~$1.50-2.50, use mid-high
-    var TIME_PER_DISCOVERY = 75;     // seconds — mid estimate
-    var TIME_PER_DEEP_DIVE = 240;    // seconds — mid estimate (4 min)
-    var PARALLEL_FACTOR = 3;         // companies processed in parallel
 
     function countPasteCompanies() {
         if (!textarea) return 0;
@@ -570,49 +551,21 @@
         if (!text) return 0;
         var names = [];
         text.split('\n').forEach(function(line) {
-            line.split(',').forEach(function(name) {
-                name = name.trim();
-                if (name) names.push(name);
-            });
+            line.split(',').forEach(function(n) { n = n.trim(); if (n) names.push(n); });
         });
         return names.length;
     }
 
-    function updateEstimator(count, ddChecked, prefix) {
-        var el = function(id) { return document.getElementById(id); };
-        el('estCount' + prefix).textContent = count;
-        if (count === 0) {
-            el('estCost' + prefix).textContent = '—';
-            el('estTime' + prefix).textContent = '—';
-            return;
-        }
-        var cost = count * COST_PER_DISCOVERY;
-        var timeSec = Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DISCOVERY;
-        if (ddChecked) {
-            cost += count * COST_PER_DEEP_DIVE;
-            timeSec += Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DEEP_DIVE;
-        }
-        // Format cost
-        el('estCost' + prefix).textContent = cost < 1 ? '~$' + cost.toFixed(2) : '~$' + cost.toFixed(1);
-        // Format time
-        var mins = Math.ceil(timeSec / 60);
-        el('estTime' + prefix).textContent = mins < 2 ? '~1 min' : '~' + mins + ' min';
-    }
-
-    function refreshPasteEstimator() {
+    function refreshPaste() {
         var count = countPasteCompanies();
         if (btnPaste) btnPaste.disabled = count === 0;
-        updateEstimator(count, ddCheckPaste && ddCheckPaste.checked, 'Paste');
+        updateInlineEstimator('estimatorPaste', count, ddCheckPaste && ddCheckPaste.checked);
     }
 
-    if (textarea) {
-        textarea.addEventListener('input', refreshPasteEstimator);
-    }
-    if (ddCheckPaste) {
-        ddCheckPaste.addEventListener('change', refreshPasteEstimator);
-    }
+    if (textarea) textarea.addEventListener('input', refreshPaste);
+    if (ddCheckPaste) ddCheckPaste.addEventListener('change', refreshPaste);
 
-    // ── CSV estimator ──
+    // ── CSV file ──
     var ddCheckCsv = document.getElementById('ddCheckCsv');
     var csvRowCount = 0;
 
@@ -620,27 +573,34 @@
         var label = document.getElementById('fileLabel');
         var btn = document.getElementById('btnCsv');
         if (input.files && input.files.length > 0) {
-            var file = input.files[0];
-            label.textContent = file.name;
+            label.textContent = input.files[0].name;
             label.style.display = 'block';
             btn.disabled = false;
-            // Read CSV to count rows for estimator
             var reader = new FileReader();
             reader.onload = function(e) {
                 var lines = e.target.result.split('\n').filter(function(l) { return l.trim(); });
-                // Subtract header row
                 csvRowCount = Math.max(0, lines.length - 1);
-                updateEstimator(csvRowCount, ddCheckCsv && ddCheckCsv.checked, 'Csv');
+                updateInlineEstimator('estimatorCsv', csvRowCount, ddCheckCsv && ddCheckCsv.checked);
             };
-            reader.readAsText(file);
+            reader.readAsText(input.files[0]);
         }
     };
 
     if (ddCheckCsv) {
         ddCheckCsv.addEventListener('change', function() {
-            updateEstimator(csvRowCount, ddCheckCsv.checked, 'Csv');
+            updateInlineEstimator('estimatorCsv', csvRowCount, ddCheckCsv.checked);
         });
     }
+
+    // ── Fix button state on tab switch ──
+    window.switchMode = function(mode, btn) {
+        document.querySelectorAll('.mode-panel').forEach(function(p) { p.classList.remove('active'); });
+        document.querySelectorAll('.mode-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.getElementById('panel-' + mode).classList.add('active');
+        btn.classList.add('active');
+        // Re-check button state for the newly active panel
+        if (mode === 'paste') refreshPaste();
+    };
 })();
 </script>
 
