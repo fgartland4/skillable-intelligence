@@ -935,11 +935,11 @@ All examples assume `SCORING_LOGIC_VERSION = "2026-04-08.rebuild-step-5b-pristin
 
 PL 92, IV 100, CF 90, orchestration = Hyper-V (datacenter method class).
 
-- Technical Fit Multiplier lookup: PL 92 is ≥ 32 → multiplier = **1.0**
-- PL contrib = 92 × 0.40 = 36.8
-- IV contrib = 100 × 0.30 × 1.0 = 30.0
+- Technical Fit Multiplier lookup: PL 92 is ≥ 60 → multiplier = **1.0**
+- PL contrib = 92 × 0.50 = 46.0
+- IV contrib = 100 × 0.20 × 1.0 = 20.0
 - CF contrib = 90 × 0.30 × 1.0 = 27.0
-- **Fit Score = round(93.8) = 94 → Dark Green → Prime Target**
+- **Fit Score = round(93.0) = 93 → Dark Green → Prime Target**
 
 ### Diligent Boards (SOFTWARE, Content Management / Governance, SaaS-only)
 
@@ -969,11 +969,11 @@ PL 92, IV 100, CF 90, orchestration = Hyper-V (datacenter method class).
 
 PL 25, IV 84, CF 68, orchestration = SaaS (non-datacenter).
 
-- Technical Fit Multiplier lookup: PL 25 is in 19–31, method = non-datacenter → multiplier = **0.75**
-- PL contrib = 25 × 0.40 = 10.0
-- IV contrib = 84 × 0.30 × 0.75 = 18.9
-- CF contrib = 68 × 0.30 × 0.75 = 15.3
-- **Fit Score = round(44.2) = 44 → Amber → Keep Watch**
+- Technical Fit Multiplier lookup: PL 25 is in 19–31, method = non-datacenter → multiplier = **0.60**
+- PL contrib = 25 × 0.50 = 12.5
+- IV contrib = 84 × 0.20 × 0.60 = 10.1
+- CF contrib = 68 × 0.30 × 0.60 = 12.2
+- **Fit Score = round(34.8) = 35 → Amber → Keep Watch**
 
 Honest outcome: strong instructional case and decent customer, but the Sandbox API red cap honestly reflects that Skillable can't run per-learner labs on Diligent Boards today.
 
