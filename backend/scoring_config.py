@@ -3915,12 +3915,12 @@ def _build_modal_content() -> dict:
             {"label": "What", "body": "ACV Potential is the estimated annual contract value if the customer standardized on Skillable across all training motions for the product. It's built from five consumption motions: Customer Training, Partner Training, Employee Training, Certification, and Events. Each motion has an audience (the people), an adoption rate (what percentage engage), and lab hours per learner. The bottom line is always <strong>lab hours consumed</strong>."},
             {"label": "How", "body": "Audience × Adoption × Hours = Annual Lab Hours. Annual Lab Hours × Rate = ACV."
                 '<table class="info-modal-table"><thead><tr><th>Delivery Path</th><th>Rate</th><th>When it applies</th></tr></thead><tbody>'
-                '<tr><td>Cloud Labs</td><td>~$6/hr</td><td>Azure-native, AWS-native, or Sandbox API products</td></tr>'
-                '<tr><td>Small VM / Container / Simulation</td><td>~$9/hr</td><td>Single VM, container-native, or simulation</td></tr>'
-                '<tr><td>Typical VM</td><td>~$14/hr</td><td>1–3 VMs, standard footprint</td></tr>'
-                '<tr><td>Large / Complex VM</td><td>~$45/hr</td><td>Multi-VM labs, complex topology, networking</td></tr>'
+                f'<tr><td>Cloud Labs</td><td>~${CLOUD_LABS_RATE:.0f}/hr</td><td>Azure-native, AWS-native, or Sandbox API products</td></tr>'
+                f'<tr><td>Small VM / Container / Simulation</td><td>~${VM_LOW_RATE:.0f}/hr</td><td>Single VM, container-native, or simulation</td></tr>'
+                f'<tr><td>Typical VM</td><td>~${VM_MID_RATE:.0f}/hr</td><td>1–3 VMs, standard footprint</td></tr>'
+                f'<tr><td>Large / Complex VM</td><td>~${VM_HIGH_RATE:.0f}/hr</td><td>Multi-VM labs, complex topology, networking</td></tr>'
                 '</tbody></table>'
-                "Every input is a single estimated number, not a range. The rate is determined once during Product Labability scoring — the ACV calculation looks it up, never redefines it. Better to be approximately right than precisely uncertain."
+                "Every input is a single estimated number, not a range. The rate is determined once during Product Labability scoring — the ACV calculation looks it up, never redefines it. Rate tier is driven by workload complexity (what the lab actually needs), not by the deployment label — a SaaS-delivered cybersecurity course still runs on VMs."
             },
         ],
     }
@@ -4223,39 +4223,60 @@ PROSPECTOR_MODAL_CONTENT = {
             {
                 "heading": "What this list shows",
                 "body": (
-                    "Every company the platform has researched — whether through Prospector batch runs "
-                    "or Inspector searches. Companies are ranked by estimated ACV Potential (highest first). "
-                    "Each row shows the company's top product, classification badge, labability tier counts, "
-                    "and key signals from discovery research."
+                    "Every company the platform has researched — through Prospector batch runs or "
+                    "Inspector searches. Rows are ranked by ACV Potential midpoint (highest first). "
+                    "Each row shows the company's classification badge, ACV Potential range with "
+                    "confidence, Deep Dive coverage, the top product, and a one-line top signal. "
+                    "Click any ACV cell to open the full rationale + drivers + caveats."
                 ),
             },
             {
-                "heading": "How ACV Potential is estimated at discovery level",
+                "heading": "How ACV Potential is produced",
                 "body": (
-                    f"ACV = Audience × Adoption Rate × Lab Hours × Rate per Hour, summed across all "
-                    f"discovered products. The adoption rate and hours vary by organization type — "
-                    f"universities ({int(ACV_ORG_ADOPTION_OVERRIDES.get('ACADEMIC', {}).get('Customer Training & Enablement', 0.04) * 100)}% adoption, "
-                    f"{int(ACV_ORG_HOURS_OVERRIDES.get('ACADEMIC', {}).get('Customer Training & Enablement', 2))} hrs) "
-                    f"are higher than software companies ({int(DISCOVERY_ACV_ADOPTION_RATE * 100)}% adoption, {int(DISCOVERY_ACV_HOURS)} hrs) "
-                    f"because coursework is assigned, not optional. "
-                    f"Rates range from ~${CLOUD_LABS_RATE:.0f}/hr for cloud labs to ~${VM_HIGH_RATE:.0f}/hr for complex multi-VM environments."
+                    "ACV Potential comes from one of two paths depending on whether a Deep Dive "
+                    "has been run:<br><br>"
+                    "<strong>Discovery-level (default)</strong> — a single holistic Claude call at "
+                    "research time reasons across all products, training signals, partner ecosystem, "
+                    "certification programs, and known-customer relationships to produce one defensible "
+                    "range with confidence, rationale, and 3–5 key drivers. The call is anchored by "
+                    "deterministic guardrails — a hard cap per company, a range-width ratio (tight "
+                    "range = higher confidence), a per-user ceiling sanity check, and known-customer "
+                    "floor/ceiling enforcement when applicable.<br><br>"
+                    "<strong>Deep Dive (sharpened)</strong> — when a Deep Dive has been run in Inspector, "
+                    "the discovery holistic estimate is replaced by a full five-motion ACV calculation "
+                    "(Customer Training, Partner Training, Employee Training, Certification, Events) "
+                    "with per-product precision. GP5 — intelligence compounds."
                 ),
             },
             {
-                "heading": "Discovery vs Deep Dive",
+                "heading": "The Deep Dives pill",
                 "body": (
-                    "Discovery is a quick research pass that identifies products and estimates ACV from "
-                    "publicly available data. A Deep Dive runs full three-pillar scoring (Product Labability, "
-                    "Instructional Value, Customer Fit) and produces a precise ACV with five consumption motions. "
-                    "When a Deep Dive exists, its ACV replaces the discovery estimate — intelligence compounds."
+                    "The <strong>Deep Dives</strong> column shows N/M — how many of M discovered "
+                    "products have been scored through a full Deep Dive. Full coverage renders "
+                    "green, partial amber, none muted. This signals where the ACV Potential has "
+                    "been hardened against evidence and where it's still the discovery-level estimate."
                 ),
             },
             {
-                "heading": "How estimates are refreshed",
+                "heading": "Confidence chips — what they mean",
                 "body": (
-                    "ACV estimates are calculated from cached research data using the current scoring methodology. "
-                    "Refreshing this page recalculates all estimates at zero additional cost — no new research "
-                    "or API calls required. The research data stays cached; only the math runs fresh."
+                    "<strong>HIGH</strong> — tight range, strong signals, no guardrail trips.<br>"
+                    "<strong>MEDIUM</strong> — confident magnitude, some uncertainty in motion mix.<br>"
+                    "<strong>LOW</strong> — thin data, wide range, or a guardrail check failed. "
+                    "Treat the low end as the conservative assumption.<br>"
+                    "<strong>PARTNERSHIP</strong> — Content Development firms (GP Strategies class). "
+                    "No direct ACV; Skillable's opportunity is labs embedded in the programs they "
+                    "build for clients."
+                ),
+            },
+            {
+                "heading": "How the list refreshes",
+                "body": (
+                    "Refreshing this page recalculates display values from cached research data at "
+                    "zero API cost. To regenerate the holistic ACV for a company after a prompt or "
+                    "guardrail update, use the retrofit runner "
+                    "(<code>scripts/retrofit_acv.py --mode holistic</code>) — one Claude call per "
+                    "company, no re-research. Full Deep Dives are run from Inspector."
                 ),
             },
         ],
@@ -4265,45 +4286,85 @@ PROSPECTOR_MODAL_CONTENT = {
         "title": "How ACV is Estimated",
         "sections": [
             {
-                "heading": "The universal formula",
+                "heading": "Two layers, same goal",
                 "body": (
-                    "ACV = Audience × Adoption Rate × Lab Hours per Learner × Rate per Hour. "
-                    "This formula is the same at every level — discovery and Deep Dive. "
-                    "The Deep Dive sharpens each input with per-product precision."
+                    "Every ACV Potential number in the platform traces to one of two computations. "
+                    "Both answer the same question — <em>how big is this if we win?</em> — but with "
+                    "different evidence:<br><br>"
+                    "<strong>Discovery-level (Option 2 Holistic)</strong> — a single Claude call "
+                    "reasons across all discovered products + company-level training signals + "
+                    "calibration anchors and returns one typed JSON object: "
+                    "<code>{acv_low, acv_high, confidence, rationale, key_drivers, caveats}</code>. "
+                    "Used for every company in Prospector that hasn't had a Deep Dive.<br><br>"
+                    "<strong>Deep Dive five-motion</strong> — pure Python, zero Claude at ACV time. "
+                    "Sums Customer Training + Partner Training + Employee Training + Certification + "
+                    "Events using per-product audience × adoption × hours × rate. Replaces the "
+                    "discovery estimate once a Deep Dive has run."
                 ),
             },
             {
-                "heading": "Adoption rates by organization type",
+                "heading": "The five motions — Deep Dive level",
                 "body": (
-                    f"Software companies: {int(DISCOVERY_ACV_ADOPTION_RATE * 100)}% of product users take structured training. "
-                    f"Universities: {int(ACV_ORG_ADOPTION_OVERRIDES.get('ACADEMIC', {}).get('Customer Training & Enablement', 0.25) * 100)}% — "
-                    f"coursework is assigned. "
-                    f"Industry Authorities: {int(ACV_ORG_ADOPTION_OVERRIDES.get('INDUSTRY AUTHORITY', {}).get('Customer Training & Enablement', 0.05) * 100)}% of training candidates take labs. "
-                    f"ILT Training Orgs: {int(ACV_ORG_ADOPTION_OVERRIDES.get('ILT TRAINING ORG', {}).get('Customer Training & Enablement', 0.25) * 100)}% of classroom students. "
-                    f"Enterprise Learning Platforms: {int(ACV_ORG_ADOPTION_OVERRIDES.get('LMS PROVIDER', {}).get('Customer Training & Enablement', 0.03) * 100)}% of platform learners. "
-                    f"GSIs/VARs: {int(ACV_ORG_ADOPTION_OVERRIDES.get('SYSTEMS INTEGRATOR', {}).get('Customer Training & Enablement', 0.05) * 100)}% of internal practitioners."
+                    f"<strong>Customer Training</strong> — product users. Software/Enterprise: "
+                    f"{int(CUSTOMER_TRAINING_ADOPTION_BY_TIER['high'] * 100)}% adoption for high-intensity categories "
+                    f"(Cybersecurity, Cloud, Data Science), "
+                    f"{int(CUSTOMER_TRAINING_ADOPTION_BY_TIER['moderate'] * 100)}% for moderate, "
+                    f"{int(CUSTOMER_TRAINING_ADOPTION_BY_TIER['low'] * 100)}% for low. "
+                    f"Wrapper orgs use their own adoption rates tied to delivery model.<br>"
+                    f"<strong>Partner Training</strong> — channel partner SEs at 15% adoption, 5 hrs.<br>"
+                    f"<strong>Employee Training</strong> — product-facing employees at 30% adoption, 8 hrs.<br>"
+                    f"<strong>Certification (PBT)</strong> — annual exam sitters at 100% (lab IS the exam).<br>"
+                    f"<strong>Events</strong> — flagship event attendees at 30% adoption, 1 hr."
                 ),
             },
             {
-                "heading": "Training maturity multipliers",
+                "heading": "Rate tiers — determined by workload complexity",
                 "body": (
-                    "Adoption rates are nudged by evidence from the research: "
-                    f"companies with 50+ ATPs get {ACV_TRAINING_MATURITY_MULTIPLIERS['atp_large']}× adoption, "
-                    f"active cert exams get {ACV_TRAINING_MATURITY_MULTIPLIERS['cert_active']}×, "
-                    f"no training signals get {ACV_TRAINING_MATURITY_MULTIPLIERS['no_signals']}×, "
-                    f"blocked training license gets {ACV_TRAINING_MATURITY_MULTIPLIERS['license_blocked']}×. "
-                    f"Capped at {int(ACV_TRAINING_MATURITY_ADOPTION_CAP * 100)}% maximum adoption."
+                    f"<table>"
+                    f"<tr><th>Delivery path</th><th>Rate</th></tr>"
+                    f"<tr><td>Cloud labs (Azure/AWS Cloud Slice, Sandbox API)</td><td>~${CLOUD_LABS_RATE:.0f}/hr</td></tr>"
+                    f"<tr><td>Small VM / Container / Simulation</td><td>~${VM_LOW_RATE:.0f}/hr</td></tr>"
+                    f"<tr><td>Typical VM (1–3 VMs)</td><td>~${VM_MID_RATE:.0f}/hr</td></tr>"
+                    f"<tr><td>Large / Complex VM (multi-VM, complex topology)</td><td>~${VM_HIGH_RATE:.0f}/hr</td></tr>"
+                    f"</table>"
+                    f"Rate tier is driven by what the workload actually needs, not by the delivery label. "
+                    f"A cybersecurity curriculum delivered via a SaaS portal still runs on VMs — it gets "
+                    f"the VM rate, not the cloud rate."
                 ),
             },
             {
-                "heading": "Rate tiers",
+                "heading": "Guardrails — the trust layer",
                 "body": (
-                    f"Cloud labs (Azure/AWS Cloud Slice): ~${CLOUD_LABS_RATE:.0f}/hr. "
-                    f"Small VM or Container: ~${VM_LOW_RATE:.0f}/hr. "
-                    f"Typical VM (1-3 VMs): ~${VM_MID_RATE:.0f}/hr. "
-                    f"Large/complex VM (multi-VM, GPU, complex topology): ~${VM_HIGH_RATE:.0f}/hr. "
-                    "Rate is determined by the product's delivery path — one number per product, "
-                    "used everywhere. Define-Once."
+                    f"The holistic Claude call is anchored by deterministic Python rules that run before "
+                    f"the output reaches the user:<br>"
+                    f"<strong>Company hard cap</strong> — absolute ceiling per estimate. If exceeded, "
+                    f"<code>acv_high</code> clamps and confidence drops to LOW.<br>"
+                    f"<strong>Range-width ratio</strong> — if <code>acv_high / acv_low</code> is too wide "
+                    f"at HIGH confidence, drops to MEDIUM. Too wide at MEDIUM drops to LOW. "
+                    f"Wider range = less trust.<br>"
+                    f"<strong>Per-user ceiling</strong> — if the midpoint implies a dollar-per-user value "
+                    f"the platform has never seen, confidence drops to LOW.<br>"
+                    f"<strong>Known-customer floor</strong> — when the target is a known Skillable "
+                    f"customer, the low bound is the current ACV (cannot undersell an existing relationship). "
+                    f"Floor informs the low, never collapses the range — the high preserves genuine upside."
+                ),
+            },
+            {
+                "heading": "Common pitfalls — built into the prompt",
+                "body": (
+                    "Five anti-patterns that used to shave estimates downward are now explicitly named "
+                    "in the prompt:<br><br>"
+                    "<strong>A — Fraction deflator.</strong> Adoption rates already encode realistic "
+                    "consumption. Don't apply \"minority subset\" on top.<br>"
+                    "<strong>B — Cumulative vs annual.</strong> Use annual enrollments where available; "
+                    "if only cumulative, divide by 2–3 yr program life (4 yr academic).<br>"
+                    "<strong>D — Floor-collapse (Python-enforced).</strong> Known-customer floor sets "
+                    "the low bound only; high preserves width via Claude's original, stage ceiling, "
+                    "or 2× floor.<br>"
+                    "<strong>E — DIY as discount.</strong> An existing in-house lab platform is a "
+                    "<em>positive</em> ICP signal (proven demand + budget), not a displacement discount.<br>"
+                    "<strong>F — Rate tier by deployment label.</strong> Workload complexity drives "
+                    "rate, not the delivery label (SaaS cybersecurity still needs VM rates)."
                 ),
             },
         ],
@@ -4313,32 +4374,48 @@ PROSPECTOR_MODAL_CONTENT = {
         "title": "How Companies Are Scored",
         "sections": [
             {
-                "heading": "Three Pillars",
+                "heading": "Three Pillars — the Fit Score",
                 "body": (
-                    f"The Fit Score (0–100) combines three Pillars: "
-                    f"Product Labability ({PILLARS[0].weight}%) — can Skillable run a hands-on lab on this product? "
-                    f"Instructional Value ({PILLARS[1].weight}%) — does this product warrant hands-on training? "
-                    f"Customer Fit ({PILLARS[2].weight}%) — is this organization a training buyer? "
-                    f"Product Labability is weighted highest because if we can't lab the product, nothing else matters."
+                    f"The Fit Score (0–100) is a weighted composite of three Pillars:<br>"
+                    f"<strong>Product Labability ({PILLARS[0].weight}%)</strong> — can Skillable run a "
+                    f"hands-on lab on this product? Product-level.<br>"
+                    f"<strong>Instructional Value ({PILLARS[1].weight}%)</strong> — does this product "
+                    f"warrant hands-on training? Product-level.<br>"
+                    f"<strong>Customer Fit ({PILLARS[2].weight}%)</strong> — is this organization a "
+                    f"training buyer? Organization-level.<br><br>"
+                    f"70% of the score is about the product (Labability + Instructional Value). 30% is "
+                    f"about the organization. Product Labability carries the highest weight because if "
+                    f"we can't lab the product, nothing else matters. A Technical Fit Multiplier applies "
+                    f"asymmetric drag — weak Labability drags the organization-level contributions down; "
+                    f"weak organization signals do not drag Labability down."
                 ),
             },
             {
-                "heading": "Discovery vs Deep Dive scoring",
+                "heading": "Discovery vs Deep Dive — two levels of signal",
                 "body": (
-                    "At discovery level, products get a rough labability tier (Promising / Potential / Uncertain / Unlikely) "
-                    "based on deployment model, API surface, and category. A Deep Dive runs the full three-pillar scoring "
-                    "with 12 dimensions, evidence-backed badges, and a Seller Briefcase. The Deep Dive produces the "
-                    "definitive Fit Score and Verdict (Prime Target through Poor Fit)."
+                    "<strong>Discovery level</strong> — products are tiered into Promising / Potential / "
+                    "Uncertain / Unlikely based on deployment model, API surface, category, and training "
+                    "signals. A directional estimate, not a score. Company gets a holistic ACV Potential "
+                    "from a single Claude call. This is the Prospector default view.<br><br>"
+                    "<strong>Deep Dive</strong> — full three-Pillar scoring across 12 dimensions with "
+                    "evidence-backed badges, strength-tiered rubric grading for Pillars 2 and 3, a precise "
+                    "five-motion ACV, and a Seller Briefcase. Produces the definitive Fit Score and Verdict."
                 ),
             },
             {
-                "heading": "Verdict Grid",
+                "heading": "The Verdict Grid",
                 "body": (
-                    "The Verdict combines Fit Score and ACV tier into an action label. "
-                    "Fit Score ≥80 + High ACV = Prime Target. "
-                    "Fit Score 65-79 + Medium ACV = Worth Pursuing. "
-                    "Fit Score <25 = Poor Fit regardless of ACV. "
-                    "The verdict tells the seller what to DO, not just what the numbers are."
+                    "The Verdict combines Fit Score and ACV tier into an action label — what to <em>do</em>, "
+                    "not just what the numbers are:<br><br>"
+                    "<table>"
+                    "<tr><th>Score</th><th>High ACV</th><th>Medium ACV</th><th>Low ACV</th></tr>"
+                    "<tr><td><strong>≥ 80</strong></td><td>Prime Target</td><td>Strong Prospect</td><td>Good Fit</td></tr>"
+                    "<tr><td><strong>65–79</strong></td><td>High Potential</td><td>Worth Pursuing</td><td>Solid Prospect</td></tr>"
+                    "<tr><td><strong>25–64</strong></td><td>Assess First</td><td>Keep Watch</td><td>Deprioritize</td></tr>"
+                    "<tr><td><strong>&lt; 25</strong></td><td>Keep Watch</td><td>Poor Fit</td><td>Poor Fit</td></tr>"
+                    "</table>"
+                    "Score below 25 lands Poor Fit regardless of ACV — an unlabable product isn't a "
+                    "Skillable opportunity even if the organization is huge."
                 ),
             },
         ],
