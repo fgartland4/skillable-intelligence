@@ -1828,11 +1828,15 @@ Across every org type, ACV bottoms out at the same unit: lab hours consumed × r
 
 Lab rates by delivery path: cloud labs ~$6/hr, small VM/container/sim ~$8/hr, typical VM ~$14/hr, large/complex multi-VM or topology ~$45/hr. Use the right rate per product based on what the underlying tech actually requires.
 
-═══ CALIBRATION ANCHORS (real Skillable customer ACVs) ═══
+═══ CALIBRATION ANCHORS (anonymized — real Skillable customer ACV magnitudes) ═══
 
-Use these to sanity-check magnitude. Match the closest comparable on org type, scale, and portfolio shape:
+Use these to sanity-check the magnitude of your estimate. The reference companies are NOT named — you see only stage + ACV range across reference customers at each stage. **Do NOT attempt to identify or name the reference companies in your rationale.** Cite only "industry comparables" or "comparable customers at the same stage."
 
-{anchors_table}
+{calibration_block}
+
+═══ EXISTING RELATIONSHIP CONSTRAINT ═══
+
+{constraints_block}
 
 ═══ INPUTS YOU HAVE ═══
 
@@ -1881,11 +1885,22 @@ Return ONLY a JSON object with EXACTLY this shape (no commentary, no markdown, n
   - acv_low and acv_high are integer dollar amounts — no commas, no $, no "M" or "k" suffixes. Examples: 250000, 1500000, 4200000.
   - confidence is exactly one of "low", "medium", "high" (lowercase).
 
+═══ CONFIDENTIALITY — RATIONALE / DRIVERS / CAVEATS ═══
+
+Your rationale, drivers, and caveats are user-visible output. They must NEVER:
+  - Name any specific customer (real or by inference) other than the target itself.
+  - Quote or reference dollar figures from the calibration anchors block (those are internal magnitude data — say "comparable to peer customers at this stage" instead).
+  - Quote or reference any floor / ceiling figure from the existing-relationship constraint block (those are internal bounds — never cite the dollar amount in user-visible text).
+  - Speculate about whether the target is an existing Skillable customer or describe the relationship status.
+
+Your output is read by Marketing and Sellers. Treat it like a public-facing analyst note — magnitude reasoning is fine; specific customer revenue data is not.
+
 ═══ FINAL CHECK BEFORE OUTPUT ═══
 
   - Is acv_high <= 2 * acv_low? If not, drop confidence to "medium" or "low".
-  - Is the midpoint defendable against the closest anchor? If not, revise.
-  - Does the rationale explicitly cite at least 2 of the inputs (product, signal, anchor)?
+  - Is the midpoint defendable against the closest anchor magnitude? If not, revise.
+  - Does the rationale explicitly cite at least 2 of the inputs (product, signal, peer comparable)?
+  - Have you avoided ALL specific customer names and confidential anchor / floor / ceiling dollar figures?
   - Is the dict valid JSON?
 """
 
@@ -1900,6 +1915,61 @@ def _format_anchors_table_for_prompt() -> str:
         acv_str = f"~${acv_m:.1f}M"
         rows.append(f"  | {a['name']} | {a['org_type']} | {a['scale']} | {acv_str} | {a['note']} |")
     return "\n".join(rows)
+
+
+def _format_anonymized_calibration_block() -> str:
+    """Build an anonymized calibration block from KNOWN_CUSTOMER_CURRENT_ACV.
+
+    Customer NAMES never enter the prompt — only org-type / scale /
+    stage / current ACV. This prevents Claude from citing specific
+    customers in the rationale (which would leak revenue data into UX).
+    """
+    import scoring_config as cfg
+    if not cfg.KNOWN_CUSTOMER_CURRENT_ACV:
+        return "  (no calibration anchors available)"
+    # Group by stage for readability.
+    from collections import defaultdict
+    by_stage = defaultdict(list)
+    for rec in cfg.KNOWN_CUSTOMER_CURRENT_ACV.values():
+        if not isinstance(rec, dict):
+            continue
+        stage = rec.get("stage", "?")
+        acv = rec.get("current_acv", 0)
+        if acv > 0:
+            by_stage[stage].append(acv)
+    if not by_stage:
+        return "  (no calibration anchors available)"
+    rows = []
+    for stage in ("saturated", "mature-small", "mid", "first-year", "early", "very-early"):
+        acvs = sorted(by_stage.get(stage, []), reverse=True)
+        if not acvs:
+            continue
+        rng = f"${min(acvs):,}-${max(acvs):,}" if len(acvs) > 1 else f"${acvs[0]:,}"
+        rows.append(f"  - Stage '{stage}' ({len(acvs)} reference customers): current ACV {rng}")
+    return "\n".join(rows) if rows else "  (no calibration anchors available)"
+
+
+def _build_known_customer_constraints(company_name: str) -> dict:
+    """If the target IS a known customer, return floor + ceiling constraints.
+
+    These are passed to the prompt as anonymous numeric bounds (not labeled
+    with the customer name) AND enforced in Python after Claude returns.
+    Returns dict with floor / ceiling / stage / is_known_customer keys.
+    """
+    import scoring_config as cfg
+    rec = cfg.get_known_customer_record(company_name)
+    if not rec:
+        return {"is_known_customer": False, "floor": 0, "ceiling": None, "stage": ""}
+    current = int(rec.get("current_acv") or 0)
+    stage = str(rec.get("stage") or "")
+    ceiling_mult = cfg.KNOWN_CUSTOMER_STAGE_CEILING_MULT.get(stage)
+    ceiling = int(current * ceiling_mult) if ceiling_mult else None  # very-early has no cap
+    return {
+        "is_known_customer": True,
+        "floor": current,
+        "ceiling": ceiling,
+        "stage": stage,
+    }
 
 
 def _build_holistic_acv_context(
@@ -1957,12 +2027,45 @@ def _build_holistic_acv_context(
         sig_lines = ["  (no company-level training signals captured)"]
 
     import scoring_config as cfg
+
+    # Anonymized calibration anchors from real Skillable customers
+    # (NEVER includes customer names — only stage + magnitude ranges).
+    calibration_block = _format_anonymized_calibration_block()
+
+    # If the target is itself a known customer, surface floor + ceiling
+    # as anonymous numeric bounds. The Python guardrail enforces these
+    # post-Claude regardless; the prompt instruction is for reasoning only.
+    customer_constraints = _build_known_customer_constraints(company_name)
+    if customer_constraints["is_known_customer"]:
+        floor_str = f"${customer_constraints['floor']:,}"
+        if customer_constraints["ceiling"] is not None:
+            ceiling_str = f"${customer_constraints['ceiling']:,}"
+            constraints_text = (
+                f"  CRITICAL — INTERNAL CONSTRAINT (do NOT cite or quote in your output):\n"
+                f"  This target has a known existing relationship at stage '{customer_constraints['stage']}'.\n"
+                f"  Your acv_low MUST be >= {floor_str} (relationship floor).\n"
+                f"  Your acv_high MUST be <= {ceiling_str} (stage-derived ceiling).\n"
+                f"  These bounds are confidential. Do NOT mention dollar amounts that match them in your rationale, drivers, or caveats.\n"
+            )
+        else:
+            constraints_text = (
+                f"  CRITICAL — INTERNAL CONSTRAINT (do NOT cite or quote in your output):\n"
+                f"  This target has a known existing relationship at stage '{customer_constraints['stage']}' (very-early).\n"
+                f"  Your acv_low MUST be >= {floor_str} (relationship floor).\n"
+                f"  No upper bound from current — reason from company scale, current is floor only.\n"
+                f"  These bounds are confidential. Do NOT mention dollar amounts that match them in your rationale, drivers, or caveats.\n"
+            )
+    else:
+        constraints_text = "  (no existing relationship — estimate purely from inputs and calibration anchors)"
+
     return {
         "company_name": company_name,
         "company_block": "\n".join(company_lines),
         "products_block": "\n".join(product_lines),
         "signals_block": "\n".join(sig_lines),
         "anchors_table": _format_anchors_table_for_prompt(),
+        "calibration_block": calibration_block,
+        "constraints_block": constraints_text,
         "hard_cap_M": cfg.HOLISTIC_ACV_COMPANY_HARD_CAP // 1_000_000,
     }
 
@@ -2049,14 +2152,91 @@ def estimate_holistic_acv(
         if midpoint > per_user_ceiling:
             confidence = "low"  # sanity-check failed; flag for review
 
+    # Known-customer floor/ceiling enforcement — deterministic Python guardrail.
+    # Even if Claude returned an estimate that violates the bounds (or if we
+    # never put bounds in the prompt), Python clamps to the right shape here.
+    constraints = _build_known_customer_constraints(company_name)
+    if constraints["is_known_customer"]:
+        floor = constraints["floor"]
+        ceiling = constraints["ceiling"]
+        # Floor: estimate must not undersell an existing relationship.
+        if acv_low < floor:
+            acv_low = floor
+        if acv_high < floor:
+            acv_high = floor
+        # Ceiling: bounded by stage multiplier (None for very-early = no cap).
+        if ceiling is not None:
+            if acv_high > ceiling:
+                acv_high = ceiling
+            if acv_low > ceiling:
+                acv_low = ceiling
+        # Existing relationship → confidence floor of medium (we have ground truth).
+        if confidence == "low":
+            confidence = "medium"
+
+    rationale = _str(raw.get("rationale"))
+    drivers = _list_str(raw.get("key_drivers"))[:5]
+    caveats = _list_str(raw.get("caveats"))[:3]
+
+    # Output scrubber — defense-in-depth against customer revenue leak.
+    # If Claude ignored the prompt directive and named a customer ACV, redact it.
+    rationale = _scrub_customer_data(rationale)
+    drivers = [_scrub_customer_data(d) for d in drivers]
+    caveats = [_scrub_customer_data(c) for c in caveats]
+
     return {
         "acv_low": acv_low,
         "acv_high": acv_high,
         "confidence": confidence,
-        "rationale": _str(raw.get("rationale")),
-        "key_drivers": _list_str(raw.get("key_drivers"))[:5],
-        "caveats": _list_str(raw.get("caveats"))[:3],
+        "rationale": rationale,
+        "key_drivers": drivers,
+        "caveats": caveats,
     }
+
+
+def _scrub_customer_data(text: str) -> str:
+    """Redact specific customer revenue figures from user-visible Claude output.
+
+    Defense-in-depth scrubber: even if the prompt directive is ignored,
+    Python catches dollar figures matching known customer ACVs and
+    replaces with "<peer comparable>" so the rationale stays usable
+    without leaking confidential numbers.
+    """
+    if not text:
+        return text
+    import scoring_config as cfg
+    if not cfg.KNOWN_CUSTOMER_CURRENT_ACV:
+        return text
+
+    import re
+    # Build a set of dollar-figure tokens to redact: every customer's
+    # current_acv rendered in common formats (123000, 123,000, 0.12M, 123K, etc.)
+    figures: set[str] = set()
+    for rec in cfg.KNOWN_CUSTOMER_CURRENT_ACV.values():
+        if not isinstance(rec, dict):
+            continue
+        acv = rec.get("current_acv")
+        if not isinstance(acv, int) or acv <= 0:
+            continue
+        # Render in the common formats Claude might produce.
+        figures.add(f"${acv:,}")
+        figures.add(f"${acv}")
+        if acv >= 1_000_000:
+            millions = acv / 1_000_000
+            figures.add(f"${millions:.1f}M")
+            figures.add(f"${millions:.0f}M")
+            figures.add(f"${int(millions)}M")
+        if 1_000 <= acv < 10_000_000:
+            thousands = acv // 1_000
+            figures.add(f"${thousands}k")
+            figures.add(f"${thousands}K")
+            figures.add(f"${thousands:,}k")
+
+    scrubbed = text
+    for fig in figures:
+        # Word-boundary-ish replacement to avoid partial matches.
+        scrubbed = scrubbed.replace(fig, "<peer comparable>")
+    return scrubbed
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -3033,7 +3033,70 @@ HOLISTIC_ACV_ANCHORS: tuple[dict, ...] = (
 # Range-width and sanity-check thresholds for Option 2 output.
 HOLISTIC_ACV_MAX_RANGE_RATIO = 2.0          # high <= low * 2 for High confidence
 HOLISTIC_ACV_PER_USER_CEILING = 20          # midpoint cannot exceed user_count * $20
-HOLISTIC_ACV_COMPANY_HARD_CAP = 50_000_000  # absolute company cap; estimates above this force Low confidence
+# Lowered 2026-04-14 from $50M after Frank's ground-truth data: Microsoft
+# at $22M current ACV is the largest active Skillable customer after 15
+# years. Realistic potential ceiling is ~$25-30M for any single account.
+# Anything above that loses defensibility — force Low confidence.
+HOLISTIC_ACV_COMPANY_HARD_CAP = 30_000_000
+
+
+# ── Known Skillable customers — ground-truth ACV anchors ──────────────
+# CONFIDENTIAL CUSTOMER REVENUE DATA. The actual values live in a
+# gitignored file (backend/known_customers.json) loaded at runtime.
+# This module-level constant is populated by _load_known_customers() and
+# is empty when the file is missing (development / fork / deploy without
+# secrets).
+#
+# Two purposes when populated:
+#   1. HARD FLOOR — ACV potential must be >= current actual ACV.
+#   2. STAGE-AWARE CEILING — practical upper bound from relationship
+#      maturity (saturated ≈ ceiling; very-early = no cap from current).
+#
+# Stage taxonomy: saturated, mature-small, mid, first-year, early,
+# very-early. See backend/known_customers.template.json for schema.
+KNOWN_CUSTOMER_STAGE_CEILING_MULT: dict[str, float] = {
+    "saturated":     1.30,
+    "mature-small":  1.50,
+    "mid":           3.00,
+    "first-year":    8.00,
+    "early":        15.00,
+    # "very-early" intentionally absent — no upper cap from current
+}
+
+
+def _load_known_customers() -> dict[str, dict]:
+    """Load known-customer ACV data from the gitignored JSON file.
+
+    Returns empty dict when the file doesn't exist (no leak, no error).
+    Keys in the file are pre-normalized customer names matching
+    storage._normalize_company_name output.
+    """
+    import json
+    import os
+    path = os.path.join(os.path.dirname(__file__), "known_customers.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+KNOWN_CUSTOMER_CURRENT_ACV: dict[str, dict] = _load_known_customers()
+
+
+def get_known_customer_record(company_name: str | None) -> dict | None:
+    """Return the known-customer record for a given company name (normalized).
+
+    Returns None if not a known customer or if the data file is absent.
+    """
+    if not company_name or not KNOWN_CUSTOMER_CURRENT_ACV:
+        return None
+    from storage import _normalize_company_name
+    key = _normalize_company_name(company_name)
+    return KNOWN_CUSTOMER_CURRENT_ACV.get(key)
 
 
 # ── Researcher estimation heuristics (read INTO prompt text — Define-Once) ──

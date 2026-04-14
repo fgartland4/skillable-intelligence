@@ -23,6 +23,11 @@ env/
 storage/
 backend/data/
 
+# CONFIDENTIAL — known Skillable customer revenue data
+# Schema lives in known_customers.template.json (committed)
+# Real data lives in known_customers.json (NEVER committed)
+backend/known_customers.json
+
 # Flask
 flask.log
 instance/

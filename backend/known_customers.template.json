@@ -1,0 +1,25 @@
+{
+  "_README": "TEMPLATE — committed to repo to document schema. Real values live in known_customers.json (gitignored). DO NOT put real customer data in this template file.",
+  "_schema": {
+    "<normalized-company-name>": {
+      "current_acv":   "<int dollars — current actual annual revenue>",
+      "stage":         "saturated | mature-small | mid | first-year | early | very-early",
+      "note":          "<optional one-line internal note>"
+    }
+  },
+  "_stage_meanings": {
+    "saturated":    "current ≈ ceiling. Potential ≈ current × 1.0-1.3",
+    "mature-small": "small org near saturation. Potential ≈ current × 1.0-1.5",
+    "mid":          "halfway to potential. Potential ≈ current × 1.5-3",
+    "first-year":   "partial deployment. Potential ≈ current × 2-8",
+    "early":        "just starting; multi-x upside. Potential ≈ current × 3-15",
+    "very-early":   "barely scratched. NO upper cap from current — Claude reasons from company scale, current is floor only."
+  },
+  "_normalization_notes": "Keys must match storage._normalize_company_name output. Lowercase, no Inc/Corp/Systems suffix, no parentheticals, no division suffixes (cloud/platform/software/etc.).",
+
+  "example-company-do-not-use": {
+    "current_acv": 0,
+    "stage": "early",
+    "note": "Replace with real customer data in known_customers.json (gitignored)."
+  }
+}
