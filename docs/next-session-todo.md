@@ -75,6 +75,19 @@ Badges are not consistently defending the scores they accompany. Provisioning is
 
 **The principle:** Badges explain the score. If the score is 30/35, the badges must show WHY it's 30/35. If the score is 8/35, the badges must show WHY it's 8/35. Every scored dimension should have 2-4 badges that defend the number. One badge is not enough evidence. Zero badges with a score is a trust failure.
 
+**Context from Frank (2026-04-13):** "I believe this is why badging has been so painful — I think we might be putting hack on top of hack on top of hack. While it's most evident in provisioning because it's so obvious... I wonder if there are inconsistencies in the way we're doing this that we should go and find out what's the real problem." A band-aid (minimum badge floor) was built and reverted in the same session — the right answer is to find and fix the root cause across the full pipeline, not patch the badge selector.
+
+**Known examples of thin badging:**
+- Sage 50, Sage 100: Provisioning scoring 30/35 with only "Runs in VM" + "Pre-Instancing?" — 2 badges, one of which is a suggestion, not evidence
+- Simple installable products generally: the scorer credits the VM fabric at full points but the researcher doesn't extract enough secondary facts (is_multi_vm_lab, has_complex_topology, container viability, OS details) for the badge selector to emit additional badges
+- The badge selector can only emit badges for facts that exist in the fact drawer — if the researcher doesn't extract them, and the scorer doesn't need them (it credits the fabric directly), the badges are thin
+
+**Key files to investigate:**
+- `backend/researcher.py` — Pillar 1 fact extractor prompt (what does it ask for? what does it miss?)
+- `backend/pillar_1_scorer.py` — what signals does it credit vs what the badge selector can emit?
+- `backend/badge_selector.py` — `_pillar_1_provisioning_badges()` and the elif chain for primary fabrics
+- `backend/models.py` — `ProvisioningFacts` dataclass (what fields exist but are often unpopulated?)
+
 ### After the investigation — Prospector modal documentation
 
 The ? icons on Prospector pages are wired but show "Coming soon." Content needs to be written sourced from Platform-Foundation.md and B&S Reference — same pattern as Inspector modals. Do this AFTER the badge investigation because the modal content references how scoring and badging work, and that needs to be right first.
