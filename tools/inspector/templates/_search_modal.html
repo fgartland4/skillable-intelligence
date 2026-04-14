@@ -428,6 +428,71 @@
   font-weight: 600;
 }
 .search-modal-info-list.caveats li::before { content: '⚠'; color: var(--sk-score-mid); }
+
+/* Docs mode — multi-section documentation display.
+   Used by every ? help icon across the platform (replaces the per-tool
+   forked help modals). Each section has a heading + HTML body. */
+.search-modal-card.is-docs .search-modal-status,
+.search-modal-card.is-docs .search-modal-dots,
+.search-modal-card.is-docs .search-modal-bottom,
+.search-modal-card.is-docs .search-modal-decision,
+.search-modal-card.is-docs .search-modal-info {
+  display: none;
+}
+.search-modal-card.is-docs {
+  max-width: 720px;
+  text-align: left;
+  max-height: 80vh;
+}
+.search-modal-card.is-docs .search-modal-title { text-align: center; margin-bottom: 22px; }
+.search-modal-card.is-docs .search-modal-eyebrow { text-align: center; }
+.search-modal-docs { display: none; max-height: 60vh; overflow-y: auto; padding-right: 6px; }
+.search-modal-card.is-docs .search-modal-docs { display: block; }
+.search-modal-docs-section { margin-bottom: 18px; }
+.search-modal-docs-section:last-child { margin-bottom: 0; }
+.search-modal-docs-section-heading {
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--sk-text);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+.search-modal-docs-section-subtitle {
+  font-size: 0.72rem;
+  color: var(--sk-text-muted);
+  margin-top: -4px;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+/* Anchor sections (when section.id is set) get a left accent rule for
+   scannability and a small padding so anchored scroll lands cleanly. */
+.search-modal-docs-section[data-anchor] {
+  padding-left: 12px;
+  border-left: 2px solid var(--sk-accent);
+  scroll-margin-top: 12px;
+}
+.search-modal-docs-section-body {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--sk-text-muted);
+}
+.search-modal-docs-section-body p { margin: 0 0 10px; }
+.search-modal-docs-section-body p:last-child { margin-bottom: 0; }
+.search-modal-docs-section-body table {
+  font-size: 0.78rem;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+.search-modal-docs-section-body th,
+.search-modal-docs-section-body td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--sk-border);
+}
+.search-modal-docs-section-body th {
+  font-weight: 700;
+  color: var(--sk-text);
+}
 {% endmacro %}
 
 
@@ -543,6 +608,14 @@
       <div class="search-modal-info-section-title" id="searchModalInfoCaveatsTitle">Caveats</div>
       <ul class="search-modal-info-list caveats" id="searchModalInfoCaveats"></ul>
     </div>
+
+    {# Docs mode — multi-section documentation display.
+       Used by every ? help icon across the platform — Inspector pillar
+       cards, Inspector ACV widget, Inspector briefcase sections,
+       Prospector help icons. Replaces the per-tool forked help modals.
+       Hidden by default; revealed when card has .is-docs class
+       (set by openSearchModalDocs()). #}
+    <div class="search-modal-docs" id="searchModalDocsBody"></div>
 
     <div class="search-modal-error" id="searchModalError">
       <div class="search-modal-error-msg" id="searchModalErrorMsg"></div>
@@ -1155,6 +1228,106 @@ window.openSearchModalInfo = function(opts) {
     card.classList.remove('is-info');
     backdrop.classList.remove('is-open');
   };
+};
+
+
+// ── Docs mode — multi-section documentation display ──
+//
+// THE single ? help icon modal across the platform. Replaces every
+// per-tool forked help modal (Prospector openProspectorModal, Inspector
+// openInfoModal, etc.). One component, used everywhere.
+//
+// Usage:
+//   openSearchModalDocs({
+//     eyebrow: 'PROSPECTOR',
+//     title:   'Researched Companies',
+//     sections: [
+//       { heading: 'What this list shows', body: '<p>...</p>' },
+//       { heading: 'How ACV is estimated', body: '<p>...</p><table>...</table>' },
+//     ]
+//   });
+//
+// Section bodies are HTML — server-side template provides whatever
+// markup it needs (paragraphs, tables, lists, etc.).
+window.openSearchModalDocs = function(opts) {
+  opts = opts || {};
+  const backdrop = document.getElementById('searchModalBackdrop');
+  if (!backdrop) {
+    console.error('openSearchModalDocs: search modal markup not on page');
+    return;
+  }
+  const card = backdrop.querySelector('.search-modal-card');
+
+  document.getElementById('searchModalEyebrow').textContent = opts.eyebrow || 'Documentation';
+  document.getElementById('searchModalTitle').textContent   = opts.title   || '';
+
+  const body = document.getElementById('searchModalDocsBody');
+  body.innerHTML = '';
+  (opts.sections || []).forEach(function(section) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'search-modal-docs-section';
+    // Anchor sections (section.id set) become scroll targets for
+    // scrollToModalSection() — used by Inspector pillar / dimension nav.
+    if (section.id) {
+      wrapper.id = section.id;
+      wrapper.setAttribute('data-anchor', '1');
+    }
+    // Accept both `heading` (Prospector style) and `label` (Inspector style).
+    const headingText = section.heading || section.label;
+    if (headingText) {
+      const h = document.createElement('div');
+      h.className = 'search-modal-docs-section-heading';
+      h.textContent = headingText;
+      wrapper.appendChild(h);
+    }
+    if (section.subtitle) {
+      const sub = document.createElement('div');
+      sub.className = 'search-modal-docs-section-subtitle';
+      sub.textContent = section.subtitle;
+      wrapper.appendChild(sub);
+    }
+    const b = document.createElement('div');
+    b.className = 'search-modal-docs-section-body';
+    b.innerHTML = section.body || '';  // server provides safe HTML
+    wrapper.appendChild(b);
+    body.appendChild(wrapper);
+  });
+  // Reset scroll to top so newly opened modal doesn't show old position
+  body.scrollTop = 0;
+
+  // Switch to docs mode
+  card.classList.remove('is-stages', 'is-decision', 'is-info');
+  card.classList.add('is-docs');
+  document.getElementById('searchModalError').style.display = 'none';
+  backdrop.classList.add('is-open');
+
+  function close() {
+    card.classList.remove('is-docs');
+    backdrop.classList.remove('is-open');
+  }
+
+  document.getElementById('searchModalCancel').onclick = close;
+  // Click outside the card closes
+  backdrop.onclick = function(e) { if (e.target === backdrop) close(); };
+  // ESC closes (added once; safe to add multiple times)
+  document.addEventListener('keydown', function escHandler(e) {
+    if (e.key === 'Escape' && backdrop.classList.contains('is-open')) {
+      close();
+      document.removeEventListener('keydown', escHandler);
+    }
+  });
+};
+
+
+// ── scrollToSearchModalSection — anchor nav inside the docs modal ──
+//
+// Used by Inspector's pillar/dimension help docs that link from a
+// table-of-contents entry to a section further down. Pass the section.id
+// you set on a docs section, this scrolls to it smoothly.
+window.scrollToSearchModalSection = function(sectionId) {
+  if (!sectionId) return;
+  const el = document.getElementById(sectionId);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 

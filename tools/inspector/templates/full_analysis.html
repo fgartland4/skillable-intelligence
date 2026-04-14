@@ -39,6 +39,15 @@ document.addEventListener('click', function(e) {
 // Sourced from scoring_config.MODAL_CONTENT (server-side, see HIGH-4 in
 // docs/code-review-2026-04-07.md). Pillar weight references inside eyebrows
 // are computed dynamically from PILLARS so they can never drift from config.
+// ? Help / docs modal — thin wrappers over the shared _search_modal.html.
+// The forked Inspector info-modal was retired 2026-04-14 per CLAUDE.md
+// "ONE AND ONLY" rule. All onclick handlers across pillar / dimension /
+// briefcase ? icons keep calling openInfoModal(key) — this shim routes
+// the call into window.openSearchModalDocs from the shared modal.
+//
+// Sourced from scoring_config.MODAL_CONTENT (server-side, see HIGH-4 in
+// docs/code-review-2026-04-07.md). Pillar weight references inside eyebrows
+// are computed dynamically from PILLARS so they can never drift from config.
 const INFO_MODAL_CONTENT = {{ modal_content_json | safe }};
 
 function openInfoModal(key) {
@@ -47,52 +56,28 @@ function openInfoModal(key) {
     console.warn('No info modal content for key:', key);
     return;
   }
-  document.getElementById('infoModalEyebrow').textContent = content.eyebrow || '';
-  document.getElementById('infoModalTitle').textContent = content.title || '';
-  const body = document.getElementById('infoModalBody');
-  body.innerHTML = '';
-  (content.sections || []).forEach(function(section) {
-    const wrap = document.createElement('div');
-    wrap.className = 'info-modal-section';
-    // Support anchor IDs for scroll-to navigation
-    if (section.id) {
-      wrap.id = section.id;
-      wrap.classList.add('info-modal-dim-anchor');
-    }
-    const label = document.createElement('div');
-    label.className = section.id ? 'info-modal-dim-title' : 'info-modal-section-label';
-    label.textContent = section.label || '';
-    if (section.subtitle) {
-      const sub = document.createElement('div');
-      sub.className = 'info-modal-dim-subtitle';
-      sub.textContent = section.subtitle;
-      wrap.appendChild(label);
-      wrap.appendChild(sub);
-    } else {
-      wrap.appendChild(label);
-    }
-    const text = document.createElement('div');
-    text.className = 'info-modal-section-text';
-    text.innerHTML = section.body || '';
-    wrap.appendChild(text);
-    body.appendChild(wrap);
+  if (typeof window.openSearchModalDocs !== 'function') {
+    console.error('openInfoModal: shared modal not loaded');
+    return;
+  }
+  window.openSearchModalDocs({
+    eyebrow:  content.eyebrow || '',
+    title:    content.title   || '',
+    sections: content.sections || [],
   });
-  document.getElementById('infoModal').classList.add('visible');
-  document.body.style.overflow = 'hidden';
-  // Scroll modal to top on open
-  document.querySelector('.info-modal').scrollTop = 0;
 }
 function closeInfoModal() {
-  document.getElementById('infoModal').classList.remove('visible');
-  document.body.style.overflow = '';
+  // Shared modal handles its own close via cancel button / ESC / click outside.
+  // Kept as a no-op shim for any code that may still call it.
+  const backdrop = document.getElementById('searchModalBackdrop');
+  if (backdrop) backdrop.classList.remove('is-open');
 }
 function scrollToModalSection(sectionId) {
-  const el = document.getElementById(sectionId);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Delegates to shared modal's anchor-nav helper.
+  if (typeof window.scrollToSearchModalSection === 'function') {
+    window.scrollToSearchModalSection(sectionId);
+  }
 }
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeInfoModal();
-});
 
 // Badge hover evidence modal
 let hoverTimer = null;
@@ -725,17 +710,11 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 
 {% include '_nav.html' %}
 
-{# ─── Reusable info / docs modal — populated and opened by openInfoModal() ─── #}
-<div class="info-modal-overlay" id="infoModal" onclick="if(event.target===this) closeInfoModal()">
-  <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
-    <button class="info-modal-close" type="button" onclick="closeInfoModal()" aria-label="Close">×</button>
-    <div class="info-modal-header">
-      <span class="info-modal-eyebrow" id="infoModalEyebrow"></span>
-      <div class="info-modal-title" id="infoModalTitle"></div>
-    </div>
-    <div class="info-modal-body" id="infoModalBody"></div>
-  </div>
-</div>
+{# ─── ? Help / docs modal — DELEGATES to the shared _search_modal.html ───
+   Per CLAUDE.md "ONE AND ONLY" rule. The previous forked info-modal markup
+   was retired 2026-04-14. openInfoModal / closeInfoModal /
+   scrollToModalSection are now thin wrappers around the shared modal's
+   docs mode. Same external API for all the existing onclick handlers. #}
 
 <div class="page-content">
 

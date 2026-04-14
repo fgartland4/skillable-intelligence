@@ -842,20 +842,11 @@
 })();
 </script>
 
-{# ── Prospector Info Modal ── #}
-<div id="prospectorInfoModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.6); align-items: center; justify-content: center;">
-    <div style="background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 16px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 28px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <div>
-                <div id="pModalEyebrow" style="font-size: 0.6rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sk-accent); margin-bottom: 4px;"></div>
-                <div id="pModalTitle" style="font-size: 1.1rem; font-weight: 800; color: var(--sk-text);"></div>
-            </div>
-            <span onclick="closeProspectorModal()" style="cursor: pointer; font-size: 1.2rem; color: var(--sk-text-dim); padding: 4px 8px;">&times;</span>
-        </div>
-        <div id="pModalBody"></div>
-    </div>
-</div>
-
+{# ── Prospector ? Help Modal — DELEGATES to the shared modal in docs mode ──
+   Per CLAUDE.md "ONE AND ONLY" rule. The previous forked modal markup +
+   custom open/close functions were retired 2026-04-14. openProspectorModal
+   is now a thin wrapper that calls into window.openSearchModalDocs from
+   _search_modal.html. Same external API (key-based), one shared component. #}
 <script>
 (function() {
     var modalContent = {{ prospector_modal_json | safe }};
@@ -863,28 +854,16 @@
     window.openProspectorModal = function(key) {
         var content = modalContent[key];
         if (!content) return;
-        document.getElementById('pModalEyebrow').textContent = content.eyebrow || '';
-        document.getElementById('pModalTitle').textContent = content.title || '';
-        var bodyHtml = '';
-        (content.sections || []).forEach(function(s) {
-            bodyHtml += '<div style="margin-bottom: 16px;">';
-            bodyHtml += '<div style="font-size: 0.78rem; font-weight: 700; color: var(--sk-text); margin-bottom: 6px;">' + s.heading + '</div>';
-            bodyHtml += '<div style="font-size: 0.78rem; color: var(--sk-text-muted); line-height: 1.6;">' + s.body + '</div>';
-            bodyHtml += '</div>';
+        if (typeof window.openSearchModalDocs !== 'function') {
+            console.error('openProspectorModal: shared modal not loaded');
+            return;
+        }
+        window.openSearchModalDocs({
+            eyebrow:  content.eyebrow || 'PROSPECTOR',
+            title:    content.title   || '',
+            sections: content.sections || [],
         });
-        document.getElementById('pModalBody').innerHTML = bodyHtml;
-        var modal = document.getElementById('prospectorInfoModal');
-        modal.style.display = 'flex';
-        modal.onclick = function(e) { if (e.target === modal) closeProspectorModal(); };
     };
-
-    window.closeProspectorModal = function() {
-        document.getElementById('prospectorInfoModal').style.display = 'none';
-    };
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeProspectorModal();
-    });
 })();
 </script>
 
