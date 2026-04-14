@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/static/img/favicon.png">
+    <title>Prospector Input — Skillable Intelligence</title>
+    <style>
+        {% include '_theme.html' %}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        button, textarea { font-family: inherit; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--sk-bg);
+            background-image:
+                linear-gradient(rgba(36,237,155,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36,237,155,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: var(--sk-text); min-height: 100vh;
+        }
+        a { color: var(--sk-accent); text-decoration: none; }
+        a:hover { color: var(--sk-accent-soft); }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 48px 24px 80px; }
+
+        .back-link {
+            display: block; text-align: right; margin-bottom: 12px;
+            font-size: 0.78rem; color: var(--sk-accent);
+        }
+        .back-link:hover { color: var(--sk-accent-soft); }
+
+        h1 { font-size: 1.5rem; font-weight: 800; color: var(--sk-text); letter-spacing: -0.02em; margin-bottom: 0; }
+
+        /* ── Tabs ── */
+        .input-tabs {
+            display: flex; align-items: center; gap: 0; margin-top: 18px; margin-bottom: 18px;
+            border-bottom: 1px solid var(--sk-border);
+        }
+        .input-tab {
+            padding: 10px 20px; font-size: 0.78rem; font-weight: 600;
+            color: var(--sk-text-dim); cursor: pointer; border: none;
+            background: none; font-family: inherit;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .input-tab:hover { color: var(--sk-text-muted); }
+        .input-tab.active { color: var(--sk-accent); border-bottom-color: var(--sk-accent); }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Form card (upload + paste) ── */
+        .form-card {
+            background: var(--sk-surface); border: 1px solid var(--sk-border);
+            border-radius: 16px; padding: 28px; min-height: 380px;
+            display: flex; flex-direction: column;
+        }
+        .form-card form { display: flex; flex-direction: column; flex: 1; }
+        .panel-footer { margin-top: auto; padding-top: 22px; text-align: center; }
+
+        .field-label {
+            display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.1em; color: var(--sk-text-dim); margin-bottom: 10px;
+        }
+
+        /* ── Drop zone ── */
+        .drop-zone {
+            width: 100%; background: var(--sk-bg); border: 1.5px dashed var(--sk-border);
+            border-radius: 10px; padding: 36px 24px; text-align: center;
+            cursor: pointer; transition: border-color 0.15s; position: relative;
+        }
+        .drop-zone:hover, .drop-zone.drag-over { border-color: rgba(36,237,155,0.4); }
+        .drop-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+        .drop-icon { font-size: 1.6rem; margin-bottom: 10px; color: var(--sk-text-dim); }
+        .drop-label { font-size: 0.88rem; color: var(--sk-text-muted); }
+        .drop-label strong { color: var(--sk-accent); }
+        .drop-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 6px; }
+        .drop-selected { font-size: 0.82rem; color: var(--sk-text-muted); margin-top: 10px; display: none; }
+
+        .field-hint { font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px; line-height: 1.5; text-align: center; }
+
+        /* ── Textarea ── */
+        textarea {
+            width: 100%; background: var(--sk-bg); border: 1px solid var(--sk-border);
+            border-radius: 10px; color: var(--sk-text); font-family: inherit;
+            font-size: 0.9rem; padding: 14px 16px; resize: vertical;
+            min-height: 180px; line-height: 1.6; transition: border-color 0.15s;
+        }
+        textarea:focus { outline: none; border-color: rgba(36,237,155,0.4); }
+        textarea::placeholder { color: var(--sk-text-dim); }
+
+        /* ── Deep Dive checkbox ── */
+        .dd-option {
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 14px; padding: 10px 14px;
+            background: rgba(36,237,155,0.03); border: 1px solid var(--sk-border);
+            border-radius: 8px; cursor: pointer;
+        }
+        .dd-option input[type="checkbox"] { accent-color: var(--sk-accent); width: 16px; height: 16px; cursor: pointer; }
+        .dd-option label { font-size: 0.82rem; color: var(--sk-text-muted); cursor: pointer; }
+        .dd-option .dd-hint { font-size: 0.68rem; color: var(--sk-text-dim); margin-left: auto; }
+
+        /* ── Compact inline estimator ── */
+        .estimator-inline {
+            display: none; margin-top: 10px; padding: 8px 14px;
+            background: rgba(36,237,155,0.04); border: 1px solid var(--sk-border);
+            border-radius: 8px; font-size: 0.78rem; color: var(--sk-text-muted);
+            text-align: center;
+        }
+        .estimator-inline.visible { display: block; }
+        .estimator-inline strong { color: var(--sk-accent); }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            background: var(--sk-accent); color: var(--sk-bg); border: none;
+            padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.02em; transition: opacity 0.15s;
+            font-family: inherit;
+        }
+        .btn-primary:hover { opacity: 0.88; }
+        .btn-primary:disabled { background: var(--sk-border); color: var(--sk-text-dim); cursor: not-allowed; }
+
+        /* ── Lookalikes placeholder ── */
+        .future-placeholder {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 12px; padding: 40px 20px;
+        }
+
+        /* ── Field Mapper — lightweight tree ── */
+        .fm-intro { font-size: 0.75rem; color: var(--sk-text-dim); margin-bottom: 14px; }
+        .fm-section { margin-bottom: 2px; }
+        .fm-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 0; cursor: pointer; user-select: none;
+        }
+        .fm-header:hover { color: var(--sk-accent); }
+        .fm-toggle {
+            display: inline-block; width: 16px; font-size: 0.82rem; font-weight: 700;
+            color: var(--sk-text-dim); text-align: center; flex-shrink: 0;
+        }
+        .fm-header:hover .fm-toggle { color: var(--sk-accent); }
+        .fm-section-title {
+            font-size: 0.82rem; font-weight: 700; color: var(--sk-text);
+        }
+        .fm-section-count {
+            font-size: 0.65rem; color: var(--sk-text-dim); margin-left: auto;
+        }
+        .fm-body { display: none; padding-left: 8px; }
+        .fm-section.open > .fm-body { display: block; }
+
+        /* Sub-sections */
+        .fm-sub { margin-bottom: 2px; }
+        .fm-sub-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 0 6px 16px; cursor: pointer; user-select: none;
+        }
+        .fm-sub-header:hover { color: var(--sk-accent); }
+        .fm-sub-title {
+            font-size: 0.78rem; font-weight: 600; color: var(--sk-text-muted);
+        }
+        .fm-sub-body { display: none; }
+        .fm-sub.open > .fm-sub-body { display: block; }
+
+        /* Field rows */
+        .fm-field {
+            display: flex; align-items: center; gap: 12px;
+            padding: 5px 0 5px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .fm-field-nested { padding-left: 40px; }
+        .fm-field:last-child { border-bottom: none; }
+        .fm-field-name {
+            flex: 0 0 220px; font-family: monospace; font-size: 0.74rem;
+            font-weight: 600; color: var(--sk-accent);
+        }
+        .fm-field-desc {
+            flex: 1; font-size: 0.74rem; color: var(--sk-text-muted);
+        }
+        .fm-field-hubspot { flex: 0 0 180px; }
+        .hubspot-input {
+            width: 100%; padding: 3px 7px;
+            background: var(--sk-bg); color: var(--sk-text-dim);
+            border: 1px solid var(--sk-border); border-radius: 4px;
+            font-size: 0.7rem; font-family: inherit;
+        }
+
+        .mapper-link {
+            display: inline-block; margin-top: 20px; font-size: 0.78rem;
+            color: var(--sk-accent); padding: 6px 14px;
+            border: 1px solid rgba(36,237,155,0.2); border-radius: 7px;
+            transition: background 0.15s;
+        }
+        .mapper-link:hover { background: rgba(36,237,155,0.06); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+{% set active_tool = 'prospector' %}
+{% include '_nav.html' %}
+
+<div class="container">
+
+    <a href="/prospector" class="back-link">&larr; Back to Prospector</a>
+    <h1>Prospector Input</h1>
+
+    <div class="input-tabs">
+        <button class="input-tab" data-tab="upload">Upload List</button>
+        <button class="input-tab" data-tab="paste">Paste List</button>
+        <button class="input-tab" data-tab="lookalikes">Find Lookalikes</button>
+        <button class="input-tab" data-tab="configure">Configure HubSpot</button>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════
+       TAB 1 — Upload List
+       ═══════════════════════════════════════════════════════ #}
+    <div class="tab-panel" id="panel-upload">
+        <div class="form-card">
+            <form method="POST" action="/prospector/run" enctype="multipart/form-data" id="uploadForm">
+                <label class="field-label">CSV File</label>
+                <div class="drop-zone" id="dropZone">
+                    <input type="file" name="csv_file" accept=".csv" id="csvInput" onchange="fileSelected(this)">
+                    <div class="drop-icon">&#128196;</div>
+                    <div class="drop-label">Drop your CSV here or <strong>browse</strong></div>
+                    <div class="drop-hint">First column = company name. Header row is skipped automatically.</div>
+                    <div class="drop-selected" id="fileLabel"></div>
+                </div>
+                <div class="field-hint">Works with ZoomInfo exports or any CSV where the first column is the company name.</div>
+                <div class="dd-option">
+                    <input type="checkbox" name="deep_dive" id="ddCheckCsv">
+                    <label for="ddCheckCsv">Deep Dive top product for each company</label>
+                    <span class="dd-hint">Adds ~3-5 min per company</span>
+                </div>
+                <div class="estimator-inline" id="estimatorCsv"></div>
+                <div class="panel-footer">
+                    <button type="submit" class="btn-primary" id="btnCsv" disabled>Run Prospector &rarr;</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════
+       TAB 2 — Paste List
+       ═══════════════════════════════════════════════════════ #}
+    <div class="tab-panel" id="panel-paste">
+        <div class="form-card">
+            <form method="POST" action="/prospector/run" id="pasteForm">
+                <textarea name="companies" id="companyInput"
+                    placeholder="Type or paste organization names here"></textarea>
+                <div class="field-hint">One per line or comma-separated. Companies, universities, training organizations — any type. Limit to 25 per batch.</div>
+                <div class="dd-option">
+                    <input type="checkbox" name="deep_dive" id="ddCheckPaste">
+                    <label for="ddCheckPaste">Deep Dive top product for each company</label>
+                    <span class="dd-hint">Adds ~3-5 min per company</span>
+                </div>
+                <div class="estimator-inline" id="estimatorPaste"></div>
+                <div class="panel-footer">
+                    <button type="submit" class="btn-primary" id="btnPaste" disabled>Run Prospector &rarr;</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════
+       TAB 3 — Find Lookalikes
+       ═══════════════════════════════════════════════════════ #}
+    <div class="tab-panel" id="panel-lookalikes">
+        <div class="form-card">
+            <form style="flex: 1; display: flex; flex-direction: column; opacity: 0.5;">
+                <label class="field-label">What types of organizations should we find?</label>
+                <input type="text" disabled
+                    placeholder="e.g. Cybersecurity software companies with large install bases"
+                    style="width: 100%; padding: 12px 16px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 10px; color: var(--sk-text); font-family: inherit; font-size: 0.88rem;">
+                <div class="field-hint" style="text-align: left; margin-top: 10px; line-height: 1.7;">
+                    Examples: <em style="color: var(--sk-text-muted);">Cybersecurity software companies with 10,000+ users</em> &middot; <em style="color: var(--sk-text-muted);">Engineering colleges with strong CS programs</em> &middot; <em style="color: var(--sk-text-muted);">Industry authorities focused on cloud certifications</em>
+                    <br>Discovers NEW organizations not already in your ICP. Use Upload List or Paste List for companies you already know.
+                </div>
+                <div style="margin-top: auto; padding-top: 22px; text-align: center;">
+                    <button type="button" class="btn-primary" disabled>Find Organizations &rarr;</button>
+                    <div style="font-size: 0.72rem; color: var(--sk-text-dim); margin-top: 8px;">Coming soon</div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════
+       TAB 4 — Configure HubSpot
+       ═══════════════════════════════════════════════════════ #}
+    <div class="tab-panel" id="panel-configure">
+
+        {# HubSpot Connection — compact horizontal bar #}
+        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: var(--sk-surface); border: 1px solid var(--sk-border); border-radius: 10px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--sk-text-dim);"></div>
+                <span style="font-size: 0.75rem; font-weight: 600; color: var(--sk-text-dim);">Not connected</span>
+            </div>
+            <div style="flex: 1;">
+                <input type="password" placeholder="Private App Token (pat-na1-xxxx...)"
+                       style="width: 100%; padding: 7px 12px; background: var(--sk-bg); border: 1px solid var(--sk-border); border-radius: 6px; color: var(--sk-text); font-family: inherit; font-size: 0.78rem;"
+                       disabled>
+            </div>
+            <button type="button" class="btn-primary" style="padding: 8px 18px; font-size: 0.78rem; white-space: nowrap;" disabled>Connect to HubSpot &rarr;</button>
+        </div>
+
+        {# Field Mapper — lightweight +/- collapsible tree #}
+        <label class="field-label">Field Mapping</label>
+        <div class="fm-intro">Map Skillable intelligence fields to HubSpot properties. Click each section to expand.</div>
+
+        {# ── ACV Potential ── #}
+        <div class="fm-section">
+            <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="fm-toggle">+</span>
+                <span class="fm-section-title">ACV Potential — Discovery &amp; Deep Dive</span>
+                <span class="fm-section-count">12 fields</span>
+            </div>
+            <div class="fm-body">
+                <div class="fm-field">
+                    <span class="fm-field-name">company_acv_potential</span>
+                    <span class="fm-field-desc">Company-level ACV range</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                <div class="fm-field">
+                    <span class="fm-field-name">acv_rate_tier</span>
+                    <span class="fm-field-desc">Rate tier — Cloud Labs / Small VM / Typical VM / Large VM</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                <div class="fm-sub">
+                    <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="fm-toggle">+</span>
+                        <span class="fm-sub-title">Consumption Motions</span>
+                    </div>
+                    <div class="fm-sub-body">
+                        {% for motion in ["customer_training_audience", "customer_training_acv", "partner_training_audience", "partner_training_acv", "employee_training_audience", "employee_training_acv", "certification_audience", "certification_acv", "events_audience", "events_acv"] %}
+                        <div class="fm-field fm-field-nested">
+                            <span class="fm-field-name">{{ motion }}</span>
+                            <span class="fm-field-desc">{{ motion | replace("_", " ") | title }}</span>
+                            <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── Fit Score ── #}
+        <div class="fm-section">
+            <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="fm-toggle">+</span>
+                <span class="fm-section-title">Fit Score</span>
+                <span class="fm-section-count">20 fields</span>
+            </div>
+            <div class="fm-body">
+                <div class="fm-field">
+                    <span class="fm-field-name">fit_score</span>
+                    <span class="fm-field-desc">Composite Fit Score (0-100)</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                <div class="fm-field">
+                    <span class="fm-field-name">verdict</span>
+                    <span class="fm-field-desc">Prime Target / Strong Prospect / Worth Pursuing / etc.</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                <div class="fm-field">
+                    <span class="fm-field-name">technical_fit_multiplier</span>
+                    <span class="fm-field-desc">Multiplier applied to IV + CF when PL is weak (0.50-1.0)</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+
+                {# Product Labability (50%) #}
+                <div class="fm-sub">
+                    <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="fm-toggle">+</span>
+                        <span class="fm-sub-title">Product Labability (50%)</span>
+                    </div>
+                    <div class="fm-sub-body">
+                        {% for dim in [("product_labability_score", "Pillar score (0-100)"), ("provisioning_score", "Provisioning (35pts)"), ("lab_access_score", "Lab Access (25pts)"), ("scoring_score", "Scoring (15pts)"), ("teardown_score", "Teardown (25pts)"), ("orchestration_method", "Delivery path — Hyper-V, ESX, Container, Azure, AWS, Sandbox API, Simulation")] %}
+                        <div class="fm-field fm-field-nested">
+                            <span class="fm-field-name">{{ dim[0] }}</span>
+                            <span class="fm-field-desc">{{ dim[1] }}</span>
+                            <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Instructional Value (20%) #}
+                <div class="fm-sub">
+                    <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="fm-toggle">+</span>
+                        <span class="fm-sub-title">Instructional Value (20%)</span>
+                    </div>
+                    <div class="fm-sub-body">
+                        {% for dim in [("instructional_value_score", "Pillar score (0-100)"), ("product_complexity_score", "Product Complexity (40pts)"), ("mastery_stakes_score", "Mastery Stakes (25pts)"), ("lab_versatility_score", "Lab Versatility (15pts)"), ("market_demand_score", "Market Demand (20pts)")] %}
+                        <div class="fm-field fm-field-nested">
+                            <span class="fm-field-name">{{ dim[0] }}</span>
+                            <span class="fm-field-desc">{{ dim[1] }}</span>
+                            <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Customer Fit (30%) #}
+                <div class="fm-sub">
+                    <div class="fm-sub-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="fm-toggle">+</span>
+                        <span class="fm-sub-title">Customer Fit (30%)</span>
+                    </div>
+                    <div class="fm-sub-body">
+                        {% for dim in [("customer_fit_score", "Pillar score (0-100) — company-level, same for all products"), ("training_commitment_score", "Training Commitment (25pts)"), ("build_capacity_score", "Build Capacity (20pts)"), ("delivery_capacity_score", "Delivery Capacity (30pts)"), ("organizational_dna_score", "Organizational DNA (25pts)")] %}
+                        <div class="fm-field fm-field-nested">
+                            <span class="fm-field-name">{{ dim[0] }}</span>
+                            <span class="fm-field-desc">{{ dim[1] }}</span>
+                            <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── Seller Briefcase ── #}
+        <div class="fm-section">
+            <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="fm-toggle">+</span>
+                <span class="fm-section-title">Seller Briefcase</span>
+                <span class="fm-section-count">3 fields</span>
+            </div>
+            <div class="fm-body">
+                {% for section in [("key_technical_questions", "Key Technical Questions", "Who to find, what to ask — unblocks the lab build"), ("conversation_starters", "Conversation Starters", "Product-specific talking points + Market Demand evidence"), ("account_intelligence", "Account Intelligence", "Organizational signals — training leadership, LMS, competitive context")] %}
+                <div class="fm-field">
+                    <span class="fm-field-name">{{ section[0] }}</span>
+                    <span class="fm-field-desc">{{ section[1] }} — {{ section[2] }}</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ── Company Signals ── #}
+        <div class="fm-section">
+            <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="fm-toggle">+</span>
+                <span class="fm-section-title">Company Signals</span>
+                <span class="fm-section-count">17 fields</span>
+            </div>
+            <div class="fm-body">
+                {% for f in [("company_name", "Company name"), ("company_badge", "Classification badge — e.g. Cybersecurity Software"), ("organization_type", "Org type for scoring baselines"), ("company_description", "Brief company description"), ("company_url", "Company website URL"), ("training_programs", "Training programs offered and to whom"), ("training_leadership", "Named training/enablement org or leader"), ("training_breadth", "Audience breadth — customers + partners + employees"), ("sales_channel", "Who sells their products — GSIs, VARs, distributors"), ("atp_program", "ATP program and approximate size"), ("delivery_partners", "Who delivers training — vendor, third-party, ATPs"), ("events", "Flagship events/conferences with attendance"), ("partnership_pattern", "Strategic partnerships or build-everything culture"), ("engagement_model", "Direct sales, partner channel, enterprise RFP"), ("content_team_signals", "Evidence of internal content authoring capability"), ("lab_platform", "Current lab platform — Skillable, competitor, none, DIY"), ("total_products_discovered", "Total real products identified")] %}
+                <div class="fm-field">
+                    <span class="fm-field-name">{{ f[0] }}</span>
+                    <span class="fm-field-desc">{{ f[1] }}</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ── Product Identity ── #}
+        <div class="fm-section">
+            <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="fm-toggle">+</span>
+                <span class="fm-section-title">Product Identity</span>
+                <span class="fm-section-count">16 fields</span>
+            </div>
+            <div class="fm-body">
+                {% for f in [("name", "Product name"), ("vendor_official_acronym", "Vendor's own acronym"), ("description", "2-3 sentence product description"), ("product_relationship", "Flagship / Satellite / Standalone"), ("category", "Product category"), ("subcategory", "Industry-standard subcategory"), ("deployment_model", "Installable / Cloud / Hybrid / SaaS-only"), ("estimated_user_base", "Estimated users worldwide — single number"), ("user_base_evidence", "Sources for the user base estimate"), ("user_base_confidence", "Confirmed / Indicated / Inferred"), ("rough_labability_score", "Pre-Deep Dive labability estimate (0-100)"), ("labability_tier", "Promising / Potential / Uncertain / Unlikely"), ("complexity_signals", "Multi-component? Deep config? Multiple roles?"), ("target_personas", "Who uses it — admins, developers, analysts"), ("api_surface", "Comprehensive / Moderate / Minimal / None"), ("cert_inclusion", "Which cert programs include this product")] %}
+                <div class="fm-field">
+                    <span class="fm-field-name">{{ f[0] }}</span>
+                    <span class="fm-field-desc">{{ f[1] }}</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ── Documentation Content ── #}
+        <div class="fm-section">
+            <div class="fm-header" onclick="this.parentElement.classList.toggle('open')">
+                <span class="fm-toggle">+</span>
+                <span class="fm-section-title">Documentation Content</span>
+                <span class="fm-section-count">11 fields</span>
+            </div>
+            <div class="fm-body">
+                {% for f in [("doc_fit_score", "Fit Score documentation — WHY/WHAT/HOW for the weighted score"), ("doc_product_labability", "Product Labability documentation — WHY/WHAT/HOW + all four dimensions with scoring tables"), ("doc_instructional_value", "Instructional Value documentation — WHY/WHAT/HOW + all four dimensions with baselines"), ("doc_customer_fit", "Customer Fit documentation — WHY/WHAT/HOW + all four dimensions with org-type baselines"), ("doc_acv_potential", "ACV Potential documentation — WHY/WHAT/HOW for the deal size estimate"), ("doc_verdict", "Verdict documentation — WHY/WHAT/HOW for the action label"), ("doc_acv_use_case", "ACV by Use Case documentation — five consumption motions explained"), ("doc_key_technical_questions", "Key Technical Questions documentation — what they are, how they're generated"), ("doc_conversation_starters", "Conversation Starters documentation — what they are, Market Demand evidence distinction"), ("doc_account_intelligence", "Account Intelligence documentation — organizational signals for seller homework"), ("doc_labability_tiers", "Labability Tiers documentation — Promising/Potential/Uncertain/Unlikely definitions")] %}
+                <div class="fm-field">
+                    <span class="fm-field-name">{{ f[0] }}</span>
+                    <span class="fm-field-desc">{{ f[1] }}</span>
+                    <span class="fm-field-hubspot"><input class="hubspot-input" placeholder="hubspot_field" disabled></span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <a href="/prospector/field-mapper" class="mapper-link">Open Full Field Reference &rarr;</a>
+    </div>
+
+</div>
+
+<script>
+(function() {
+    // ── Tab switching ──
+    var tabs = document.querySelectorAll('.input-tab');
+    var panels = document.querySelectorAll('.tab-panel');
+    var INITIAL_TAB = '{{ initial_tab }}';
+
+    function activateTab(tabName) {
+        tabs.forEach(function(t) {
+            t.classList.toggle('active', t.getAttribute('data-tab') === tabName);
+        });
+        panels.forEach(function(p) {
+            p.classList.toggle('active', p.id === 'panel-' + tabName);
+        });
+        // Update URL without reload
+        var url = new URL(window.location);
+        url.searchParams.set('tab', tabName);
+        history.replaceState(null, '', url);
+    }
+
+    tabs.forEach(function(t) {
+        t.addEventListener('click', function() {
+            activateTab(t.getAttribute('data-tab'));
+        });
+    });
+
+    activateTab(INITIAL_TAB);
+
+    // ── Field mapper +/- toggle icons ──
+    document.querySelectorAll('.fm-section > .fm-header, .fm-sub > .fm-sub-header').forEach(function(hdr) {
+        var section = hdr.parentElement;
+        var toggle = hdr.querySelector('.fm-toggle');
+        if (!toggle) return;
+        // Watch for class changes to update icon
+        var observer = new MutationObserver(function() {
+            toggle.textContent = section.classList.contains('open') ? '\u2212' : '+';
+        });
+        observer.observe(section, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    // ── Cost/time constants ──
+    var COST_PER_DISCOVERY = 0.22;
+    var COST_PER_DEEP_DIVE = 2.20;
+    var TIME_PER_DISCOVERY = 150;
+    var TIME_PER_DEEP_DIVE = 240;
+    var PARALLEL_FACTOR = 3;
+
+    function updateInlineEstimator(elId, count, ddChecked) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        if (count === 0) { el.classList.remove('visible'); return; }
+        var cost = count * COST_PER_DISCOVERY;
+        var timeSec = Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DISCOVERY;
+        if (ddChecked) {
+            cost += count * COST_PER_DEEP_DIVE;
+            timeSec += Math.ceil(count / PARALLEL_FACTOR) * TIME_PER_DEEP_DIVE;
+        }
+        var costStr = cost < 1 ? '~$' + cost.toFixed(2) : '~$' + cost.toFixed(1);
+        var mins = Math.ceil(timeSec / 60);
+        var timeStr = mins < 2 ? '~1 min' : '~' + mins + ' min';
+        el.innerHTML = '<strong>' + count + ' companies</strong> \u00b7 ' + costStr + ' est. cost \u00b7 ' + timeStr + ' est. time';
+        el.classList.add('visible');
+    }
+
+    // ── Drop zone drag-over styling ──
+    var dz = document.getElementById('dropZone');
+    if (dz) {
+        dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('drag-over'); });
+        dz.addEventListener('dragleave', function() { dz.classList.remove('drag-over'); });
+        dz.addEventListener('drop', function() { dz.classList.remove('drag-over'); });
+    }
+
+    // ── CSV file selection ──
+    var ddCheckCsv = document.getElementById('ddCheckCsv');
+    var csvRowCount = 0;
+
+    window.fileSelected = function(input) {
+        var label = document.getElementById('fileLabel');
+        var btn = document.getElementById('btnCsv');
+        if (input.files && input.files.length > 0) {
+            label.textContent = input.files[0].name;
+            label.style.display = 'block';
+            btn.disabled = false;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var lines = e.target.result.split('\n').filter(function(l) { return l.trim(); });
+                csvRowCount = Math.max(0, lines.length - 1);
+                updateInlineEstimator('estimatorCsv', csvRowCount, ddCheckCsv && ddCheckCsv.checked);
+            };
+            reader.readAsText(input.files[0]);
+        }
+    };
+
+    if (ddCheckCsv) {
+        ddCheckCsv.addEventListener('change', function() {
+            updateInlineEstimator('estimatorCsv', csvRowCount, ddCheckCsv.checked);
+        });
+    }
+
+    // ── Paste list ──
+    var textarea = document.getElementById('companyInput');
+    var btnPaste = document.getElementById('btnPaste');
+    var ddCheckPaste = document.getElementById('ddCheckPaste');
+
+    function countPasteCompanies() {
+        if (!textarea) return 0;
+        var text = textarea.value.trim();
+        if (!text) return 0;
+        var names = [];
+        text.split('\n').forEach(function(line) {
+            line.split(',').forEach(function(n) { n = n.trim(); if (n) names.push(n); });
+        });
+        return names.length;
+    }
+
+    function refreshPaste() {
+        var count = countPasteCompanies();
+        if (btnPaste) btnPaste.disabled = count === 0;
+        updateInlineEstimator('estimatorPaste', count, ddCheckPaste && ddCheckPaste.checked);
+    }
+
+    if (textarea) textarea.addEventListener('input', refreshPaste);
+    if (ddCheckPaste) ddCheckPaste.addEventListener('change', refreshPaste);
+
+    // ── Form submission — submit via fetch, redirect to batches tab ──
+    function interceptForm(formId) {
+        var form = document.getElementById(formId);
+        if (!form) return;
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var formData = new FormData(form);
+            var submitBtn = form.querySelector('.btn-primary');
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Starting\u2026'; }
+
+            fetch('/prospector/run', { method: 'POST', body: formData })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.ok) {
+                        window.location.replace('/prospector?tab=batches');
+                    } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector \u2192'; }
+                    }
+                })
+                .catch(function(err) {
+                    alert('Network error: ' + err);
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Run Prospector \u2192'; }
+                });
+        });
+    }
+
+    interceptForm('uploadForm');
+    interceptForm('pasteForm');
+})();
+</script>
+
+</body>
+</html>

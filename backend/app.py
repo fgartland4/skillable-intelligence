@@ -933,28 +933,31 @@ def prospector_api_companies():
     })
 
 
+@app.route("/prospector/input")
+def prospector_input():
+    """Unified input page — Upload, Paste, Lookalikes, Configure HubSpot."""
+    tab = request.args.get("tab", "upload")
+    return render_template("prospector_input.html", initial_tab=tab)
+
+
 @app.route("/prospector/upload")
 def prospector_upload():
-    """Focused upload page — CSV drop zone."""
-    return render_template("prospector_upload.html")
+    return redirect("/prospector/input?tab=upload")
 
 
 @app.route("/prospector/paste")
 def prospector_paste():
-    """Focused paste page — textarea input."""
-    return render_template("prospector_paste.html")
+    return redirect("/prospector/input?tab=paste")
 
 
 @app.route("/prospector/lookalikes")
 def prospector_lookalikes():
-    """Focused lookalikes page — coming soon."""
-    return render_template("prospector_lookalikes.html")
+    return redirect("/prospector/input?tab=lookalikes")
 
 
 @app.route("/prospector/configure")
 def prospector_configure():
-    """Focused configure page — HubSpot connection + field mapper."""
-    return render_template("prospector_configure.html")
+    return redirect("/prospector/input?tab=configure")
 
 
 @app.route("/prospector/run", methods=["POST"])
