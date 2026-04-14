@@ -3236,7 +3236,7 @@ ACV_ORG_HOURS_OVERRIDES: dict[str, dict[str, float]] = {
 # ── Prospector batch processing constants ─────────────────────────────────
 PROSPECTOR_DISCOVERY_TIMEOUT = 300   # 5 minutes per company discovery (Cisco took 189s with 21 products)
 PROSPECTOR_DEEP_DIVE_TIMEOUT = 420   # 7 minutes per company deep dive
-PROSPECTOR_MAX_PARALLEL = 3          # concurrent companies to avoid rate limits
+PROSPECTOR_MAX_PARALLEL = 10         # concurrent companies; bumped 2026-04-14 (was 3). Rate-limit headroom confirmed over long runs.
 PROSPECTOR_RECENT_BATCHES_LIMIT = 10 # max recent batches shown in the status panel
 
 # ── Rate tiers ────────────────────────────────────────────────────────────

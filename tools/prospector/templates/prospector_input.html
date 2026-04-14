@@ -550,7 +550,7 @@
     var COST_PER_DEEP_DIVE = 2.20;   // unchanged — Deep Dive is its own thing
     var TIME_PER_DISCOVERY = 180;    // 150s product-id + ~30s holistic ACV
     var TIME_PER_DEEP_DIVE = 240;    // unchanged
-    var PARALLEL_FACTOR = 3;         // unchanged
+    var PARALLEL_FACTOR = 10;        // matches cfg.PROSPECTOR_MAX_PARALLEL (bumped 2026-04-14 from 3)
 
     function updateInlineEstimator(elId, count, ddChecked) {
         var el = document.getElementById(elId);

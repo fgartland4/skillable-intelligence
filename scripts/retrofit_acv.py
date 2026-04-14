@@ -46,7 +46,7 @@ load_dotenv(os.path.join(_project_root, "backend", ".env"))
 from storage import _COMPANY_DIR, save_discovery, save_analysis, load_analysis  # noqa: E402
 import scoring_config as cfg  # noqa: E402
 
-_DEFAULT_PARALLELISM = 5  # magic-allowed: parallel-Claude-call-throttle
+_DEFAULT_PARALLELISM = 10  # magic-allowed: parallel-Claude-call-throttle (bumped 2026-04-14 from 5; rate-limit headroom confirmed over long Prospector runs)
 
 
 # ── Mode registry — each mode declares a filter + a worker ────────────
