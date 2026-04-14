@@ -116,6 +116,38 @@ def _worker_enrollments(disc: dict) -> tuple[str, str, str | None]:
         return (name, "exception", str(e))
 
 
+def _worker_re_research(disc: dict) -> tuple[str, str, str | None]:
+    """Full re-research — runs intelligence.discover(force_refresh=True).
+
+    Use when the original researcher missed products / returned thin data
+    and the cached record can't be salvaged with gap-fills. This is a
+    FULL discovery pipeline re-run per company: fresh searches, fresh
+    Claude call for product identification + signals + holistic ACV.
+
+    Archives the old discovery (so prior state is recoverable) and
+    replaces it with the fresh one.
+    """
+    from intelligence import discover
+    name = disc.get("company_name") or "?"
+    old_id = disc.get("discovery_id") or ""
+    try:
+        fresh = discover(name, force_refresh=True)
+        if not fresh:
+            return (name, "empty-result", "discover() returned no record")
+        new_id = fresh.get("discovery_id", "")
+        fresh_products = len(fresh.get("products") or [])
+        fresh_acv = fresh.get("_holistic_acv") or {}
+        lo = fresh_acv.get("acv_low") or 0
+        hi = fresh_acv.get("acv_high") or 0
+        conf = fresh_acv.get("confidence") or "?"
+        summary = f"{fresh_products} products, ${lo:,}-${hi:,} ({conf})"
+        if new_id and new_id != old_id:
+            summary += f" [new id: {new_id}]"
+        return (name, summary, None)
+    except Exception as e:
+        return (name, "exception", str(e))
+
+
 def _worker_gap_fill(disc: dict) -> tuple[str, str, str | None]:
     """Gap-fill channel_partner_se_population + events_attendance on analysis."""
     from researcher import gap_fill_cf_audience_facts
@@ -140,7 +172,7 @@ def _worker_gap_fill(disc: dict) -> tuple[str, str, str | None]:
         # unified block lives on each product so per-product recompose works).
         for p in (analysis.get("products") or []):
             p["customer_fit_facts"] = cf_facts
-        save_analysis(analysis.get("analysis_id"), analysis)
+        save_analysis(analysis)
         parts = []
         if "channel_partner_se_population" in filled:
             cp = filled["channel_partner_se_population"]
@@ -157,6 +189,7 @@ _MODES = {
     "holistic":    (_filter_all,           _worker_holistic,    "_holistic_acv"),
     "enrollments": (_filter_wrapper_orgs,  _worker_enrollments, None),
     "gap-fill":    (_filter_has_analysis,  _worker_gap_fill,    None),
+    "re-research": (_filter_all,           _worker_re_research, None),
 }
 
 
@@ -184,6 +217,7 @@ def main():
     parser.add_argument("--execute", action="store_true", help="actually run (default: dry-run)")
     parser.add_argument("--limit", type=int, default=0, help="only process the first N records")
     parser.add_argument("--company", type=str, default="", help="only records matching this substring")
+    parser.add_argument("--names-from-file", type=str, default="", help="path to a file with one company name per line; only records whose name matches (exact lowercase) any listed name will run")
     parser.add_argument("--skip-existing", action="store_true",
                         help="skip records that already have the mode's output (holistic: _holistic_acv; "
                              "enrollments: any product with annual_enrollments_estimate set)")
@@ -206,6 +240,14 @@ def main():
         needle = args.company.lower()
         discoveries = [d for d in discoveries if needle in (d.get("company_name") or "").lower()]
         print(f"  --company '{args.company}' → {len(discoveries)} records")
+
+    # --names-from-file filter — one company name per line
+    if args.names_from_file:
+        with open(args.names_from_file, "r", encoding="utf-8") as fh:
+            wanted = {line.strip().lower() for line in fh if line.strip() and not line.startswith(("#", " "))}
+        before = len(discoveries)
+        discoveries = [d for d in discoveries if (d.get("company_name") or "").strip().lower() in wanted]
+        print(f"  --names-from-file '{args.names_from_file}' → {before} → {len(discoveries)} records")
 
     # --skip-existing filter
     if args.skip_existing:

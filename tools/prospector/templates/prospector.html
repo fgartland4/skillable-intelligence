@@ -136,7 +136,8 @@
             background: rgba(36,237,155,0.02);
         }
         .results-table th.col-num { width: 36px; text-align: center; }
-        .results-table th.col-acv { width: 100px; }
+        .results-table th.col-acv { width: 130px; }
+        .results-table th.col-dd { width: 72px; text-align: center; }
         .results-table th.col-tier { width: 44px; text-align: center; }
         .results-table th.col-company { width: 260px; }
         .results-table th.col-product { width: 180px; }
@@ -406,8 +407,8 @@
                     <th class="col-check"></th>
                     <th class="col-num">#</th>
                     <th class="col-company sortable-header" onclick="sortCompanies('company')" title="Sort by company name">Company ↕</th>
-                    <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Sort by estimated ACV midpoint">Est. ACV ↕</th>
-                    <th class="col-tier" title="Deep Dive coverage: products with full scoring vs. total discovered">Deep Dives</th>
+                    <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Sort by ACV Potential midpoint">ACV Potential ↕</th>
+                    <th class="col-dd" title="Deep Dive coverage: products with full scoring vs. total discovered">Deep Dives</th>
                     <th class="col-product">Top Product</th>
                     <th class="col-why">Why</th>
                     <th class="col-tier">Prom.</th>
@@ -480,7 +481,7 @@
                     <th class="col-check"></th>
                     <th class="col-num">#</th>
                     <th class="col-company">Company</th>
-                    <th class="col-acv">Est. ACV</th>
+                    <th class="col-acv">ACV Potential</th>
                     <th class="col-product">Top Product</th>
                     <th class="col-why">Why</th>
                     <th class="col-tier">Prom.</th>

@@ -1905,16 +1905,13 @@ Your output is read by Marketing and Sellers. Treat it like a public-facing anal
 """
 
 
-def _format_anchors_table_for_prompt() -> str:
-    """Build a compact comparable-anchors table for the prompt."""
-    import scoring_config as cfg
-    rows = ["  | Company | Org Type | Scale | Annual ACV | Note |",
-            "  | --- | --- | --- | --- | --- |"]
-    for a in cfg.HOLISTIC_ACV_ANCHORS:
-        acv_m = a["annual_acv_estimate"] / 1_000_000
-        acv_str = f"~${acv_m:.1f}M"
-        rows.append(f"  | {a['name']} | {a['org_type']} | {a['scale']} | {acv_str} | {a['note']} |")
-    return "\n".join(rows)
+# _format_anchors_table_for_prompt — RETIRED 2026-04-14.
+# Previously emitted a named-customer comparables table for Claude's prompt.
+# Retired because customer names are confidential and must not appear in
+# committed code, the prompt, or any output. Replaced entirely by
+# _format_anonymized_calibration_block below, which uses the gitignored
+# KNOWN_CUSTOMER_CURRENT_ACV and emits stage-grouped magnitude ranges
+# with NO customer names.
 
 
 def _format_anonymized_calibration_block() -> str:
@@ -2063,7 +2060,6 @@ def _build_holistic_acv_context(
         "company_block": "\n".join(company_lines),
         "products_block": "\n".join(product_lines),
         "signals_block": "\n".join(sig_lines),
-        "anchors_table": _format_anchors_table_for_prompt(),
         "calibration_block": calibration_block,
         "constraints_block": constraints_text,
         "hard_cap_M": cfg.HOLISTIC_ACV_COMPANY_HARD_CAP // 1_000_000,
