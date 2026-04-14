@@ -596,9 +596,13 @@ def recompute_analysis(analysis: dict) -> None:
             pillar_scores[pillar_key] = pillar_score
             pillar_weights[pillar_key] = int(pillar_dict.get("weight") or 0)
 
-        # Recompute ACV from motions × deterministic rate. The rate
-        # table and motion semantics can evolve after the analysis
-        # was saved, so this re-run keeps the displayed ACV fresh.
+        # Rebuild ACV motions from the fact drawer using the unified
+        # model, then recompute the math. This ensures every page load
+        # reflects the current org-type overrides, deflation tiers,
+        # training maturity multipliers, and rate tables — even for
+        # analyses scored under an older SCORING_LOGIC_VERSION.
+        # Pure Python. Zero Claude calls. Zero research.
+        acv_calculator.rebuild_acv_motions_from_facts(p, analysis)
         acv_calculator.compute_acv_potential(p)
 
         # Fit Score total — ALWAYS recalculate from saved pillar scores

@@ -99,6 +99,210 @@ def _resolve_rate(orchestration_method: str) -> tuple[str, float]:
 # Public: compute_acv_potential
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
+    """Rebuild ACV motions from the fact drawer on a cached product dict.
+
+    This is the cache-reload equivalent of populate_acv_motions(). It reads
+    the serialized fact drawer (instructional_value_facts.market_demand,
+    customer_fit_facts) from the dict form and rebuilds the five consumption
+    motions with all unified model rules: org-type overrides, Industry
+    Authority deflation, training maturity multipliers, open source tiers,
+    wrapper org audience caps, cert sanity cap.
+
+    Called by recompute_analysis() on every page load so ACV motions stay
+    current when the model changes — without re-running the researcher.
+
+    Pure Python. Zero Claude calls. Zero research.
+    """
+    # Read org type from discovery or analysis
+    org_type = ""
+    disc_data = analysis.get("_discovery_data") or {}
+    if disc_data:
+        org_type = disc_data.get("organization_type") or ""
+    if not org_type:
+        org_type = analysis.get("organization_type") or "software_company"
+    normalized_org = cfg.ORG_TYPE_NORMALIZATION.get(
+        org_type.lower().replace(" ", "_"), "")
+
+    # Look up org-type overrides
+    adoption_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(normalized_org, {})
+    label_overrides = cfg.ACV_ORG_MOTION_LABELS.get(normalized_org, {})
+    hours_overrides = cfg.ACV_ORG_HOURS_OVERRIDES.get(normalized_org, {})
+
+    # Read fact drawers from the product dict
+    iv_facts = product.get("instructional_value_facts") or {}
+    md = iv_facts.get("market_demand") or {}
+    pl_facts = product.get("product_labability_facts") or {}
+    la_facts = pl_facts.get("lab_access") or {}
+
+    # Read company-level facts
+    cf_facts = analysis.get("_customer_fit_facts") or {}
+    # Also check per-product customer_fit_facts (Phase F broadcast)
+    p_cf = product.get("customer_fit_facts") or {}
+    if not cf_facts:
+        cf_facts = p_cf
+
+    # Detect open source
+    is_open_source = False
+    training_license = la_facts.get("training_license", "") or ""
+    if training_license == "none":
+        is_open_source = True
+
+    # Detect training signals from the dict form
+    company_signals = disc_data.get("company_signals", {}) or {}
+    t_signals = {
+        "atp_large": False, "cert_active": False,
+        "no_signals": True, "license_blocked": False,
+        "has_training_org": False,
+    }
+
+    atp = company_signals.get("atp_program", "") or ""
+    if atp and atp.lower() not in ("no", "none", "n/a", ""):
+        t_signals["no_signals"] = False
+        t_signals["has_training_org"] = True
+        for token in ("50+", "100+", "200+", "500+", "1000+", "1,000+"):
+            if token in atp:
+                t_signals["atp_large"] = True
+                break
+
+    training_programs = company_signals.get("training_programs", "") or ""
+    if training_programs and training_programs.lower() not in ("no", "none", "n/a", ""):
+        t_signals["no_signals"] = False
+        t_signals["has_training_org"] = True
+
+    cert_inc = product.get("cert_inclusion", "") or ""
+    if not cert_inc:
+        cert_inc = (iv_facts.get("market_demand") or {}).get("cert_bodies_mentioning", [])
+        if cert_inc:
+            t_signals["cert_active"] = True
+            t_signals["no_signals"] = False
+            t_signals["has_training_org"] = True
+    elif isinstance(cert_inc, str) and cert_inc.lower() not in ("no", "none", "n/a", ""):
+        t_signals["cert_active"] = True
+        t_signals["no_signals"] = False
+        t_signals["has_training_org"] = True
+
+    if training_license == "blocked":
+        t_signals["license_blocked"] = True
+
+    # Helper to read a numeric range from the dict form
+    def _nr(field_dict):
+        if not isinstance(field_dict, dict):
+            return 0, 0
+        low = int(field_dict.get("low") or 0)
+        high = int(field_dict.get("high") or 0)
+        if low > high:
+            low, high = high, low
+        return low, high
+
+    # Build motions
+    motions = []
+    customer_pop = 0
+
+    for cfg_motion in cfg.CONSUMPTION_MOTIONS:
+        pop_low, pop_high = 0, 0
+
+        # Read population from the fact drawer
+        source = cfg_motion.population_source
+        if source == "product:install_base":
+            pop_low, pop_high = _nr(md.get("install_base"))
+        elif source == "product:employee_subset_size":
+            pop_low, pop_high = _nr(md.get("employee_subset_size"))
+        elif source == "product:cert_annual_sit_rate":
+            pop_low, pop_high = _nr(md.get("cert_annual_sit_rate"))
+        elif source == "company:channel_partner_se_population":
+            pop_low, pop_high = _nr(cf_facts.get("channel_partner_se_population"))
+        elif source == "company:events_attendance_sum":
+            events = cf_facts.get("events_attendance") or {}
+            for evt_range in events.values():
+                lo, hi = _nr(evt_range)
+                pop_low += lo
+                pop_high += hi
+
+        is_customer_motion = cfg_motion.label == "Customer Training & Enablement"
+
+        # Industry Authority deflation
+        if is_customer_motion and normalized_org in ("INDUSTRY AUTHORITY", "TRAINING ORG"):
+            pop_low = _apply_industry_authority_deflation(pop_low)
+            pop_high = _apply_industry_authority_deflation(pop_high)
+
+        # Wrapper org audience cap (R1)
+        if is_customer_motion and normalized_org in cfg.ACV_WRAPPER_ORG_TYPES:
+            total_emp = 0
+            te = cf_facts.get("total_employees")
+            if isinstance(te, dict):
+                total_emp = int(te.get("low") or 0)
+            if total_emp > 0:
+                audience_cap = max(
+                    int(total_emp * cfg.ACV_WRAPPER_ORG_AUDIENCE_CAP_FRACTION),
+                    cfg.ACV_WRAPPER_ORG_AUDIENCE_FLOOR)
+                pop_low = min(pop_low, audience_cap)
+                pop_high = min(pop_high, audience_cap)
+
+        if is_customer_motion:
+            customer_pop = max(pop_low, pop_high)
+
+        # Adoption with org-type override
+        adoption = adoption_overrides.get(cfg_motion.label, cfg_motion.adoption_pct)
+        display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
+        hrs = hours_overrides.get(cfg_motion.label, cfg_motion.hours_low)
+
+        # Open source tiering
+        if is_open_source and is_customer_motion:
+            if t_signals["has_training_org"]:
+                adoption *= cfg.OPEN_SOURCE_WITH_TRAINING_MULTIPLIER
+            else:
+                adoption *= cfg.OPEN_SOURCE_PURE_MULTIPLIER
+
+        # Training maturity multipliers
+        if is_customer_motion:
+            if t_signals["atp_large"]:
+                adoption *= cfg.ACV_TRAINING_MATURITY_MULTIPLIERS["atp_large"]
+            if t_signals["cert_active"]:
+                adoption *= cfg.ACV_TRAINING_MATURITY_MULTIPLIERS["cert_active"]
+            if t_signals["no_signals"]:
+                adoption *= cfg.ACV_TRAINING_MATURITY_MULTIPLIERS["no_signals"]
+            if t_signals["license_blocked"]:
+                adoption *= cfg.ACV_TRAINING_MATURITY_MULTIPLIERS["license_blocked"]
+            adoption = min(adoption, cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP)
+
+        motions.append({
+            "label": display_label,
+            "population_low": pop_low,
+            "population_high": pop_high,
+            "hours_low": hrs,
+            "hours_high": hrs,
+            "adoption_pct": round(adoption, 4),  # magic-allowed: round for display
+            "rationale": cfg_motion.description,
+        })
+
+    # Cert cap (R4)
+    cert_labels = {"Certification (PBT)", "Course Exams"}
+    customer_labels = {"Customer Training & Enablement", "Student Training",
+                       "Training Participants", "Client End Users",
+                       "Platform & ILT Learners", "Classroom Students",
+                       "Internal Consultants", "Internal Practitioners"}
+    cert_m = next((m for m in motions if m["label"] in cert_labels), None)
+    cust_m = next((m for m in motions if m["label"] in customer_labels), None)
+    if cert_m and cust_m:
+        c_pop = max(cust_m.get("population_low", 0), cust_m.get("population_high", 0))
+        cert_pop = max(cert_m.get("population_low", 0), cert_m.get("population_high", 0))
+        if c_pop > 0:
+            cert_cap = max(1, int(c_pop * cfg.ACV_CERT_MAX_FRACTION_OF_INSTALL_BASE))
+            if cert_pop > cert_cap:
+                cert_m["population_low"] = cert_cap
+                cert_m["population_high"] = cert_cap
+            elif cert_pop == 0:
+                derived = max(1, int(c_pop * cfg.CERT_SIT_DERIVATION_PCT))
+                cert_m["population_low"] = derived
+                cert_m["population_high"] = derived
+
+    # Write the rebuilt motions onto the product dict
+    if "acv_potential" not in product or not isinstance(product.get("acv_potential"), dict):
+        product["acv_potential"] = {}
+    product["acv_potential"]["motions"] = motions
+
+
 def compute_acv_potential(product: dict) -> dict:
     """Recompute ACV from the AI's motion estimates using deterministic math.
 
