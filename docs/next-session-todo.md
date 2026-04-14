@@ -48,11 +48,20 @@
 - ACV guardrails R1-R5 (wrapper org cap, null fallback, cert cap, company cap, prompt fix)
 - Discovery cache no longer re-researches on SCORING_LOGIC_VERSION bump
 
+**Deep Dive ACV Rebuild (critical fix, end of session):**
+- `rebuild_acv_motions_from_facts()` added to `acv_calculator.py` — rebuilds ACV motions from the serialized fact drawer on every page load using the current unified model
+- Wired into `recompute_analysis()` so ALL Inspector analysis pages reflect the unified ACV model immediately — zero re-research, zero Claude calls, pure Python
+- `stamp_version.py` utility stamped all 185 cached files with current SCORING_LOGIC_VERSION to prevent unnecessary re-research
+
+**Prospector Modal Documentation (first pass):**
+- Three modal content blocks written in `scoring_config.PROSPECTOR_MODAL_CONTENT`: "Researched Companies", "How ACV is Estimated", "How Companies Are Scored"
+- Wired to ? icons on Prospector home page — real modals, not tooltips
+- Content references actual adoption rates, hours, and rate tiers from config (Define-Once)
+
 **Infrastructure:**
 - Server-side 60s cache for Prospector company list
 - Normalized name lookup in storage.py (find_discovery_by_company_name)
 - Exhaustive code audit (3 parallel agents) — all critical issues fixed
-- rescore.py utility (needs lightweight path — currently triggers full re-research)
 
 ---
 
@@ -103,14 +112,14 @@ The ? icons on Prospector pages are wired but show "Coming soon." Content needs 
 | # | Item | Notes |
 |---|---|---|
 | **1** | Badge-to-Score Consistency Investigation | §1 above — root cause, not patches |
-| **2** | Prospector ? modal documentation content | After badge investigation |
+| **2** | Prospector ? modal documentation refinement | First pass shipped — three modals wired. Refine content after badge investigation confirms how scoring/badging is described. |
 | **3** | Validation round | CompTIA, EC-Council, WGU, GCU, Skillsoft, QA, Accenture, Cisco, Google Cloud — verify ACV and scores |
-| **4** | Lightweight rescore utility | Current rescore.py triggers full re-research. Need a path that re-runs only scorers + ACV on existing facts. |
+| **4** | Lightweight rescore utility | ACV portion solved — `rebuild_acv_motions_from_facts` runs on every page load. Still need a path to re-run pillar scorers + rubric graders on existing facts without re-researching. |
 | **5** | Inspector↔Prospector cache verification | HashiCorp test case — confirm normalized lookup works end-to-end |
 | **6** | Background processing toast notifications | "Run in Background" button on Deep Dive + toast on completion |
 | **7** | Designer | Foundation session + build. Design docs ready. Biggest workstream. |
 | **8** | Deployment | Render or Azure Web App — blocks auth implementation |
-| **9** | Authentication + RBAC | 7 roles, 4 boundary lines designed and documented in Platform-Foundation.md + ADR-0000. Implementation blocked on deployment (#8). Design is locked. | Render or Azure Web App — blocks auth |
+| **9** | Authentication + RBAC | 7 roles, 4 boundary lines designed and documented in Platform-Foundation.md + ADR-0000. Implementation blocked on deployment (#8). Design is locked. |
 
 ---
 
