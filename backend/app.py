@@ -1162,9 +1162,10 @@ def prospector_export(batch_id):
     writer = csv.writer(output)
     writer.writerow([
         "Rank", "Company", "Badge",
+        "ACV Type",
         "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
         "Deep Dive Coverage", "Total Products",
-        "Top Product", "Subcategory", "Why",
+        "Top Product", "Subcategory", "Top Signal",
         "Promising Products", "Potential Products",
         "Uncertain Products", "Unlikely Products",
         "Lab Platform", "Cert Program", "Sales Channel",
@@ -1181,6 +1182,7 @@ def prospector_export(batch_id):
             r.get("rank", ""),
             r.get("company_name", ""),
             r.get("company_badge", ""),
+            r.get("acv_type", "direct"),
             r.get("acv_low", 0),
             r.get("acv_high", 0),
             r.get("acv_midpoint", 0),
@@ -1286,13 +1288,20 @@ def _build_prospector_row(disc: dict) -> dict:
     # truth; row-render just formats and routes to the export.
     # Per Platform-Foundation → Discovery-Level ACV Estimation (Option 2).
     holistic = disc.get("_holistic_acv") or {}
+    acv_type = (holistic.get("acv_type") or "direct").lower()  # "direct" | "partnership"
     acv_low = int(holistic.get("acv_low") or 0)
     acv_high = int(holistic.get("acv_high") or 0)
     acv_confidence = (holistic.get("confidence") or "").lower()
     acv_rationale = holistic.get("rationale") or ""
     acv_drivers = holistic.get("key_drivers") or []
     acv_caveats = holistic.get("caveats") or []
-    if acv_low > 0 or acv_high > 0:
+    if acv_type == "partnership":
+        # Partnership-only org types (Content Development firms, etc.) —
+        # no dollar estimate. UX shows "Partnership" chip; export gets
+        # acv_type = "partnership" for Marketing filtering.
+        estimated_acv = "Partnership"
+        sort_acv = 0  # sort below direct-ACV records by default
+    elif acv_low > 0 or acv_high > 0:
         # Display range: "~$1.5M-$4M". Sort key: midpoint.
         if acv_low == acv_high:
             estimated_acv = f"~{_format_acv_value(acv_low)}"
@@ -1334,11 +1343,12 @@ def _build_prospector_row(disc: dict) -> dict:
         "badge_color": disc.get("_org_color", "purple"),
         "discovery_id": disc.get("discovery_id", ""),
         # New ACV shape — range, midpoint, confidence, rationale, drivers, caveats
-        "estimated_acv": estimated_acv,        # display string ("~$1.5M-$4M")
-        "acv_low": acv_low,                    # int dollars (export, sort)
-        "acv_high": acv_high,                  # int dollars (export, sort)
+        "estimated_acv": estimated_acv,        # display string ("~$1.5M-$4M" or "Partnership")
+        "acv_type": acv_type,                  # "direct" | "partnership"
+        "acv_low": acv_low,                    # int dollars (export, sort) — 0 for partnership
+        "acv_high": acv_high,                  # int dollars (export, sort) — 0 for partnership
         "acv_midpoint": (acv_low + acv_high) // 2,  # magic-allowed: midpoint of ACV range
-        "acv_confidence": acv_confidence,      # "low" | "medium" | "high"
+        "acv_confidence": acv_confidence,      # "low" | "medium" | "high" | "partnership"
         "rationale": acv_rationale,            # paragraph (replaces key_signal)
         **driver_cols,                          # driver_1 .. driver_5
         "caveats": "; ".join(acv_caveats) if acv_caveats else "",
@@ -1625,9 +1635,10 @@ def prospector_export_all():
     writer = csv.writer(output)
     writer.writerow([
         "Rank", "Company", "Badge",
+        "ACV Type",
         "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
         "Deep Dive Coverage", "Total Products",
-        "Top Product", "Subcategory", "Why",
+        "Top Product", "Subcategory", "Top Signal",
         "Promising Products", "Potential Products",
         "Uncertain Products", "Unlikely Products",
         "Lab Platform", "Cert Program", "Sales Channel",
@@ -1642,6 +1653,7 @@ def prospector_export_all():
         coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
         writer.writerow([
             i, r.get("company_name", ""), r.get("company_badge", ""),
+            r.get("acv_type", "direct"),
             r.get("acv_low", 0), r.get("acv_high", 0),
             r.get("acv_midpoint", 0), r.get("estimated_acv", ""),
             r.get("acv_confidence", ""),

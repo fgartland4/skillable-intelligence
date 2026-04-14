@@ -2066,6 +2066,64 @@ def _build_holistic_acv_context(
     }
 
 
+def _build_partnership_acv_result(
+    company_name: str,
+    discovery: dict,
+    normalized_org: str,
+) -> dict:
+    """Special ACV result shape for partnership-only org types.
+
+    Returns a dict with acv_type="partnership", no dollar estimate,
+    and a rationale explaining the partnership opportunity. The
+    Prospector row renders this as "Partnership" instead of a
+    dollar range; Marketing can filter the export on ACV Type.
+
+    Signal extraction from the discovery for drivers:
+      - Technologies they build content for (from products list)
+      - Build capacity signals (content_team_signals, content_team_named)
+      - Client roster hints (enterprise_reference_customers if captured)
+    """
+    products = discovery.get("products") or []
+    tech_covered = sorted({p.get("category", "") for p in products if p.get("category")})
+    signals = discovery.get("company_signals") or {}
+
+    rationale = (
+        f"Content Development firms like {company_name} build hands-on labs and courseware "
+        f"on behalf of their clients — they don't have a direct-adoption relationship with "
+        f"lab platforms. The right ACV for this organization is downstream-partnership-dependent: "
+        f"if they partner with Skillable to power their client lab builds, the revenue is "
+        f"distributed across those client engagements, not directly attributable here. "
+        f"Treat this as a Partnership ICP, not a Direct-ACV ICP. Primary signals: Build "
+        f"Capacity (their core competency), technology coverage breadth, and existing "
+        f"client roster."
+    )
+
+    drivers: list[str] = []
+    if tech_covered:
+        drivers.append(f"Technology coverage: {', '.join(tech_covered[:5])}")
+    team_signal = signals.get("content_team_signals") or ""
+    if team_signal and str(team_signal).strip().lower() not in ("no", "none", "n/a", ""):
+        drivers.append(f"Internal content team: {str(team_signal)[:120]}")
+    partnership = signals.get("partnership_pattern") or ""
+    if partnership and str(partnership).strip().lower() not in ("no", "none", "n/a", ""):
+        drivers.append(f"Partnership posture: {str(partnership)[:120]}")
+    if not drivers:
+        drivers.append("Content development firm — no direct products to score")
+
+    return {
+        "acv_type": "partnership",
+        "acv_low": 0,
+        "acv_high": 0,
+        "confidence": "partnership",
+        "rationale": rationale,
+        "key_drivers": drivers[:5],
+        "caveats": [
+            "Direct ACV estimate intentionally not produced for this org type.",
+            "Pursue as a lab-building / content partnership, not a direct customer deal.",
+        ],
+    }
+
+
 def estimate_holistic_acv(
     company_name: str,
     discovery: dict,
@@ -2076,9 +2134,22 @@ def estimate_holistic_acv(
     `_generated_at` timestamp + `_inputs_hash` stub for cache validation.
     On failure, returns an empty-but-shaped dict so callers don't have
     to handle exceptions.
+
+    For org types in ACV_PARTNERSHIP_ONLY_ORG_TYPES (Content Development
+    firms, etc.), returns a special "partnership" result shape — no
+    dollar estimate, rationale explains the partnership opportunity.
+    These org types don't fit the direct-ACV audience × adoption model.
     """
     from scorer import _call_claude  # local import to avoid circular dep
     import scoring_config as cfg
+
+    # Partnership-only org types — no direct-ACV estimate.
+    org_type_raw = (discovery.get("organization_type") or "").lower().replace(" ", "_")
+    normalized_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type_raw, "")
+    if normalized_org in cfg.ACV_PARTNERSHIP_ONLY_ORG_TYPES:
+        log.info("Holistic ACV: partnership-only org type for %s (skipping direct estimate)",
+                 company_name)
+        return _build_partnership_acv_result(company_name, discovery, normalized_org)
 
     ctx = _build_holistic_acv_context(company_name, discovery)
     prompt = _HOLISTIC_ACV_PROMPT.format(**ctx)

@@ -3051,6 +3051,31 @@ KNOWN_CUSTOMER_STAGE_CEILING_MULT: dict[str, float] = {
 }
 
 
+# ── Org types that skip direct ACV estimation (partnership-only ICPs) ──
+# Some org types don't fit the audience × adoption × hours × rate model
+# because they don't have a direct-adoption relationship with Skillable —
+# they're partnership plays. Content Development firms (GP Strategies,
+# Cprime, etc.) build labs on behalf of their clients; they have no
+# "programs" that map to lab consumption directly. The right ACV for
+# them is downstream-partnership-dependent, not a direct estimate.
+#
+# For these org types, estimate_holistic_acv returns a special
+# "partnership" result with acv_low / acv_high = 0, a rationale that
+# explains the partnership opportunity, and confidence = "partnership".
+# The Prospector row displays "Partnership" instead of a dollar range.
+# Marketing can filter the export on ACV Type = "partnership" for
+# dedicated partnership campaigns.
+#
+# Per Platform-Foundation.md → Content Development firms section.
+# Frank 2026-04-14.
+ACV_PARTNERSHIP_ONLY_ORG_TYPES: frozenset[str] = frozenset({
+    "CONTENT DEVELOPMENT",
+    # Note: LLPA-class federating associations could be added here if
+    # we identify more of them. Punted to backlog 2026-04-14 — small
+    # population, pattern well-understood from LLPA itself.
+})
+
+
 def _load_known_customers() -> dict[str, dict]:
     """Load known-customer ACV data from the gitignored JSON file.
 

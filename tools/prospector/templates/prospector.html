@@ -260,6 +260,16 @@
         .acv-conf-high   { background: rgba(36,237,155,0.15); color: var(--sk-accent); }
         .acv-conf-medium { background: rgba(245,158,11,0.13); color: var(--sk-score-mid); }
         .acv-conf-low    { background: rgba(224,82,82,0.12);  color: var(--sk-score-low-soft); }
+        .acv-conf-partnership {
+            background: var(--sk-classify-purple-bg);
+            color: var(--sk-classify-purple);
+            letter-spacing: 0.06em;
+        }
+        .acv-cell .acv-value.partnership {
+            color: var(--sk-classify-purple);
+            font-style: italic;
+            font-weight: 600;
+        }
 
         /* ── Deep Dive coverage cell ── */
         .dd-coverage {
@@ -359,8 +369,10 @@
                 <td class="acv-cell"
                     title="{{ r.rationale or r.estimated_acv or '' }}"
                     {% if r.rationale %}data-rationale="{{ r.rationale }}" data-confidence="{{ r.acv_confidence or '' }}" data-drivers="{{ (r.driver_1 or '') ~ '|' ~ (r.driver_2 or '') ~ '|' ~ (r.driver_3 or '') ~ '|' ~ (r.driver_4 or '') ~ '|' ~ (r.driver_5 or '') }}" data-caveats="{{ r.caveats or '' }}" data-company="{{ r.company_name or '' }}" onclick="openAcvRationale(this)" style="cursor: pointer;"{% endif %}>
-                    <div class="acv-value">{{ r.estimated_acv or '—' }}</div>
-                    {% if r.acv_confidence %}
+                    <div class="acv-value{% if r.acv_type == 'partnership' %} partnership{% endif %}">{{ r.estimated_acv or '—' }}</div>
+                    {% if r.acv_type == 'partnership' %}
+                    <span class="acv-confidence acv-conf-partnership">PARTNERSHIP</span>
+                    {% elif r.acv_confidence %}
                     <span class="acv-confidence acv-conf-{{ r.acv_confidence }}">{{ r.acv_confidence | upper }}</span>
                     {% endif %}
                 </td>
@@ -406,18 +418,18 @@
                 <tr>
                     <th class="col-check"></th>
                     <th class="col-num">#</th>
-                    <th class="col-company sortable-header" onclick="sortCompanies('company')" title="Sort by company name">Company ↕</th>
-                    <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Sort by ACV Potential midpoint">ACV Potential ↕</th>
-                    <th class="col-dd" title="Deep Dive coverage: products with full scoring vs. total discovered">Deep Dives</th>
-                    <th class="col-product">Top Product</th>
-                    <th class="col-why">Why</th>
-                    <th class="col-tier">Prom.</th>
-                    <th class="col-tier">Pot.</th>
-                    <th class="col-tier">Unc.</th>
-                    <th class="col-tier">Unl.</th>
-                    <th class="col-lab">Lab Platform</th>
-                    <th class="col-cert">Cert Program</th>
-                    <th class="col-channel">Sales Channel</th>
+                    <th class="col-company sortable-header" onclick="sortCompanies('company')" title="Company name and classification badge. Click to sort A–Z.">Company ↕</th>
+                    <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Estimated annual contract value range (low–high) with confidence level. Click a cell for full rationale, key drivers, and caveats. Click the header to sort by midpoint.">ACV Potential ↕</th>
+                    <th class="col-dd" title="Deep Dive coverage: number of products with full Deep Dive scoring vs. total products discovered for this company.">Deep Dives</th>
+                    <th class="col-product" title="The flagship or lead product for this company.">Top Product</th>
+                    <th class="col-why" title="One-line summary of why this product is the lead — key signals that make it the strongest opportunity.">Top Signal</th>
+                    <th class="col-tier" title="Promising Products — strong pre-Deep-Dive labability signals (~65+ rough score).">Prom.</th>
+                    <th class="col-tier" title="Potential Products — moderate labability signals (~45–64 rough score).">Pot.</th>
+                    <th class="col-tier" title="Uncertain Products — mixed or unclear labability signals (~25–44 rough score).">Unc.</th>
+                    <th class="col-tier" title="Unlikely Products — weak or missing labability signals (&lt;25 rough score).">Unl.</th>
+                    <th class="col-lab" title="Current lab platform in use at this company: Skillable (expansion opportunity), competitor (displacement), None (greenfield), or DIY (replacement opportunity).">Lab Platform</th>
+                    <th class="col-cert" title="Certification programs associated with the top product (if any).">Cert Program</th>
+                    <th class="col-channel" title="Channel partners (GSIs, VARs, distributors, alliance partners) — the companies that sell this product.">Sales Channel</th>
                 </tr>
             </thead>
             <tbody id="tbody-all">
@@ -754,9 +766,19 @@
                            ' data-company="' + escapeAttr(r.company_name || '') + '"' +
                            ' onclick="openAcvRationale(this)" style="cursor: pointer;"';
             }
-            var confChip = r.acv_confidence
-                ? '<span class="acv-confidence acv-conf-' + r.acv_confidence + '">' + r.acv_confidence.toUpperCase() + '</span>'
-                : '';
+            // Partnership-only org types (Content Development firms, etc.) show
+            // a "Partnership" chip in place of the confidence pill. The ACV
+            // display value is already set server-side to "Partnership".
+            var isPartnership = r.acv_type === 'partnership';
+            var confChip;
+            if (isPartnership) {
+                confChip = '<span class="acv-confidence acv-conf-partnership">PARTNERSHIP</span>';
+            } else {
+                confChip = r.acv_confidence
+                    ? '<span class="acv-confidence acv-conf-' + r.acv_confidence + '">' + r.acv_confidence.toUpperCase() + '</span>'
+                    : '';
+            }
+            var acvValueClass = isPartnership ? 'acv-value partnership' : 'acv-value';
 
             // ── Deep Dive coverage cell ──
             var ddCount = r.deep_dive_count || 0;
@@ -771,7 +793,7 @@
                     (i + 1) + '</td>' +
                 '<td title="' + escapeAttr(r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
                 '<td class="acv-cell" title="' + escapeAttr(r.rationale || r.estimated_acv || '') + '"' + acvAttrs + '>' +
-                    '<div class="acv-value">' + (r.estimated_acv||'&mdash;') + '</div>' + confChip + '</td>' +
+                    '<div class="' + acvValueClass + '">' + (r.estimated_acv||'&mdash;') + '</div>' + confChip + '</td>' +
                 '<td class="rank-num" title="Deep Dive coverage: ' + ddCount + ' of ' + ddTotal + ' products scored">' + ddHtml + '</td>' +
                 '<td title="' + escapeAttr(r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +
                 '<td class="why-cell" title="' + escapeAttr(r.top_product_why||'') + '">' + (r.top_product_why||'') + '</td>' +
