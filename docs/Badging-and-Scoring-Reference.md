@@ -941,6 +941,41 @@ Simulation rate is pinned to `VM_LOW_RATE` — Sims are priced the same as VM Lo
 
 Rates use `~` to signal estimate. **One number per tier.** Audience is also a single estimated number — not a range. Every input is one number, one number out. Rate ranges and audience ranges both compound noise without adding precision and are forbidden.
 
+### Training maturity multipliers — locked 2026-04-13
+
+Researcher-captured signals nudge the baseline adoption rate up or down. Apply to all org types. Multipliers stack multiplicatively, capped at 35% adoption ceiling (`cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP`).
+
+| Condition | Multiplier | Source signal |
+|---|---|---|
+| ATP program with 50+ partners | 1.5× | `atp_program` |
+| Active cert exams for this product | 1.25× | `cert_inclusion` |
+| No training programs, no ATPs, no certs | 0.75× | Absence of signals |
+| Training license blocked | 0.5× | `training_license = "blocked"` |
+
+Source: `cfg.ACV_TRAINING_MATURITY_MULTIPLIERS`.
+
+### Three-tier open source classification — locked 2026-04-13
+
+Replaces the old binary open source discount. Detection keys off `training_license` plus the presence or absence of training programs, certs, and ATPs.
+
+| Tier | Effective adoption | Multiplier | Detection |
+|---|---|---|---|
+| Commercial | 4% (baseline) | 1.0× | `training_license` is not `"none"` |
+| Open source with commercial training (e.g. MongoDB, Red Hat) | 3% | 0.75× (`cfg.OPEN_SOURCE_WITH_TRAINING_MULTIPLIER`) | `training_license = "none"` AND training programs / certs / ATPs exist |
+| Pure open source (no organized training) | 1% | 0.25× (`cfg.OPEN_SOURCE_PURE_MULTIPLIER`) | `training_license = "none"` AND no training programs, certs, or ATPs |
+
+### Industry Authority user base deflation — locked 2026-04-13
+
+Researcher-reported user base numbers for Industry Authorities are inflated — they represent lifetime cert holders, not annual training candidates. Tiered deflation is applied before adoption math.
+
+| Researcher `user_base` | Deflation factor | Rationale |
+|---|---|---|
+| > 500K | ÷ 10 | Almost certainly lifetime holders |
+| 100K – 500K | ÷ 5 | Mix of lifetime and annual |
+| < 100K | ÷ 2 | Probably closer to reality for niche certs |
+
+When annual exam volume IS available from the researcher, use that × 3 instead of deflation. Source: `cfg.INDUSTRY_AUTHORITY_DEFLATION_TIERS`.
+
 ---
 
 ## Cache Versioning — SCORING_LOGIC_VERSION
