@@ -3036,6 +3036,48 @@ HOLISTIC_ACV_PER_USER_CEILING = 20          # midpoint cannot exceed user_count 
 HOLISTIC_ACV_COMPANY_HARD_CAP = 50_000_000  # absolute company cap; estimates above this force Low confidence
 
 
+# ── Researcher estimation heuristics (read INTO prompt text — Define-Once) ──
+# These are the tiered defaults the researcher Claude calls use when exact
+# numbers aren't documented in the research. Formerly inline in prompt
+# strings; extracted here so they can be tuned without editing prompts.
+# Adjust a value, next Deep Dive / retrofit picks it up automatically.
+
+# Partner SE population — Motion 2 audience estimation tiers.
+# Applied when the research shows a channel/partner ecosystem but doesn't
+# document the exact SE count (the common case — partners list is public,
+# SE headcount per partner rarely is).
+RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_DEEP = 10     # deep strategic alliance
+RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_STANDARD = 8  # general partner ecosystem average
+RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_TRANSACTIONAL = 5  # reseller / transactional
+RESEARCHER_PARTNER_ORGS_GLOBAL_LOW = 300   # "global program, no count" low end
+RESEARCHER_PARTNER_ORGS_GLOBAL_HIGH = 500  # "global program, no count" high end
+RESEARCHER_PARTNER_ORGS_REGIONAL_LOW = 30  # "regional / emerging" low end
+RESEARCHER_PARTNER_ORGS_REGIONAL_HIGH = 100  # "regional / emerging" high end
+
+# Event attendance — Motion 5 audience estimation tiers.
+# Applied when a flagship event is named but attendance isn't published.
+RESEARCHER_EVENT_MAJOR_LOW = 30_000   # Salesforce Dreamforce, Microsoft Ignite, AWS re:Invent class
+RESEARCHER_EVENT_MAJOR_HIGH = 50_000
+RESEARCHER_EVENT_MID_LOW = 8_000      # Splunk .conf, Tableau, Cohesity Connect class
+RESEARCHER_EVENT_MID_HIGH = 15_000
+RESEARCHER_EVENT_SPECIALIZED_LOW = 5_000   # Nutanix .NEXT, Trellix XPAND class — single-vendor technical
+RESEARCHER_EVENT_SPECIALIZED_HIGH = 12_000
+RESEARCHER_EVENT_REGIONAL_LOW = 1_000      # regional / virtual / community
+RESEARCHER_EVENT_REGIONAL_HIGH = 5_000
+
+# Employee subset size — Motion 3 audience estimation by product significance.
+# Percentages apply to total company employees. Flagship products carry the
+# largest product teams; satellites smaller dedicated teams plus shared
+# support; standalone products at single-product companies = most of the
+# company.
+RESEARCHER_EMPLOYEE_SUBSET_FLAGSHIP_LOW_PCT = 0.08    # 8% of total company employees
+RESEARCHER_EMPLOYEE_SUBSET_FLAGSHIP_HIGH_PCT = 0.15   # 15%
+RESEARCHER_EMPLOYEE_SUBSET_SATELLITE_LOW_PCT = 0.03   # 3%
+RESEARCHER_EMPLOYEE_SUBSET_SATELLITE_HIGH_PCT = 0.06  # 6%
+RESEARCHER_EMPLOYEE_SUBSET_STANDALONE_LOW_PCT = 0.50  # 50% — whole company is product-facing
+RESEARCHER_EMPLOYEE_SUBSET_STANDALONE_HIGH_PCT = 0.80 # 80%
+
+
 # ── ACV audience guardrails (R1–R5 from 2026-04-13 ACV audit) ─────────
 # Wrapper org types (GSI, university, training org, etc.) report the
 # underlying technology's global audience as their install_base. The real

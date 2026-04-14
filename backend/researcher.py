@@ -34,6 +34,44 @@ from models import (
     ProvisioningFacts, ScoringFacts, SignalEvidence, TeardownFacts,
     TrainingCommitmentFacts,
 )
+import scoring_config as cfg  # for researcher estimation heuristic constants used in prompts
+
+
+# ── Pre-rendered prompt fragments using scoring_config constants ─────────
+# These fragments get concatenated into the per-prompt strings below so
+# we don't have to convert the (JSON-brace-heavy) prompts to f-strings.
+# Edit the constants in scoring_config.py → these fragments auto-update
+# at module load → Claude sees the new tuning on the next call.
+
+_PARTNER_SE_HEURISTIC_TEXT = (
+    f"    - Research names a specific partner count (\"1,200+ technology alliance partners\", \"500+ VARs\") → use that × "
+    f"{cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_TRANSACTIONAL}-{cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_DEEP} SEs per partner org depending on partnership depth "
+    f"(deep alliances {cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_DEEP}, general {cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_STANDARD}, transactional resellers {cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_TRANSACTIONAL}).\n"
+    f"    - Research describes a \"global\" channel/partner ecosystem without numbers → estimate "
+    f"{cfg.RESEARCHER_PARTNER_ORGS_GLOBAL_LOW}-{cfg.RESEARCHER_PARTNER_ORGS_GLOBAL_HIGH} partner orgs × {cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_STANDARD} SEs each.\n"
+    f"    - Research describes a \"regional\" or \"emerging\" channel → estimate "
+    f"{cfg.RESEARCHER_PARTNER_ORGS_REGIONAL_LOW}-{cfg.RESEARCHER_PARTNER_ORGS_REGIONAL_HIGH} partner orgs × {cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_TRANSACTIONAL}-{cfg.RESEARCHER_PARTNER_SE_PER_PARTNER_ORG_STANDARD} SEs."
+)
+
+_EVENT_ATTENDANCE_HEURISTIC_TEXT = (
+    f"    - Major enterprise vendor flagship event (Salesforce Dreamforce, Microsoft Ignite, AWS re:Invent class) → "
+    f"{cfg.RESEARCHER_EVENT_MAJOR_LOW:,}-{cfg.RESEARCHER_EVENT_MAJOR_HIGH:,}.\n"
+    f"    - Mid-size enterprise vendor flagship (Splunk .conf, Tableau Conference, Cohesity Connect class) → "
+    f"{cfg.RESEARCHER_EVENT_MID_LOW:,}-{cfg.RESEARCHER_EVENT_MID_HIGH:,}.\n"
+    f"    - Smaller/specialized flagship (Nutanix .NEXT, Trellix XPAND class — single-vendor, technical audience) → "
+    f"{cfg.RESEARCHER_EVENT_SPECIALIZED_LOW:,}-{cfg.RESEARCHER_EVENT_SPECIALIZED_HIGH:,}.\n"
+    f"    - Regional / virtual / community event → "
+    f"{cfg.RESEARCHER_EVENT_REGIONAL_LOW:,}-{cfg.RESEARCHER_EVENT_REGIONAL_HIGH:,}."
+)
+
+_EMPLOYEE_SUBSET_HEURISTIC_TEXT = (
+    f"    - **Flagship product** (`product_relationship == \"flagship\"`) → estimate "
+    f"{int(cfg.RESEARCHER_EMPLOYEE_SUBSET_FLAGSHIP_LOW_PCT * 100)}-{int(cfg.RESEARCHER_EMPLOYEE_SUBSET_FLAGSHIP_HIGH_PCT * 100)}% of total company employees as product-facing for THIS product. Microsoft Azure team ~5,000-10,000. Nutanix NCI team ~700-1,200.\n"
+    f"    - **Satellite product** (`product_relationship == \"satellite\"`) → estimate "
+    f"{int(cfg.RESEARCHER_EMPLOYEE_SUBSET_SATELLITE_LOW_PCT * 100)}-{int(cfg.RESEARCHER_EMPLOYEE_SUBSET_SATELLITE_HIGH_PCT * 100)}% of total company employees as product-facing for THIS product. A satellite has a smaller dedicated team, plus shared support that overlaps with the flagship.\n"
+    f"    - **Standalone product** at a focused single-product company → estimate "
+    f"{int(cfg.RESEARCHER_EMPLOYEE_SUBSET_STANDALONE_LOW_PCT * 100)}-{int(cfg.RESEARCHER_EMPLOYEE_SUBSET_STANDALONE_HIGH_PCT * 100)}% of total company employees (the whole company is product-facing)."
+)
 
 log = logging.getLogger(__name__)
 
@@ -1160,9 +1198,7 @@ These fields feed the ACV math directly — they are the AUDIENCE for three of t
 
   - **employee_subset_size** → ACV Motion 3 (Employee Training). People at the COMPANY BEING ANALYZED whose job involves meaningfully using or supporting THIS product — product team, SEs, support engineers, customer success, trainers. NOT people at customer companies (those are install_base users in Motion 1). NOT total company headcount. A SMALL number relative to total headcount — for a cybersecurity vendor with 3,000 employees, maybe 500-800 are in product-facing roles across the WHOLE company.
     **Scale per product by product significance.** A flagship product carries the largest product team, SEs, support population — often most of the company's product-facing headcount. A satellite or specialty product carries a much smaller product-specific team that overlaps with the flagship team but still has dedicated roles. Use these heuristics:
-    - **Flagship product** (`product_relationship == "flagship"`) → estimate 8-15% of total company employees as product-facing for THIS product. Microsoft Azure team ~5,000-10,000. Nutanix NCI team ~700-1,200.
-    - **Satellite product** (`product_relationship == "satellite"`) → estimate 3-6% of total company employees as product-facing for THIS product. A satellite has a smaller dedicated team, plus shared support that overlaps with the flagship.
-    - **Standalone product** at a focused single-product company → estimate 50-80% of total company employees (the whole company is product-facing).
+{_EMPLOYEE_SUBSET_HEURISTIC_TEXT}
     Single estimated number (low==high). Tie the number to total company employees + product significance. Better to be approximately right based on signals than to default to an arbitrary uniform value.
 
   - **cert_annual_sit_rate** → ACV Motion 4 (Certification / PBT). People who ACTUALLY SIT FOR THE EXAM each year — the smallest number in the funnel. NOT the training candidate population (that goes in install_base). NOT people interested in the cert. The people who literally sit down and take the exam. The funnel drops dramatically: if ~250K are interested, ~50K take training, maybe ~5K sit the exam. For a software company: ~2% of trainees sit the cert exam. For an Industry Authority: ~10% of trainees sit the exam. For academic: ~95% (coursework exams are required). **FOR WRAPPER ORG TYPES: this is how many people at THIS ORGANIZATION sit for certs annually — NOT the global cert candidate population.** Accenture's AWS cert sitters are ~6,000, not the 400,000 people worldwide who sit for AWS certs. Single estimated number. Look for published vendor cert stats. Do NOT guess — leave null when the research doesn't document the number.
@@ -1494,18 +1530,13 @@ Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no m
   - `channel_partners_size`: total partner count — resellers, GSIs, distributors combined.
   - `channel_partner_se_population` → ACV Motion 2 (Partner Training). Approximate number of sales engineers, solution architects, and delivery consultants working INSIDE the CHANNEL / SALES partner ecosystem (GSIs, VARs, distributors, resellers, technology alliance partners who SELL the product) who would benefit from hands-on labs on the company's products. NOT the channel partner headcount (that's every employee at every partner) — the subset whose job actually requires hands-on skill. **CRITICAL DISTINCTION: channel partners SELL the product; ATPs / training partners DELIVER training on the product. ATPs are a delivery mechanism for Motion 1 customers, NOT this audience.** The ATP program may or may not overlap with the channel — capture only the sales/delivery SEs here.
     **ESTIMATE when signals exist even without exact documentation — do not return null when the research shows a real partner ecosystem.** Use these heuristics:
-    - Research names a specific partner count ("1,200+ technology alliance partners", "500+ VARs") → use that × 5-10 SEs per partner org depending on partnership depth (deep alliances 10, transactional resellers 5).
-    - Research describes a "global" channel/partner ecosystem without numbers → estimate 300-500 partner orgs × 8 SEs each ≈ 2,400-4,000.
-    - Research describes a "regional" or "emerging" channel → estimate 30-100 partner orgs × 3-5 SEs ≈ 100-500.
+""" + _PARTNER_SE_HEURISTIC_TEXT + """
     - Research shows no channel partners, direct sales only → null is correct.
     Produce a single-number estimate (low==high) grounded in the signals. Reasoning should tie the number to a specific observation in the research. Leave null ONLY when research genuinely shows no channel ecosystem.
   - `named_channel_partners`: specific partner names mentioned in the research.
-  - `events_attendance` → ACV Motion 5 (Events & Conferences). Flagship events the company runs — map of event name to attendance estimate. e.g. {"Cohesity Connect": {"low": 5000, "high": 5500, ...}, "Cohesity World Tour": {"low": 3000, "high": 4000, ...}}. The ACV calculator sums ALL named events' attendance as the Motion 5 audience.
+  - `events_attendance` → ACV Motion 5 (Events & Conferences). Flagship events the company runs — map of event name to attendance estimate. e.g. {{"Cohesity Connect": {{"low": 5000, "high": 5500, ...}}, "Cohesity World Tour": {{"low": 3000, "high": 4000, ...}}}}. The ACV calculator sums ALL named events' attendance as the Motion 5 audience.
     **ESTIMATE attendance for any real, named flagship event — do not leave null when the research names an event but skips published attendance.** Use these heuristics for estimation:
-    - Major enterprise vendor flagship event (Salesforce Dreamforce, Microsoft Ignite, AWS re:Invent class) → 30,000-50,000.
-    - Mid-size enterprise vendor flagship (Splunk .conf, Tableau Conference, Cohesity Connect class) → 8,000-15,000.
-    - Smaller/specialized flagship (Nutanix .NEXT, Trellix XPAND class — single-vendor, technical audience) → 5,000-12,000.
-    - Regional / virtual / community event → 1,000-5,000.
+""" + _EVENT_ATTENDANCE_HEURISTIC_TEXT + """
     - Industry trade show the vendor merely sponsors (RSA, Black Hat, KubeCon) → DO NOT include; not the vendor's own event.
     Match the event name and vendor scale to the closest tier and produce a defendable single-number estimate (low==high). Include the source page in `source_url` and put the heuristic basis in `notes` (e.g., "estimated from vendor scale and flagship event tier — published attendance not found"). Leave the dict empty ONLY when the company runs no events or only sponsors third-party events. Do NOT invent events that aren't named in the research.
   - `enterprise_reference_customers`: Fortune 500 names mentioned as customers in case studies.
