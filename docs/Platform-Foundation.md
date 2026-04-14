@@ -197,9 +197,12 @@ Captured for every product that passes the product definition filter.
 | **category** | One of the standard categories (Cybersecurity, Cloud Infrastructure, etc.) |
 | **subcategory** | Industry-standard subcategory (2–3 words: Endpoint Protection, Statistical Computing IDE) |
 | **deployment_model** | installable / cloud / hybrid / saas-only |
-| **estimated_user_base** | Single estimated number — directionally right, not a range. "~14M" or "~50K" or "~2000". One number the seller can quote. |
+| **estimated_user_base** | Single estimated number — directionally right, not a range. "~14M" or "~50K" or "~2000". One number the seller can quote. For Software and Enterprise Software, this is the ACV audience directly. For wrapper org types (ILT, Academic, ELP, GSI/VAR/Distributor) this represents the underlying technology's market and is used for Labability context only — the ACV audience is `annual_enrollments_estimate` below. |
 | **user_base_evidence** | What sources informed the estimate — vendor claims, Stack Overflow tag count, GitHub stars, analyst reports, job posting volume |
 | **user_base_confidence** | confirmed / indicated / inferred |
+| **annual_enrollments_estimate** | **Wrapper org types only.** Single estimated number — how many learners THIS organization serves in THIS program per year. For an ILT: classroom students per year in this course. For Academic: students enrolled in this program per year. For ELP: subscribers taking this technology slice per year. For GSI/VAR/Distributor: practitioners in this practice area per year. Distinct from `estimated_user_base` which is the underlying technology's global market. Empty / unset for Software and Enterprise Software org types. |
+| **annual_enrollments_evidence** | What sources informed the enrollments estimate — published course catalog size, vendor case studies, Crunchbase / analyst reports, LinkedIn staff counts |
+| **annual_enrollments_confidence** | confirmed / indicated / inferred |
 | **rough_labability_score** | 0–100 directional estimate of lab promise. Clearly pre-Deep Dive — must be validated. See "Discovery Tier Labels" below |
 
 ### Tier 2 — Per-product (hints)
@@ -1039,11 +1042,22 @@ The five consumption motions below are the categories. The funnel is the logic. 
 
 | # | Motion | Audience | Adoption | Hours | Zero when... |
 |---|---|---|---:|---:|---|
-| **1** | **Customer Training & Enablement** | End learners — anyone taking a lab to learn the product, regardless of whether they enrolled directly or through an ATP. This is the total user population of the product. Do NOT double-count people who train through ATPs — they are customers, not partners. | **4%** | **2** | Never (every product has users) |
+| **1** | **Customer Training & Enablement** | End learners — anyone taking a lab to learn the product, regardless of whether they enrolled directly or through an ATP. This is the total user population of the product. Do NOT double-count people who train through ATPs — they are customers, not partners. | **Category-tier driven: High 8% · Moderate 4% · Low 1%** (see Category Tier below) | **2** | Never (every product has users) |
 | **2** | **Partner Training & Enablement** | People at CHANNEL PARTNER organizations (GSIs, VARs, distributors, resellers) who need product knowledge to sell, deploy, implement, or support it. The partner's own consultants, SEs, solution architects — NOT the end customers who learn through partners (those are Motion 1). | **15%** | **5** | Company doesn't sell through a channel |
 | **3** | **Employee Training & Enablement** | People at the COMPANY BEING ANALYZED who work on the product — product team, SEs, support engineers, CS, trainers. **Not total headcount. Not people at customer companies (those are Motion 1).** Always a small number relative to company size. | **30%** | **8** | Never in practice |
 | **4** | **Certification (PBT)** | People in the world who sit for the certification exam | **100%** | **1** | Product has no cert, or the cert has no lab component |
 | **5** | **Events & Conferences** | Total attendees at the company's events (e.g., ~15,000 at Tableau Conference) | **30%** | **1** | Company doesn't run events. Events without labs today are the *opportunity*, not zero. |
+
+**Customer Training adoption by category tier (Software / Enterprise Software only).** A Nutanix infrastructure admin is roughly twice as likely to take formal training as a Salesforce end user. Flat 4% undercounts specialist categories systematically. Tiers derive from `CATEGORY_PRIORS` in `scoring_config.py` — the same tiering that feeds Market Demand ACV rate hints. Define-Once: one category judgment, two uses.
+
+| Tier | Adoption | Categories |
+|---|---:|---|
+| **High** | **8%** | Cybersecurity, Cloud Infrastructure, Networking/SDN, Data Science & Engineering, Data & Analytics, DevOps, AI Platforms & Tooling |
+| **Moderate** | **4%** | Data Protection, Infrastructure/Virtualization, App Development, ERP, CRM, Healthcare IT, FinTech, Collaboration, Content Management, Legal Tech, Industrial/OT |
+| **Low** | **1%** | Social / Entertainment |
+| **Unknown** | 4% | Fallback to Moderate tier |
+
+The tier applies only to Software and Enterprise Software org types. Wrapper orgs (Academic, ILT Training Org, Enterprise Learning Platform, GSI/VAR/Distributor) use their own org-level overrides because their adoption dynamics come from delivery model, not product category.
 
 **Three-tier open source classification (software companies only):**
 
@@ -1080,14 +1094,17 @@ Multipliers stack multiplicatively but cap the final adoption at 35% (ceiling fo
 
 | Org type | Primary motion label | Audience | Adoption | Hours | Additional motions |
 |---|---|---|---:|---:|---|
-| **Software company** | Customer Training | Product users worldwide | **4%** | **2** | Partner 15%/5hrs, Employee 30%/8hrs, Cert (PBT) 100%/1hr, Events 30%/1hr |
-| **Academic** | Student Training | Students in tech programs | **25%** | **15** | Faculty & Staff Dev 30%/8hrs, Campus Events 30%/1hr. Course Exams bundled into Student Training. |
-| **Industry Authority** | Training Participants | Deflated user_base (see deflation tiers) | **5%** | **10** | Cert (PBT) 100%/1hr. Partner Training removed (ATPs are delivery channels). |
-| **Enterprise Learning Platform** | Platform & ILT Learners | Technology subscribers + classroom students | **3%** | **3** | Events 30%/1hr. One blended motion (on-demand + ILT). |
-| **ILT Training Org** | Classroom Students | Students per year in tech classes | **25%** | **18** | Instructor Training 30%/8hrs. Highest per-learner consumption. |
-| **GSI** | Internal Consultants | Practice area headcount | **5%** | **8** | Events 30%/1hr. Client-side opportunity noted in Seller Briefcase, not modeled. |
-| **VAR** | Internal Practitioners | Practice area headcount | **5%** | **8** | Same model as GSI at smaller scale. |
-| **Tech Distributor** | Internal Practitioners | Services arm headcount | **3%** | **5** | Lower adoption and hours — training is emerging, not core. |
+| **Software company** | Customer Training | Product users worldwide (`estimated_user_base`) | **Category tier: 8/4/1%** | **2** | Partner 15%/5hrs, Employee 30%/8hrs, Cert (PBT) 100%/1hr, Events 30%/1hr |
+| **Enterprise Software** | Customer Training | Product users worldwide (`estimated_user_base`) | **Category tier: 8/4/1%** | **2** | Same as Software; category tier applied per product |
+| **Academic** | Student Training | Students enrolled in the program per year (`annual_enrollments_estimate`) | **25%** | **15** | Faculty & Staff Dev 30%/8hrs, Campus Events 30%/1hr. Course Exams bundled into Student Training. |
+| **Industry Authority** | Training Participants | Deflated `estimated_user_base` (see deflation tiers) | **5%** | **10** | Cert (PBT) 100%/1hr. Partner Training removed (ATPs are delivery channels). |
+| **Enterprise Learning Platform** | Platform & ILT Learners | Subscribers taking this tech slice per year (`annual_enrollments_estimate`) | **3%** | **3** | Events 30%/1hr. One blended motion (on-demand + ILT). |
+| **ILT Training Org** | Classroom Students | Classroom students per year in this course (`annual_enrollments_estimate`) | **25%** | **18** | Instructor Training 30%/8hrs. Highest per-learner consumption. |
+| **GSI** | Internal Consultants | Practitioners in practice area per year (`annual_enrollments_estimate`) | **5%** | **8** | Events 30%/1hr. Client-side opportunity noted in Seller Briefcase, not modeled. |
+| **VAR** | Internal Practitioners | Practitioners in practice per year (`annual_enrollments_estimate`) | **5%** | **8** | Same model as GSI at smaller scale. |
+| **Tech Distributor** | Internal Practitioners | Services arm headcount per year (`annual_enrollments_estimate`) | **3%** | **5** | Lower adoption and hours — training is emerging, not core. |
+
+**The audience-source split is architectural.** Software and Enterprise Software use `estimated_user_base` — total product users — because the thing the platform assesses (the product) and the audience for ACV (its users) are the same thing. Wrapper orgs use `annual_enrollments_estimate` — a separate, distinct field the researcher populates — because the thing assessed for Labability (the underlying vendor technology) and the audience for ACV (the wrapper's delivered program) are different things. This is Define-Once at the data-model level: one field, one meaning, one home per concept. See "Wrapper organizations — product vs. audience" below.
 
 **Industry Authority user base deflation:** Researcher numbers for Industry Authorities are inflated (lifetime cert holders, not annual training candidates). Apply deflation before the adoption math:
 
@@ -1102,6 +1119,21 @@ When annual exam volume IS available from the researcher, use that x 3 instead o
 **The critical insight for Industry Authorities:** ~250,000 people may be interested in CEH. ~50,000 actually take training. ~5,000 sit the exam. The install_base (Motion 1) is the training candidate population. The cert_annual_sit_rate (Motion 4) is the exam sitters. These are very different numbers — putting 250,000 in both fields double-counts the audience.
 
 **The critical insight for academics:** 25% adoption = ~half of enrolled students are in a lab course in any given year, ~90% of those complete labs — but 25% accounts for the fact that not all courses have labs yet. 15 hours = realistic semester lab consumption including practice labs outside class. Course Exams removed as a separate motion — bundled into Student Training (exams are part of tuition, not separate).
+
+### Wrapper organizations — product vs. audience
+
+**Why.** For a software company the product is Azure; Azure's users are the audience for ACV; one number covers both. For a wrapper organization — ILT Training Org, Academic institution, Enterprise Learning Platform, GSI/VAR/Distributor — the thing the platform assesses for Labability and the thing that drives ACV audience are **different**. Collapsing them into one field was a root-cause bug that produced both dramatic under-counts (Nutanix — the real lab opportunity wasn't being modeled) and dramatic over-counts (LLPA — the entire Azure market was being treated as if it were LLPA's classroom audience). The fix is architectural: two fields, two purposes, two homes.
+
+**The split:**
+
+| Purpose | Data field | Example (LLPA's Azure training program) |
+|---|---|---|
+| **Product Labability assessment** | Underlying vendor technology — general knowledge about the technology | Microsoft Azure — labability characteristics of Azure itself |
+| **ACV audience** | `annual_enrollments_estimate` on the wrapper's per-program record — how many learners THIS organization serves in THIS program per year | LLPA's classroom throughput for their Azure course (a small fraction of Azure's global user base) |
+
+**How the researcher populates it.** For wrapper org types the researcher treats each discovered item as a delivered program (course, practice area, curriculum, catalog slice). It captures two distinct numbers per item: the underlying technology name (used for Labability assessment and rate tier lookup) and the `annual_enrollments_estimate` (the wrapper's actual audience for this program — classroom students per year, enrollees per year, practitioners in this practice area per year).
+
+**What this replaces.** Before this rule, the researcher returned a single `estimated_user_base` for each discovered item, and for wrapper orgs that number was ambiguous — sometimes vendor market size, sometimes classroom throughput, never reliably either. The ACV math then applied wrapper-org adoption rates (25% / 18 hrs for ILT, 25% / 15 hrs for Academic) to whatever number the researcher produced, and the magnitude of the error depended entirely on which interpretation the researcher happened to pick.
 
 **How — per-motion calculation:**
 

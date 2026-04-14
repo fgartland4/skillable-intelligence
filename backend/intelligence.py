@@ -1107,6 +1107,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                 f2 = ex.submit(
                     extract_instructional_value_facts,
                     pname, search_results, page_contents,
+                    product_metadata=p,
                 )
                 futures[f2] = ("p2", pname)
             f3 = ex.submit(

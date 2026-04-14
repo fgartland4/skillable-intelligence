@@ -1158,7 +1158,12 @@ These fields feed the ACV math directly — they are the AUDIENCE for three of t
     The install_base is THIS ORGANIZATION's audience for this practice area — NOT the underlying technology's global user base. For Accenture's "AWS Practice," the install_base is Accenture's own AWS consultants (~60K) plus client technical staff they train on AWS — NOT the 4 million AWS practitioners worldwide. For a university's "BS Cybersecurity," it's the students enrolled in that program (~500) — NOT all cybersecurity professionals globally. The question is always: "how many people does THIS ORGANIZATION train on this topic?"
     FOR UNIVERSITIES: students enrolled in technology-facing programs THIS YEAR, not total enrollment. FOR INDUSTRY AUTHORITIES: training candidates per year (people interested in taking the cert), not lifetime cert holders. FOR GSIs/VARs/DISTRIBUTORS: practitioners in THIS practice area at THIS company, plus client staff they hand off to — not the underlying technology's worldwide audience.
 
-  - **employee_subset_size** → ACV Motion 3 (Employee Training). People at the COMPANY BEING ANALYZED whose job involves meaningfully using or supporting THIS product — product team, SEs, support engineers, customer success, trainers. NOT people at customer companies (those are install_base users in Motion 1). NOT total company headcount. For a cybersecurity vendor with 3,000 employees: maybe 500-800 are in product-facing roles (engineering, SE, support, CS). For a large enterprise like Microsoft: the Azure team might be 5,000-10,000 people. This is always a SMALL number relative to company size. A single estimated number, not a range. If uncertain, estimate conservatively — better to undercount than to inflate.
+  - **employee_subset_size** → ACV Motion 3 (Employee Training). People at the COMPANY BEING ANALYZED whose job involves meaningfully using or supporting THIS product — product team, SEs, support engineers, customer success, trainers. NOT people at customer companies (those are install_base users in Motion 1). NOT total company headcount. A SMALL number relative to total headcount — for a cybersecurity vendor with 3,000 employees, maybe 500-800 are in product-facing roles across the WHOLE company.
+    **Scale per product by product significance.** A flagship product carries the largest product team, SEs, support population — often most of the company's product-facing headcount. A satellite or specialty product carries a much smaller product-specific team that overlaps with the flagship team but still has dedicated roles. Use these heuristics:
+    - **Flagship product** (`product_relationship == "flagship"`) → estimate 8-15% of total company employees as product-facing for THIS product. Microsoft Azure team ~5,000-10,000. Nutanix NCI team ~700-1,200.
+    - **Satellite product** (`product_relationship == "satellite"`) → estimate 3-6% of total company employees as product-facing for THIS product. A satellite has a smaller dedicated team, plus shared support that overlaps with the flagship.
+    - **Standalone product** at a focused single-product company → estimate 50-80% of total company employees (the whole company is product-facing).
+    Single estimated number (low==high). Tie the number to total company employees + product significance. Better to be approximately right based on signals than to default to an arbitrary uniform value.
 
   - **cert_annual_sit_rate** → ACV Motion 4 (Certification / PBT). People who ACTUALLY SIT FOR THE EXAM each year — the smallest number in the funnel. NOT the training candidate population (that goes in install_base). NOT people interested in the cert. The people who literally sit down and take the exam. The funnel drops dramatically: if ~250K are interested, ~50K take training, maybe ~5K sit the exam. For a software company: ~2% of trainees sit the cert exam. For an Industry Authority: ~10% of trainees sit the exam. For academic: ~95% (coursework exams are required). **FOR WRAPPER ORG TYPES: this is how many people at THIS ORGANIZATION sit for certs annually — NOT the global cert candidate population.** Accenture's AWS cert sitters are ~6,000, not the 400,000 people worldwide who sit for AWS certs. Single estimated number. Look for published vendor cert stats. Do NOT guess — leave null when the research doesn't document the number.
   - **cert_bodies_mentioning**: list of independent certification bodies whose curriculum mentions THIS product (not the parent company).
@@ -1174,15 +1179,42 @@ Return ONLY the JSON object.  No prose, no markdown, no code fence.
 """
 
 
-def _build_pillar_2_fact_context(name: str, search_results: dict, page_contents: dict) -> str:
+def _build_pillar_2_fact_context(
+    name: str,
+    search_results: dict,
+    page_contents: dict,
+    product_metadata: dict | None = None,
+) -> str:
     """Build per-product research context for Pillar 2 fact extraction.
 
     Reads Pillar 2 search keys (product complexity, mastery stakes, lab
     versatility, market demand).  Some keys overlap with Pillar 1 (e.g.
     documentation pages carry signal for both dimensions) — that's fine,
     each extractor reads what it needs.
+
+    `product_metadata` carries discovery-time facts the extractor needs
+    for per-product reasoning — most importantly `product_relationship`
+    (flagship / satellite / standalone) and `estimated_user_base`, which
+    the Market Demand prompt uses to scale the employee_subset_size
+    estimate by product significance.
     """
     lines = [f"# Research for: {name}"]
+
+    if product_metadata:
+        rel = product_metadata.get("product_relationship") or ""
+        ub = product_metadata.get("estimated_user_base") or ""
+        cat = product_metadata.get("category") or ""
+        sub = product_metadata.get("subcategory") or ""
+        if rel or ub or cat:
+            lines.append("\n## Product Metadata (from discovery)")
+            if rel:
+                lines.append(f"- product_relationship: {rel}")
+            if cat:
+                lines.append(f"- category: {cat}")
+            if sub:
+                lines.append(f"- subcategory: {sub}")
+            if ub:
+                lines.append(f"- estimated_user_base: {ub}")
 
     pillar_2_keys = [
         # Product Complexity signals
@@ -1325,6 +1357,7 @@ def extract_instructional_value_facts(
     product_name: str,
     search_results: dict,
     page_contents: dict,
+    product_metadata: dict | None = None,
 ) -> InstructionalValueFacts:
     """Extract Pillar 2 facts for one product from raw research.
 
@@ -1332,9 +1365,17 @@ def extract_instructional_value_facts(
     InstructionalValueFacts drawer with qualitative SignalEvidence dicts
     plus concrete numeric facts for Market Demand.  On failure, returns
     an empty InstructionalValueFacts so the research run never crashes.
+
+    `product_metadata` is the discovery-time product dict — passed through
+    so the Market Demand prompt can scale `employee_subset_size` by
+    `product_relationship` (flagship / satellite / standalone) and
+    `estimated_user_base`. Optional for backward-compat with older callers.
     """
     from scorer import _call_claude  # local import to avoid circular dep
-    context = _build_pillar_2_fact_context(product_name, search_results, page_contents)
+    context = _build_pillar_2_fact_context(
+        product_name, search_results, page_contents,
+        product_metadata=product_metadata,
+    )
     log.info("Pillar 2 fact extraction starting for %s", product_name)
 
     # Retry once on failure — Pillar 2 extractions intermittently return
@@ -1451,9 +1492,22 @@ Return a JSON object with EXACTLY this shape (no extra keys, no commentary, no m
 
   - `total_employees`: the company's total headcount. NOT the training team, NOT the SE population.
   - `channel_partners_size`: total partner count — resellers, GSIs, distributors combined.
-  - `channel_partner_se_population` → ACV Motion 2 (Partner Training). Approximate number of sales engineers, solution architects, and delivery consultants working INSIDE the channel partner ecosystem who would benefit from hands-on labs on the company's products. NOT the channel partner headcount (that's every employee at every partner) — the subset whose job actually requires hands-on skill. A global ATP network of 500 partners with ~5 SEs each is 2,500. A thin channel of 50 resellers with 2 SEs each is 100. Produce a tight believable range; leave null when research doesn't document this.
+  - `channel_partner_se_population` → ACV Motion 2 (Partner Training). Approximate number of sales engineers, solution architects, and delivery consultants working INSIDE the CHANNEL / SALES partner ecosystem (GSIs, VARs, distributors, resellers, technology alliance partners who SELL the product) who would benefit from hands-on labs on the company's products. NOT the channel partner headcount (that's every employee at every partner) — the subset whose job actually requires hands-on skill. **CRITICAL DISTINCTION: channel partners SELL the product; ATPs / training partners DELIVER training on the product. ATPs are a delivery mechanism for Motion 1 customers, NOT this audience.** The ATP program may or may not overlap with the channel — capture only the sales/delivery SEs here.
+    **ESTIMATE when signals exist even without exact documentation — do not return null when the research shows a real partner ecosystem.** Use these heuristics:
+    - Research names a specific partner count ("1,200+ technology alliance partners", "500+ VARs") → use that × 5-10 SEs per partner org depending on partnership depth (deep alliances 10, transactional resellers 5).
+    - Research describes a "global" channel/partner ecosystem without numbers → estimate 300-500 partner orgs × 8 SEs each ≈ 2,400-4,000.
+    - Research describes a "regional" or "emerging" channel → estimate 30-100 partner orgs × 3-5 SEs ≈ 100-500.
+    - Research shows no channel partners, direct sales only → null is correct.
+    Produce a single-number estimate (low==high) grounded in the signals. Reasoning should tie the number to a specific observation in the research. Leave null ONLY when research genuinely shows no channel ecosystem.
   - `named_channel_partners`: specific partner names mentioned in the research.
-  - `events_attendance` → ACV Motion 5 (Events & Conferences). Flagship events the company runs — map of event name to attendance range. e.g. {"Cohesity Connect": {"low": 5000, "high": 5500, ...}, "Cohesity World Tour": {"low": 3000, "high": 4000, ...}}. The ACV calculator sums ALL named events' attendance as the Motion 5 audience. Include only real events with public attendance evidence; leave the dict empty when the company runs no events or when attendance isn't documented. Do NOT invent events. Tight ranges — conference pages usually publish attendance numbers.
+  - `events_attendance` → ACV Motion 5 (Events & Conferences). Flagship events the company runs — map of event name to attendance estimate. e.g. {"Cohesity Connect": {"low": 5000, "high": 5500, ...}, "Cohesity World Tour": {"low": 3000, "high": 4000, ...}}. The ACV calculator sums ALL named events' attendance as the Motion 5 audience.
+    **ESTIMATE attendance for any real, named flagship event — do not leave null when the research names an event but skips published attendance.** Use these heuristics for estimation:
+    - Major enterprise vendor flagship event (Salesforce Dreamforce, Microsoft Ignite, AWS re:Invent class) → 30,000-50,000.
+    - Mid-size enterprise vendor flagship (Splunk .conf, Tableau Conference, Cohesity Connect class) → 8,000-15,000.
+    - Smaller/specialized flagship (Nutanix .NEXT, Trellix XPAND class — single-vendor, technical audience) → 5,000-12,000.
+    - Regional / virtual / community event → 1,000-5,000.
+    - Industry trade show the vendor merely sponsors (RSA, Black Hat, KubeCon) → DO NOT include; not the vendor's own event.
+    Match the event name and vendor scale to the closest tier and produce a defendable single-number estimate (low==high). Include the source page in `source_url` and put the heuristic basis in `notes` (e.g., "estimated from vendor scale and flagship event tier — published attendance not found"). Leave the dict empty ONLY when the company runs no events or only sponsors third-party events. Do NOT invent events that aren't named in the research.
   - `enterprise_reference_customers`: Fortune 500 names mentioned as customers in case studies.
   - `geographic_reach_regions`: where the company operates — NAMER / EMEA / APAC / LATAM.
 

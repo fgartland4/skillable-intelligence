@@ -941,6 +941,33 @@ Simulation rate is pinned to `VM_LOW_RATE` — Sims are priced the same as VM Lo
 
 Rates use `~` to signal estimate. **One number per tier.** Audience is also a single estimated number — not a range. Every input is one number, one number out. Rate ranges and audience ranges both compound noise without adding precision and are forbidden.
 
+### Customer Training adoption by category tier — locked 2026-04-13
+
+For Software and Enterprise Software org types only, Motion 1 adoption is tier-driven rather than a flat 4%. Tiers derive from `CATEGORY_PRIORS` in `scoring_config.py` — the same tiering that feeds Market Demand ACV rate hints, now consolidated to also drive Motion 1 adoption deterministically (no longer just an AI prompt hint).
+
+| Tier | Adoption | Categories |
+|---|---:|---|
+| **High** | **8%** (`cfg.CUSTOMER_TRAINING_ADOPTION_HIGH`) | Cybersecurity, Cloud Infrastructure, Networking/SDN, Data Science & Engineering, Data & Analytics, DevOps, AI Platforms & Tooling |
+| **Moderate** | **4%** (`cfg.CUSTOMER_TRAINING_ADOPTION_MODERATE`) | Data Protection, Infrastructure/Virtualization, App Development, ERP, CRM, Healthcare IT, FinTech, Collaboration, Content Management, Legal Tech, Industrial/OT |
+| **Low** | **1%** (`cfg.CUSTOMER_TRAINING_ADOPTION_LOW`) | Social / Entertainment |
+| **Unknown** | 4% | Fallback to Moderate |
+
+**Why tier rather than flat 4%:** specialist categories with career-gated training (a Nutanix infrastructure admin, a Splunk analyst, a Kubernetes operator) have roughly 2× the formal-training uptake of general-purpose categories (a Salesforce end user, a SharePoint contributor). Flat 4% was the average across the whole portfolio and systematically undercounted the categories that matter most for Skillable's pipeline. Source: `cfg.CATEGORY_PRIORS` + `cfg.CUSTOMER_TRAINING_ADOPTION_BY_TIER`.
+
+**Scope:** applies to Software and Enterprise Software org types. Wrapper org types (Academic, ILT Training Org, Enterprise Learning Platform, GSI/VAR/Distributor) use their existing org-level overrides in `ACV_ORG_ADOPTION_OVERRIDES` because their adoption dynamics come from delivery model, not product category.
+
+### Audience source by org type — locked 2026-04-13
+
+Software and Enterprise Software org types use `estimated_user_base` as the Motion 1 audience. Wrapper org types use `annual_enrollments_estimate` — a distinct per-program field populated by the researcher specifically for wrapper orgs, representing how many learners the organization actually serves in that program per year.
+
+| Org type | Motion 1 audience field | Source constant |
+|---|---|---|
+| Software, Enterprise Software | `estimated_user_base` | `cfg.ACV_AUDIENCE_SOURCE_USER_BASE` |
+| Industry Authority | `estimated_user_base` with deflation | `cfg.ACV_AUDIENCE_SOURCE_USER_BASE_DEFLATED` |
+| Academic, ILT Training Org, Enterprise Learning Platform, GSI, VAR, Tech Distributor | `annual_enrollments_estimate` | `cfg.ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS` |
+
+Full rationale in `Platform-Foundation.md → Wrapper organizations — product vs. audience`. This document does not duplicate that content.
+
 ### Training maturity multipliers — locked 2026-04-13
 
 Researcher-captured signals nudge the baseline adoption rate up or down. Apply to all org types. Multipliers stack multiplicatively, capped at 35% adoption ceiling (`cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP`).

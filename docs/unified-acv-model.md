@@ -1,6 +1,6 @@
 # Unified ACV Model — All Organization Types
 
-**Status:** In progress — aligned with Frank 2026-04-13
+**Status:** LOCKED — 2026-04-13
 **Applies to:** Both discovery-level AND Deep Dive ACV. Same constants, two depths of input.
 
 ---
@@ -15,15 +15,49 @@ Training maturity multipliers from researcher data nudge adoption up or down fro
 
 ---
 
+## Audience Source by Org Type — the separation that matters
+
+**Why.** For a software company the product IS what the platform assesses — its users are the audience, full stop. For wrapper organizations (ILT Training Orgs, Academic institutions, Enterprise Learning Platforms, GSIs / VARs / Distributors) there are **two different things** the framework needs to measure, and they must not collapse:
+
+| Subject | What it's for | Where the number comes from |
+|---|---|---|
+| **Underlying vendor technology** | Product Labability assessment — can Skillable run labs on this technology? | General knowledge about the technology |
+| **Wrapper's own delivered program** | ACV audience — how many learners does THIS organization serve in THIS program per year? | `annual_enrollments_estimate` on the wrapper's per-program record |
+
+For software companies these are the same thing, and `estimated_user_base` is the only audience field that matters. For wrapper orgs they are different and the researcher must populate `annual_enrollments_estimate` separately — the vendor technology's market size is never the wrapper's classroom/program audience.
+
+| Org type | ACV audience source |
+|---|---|
+| Software company | `estimated_user_base` (product users) |
+| Enterprise Software | `estimated_user_base` (product users) |
+| Industry Authority | `estimated_user_base` with deflation tiers applied |
+| Academic | `annual_enrollments_estimate` (students in the program per year) |
+| Enterprise Learning Platform | `annual_enrollments_estimate` (subscribers taking that technology slice per year) |
+| ILT Training Org | `annual_enrollments_estimate` (classroom students per year in that course) |
+| GSI / VAR / Distributor | `annual_enrollments_estimate` (practitioners in that practice area) |
+
+---
+
 ## 1. Software Companies (the baseline) — LOCKED
 
 | Motion | Audience | Adoption | Hours | Rate |
 |---|---|---|---|---|
-| Customer Training | Product users (training pop) | 4% | 2 | From deployment model |
+| Customer Training | Product users (`estimated_user_base`) | **Category-tier driven (see below)** | 2 | From deployment model |
 | Partner Training | Channel partner SEs | 15% | 5 | From deployment model |
 | Employee Training | Company's product-facing employees | 30% | 8 | From deployment model |
 | Certification (PBT) | Annual exam sitters | 100% | 1 | From deployment model |
 | Events | Event attendees | 30% | 1 | From deployment model |
+
+**Customer Training adoption by product category.** Specialist categories with career-gated training get more adoption than general-purpose or consumer-facing categories. Tiers derive from `CATEGORY_PRIORS` in `scoring_config.py` — the same tiering that drives Market Demand ACV rate hints in the AI prompts. Define-Once: one category judgment, two uses.
+
+| Tier | Adoption | Categories |
+|---|---:|---|
+| **High** | **8%** | Cybersecurity, Cloud Infrastructure, Networking/SDN, Data Science & Engineering, Data & Analytics, DevOps, AI Platforms & Tooling |
+| **Moderate** | **4%** | Data Protection, Infrastructure/Virtualization, App Development, ERP, CRM, Healthcare IT, FinTech, Collaboration, Content Management, Legal Tech, Industrial/OT |
+| **Low** | **1%** | Social / Entertainment |
+| **Unknown / uncategorized** | 4% | Fallback to Moderate tier |
+
+Why tier rather than flat 4%: a Nutanix infrastructure admin is ~2× as likely to take formal training as a Salesforce end user. Flat 4% undercounts specialist categories systematically. The tier applies to Software and Enterprise Software org types. Wrapper org types use their own org-level overrides (classroom delivery has its own adoption dynamics that the category tier doesn't capture cleanly).
 
 **Three-tier open source classification:**
 
@@ -48,7 +82,7 @@ Training maturity multipliers from researcher data nudge adoption up or down fro
 
 | Motion | Label | Audience | Adoption | Hours |
 |---|---|---|---|---|
-| Student Training | Students in tech programs | install_base | **25%** | **15** |
+| Student Training | Students in tech programs | `annual_enrollments_estimate` (students per year in this program) | **25%** | **15** |
 | Faculty & Staff Development | Faculty + staff in tech depts | employee_subset | 30% | 8 |
 | Campus Events | If applicable | events | 30% | 1 |
 
@@ -76,7 +110,7 @@ When annual exam volume IS available from researcher, use that × 3 instead of d
 
 | Motion | Label | Audience | Adoption | Hours |
 |---|---|---|---|---|
-| Training Participants | Cert prep students | Deflated user_base | **5%** | **10** |
+| Training Participants | Cert prep students | Deflated `estimated_user_base` | **5%** | **10** |
 | Certification (PBT) | Exam sitters | Deflated training pop ÷ 3 | **100%** | **1** |
 | Events | If applicable | Event attendees | 30% | 1 |
 
@@ -96,7 +130,7 @@ When annual exam volume IS available from researcher, use that × 3 instead of d
 
 | Motion | Label | Audience | Adoption | Hours |
 |---|---|---|---|---|
-| Platform & ILT Learners | Technology subscribers + classroom students | install_base | **3%** | **3** |
+| Platform & ILT Learners | Technology subscribers + classroom students | `annual_enrollments_estimate` (subscribers taking this tech slice + classroom students per year) | **3%** | **3** |
 | Events | If applicable | events | 30% | 1 |
 
 **Key decisions:**
@@ -117,7 +151,7 @@ When annual exam volume IS available from researcher, use that × 3 instead of d
 
 | Motion | Label | Audience | Adoption | Hours |
 |---|---|---|---|---|
-| Classroom Students | Students per year in tech classes | install_base | **25%** | **18** |
+| Classroom Students | Students per year in tech classes | `annual_enrollments_estimate` (classroom students per year in this course) | **25%** | **18** |
 | Instructor Training | Instructors who need product skills | employee_subset | 30% | 8 |
 | Events | If applicable | events | 30% | 1 |
 
@@ -139,14 +173,14 @@ When annual exam volume IS available from researcher, use that × 3 instead of d
 
 | Motion | Label | Audience | Adoption | Hours |
 |---|---|---|---|---|
-| Internal Consultants | Practitioners in practice areas | install_base (practice headcount) | **5%** | **8** |
+| Internal Consultants | Practitioners in practice areas | `annual_enrollments_estimate` (practice headcount per year) | **5%** | **8** |
 | Events | Internal summits, client events | events | 30% | 1 |
 
 ### 4b. VARs (regional technology consultancies)
 
 | Motion | Label | Audience | Adoption | Hours |
 |---|---|---|---|---|
-| Internal Practitioners | Practice area headcount | install_base | **5%** | **8** |
+| Internal Practitioners | Practice area headcount | `annual_enrollments_estimate` (practice headcount per year) | **5%** | **8** |
 | Events | If applicable | events | 30% | 1 |
 
 Same model as GSIs — same business structure at smaller scale.
@@ -155,7 +189,7 @@ Same model as GSIs — same business structure at smaller scale.
 
 | Motion | Label | Audience | Adoption | Hours |
 |---|---|---|---|---|
-| Internal Practitioners | Services arm headcount | install_base | **3%** | **5** |
+| Internal Practitioners | Services arm headcount | `annual_enrollments_estimate` (services arm headcount per year) | **3%** | **5** |
 | Events | If applicable | events | 30% | 1 |
 
 Lower adoption and hours — training is emerging for distributors, not core.
