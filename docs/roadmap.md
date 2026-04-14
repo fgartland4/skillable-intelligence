@@ -8,7 +8,7 @@ The **single prioritized list** of everything we need to do, are doing, or need 
 
 Best current thinking, always. Fully synthesized, never appended.
 
-**Last refreshed:** 2026-04-13
+**Last refreshed:** 2026-04-14 (post saturated-only ACV redesign + full 549-record retrofit)
 
 ---
 
@@ -27,24 +27,35 @@ Priority tags: **HIGH** / **MED** / **LOW** on every non-done item.
 
 ## §1 — Active Priorities
 
-### Badge-to-Score Consistency Investigation (next session §1)
+### Validate ACV across 10 diverse companies, then hand to Marketing (next session §1)
 
-Badges are not consistently defending the scores they accompany. Root cause investigation needed across all dimensions — not patches. See `next-session-todo.md §1` for the full investigation plan.
+Full 549-record retrofit shipped 2026-04-14 EOD using the new saturated-only ceiling design + two-column calibration (current + Potential). Spot-checks are clean but a human pass across diversity is the right gate before Marketing uses it for ICP targeting.
 
 | # | Item | Priority | Status |
 |---|---|---|---|
-| **BI1** | Trace 1-badge vs 4-badge products through full pipeline (researcher → scorer → badge selector) | HIGH | 🟢 Next session |
+| **V1** | Spot-check 10 diverse companies across org types + sizes (list in `next-session-todo.md §1`) | HIGH | 🟢 Next session |
+| **V2** | CSV export → hand to Marketing (was the whole goal of this work) | HIGH | 🟢 After V1 clean |
+| **V3** | Fine-tune individual stage assignments in `known_customers.json` as Frank's read of specific customers evolves | MED | 🔵 Ongoing |
+
+### Badge-to-Score Consistency Investigation (after validation)
+
+Badges are not consistently defending the scores they accompany. Root cause investigation needed across all dimensions — not patches. See `next-session-todo.md §1b` for the full investigation plan.
+
+| # | Item | Priority | Status |
+|---|---|---|---|
+| **BI1** | Trace 1-badge vs 4-badge products through full pipeline (researcher → scorer → badge selector) | HIGH | 🟢 After validation |
 | **BI2** | Identify root cause: researcher not extracting, scorer not crediting, or badge selector not emitting? | HIGH | 🟢 |
 | **BI3** | Extend investigation to all 12 dimensions | HIGH | 🟢 |
 | **BI4** | Structural fix — not band-aids | HIGH | 🟢 |
+| **BI5** | `scripts/rescore_pillars.py` (shipped 2026-04-14) now enables Python-only scoring changes to propagate across the cache with zero Claude calls — unblocks iterative tuning during BI | — | ✓ Tool ready |
 
-### Prospector Modal Documentation (after badge investigation)
+### ACV Holistic — Saturated-Only Cap Redesign (shipped 2026-04-14) ✓
 
-? icons wired but showing "Coming soon." Content sourced from Platform-Foundation.md + B&S Reference. Same pattern as Inspector modals.
+Known-customer floor/ceiling rules simplified — saturated customers get a 1.3× current ceiling cap; every other stage leaves the ceiling to Claude's holistic reasoning subject to the universal $30M hard cap. Two-column calibration block shows both current ACV and estimated ACV Potential. `_raw_claude` preservation makes future guardrail tuning free (pure Python re-application). Full 549-record retrofit + 47-group auto-dedup complete. Stage taxonomy simplified to descriptive-only for non-saturated. See Done section.
 
-| # | Item | Priority | Status |
-|---|---|---|---|
-| **MD1** | Write modal content for Prospector — ACV estimation, scoring framework, company list | HIGH | 🟢 Ready to write |
+### Prospector Modal Documentation (shipped 2026-04-14) ✓
+
+Three Prospector `?` modals rewritten to reflect the full current design (Option 2 holistic, known-customer calibration, partnership, pitfalls A/B/D/E/F, rate tiers, verdict grid). Docs mode restored to the original white surface design. One modal component, one API, across Inspector + Prospector. Inspector ACV hero modal rate table fixed (was hardcoded $9/hr, now reads VM_LOW_RATE). See Done section.
 
 ### Unified ACV Model (shipped 2026-04-13) ✓
 
@@ -78,6 +89,8 @@ Cross-platform feature: any long-running operation (Deep Dive, Prospector batch)
 
 | # | Item | Priority | Status | Blocked by |
 |---|---|---|---|---|
+| **PatC** | **Pattern C — K-12 / district budget-signal audience** (deferred 2026-04-14). Parkway School District has a ~$750k CTE/PD budget line that never enters the math — model multiplies ~135 students × cloud-tier rate and lands at $18-52k. Need: (1) new researcher field for "training-dedicated budget" when visible; (2) routing rule that lets budget feed Motion 2/3-style partner/employee audience sizing. Structural, not a prompt tweak. | MED | 🔵 Backlog | Nothing |
+| **PatG** | **Pattern G — parent/subsidiary entity dedup** (deferred 2026-04-14). Records like "Deloitte" / "Deloitte Consulting" / "Deloitte Consulting LLP" and "Grand Canyon University" / "Grand Canyon Education" normalize to different keys and auto-dedup can't safely collapse them without risking different entities. Frank's call: probably stays manual. Use `scripts/merge_companies.py` when duplicate clusters surface. | LOW | 🔵 Deferred | Nothing (manual tool exists) |
 | **5** | **Documentation Job B** — per-product report (doc icons). Three options: three-pillar summary modal, Word doc preview, executive briefing. Frank's framing: dimension-level drill-down. Design conversation needed first. | HIGH | 🔵 Needs alignment | Design decision |
 | **6** | **Deployment** — Render or Azure Web App. Decision from Frank's team. Scope once decided: secrets loading, gunicorn entry point, persistent storage, HTTPS. | HIGH | ❓ Needs team decision | External |
 | **7** | **Pillar 2 fact extractor reliability** — intermittent empty `mastery_stakes` / `lab_versatility` / `market_demand` drawers. Safety net in rubric_grader keeps things flowing but root cause is in the extractor. Investigate-first. | MED | 🔵 | Nothing |
@@ -189,7 +202,59 @@ Items blocked on alignment conversations, not engineering effort.
 Historical record of shipped work. Kept for context — do not redo.
 
 <details>
-<summary>Expand shipped items (~70 items)</summary>
+<summary>Expand shipped items (~90 items)</summary>
+
+### 2026-04-14 — Saturated-Only ACV Redesign + Full Retrofit
+
+**Design corrections:**
+- ✓ Saturated-only ceiling cap — only `saturated` customers get 1.3× current cap; all other stages uncapped (subject to universal $30M hard cap)
+- ✓ Floor rule preserved for ALL stages — `acv_low >= current_acv` (safety, never undersell)
+- ✓ Expected-low multipliers abandoned as fake precision
+- ✓ Two-column calibration block — anonymized block shows current ACV AND estimated ACV Potential per stage so Claude anchors prospects on Potential (the right question)
+- ✓ `_raw_claude` preservation — raw Claude numeric output stored alongside post-guardrail result so future guardrail tuning propagates pure-Python with zero Claude calls
+- ✓ Customer stage relabeling — 4 saturated (CompTIA, EC-Council, SANS, Skillsoft); everyone else in growth stages with no cap (Microsoft, Deloitte, Siemens, Eaton, Commvault, Epiq, Cengage, Trellix, Cisco, GCU, Multiverse, LLPA, Zero-Point, Omnissa, Boxhill, New Horizons)
+
+**Tools shipped:**
+- ✓ `scripts/compute_customer_potentials.py` — one-time caps-disabled pass computing ACV Potential for each non-saturated known customer; populates `acv_potential_low/high` in gitignored `known_customers.json`
+- ✓ `scripts/merge_companies.py` — force-merge parent/service-line duplicate records the auto-dedup can't safely collapse (Deloitte / Deloitte Consulting / Deloitte Consulting LLP class)
+- ✓ `scripts/rescore_pillars.py` — pure-Python pillar rescore against cached facts + rubric grades; zero Claude calls. Propagates pillar/dimension weight, strength tier, signal value, baseline, penalty, Technical Fit Multiplier changes across the whole cache in milliseconds per product.
+
+**Patterns A/B/D/E/F prompt fixes** (diagnosed from the Parkway / Multiverse / Zero-Point / New Horizons low-estimate cluster):
+- ✓ A — removed "fraction who actually consume" deflator; trust calibrated adoption rates directly
+- ✓ B — annual vs cumulative rule (prefer annual; if only cumulative, divide by 2-3yr program life / 4yr academic)
+- ✓ D — floor informs the low bound without collapsing range-width (prevents zero-width artificial uniformity)
+- ✓ E — existing DIY / in-house lab platform is a POSITIVE ICP signal (existing demand), not a displacement discount
+- ✓ F — rate tier driven by workload complexity, not deployment label (SaaS cybersecurity still needs VM rates)
+
+**Pattern C — K-12 budget-signal audience** — deferred as structural backlog (needs researcher field + routing rule). Pattern G — parent/subsidiary entity dedup — deferred per Frank as too fragile to automate at scale; manual merge via `scripts/merge_companies.py` when needed.
+
+**Operations shipped:**
+- ✓ Full 549-record holistic ACV retrofit at 10-way concurrency — 14.6 min, 0 failures
+- ✓ Auto-dedup pass — 47 obvious duplicate groups merged
+- ✓ Concurrency bumped 3 → 10 for Prospector batch + retrofit runner
+- ✓ Deloitte 3-record merge ($420k, $4.5M, $8.5M-$16M discoveries → 1 at $12M-$22M)
+- ✓ Zero-Point Security 2-record merge (identical names) → 1 at $210k-$520k
+
+**Prospector UX polish:**
+- ✓ Amber pulsing dot for running batches (visually distinct from completed green)
+- ✓ Column tooltips on every Prospector column header
+- ✓ "Why" → "Top Signal" rename (avoid word collision with "Rationale")
+- ✓ "Estimated ACV" → "ACV Potential" rename
+- ✓ "Prom. / Pot. / Unc. / Unl." short tier labels with full-text "Promising Products" / etc. tooltips
+- ✓ Content Development partnership-ACV handling (GP Strategies class — purple "PARTNERSHIP" chip instead of dollar range)
+- ✓ Partnership flag propagates through row builder + both CSV exports (acv_type column)
+
+**Modal system:**
+- ✓ Docs mode restored to original white-surface info-modal design using `--sk-modal-*` tokens (920px, accent rule, WHY/WHAT/HOW eyebrows, scannable tables)
+- ✓ Inspector ACV hero modal rate-table hardcode fixed (was $9/hr, now reads `VM_LOW_RATE`)
+- ✓ Legacy `.info-modal-*` CSS consolidated out of `full_analysis.html` into shared `_search_modal.html` scoped under `.search-modal-card.is-docs`
+- ✓ Three Prospector `?` modals rewritten (Researched Companies / How ACV is Estimated / How Companies Are Scored) with Option 2 architecture, confidence chip legend, guardrail explainer, pitfalls ABDEF
+- ✓ Shared modal API: `openSearchModal` / `openSearchModalDecision` / `openSearchModalInfo` / `openSearchModalDocs` / `scrollToSearchModalSection` / `transitionSearchModalToProgress`
+
+**Documentation synced:**
+- ✓ Platform-Foundation.md — Option 2 Holistic ACV section, known-customer calibration, partnership ACV, pitfalls A/B/D/E/F, Prospector column spec, white-docs-modal note, 2-call discovery cost
+- ✓ Badging-and-Scoring-Reference.md — operational Holistic ACV guardrail section (hard cap, range ratio, per-user ceiling, known-customer schema, stage ceiling multipliers, output scrubber, anonymized calibration, partnership, pitfalls)
+- ✓ collaboration-with-frank.md — "Simpler is usually right" + over-engineering detection patterns + "blow it out" trust-path check
 
 ### Platform Foundation + Rebuild (Steps 1–4)
 - ✓ Alignment conversation process

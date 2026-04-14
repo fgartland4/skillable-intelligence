@@ -147,6 +147,49 @@ Sessions with many screenshots can hit context limits. When a session is running
 
 ---
 
+## Simpler Is Usually Right *(GP4: self-evident beats layered; GP6: one grounded answer beats a tree of maybe-rules)*
+
+When you catch yourself proposing **tiered / graduated / multiplier-based** rules — "saturated at 1.3×, mature-small at 1.5×, mid at 3×, first-year at 8×, early at 15×, very-early uncapped" — stop. Ask: "is the variation earning its keep, or am I inventing false precision?"
+
+Frank's instinct, again and again: **the minimum number of tiers that actually behave differently.** A rule with six levels is almost never right. Usually it collapses to "one special case plus a default." When the tiers are actually arbitrary multipliers on a number that isn't grounded in evidence, they're fake precision — as arbitrary as having no rule at all, but harder to reason about.
+
+| When you catch yourself proposing... | The question to ask |
+|---|---|
+| Five-tier multiplier table with nice-looking numbers | "Where do these numbers come from? Can I defend each one?" |
+| "Stage-aware expected low of 2.5× current" | "Is the 2.5 real, or did I pick it because it felt right?" |
+| Cascading rules with conditional exceptions | "Can I collapse this to rule + escape-hatch?" |
+| Labels that only exist to drive multipliers (not observable facts) | "Are the labels descriptive of reality, or are they just knobs?" |
+
+**The Multiverse moment (2026-04-14).** Frank rejected stage-aware ceiling multipliers AND expected-low multipliers in the same conversation. "Saying it's gonna 2.5× is tough." The right rule was much simpler: floor = current ACV for everyone (safety), ceiling cap only for `saturated` (the one stage where the cap is grounded — they actually are near max). Everything else: let Claude's holistic math run. Five tiers of fake precision collapsed to one real rule plus a default.
+
+### Over-engineering Detection
+
+When Frank says any of these, he is **not** confused — he is telling you that you are over-engineering:
+
+| What Frank says | What he means |
+|---|---|
+| "I might not be clear on what you're doing here" | You have built a design that requires explanation. Simpler is available. |
+| "I'm not sure that if one eleven is where they're at now, it feels like they should be more than that" | Your rule is producing an artifact Frank can tell is wrong by eye. Your math is defending a frame that doesn't match reality. |
+| "I think saying is gonna 2.5× is tough" | Your numbers are not grounded. They're multipliers picked to make the model behave. |
+| "I'm not saying it's gonna double. But there's a lot of growth still there" | Avoid overcorrection. The answer is "no cap" not "5× cap." |
+
+When these phrases appear, don't ask a clarifying question about the engineering. Stop. Take the simpler design Frank is gesturing toward.
+
+### The "Blow It Out" Check
+
+Frank asks this before every irreversible ship: "Are you certain that none of these things are gonna all of a sudden blow it out where things are like, you know, something that should be like a $2M or a $750k thing is gonna now be, you know, $14M?"
+
+He is asking for **explicit trust-path reasoning**, not reassurance. The right response names:
+
+1. What safety nets remain intact (universal hard cap, range-width ratio, per-user ceiling)
+2. What the direction of change is (up only? down only? bounded both sides?)
+3. Where the residual risk lives (name it, don't hide it)
+4. What spot-check gates are in place before going wide
+
+Answering with "yes, I'm confident" is insufficient. Frank wants to see the trust chain. This is GP3 (Explainably Trustworthy) applied to the session, not just the product.
+
+---
+
 ## Fix Immediately — Don't Ask *(GP4: when the wrong is self-evident, fix it)*
 
 When something is wrong, fix it. Do not ask "want me to fix it?" — of course Frank wants it fixed. Asking permission to fix a known problem wastes time and erodes trust.

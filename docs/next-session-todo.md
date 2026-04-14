@@ -6,25 +6,127 @@
 
 ---
 
-**Last updated:** 2026-04-14 (ACV low-end pattern fixes A/B/D/E/F + Deep Dive docs modal restored to white design)
+**Last updated:** 2026-04-14 EOD (saturated-only cap + ACV Potential calibration + full 549-record retrofit + core docs synced)
 
-**What shipped today:**
+**What shipped this session (in order):**
 
-**Docs modal restored** — the beautiful white Deep Dive info modal design that got flattened during the shared-modal migration (commit 14a1252) is back. The shared `_search_modal.html` now has a proper `is-docs` mode using `--sk-modal-*` theme tokens: 920px max width, white surface, dark text, accent rule under the header, WHY/WHAT/HOW eyebrow section labels, scannable tables. Progress / decision / info modes keep their dark chrome — only docs mode flips to white. One component, one API, matches original design.
+| Commit | What |
+|---|---|
+| `2474b13` | Content Dev partnership ACV + Prospector column tooltips + "Why"→"Top Signal" rename |
+| `c42a515` | Amber pulsing dot for running batches (visually distinct from completed green) |
+| `943a012` | White docs modal design restored + Patterns A/B/D/E/F prompt fixes |
+| `17acc1d` | Core docs synced — Option 2 Holistic, known-customer calibration, partnership, pitfalls |
+| `ed14343` | Modal docs rewrite — three Prospector `?` modals + Inspector ACV rate fix |
+| `8c2d7c4` | Concurrency bump: 3 → 10 for Prospector batch + retrofit runner |
+| `ddaf4e3` | `scripts/merge_companies.py` (force-merge parent/service-line pairs like Deloitte) + `scripts/rescore_pillars.py` (pure-Python pillar rescore, zero Claude) + legacy `.info-modal-*` CSS consolidated into shared modal |
+| `e870361` | **Saturated-only ceiling cap + two-column calibration (current + Potential) + `_raw_claude` preservation for free future guardrail tuning** |
 
-**ACV low-end pattern fixes — A, B, D, E, F (five of six diagnosed from the Parkway / Multiverse / Zero-Point / New Horizons low-estimate cluster):**
+**Design evolution today (big one) — known-customer floor/ceiling redesign.**
 
-  - **A** — Softened "fraction who actually consume labs" deflator language in the researcher prompt. Mature cert programs with confirmed annual enrollments now trust the platform's calibrated adoption rates directly, instead of Claude layering a second "minority subset" discount on top.
-  - **B** — Added explicit rule: prefer annual enrollments; if only cumulative is available, divide by 2-3yr program life (4yr for academic degrees). Prevents the Zero-Point-class 3-8× swing where cumulative and annual got silently substituted.
-  - **D** — Known-customer floor now INFORMS the low bound without COLLAPSING range-width. Previously when Claude's original (low, high) were both below floor F, we'd clamp both to F, producing zero-width ranges and artificial uniformity across duplicate records (all three New Horizons records pinned identically). Now: floor sets low; high preserves width — either Claude's original high (if above floor), the stage-derived ceiling, or a 2× floor expansion for very-early stage.
-  - **E** — Reframed existing DIY / self-hosted lab platform in the prompt as a POSITIVE ICP signal, not a displacement discount. Companies already running their own labs have already decided they need labs — that's existing demand, not a displacement haircut on top of adoption-rate conservatism.
-  - **F** — Rate tier now determined by workload complexity, not deployment label. "SaaS" or "cloud-delivered" curricula can still need VM-class labs (cybersecurity, networking, platform eng). Deployment alone doesn't determine rate.
+The previous design capped every stage at a multiple of current ACV (1.3× saturated / 1.5× mature-small / 3× mid / 8× first-year / 15× early / uncapped very-early). That "anchored small customers to their starting place" (Frank's phrase 2026-04-14): a growing customer's ACV Potential is a function of their portfolio size, not their current Skillable spend.
 
-Pattern **C** (K-12 district budget-signal audience) — deferred. Needs a new researcher field + routing rule. Not a prompt tweak. Queued below.
+**New rule, locked:**
+- **Floor** = `current_acv` for ALL stages (safety — never undersell an existing contract)
+- **Ceiling cap** = 1.3× current ONLY for `saturated` customers
+- **Every other stage** = no cap from current; Claude's holistic reasoning produces the high, subject only to the universal $30M hard cap
+- **Expected-low multipliers abandoned** as fake precision
 
-Pattern **G** (entity dedup drift: GCU vs GCE, multiple Parkway records) — deferred per Frank's decision 2026-04-14: "I think you'd almost have to go organization by organization by organization. I think it'd be tough to write that as a trustworthy thing. They probably need to stay separate."
+**Two-column calibration block.** The anonymized block Claude sees now emits BOTH `current ACV` AND `estimated ACV Potential` per stage. Prospects are anchored on Potential (what could this be if we win fully) instead of on Current (what we charge today). `scripts/compute_customer_potentials.py` populates `acv_potential_low`/`high` in the gitignored `known_customers.json` via a one-time caps-disabled holistic pass.
 
-SCORING_LOGIC_VERSION bumped to `2026-04-14.acv-holistic-patterns-ABDEF-plus-docs-modal-restore`.
+**`_raw_claude` preservation.** `estimate_holistic_acv` now saves Claude's original numeric output alongside the post-guardrail result. Future guardrail tuning (hard cap / range ratio / per-user ceiling / known-customer floor/ceiling rules) can propagate via pure-Python re-application — zero additional Claude calls. Only prompt text changes or calibration-block changes require a retrofit run.
+
+**Customer stage relabeling (per Frank's walk-through 2026-04-14).** Only 4 customers are `saturated` (CompTIA, EC-Council, SANS, Skillsoft). Everyone else is in a growth stage with no cap — including Microsoft, Omnissa, Deloitte, Siemens, Eaton, Commvault, Epiq, Cengage, Trellix, Cisco, GCU, Multiverse, LLPA, Zero-Point, Boxhill, New Horizons.
+
+**Full 549-record retrofit at 10-way concurrency** — 14.6 min, 0 failures. Post-retrofit distribution:
+
+| Band | Count |
+|---|---|
+| <$100k | 22 |
+| $100k–$500k | 174 |
+| $500k–$1M | 58 |
+| $1M–$5M | 148 |
+| $5M–$15M | 97 |
+| $15M+ | 35 (top-tier enterprise hitting $30M hard cap correctly) |
+| partnership | 7 |
+
+Key corrections visible in the retrofit:
+- **Nutanix** historically $434k → **$6M-$12M** (orders-of-magnitude correction)
+- **Deloitte** consolidated 3 records into 1 at **$12M-$22M** (was $410k-$820k)
+- **Multiverse** finally unpinned from $111k floor → **$350k-$950k**
+- **Infosec** $350k → $1.8M-$3.6M
+- Top enterprise (Microsoft, Google, AWS, Salesforce, Oracle, Adobe, VMware, ServiceNow, Cisco, IBM) → $18M-$30M — hitting the universal hard cap correctly
+- Parkway School District stays low at $18k-$55k (Pattern C deferred as expected)
+
+**Auto-dedup pass** — 47 obvious duplicate groups merged (Cisco variants, Cengage, LLPA, GP Strategies, Docebo, Alibaba Cloud, etc.). 22 still need human review.
+
+---
+
+## §1 — START HERE NEXT SESSION
+
+**Validate 10 diverse ACV numbers with Frank. If they look right, the data is ready for Marketing.**
+
+Today's work was a major ACV design correction. The full retrofit completed cleanly with no blowouts and the spot-checks I ran look good, but a human pass across the diversity of the cache is the right next step before Marketing uses any of this in their ICP targeting.
+
+**Suggested 10-company spot-check (mix of org types + sizes):**
+
+| Company | Org type | Expect |
+|---|---|---|
+| CompTIA | Industry Authority (saturated) | ~$5M (current) — 1.3× cap binding |
+| SANS Institute | Industry Authority (saturated) | ~$624k-$810k |
+| Skillsoft | Enterprise Learning Platform (saturated) | ~$5.5M-$7.2M |
+| Microsoft | Software (mid) | ~$22M-$30M — hard cap binding |
+| Cisco (known customer view) | Software (first-year) | Sharp up from $255k |
+| Deloitte | Systems Integrator (very-early) | ~$12M-$22M — Frank's "gross" call |
+| Multiverse | ILT Training Org (early) | ~$350k-$950k (finally above floor) |
+| Parkway School District | K-12 (Pattern C deferred) | ~$18k-$55k — EXPECTED low |
+| Nutanix | Software prospect | ~$6M-$12M — the original problem case |
+| GP Strategies | Content Development (partnership) | "Partnership" chip, no dollar range |
+
+**Process.** Open each in Prospector, click the ACV cell → read the rationale + drivers + caveats. Flag any that feel wrong to Frank. If a number looks off, use `scripts/retrofit_acv.py --mode holistic --execute --company "<name>"` to rerun one at a time.
+
+**After validation:** CSV export → hand to Marketing. That was the whole goal of this work.
+
+### Then — continue with the longstanding architectural item
+
+**Badge-to-Score Consistency Investigation** remains the next architectural work. Frank's exact framing (2026-04-13): "I believe this is why badging has been so painful — I think we might be putting hack on top of hack on top of hack... I wonder if there are inconsistencies in the way we're doing this that we should go and find out what's the real problem." See §1b below.
+
+---
+
+### §1b — Badge-to-Score Consistency Investigation (still open)
+
+Badges are not consistently defending the scores they accompany. Provisioning is the most visible example (products scoring 30/35 with only 1 badge), but the inconsistency likely exists across dimensions. This is NOT a badge selector problem — it's a pipeline investigation.
+
+**The investigation:**
+
+| Step | What to do |
+|---|---|
+| **1** | Pick a 1-badge Provisioning product and a 4-badge Provisioning product from the same analysis. Trace BOTH through the full pipeline: researcher fact extraction → fact drawer → scorer signals → badge selector output. |
+| **2** | For the 1-badge product: identify exactly WHERE information is lost. Is the researcher not extracting facts? Is the scorer crediting signals the badge selector doesn't see? Is the badge selector filtering too aggressively? |
+| **3** | For the 4-badge product: what facts does it have that the 1-badge product is missing? Are those facts genuinely absent, or did the researcher fail to extract them? |
+| **4** | Extend the investigation to Lab Access, Scoring, and Teardown. Same pattern — compare thin-badge products against rich-badge products. |
+| **5** | Extend to Pillar 2 and Pillar 3 rubric dimensions. The rubric grader emits variable badges — are there dimensions consistently producing only 1-2 badges when the score warrants more? |
+| **6** | Document the root cause(s) and recommend structural fixes — not band-aids. |
+
+**The principle:** Badges explain the score. If the score is 30/35, the badges must show WHY it's 30/35. Every scored dimension should have 2-4 badges that defend the number.
+
+`scripts/rescore_pillars.py` (shipped 2026-04-14) now lets us propagate Python-only scoring changes across the whole cache with zero Claude calls. That unblocks iterative tuning during the investigation.
+
+---
+
+## Backlog (structural deferrals from 2026-04-14)
+
+| Item | Why deferred |
+|---|---|
+| **Pattern C — K-12 district budget-signal audience** | Parkway has a ~$750k CTE/PD budget line that never enters the math. Need new researcher field + routing rule. ~1-day structural work. |
+| **Pattern G — parent/subsidiary entity dedup** (GCU/GCE, Deloitte/Deloitte Consulting class) | Per Frank: "I think you'd almost have to go organization by organization by organization. I think it'd be tough to write that as a trustworthy thing. They probably need to stay separate." Manual merge via `scripts/merge_companies.py` when needed. |
+| **LLPA-class federating associations** | Rare pattern. Punted. |
+| **Lightweight Pillar rescore for rubric-text changes** | `rescore_pillars.py` handles weight/tier/baseline/penalty changes. Text changes to rubric tiers still need a re-grade (Claude call per dimension). Not yet built. |
+
+---
+
+**Prior session notes (historical — consolidated into the top summary above):**
+
+Patterns A/B/D/E/F prompt fixes shipped earlier in the day; superseded by the bigger saturated-only design correction and full 549-record retrofit at session end. SCORING_LOGIC_VERSION now at `2026-04-14.saturated-only-cap-plus-potential-calibration`.
 
 ---
 
@@ -120,71 +222,6 @@ SCORING_LOGIC_VERSION bumped to `2026-04-14.acv-holistic-patterns-ABDEF-plus-doc
 - Server-side 60s cache for Prospector company list
 - Normalized name lookup in storage.py (find_discovery_by_company_name)
 - Exhaustive code audit (3 parallel agents) — all critical issues fixed
-
----
-
-## §1 — START HERE NEXT SESSION
-
-**Run the dedup + retrofit on the cached 347 records, then validate.**
-
-The ACV refresh shipped end-to-end in the prior session — code is in
-production, version bumped. Three things remain operational, not
-architectural:
-
-| Step | Command | Why |
-|---|---|---|
-| **1. Dedup review** | `python scripts/dedup_discoveries.py --review` | See the 7 ambiguous cases that need human judgment (Workday split between badges, Akamai variants, Tencent / Tencent Cloud, Huawei variants). Decide each. |
-| **2. Dedup execute** | `python scripts/dedup_discoveries.py --execute` | Auto-merge the 24 obvious dup groups (Cisco / Cisco Systems class). Older records archived, not deleted. |
-| **3. Retrofit dry-run** | `python scripts/retrofit_acv.py` | See cost + time estimate for retrofitting all cached records with the new holistic ACV (Option 2). Expected: ~$50-$150, ~30-60 min. |
-| **4. Retrofit validation** | `python scripts/retrofit_acv.py --execute --limit 5 --company "Nutanix"` (then LLPA, Boeing, Accenture, one Academic) | Validate on a handful of known companies before going wide. Verify Nutanix lands in the multi-million range, LLPA collapses to ~$200-500k, Boeing reflects its real opportunity. |
-| **5. Retrofit full** | `python scripts/retrofit_acv.py --execute --skip-existing` | Run on the rest. Skip-existing avoids re-running on validated records. |
-
-After retrofit completes, the Prospector list reflects the new ACV
-shape across all cached companies. SCORING_LOGIC_VERSION already
-bumped — cache reads pick up the new logic immediately.
-
-### After retrofit — return to the prior open work
-
-The badge-to-score consistency investigation that was §1 going into
-the ACV refresh remains the next architectural item. It was paused
-because the ACV problem was higher-leverage. Original §1 below for
-context.
-
----
-
-### Badge-to-Score Consistency Investigation (still open after ACV refresh)
-
-Badges are not consistently defending the scores they accompany. Provisioning is the most visible example (products scoring 30/35 with only 1 badge), but the inconsistency likely exists across dimensions. This is NOT a badge selector problem — it's a pipeline investigation.
-
-**The investigation:**
-
-| Step | What to do |
-|---|---|
-| **1** | Pick a 1-badge Provisioning product and a 4-badge Provisioning product from the same analysis. Trace BOTH through the full pipeline: researcher fact extraction → fact drawer → scorer signals → badge selector output. |
-| **2** | For the 1-badge product: identify exactly WHERE information is lost. Is the researcher not extracting facts? Is the scorer crediting signals the badge selector doesn't see? Is the badge selector filtering too aggressively? |
-| **3** | For the 4-badge product: what facts does it have that the 1-badge product is missing? Are those facts genuinely absent, or did the researcher fail to extract them? |
-| **4** | Extend the investigation to Lab Access, Scoring, and Teardown. Same pattern — compare thin-badge products against rich-badge products. |
-| **5** | Extend to Pillar 2 and Pillar 3 rubric dimensions. The rubric grader emits variable badges — are there dimensions consistently producing only 1-2 badges when the score warrants more? |
-| **6** | Document the root cause(s) and recommend structural fixes — not band-aids. |
-
-**The principle:** Badges explain the score. If the score is 30/35, the badges must show WHY it's 30/35. If the score is 8/35, the badges must show WHY it's 8/35. Every scored dimension should have 2-4 badges that defend the number. One badge is not enough evidence. Zero badges with a score is a trust failure.
-
-**Context from Frank (2026-04-13):** "I believe this is why badging has been so painful — I think we might be putting hack on top of hack on top of hack. While it's most evident in provisioning because it's so obvious... I wonder if there are inconsistencies in the way we're doing this that we should go and find out what's the real problem." A band-aid (minimum badge floor) was built and reverted in the same session — the right answer is to find and fix the root cause across the full pipeline, not patch the badge selector.
-
-**Known examples of thin badging:**
-- Sage 50, Sage 100: Provisioning scoring 30/35 with only "Runs in VM" + "Pre-Instancing?" — 2 badges, one of which is a suggestion, not evidence
-- Simple installable products generally: the scorer credits the VM fabric at full points but the researcher doesn't extract enough secondary facts (is_multi_vm_lab, has_complex_topology, container viability, OS details) for the badge selector to emit additional badges
-- The badge selector can only emit badges for facts that exist in the fact drawer — if the researcher doesn't extract them, and the scorer doesn't need them (it credits the fabric directly), the badges are thin
-
-**Key files to investigate:**
-- `backend/researcher.py` — Pillar 1 fact extractor prompt (what does it ask for? what does it miss?)
-- `backend/pillar_1_scorer.py` — what signals does it credit vs what the badge selector can emit?
-- `backend/badge_selector.py` — `_pillar_1_provisioning_badges()` and the elif chain for primary fabrics
-- `backend/models.py` — `ProvisioningFacts` dataclass (what fields exist but are often unpopulated?)
-
-### After the investigation — Prospector modal documentation
-
-The ? icons on Prospector pages are wired but show "Coming soon." Content needs to be written sourced from Platform-Foundation.md and B&S Reference — same pattern as Inspector modals. Do this AFTER the badge investigation because the modal content references how scoring and badging work, and that needs to be right first.
 
 ---
 

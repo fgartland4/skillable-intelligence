@@ -1356,20 +1356,30 @@ Company classification badge uses purple — same color as product subcategory b
 
 ### Known-Customer Calibration
 
-**Why.** The platform has a known list of current Skillable customers and their real ACV. Using that list poorly would be worse than not using it — if Claude sees the customer's name in the prompt, it leaks customer data into user-visible rationales. If Python clamps both low and high to the current ACV, every known customer shows the same identical range and the list looks artificial. The right design is two-layered: the list **informs** the range without ever **naming** customers, and the floor **sets the low bound** without collapsing range-width.
+**Why.** The platform has a known list of current Skillable customers and their real ACV. Using that list poorly would be worse than not using it. Two separate bugs showed up in earlier designs:
 
-**What — the calibration has four distinct contributions to an estimate:**
+1. **Name leak risk** — if Claude sees a customer's name in the prompt, it can echo it back in the user-visible rationale and leak revenue data.
+2. **Anchoring bug** — if we cap the ceiling at a multiple of current ACV for every customer, growing customers look small forever. Their current spend is not their potential; their portfolio size is.
+
+The right design, locked 2026-04-14: the list **informs** the floor without ever **naming** customers, the ceiling cap only applies to genuinely saturated customers, and the calibration block anchors Claude on **ACV Potential** (not current revenue) for the "what could this be" question that prospects are being asked.
+
+**What — five distinct contributions to an estimate:**
 
 | Contribution | How it's used | What's protected |
 |---|---|---|
-| **Anonymized anchor block** | Stage-grouped magnitude ranges shown to Claude (e.g. "Stage 'mid' (4 reference customers): current ACV $X–$Y"). Customer names NEVER enter the prompt. | Claude anchors against real magnitudes; cannot name or identify customers. |
-| **Known-customer floor** | If target IS a known customer, `acv_low = max(claude_low, current_acv)`. Cannot undersell an existing relationship. | Customer's current ACV is the floor, not the answer. |
-| **Stage-derived ceiling** | `acv_high = min(claude_high, current_acv × stage_multiplier)`. Multipliers encode growth plausibility by stage: saturated (1.3×), mature-small (1.5×), mid (3×), first-year (8×), early (15×), very-early (uncapped). | A saturated customer cannot show 10× upside; a very-early customer can. |
-| **Output scrubber** | Any dollar figure matching a known-customer current_acv is replaced with "<peer comparable>" in user-visible text before render. | Customer revenue data never surfaces even if the prompt directive is ignored. |
+| **Anonymized two-column anchor block** | Stage-grouped magnitudes shown to Claude: `current ACV $X–$Y, estimated ACV Potential $A–$B`. Customer names NEVER enter the prompt. For saturated customers current ≈ potential. For growing customers potential is materially higher — that's the right anchor for prospects. | Claude anchors prospects against **Potential**, not current. |
+| **Hard floor (every stage)** | `acv_low = max(claude_low, current_acv)`. Cannot undersell an existing relationship. Applies to every known customer regardless of stage. | Floor protects against underselling. |
+| **Ceiling cap — saturated only** | Saturated customers: `acv_high = min(claude_high, 1.3 × current_acv)`. Every other stage: **no cap** from current ACV — the high is Claude's holistic reasoning, subject only to the universal `HOLISTIC_ACV_COMPANY_HARD_CAP`. | Saturated customers cannot show runaway upside; growing customers are not artificially held down. |
+| **`_raw_claude` preservation** | `_holistic_acv._raw_claude` stores Claude's original numeric output alongside the post-guardrail result. | Future guardrail tuning propagates across the cache via pure-Python re-application; zero additional Claude calls. |
+| **Output scrubber** | Any dollar figure matching a known-customer `current_acv` is replaced with "<peer comparable>" in user-visible text before render. | Customer revenue data never surfaces even if the prompt directive is ignored. |
 
-**Floor informs, does not collapse.** The floor-enforcement rule preserves range-width: if Claude's original high is already above the floor, high keeps its value (model thought the upside was higher than current — trust that). If Claude's original high is below the floor, high expands to the stage ceiling (or 2× floor for very-early) so the range reflects genuine upside rather than pinning at a zero-width point. Before this rule, multiple duplicate records for the same known customer would all collapse to the identical floor and look artificially uniform.
+**Floor informs, does not collapse.** The floor rule preserves range-width: if Claude's original high is already above the floor, high keeps its value. If Claude's original high is below the floor, high expands (to the stage ceiling if one applies, else to 2× floor) so the range reflects genuine upside rather than pinning at a zero-width point.
 
-**Customer data lives outside the repo.** `backend/known_customers.json` is gitignored. The file ships with a `known_customers.template.json` schema. The production deployment mounts the real file; no one can discover customer ACV figures by reading the repo.
+**Why not multi-tier ceiling multipliers.** A previous design used a six-tier ceiling cap (saturated 1.3× / mature-small 1.5× / mid 3× / first-year 8× / early 15× / very-early uncapped) and an expected-low multiplier that pushed the low bound above current for growing stages. Both were abandoned 2026-04-14 as fake precision. A growing customer's ACV Potential is a function of their portfolio size, not a multiplier on their current Skillable contract. The simpler rule — **floor always, ceiling cap only for saturated** — is grounded in the actual asymmetry of the question. Stage labels for non-saturated customers remain in the data as descriptive context for the calibration block grouping, not as enforcement multipliers.
+
+**ACV Potential computed once.** `scripts/compute_customer_potentials.py` runs the holistic prompt for each non-saturated known customer with `disable_known_customer_caps=True` to get their unclamped Potential. The result is stored as `acv_potential_low` / `acv_potential_high` on the customer's entry in `known_customers.json`. The calibration block reads both `current_acv` and `acv_potential` per customer and emits them per stage. This is a one-time pass (re-run after major prompt changes, not per retrofit).
+
+**Customer data lives outside the repo.** `backend/known_customers.json` is gitignored. A committed `known_customers.template.json` documents the schema. The production deployment mounts the real file; no one can discover customer ACV figures by reading the repo.
 
 ### Partnership-Only ACV — Content Development Firms
 

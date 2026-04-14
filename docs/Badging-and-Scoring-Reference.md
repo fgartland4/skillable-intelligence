@@ -1028,45 +1028,64 @@ Customer revenue data is **confidentiality-critical**. The file `backend/known_c
 | Key | Type | Meaning |
 |---|---|---|
 | `current_acv` | int (dollars) | Current annual contract value |
-| `stage` | string | Customer lifecycle stage (drives ceiling multiplier) |
+| `stage` | string | Customer lifecycle stage — drives ceiling enforcement (only for saturated) AND grouping in the anonymized calibration block |
+| `acv_potential_low` | int (optional) | Holistic "what could this be if we win fully" low bound — populated by `scripts/compute_customer_potentials.py` |
+| `acv_potential_high` | int (optional) | Holistic potential high bound |
+| `acv_potential_confidence` | string (optional) | Confidence in the potential computation |
 
-**Stage-derived ceiling multipliers** (`cfg.KNOWN_CUSTOMER_STAGE_CEILING_MULT`):
+**Stage-derived ceiling cap** (`cfg.KNOWN_CUSTOMER_STAGE_CEILING_MULT` — locked 2026-04-14):
 
-| Stage | Multiplier | Growth plausibility |
+| Stage | Ceiling cap | Rationale |
 |---|---:|---|
-| `saturated` | 1.3× | Mature customer near ceiling — limited upside |
-| `mature-small` | 1.5× | Established smaller customer — modest upside |
-| `mid` | 3× | Mid-stage, real upside path |
-| `first-year` | 8× | New customer in first year — significant ramp ahead |
-| `early` | 15× | Very early relationship — large upside uncapped at deal-stage norms |
-| `very-early` | `None` | No ceiling — reason from company scale, current is floor only |
+| `saturated` | **1.3× current** | Mature customer close to ceiling by definition — a runaway holistic estimate for them is probably wrong |
+| `mature-small` | **no cap** | Growing customers are not artificially held down by a multiple of current spend |
+| `mid` | **no cap** | ditto |
+| `first-year` | **no cap** | ditto |
+| `early` | **no cap** | ditto |
+| `very-early` | **no cap** | ditto |
 
-**Enforcement rule (Pattern D fix, 2026-04-14).** Floor informs the low bound but does NOT collapse range-width:
+Only `saturated` is in the dict; every other stage returns `None` from the lookup, which the enforcement treats as "no cap." The universal `HOLISTIC_ACV_COMPANY_HARD_CAP` still applies as the backstop.
+
+**Previous design (retired 2026-04-14).** The dict had six entries: `saturated 1.3× / mature-small 1.5× / mid 3× / first-year 8× / early 15× / very-early uncapped`. That "anchored small customers to their starting place" — a growing customer's potential is a function of their portfolio size, not a multiple of their current Skillable contract. Simplified per Frank 2026-04-14.
+
+**Enforcement rule — floor informs low, ceiling caps only saturated:**
 
 ```
-if claude_low < floor:      acv_low = floor          # cannot undersell relationship
-if claude_high >= floor:    acv_high = claude_high   # trust upside
-else:                       acv_high = ceiling_or_2x_floor   # preserve width
-if ceiling is not None:     acv_high = min(acv_high, ceiling)
-if confidence == 'low':     confidence = 'medium'    # we have ground truth
+if claude_low < floor:
+    acv_low = floor                             # hard floor for every stage
+if claude_high < floor:
+    acv_high = ceiling or (2 × floor)           # preserve width when Claude undersold
+if ceiling is not None:                         # only saturated has a ceiling
+    acv_high = min(acv_high, ceiling)
+    acv_low  = min(acv_low,  ceiling)
+if confidence == 'low':
+    confidence = 'medium'                        # we have ground truth
 ```
 
-Before this rule shipped, when Claude returned `(low, high)` both below floor the old logic clamped both to floor → zero-width range. Multiple known customers with duplicate records (New Horizons had three) all pinned at the identical floor and the list looked artificially uniform.
+Before the floor-preserving rule shipped (Pattern D fix), when Claude returned `(low, high)` both below floor the old logic clamped both to floor → zero-width range. Multiple known customers with duplicate records (New Horizons had three) all pinned at the identical floor and the list looked artificially uniform. The new rule expands high to preserve range width.
+
+**`_raw_claude` preservation.** `estimate_holistic_acv` returns `_raw_claude: {acv_low, acv_high, confidence}` alongside the post-guardrail result. Future guardrail tuning (hard cap, range ratio, per-user ceiling, known-customer floor/ceiling rules) propagates across the cache via pure-Python re-application — zero additional Claude calls. Only prompt text changes or calibration block content changes require a retrofit run.
 
 ### Output scrubber (defense-in-depth)
 
 `researcher._scrub_customer_data(text)` runs over rationale / drivers / caveats before they reach the user. Redacts any dollar figure matching a known-customer `current_acv` in common formats (`$123,000`, `$123k`, `$0.12M`, etc.) → replaces with `"<peer comparable>"`. Protects against the prompt directive being ignored.
 
-### Anonymized calibration block
+### Anonymized calibration block — two columns (current + Potential)
 
-`researcher._format_anonymized_calibration_block()` builds the prompt's magnitude-anchor block from `KNOWN_CUSTOMER_CURRENT_ACV`. Customer **names never enter the prompt** — the block emits stage-grouped magnitude ranges only:
+`researcher._format_anonymized_calibration_block()` builds the prompt's magnitude-anchor block from `KNOWN_CUSTOMER_CURRENT_ACV`. Customer **names never enter the prompt** — the block emits stage-grouped magnitude ranges with both `current ACV` AND `estimated ACV Potential`:
 
 ```
-Stage 'saturated' (3 reference customers): current ACV $2.1M-$5.5M
-Stage 'mature-small' (4 reference customers): current ACV $243k-$624k
-Stage 'mid' (5 reference customers): current ACV $255k-$2M
+Stage 'saturated' (4 reference customers): current ACV $624k-$5.5M, estimated ACV Potential $810k-$7.2M
+Stage 'first-year' (5 reference customers): current ACV $255k-$2M, estimated ACV Potential $1M-$16M
+Stage 'very-early' (5 reference customers): current ACV $129k-$671k, estimated ACV Potential $280k-$22M
 ...
 ```
+
+For saturated customers `current ≈ potential` (they're near ceiling). For growing customers `potential` is materially higher than `current` — that's the right anchor for the question "how big could a prospect similar to this be?" The prompt directive tells Claude to anchor prospects on Potential, not current revenue.
+
+**How `acv_potential` gets populated.** Computed once by `scripts/compute_customer_potentials.py` — runs the holistic prompt per non-saturated known customer with `disable_known_customer_caps=True` so the ceiling doesn't kick in, and saves the result as `acv_potential_low / _high / _confidence` into the known customer's entry. Re-run after major prompt changes; does not need to re-run per retrofit. Saturated customers are skipped (their current IS their potential for calibration purposes — the block falls back to `current_acv` for potential display).
+
+**De-duping aliases in the block.** When the same company has multiple normalized-name entries (e.g. `siemens` and `siemens aktiengesellschaft`), the block dedupes by `(current_acv, stage)` so the same company isn't counted twice. Edge case: two genuinely-different companies that happen to share `(current, stage)` get collapsed into one entry. Accepted floor-of-accuracy — one representative per `(current, stage)` is good enough for magnitude anchoring.
 
 Claude is instructed never to name or identify reference customers. The scrubber + stage grouping + prompt directive form three layers of defense.
 
