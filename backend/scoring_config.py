@@ -3037,17 +3037,28 @@ HOLISTIC_ACV_COMPANY_HARD_CAP = 30_000_000
 # Two purposes when populated:
 #   1. HARD FLOOR — ACV potential must be >= current actual ACV.
 #   2. STAGE-AWARE CEILING — practical upper bound from relationship
-#      maturity (saturated ≈ ceiling; very-early = no cap from current).
+#      maturity.  Design evolved 2026-04-14 — ONLY 'saturated' has a cap
+#      now.  Every other stage: Claude's holistic reasoning produces the
+#      high, subject only to the universal HOLISTIC_ACV_COMPANY_HARD_CAP.
+#
+# Previous design (2026-04-13 → 2026-04-14) capped every stage at a
+# multiple of current ACV — 1.3x saturated / 1.5x mature-small / 3x mid
+# / 8x first-year / 15x early / uncapped very-early.  That design was
+# "anchoring small customers to their starting place" per Frank: a
+# growing customer's ACV Potential is a function of their portfolio
+# size, not their current Skillable spend.  The floor rule still
+# protects against underselling an existing contract; the ceiling is
+# now Claude's job except where the company is genuinely at or near
+# ceiling (saturated).
 #
 # Stage taxonomy: saturated, mature-small, mid, first-year, early,
-# very-early. See backend/known_customers.template.json for schema.
+# very-early.  Labels for non-saturated customers are descriptive —
+# they group the anonymized calibration block Claude sees so the
+# context is honest ("these comparables are growing, not mature").
 KNOWN_CUSTOMER_STAGE_CEILING_MULT: dict[str, float] = {
     "saturated":     1.30,
-    "mature-small":  1.50,
-    "mid":           3.00,
-    "first-year":    8.00,
-    "early":        15.00,
-    # "very-early" intentionally absent — no upper cap from current
+    # All other stages: NO ceiling cap.  Omitted from this dict on
+    # purpose; the Python enforcement treats "not in dict" as "no cap."
 }
 
 
@@ -3081,7 +3092,9 @@ def _load_known_customers() -> dict[str, dict]:
 
     Returns empty dict when the file doesn't exist (no leak, no error).
     Keys in the file are pre-normalized customer names matching
-    storage._normalize_company_name output.
+    storage._normalize_company_name output. Keys beginning with "_" or
+    "comment" are structural metadata (schema notes, stage-group dividers)
+    and filtered out — only real customer records are returned.
     """
     import json
     import os
@@ -3091,7 +3104,18 @@ def _load_known_customers() -> dict[str, dict]:
     try:
         with open(path, "r", encoding="utf-8") as fh:
             data = json.load(fh)
-        return data if isinstance(data, dict) else {}
+        if not isinstance(data, dict):
+            return {}
+        # Filter out metadata + stage-divider comments.
+        # A valid customer entry has a dict value with a numeric current_acv.
+        return {
+            k: v for k, v in data.items()
+            if not k.startswith("_")
+            and not k.startswith("comment")
+            and isinstance(v, dict)
+            and isinstance(v.get("current_acv"), (int, float))
+            and v.get("current_acv", 0) > 0
+        }
     except Exception:
         return {}
 
@@ -3711,7 +3735,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-14.acv-holistic-patterns-ABDEF-plus-docs-modal-restore"
+SCORING_LOGIC_VERSION = "2026-04-14.saturated-only-cap-plus-potential-calibration"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

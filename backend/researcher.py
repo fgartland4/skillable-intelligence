@@ -1828,9 +1828,13 @@ Across every org type, ACV bottoms out at the same unit: lab hours consumed × r
 
 Lab rates by delivery path: cloud labs ~$6/hr, small VM/container/sim ~$8/hr, typical VM ~$14/hr, large/complex multi-VM or topology ~$45/hr. Use the right rate per product based on what the underlying tech actually requires.
 
-═══ CALIBRATION ANCHORS (anonymized — real Skillable customer ACV magnitudes) ═══
+═══ CALIBRATION ANCHORS (anonymized — real Skillable customer magnitudes) ═══
 
-Use these to sanity-check the magnitude of your estimate. The reference companies are NOT named — you see only stage + ACV range across reference customers at each stage. **Do NOT attempt to identify or name the reference companies in your rationale.** Cite only "industry comparables" or "comparable customers at the same stage."
+Use these to sanity-check the magnitude of your estimate. The reference companies are NOT named — you see only stage + magnitude ranges across reference customers at each stage. **Do NOT attempt to identify or name the reference companies in your rationale.** Cite only "industry comparables" or "comparable customers at the same stage."
+
+Two numbers are shown per stage:
+  - **current ACV** = what the reference customers pay today.  For saturated customers this approximates their ceiling.  For growing-stage customers it is materially below what they could be.
+  - **estimated ACV Potential** = what the reference customers could be if Skillable won fully across every training motion for their full portfolio.  This is the ANSWER to the question you are being asked — anchor your prospect estimate against Potential, not Current.
 
 {calibration_block}
 
@@ -1930,31 +1934,94 @@ def _format_anonymized_calibration_block() -> str:
     """Build an anonymized calibration block from KNOWN_CUSTOMER_CURRENT_ACV.
 
     Customer NAMES never enter the prompt — only org-type / scale /
-    stage / current ACV. This prevents Claude from citing specific
-    customers in the rationale (which would leak revenue data into UX).
+    stage / current ACV / estimated ACV Potential.  This prevents
+    Claude from citing specific customers in the rationale (which
+    would leak revenue data into UX).
+
+    TWO magnitudes per stage group (locked 2026-04-14):
+
+      - CURRENT ACV is what we're charging the customer today.  For
+        saturated customers current ≈ potential.  For growing customers
+        current is materially lower than potential.
+
+      - ACV POTENTIAL is the holistic "what could this be if we win
+        fully" number computed in a one-time caps-disabled pass
+        (see scripts/compute_customer_potentials.py).  This is the
+        right anchor for "how big is a prospect similar to X" because
+        prospects are being estimated for their potential, not their
+        current spend.
+
+    De-dupe aliases by (current_acv, stage) so Siemens and
+    Siemens Aktiengesellschaft don't double-count.
     """
     import scoring_config as cfg
     if not cfg.KNOWN_CUSTOMER_CURRENT_ACV:
         return "  (no calibration anchors available)"
-    # Group by stage for readability.
+    # Group by stage, deduping aliases by (current_acv, stage) so the
+    # same company isn't counted twice.  Prefer the entry that has
+    # acv_potential populated.
     from collections import defaultdict
-    by_stage = defaultdict(list)
+    by_stage_unique = defaultdict(dict)  # stage -> {(current, stage): entry}
     for rec in cfg.KNOWN_CUSTOMER_CURRENT_ACV.values():
         if not isinstance(rec, dict):
             continue
         stage = rec.get("stage", "?")
-        acv = rec.get("current_acv", 0)
-        if acv > 0:
-            by_stage[stage].append(acv)
-    if not by_stage:
+        current = int(rec.get("current_acv") or 0)
+        if current <= 0:
+            continue
+        # Alias dedup key — companies with same current_acv at same
+        # stage are treated as one.  Falls apart for Siemens/Eaton
+        # (both $129k, very-early, genuinely different companies);
+        # accept that floor of calibration accuracy — one representative
+        # entry per (current, stage) is good enough for anchoring.
+        key = (current, stage)
+        existing = by_stage_unique[stage].get(key)
+        # Prefer whichever entry has acv_potential populated.
+        pot_low = rec.get("acv_potential_low") or 0
+        pot_high = rec.get("acv_potential_high") or 0
+        has_pot = pot_low > 0 and pot_high > 0
+        if existing is None:
+            by_stage_unique[stage][key] = rec
+        elif has_pot and not (
+            existing.get("acv_potential_low") and existing.get("acv_potential_high")
+        ):
+            by_stage_unique[stage][key] = rec
+
+    if not by_stage_unique:
         return "  (no calibration anchors available)"
+
+    def _fmt_range(values: list[int]) -> str:
+        vals = sorted(values, reverse=True)
+        if len(vals) > 1:
+            return f"${min(vals):,}-${max(vals):,}"
+        return f"${vals[0]:,}"
+
     rows = []
     for stage in ("saturated", "mature-small", "mid", "first-year", "early", "very-early"):
-        acvs = sorted(by_stage.get(stage, []), reverse=True)
-        if not acvs:
+        entries = list(by_stage_unique.get(stage, {}).values())
+        if not entries:
             continue
-        rng = f"${min(acvs):,}-${max(acvs):,}" if len(acvs) > 1 else f"${acvs[0]:,}"
-        rows.append(f"  - Stage '{stage}' ({len(acvs)} reference customers): current ACV {rng}")
+        currents = [int(e.get("current_acv") or 0) for e in entries]
+        # Potential: fall back to current when not populated (saturated
+        # customers don't need a separate potential — current ≈ potential).
+        potentials_low = []
+        potentials_high = []
+        for e in entries:
+            pl = int(e.get("acv_potential_low") or 0)
+            ph = int(e.get("acv_potential_high") or 0)
+            if pl > 0 and ph > 0:
+                potentials_low.append(pl)
+                potentials_high.append(ph)
+            else:
+                cur = int(e.get("current_acv") or 0)
+                potentials_low.append(cur)
+                potentials_high.append(cur)
+        pot_range = f"${min(potentials_low):,}-${max(potentials_high):,}"
+        rows.append(
+            f"  - Stage '{stage}' ({len(entries)} reference customers): "
+            f"current ACV {_fmt_range(currents)}, "
+            f"estimated ACV Potential {pot_range}"
+        )
     return "\n".join(rows) if rows else "  (no calibration anchors available)"
 
 
@@ -2139,13 +2206,28 @@ def _build_partnership_acv_result(
 def estimate_holistic_acv(
     company_name: str,
     discovery: dict,
+    disable_known_customer_caps: bool = False,
 ) -> dict:
     """Run the Option 2 Claude call to produce a holistic ACV estimate.
 
-    Returns a dict matching the prompt's JSON schema, plus a
-    `_generated_at` timestamp + `_inputs_hash` stub for cache validation.
-    On failure, returns an empty-but-shaped dict so callers don't have
-    to handle exceptions.
+    Returns a dict matching the prompt's JSON schema plus a `_raw_claude`
+    field that preserves Claude's original (pre-guardrail) numeric output.
+    The raw output lets future guardrail tuning propagate across the
+    cache via pure-Python re-application — no additional Claude calls
+    needed for changes to hard-cap / range-ratio / per-user-ceiling /
+    known-customer-floor/ceiling rules.  Only prompt text changes or
+    calibration-block content changes require a retrofit run.
+
+    Args:
+        company_name: target company name (used for known-customer lookup)
+        discovery: the discovery record (products + signals + org_type)
+        disable_known_customer_caps: one-time pass for computing a known
+            customer's ACV Potential.  Turns OFF the floor-informs rule
+            AND the stage ceiling cap so the raw holistic estimate surfaces
+            unmodified.  The universal guardrails (hard cap, range ratio,
+            per-user ceiling) still apply.  Used by
+            `scripts/compute_customer_potentials.py` to backfill the
+            `acv_potential` field on known customers.
 
     For org types in ACV_PARTNERSHIP_ONLY_ORG_TYPES (Content Development
     firms, etc.), returns a special "partnership" result shape — no
@@ -2194,6 +2276,17 @@ def estimate_holistic_acv(
     if not isinstance(raw, dict):
         raw = {}
 
+    # Preserve Claude's raw numeric output so future guardrail tuning
+    # (hard cap / range ratio / per-user ceiling / known-customer floor /
+    # ceiling rules) can propagate across the cache via pure-Python
+    # re-application — no additional Claude calls needed.  Prompt text
+    # changes and calibration-block changes still require a retrofit.
+    raw_claude_snapshot = {
+        "acv_low": _int(raw.get("acv_low")),
+        "acv_high": _int(raw.get("acv_high")),
+        "confidence": str(raw.get("confidence") or "").lower(),
+    }
+
     acv_low = max(0, _int(raw.get("acv_low")))
     acv_high = max(acv_low, _int(raw.get("acv_high")))
     confidence = str(raw.get("confidence") or "low").lower()
@@ -2232,39 +2325,47 @@ def estimate_holistic_acv(
             confidence = "low"  # sanity-check failed; flag for review
 
     # Known-customer floor/ceiling enforcement — deterministic Python guardrail.
-    # Floor INFORMS the low bound; it must never COLLAPSE the range.
     #
-    # Previous behavior (removed): when Claude returned (claude_low, claude_high)
-    # both below the floor F, we'd clamp BOTH to F — producing a zero-width range
-    # (F, F). That made every known-customer record look identical and artificial
-    # (see New Horizons: three different discoveries all pinned at the same floor).
+    # Design (locked 2026-04-14):
+    #   - FLOOR is a hard lower bound: acv_low >= current_acv.  Never
+    #     undersell an existing relationship.  Applies to every stage.
+    #   - CEILING cap applies ONLY to `saturated` customers (1.3x current).
+    #     Saturated customers are near max by definition; a large Claude
+    #     estimate for them is probably wrong.  For every other stage,
+    #     the ceiling is Claude's holistic reasoning — subject only to
+    #     the universal HOLISTIC_ACV_COMPANY_HARD_CAP.  This fixes the
+    #     "small customers anchored to their starting place" bug where
+    #     growing customers were artificially capped at 1.5-15x current.
+    #   - When Claude undersold (claude_high < floor), expand the high
+    #     to preserve range width — the stage cap if set, else 2x floor.
+    #     Prevents zero-width (F, F) ranges that make the list look
+    #     artificial.
     #
-    # New behavior: floor sets the low bound. The high bound preserves width —
-    # either Claude's original high if above floor, or the stage-derived ceiling
-    # if Claude undersold entirely. Never a collapsed range.
+    # disable_known_customer_caps: optional bypass for the one-time pass
+    # that computes a known customer's ACV Potential (caps-off holistic
+    # call).  The potential number feeds the anonymized calibration
+    # block so Claude anchors prospects on potential, not current.
     constraints = _build_known_customer_constraints(company_name)
-    if constraints["is_known_customer"]:
+    if constraints["is_known_customer"] and not disable_known_customer_caps:
         floor = constraints["floor"]
-        ceiling = constraints["ceiling"]
-        claude_low_raw = acv_low
+        ceiling = constraints["ceiling"]  # None for non-saturated under the new design
         claude_high_raw = acv_high
 
-        # Floor: the low bound is the relationship floor (cannot undersell existing ACV).
+        # Floor (applies always): low bound never drops below current ACV.
         if acv_low < floor:
             acv_low = floor
 
-        # High bound: preserve range width when Claude undersold.
-        # If Claude's original high < floor → Claude missed the scale entirely.
-        # Expand the high to the stage ceiling (if set) or a reasonable multiplier
-        # of floor, so the range reflects genuine upside rather than collapsing.
+        # When Claude's high came in below floor, expand to preserve width.
+        # Prevents the zero-width (floor, floor) collapse.
         if claude_high_raw < floor:
             if ceiling is not None:
                 acv_high = ceiling
             else:
-                # very-early (no ceiling) — give a 2x floor default expansion
-                acv_high = floor * 2  # magic-allowed: expansion default for very-early stage
+                # No stage cap — default 2x floor expansion so the range
+                # still reflects genuine upside rather than collapsing.
+                acv_high = floor * 2  # magic-allowed: no-cap expansion default
 
-        # Ceiling: bounded by stage multiplier (None for very-early = no cap).
+        # Ceiling cap (only saturated has one under the 2026-04-14 design).
         if ceiling is not None:
             if acv_high > ceiling:
                 acv_high = ceiling
@@ -2296,6 +2397,8 @@ def estimate_holistic_acv(
         "rationale": rationale,
         "key_drivers": drivers,
         "caveats": caveats,
+        # Claude's original numeric output, preserved for free re-guardrailing.
+        "_raw_claude": raw_claude_snapshot,
     }
 
 
