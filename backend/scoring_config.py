@@ -3594,7 +3594,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-13.gcp-sandbox-fix-diy-lab-iv-differentiation"
+SCORING_LOGIC_VERSION = "2026-04-13.acv-holistic-option-2-plus-wrapper-split-plus-motion-fixes"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

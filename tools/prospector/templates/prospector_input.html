@@ -539,11 +539,18 @@
     });
 
     // ── Cost/time constants ──
-    var COST_PER_DISCOVERY = 0.22;
-    var COST_PER_DEEP_DIVE = 2.20;
-    var TIME_PER_DISCOVERY = 150;
-    var TIME_PER_DEEP_DIVE = 240;
-    var PARALLEL_FACTOR = 3;
+    // Recalibrated 2026-04-13 for the new 2-call discovery flow:
+    // (1) product identification + signals + ~1.5 min
+    // (2) Option 2 holistic ACV Claude call + ~30s
+    // Cost roughly doubles vs. the old single-call discovery; wall time
+    // adds ~30s per company on top of the existing pipeline.
+    // Slight over-estimate bias per Frank — finish-faster-than-promised
+    // beats finish-later. Validate during Phase 6 validation runs.
+    var COST_PER_DISCOVERY = 0.45;   // ~$0.20 product-id + ~$0.25 holistic ACV
+    var COST_PER_DEEP_DIVE = 2.20;   // unchanged — Deep Dive is its own thing
+    var TIME_PER_DISCOVERY = 180;    // 150s product-id + ~30s holistic ACV
+    var TIME_PER_DEEP_DIVE = 240;    // unchanged
+    var PARALLEL_FACTOR = 3;         // unchanged
 
     function updateInlineEstimator(elId, count, ddChecked) {
         var el = document.getElementById(elId);

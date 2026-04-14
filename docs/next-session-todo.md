@@ -6,6 +6,42 @@
 
 ---
 
+**Last updated:** 2026-04-13 (extended into the ACV refresh — Discovery Option 2 + Deep Dive cleanup, four phases shipped end-to-end)
+
+**What shipped in the ACV refresh (commits caca521 → c8909e7 → 43a745f + final version bump):**
+
+**Pt 1 — Docs + Researcher prompt fixes (Motions 2/3/5):**
+- unified-acv-model.md / Platform-Foundation.md / Badging-and-Scoring-Reference.md updated with category-tier adoption (8/4/1%) + wrapper-org audience split (annual_enrollments_estimate)
+- Researcher Motion 2 (channel_partner_se_population): removed "leave null" rule; tiered estimation heuristics from partner-ecosystem signals
+- Researcher Motion 5 (events_attendance): removed "leave null" rule; tiered attendance estimation by vendor scale (~30-50k major / 8-15k mid / 5-12k specialized / 1-5k regional)
+- Researcher Motion 3 (employee_subset_size): per-product variation by product_relationship (flagship 8-15% / satellite 3-6% / standalone 50-80%); `_build_pillar_2_fact_context` + `extract_instructional_value_facts` accept product_metadata; intelligence.py caller passes product dict
+
+**Pt 2 — Category tier + wrapper-org audience split (code):**
+- scoring_config.py: CUSTOMER_TRAINING_ADOPTION_BY_TIER + CATEGORY_TO_TIER + get_customer_training_adoption_for_category() + CATEGORY_TIER_ELIGIBLE_ORG_TYPES + ACV_AUDIENCE_SOURCE_BY_ORG_TYPE + get_acv_audience_source_for_org_type()
+- models.py: annual_enrollments_estimate + evidence + confidence fields on Product
+- prompts/discovery.txt: wrapper-org annual_enrollments fields documented in schema
+- acv_calculator.py: Motion 1 audience routed by org type; category tier replaces flat 4% for SOFTWARE/Enterprise Software; IA deflation scoped to IA only; wrapper-org cap skipped when annual_enrollments is the source
+
+**Pt 3 — Option 2 holistic discovery ACV + Prospector UX:**
+- scoring_config.py: HOLISTIC_ACV_ANCHORS (8 calibrated comparables: CompTIA $5.8M, EC-Council $2.2M, WGU $4.7M, GCU $1.7M, Skillsoft $5M, Pluralsight $2.5M, QA $700k, Accenture $2.8M) + guardrails
+- researcher.py: _HOLISTIC_ACV_PROMPT + estimate_holistic_acv() with hard cap + range-width + sanity-check guardrail enforcement
+- intelligence.py: discover() invokes holistic call after enrich_discovery, stores on discovery["_holistic_acv"]; non-blocking on failure
+- app.py: retired ~100 lines of per-product Python ACV math; row dict reads _holistic_acv; key_signal removed (replaced by rationale); CSV exports updated with new columns (acv_low/high/midpoint/confidence + driver_1..5 + caveats)
+- _search_modal.html: shared modal extended with info mode + openSearchModalInfo() — NOT forked. Info mode renders rationale + drivers + caveats with confidence chip. Theme tokens only, no hardcoded hex.
+- prospector.html: column order updated (Rank · Company · ACV · Deep Dives · Top Product · Why · 4 tiers · Lab Platform · Cert Program · Sales Channel); ACV cell shows range + confidence chip + click → modal; Deep Dive coverage column with N/M + color-coded pill; escapeAttr() helper
+
+**Pt 4 — Dedup runner + Retrofit runner:**
+- scripts/dedup_discoveries.py: Option C (auto-merge obvious + flag ambiguous to human review). Tested on cached state — 347 records → 31 dup groups, 24 auto-mergeable, 7 surface for review. Default dry-run; --execute / --review flags.
+- scripts/retrofit_acv.py: holistic ACV retrofit — runs estimate_holistic_acv() against cached discoveries with no re-research. ThreadPool for parallelism. Filters: --limit / --company / --skip-existing. Cost + time estimator in dry-run.
+
+**Pt 5 — Final wiring + version bump:**
+- prospector_input.html: cost + time estimator recalibrated for 2-call discovery flow ($0.45/co, 180s/co)
+- SCORING_LOGIC_VERSION bumped to `2026-04-13.acv-holistic-option-2-plus-wrapper-split-plus-motion-fixes`
+
+**All 118 tests pass.** Pre-commit anti-hardcoding tests pass.
+
+---
+
 **Last updated:** 2026-04-13 (three marathon sessions — the single biggest day of work on the platform)
 
 **What shipped in this session:**
@@ -67,7 +103,34 @@
 
 ## §1 — START HERE NEXT SESSION
 
-**Badge-to-Score Consistency Investigation**
+**Run the dedup + retrofit on the cached 347 records, then validate.**
+
+The ACV refresh shipped end-to-end in the prior session — code is in
+production, version bumped. Three things remain operational, not
+architectural:
+
+| Step | Command | Why |
+|---|---|---|
+| **1. Dedup review** | `python scripts/dedup_discoveries.py --review` | See the 7 ambiguous cases that need human judgment (Workday split between badges, Akamai variants, Tencent / Tencent Cloud, Huawei variants). Decide each. |
+| **2. Dedup execute** | `python scripts/dedup_discoveries.py --execute` | Auto-merge the 24 obvious dup groups (Cisco / Cisco Systems class). Older records archived, not deleted. |
+| **3. Retrofit dry-run** | `python scripts/retrofit_acv.py` | See cost + time estimate for retrofitting all cached records with the new holistic ACV (Option 2). Expected: ~$50-$150, ~30-60 min. |
+| **4. Retrofit validation** | `python scripts/retrofit_acv.py --execute --limit 5 --company "Nutanix"` (then LLPA, Boeing, Accenture, one Academic) | Validate on a handful of known companies before going wide. Verify Nutanix lands in the multi-million range, LLPA collapses to ~$200-500k, Boeing reflects its real opportunity. |
+| **5. Retrofit full** | `python scripts/retrofit_acv.py --execute --skip-existing` | Run on the rest. Skip-existing avoids re-running on validated records. |
+
+After retrofit completes, the Prospector list reflects the new ACV
+shape across all cached companies. SCORING_LOGIC_VERSION already
+bumped — cache reads pick up the new logic immediately.
+
+### After retrofit — return to the prior open work
+
+The badge-to-score consistency investigation that was §1 going into
+the ACV refresh remains the next architectural item. It was paused
+because the ACV problem was higher-leverage. Original §1 below for
+context.
+
+---
+
+### Badge-to-Score Consistency Investigation (still open after ACV refresh)
 
 Badges are not consistently defending the scores they accompany. Provisioning is the most visible example (products scoring 30/35 with only 1 badge), but the inconsistency likely exists across dimensions. This is NOT a badge selector problem — it's a pipeline investigation.
 
