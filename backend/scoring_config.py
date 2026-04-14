@@ -3711,7 +3711,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-13.acv-holistic-option-2-plus-wrapper-split-plus-motion-fixes"
+SCORING_LOGIC_VERSION = "2026-04-14.acv-holistic-patterns-ABDEF-plus-docs-modal-restore"
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:

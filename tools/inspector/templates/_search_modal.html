@@ -429,69 +429,199 @@
 }
 .search-modal-info-list.caveats li::before { content: '⚠'; color: var(--sk-score-mid); }
 
-/* Docs mode — multi-section documentation display.
-   Used by every ? help icon across the platform (replaces the per-tool
-   forked help modals). Each section has a heading + HTML body. */
+/* ──────────────────────────────────────────────────────────────────
+   Docs mode — the platform's standard documentation / help modal.
+
+   Used by every ? help icon across Inspector + Prospector (and will
+   be used by Designer).  This is the WHITE info-modal design that
+   was originally authored in full_analysis.html: light surface, dark
+   text, green accent rule under the header, WHY/WHAT/HOW eyebrow
+   section labels, scannable tables.  All other search-modal modes
+   (progress / decision / info) keep their dark progress-chrome.
+
+   Theme tokens: --sk-modal-* (purpose-built for this palette — see
+   tools/shared/templates/_theme.html).  No hardcoded hex.
+   ────────────────────────────────────────────────────────────────── */
+
+/* When docs mode is active, hide every other mode's middle-section
+   markup so it doesn't bleed through.  Also hide the progress-chrome
+   card decorations that don't apply to docs. */
 .search-modal-card.is-docs .search-modal-status,
 .search-modal-card.is-docs .search-modal-dots,
 .search-modal-card.is-docs .search-modal-bottom,
 .search-modal-card.is-docs .search-modal-decision,
-.search-modal-card.is-docs .search-modal-info {
+.search-modal-card.is-docs .search-modal-info,
+.search-modal-card.is-docs .search-modal-stages {
   display: none;
 }
+
+/* Card surface flips from dark progress chrome to white docs surface.
+   Whole card scrolls (matches the original info-modal scroll pattern). */
 .search-modal-card.is-docs {
-  max-width: 720px;
+  max-width: 920px;
+  max-height: calc(100vh - 80px);
   text-align: left;
-  max-height: 80vh;
+  padding: 0;                                   /* header + body provide padding */
+  background: var(--sk-modal-bg);
+  color: var(--sk-modal-text);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sk-accent) var(--sk-modal-border-light);
 }
-.search-modal-card.is-docs .search-modal-title { text-align: center; margin-bottom: 22px; }
-.search-modal-card.is-docs .search-modal-eyebrow { text-align: center; }
-.search-modal-docs { display: none; max-height: 60vh; overflow-y: auto; padding-right: 6px; }
+
+/* Close button is sticky-top, light chrome to match white surface. */
+.search-modal-card.is-docs .search-modal-cancel {
+  background: var(--sk-modal-close-bg);
+  border: 1px solid var(--sk-modal-border);
+  color: var(--sk-modal-text-muted);
+  top: 12px;
+  right: 12px;
+}
+.search-modal-card.is-docs .search-modal-cancel:hover {
+  color: var(--sk-modal-text);
+  background: var(--sk-modal-border-light);
+  border-color: var(--sk-modal-border);
+}
+
+/* Header: eyebrow (small, accent, uppercase) + title (large, dark).
+   Bottom border is a solid accent rule — the design signature. */
+.search-modal-card.is-docs .search-modal-eyebrow,
+.search-modal-card.is-docs .search-modal-title {
+  text-align: left;
+  margin: 0;
+}
+.search-modal-card.is-docs .search-modal-eyebrow {
+  display: block;
+  padding: 28px 36px 0;
+  font-size: 0.62rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--sk-accent);
+  font-weight: 700;
+}
+.search-modal-card.is-docs .search-modal-title {
+  padding: 6px 36px 20px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--sk-modal-text);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  border-bottom: 2px solid var(--sk-accent);
+}
+
+/* Docs body — the content region inside the white card. */
+.search-modal-docs {
+  display: none;
+  padding: 24px 36px 32px;
+}
 .search-modal-card.is-docs .search-modal-docs { display: block; }
-.search-modal-docs-section { margin-bottom: 18px; }
+
+/* Sections: each ? icon can pass 1..N sections — often WHY / WHAT / HOW
+   or dimension-level entries for pillar modals. */
+.search-modal-docs-section { margin-bottom: 24px; }
 .search-modal-docs-section:last-child { margin-bottom: 0; }
+
 .search-modal-docs-section-heading {
-  font-size: 0.78rem; font-weight: 700;
-  color: var(--sk-text);
-  margin-bottom: 8px;
-  letter-spacing: 0.02em;
+  font-size: 0.68rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--sk-accent);
+  font-weight: 800;
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(36,237,155,0.2);
 }
 .search-modal-docs-section-subtitle {
   font-size: 0.72rem;
-  color: var(--sk-text-muted);
-  margin-top: -4px;
-  margin-bottom: 8px;
-  font-style: italic;
+  color: var(--sk-modal-text-dim);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: -4px 0 12px;
 }
-/* Anchor sections (when section.id is set) get a left accent rule for
-   scannability and a small padding so anchored scroll lands cleanly. */
+
+/* Anchor sections (when section.id is set) — used by pillar modals that
+   nav-link between dimensions.  Light top rule for visual separation. */
 .search-modal-docs-section[data-anchor] {
-  padding-left: 12px;
-  border-left: 2px solid var(--sk-accent);
-  scroll-margin-top: 12px;
+  scroll-margin-top: 20px;
+  padding-top: 16px;
+  margin-top: 8px;
+  border-top: 1px solid var(--sk-modal-border-light);
 }
+
+/* Body copy */
 .search-modal-docs-section-body {
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--sk-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--sk-modal-text-body);
 }
 .search-modal-docs-section-body p { margin: 0 0 10px; }
 .search-modal-docs-section-body p:last-child { margin-bottom: 0; }
+.search-modal-docs-section-body strong { color: var(--sk-modal-text); }
+.search-modal-docs-section-body em {
+  color: var(--sk-modal-link);
+  font-style: normal;
+  font-weight: 600;
+}
+.search-modal-docs-section-body a {
+  color: var(--sk-modal-link);
+  text-decoration: none;
+  font-weight: 600;
+}
+.search-modal-docs-section-body a:hover { text-decoration: underline; }
+
+/* Tables inside docs sections */
 .search-modal-docs-section-body table {
-  font-size: 0.78rem;
   width: 100%;
   border-collapse: collapse;
-  margin: 8px 0;
-}
-.search-modal-docs-section-body th,
-.search-modal-docs-section-body td {
-  text-align: left;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--sk-border);
+  margin: 12px 0;
+  font-size: 0.82rem;
 }
 .search-modal-docs-section-body th {
-  font-weight: 700;
-  color: var(--sk-text);
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sk-modal-text-muted);
+  border-bottom: 2px solid var(--sk-modal-border);
+  background: var(--sk-modal-bg-table);
+}
+.search-modal-docs-section-body td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--sk-modal-border-light);
+  color: var(--sk-modal-text-body);
+  vertical-align: top;
+}
+.search-modal-docs-section-body tr:last-child td { border-bottom: none; }
+.search-modal-docs-section-body tr:hover td { background: var(--sk-modal-bg-hover); }
+
+/* Dimension nav lists (pillar overview modals link to dimension sections) */
+.search-modal-docs-section-body ul.dim-nav {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.search-modal-docs-section-body ul.dim-nav li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--sk-modal-bg-nav);
+  border: 1px solid var(--sk-modal-border-nav);
+  transition: background 0.12s, border-color 0.12s;
+}
+.search-modal-docs-section-body ul.dim-nav li:hover {
+  background: var(--sk-modal-bg-hover);
+  border-color: var(--sk-accent);
 }
 {% endmacro %}
 

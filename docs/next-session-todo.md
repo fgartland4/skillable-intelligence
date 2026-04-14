@@ -6,6 +6,28 @@
 
 ---
 
+**Last updated:** 2026-04-14 (ACV low-end pattern fixes A/B/D/E/F + Deep Dive docs modal restored to white design)
+
+**What shipped today:**
+
+**Docs modal restored** — the beautiful white Deep Dive info modal design that got flattened during the shared-modal migration (commit 14a1252) is back. The shared `_search_modal.html` now has a proper `is-docs` mode using `--sk-modal-*` theme tokens: 920px max width, white surface, dark text, accent rule under the header, WHY/WHAT/HOW eyebrow section labels, scannable tables. Progress / decision / info modes keep their dark chrome — only docs mode flips to white. One component, one API, matches original design.
+
+**ACV low-end pattern fixes — A, B, D, E, F (five of six diagnosed from the Parkway / Multiverse / Zero-Point / New Horizons low-estimate cluster):**
+
+  - **A** — Softened "fraction who actually consume labs" deflator language in the researcher prompt. Mature cert programs with confirmed annual enrollments now trust the platform's calibrated adoption rates directly, instead of Claude layering a second "minority subset" discount on top.
+  - **B** — Added explicit rule: prefer annual enrollments; if only cumulative is available, divide by 2-3yr program life (4yr for academic degrees). Prevents the Zero-Point-class 3-8× swing where cumulative and annual got silently substituted.
+  - **D** — Known-customer floor now INFORMS the low bound without COLLAPSING range-width. Previously when Claude's original (low, high) were both below floor F, we'd clamp both to F, producing zero-width ranges and artificial uniformity across duplicate records (all three New Horizons records pinned identically). Now: floor sets low; high preserves width — either Claude's original high (if above floor), the stage-derived ceiling, or a 2× floor expansion for very-early stage.
+  - **E** — Reframed existing DIY / self-hosted lab platform in the prompt as a POSITIVE ICP signal, not a displacement discount. Companies already running their own labs have already decided they need labs — that's existing demand, not a displacement haircut on top of adoption-rate conservatism.
+  - **F** — Rate tier now determined by workload complexity, not deployment label. "SaaS" or "cloud-delivered" curricula can still need VM-class labs (cybersecurity, networking, platform eng). Deployment alone doesn't determine rate.
+
+Pattern **C** (K-12 district budget-signal audience) — deferred. Needs a new researcher field + routing rule. Not a prompt tweak. Queued below.
+
+Pattern **G** (entity dedup drift: GCU vs GCE, multiple Parkway records) — deferred per Frank's decision 2026-04-14: "I think you'd almost have to go organization by organization by organization. I think it'd be tough to write that as a trustworthy thing. They probably need to stay separate."
+
+SCORING_LOGIC_VERSION bumped to `2026-04-14.acv-holistic-patterns-ABDEF-plus-docs-modal-restore`.
+
+---
+
 **Last updated:** 2026-04-13 (extended into the ACV refresh — Discovery Option 2 + Deep Dive cleanup, four phases shipped end-to-end)
 
 **What shipped in the ACV refresh (commits caca521 → c8909e7 → 43a745f + final version bump):**
@@ -176,7 +198,8 @@ The ? icons on Prospector pages are wired but show "Coming soon." Content needs 
 |---|---|---|
 | **1** | Badge-to-Score Consistency Investigation | §1 above — root cause, not patches |
 | **2** | Prospector ? modal documentation refinement | First pass shipped — three modals wired. Refine content after badge investigation confirms how scoring/badging is described. |
-| **3** | Validation round | CompTIA, EC-Council, WGU, GCU, Skillsoft, QA, Accenture, Cisco, Google Cloud — verify ACV and scores |
+| **3** | Validation round | CompTIA, EC-Council, WGU, GCU, Skillsoft, QA, Accenture, Cisco, Google Cloud — verify ACV and scores. Retrofit the records touched by Patterns A/B/D/E/F fixes: Parkway, Multiverse, Zero-Point Security, Power Academics, Kaosoft. |
+| **3a** | **Pattern C — K-12 budget-signal audience (deferred from 2026-04-14)** | Parkway School District has a ~$750k CTE/PD budget line that never enters the math — model multiplies ~135 students × cloud-tier rate and lands at $18-52k. Need: (1) new researcher field for "training-dedicated budget" when visible; (2) routing rule that lets budget feed Motion 2/3-style partner/employee audience sizing. Not a prompt tweak — structural. ~1-day work. |
 | **4** | Lightweight rescore utility | ACV portion solved — `rebuild_acv_motions_from_facts` runs on every page load. Still need a path to re-run pillar scorers + rubric graders on existing facts without re-researching. |
 | **5** | Inspector↔Prospector cache verification | HashiCorp test case — confirm normalized lookup works end-to-end |
 | **6** | Background processing toast notifications | "Run in Background" button on Deep Dive + toast on completion |

@@ -1861,6 +1861,18 @@ COMPANY-LEVEL TRAINING SIGNALS:
   - Wrapper orgs: the audience is the wrapper's own program enrollments, NOT the underlying technology's global market. LLPA's Azure training audience is LLPA's classroom throughput (~thousands), not Azure's global user base (~millions).
   - Caveats: name what you're uncertain about. "Employee subset estimated, not researched." "Event attendance not confirmed." Honest uncertainty is more useful than fake precision.
 
+═══ COMMON PITFALLS — AVOID THESE ═══
+
+These are mistakes the model has made in prior runs. Read carefully.
+
+  1. **Do not apply a "fraction who actually consume labs" deflator on top of adoption rates.** The audience numbers and our platform-calibrated adoption rates are already the realistic consumption view — they are NOT the theoretical max. When an organization has a mature certification or training program with confirmed annual enrollments, trust those enrollments directly. Do not write phrases like *"likely a minority subset initially"* or *"fraction of the stated user base actually consumes labs"* — those are double-counting conservatism that has already been baked into the model.
+
+  2. **Annual vs cumulative enrollments — know which you're looking at.** "Cumulative lifetime users" and "annual enrollments" can differ by 3–10×. If a data point is labeled *cumulative*, *lifetime*, *total registered*, or *all-time*, divide by a reasonable program lifespan (2–3 years for most tech training, 4 years for academic degree programs) to get annual throughput. When both annual and cumulative are available, always use annual. Never silently substitute cumulative where annual is the right unit.
+
+  3. **An existing DIY / in-house lab platform is a POSITIVE ICP signal, not a discount.** When a company already runs their own lab infrastructure, that proves they need hands-on labs — they have already made the strategic decision, they just haven't chosen the best vendor. Treat DIY as *existing demand* (stronger than greenfield, where adoption is speculative). Do NOT discount the estimate for "displacement risk" or describe it as *"partial before scaling"* just because infrastructure already exists. The size of the current DIY deployment is a floor, not a ceiling.
+
+  4. **Rate tier is determined by workload complexity, not deployment label.** A "SaaS" or "cloud-delivered" curriculum can still require VM-class labs (cybersecurity, networking, platform engineering — all routinely need multi-VM topologies even when the delivery platform is a browser). Choose the rate tier from what the *content* requires, not from how the *course* is delivered. Security / networking / infrastructure programs → VM or complex-VM rate ($14–$45/hr). Basic productivity / browser-based tooling → cloud rate ($6–$8/hr). Deployment model alone does not determine rate.
+
 ═══ OUTPUT FORMAT ═══
 
 Return ONLY a JSON object with EXACTLY this shape (no commentary, no markdown, no code fence):
@@ -2220,23 +2232,49 @@ def estimate_holistic_acv(
             confidence = "low"  # sanity-check failed; flag for review
 
     # Known-customer floor/ceiling enforcement — deterministic Python guardrail.
-    # Even if Claude returned an estimate that violates the bounds (or if we
-    # never put bounds in the prompt), Python clamps to the right shape here.
+    # Floor INFORMS the low bound; it must never COLLAPSE the range.
+    #
+    # Previous behavior (removed): when Claude returned (claude_low, claude_high)
+    # both below the floor F, we'd clamp BOTH to F — producing a zero-width range
+    # (F, F). That made every known-customer record look identical and artificial
+    # (see New Horizons: three different discoveries all pinned at the same floor).
+    #
+    # New behavior: floor sets the low bound. The high bound preserves width —
+    # either Claude's original high if above floor, or the stage-derived ceiling
+    # if Claude undersold entirely. Never a collapsed range.
     constraints = _build_known_customer_constraints(company_name)
     if constraints["is_known_customer"]:
         floor = constraints["floor"]
         ceiling = constraints["ceiling"]
-        # Floor: estimate must not undersell an existing relationship.
+        claude_low_raw = acv_low
+        claude_high_raw = acv_high
+
+        # Floor: the low bound is the relationship floor (cannot undersell existing ACV).
         if acv_low < floor:
             acv_low = floor
-        if acv_high < floor:
-            acv_high = floor
+
+        # High bound: preserve range width when Claude undersold.
+        # If Claude's original high < floor → Claude missed the scale entirely.
+        # Expand the high to the stage ceiling (if set) or a reasonable multiplier
+        # of floor, so the range reflects genuine upside rather than collapsing.
+        if claude_high_raw < floor:
+            if ceiling is not None:
+                acv_high = ceiling
+            else:
+                # very-early (no ceiling) — give a 2x floor default expansion
+                acv_high = floor * 2  # magic-allowed: expansion default for very-early stage
+
         # Ceiling: bounded by stage multiplier (None for very-early = no cap).
         if ceiling is not None:
             if acv_high > ceiling:
                 acv_high = ceiling
             if acv_low > ceiling:
                 acv_low = ceiling
+
+        # Final sanity: low <= high (defensive).
+        if acv_low > acv_high:
+            acv_high = acv_low
+
         # Existing relationship → confidence floor of medium (we have ground truth).
         if confidence == "low":
             confidence = "medium"
