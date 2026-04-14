@@ -27,8 +27,15 @@ When to use:
 import sys
 import os
 
-# Add backend to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
+# Add project root to path so 'from backend import ...' works,
+# AND add backend/ so direct imports like 'from intelligence import ...' work.
+_project_root = os.path.join(os.path.dirname(__file__), "..")
+sys.path.insert(0, _project_root)
+sys.path.insert(0, os.path.join(_project_root, "backend"))
+
+# Load .env for API keys
+from dotenv import load_dotenv
+load_dotenv(os.path.join(_project_root, "backend", ".env"))
 
 import json
 import logging
@@ -69,7 +76,7 @@ def rescore_company(company_name: str) -> bool:
 
     # Re-run scoring pipeline
     try:
-        result = score(scored_products, disc_id, discovery_data=disc)
+        result = score(real_name, scored_products, disc_id, discovery_data=disc)
         if result:
             log.info("Re-score complete for %s", real_name)
             return True
