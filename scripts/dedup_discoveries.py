@@ -46,10 +46,15 @@ from storage import (  # noqa: E402
 
 
 def _load_all_discoveries() -> list[dict]:
-    """Load every discovery record from disk. Returns the parsed dicts."""
+    """Load every non-archived discovery record from disk. Returns the parsed dicts."""
     out = []
     for f in os.listdir(_COMPANY_DIR):
         if not (f.startswith("discovery_") and f.endswith(".json")):
+            continue
+        # Skip archived records (renamed to discovery_xxx.archived-<ts>.json
+        # by a prior merge). Loading them would cause re-merging against
+        # dead history.
+        if ".archived-" in f:
             continue
         path = os.path.join(_COMPANY_DIR, f)
         try:

@@ -623,6 +623,136 @@
   background: var(--sk-modal-bg-hover);
   border-color: var(--sk-accent);
 }
+
+/* ──────────────────────────────────────────────────────────────────
+   Legacy info-modal-* class aliases — scoped to docs mode.
+
+   The Inspector pillar/hero modals pass pre-rendered HTML through
+   scoring_config.MODAL_CONTENT that still uses .info-modal-table,
+   .info-modal-dim-link, .info-modal-dim-nav, etc.  Rather than
+   rewrite 25+ HTML content strings in scoring_config (which is
+   template-embedded by a builder function), we scope equivalent CSS
+   rules here so the shared modal is the one-and-only stylesheet.
+
+   Consolidated here 2026-04-14 from full_analysis.html after the
+   shared modal migration.  When the scoring_config HTML eventually
+   gets rewritten to use .search-modal-docs-* class names directly,
+   this block can be deleted.
+   ────────────────────────────────────────────────────────────────── */
+.search-modal-card.is-docs .info-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 0.82rem;
+}
+.search-modal-card.is-docs .info-modal-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sk-modal-text-muted);
+  border-bottom: 2px solid var(--sk-modal-border);
+  background: var(--sk-modal-bg-table);
+}
+.search-modal-card.is-docs .info-modal-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--sk-modal-border-light);
+  color: var(--sk-modal-text-body);
+  vertical-align: top;
+}
+.search-modal-card.is-docs .info-modal-table tr:last-child td { border-bottom: none; }
+.search-modal-card.is-docs .info-modal-table tr:hover td { background: var(--sk-modal-bg-hover); }
+
+.search-modal-card.is-docs .info-modal-dim-nav {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.search-modal-card.is-docs .info-modal-dim-nav li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--sk-modal-bg-nav);
+  border: 1px solid var(--sk-modal-border-nav);
+  transition: background 0.12s, border-color 0.12s;
+}
+.search-modal-card.is-docs .info-modal-dim-nav li:hover {
+  background: var(--sk-modal-bg-hover);
+  border-color: var(--sk-accent);
+}
+.search-modal-card.is-docs .info-modal-dim-link {
+  color: var(--sk-modal-link);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+.search-modal-card.is-docs .info-modal-dim-link:hover { text-decoration: underline; }
+.search-modal-card.is-docs .info-modal-dim-weight {
+  font-size: 0.72rem;
+  color: var(--sk-modal-text-dim);
+  font-weight: 400;
+}
+
+.search-modal-card.is-docs .info-modal-dim-anchor {
+  scroll-margin-top: 20px;
+  padding-top: 16px;
+  margin-top: 8px;
+  border-top: 1px solid var(--sk-modal-border-light);
+}
+.search-modal-card.is-docs .info-modal-dim-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--sk-modal-text);
+  margin-bottom: 8px;
+}
+.search-modal-card.is-docs .info-modal-dim-subtitle {
+  font-size: 0.72rem;
+  color: var(--sk-modal-text-dim);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.search-modal-card.is-docs .info-modal-back-top {
+  display: inline-block;
+  font-size: 0.72rem;
+  color: var(--sk-accent);
+  text-decoration: none;
+  margin-top: 8px;
+}
+.search-modal-card.is-docs .info-modal-back-top:hover { text-decoration: underline; }
+
+.search-modal-card.is-docs .info-modal-section { margin-bottom: 24px; }
+.search-modal-card.is-docs .info-modal-section:last-child { margin-bottom: 0; }
+.search-modal-card.is-docs .info-modal-section-label {
+  font-size: 0.68rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--sk-accent);
+  font-weight: 800;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(36,237,155,0.2);
+}
+.search-modal-card.is-docs .info-modal-section-text {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--sk-modal-text-body);
+}
+.search-modal-card.is-docs .info-modal-section-text strong { color: var(--sk-modal-text); }
+.search-modal-card.is-docs .info-modal-section-text em {
+  color: var(--sk-modal-link);
+  font-style: normal;
+  font-weight: 600;
+}
 {% endmacro %}
 
 
