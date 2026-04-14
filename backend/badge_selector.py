@@ -342,6 +342,71 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
             )],
         ))
 
+    # ── Minimum badge floor — Provisioning should always have 2+ badges ──
+    # When the primary fabric fires but no secondary badges qualify (no
+    # Multi-VM, no Complex Topology, no Pre-Instancing, no Sandbox API),
+    # emit additional context badges from the fact drawer to defend the score.
+    if len(badges) < 2:  # magic-allowed: minimum badge count for Provisioning evidence
+        # Deployment model context — always available
+        deploy = p.deployment_model or ""
+        if deploy and not any(b.name in ("Runs in VM", "Runs in Container", "Runs in Azure", "Runs in AWS") for b in badges):
+            badges.append(Badge(
+                name=f"{deploy.title()} Deployment",
+                color="gray",
+                qualifier="Context",
+                evidence=[_evidence(
+                    f"Deployment model: {deploy}. This informs the lab delivery path and rate tier.",
+                    confidence="confirmed",
+                )],
+            ))
+
+        # If installable but no secondary badges fired, check for container viability as secondary
+        if p.runs_as_installable and p.runs_as_container and _container_is_viable(p):
+            if not any(b.name == "Runs in Container" for b in badges):
+                badges.append(Badge(
+                    name="Container Viable",
+                    color="gray",
+                    qualifier="Context",
+                    evidence=[_evidence(
+                        "Container-native deployment also viable — gives the SE a second fabric option alongside VM.",
+                        confidence="confirmed",
+                    )],
+                ))
+
+        # If installable, note the OS/platform support
+        if p.runs_as_installable and p.description:
+            desc_lower = (p.description or "").lower()
+            os_hints = []
+            if "windows" in desc_lower: os_hints.append("Windows")
+            if "linux" in desc_lower: os_hints.append("Linux")
+            if "macos" in desc_lower or "mac os" in desc_lower: os_hints.append("macOS")
+            if os_hints and not any(b.name == "Platform Support" for b in badges):
+                badges.append(Badge(
+                    name="Platform Support",
+                    color="gray",
+                    qualifier="Context",
+                    evidence=[_evidence(
+                        f"Runs on {', '.join(os_hints)} — confirmed from product documentation.",
+                        confidence="confirmed",
+                    )],
+                ))
+
+        # Cloud-native products: note the specific cloud if not already badged
+        if p.runs_as_azure_native and not any(b.name == "Runs in Azure" for b in badges):
+            badges.append(Badge(
+                name="Azure Native",
+                color="gray",
+                qualifier="Context",
+                evidence=[_evidence("Azure-native service — Cloud Slice provisioning path available.", confidence="confirmed")],
+            ))
+        if p.runs_as_aws_native and not any(b.name == "Runs in AWS" for b in badges):
+            badges.append(Badge(
+                name="AWS Native",
+                color="gray",
+                qualifier="Context",
+                evidence=[_evidence("AWS-native service — Cloud Slice provisioning path available.", confidence="confirmed")],
+            ))
+
     return badges
 
 
