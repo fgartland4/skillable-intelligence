@@ -137,7 +137,34 @@
         }
         .results-table th.col-num { width: 36px; text-align: center; }
         .results-table th.col-acv { width: 130px; }
+        .results-table th.col-fit { width: 78px; text-align: center; }
         .results-table th.col-dd { width: 72px; text-align: center; }
+
+        /* Best Fit Score cell — only renders a value when a Deep Dive
+           produced one. Dash otherwise. Honest-signal rule (GP3). */
+        .results-table td.fit-cell {
+          text-align: center;
+          font-weight: 700;
+          color: var(--sk-text);
+        }
+        .results-table td.fit-cell.has-score {
+          color: var(--sk-accent);
+        }
+        .results-table td.fit-cell .fit-score-chip {
+          display: inline-block;
+          padding: 2px 7px;
+          border-radius: 4px;
+          font-size: 0.78rem;
+          font-weight: 700;
+          background: rgba(36,237,155,0.12);
+          color: var(--sk-accent);
+          border: 1px solid rgba(36,237,155,0.3);
+          line-height: 1.3;
+        }
+        .results-table td.fit-cell .fit-dash {
+          color: var(--sk-text-dim);
+          font-weight: 400;
+        }
         .results-table th.col-tier { width: 44px; text-align: center; }
         .results-table th.col-company { width: 260px; }
         .results-table th.col-product { width: 180px; }
@@ -376,6 +403,14 @@
                     <span class="acv-confidence acv-conf-{{ r.acv_confidence }}">{{ r.acv_confidence | upper }}</span>
                     {% endif %}
                 </td>
+                <td class="fit-cell{% if (r.best_fit_score or 0) > 0 %} has-score{% endif %}"
+                    {% if (r.best_fit_score or 0) > 0 %}title="Best Fit Score: {{ r.best_fit_score }} — from Deep Dive of {{ r.best_fit_product }}"{% else %}title="No Deep Dive has run on this company yet — Deep Dive the flagship product to score."{% endif %}>
+                    {% if (r.best_fit_score or 0) > 0 %}
+                    <span class="fit-score-chip">{{ r.best_fit_score }}</span>
+                    {% else %}
+                    <span class="fit-dash">—</span>
+                    {% endif %}
+                </td>
                 <td class="rank-num" title="Deep Dive coverage: {{ r.deep_dive_count or 0 }} of {{ r.total_products or 0 }} products scored">
                     <span class="dd-coverage dd-{% if (r.deep_dive_count or 0) >= (r.total_products or 1) and (r.total_products or 0) > 0 %}complete{% elif (r.deep_dive_count or 0) > 0 %}partial{% else %}none{% endif %}">{{ r.deep_dive_count or 0 }}/{{ r.total_products or 0 }}</span>
                 </td>
@@ -408,7 +443,7 @@
             </tr>
             {% endfor %}
             {% else %}
-            <tr><td colspan="14" class="empty-state">No companies found.</td></tr>
+            <tr><td colspan="15" class="empty-state">No companies found.</td></tr>
             {% endif %}
         </tbody>
         {% endmacro %}
@@ -420,6 +455,7 @@
                     <th class="col-num">#</th>
                     <th class="col-company sortable-header" onclick="sortCompanies('company')" title="Company name and classification badge. Click to sort A–Z.">Company ↕</th>
                     <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Estimated annual contract value range (low–high) with confidence level. Click a cell for full rationale, key drivers, and caveats. Click the header to sort by midpoint.">ACV Potential ↕</th>
+                    <th class="col-fit sortable-header" onclick="sortCompanies('fit')" title="Best Fit Score — highest product Fit Score (0–100) across this company's Deep Dive'd products. Shows a dash when no Deep Dive has run yet. Real, verified score; never estimated. Click header to sort.">Best Fit ↕</th>
                     <th class="col-dd" title="Deep Dive coverage: number of products with full Deep Dive scoring vs. total products discovered for this company.">Deep Dives</th>
                     <th class="col-product" title="The flagship or lead product for this company.">Top Product</th>
                     <th class="col-why" title="One-line summary of why this product is the lead — key signals that make it the strongest opportunity.">Top Signal</th>
@@ -433,7 +469,7 @@
                 </tr>
             </thead>
             <tbody id="tbody-all">
-                <tr id="all-loading-row"><td colspan="14" class="loading-indicator"><span class="loading-spinner"></span>Loading companies...</td></tr>
+                <tr id="all-loading-row"><td colspan="15" class="loading-indicator"><span class="loading-spinner"></span>Loading companies...</td></tr>
             </tbody>
         </table>
     </div>
@@ -494,6 +530,7 @@
                     <th class="col-num">#</th>
                     <th class="col-company">Company</th>
                     <th class="col-acv">ACV Potential</th>
+                    <th class="col-fit">Best Fit</th>
                     <th class="col-product">Top Product</th>
                     <th class="col-why">Why</th>
                     <th class="col-tier">Prom.</th>
@@ -733,7 +770,7 @@
     function renderAllCompanies(companies) {
         var tbody = document.getElementById('tbody-all');
         if (!companies || companies.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="14" class="empty-state">No companies found.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="15" class="empty-state">No companies found.</td></tr>';
             return;
         }
         var html = '';
@@ -786,6 +823,16 @@
             var ddClass = (ddCount >= ddTotal && ddTotal > 0) ? 'complete' : (ddCount > 0 ? 'partial' : 'none');
             var ddHtml = '<span class="dd-coverage dd-' + ddClass + '">' + ddCount + '/' + ddTotal + '</span>';
 
+            // ── Best Fit Score cell — chip when present, dash when not (GP3: never fake a score) ──
+            var bfs = r.best_fit_score || 0;
+            var bfsCell;
+            if (bfs > 0) {
+                var bfsTitle = 'Best Fit Score: ' + bfs + (r.best_fit_product ? ' — from Deep Dive of ' + escapeAttr(r.best_fit_product) : '');
+                bfsCell = '<td class="fit-cell has-score" title="' + bfsTitle + '"><span class="fit-score-chip">' + bfs + '</span></td>';
+            } else {
+                bfsCell = '<td class="fit-cell" title="No Deep Dive has run on this company yet — Deep Dive the flagship product to score."><span class="fit-dash">&mdash;</span></td>';
+            }
+
             html += '<tr>' +
                 '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
                 '<td class="rank-num" style="position:relative;">' +
@@ -794,6 +841,7 @@
                 '<td title="' + escapeAttr(r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
                 '<td class="acv-cell" title="' + escapeAttr(r.rationale || r.estimated_acv || '') + '"' + acvAttrs + '>' +
                     '<div class="' + acvValueClass + '">' + (r.estimated_acv||'&mdash;') + '</div>' + confChip + '</td>' +
+                bfsCell +
                 '<td class="rank-num" title="Deep Dive coverage: ' + ddCount + ' of ' + ddTotal + ' products scored">' + ddHtml + '</td>' +
                 '<td title="' + escapeAttr(r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +
                 '<td class="why-cell" title="' + escapeAttr(r.top_product_why||'') + '">' + (r.top_product_why||'') + '</td>' +
@@ -836,6 +884,9 @@
             if (column === 'company') {
                 va = (a.company_name || '').toLowerCase();
                 vb = (b.company_name || '').toLowerCase();
+            } else if (column === 'fit') {
+                va = a.best_fit_score || 0;
+                vb = b.best_fit_score || 0;
             } else {
                 va = a._sort_acv || 0;
                 vb = b._sort_acv || 0;
@@ -860,7 +911,7 @@
         })
         .catch(function(err) {
             var tbody = document.getElementById('tbody-all');
-            tbody.innerHTML = '<tr><td colspan="14" class="empty-state">Failed to load companies: ' + err + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="15" class="empty-state">Failed to load companies: ' + err + '</td></tr>';
         });
 })();
 </script>

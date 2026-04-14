@@ -1162,6 +1162,7 @@ def prospector_export(batch_id):
     writer = csv.writer(output)
     writer.writerow([
         "Rank", "Company", "Domain", "Badge",
+        "Best Fit Score", "Best Fit Product",
         "ACV Type",
         "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
         "Deep Dive Coverage", "Total Products",
@@ -1178,11 +1179,14 @@ def prospector_export(batch_id):
         dd = r.get("deep_dive_count", 0)
         tp = r.get("total_products", 0)
         coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
+        bfs = r.get("best_fit_score", 0) or 0
         writer.writerow([
             r.get("rank", ""),
             r.get("company_name", ""),
             r.get("company_domain", ""),
             r.get("company_badge", ""),
+            bfs if bfs > 0 else "",
+            r.get("best_fit_product", "") if bfs > 0 else "",
             r.get("acv_type", "direct"),
             r.get("acv_low", 0),
             r.get("acv_high", 0),
@@ -1389,6 +1393,11 @@ def _build_prospector_row(disc: dict) -> dict:
         # Deep Dive coverage — sharpened by _build_prospector_row_from_analysis
         "deep_dive_count": deep_dive_count,
         "total_products": total_products,
+        # Best Fit Score — 0 means no Deep Dive exists yet; the UX shows
+        # a dash.  Sharpened by _build_prospector_row_from_analysis when
+        # a Deep Dive analysis is present.
+        "best_fit_score": 0,
+        "best_fit_product": "",
         # Existing portfolio + signal columns (unchanged)
         "top_product_name": top.get("name", "") if top else "",
         "top_product_subcategory": top.get("subcategory", "") if top else "",
@@ -1419,6 +1428,22 @@ def _build_prospector_row_from_analysis(
         fs_total = fit_score.get("total") or fit_score.get("_total") or 0
         row["fit_score"] = fs_total
         row["verdict"] = (top.get("verdict") or {}).get("label", "")
+
+        # Best Fit Score — highest actual Deep Dive Fit Score across ALL
+        # scored products in the portfolio.  Never a computed estimate;
+        # a product either has a Deep Dive (real score) or doesn't (row
+        # falls through to 0 and the UX shows a dash).  GP3 — we only
+        # surface verified numbers.  More Deep Dives → stronger anchor.
+        best_fit = 0
+        best_fit_product = ""
+        for p in products:
+            fs = p.get("fit_score") or {}
+            total = fs.get("total") or fs.get("_total") or 0
+            if total > best_fit:
+                best_fit = total
+                best_fit_product = p.get("name", "")
+        row["best_fit_score"] = best_fit                    # 0 when no Deep Dives yet
+        row["best_fit_product"] = best_fit_product          # product that earned it
 
         # Deep Dive coverage — count products with scored ACV vs total in portfolio
         scored_count = sum(
@@ -1717,6 +1742,7 @@ def prospector_export_all():
     writer = csv.writer(output)
     writer.writerow([
         "Rank", "Company", "Domain", "Badge",
+        "Best Fit Score", "Best Fit Product",
         "ACV Type",
         "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
         "Deep Dive Coverage", "Total Products",
@@ -1733,8 +1759,11 @@ def prospector_export_all():
         dd = r.get("deep_dive_count", 0)
         tp = r.get("total_products", 0)
         coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
+        bfs = r.get("best_fit_score", 0) or 0
         writer.writerow([
             i, r.get("company_name", ""), r.get("company_domain", ""), r.get("company_badge", ""),
+            bfs if bfs > 0 else "",
+            r.get("best_fit_product", "") if bfs > 0 else "",
             r.get("acv_type", "direct"),
             r.get("acv_low", 0), r.get("acv_high", 0),
             r.get("acv_midpoint", 0), r.get("estimated_acv", ""),
