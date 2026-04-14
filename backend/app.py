@@ -1161,19 +1161,33 @@ def prospector_export(batch_id):
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        "Rank", "Company", "Badge", "Estimated ACV",
+        "Rank", "Company", "Badge",
+        "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
+        "Deep Dive Coverage", "Total Products",
         "Top Product", "Subcategory", "Why",
         "Promising Products", "Potential Products",
         "Uncertain Products", "Unlikely Products",
-        "Lab Platform", "Key Signal", "Cert Program", "Sales Channel",
+        "Lab Platform", "Cert Program", "Sales Channel",
+        "Rationale",
+        "Driver 1", "Driver 2", "Driver 3", "Driver 4", "Driver 5",
+        "Caveats",
         "Discovery ID",
     ])
     for r in results:
+        dd = r.get("deep_dive_count", 0)
+        tp = r.get("total_products", 0)
+        coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
         writer.writerow([
             r.get("rank", ""),
             r.get("company_name", ""),
             r.get("company_badge", ""),
+            r.get("acv_low", 0),
+            r.get("acv_high", 0),
+            r.get("acv_midpoint", 0),
             r.get("estimated_acv", ""),
+            r.get("acv_confidence", ""),
+            coverage,
+            tp,
             r.get("top_product_name", ""),
             r.get("top_product_subcategory", ""),
             r.get("top_product_why", ""),
@@ -1182,9 +1196,15 @@ def prospector_export(batch_id):
             r.get("uncertain_count", 0),
             r.get("unlikely_count", 0),
             r.get("lab_platform", ""),
-            r.get("key_signal", ""),
             r.get("cert_program", ""),
             r.get("sales_channel", ""),
+            r.get("rationale", ""),
+            r.get("driver_1", ""),
+            r.get("driver_2", ""),
+            r.get("driver_3", ""),
+            r.get("driver_4", ""),
+            r.get("driver_5", ""),
+            r.get("caveats", ""),
             r.get("discovery_id", ""),
         ])
 
@@ -1254,114 +1274,34 @@ def _build_prospector_row(disc: dict) -> dict:
         if detections:
             lab_platform = detections[0].get("platform", "")
 
-    # Key signal — pick the strongest company-level signal
-    key_signal = ""
-    if signals:
-        # Priority order for key signal selection
-        if signals.get("atp_program") and "no" not in signals["atp_program"].lower():
-            key_signal = signals["atp_program"]
-        elif signals.get("events") and "no" not in signals["events"].lower():
-            key_signal = signals["events"]
-        elif signals.get("training_programs"):
-            key_signal = signals["training_programs"][:80]  # magic-allowed: truncation for display
-        elif signals.get("delivery_partners"):
-            key_signal = signals["delivery_partners"][:80]  # magic-allowed: truncation for display
-
-    # Estimated ACV — company-wide rough dollar estimate.
-    # Same methodology as Deep Dive (audience × adoption × hours × rate)
-    # but summed across ALL discovered products, not just the top one.
-    # Per-product tiered caps keep inflated user bases honest.
-    # Org-type overrides for adoption and hours — aligned with Deep Dive.
-    # Deep Dive replaces this with the full five-motion calculation.
-    import scoring_config as _cfg
-    estimated_acv = ""
-    sort_acv = 0
-    company_acv = 0
-
-    # Look up org-type overrides for adoption rate and hours —
-    # same overrides the Deep Dive ACV calculator uses. Define-Once.
-    org_type = (disc.get("organization_type") or "").lower().replace(" ", "_")
-    normalized_org = _cfg.ORG_TYPE_NORMALIZATION.get(org_type, "")
-    org_adoption_overrides = _cfg.ACV_ORG_ADOPTION_OVERRIDES.get(normalized_org, {})
-    org_hours_overrides = _cfg.ACV_ORG_HOURS_OVERRIDES.get(normalized_org, {})
-    # Customer Training is Motion 1 — use its override if available
-    adoption = org_adoption_overrides.get(
-        "Customer Training & Enablement", _cfg.DISCOVERY_ACV_ADOPTION_RATE)
-    hours = org_hours_overrides.get(
-        "Customer Training & Enablement", _cfg.DISCOVERY_ACV_HOURS)
-
-    # Detect company-level training signals for open source tiering + maturity multipliers
-    company_signals = disc.get("company_signals", {}) or {}
-    _has_atp = False
-    _atp_large = False
-    _has_training_programs = False
-    atp_val = company_signals.get("atp_program", "") or ""
-    if atp_val and atp_val.lower() not in ("no", "none", "n/a", ""):
-        _has_atp = True
-        for token in ("50+", "100+", "200+", "500+", "1000+", "1,000+"):
-            if token in atp_val:
-                _atp_large = True
-                break
-    tp_val = company_signals.get("training_programs", "") or ""
-    if tp_val and tp_val.lower() not in ("no", "none", "n/a", ""):
-        _has_training_programs = True
-
-    for p in products:
-        ub_str = p.get("estimated_user_base", "")
-        if not ub_str:
-            continue
-        user_count = _parse_user_base_for_sort(ub_str)
-        if user_count <= 0:
-            continue
-
-        # Industry Authority / Training Org deflation — deflate inflated user bases
-        if normalized_org in ("INDUSTRY AUTHORITY", "TRAINING ORG"):
-            from acv_calculator import _apply_industry_authority_deflation
-            user_count = _apply_industry_authority_deflation(user_count)
-
-        # Tiered caps — inflated user bases get capped per product
-        for threshold, cap in _cfg.DISCOVERY_ACV_USER_BASE_TIERS:
-            if user_count > threshold:
-                if cap is not None:
-                    user_count = cap
-                break
-
-        # Three-tier open source classification per product
-        product_adoption = adoption
-        training_license = (p.get("training_license") or "").lower()
-        cert_inclusion = (p.get("cert_inclusion") or "").lower()
-        is_product_open_source = training_license == "none"
-
-        # Track per-product cert signal
-        product_has_cert = cert_inclusion not in ("", "no", "none", "n/a")
-        has_training_org = _has_atp or _has_training_programs or product_has_cert
-
-        if is_product_open_source:
-            if has_training_org:
-                product_adoption *= _cfg.OPEN_SOURCE_WITH_TRAINING_MULTIPLIER
-            else:
-                product_adoption *= _cfg.OPEN_SOURCE_PURE_MULTIPLIER
-
-        # Training maturity multipliers
-        maturity_mult = _cfg.ACV_TRAINING_MATURITY_MULTIPLIERS
-        if training_license == "blocked":
-            product_adoption *= maturity_mult["license_blocked"]
-        elif _atp_large:
-            product_adoption *= maturity_mult["atp_large"]
-        elif product_has_cert:
-            product_adoption *= maturity_mult["cert_active"]
-        elif not _has_atp and not _has_training_programs and not product_has_cert:
-            product_adoption *= maturity_mult["no_signals"]
-        product_adoption = min(product_adoption, _cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP)
-
-        deployment = (p.get("deployment_model") or "").lower()
-        rate = _cfg.DISCOVERY_ACV_RATE_BY_DEPLOYMENT.get(
-            deployment, _cfg.DISCOVERY_ACV_DEFAULT_RATE)
-        company_acv += int(user_count * product_adoption * hours * rate)
-    # Hard cap — no discovery estimate exceeds the ceiling
-    company_acv = min(company_acv, _cfg.DISCOVERY_ACV_CAP)
-    sort_acv = company_acv
-    estimated_acv = f"~{_format_acv_value(company_acv)}" if company_acv > 0 else ""
+    # NOTE: legacy `key_signal` heuristic retired 2026-04-13 (it was Frank's
+    # "junk" — auto-picked from atp_program / events / training_programs without
+    # a clear rule and didn't defend its slot). Replaced by `rationale` from
+    # the holistic ACV Claude call, which explains WHY the company is ranked
+    # where it is with full grounding.
+    # Estimated ACV — read from the holistic ACV produced at discovery time
+    # by the Option 2 Claude call. Replaced the per-product Python heuristic
+    # stack on 2026-04-13 — no more category-tier × multiplier × deflation
+    # × cap math at the row-render layer. The Claude call is the source of
+    # truth; row-render just formats and routes to the export.
+    # Per Platform-Foundation → Discovery-Level ACV Estimation (Option 2).
+    holistic = disc.get("_holistic_acv") or {}
+    acv_low = int(holistic.get("acv_low") or 0)
+    acv_high = int(holistic.get("acv_high") or 0)
+    acv_confidence = (holistic.get("confidence") or "").lower()
+    acv_rationale = holistic.get("rationale") or ""
+    acv_drivers = holistic.get("key_drivers") or []
+    acv_caveats = holistic.get("caveats") or []
+    if acv_low > 0 or acv_high > 0:
+        # Display range: "~$1.5M-$4M". Sort key: midpoint.
+        if acv_low == acv_high:
+            estimated_acv = f"~{_format_acv_value(acv_low)}"
+        else:
+            estimated_acv = f"~{_format_acv_value(acv_low)}-{_format_acv_value(acv_high)}"
+        sort_acv = (acv_low + acv_high) // 2  # magic-allowed: midpoint of ACV range
+    else:
+        estimated_acv = ""
+        sort_acv = 0
 
     # Build why string for top product
     top_why = ""
@@ -1376,13 +1316,37 @@ def _build_prospector_row(disc: dict) -> dict:
             parts.append(api_short + " API")
         top_why = ", ".join(parts)
 
+    # Driver columns expand to 5 fixed slots in the export (per Frank's
+    # preference: Driver_1..Driver_5 separate columns, not concatenated).
+    driver_cols = {
+        f"driver_{i+1}": (acv_drivers[i] if i < len(acv_drivers) else "")
+        for i in range(5)  # magic-allowed: fixed-5-driver-slots-in-CSV-export
+    }
+
+    # Deep Dive coverage counter — populated post-row by the caller when
+    # a saved analysis exists. Default 0/total here; sharpened later.
+    total_products = len(products)
+    deep_dive_count = 0  # populated by _build_prospector_row_from_analysis
+
     return {
         "company_name": disc.get("company_name", ""),
         "company_badge": disc.get("_company_badge", ""),
         "badge_color": disc.get("_org_color", "purple"),
         "discovery_id": disc.get("discovery_id", ""),
-        "estimated_acv": estimated_acv,
-        "_sort_acv": sort_acv,
+        # New ACV shape — range, midpoint, confidence, rationale, drivers, caveats
+        "estimated_acv": estimated_acv,        # display string ("~$1.5M-$4M")
+        "acv_low": acv_low,                    # int dollars (export, sort)
+        "acv_high": acv_high,                  # int dollars (export, sort)
+        "acv_midpoint": (acv_low + acv_high) // 2,  # magic-allowed: midpoint of ACV range
+        "acv_confidence": acv_confidence,      # "low" | "medium" | "high"
+        "rationale": acv_rationale,            # paragraph (replaces key_signal)
+        **driver_cols,                          # driver_1 .. driver_5
+        "caveats": "; ".join(acv_caveats) if acv_caveats else "",
+        "_sort_acv": sort_acv,                 # midpoint
+        # Deep Dive coverage — sharpened by _build_prospector_row_from_analysis
+        "deep_dive_count": deep_dive_count,
+        "total_products": total_products,
+        # Existing portfolio + signal columns (unchanged)
         "top_product_name": top.get("name", "") if top else "",
         "top_product_subcategory": top.get("subcategory", "") if top else "",
         "top_product_why": top_why,
@@ -1391,7 +1355,6 @@ def _build_prospector_row(disc: dict) -> dict:
         "uncertain_count": tier_counts["uncertain"],
         "unlikely_count": tier_counts["unlikely"],
         "lab_platform": lab_platform,
-        "key_signal": key_signal,
         "cert_program": top.get("cert_inclusion", "") if top else "",
         "sales_channel": signals.get("sales_channel", "") if signals else "",
     }
@@ -1414,12 +1377,27 @@ def _build_prospector_row_from_analysis(
         row["fit_score"] = fs_total
         row["verdict"] = (top.get("verdict") or {}).get("label", "")
 
+        # Deep Dive coverage — count products with scored ACV vs total in portfolio
+        scored_count = sum(
+            1 for p in products
+            if (p.get("acv_potential") or {}).get("acv_low", 0) > 0
+        )
+        row["deep_dive_count"] = scored_count
+        row["deep_dive_complete"] = scored_count >= row.get("total_products", 0) and row.get("total_products", 0) > 0
+
+        # Sharpen ACV with Deep Dive scored subtotal when present.
+        # The Option 2 holistic ACV stays in rationale/drivers/caveats —
+        # the Deep Dive total replaces only the displayed dollar figure.
         acv = analysis.get("_company_acv") or {}
         if acv.get("scored_low"):
             from app import _format_acv_value
             row["estimated_acv"] = f"~{_format_acv_value(acv['scored_low'])}"
             row["_sort_acv"] = acv["scored_low"]
-        row["deep_dive_complete"] = True
+            row["acv_low"] = acv["scored_low"]
+            row["acv_high"] = acv.get("scored_high") or acv["scored_low"]
+            row["acv_midpoint"] = (row["acv_low"] + row["acv_high"]) // 2  # magic-allowed: midpoint of ACV range
+            # Deep Dive ACV is more trustworthy — confidence stays whatever
+            # the holistic call said, since it's still the rationale source.
     return row
 
 
@@ -1635,23 +1613,38 @@ def prospector_export_all():
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        "Rank", "Company", "Badge", "Estimated ACV",
+        "Rank", "Company", "Badge",
+        "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
+        "Deep Dive Coverage", "Total Products",
         "Top Product", "Subcategory", "Why",
         "Promising Products", "Potential Products",
         "Uncertain Products", "Unlikely Products",
-        "Lab Platform", "Key Signal", "Cert Program", "Sales Channel",
+        "Lab Platform", "Cert Program", "Sales Channel",
+        "Rationale",
+        "Driver 1", "Driver 2", "Driver 3", "Driver 4", "Driver 5",
+        "Caveats",
         "Discovery ID",
     ])
     for i, r in enumerate(all_results, 1):
+        dd = r.get("deep_dive_count", 0)
+        tp = r.get("total_products", 0)
+        coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
         writer.writerow([
             i, r.get("company_name", ""), r.get("company_badge", ""),
-            r.get("estimated_acv", ""),
+            r.get("acv_low", 0), r.get("acv_high", 0),
+            r.get("acv_midpoint", 0), r.get("estimated_acv", ""),
+            r.get("acv_confidence", ""),
+            coverage, tp,
             r.get("top_product_name", ""), r.get("top_product_subcategory", ""),
             r.get("top_product_why", ""),
             r.get("promising_count", 0), r.get("potential_count", 0),
             r.get("uncertain_count", 0), r.get("unlikely_count", 0),
-            r.get("lab_platform", ""), r.get("key_signal", ""),
+            r.get("lab_platform", ""),
             r.get("cert_program", ""), r.get("sales_channel", ""),
+            r.get("rationale", ""),
+            r.get("driver_1", ""), r.get("driver_2", ""), r.get("driver_3", ""),
+            r.get("driver_4", ""), r.get("driver_5", ""),
+            r.get("caveats", ""),
             r.get("discovery_id", ""),
         ])
 

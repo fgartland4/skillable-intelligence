@@ -369,6 +369,65 @@
   display: none;
 }
 .search-modal-card.is-decision .search-modal-decision { display: block; }
+
+/* Info mode — read-only display for rationale, drivers, caveats.
+   Used by the Prospector ACV cell click. Hide all progress + decision
+   UI and show the info section. Wider card to fit the rationale paragraph. */
+.search-modal-card.is-info .search-modal-status,
+.search-modal-card.is-info .search-modal-dots,
+.search-modal-card.is-info .search-modal-bottom,
+.search-modal-card.is-info .search-modal-decision {
+  display: none;
+}
+.search-modal-card.is-info {
+  max-width: 720px;
+  text-align: left;
+}
+.search-modal-card.is-info .search-modal-title { text-align: center; margin-bottom: 18px; }
+.search-modal-card.is-info .search-modal-eyebrow { text-align: center; }
+.search-modal-info { display: none; }
+.search-modal-card.is-info .search-modal-info { display: block; }
+.search-modal-info-confidence {
+  display: inline-block;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+}
+.search-modal-info-confidence.conf-high   { background: rgba(36,237,155,0.15); color: var(--sk-accent); border: 1px solid rgba(36,237,155,0.3); }
+.search-modal-info-confidence.conf-medium { background: rgba(245,158,11,0.13); color: var(--sk-score-mid);      border: 1px solid rgba(245,158,11,0.28); }
+.search-modal-info-confidence.conf-low    { background: rgba(224,82,82,0.12);  color: var(--sk-score-low-soft); border: 1px solid rgba(224,82,82,0.28); }
+.search-modal-info-rationale {
+  font-size: 0.95rem; line-height: 1.55;
+  color: var(--sk-text);
+  margin-bottom: 22px;
+}
+.search-modal-info-section-title {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sk-text-muted);
+  margin-bottom: 8px;
+  margin-top: 18px;
+}
+.search-modal-info-list {
+  list-style: none; padding: 0; margin: 0 0 12px;
+}
+.search-modal-info-list li {
+  padding: 6px 0 6px 16px;
+  position: relative;
+  font-size: 0.9rem; line-height: 1.45;
+  color: var(--sk-text);
+  border-bottom: 1px solid var(--sk-border);
+}
+.search-modal-info-list li:last-child { border-bottom: none; }
+.search-modal-info-list li::before {
+  content: '→';
+  position: absolute; left: 0; top: 6px;
+  color: var(--sk-accent);
+  font-weight: 600;
+}
+.search-modal-info-list.caveats li::before { content: '⚠'; color: var(--sk-score-mid); }
 {% endmacro %}
 
 
@@ -469,6 +528,20 @@
         <button type="button" class="search-modal-btn search-modal-btn-secondary" id="searchModalIgnoreBtn">Ignore for now</button>
         <button type="button" class="search-modal-btn search-modal-btn-primary"   id="searchModalRefreshBtn">Refresh</button>
       </div>
+    </div>
+
+    {# Info mode — read-only display for rationale + drivers + caveats.
+       Used by the Prospector ACV cell click. Hidden by default; revealed
+       when card has .is-info class (set by openSearchModalInfo()). #}
+    <div class="search-modal-info">
+      <div id="searchModalInfoConfWrap" style="text-align: center;">
+        <span class="search-modal-info-confidence" id="searchModalInfoConf"></span>
+      </div>
+      <div class="search-modal-info-rationale" id="searchModalInfoRationale"></div>
+      <div class="search-modal-info-section-title" id="searchModalInfoDriversTitle">Key drivers</div>
+      <ul class="search-modal-info-list" id="searchModalInfoDrivers"></ul>
+      <div class="search-modal-info-section-title" id="searchModalInfoCaveatsTitle">Caveats</div>
+      <ul class="search-modal-info-list caveats" id="searchModalInfoCaveats"></ul>
     </div>
 
     <div class="search-modal-error" id="searchModalError">
@@ -992,6 +1065,96 @@ window.openSearchModalDecision = function(opts) {
   };
 
   document.getElementById('searchModalCancel').onclick = close;
+};
+
+
+// ── Info mode — read-only display ──
+//
+// Used by the Prospector ACV cell click to surface rationale + key drivers
+// + caveats from the holistic ACV Claude call. Reuses the shared modal so
+// trust UX is consistent across the platform (one modal, one component).
+//
+// Usage:
+//   openSearchModalInfo({
+//     eyebrow: 'ACV POTENTIAL',
+//     title:   'Nutanix',
+//     confidence: 'high' | 'medium' | 'low',
+//     rationale: 'Full paragraph explaining the estimate...',
+//     drivers:  ['Driver one', 'Driver two', 'Driver three'],
+//     caveats:  ['Caveat one']  // optional
+//   });
+window.openSearchModalInfo = function(opts) {
+  opts = opts || {};
+  const backdrop = document.getElementById('searchModalBackdrop');
+  if (!backdrop) {
+    console.error('openSearchModalInfo: search modal markup not on page');
+    return;
+  }
+  const card = backdrop.querySelector('.search-modal-card');
+
+  document.getElementById('searchModalEyebrow').textContent = opts.eyebrow || 'Details';
+  document.getElementById('searchModalTitle').textContent   = opts.title   || '';
+
+  // Confidence chip
+  const confEl = document.getElementById('searchModalInfoConf');
+  const confWrap = document.getElementById('searchModalInfoConfWrap');
+  if (opts.confidence) {
+    confEl.textContent = String(opts.confidence).toUpperCase() + ' confidence';
+    confEl.className = 'search-modal-info-confidence conf-' + String(opts.confidence).toLowerCase();
+    confWrap.style.display = '';
+  } else {
+    confWrap.style.display = 'none';
+  }
+
+  // Rationale paragraph
+  document.getElementById('searchModalInfoRationale').textContent = opts.rationale || '';
+
+  // Drivers list
+  const driversList = document.getElementById('searchModalInfoDrivers');
+  const driversTitle = document.getElementById('searchModalInfoDriversTitle');
+  driversList.innerHTML = '';
+  const drivers = (opts.drivers || []).filter(function(d) { return d && d.trim(); });
+  if (drivers.length === 0) {
+    driversTitle.style.display = 'none';
+    driversList.style.display = 'none';
+  } else {
+    driversTitle.style.display = '';
+    driversList.style.display = '';
+    drivers.forEach(function(d) {
+      const li = document.createElement('li');
+      li.textContent = d;
+      driversList.appendChild(li);
+    });
+  }
+
+  // Caveats list
+  const caveatsList = document.getElementById('searchModalInfoCaveats');
+  const caveatsTitle = document.getElementById('searchModalInfoCaveatsTitle');
+  caveatsList.innerHTML = '';
+  const caveats = (opts.caveats || []).filter(function(c) { return c && c.trim(); });
+  if (caveats.length === 0) {
+    caveatsTitle.style.display = 'none';
+    caveatsList.style.display = 'none';
+  } else {
+    caveatsTitle.style.display = '';
+    caveatsList.style.display = '';
+    caveats.forEach(function(c) {
+      const li = document.createElement('li');
+      li.textContent = c;
+      caveatsList.appendChild(li);
+    });
+  }
+
+  // Switch to info mode
+  card.classList.remove('is-stages', 'is-decision');
+  card.classList.add('is-info');
+  document.getElementById('searchModalError').style.display = 'none';
+  backdrop.classList.add('is-open');
+
+  document.getElementById('searchModalCancel').onclick = function() {
+    card.classList.remove('is-info');
+    backdrop.classList.remove('is-open');
+  };
 };
 
 

@@ -1762,3 +1762,267 @@ def research_company_fit(company_name: str, discovery_data: dict | None = None) 
         "customer_fit_research": search_results,
         "customer_fit_pages": page_contents,
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Discovery Option 2 — Holistic ACV Estimate (Claude reasoning)
+#
+# Replaces the old per-product Python ACV math at discovery depth. One
+# focused Claude call per company produces a defendable ACV range +
+# confidence + rationale + key drivers + caveats. Reasoning is sourced
+# from cached discovery signals; ground-truth anchors keep the estimates
+# calibrated.
+#
+# The Deep Dive ACV pipeline (rebuild_acv_motions_from_facts) remains
+# the precision layer. This call is the discovery-depth replacement
+# for the heuristic stack we retired in app.py.
+#
+# Per Platform-Foundation → Discovery-Level ACV Estimation +
+# unified-acv-model.md. Frank 2026-04-13.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_HOLISTIC_ACV_PROMPT = """You are a senior revenue analyst at Skillable estimating the annual lab-training revenue potential for {company_name}.
+
+Skillable powers hands-on labs for software products. The estimate represents the annual contract value if {company_name} standardized on Skillable across all of their lab-relevant training and enablement motions for the products / programs in their portfolio.
+
+═══ HOW SKILLABLE LABS GET CONSUMED (the model) ═══
+
+Across every org type, ACV bottoms out at the same unit: lab hours consumed × rate per hour. The audience funnel splits into five motions:
+
+  1. Customer Training & Enablement — End learners taking labs to learn the product. The largest motion for software companies (people using the vendor's product). For wrapper orgs (training companies, universities, GSIs), this is the wrapper's own program enrollments.
+  2. Partner Training & Enablement — SEs at CHANNEL/SALES partners (GSIs, VARs, distributors, alliance partners who SELL the product) needing product knowledge.
+  3. Employee Training & Enablement — Product-facing employees at the company itself (product team, SEs, support, CS).
+  4. Certification — Annual exam sitters, when the product has cert programs with hands-on lab components.
+  5. Events & Conferences — Attendees at flagship vendor events with hands-on lab tracks.
+
+Lab rates by delivery path: cloud labs ~$6/hr, small VM/container/sim ~$8/hr, typical VM ~$14/hr, large/complex multi-VM or topology ~$45/hr. Use the right rate per product based on what the underlying tech actually requires.
+
+═══ CALIBRATION ANCHORS (real Skillable customer ACVs) ═══
+
+Use these to sanity-check magnitude. Match the closest comparable on org type, scale, and portfolio shape:
+
+{anchors_table}
+
+═══ INPUTS YOU HAVE ═══
+
+{company_block}
+
+PRODUCTS:
+{products_block}
+
+COMPANY-LEVEL TRAINING SIGNALS:
+{signals_block}
+
+═══ ESTIMATION DISCIPLINE ═══
+
+  - Reason holistically across all five motions. Add them up mentally; don't return per-motion numbers — return the company total.
+  - The range you produce should be tight when signals are strong (high <= 2 * low). When signals are thin, drop confidence to "low" and widen the range honestly rather than narrowing it falsely.
+  - Anchor against the comparables above. If your midpoint is wildly off the closest comparable's ACV, either justify why this company is structurally different or revise the estimate.
+  - Sanity floor / ceiling per company size:
+      • A focused single-product startup with <10K users rarely exceeds $250K ACV.
+      • A mid-cap enterprise software vendor with rich training infrastructure typically lands $1M-$5M.
+      • A hyperscaler / Fortune 500 enterprise software company can exceed $5M.
+      • Hard cap: no estimate above ${hard_cap_M}M without explicit evidence the company has comparable scale to the top anchors.
+  - Wrapper orgs: the audience is the wrapper's own program enrollments, NOT the underlying technology's global market. LLPA's Azure training audience is LLPA's classroom throughput (~thousands), not Azure's global user base (~millions).
+  - Caveats: name what you're uncertain about. "Employee subset estimated, not researched." "Event attendance not confirmed." Honest uncertainty is more useful than fake precision.
+
+═══ OUTPUT FORMAT ═══
+
+Return ONLY a JSON object with EXACTLY this shape (no commentary, no markdown, no code fence):
+
+{{
+  "acv_low": <int dollars>,
+  "acv_high": <int dollars>,
+  "confidence": "low" | "medium" | "high",
+  "rationale": "<one paragraph, 80-180 words, explaining how you arrived at this range with specific reference to the products, signals, and comparable anchors>",
+  "key_drivers": [
+    "<driver 1 — one short sentence>",
+    "<driver 2 — one short sentence>",
+    "<driver 3 — one short sentence>"
+  ],
+  "caveats": [
+    "<caveat 1 — what you're uncertain about>"
+  ]
+}}
+
+  - 3 to 5 key_drivers. Each one ties the estimate to a specific signal — product user base, training infrastructure, partner ecosystem, event presence, cert program. NOT generic phrases.
+  - 0 to 3 caveats. Empty list is fine when confidence is high.
+  - acv_low and acv_high are integer dollar amounts — no commas, no $, no "M" or "k" suffixes. Examples: 250000, 1500000, 4200000.
+  - confidence is exactly one of "low", "medium", "high" (lowercase).
+
+═══ FINAL CHECK BEFORE OUTPUT ═══
+
+  - Is acv_high <= 2 * acv_low? If not, drop confidence to "medium" or "low".
+  - Is the midpoint defendable against the closest anchor? If not, revise.
+  - Does the rationale explicitly cite at least 2 of the inputs (product, signal, anchor)?
+  - Is the dict valid JSON?
+"""
+
+
+def _format_anchors_table_for_prompt() -> str:
+    """Build a compact comparable-anchors table for the prompt."""
+    import scoring_config as cfg
+    rows = ["  | Company | Org Type | Scale | Annual ACV | Note |",
+            "  | --- | --- | --- | --- | --- |"]
+    for a in cfg.HOLISTIC_ACV_ANCHORS:
+        acv_m = a["annual_acv_estimate"] / 1_000_000
+        acv_str = f"~${acv_m:.1f}M"
+        rows.append(f"  | {a['name']} | {a['org_type']} | {a['scale']} | {acv_str} | {a['note']} |")
+    return "\n".join(rows)
+
+
+def _build_holistic_acv_context(
+    company_name: str,
+    discovery: dict,
+) -> dict:
+    """Build the prompt-input dict from a discovery record."""
+    org_type_raw = (discovery.get("organization_type") or "").lower()
+    badge = discovery.get("company_badge") or ""
+    desc = discovery.get("company_description") or ""
+
+    company_lines = [f"COMPANY: {company_name}"]
+    if badge:
+        company_lines.append(f"  Classification: {badge}")
+    if org_type_raw:
+        company_lines.append(f"  Organization type: {org_type_raw}")
+    if desc:
+        company_lines.append(f"  Description: {desc[:400]}")
+
+    products = discovery.get("products") or []
+    if not products:
+        product_lines = ["  (no products discovered)"]
+    else:
+        product_lines = []
+        for p in products[:25]:  # cap context size
+            name = p.get("name") or "?"
+            cat = p.get("category") or "?"
+            sub = p.get("subcategory") or ""
+            ub = p.get("estimated_user_base") or "?"
+            dep = p.get("deployment_model") or "?"
+            rel = p.get("product_relationship") or ""
+            cert = p.get("cert_inclusion") or ""
+            ann = p.get("annual_enrollments_estimate") or 0
+            line = f"  - {name} ({cat}"
+            if sub:
+                line += f" / {sub}"
+            line += f"): users={ub}, deployment={dep}"
+            if rel:
+                line += f", relationship={rel}"
+            if ann:
+                line += f", annual_enrollments={ann}"
+            if cert and cert.lower() not in ("no", "none", "n/a", ""):
+                line += f", cert_program=yes"
+            product_lines.append(line)
+
+    signals = discovery.get("company_signals") or {}
+    sig_lines = []
+    for key in ("training_programs", "atp_program", "delivery_partners",
+                "events", "sales_channel", "partnership_pattern",
+                "training_breadth", "lab_platform", "training_leadership"):
+        val = signals.get(key)
+        if val and str(val).strip().lower() not in ("no", "none", "n/a", ""):
+            sig_lines.append(f"  - {key}: {str(val)[:300]}")
+    if not sig_lines:
+        sig_lines = ["  (no company-level training signals captured)"]
+
+    import scoring_config as cfg
+    return {
+        "company_name": company_name,
+        "company_block": "\n".join(company_lines),
+        "products_block": "\n".join(product_lines),
+        "signals_block": "\n".join(sig_lines),
+        "anchors_table": _format_anchors_table_for_prompt(),
+        "hard_cap_M": cfg.HOLISTIC_ACV_COMPANY_HARD_CAP // 1_000_000,
+    }
+
+
+def estimate_holistic_acv(
+    company_name: str,
+    discovery: dict,
+) -> dict:
+    """Run the Option 2 Claude call to produce a holistic ACV estimate.
+
+    Returns a dict matching the prompt's JSON schema, plus a
+    `_generated_at` timestamp + `_inputs_hash` stub for cache validation.
+    On failure, returns an empty-but-shaped dict so callers don't have
+    to handle exceptions.
+    """
+    from scorer import _call_claude  # local import to avoid circular dep
+    import scoring_config as cfg
+
+    ctx = _build_holistic_acv_context(company_name, discovery)
+    prompt = _HOLISTIC_ACV_PROMPT.format(**ctx)
+
+    log.info("Holistic ACV: estimating for %s", company_name)
+    max_attempts = 2  # magic-allowed: retry count for transient failures
+    raw: dict | None = None
+    for attempt in range(max_attempts):
+        try:
+            raw = _call_claude("", prompt, max_tokens=2500)
+            if isinstance(raw, dict) and "acv_low" in raw:
+                break
+        except Exception as e:
+            log.warning(
+                "Holistic ACV Claude call failed for %s (attempt %d): %s",
+                company_name, attempt + 1, e,
+            )
+
+    # Defensive parse + guardrail enforcement.
+    def _int(v) -> int:
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return 0
+    def _str(v) -> str:
+        return str(v) if v is not None else ""
+    def _list_str(v) -> list:
+        return [str(x) for x in v] if isinstance(v, list) else []
+
+    if not isinstance(raw, dict):
+        raw = {}
+
+    acv_low = max(0, _int(raw.get("acv_low")))
+    acv_high = max(acv_low, _int(raw.get("acv_high")))
+    confidence = str(raw.get("confidence") or "low").lower()
+    if confidence not in ("low", "medium", "high"):
+        confidence = "low"
+
+    # Hard-cap enforcement — if we exceed the company hard cap, force Low confidence.
+    if acv_high > cfg.HOLISTIC_ACV_COMPANY_HARD_CAP:
+        acv_high = cfg.HOLISTIC_ACV_COMPANY_HARD_CAP
+        if acv_low > acv_high:
+            acv_low = acv_high
+        confidence = "low"
+
+    # Range-width enforcement — if range is wider than HOLISTIC_ACV_MAX_RANGE_RATIO
+    # at High confidence, drop to Medium. The wider it is, the lower the trust.
+    if acv_low > 0 and acv_high / max(acv_low, 1) > cfg.HOLISTIC_ACV_MAX_RANGE_RATIO:
+        if confidence == "high":
+            confidence = "medium"
+        elif confidence == "medium" and acv_high / max(acv_low, 1) > (cfg.HOLISTIC_ACV_MAX_RANGE_RATIO * 1.5):
+            confidence = "low"
+
+    # Sanity check: midpoint vs total user base × per-user ceiling.
+    products = discovery.get("products") or []
+    total_users = 0
+    for p in products:
+        ub_str = str(p.get("estimated_user_base") or "")
+        try:
+            from app import _parse_user_base_for_sort
+            total_users += _parse_user_base_for_sort(ub_str)
+        except Exception:
+            pass
+    midpoint = (acv_low + acv_high) // 2
+    if total_users > 0:
+        per_user_ceiling = total_users * cfg.HOLISTIC_ACV_PER_USER_CEILING
+        if midpoint > per_user_ceiling:
+            confidence = "low"  # sanity-check failed; flag for review
+
+    return {
+        "acv_low": acv_low,
+        "acv_high": acv_high,
+        "confidence": confidence,
+        "rationale": _str(raw.get("rationale")),
+        "key_drivers": _list_str(raw.get("key_drivers"))[:5],
+        "caveats": _list_str(raw.get("caveats"))[:3],
+    }

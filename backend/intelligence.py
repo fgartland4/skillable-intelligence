@@ -913,6 +913,29 @@ def discover(company_name: str, known_products: list[str] | None = None,
     # the same function. See HIGH-1 in code-review-2026-04-07.md.
     enrich_discovery(discovery)
 
+    # Discovery Option 2 — holistic ACV estimate (one Claude call, replaces
+    # the retired per-product Python ACV math). Reads the cached discovery
+    # we just built and produces a defendable range + confidence + rationale.
+    # Safe to call here because the discovery dict already has products,
+    # company_signals, and badge populated by the discover prompt above.
+    _progress("Estimating ACV potential…")
+    try:
+        from researcher import estimate_holistic_acv
+        holistic = estimate_holistic_acv(company_name, discovery)
+        discovery["_holistic_acv"] = holistic
+        log.info(
+            "Intelligence.discover: holistic ACV for %s = $%s-$%s (%s)",
+            company_name, f"{holistic.get('acv_low', 0):,}",
+            f"{holistic.get('acv_high', 0):,}",
+            holistic.get("confidence", "?"),
+        )
+    except Exception as e:
+        log.warning("Intelligence.discover: holistic ACV failed for %s: %s",
+                    company_name, e)
+        # Don't block discovery on holistic ACV failure — display layer
+        # will show "—" and a retry hint when _holistic_acv is missing.
+        discovery["_holistic_acv"] = {}
+
     _progress("Categorizing offerings against Skillable taxonomy…")
     # Stamp the discovery with version + created_at right before save.
     # save_discovery will reject the write if either field is missing.

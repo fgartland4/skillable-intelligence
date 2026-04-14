@@ -3005,6 +3005,37 @@ def get_acv_audience_source_for_org_type(normalized_org: str | None) -> str:
         normalized_org, ACV_AUDIENCE_SOURCE_USER_BASE)
 
 
+# ── Holistic ACV ground-truth anchors (Option 2 — discovery Claude call) ──
+# Real Skillable customer ACVs the holistic discovery prompt uses to
+# calibrate its estimates. Claude reads this table inline and anchors
+# its ranges against these comparables instead of estimating in a vacuum.
+#
+# When adding anchors: include companies that span the org-type / scale
+# spectrum (small / mid / large × focused / enterprise / wrapper). The
+# prompt does NOT need 100 anchors — 6-12 well-chosen ones across the
+# spectrum is enough for Claude to triangulate.
+#
+# Per Platform-Foundation → "Discovery Option 2" + unified-acv-model.md
+# benchmarks. Frank 2026-04-13.
+HOLISTIC_ACV_ANCHORS: tuple[dict, ...] = (
+    {"name": "CompTIA",     "org_type": "INDUSTRY AUTHORITY",  "scale": "large",  "annual_acv_estimate": 5_800_000, "note": "Wide cert program portfolio, large global candidate base"},
+    {"name": "EC-Council",  "org_type": "INDUSTRY AUTHORITY",  "scale": "mid",    "annual_acv_estimate": 2_200_000, "note": "CEH-anchored cert program, multi-track portfolio"},
+    {"name": "WGU",         "org_type": "ACADEMIC",            "scale": "large",  "annual_acv_estimate": 4_700_000, "note": "~90K students across technology programs"},
+    {"name": "GCU",         "org_type": "ACADEMIC",            "scale": "mid",    "annual_acv_estimate": 1_700_000, "note": "~32.5K students in technology-facing programs"},
+    {"name": "Skillsoft",   "org_type": "LMS PROVIDER",        "scale": "large",  "annual_acv_estimate": 5_000_000, "note": "Multi-million learners blended on-demand + ILT after Global Knowledge merger"},
+    {"name": "Pluralsight", "org_type": "LMS PROVIDER",        "scale": "mid",    "annual_acv_estimate": 2_500_000, "note": "~2M learners, on-demand-heavy"},
+    {"name": "QA",          "org_type": "ILT TRAINING ORG",    "scale": "mid",    "annual_acv_estimate":   700_000, "note": "~12K classroom students/year, intensive multi-day courses"},
+    {"name": "Accenture",   "org_type": "SYSTEMS INTEGRATOR",  "scale": "large",  "annual_acv_estimate": 2_800_000, "note": "~500K consultants across practices, internal training only modeled"},
+)
+
+
+# ── Holistic ACV guardrails ───────────────────────────────────────────
+# Range-width and sanity-check thresholds for Option 2 output.
+HOLISTIC_ACV_MAX_RANGE_RATIO = 2.0          # high <= low * 2 for High confidence
+HOLISTIC_ACV_PER_USER_CEILING = 20          # midpoint cannot exceed user_count * $20
+HOLISTIC_ACV_COMPANY_HARD_CAP = 50_000_000  # absolute company cap; estimates above this force Low confidence
+
+
 # ── ACV audience guardrails (R1–R5 from 2026-04-13 ACV audit) ─────────
 # Wrapper org types (GSI, university, training org, etc.) report the
 # underlying technology's global audience as their install_base. The real

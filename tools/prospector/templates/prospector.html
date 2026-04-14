@@ -242,6 +242,35 @@
         .sortable-header { cursor: pointer; user-select: none; }
         .sortable-header:hover { color: var(--sk-accent); }
 
+        /* ── ACV cell — range value + confidence chip ── */
+        .acv-cell .acv-value {
+            font-weight: 600;
+            color: var(--sk-text);
+            line-height: 1.2;
+        }
+        .acv-cell[data-rationale]:hover .acv-value { color: var(--sk-accent); }
+        .acv-confidence {
+            display: inline-block;
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em;
+            padding: 1px 6px; border-radius: 8px;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+        .acv-conf-high   { background: rgba(36,237,155,0.15); color: var(--sk-accent); }
+        .acv-conf-medium { background: rgba(245,158,11,0.13); color: var(--sk-score-mid); }
+        .acv-conf-low    { background: rgba(224,82,82,0.12);  color: var(--sk-score-low-soft); }
+
+        /* ── Deep Dive coverage cell ── */
+        .dd-coverage {
+            display: inline-block;
+            font-size: 0.78rem; font-weight: 600;
+            padding: 2px 8px; border-radius: 999px;
+            border: 1px solid;
+        }
+        .dd-complete { background: rgba(36,237,155,0.15); color: var(--sk-accent); border-color: rgba(36,237,155,0.3); }
+        .dd-partial  { background: rgba(245,158,11,0.13); color: var(--sk-score-mid);     border-color: rgba(245,158,11,0.28); }
+        .dd-none     { background: var(--sk-bg);          color: var(--sk-text-dim); border-color: var(--sk-border); }
+
         /* ── Loading state ── */
         .loading-indicator {
             text-align: center; padding: 60px 20px;
@@ -326,7 +355,17 @@
                     <span class="company-cell-badge badge-{{ (r.badge_color or 'purple') | replace('_', '-') }}">{{ r.company_badge }}</span>
                     {% endif %}
                 </td>
-                <td class="acv-cell" title="{{ r.estimated_acv or '' }}">{{ r.estimated_acv or '—' }}</td>
+                <td class="acv-cell"
+                    title="{{ r.rationale or r.estimated_acv or '' }}"
+                    {% if r.rationale %}data-rationale="{{ r.rationale }}" data-confidence="{{ r.acv_confidence or '' }}" data-drivers="{{ (r.driver_1 or '') ~ '|' ~ (r.driver_2 or '') ~ '|' ~ (r.driver_3 or '') ~ '|' ~ (r.driver_4 or '') ~ '|' ~ (r.driver_5 or '') }}" data-caveats="{{ r.caveats or '' }}" data-company="{{ r.company_name or '' }}" onclick="openAcvRationale(this)" style="cursor: pointer;"{% endif %}>
+                    <div class="acv-value">{{ r.estimated_acv or '—' }}</div>
+                    {% if r.acv_confidence %}
+                    <span class="acv-confidence acv-conf-{{ r.acv_confidence }}">{{ r.acv_confidence | upper }}</span>
+                    {% endif %}
+                </td>
+                <td class="rank-num" title="Deep Dive coverage: {{ r.deep_dive_count or 0 }} of {{ r.total_products or 0 }} products scored">
+                    <span class="dd-coverage dd-{% if (r.deep_dive_count or 0) >= (r.total_products or 1) and (r.total_products or 0) > 0 %}complete{% elif (r.deep_dive_count or 0) > 0 %}partial{% else %}none{% endif %}">{{ r.deep_dive_count or 0 }}/{{ r.total_products or 0 }}</span>
+                </td>
                 <td title="{{ r.top_product_name or '' }}">
                     <div class="product-cell-name">{{ r.top_product_name or '—' }}</div>
                     {% if r.top_product_subcategory %}
@@ -351,7 +390,6 @@
                     <span class="lab-none">—</span>
                     {% endif %}
                 </td>
-                <td class="signal-cell" title="{{ r.key_signal or '' }}">{{ r.key_signal or '' }}</td>
                 <td class="signal-cell" title="{{ r.cert_program or '' }}">{{ r.cert_program or '' }}</td>
                 <td class="signal-cell" title="{{ r.sales_channel or '' }}">{{ r.sales_channel or '' }}</td>
             </tr>
@@ -368,7 +406,8 @@
                     <th class="col-check"></th>
                     <th class="col-num">#</th>
                     <th class="col-company sortable-header" onclick="sortCompanies('company')" title="Sort by company name">Company ↕</th>
-                    <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Sort by estimated ACV">Est. ACV ↕</th>
+                    <th class="col-acv sortable-header" onclick="sortCompanies('acv')" title="Sort by estimated ACV midpoint">Est. ACV ↕</th>
+                    <th class="col-tier" title="Deep Dive coverage: products with full scoring vs. total discovered">Deep Dives</th>
                     <th class="col-product">Top Product</th>
                     <th class="col-why">Why</th>
                     <th class="col-tier">Prom.</th>
@@ -376,7 +415,6 @@
                     <th class="col-tier">Unc.</th>
                     <th class="col-tier">Unl.</th>
                     <th class="col-lab">Lab Platform</th>
-                    <th class="col-signal">Key Signal</th>
                     <th class="col-cert">Cert Program</th>
                     <th class="col-channel">Sales Channel</th>
                 </tr>
@@ -489,6 +527,28 @@
 
     window.switchTab = function(tab, btn) {
         showTab(tab);
+    };
+
+    // ── ACV cell click → open shared modal in info mode with rationale ──
+    // Reads data attributes set by the row template and routes to the
+    // shared `openSearchModalInfo` function. One modal, used everywhere.
+    window.openAcvRationale = function(cell) {
+        var driversAttr = cell.getAttribute('data-drivers') || '';
+        var drivers = driversAttr.split('|').filter(function(d) { return d && d.trim(); });
+        var caveatsAttr = cell.getAttribute('data-caveats') || '';
+        var caveats = caveatsAttr.split(';').map(function(c) { return c.trim(); }).filter(function(c) { return c; });
+        if (typeof window.openSearchModalInfo !== 'function') {
+            console.error('openAcvRationale: shared modal not loaded');
+            return;
+        }
+        window.openSearchModalInfo({
+            eyebrow:    'ACV POTENTIAL',
+            title:      cell.getAttribute('data-company') || '',
+            confidence: cell.getAttribute('data-confidence') || '',
+            rationale:  cell.getAttribute('data-rationale') || '',
+            drivers:    drivers,
+            caveats:    caveats,
+        });
     };
 
     // ── Close dynamic batch tab ──
@@ -644,6 +704,19 @@
     var currentSort = 'acv';  // default sort
     var sortAscending = false; // default descending for ACV
 
+    // Escape a string for safe inclusion in an HTML attribute. Used by
+    // renderAllCompanies — researcher-supplied content can contain quotes
+    // or angle brackets that would break attribute parsing if not escaped.
+    function escapeAttr(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     function renderAllCompanies(companies) {
         var tbody = document.getElementById('tbody-all');
         if (!companies || companies.length === 0) {
@@ -667,23 +740,47 @@
                 labHtml = '<span class="lab-none">&mdash;</span>';
             }
             var subHtml = r.top_product_subcategory ? '<div class="product-cell-sub">' + r.top_product_subcategory + '</div>' : '';
+
+            // ── ACV cell with rationale modal trigger ──
+            var driversAttr = [r.driver_1, r.driver_2, r.driver_3, r.driver_4, r.driver_5]
+                .map(function(d) { return d || ''; }).join('|');
+            var acvAttrs = '';
+            if (r.rationale) {
+                acvAttrs = ' data-rationale="' + escapeAttr(r.rationale) + '"' +
+                           ' data-confidence="' + (r.acv_confidence || '') + '"' +
+                           ' data-drivers="' + escapeAttr(driversAttr) + '"' +
+                           ' data-caveats="' + escapeAttr(r.caveats || '') + '"' +
+                           ' data-company="' + escapeAttr(r.company_name || '') + '"' +
+                           ' onclick="openAcvRationale(this)" style="cursor: pointer;"';
+            }
+            var confChip = r.acv_confidence
+                ? '<span class="acv-confidence acv-conf-' + r.acv_confidence + '">' + r.acv_confidence.toUpperCase() + '</span>'
+                : '';
+
+            // ── Deep Dive coverage cell ──
+            var ddCount = r.deep_dive_count || 0;
+            var ddTotal = r.total_products || 0;
+            var ddClass = (ddCount >= ddTotal && ddTotal > 0) ? 'complete' : (ddCount > 0 ? 'partial' : 'none');
+            var ddHtml = '<span class="dd-coverage dd-' + ddClass + '">' + ddCount + '/' + ddTotal + '</span>';
+
             html += '<tr>' +
                 '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
                 '<td class="rank-num" style="position:relative;">' +
                     (r.deep_dive_complete ? '<span title="Deep Dive complete" style="color: var(--sk-accent); font-size: 0.6rem; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);">&#9679;</span>' : '') +
                     (i + 1) + '</td>' +
-                '<td title="' + (r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
-                '<td class="acv-cell" title="' + (r.estimated_acv||'') + '">' + (r.estimated_acv||'&mdash;') + '</td>' +
-                '<td title="' + (r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +
-                '<td class="why-cell" title="' + (r.top_product_why||'') + '">' + (r.top_product_why||'') + '</td>' +
+                '<td title="' + escapeAttr(r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
+                '<td class="acv-cell" title="' + escapeAttr(r.rationale || r.estimated_acv || '') + '"' + acvAttrs + '>' +
+                    '<div class="acv-value">' + (r.estimated_acv||'&mdash;') + '</div>' + confChip + '</td>' +
+                '<td class="rank-num" title="Deep Dive coverage: ' + ddCount + ' of ' + ddTotal + ' products scored">' + ddHtml + '</td>' +
+                '<td title="' + escapeAttr(r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +
+                '<td class="why-cell" title="' + escapeAttr(r.top_product_why||'') + '">' + (r.top_product_why||'') + '</td>' +
                 '<td class="rank-num">' + (r.promising_count||0) + '</td>' +
                 '<td class="rank-num">' + (r.potential_count||0) + '</td>' +
                 '<td class="rank-num">' + (r.uncertain_count||0) + '</td>' +
                 '<td class="rank-num">' + (r.unlikely_count||0) + '</td>' +
-                '<td class="signal-cell" title="' + (r.lab_platform||'') + '">' + labHtml + '</td>' +
-                '<td class="signal-cell" title="' + (r.key_signal||'') + '">' + (r.key_signal||'') + '</td>' +
-                '<td class="signal-cell" title="' + (r.cert_program||'') + '">' + (r.cert_program||'') + '</td>' +
-                '<td class="signal-cell" title="' + (r.sales_channel||'') + '">' + (r.sales_channel||'') + '</td>' +
+                '<td class="signal-cell" title="' + escapeAttr(r.lab_platform||'') + '">' + labHtml + '</td>' +
+                '<td class="signal-cell" title="' + escapeAttr(r.cert_program||'') + '">' + (r.cert_program||'') + '</td>' +
+                '<td class="signal-cell" title="' + escapeAttr(r.sales_channel||'') + '">' + (r.sales_channel||'') + '</td>' +
                 '</tr>';
         });
         tbody.innerHTML = html;
