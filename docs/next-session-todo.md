@@ -109,7 +109,8 @@ The ? icons on Prospector pages are wired but show "Coming soon." Content needs 
 | **5** | Inspector↔Prospector cache verification | HashiCorp test case — confirm normalized lookup works end-to-end |
 | **6** | Background processing toast notifications | "Run in Background" button on Deep Dive + toast on completion |
 | **7** | Designer | Foundation session + build. Design docs ready. Biggest workstream. |
-| **8** | Deployment | Render or Azure Web App — blocks auth |
+| **8** | Deployment | Render or Azure Web App — blocks auth implementation |
+| **9** | Authentication + RBAC | 7 roles, 4 boundary lines designed and documented in Platform-Foundation.md + ADR-0000. Implementation blocked on deployment (#8). Design is locked. | Render or Azure Web App — blocks auth |
 
 ---
 
