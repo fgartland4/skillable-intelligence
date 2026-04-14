@@ -916,7 +916,8 @@ def prospector_home():
                           batch_results=batch_results,
                           batch_id=batch_id,
                           initial_tab=initial_tab,
-                          refresh_date=date.today().strftime("%B %d, %Y"))
+                          refresh_date=date.today().strftime("%B %d, %Y"),
+                          prospector_modal_json=json.dumps(_cfg.PROSPECTOR_MODAL_CONTENT))
 
 
 @app.route("/prospector/api/companies")

@@ -3951,6 +3951,145 @@ def _build_modal_content() -> dict:
 
 MODAL_CONTENT = _build_modal_content()
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROSPECTOR MODAL CONTENT
+#
+# In-app documentation for Prospector ? icons. Same pattern as Inspector
+# modals — content lives in scoring_config so it's Define-Once and can
+# reference actual pillar weights, rates, and thresholds without drift.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+PROSPECTOR_MODAL_CONTENT = {
+    "company_list": {
+        "eyebrow": "PROSPECTOR",
+        "title": "Researched Companies",
+        "sections": [
+            {
+                "heading": "What this list shows",
+                "body": (
+                    "Every company the platform has researched — whether through Prospector batch runs "
+                    "or Inspector searches. Companies are ranked by estimated ACV Potential (highest first). "
+                    "Each row shows the company's top product, classification badge, labability tier counts, "
+                    "and key signals from discovery research."
+                ),
+            },
+            {
+                "heading": "How ACV Potential is estimated at discovery level",
+                "body": (
+                    f"ACV = Audience × Adoption Rate × Lab Hours × Rate per Hour, summed across all "
+                    f"discovered products. The adoption rate and hours vary by organization type — "
+                    f"universities ({int(ACV_ORG_ADOPTION_OVERRIDES.get('ACADEMIC', {}).get('Customer Training & Enablement', 0.04) * 100)}% adoption, "
+                    f"{int(ACV_ORG_HOURS_OVERRIDES.get('ACADEMIC', {}).get('Customer Training & Enablement', 2))} hrs) "
+                    f"are higher than software companies ({int(DISCOVERY_ACV_ADOPTION_RATE * 100)}% adoption, {int(DISCOVERY_ACV_HOURS)} hrs) "
+                    f"because coursework is assigned, not optional. "
+                    f"Rates range from ~${CLOUD_LABS_RATE:.0f}/hr for cloud labs to ~${VM_HIGH_RATE:.0f}/hr for complex multi-VM environments."
+                ),
+            },
+            {
+                "heading": "Discovery vs Deep Dive",
+                "body": (
+                    "Discovery is a quick research pass that identifies products and estimates ACV from "
+                    "publicly available data. A Deep Dive runs full three-pillar scoring (Product Labability, "
+                    "Instructional Value, Customer Fit) and produces a precise ACV with five consumption motions. "
+                    "When a Deep Dive exists, its ACV replaces the discovery estimate — intelligence compounds."
+                ),
+            },
+            {
+                "heading": "How estimates are refreshed",
+                "body": (
+                    "ACV estimates are calculated from cached research data using the current scoring methodology. "
+                    "Refreshing this page recalculates all estimates at zero additional cost — no new research "
+                    "or API calls required. The research data stays cached; only the math runs fresh."
+                ),
+            },
+        ],
+    },
+    "acv_estimation": {
+        "eyebrow": "ACV POTENTIAL",
+        "title": "How ACV is Estimated",
+        "sections": [
+            {
+                "heading": "The universal formula",
+                "body": (
+                    "ACV = Audience × Adoption Rate × Lab Hours per Learner × Rate per Hour. "
+                    "This formula is the same at every level — discovery and Deep Dive. "
+                    "The Deep Dive sharpens each input with per-product precision."
+                ),
+            },
+            {
+                "heading": "Adoption rates by organization type",
+                "body": (
+                    f"Software companies: {int(DISCOVERY_ACV_ADOPTION_RATE * 100)}% of product users take structured training. "
+                    f"Universities: {int(ACV_ORG_ADOPTION_OVERRIDES.get('ACADEMIC', {}).get('Customer Training & Enablement', 0.25) * 100)}% — "
+                    f"coursework is assigned. "
+                    f"Industry Authorities: {int(ACV_ORG_ADOPTION_OVERRIDES.get('INDUSTRY AUTHORITY', {}).get('Customer Training & Enablement', 0.05) * 100)}% of training candidates take labs. "
+                    f"ILT Training Orgs: {int(ACV_ORG_ADOPTION_OVERRIDES.get('ILT TRAINING ORG', {}).get('Customer Training & Enablement', 0.25) * 100)}% of classroom students. "
+                    f"Enterprise Learning Platforms: {int(ACV_ORG_ADOPTION_OVERRIDES.get('LMS PROVIDER', {}).get('Customer Training & Enablement', 0.03) * 100)}% of platform learners. "
+                    f"GSIs/VARs: {int(ACV_ORG_ADOPTION_OVERRIDES.get('SYSTEMS INTEGRATOR', {}).get('Customer Training & Enablement', 0.05) * 100)}% of internal practitioners."
+                ),
+            },
+            {
+                "heading": "Training maturity multipliers",
+                "body": (
+                    "Adoption rates are nudged by evidence from the research: "
+                    f"companies with 50+ ATPs get {ACV_TRAINING_MATURITY_MULTIPLIERS['atp_large']}× adoption, "
+                    f"active cert exams get {ACV_TRAINING_MATURITY_MULTIPLIERS['cert_active']}×, "
+                    f"no training signals get {ACV_TRAINING_MATURITY_MULTIPLIERS['no_signals']}×, "
+                    f"blocked training license gets {ACV_TRAINING_MATURITY_MULTIPLIERS['license_blocked']}×. "
+                    f"Capped at {int(ACV_TRAINING_MATURITY_ADOPTION_CAP * 100)}% maximum adoption."
+                ),
+            },
+            {
+                "heading": "Rate tiers",
+                "body": (
+                    f"Cloud labs (Azure/AWS Cloud Slice): ~${CLOUD_LABS_RATE:.0f}/hr. "
+                    f"Small VM or Container: ~${VM_LOW_RATE:.0f}/hr. "
+                    f"Typical VM (1-3 VMs): ~${VM_MID_RATE:.0f}/hr. "
+                    f"Large/complex VM (multi-VM, GPU, complex topology): ~${VM_HIGH_RATE:.0f}/hr. "
+                    "Rate is determined by the product's delivery path — one number per product, "
+                    "used everywhere. Define-Once."
+                ),
+            },
+        ],
+    },
+    "scoring_framework": {
+        "eyebrow": "SCORING FRAMEWORK",
+        "title": "How Companies Are Scored",
+        "sections": [
+            {
+                "heading": "Three Pillars",
+                "body": (
+                    f"The Fit Score (0–100) combines three Pillars: "
+                    f"Product Labability ({PILLARS[0].weight}%) — can Skillable run a hands-on lab on this product? "
+                    f"Instructional Value ({PILLARS[1].weight}%) — does this product warrant hands-on training? "
+                    f"Customer Fit ({PILLARS[2].weight}%) — is this organization a training buyer? "
+                    f"Product Labability is weighted highest because if we can't lab the product, nothing else matters."
+                ),
+            },
+            {
+                "heading": "Discovery vs Deep Dive scoring",
+                "body": (
+                    "At discovery level, products get a rough labability tier (Promising / Potential / Uncertain / Unlikely) "
+                    "based on deployment model, API surface, and category. A Deep Dive runs the full three-pillar scoring "
+                    "with 12 dimensions, evidence-backed badges, and a Seller Briefcase. The Deep Dive produces the "
+                    "definitive Fit Score and Verdict (Prime Target through Poor Fit)."
+                ),
+            },
+            {
+                "heading": "Verdict Grid",
+                "body": (
+                    "The Verdict combines Fit Score and ACV tier into an action label. "
+                    "Fit Score ≥80 + High ACV = Prime Target. "
+                    "Fit Score 65-79 + Medium ACV = Worth Pursuing. "
+                    "Fit Score <25 = Poor Fit regardless of ACV. "
+                    "The verdict tells the seller what to DO, not just what the numbers are."
+                ),
+            },
+        ],
+    },
+}
+
 # Threshold above which the Product Family picker activates on the Product
 # Selection page. When a discovery returns this many or more non-TC products
 # AND the website nav scrape produced multiple families, the page surfaces

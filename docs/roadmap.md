@@ -27,13 +27,32 @@ Priority tags: **HIGH** / **MED** / **LOW** on every non-done item.
 
 ## §1 — Active Priorities
 
-### Prospector UX Batch (11 items — shipped 2026-04-13) ✓
+### Badge-to-Score Consistency Investigation (next session §1)
 
-All 11 items shipped. See Done section for details.
+Badges are not consistently defending the scores they accompany. Root cause investigation needed across all dimensions — not patches. See `next-session-todo.md §1` for the full investigation plan.
 
-### Prospector Background Batch Processing (shipped 2026-04-13) ✓
+| # | Item | Priority | Status |
+|---|---|---|---|
+| **BI1** | Trace 1-badge vs 4-badge products through full pipeline (researcher → scorer → badge selector) | HIGH | 🟢 Next session |
+| **BI2** | Identify root cause: researcher not extracting, scorer not crediting, or badge selector not emitting? | HIGH | 🟢 |
+| **BI3** | Extend investigation to all 12 dimensions | HIGH | 🟢 |
+| **BI4** | Structural fix — not band-aids | HIGH | 🟢 |
 
-All 6 items shipped (PB1–PB6). `prospector_running.html` deleted. See Done section for details.
+### Prospector Modal Documentation (after badge investigation)
+
+? icons wired but showing "Coming soon." Content sourced from Platform-Foundation.md + B&S Reference. Same pattern as Inspector modals.
+
+| # | Item | Priority | Status |
+|---|---|---|---|
+| **MD1** | Write modal content for Prospector — ACV estimation, scoring framework, company list | HIGH | 🟢 Ready to write |
+
+### Unified ACV Model (shipped 2026-04-13) ✓
+
+All 6 org types locked and implemented. See `docs/unified-acv-model.md` and Done section.
+
+### Prospector UX Overhaul (shipped 2026-04-13) ✓
+
+Results-first home, background batch processing, merged input pages, Configure HubSpot with field mapper. See Done section.
 
 ### Background Processing + Toast Notifications (aligned 2026-04-13)
 
