@@ -175,6 +175,18 @@ For each product that passes the filter, capture ALL of the following:
   Better to be approximately right than precisely uncertain.
 - user_base_evidence: what sources informed the estimate — vendor marketing claims ("trusted by 14M data scientists"), Stack Overflow tag count, GitHub stars, job posting volume, analyst reports. Be specific.
 - user_base_confidence: "confirmed" (direct evidence from primary source) | "indicated" (strong indirect evidence) | "inferred" (AI assumption from patterns)
+
+- annual_enrollments_estimate: WRAPPER ORG TYPES ONLY (academic_institution, ilt_training_organization, enterprise_learning_platform, systems_integrator, var, technology_distributor, industry_authority, professional_services, lms_company, content_development). For software_company and enterprise_software, set to 0 — those use estimated_user_base directly.
+  Single estimated number — how many learners THIS organization serves in THIS program per year. Distinct from estimated_user_base, which is the underlying technology's global user count.
+  - For ILT Training Org: classroom students per year in this course (e.g., LLPA's Microsoft Azure Training program serves ~2,000 students/year — NOT the 180,000 Azure users worldwide).
+  - For Academic: students enrolled in this technology-facing program per year (BS Cybersecurity at Arizona State ~500/year — NOT all cybersecurity professionals globally).
+  - For Enterprise Learning Platform: subscribers taking this technology slice per year (Skillsoft AWS courses ~50,000 learners/year — NOT total Skillsoft platform learners).
+  - For GSI / VAR / Tech Distributor: practitioners in this practice area per year (Accenture AWS Practice ~60,000 consultants — NOT all AWS practitioners worldwide).
+  - For Industry Authority: training participants per year for this cert program (CompTIA Security+ ~50,000 candidates/year — NOT lifetime cert holders).
+  Better to be approximately right (e.g., "~2000") than precisely uncertain (range). Single number.
+- annual_enrollments_evidence: WRAPPER ORG TYPES ONLY. What sources informed the enrollments estimate — published course catalog size + class frequency, vendor case studies, Crunchbase / analyst reports, LinkedIn staff counts.
+- annual_enrollments_confidence: WRAPPER ORG TYPES ONLY. "confirmed" | "indicated" | "inferred"
+
 - rough_labability_score: integer 0-100. This is a DIRECTIONAL ESTIMATE — pre-Deep Dive, not a conclusion. Score based on:
   - Deployment model: installable/hybrid = 65-90. Cloud-native = 50-75.
   - SaaS-only with API: 30-45. SaaS-only without API: 10-25.
@@ -255,6 +267,9 @@ OUTPUT FORMAT — Return ONLY valid JSON
       "estimated_user_base": "~14M",
       "user_base_evidence": "Source description",
       "user_base_confidence": "confirmed|indicated|inferred",
+      "annual_enrollments_estimate": 0,
+      "annual_enrollments_evidence": "",
+      "annual_enrollments_confidence": "",
       "rough_labability_score": 75,
       "complexity_signals": "1-2 sentences",
       "target_personas": "admins, developers, security engineers",

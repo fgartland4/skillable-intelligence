@@ -199,13 +199,36 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
     motions = []
     customer_pop = 0
 
+    # Resolve the Motion 1 audience source for this org type.
+    # Software / Enterprise Software → estimated_user_base (via install_base fact)
+    # Wrapper orgs (Academic, ILT, ELP, GSI, VAR, Distributor, Content Dev) →
+    #   annual_enrollments_estimate from the product dict
+    # Industry Authority → install_base then deflated
+    customer_audience_source = cfg.get_acv_audience_source_for_org_type(normalized_org)
+    using_annual_enrollments = (
+        customer_audience_source == cfg.ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS
+    )
+
     for cfg_motion in cfg.CONSUMPTION_MOTIONS:
         pop_low, pop_high = 0, 0
 
         # Read population from the fact drawer
         source = cfg_motion.population_source
         if source == "product:install_base":
-            pop_low, pop_high = _nr(md.get("install_base"))
+            # Motion 1 (Customer Training) audience — routed by org type.
+            if using_annual_enrollments:
+                # Wrapper org: use the wrapper's per-program enrollment count,
+                # NOT the underlying technology's global user base.
+                ann_enr = product.get("annual_enrollments_estimate") or 0
+                try:
+                    ae_int = int(ann_enr)
+                except (TypeError, ValueError):
+                    ae_int = 0
+                pop_low = pop_high = ae_int
+            else:
+                # Software / Enterprise Software / Industry Authority:
+                # use install_base from the Pillar 2 fact drawer.
+                pop_low, pop_high = _nr(md.get("install_base"))
         elif source == "product:employee_subset_size":
             pop_low, pop_high = _nr(md.get("employee_subset_size"))
         elif source == "product:cert_annual_sit_rate":
@@ -221,13 +244,21 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
 
         is_customer_motion = cfg_motion.label == "Customer Training & Enablement"
 
-        # Industry Authority deflation
-        if is_customer_motion and normalized_org in ("INDUSTRY AUTHORITY", "TRAINING ORG"):
+        # Industry Authority deflation — only IA still reads install_base for
+        # Customer Training. TRAINING ORG now uses annual_enrollments_estimate
+        # (no deflation needed — the field IS the wrapper's audience).
+        if is_customer_motion and normalized_org == "INDUSTRY AUTHORITY":
             pop_low = _apply_industry_authority_deflation(pop_low)
             pop_high = _apply_industry_authority_deflation(pop_high)
 
-        # Wrapper org audience cap (R1)
-        if is_customer_motion and normalized_org in cfg.ACV_WRAPPER_ORG_TYPES:
+        # Wrapper-org audience cap (R1) — applies ONLY when the wrapper org
+        # is falling back to install_base (no annual_enrollments_estimate
+        # populated yet on legacy records). When annual_enrollments_estimate
+        # is present, that field IS the wrapper's audience — capping it
+        # would undercount honest data.
+        if (is_customer_motion
+                and normalized_org in cfg.ACV_WRAPPER_ORG_TYPES
+                and not using_annual_enrollments):
             total_emp = 0
             te = cf_facts.get("total_employees")
             if isinstance(te, dict):
@@ -246,6 +277,17 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
         adoption = adoption_overrides.get(cfg_motion.label, cfg_motion.adoption_pct)
         display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
         hrs = hours_overrides.get(cfg_motion.label, cfg_motion.hours_low)
+
+        # Customer Training adoption by category tier — Software / Enterprise
+        # Software only. Specialist categories (cybersecurity, cloud infra,
+        # networking) get higher adoption (8%) than general-purpose (4%) or
+        # consumer (1%). Wrapper orgs keep their org-level overrides because
+        # their adoption dynamics come from delivery model, not category.
+        # Per Platform-Foundation → "Customer Training adoption by category tier".
+        if (is_customer_motion
+                and normalized_org in cfg.CATEGORY_TIER_ELIGIBLE_ORG_TYPES):
+            category = product.get("category") or ""
+            adoption = cfg.get_customer_training_adoption_for_category(category)
 
         # Open source tiering
         if is_open_source and is_customer_motion:

@@ -2254,6 +2254,72 @@ CATEGORY_PRIORS: tuple[CategoryPrior, ...] = (
     CategoryPrior("Social / Entertainment", 0, "low"),
 )
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CUSTOMER TRAINING ADOPTION BY CATEGORY TIER — Software / Enterprise Software
+#
+# Motion 1 (Customer Training & Enablement) adoption rate, keyed on the
+# CATEGORY_PRIORS tier of the product's category. Specialist categories
+# with career-gated training (cybersecurity, cloud infra, networking)
+# have ~2× the formal-training uptake of general-purpose categories
+# (collaboration, CRM end-user). Flat 4% systematically undercount the
+# specialist categories that are Skillable's strongest fit.
+#
+# Applies ONLY to Software and Enterprise Software org types. Wrapper
+# orgs (Academic, ILT, ELP, GSI/VAR/Distributor) keep their existing
+# org-level overrides in ACV_ORG_ADOPTION_OVERRIDES because their
+# adoption dynamics come from delivery model, not product category.
+#
+# Per Platform-Foundation → "Customer Training adoption by category
+# tier" + unified-acv-model.md. Frank 2026-04-13.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+CUSTOMER_TRAINING_ADOPTION_BY_TIER: dict[str, float] = {
+    "high": 0.08,     # specialist categories — Nutanix, Cisco, Splunk
+    "moderate": 0.04, # general-purpose enterprise — same as old flat baseline
+    "low": 0.01,      # consumer / no professional training market
+}
+# Fallback when the product's category is unknown / unclassified.
+# Treat as Moderate — a conservative middle.
+CUSTOMER_TRAINING_ADOPTION_TIER_DEFAULT = 0.04
+
+# Org types that USE the category-tier Motion 1 adoption.
+# Other org types use ACV_ORG_ADOPTION_OVERRIDES (wrapper orgs) or the
+# motion's default (anything else).
+CATEGORY_TIER_ELIGIBLE_ORG_TYPES = frozenset({
+    "SOFTWARE", "ENTERPRISE SOFTWARE",
+})
+
+
+def _build_category_to_tier_map() -> dict[str, str]:
+    """Build {category_name: tier_label} from CATEGORY_PRIORS.
+
+    Used by acv_calculator to look up a product's tier from its category.
+    Define-Once: CATEGORY_PRIORS is the source of truth; this map is
+    derived, not duplicated.
+    """
+    return {prior.category: prior.demand_level for prior in CATEGORY_PRIORS}
+
+
+# Eager build — CATEGORY_PRIORS is immutable at module load time.
+CATEGORY_TO_TIER: dict[str, str] = _build_category_to_tier_map()
+
+
+def get_customer_training_adoption_for_category(category: str | None) -> float:
+    """Return the Motion 1 adoption rate for a product's category.
+
+    Reads CATEGORY_TO_TIER (derived from CATEGORY_PRIORS) and looks up
+    the rate in CUSTOMER_TRAINING_ADOPTION_BY_TIER. Falls back to the
+    default when the category is empty, None, or not in the map.
+    """
+    if not category:
+        return CUSTOMER_TRAINING_ADOPTION_TIER_DEFAULT
+    tier = CATEGORY_TO_TIER.get(category)
+    if not tier:
+        return CUSTOMER_TRAINING_ADOPTION_TIER_DEFAULT
+    return CUSTOMER_TRAINING_ADOPTION_BY_TIER.get(
+        tier, CUSTOMER_TRAINING_ADOPTION_TIER_DEFAULT)
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # UNKNOWN CLASSIFICATION — canonical fallback label
 #
@@ -2897,6 +2963,47 @@ INDUSTRY_AUTHORITY_DEFLATION_TIERS = [
     (100_000, 5),    # 100K-500K → divide by 5
     (0, 2),          # <100K → divide by 2
 ]
+
+# ── ACV audience source by org type ───────────────────────────────────
+# Routes the Motion 1 (Customer Training & Enablement) audience field
+# per org type. Software / Enterprise Software use estimated_user_base
+# (the product's user count). Wrapper orgs use annual_enrollments_estimate
+# (the wrapper's own per-program enrollment count) — a separate field
+# the researcher populates only for wrapper orgs because the underlying
+# technology's user base and the wrapper's classroom audience are
+# different things.
+#
+# Per Platform-Foundation → "Wrapper organizations — product vs.
+# audience" + unified-acv-model.md → "Audience Source by Org Type".
+# Frank 2026-04-13.
+ACV_AUDIENCE_SOURCE_USER_BASE = "estimated_user_base"
+ACV_AUDIENCE_SOURCE_USER_BASE_DEFLATED = "estimated_user_base_deflated"
+ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS = "annual_enrollments_estimate"
+
+# org_type → audience source key for Motion 1.
+# Org types not in this map fall back to estimated_user_base (Software default).
+ACV_AUDIENCE_SOURCE_BY_ORG_TYPE: dict[str, str] = {
+    "SOFTWARE": ACV_AUDIENCE_SOURCE_USER_BASE,
+    "ENTERPRISE SOFTWARE": ACV_AUDIENCE_SOURCE_USER_BASE,
+    "INDUSTRY AUTHORITY": ACV_AUDIENCE_SOURCE_USER_BASE_DEFLATED,
+    "ACADEMIC": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+    "TRAINING ORG": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+    "ILT TRAINING ORG": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+    "LMS PROVIDER": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+    "SYSTEMS INTEGRATOR": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+    "TECH DISTRIBUTOR": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+    "PROFESSIONAL SERVICES": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+    "CONTENT DEVELOPMENT": ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS,
+}
+
+
+def get_acv_audience_source_for_org_type(normalized_org: str | None) -> str:
+    """Return the Motion 1 audience field key for a given org type."""
+    if not normalized_org:
+        return ACV_AUDIENCE_SOURCE_USER_BASE
+    return ACV_AUDIENCE_SOURCE_BY_ORG_TYPE.get(
+        normalized_org, ACV_AUDIENCE_SOURCE_USER_BASE)
+
 
 # ── ACV audience guardrails (R1–R5 from 2026-04-13 ACV audit) ─────────
 # Wrapper org types (GSI, university, training org, etc.) report the

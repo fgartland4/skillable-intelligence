@@ -802,6 +802,24 @@ class Product:
     # Drives Pillar 1 scoring and badge evidence. Empty for software companies
     # where the product IS the technology.
     underlying_technologies: list[dict] = field(default_factory=list)
+
+    # ── Wrapper-org audience field ──────────────────────────────────────────
+    # For wrapper org types ONLY (Academic, ILT Training Org, Enterprise
+    # Learning Platform, GSI, VAR, Tech Distributor, Industry Authority,
+    # Content Development): how many learners THIS organization serves
+    # in THIS program per year. Distinct from `estimated_user_base`,
+    # which is the underlying technology's global market.
+    #
+    # Used as the Motion 1 audience source via
+    # ACV_AUDIENCE_SOURCE_BY_ORG_TYPE in scoring_config.py. Empty / 0
+    # for Software and Enterprise Software org types — those use
+    # estimated_user_base directly.
+    #
+    # Per Platform-Foundation → "Wrapper organizations — product vs.
+    # audience". Frank 2026-04-13.
+    annual_enrollments_estimate: int = 0
+    annual_enrollments_evidence: str = ""
+    annual_enrollments_confidence: str = ""  # "confirmed" | "indicated" | "inferred"
     user_personas: list[str] = field(default_factory=list)
     lab_highlight: str = ""        # Why this is a great hands-on candidate
     lab_concepts: list[str] = field(default_factory=list)
