@@ -6,7 +6,27 @@
 
 ---
 
-**Last updated:** 2026-04-13 (two marathon sessions — second session focused on ADR, Prospector UX, background batch processing, ACV guardrails, scoring fixes, Prospector results-first redesign, and unified ACV model design)
+**Last updated:** 2026-04-13 (three marathon sessions — massive day. ADR, Prospector UX batch, background batch processing, ACV guardrails R1-R5, scoring fixes 1-4, exhaustive audit, Prospector results-first redesign, unified ACV model design for all 6 org types, and implementation batch in progress)
+
+**IMPLEMENTATION BATCH IN PROGRESS (if session ended mid-batch):**
+All 6 org types locked in `docs/unified-acv-model.md`. Implementation order:
+1. Rewrite Platform-Foundation.md ACV section (best current thinking)
+2. Rewrite B&S Reference ACV operational detail
+3. Implement in scoring_config.py (constants)
+4. Update acv_calculator.py + app.py (code)
+5. Server-side cache for Prospector company list (performance)
+6. Merge four input pages into one tabbed page (UX)
+7. Consolidate field mapper into Configure HubSpot tab (+/- tree)
+8. Deep Dive indicator + in-modal docs on Prospector
+9. Run rescore.py on all cached analyses
+10. Verify: HashiCorp cache sharing, ACV spot checks against benchmarks
+
+Additional Prospector UX items agreed:
+- "Configure Integration" → "Configure HubSpot" everywhere
+- Input pages merge into one tabbed page with deep-link params (/prospector/input?tab=upload)
+- Field mapper consolidated into Configure HubSpot tab with +/- collapsible tree
+- ACV label: "Discovery & Deep Dive" not "Deep Dive only"
+- Prospector ? modal documentation content needed
 
 **What shipped in session 2 (2026-04-13 afternoon/evening):**
 
