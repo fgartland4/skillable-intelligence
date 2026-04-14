@@ -6,7 +6,7 @@
 
 ---
 
-**Last updated:** 2026-04-13 (two marathon sessions — second session focused on ADR, Prospector UX, and background batch processing)
+**Last updated:** 2026-04-13 (two marathon sessions — second session focused on ADR, Prospector UX, background batch processing, ACV guardrails, scoring fixes, Prospector results-first redesign, and unified ACV model design)
 
 **What shipped in session 2 (2026-04-13 afternoon/evening):**
 
