@@ -1461,8 +1461,20 @@ def _save_prospector_batch(batch_id: str, results: list[dict],
         json.dump(payload, f, indent=2)  # magic-allowed: JSON formatting indent
 
 
-def _load_prospector_batch(batch_id: str) -> list[dict] | None:
-    """Load a saved Prospector batch — returns the results list."""
+def _load_prospector_batch(batch_id: str, rehydrate: bool = True) -> list[dict] | None:
+    """Load a saved Prospector batch — returns the results list.
+
+    When `rehydrate=True` (default), each row's ACV + scoring fields are
+    refreshed from the live discovery record before returning. This keeps
+    batch-level metadata stable (when it ran, what was included) while
+    ensuring the numbers reflect current scoring logic / retrofit state.
+
+    When `rehydrate=False`, the caller gets the snapshot as-of the batch
+    run. Useful only for historical auditing.
+
+    GP5 — Intelligence compounds. Retrofits, prompt fixes, and guardrail
+    tunes propagate to every past batch view automatically.
+    """
     import json
     batch_path = Path("data/prospector_batches") / f"{batch_id}.json"
     if not batch_path.exists():
@@ -1471,8 +1483,45 @@ def _load_prospector_batch(batch_id: str) -> list[dict] | None:
         data = json.load(f)
     # Support both old format (plain list) and new format (dict with _metadata)
     if isinstance(data, list):
-        return data
-    return data.get("results", [])
+        rows = data
+    else:
+        rows = data.get("results", []) or []
+
+    if not rehydrate or not rows:
+        return rows
+
+    # Re-hydrate each row from the current discovery record. Preserve the
+    # original row if a discovery can't be found (renamed, deleted, etc.)
+    # so the batch still displays something rather than silently dropping.
+    from storage import find_discovery_by_company_name, list_analyses
+    # Build a one-time analyses index so the per-row sharpen lookup is O(1).
+    analyses_by_disc: dict[str, dict] = {}
+    for analysis in list_analyses():
+        did = analysis.get("discovery_id") or ""
+        if did and did not in analyses_by_disc:
+            analyses_by_disc[did] = analysis
+
+    rehydrated = []
+    for original_row in rows:
+        name = original_row.get("company_name") or ""
+        if not name:
+            rehydrated.append(original_row)
+            continue
+        disc = find_discovery_by_company_name(name)
+        if disc is None:
+            rehydrated.append(original_row)
+            continue
+        fresh_row = _build_prospector_row(disc)
+        disc_id = disc.get("discovery_id") or ""
+        analysis = analyses_by_disc.get(disc_id) if disc_id else None
+        if analysis:
+            fresh_row = _build_prospector_row_from_analysis(disc, analysis, fresh_row)
+        # Preserve the batch-specific rank so the list order matches the
+        # original batch run. Everything else — ACV, badges, signals — is
+        # taken from the live data.
+        fresh_row["rank"] = original_row.get("rank") or fresh_row.get("rank") or 0
+        rehydrated.append(fresh_row)
+    return rehydrated
 
 
 def _load_prospector_batch_metadata(batch_id: str) -> dict | None:
