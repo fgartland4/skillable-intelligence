@@ -1161,7 +1161,7 @@ def prospector_export(batch_id):
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        "Rank", "Company", "Badge",
+        "Rank", "Company", "Domain", "Badge",
         "ACV Type",
         "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
         "Deep Dive Coverage", "Total Products",
@@ -1181,6 +1181,7 @@ def prospector_export(batch_id):
         writer.writerow([
             r.get("rank", ""),
             r.get("company_name", ""),
+            r.get("company_domain", ""),
             r.get("company_badge", ""),
             r.get("acv_type", "direct"),
             r.get("acv_low", 0),
@@ -1239,6 +1240,36 @@ def prospector_field_mapper():
     return render_template("prospector_field_mapper.html")
 
 
+
+
+def _extract_domain(url: str) -> str:
+    """Extract the bare domain from a URL for Marketing exports.
+
+    'https://www.cisco.com/us/en/products' -> 'cisco.com'
+    'http://posit.co/' -> 'posit.co'
+    'skillable.com' -> 'skillable.com'
+    '' -> ''
+
+    Strips protocol, 'www.' prefix, path, query, and fragment.  Keeps
+    multi-part TLDs intact ('bbc.co.uk' -> 'bbc.co.uk').
+    """
+    if not url:
+        return ""
+    s = url.strip().lower()
+    # Strip protocol
+    for prefix in ("https://", "http://", "//"):
+        if s.startswith(prefix):
+            s = s[len(prefix):]
+            break
+    # Strip path / query / fragment
+    for sep in ("/", "?", "#"):
+        idx = s.find(sep)
+        if idx >= 0:
+            s = s[:idx]
+    # Strip www.
+    if s.startswith("www."):
+        s = s[4:]
+    return s
 
 
 def _build_prospector_row(disc: dict) -> dict:
@@ -1339,6 +1370,8 @@ def _build_prospector_row(disc: dict) -> dict:
 
     return {
         "company_name": disc.get("company_name", ""),
+        "company_domain": _extract_domain(disc.get("company_url", "")),
+        "company_url": disc.get("company_url", ""),
         "company_badge": disc.get("_company_badge", ""),
         "badge_color": disc.get("_org_color", "purple"),
         "discovery_id": disc.get("discovery_id", ""),
@@ -1683,7 +1716,7 @@ def prospector_export_all():
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        "Rank", "Company", "Badge",
+        "Rank", "Company", "Domain", "Badge",
         "ACV Type",
         "ACV Low", "ACV High", "ACV Midpoint", "ACV Display", "ACV Confidence",
         "Deep Dive Coverage", "Total Products",
@@ -1701,7 +1734,7 @@ def prospector_export_all():
         tp = r.get("total_products", 0)
         coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
         writer.writerow([
-            i, r.get("company_name", ""), r.get("company_badge", ""),
+            i, r.get("company_name", ""), r.get("company_domain", ""), r.get("company_badge", ""),
             r.get("acv_type", "direct"),
             r.get("acv_low", 0), r.get("acv_high", 0),
             r.get("acv_midpoint", 0), r.get("estimated_acv", ""),
