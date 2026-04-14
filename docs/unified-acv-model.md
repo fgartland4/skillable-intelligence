@@ -90,34 +90,83 @@ When annual exam volume IS available from researcher, use that × 3 instead of d
 
 ---
 
-## 3b. Enterprise Learning Platforms (Pluralsight, Skillsoft, Coursera Business) — IN PROGRESS
+## 3b. Enterprise Learning Platforms (Pluralsight, Skillsoft, Coursera Business) — LOCKED
 
-**Benchmark:** Skillsoft (includes Global Knowledge acquisition) ~$5.5M/year with Skillable. Pluralsight — benchmark TBD.
+**Benchmark:** Skillsoft (includes Global Knowledge acquisition — ~60/40 on-demand/ILT split) ~$5.5M/year. Pluralsight — no benchmark available, estimated ~$2.5M.
 
-**Open questions for next session:**
-- What % of platform learners engage with labs? (Self-directed vs enterprise-assigned split?)
-- How many hours per learner? (Platform labs are shorter — 30-60 min each)
-- Skillsoft is a hybrid: on-demand catalog (Enterprise Learning Platform) + instructor-led (ILT from Global Knowledge). How to model the hybrid?
+| Motion | Label | Audience | Adoption | Hours |
+|---|---|---|---|---|
+| Platform & ILT Learners | Technology subscribers + classroom students | install_base | **3%** | **3** |
+| Events | If applicable | events | 30% | 1 |
+
+**Key decisions:**
+- One blended motion instead of splitting on-demand vs ILT — the researcher can't reliably report these separately
+- Label "Platform & ILT Learners" tells the seller both audiences are included
+- 3% adoption — most platform learners are video-only, the small fraction who engage with labs drives revenue
+- 3 hours — average across on-demand (1-2 hrs) and ILT (15+ hrs) weighted toward the larger on-demand population
+- Training maturity multipliers apply — platforms with strong ILT (Skillsoft/Global Knowledge) get nudged up via signals
+- Companies where ILT IS the whole business → classified as ILT Training Org, not Enterprise Learning Platform
+
+**Benchmarks:** Skillsoft ~$5.0M (4M learners × 3% × 3hrs × $14), Pluralsight ~$2.5M (2M × 3% × 3hrs × $14). ✓
 
 ---
 
-## 3c. ILT Training Organizations (New Horizons, QA) — IN PROGRESS
+## 3c. ILT Training Organizations (New Horizons, QA) — LOCKED
 
-**Benchmark:** TBD — Frank to provide if available.
+**Benchmark:** QA ~$350K current revenue, ~$700K ACV potential.
 
-**Open questions for next session:**
-- What % of registered ILT students actually do the labs? (Likely 80-90%)
-- How many lab hours per student per course? (5-day class = 20-30 hours?)
-- How many students per year for a typical ILT org?
+| Motion | Label | Audience | Adoption | Hours |
+|---|---|---|---|---|
+| Classroom Students | Students per year in tech classes | install_base | **25%** | **18** |
+| Instructor Training | Instructors who need product skills | employee_subset | 30% | 8 |
+| Events | If applicable | events | 30% | 1 |
+
+**Key decisions:**
+- 25% adoption = percentage of courses that currently have Skillable labs (not all courses have labs yet)
+- 18 hours = intensive multi-day classroom format (4-5 day courses with heavy lab time)
+- Instructor Training separate motion — instructors need product skills too
+- Highest per-learner consumption of any org type
+
+**Benchmark:** QA at ~12K students: 12K × 25% × 18hrs × $14 = $756K — right at ~2x current revenue (growth potential). ✓
 
 ---
 
-## 4. GSIs / VARs / Distributors — IN PROGRESS
+## 4. GSIs / VARs / Distributors — LOCKED
 
-**Open questions for next session:**
-- The big opportunity for GSIs is internal consultants (Motion 3), not client end users (Motion 1). How to model at discovery level where we only use Motion 1?
-- What adoption rate for internal consultants? (30% seems right — employer-driven)
-- Accenture benchmark: currently showing ~$584K, should be $2-3M?
+**Benchmark:** Accenture — early relationship, ~$2.8M estimated ACV potential for internal consultant training. Client-side opportunity (Phase 2 — Accenture becomes a lab builder for their clients) is the bigger long-term play but too variable to model reliably. Noted as upside in the Seller Briefcase, not in the ACV number.
+
+### 4a. GSIs (Accenture, Deloitte, Cognizant)
+
+| Motion | Label | Audience | Adoption | Hours |
+|---|---|---|---|---|
+| Internal Consultants | Practitioners in practice areas | install_base (practice headcount) | **5%** | **8** |
+| Events | Internal summits, client events | events | 30% | 1 |
+
+### 4b. VARs (regional technology consultancies)
+
+| Motion | Label | Audience | Adoption | Hours |
+|---|---|---|---|---|
+| Internal Practitioners | Practice area headcount | install_base | **5%** | **8** |
+| Events | If applicable | events | 30% | 1 |
+
+Same model as GSIs — same business structure at smaller scale.
+
+### 4c. Technology Distributors (CDW, Ingram, Arrow)
+
+| Motion | Label | Audience | Adoption | Hours |
+|---|---|---|---|---|
+| Internal Practitioners | Services arm headcount | install_base | **3%** | **5** |
+| Events | If applicable | events | 30% | 1 |
+
+Lower adoption and hours — training is emerging for distributors, not core.
+
+**Key decisions across all three:**
+- Partner Training and Employee Training removed as separate motions — the internal practitioners ARE the audience, one motion covers it
+- Client-side opportunity acknowledged but not modeled (too variable, noted as Seller Briefcase content)
+- Training maturity multipliers apply (same as software)
+- The researcher reports practice area headcount for GSIs (Accenture AWS Practice ~60K consultants), total technical staff for VARs, services arm headcount for distributors
+
+**Benchmark:** Accenture: ~500K total consultants across practices × 5% × 8hrs × $14 = $2.8M. ✓
 
 ---
 
