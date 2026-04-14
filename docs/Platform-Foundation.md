@@ -319,11 +319,15 @@ Cache reloads go through `intelligence.recompute_analysis()`, which trusts saved
 
 **What.** There is **ONE** search / progress modal in this entire platform. It lives in `tools/inspector/templates/_search_modal.html` and is used for every long-running operation across Inspector today, and Prospector and Designer when they come online.
 
-| Mode | Use |
-|---|---|
-| **Progress mode** — card overlay with eyebrow, title, animated status, progress bar, elapsed timer, cancel button, and SSE subscription | Discovery research, Deep Dive scoring, cache refresh |
-| **Decision mode** — same card, different middle section: message + two buttons (primary / secondary) | Stale-cache prompts, any "confirm before running" flow |
-| **In-place transition** — decision → progress without flicker | Refresh flows where the user confirms and then watches the work happen |
+| Mode | Surface | Use |
+|---|---|---|
+| **Progress mode** — card overlay with eyebrow, title, animated status, progress bar, elapsed timer, cancel button, and SSE subscription | Dark progress chrome | Discovery research, Deep Dive scoring, cache refresh |
+| **Decision mode** — same card, different middle section: message + two buttons (primary / secondary) | Dark progress chrome | Stale-cache prompts, any "confirm before running" flow |
+| **Info mode** — rationale / drivers / caveats display triggered by clicking an ACV row | Dark progress chrome | Prospector ACV Potential click-through |
+| **Docs mode** — full documentation surface with eyebrow, title, accent rule, WHY/WHAT/HOW section labels, tables, anchor-scroll support | **White — `--sk-modal-*` theme tokens**. 920px max width. Surface flips from dark to white for documentation readability. | Every `?` help icon across Inspector + Prospector (and Designer when it comes online) |
+| **In-place transition** — decision → progress without flicker | Same card, no teardown | Refresh flows where the user confirms and then watches the work happen |
+
+**The docs-mode white surface is the one design exception.** Progress / decision / info modes keep the dark progress chrome — those are action surfaces where a running operation is the context. Docs mode is a **reading surface** — 920px wide, white background, dark text, green accent rule under the header, WHY/WHAT/HOW eyebrow sections, scannable tables. It carries the original Deep Dive info-modal design, now unified inside the shared modal component. (Restored to white 2026-04-14 after an earlier consolidation flattened the design; the restoration uses `--sk-modal-*` theme tokens from `tools/shared/templates/_theme.html` — no hardcoded hex.)
 
 **How — the enforcement rules, no exceptions:**
 
@@ -337,7 +341,10 @@ Cache reloads go through `intelligence.recompute_analysis()`, which trusts saved
 
 - `openSearchModal({eyebrow, title, sseUrl, onComplete, onError})` — progress mode
 - `openSearchModalDecision({eyebrow, title, message, onRefresh, onIgnore})` — decision mode
+- `openSearchModalInfo({eyebrow, title, rationale, confidence, drivers, caveats})` — info mode (ACV rationale display)
+- `openSearchModalDocs({eyebrow, title, sections: [{heading, body, id?, subtitle?}]})` — docs mode (white-surface documentation)
 - `transitionSearchModalToProgress({...})` — decision → progress in place
+- `scrollToSearchModalSection(id)` — anchor-nav helper for docs-mode cross-references
 
 ---
 
@@ -1321,34 +1328,88 @@ Company classification badge uses purple — same color as product subcategory b
 | **3. Results table** | All companies displayed in one view, sorted by ACV potential, with product-level evidence. Companies with Deep Dive data show sharpened Fit Score and ACV. This is the core of Prospector. |
 | **4. Export** | CSV download with the same columns for import into HubSpot or other marketing tools. |
 
-### Discovery-Level ACV Estimation
+### Discovery-Level ACV Estimation (Option 2 — Holistic)
 
-**Why.** Marketing needs to rank companies by ACV potential without running Deep Dives on every one. The discovery data already contains every product's estimated training population and deployment model. The same methodology as the Deep Dive ACV model — `audience × adoption × hours × rate` — applies at discovery level, just with rougher inputs.
+**Why.** Marketing needs a defensible per-company ACV Potential for 300+ companies in the Prospector list without running Deep Dives on every one. An early version of this used a Python heuristic stack — tiered caps × 4% adoption × hours × rate, summed across products and capped at $5M — but the heuristic produced systematically wrong answers. Nutanix undersold; LLPA over-shot by two orders of magnitude; school districts with real budget lines landed at $18k. The root cause was that per-product math cannot reason about the whole picture — the interaction between partner ecosystems, certification programs, existing DIY platforms, known customer relationships, and stage of maturity.
 
-**What.** The discovery-level ACV estimate sums across **all discovered products** for a company, not just the top product. Each product's estimated training population is capped by a tiered sanity check (the researcher sometimes reports total users instead of training population), then run through the standard formula. The company-wide sum is capped at $5M — discovery estimates should never exceed that ceiling. The Deep Dive replaces this with the full five-motion calculation.
+**What — Option 2: a single Claude call produces one holistic ACV estimate per company.** The researcher runs once at discovery time, sees the full picture (all products + company-level training signals + org type + calibration anchors + known-customer constraints), and returns one typed JSON object: `{acv_low, acv_high, confidence, rationale, key_drivers, caveats}`. The entire five-motion framework still applies — but it applies in Claude's reasoning, not as a Python formula. The output is anchored by deterministic guardrails (described below) and surfaces with full evidence in the Prospector table.
 
-**Per-product tiered caps** (from `scoring_config.DISCOVERY_ACV_USER_BASE_TIERS`):
+| Field | What it carries |
+|---|---|
+| **`acv_low` / `acv_high`** | Integer-dollar range, tight when signals are strong (high ≤ 2× low), wider when honest uncertainty exists |
+| **`confidence`** | `low` / `medium` / `high` / `partnership` — guardrail-driven, downgrades automatically when range is too wide or sanity checks fail |
+| **`rationale`** | 80–180 word paragraph explaining how the range was derived, with specific references to products, signals, and peer anchors |
+| **`key_drivers`** | 3–5 short sentences, each tying the estimate to a specific signal — product user base, training infrastructure, partner ecosystem, event presence, cert program |
+| **`caveats`** | 0–3 uncertainties the model wants the seller to see (e.g. "employee subset estimated, not researched") |
 
-| User base reported | Effective training pop | Rationale |
+**How — guardrails are the trust layer.** The Claude call is anchored by deterministic Python rules that run before the output reaches the user. These are Define-Once in `scoring_config.py`:
+
+| Guardrail | Behavior |
+|---|---|
+| **Company hard cap** | `HOLISTIC_ACV_COMPANY_HARD_CAP` — absolute ceiling. If exceeded, `acv_high` clamps to the cap and confidence drops to `low` (model was reasoning beyond supportable scale). |
+| **Range-width ratio** | `HOLISTIC_ACV_MAX_RANGE_RATIO` — if `acv_high / acv_low` exceeds the ratio at `high` confidence, confidence drops to `medium`. If it exceeds `ratio × 1.5` at `medium`, drops to `low`. Wider range = less trust. |
+| **Per-user ceiling sanity check** | Midpoint is compared against `total_users × HOLISTIC_ACV_PER_USER_CEILING`. If the midpoint implies a dollar-per-user value higher than the platform has ever seen, confidence drops to `low`. |
+| **Known-customer floor / ceiling** | If the target is in `KNOWN_CUSTOMER_CURRENT_ACV`, Python enforces a floor (current ACV — cannot undersell an existing relationship) and a stage-derived ceiling. Floor informs the low bound without collapsing range-width; see "Known-Customer Calibration" below. |
+| **Output scrubber** | Defense-in-depth. Redacts any dollar figure that matches a known-customer current ACV from rationale / drivers / caveats before it reaches the user. |
+
+**Discovery now costs two Claude calls per company.** The discovery call (Tier 1/2/3 research) runs first, then the holistic ACV call runs once against that research. Discovery time budget expanded from ~1 min to ~3 min per company; per-company Claude cost roughly doubled but remains well under $1. Prospector batch estimator accounts for both calls.
+
+### Known-Customer Calibration
+
+**Why.** The platform has a known list of current Skillable customers and their real ACV. Using that list poorly would be worse than not using it — if Claude sees the customer's name in the prompt, it leaks customer data into user-visible rationales. If Python clamps both low and high to the current ACV, every known customer shows the same identical range and the list looks artificial. The right design is two-layered: the list **informs** the range without ever **naming** customers, and the floor **sets the low bound** without collapsing range-width.
+
+**What — the calibration has four distinct contributions to an estimate:**
+
+| Contribution | How it's used | What's protected |
 |---|---|---|
-| >10M | 200,000 | Mass-market products — training pop is a tiny fraction |
-| 3M–10M | 150,000 | Large products — most users are not training candidates |
-| 1M–3M | 100,000 | Mid-scale — significant but still inflated |
-| 500K–1M | No adjustment | Likely already training population |
-| <500K | No adjustment | Below the inflation threshold |
+| **Anonymized anchor block** | Stage-grouped magnitude ranges shown to Claude (e.g. "Stage 'mid' (4 reference customers): current ACV $X–$Y"). Customer names NEVER enter the prompt. | Claude anchors against real magnitudes; cannot name or identify customers. |
+| **Known-customer floor** | If target IS a known customer, `acv_low = max(claude_low, current_acv)`. Cannot undersell an existing relationship. | Customer's current ACV is the floor, not the answer. |
+| **Stage-derived ceiling** | `acv_high = min(claude_high, current_acv × stage_multiplier)`. Multipliers encode growth plausibility by stage: saturated (1.3×), mature-small (1.5×), mid (3×), first-year (8×), early (15×), very-early (uncapped). | A saturated customer cannot show 10× upside; a very-early customer can. |
+| **Output scrubber** | Any dollar figure matching a known-customer current_acv is replaced with "<peer comparable>" in user-visible text before render. | Customer revenue data never surfaces even if the prompt directive is ignored. |
 
-**Per-product formula:** `min(training_pop, tier_cap) × 4% adoption × 2 hours × rate_from_deployment_model`
+**Floor informs, does not collapse.** The floor-enforcement rule preserves range-width: if Claude's original high is already above the floor, high keeps its value (model thought the upside was higher than current — trust that). If Claude's original high is below the floor, high expands to the stage ceiling (or 2× floor for very-early) so the range reflects genuine upside rather than pinning at a zero-width point. Before this rule, multiple duplicate records for the same known customer would all collapse to the identical floor and look artificially uniform.
 
-**Rate from deployment model:** installable/hybrid → $14/hr (VM mid rate). cloud/saas-only → $6/hr (cloud rate). Same rates as the Deep Dive model — Define-Once.
+**Customer data lives outside the repo.** `backend/known_customers.json` is gitignored. The file ships with a `known_customers.template.json` schema. The production deployment mounts the real file; no one can discover customer ACV figures by reading the repo.
 
-**Company-wide:** sum all products, cap at $5M. Displayed as `~$X` with the tilde signaling estimate.
+### Partnership-Only ACV — Content Development Firms
 
-**Intelligence sharpens automatically.** If a company in the Prospector list has already had a Deep Dive in Inspector, Prospector shows the sharpened Deep Dive data — actual Fit Score, actual ACV with all five motions, real badges — instead of rough discovery estimates. The more the platform is used, the better Prospector's data gets, without any extra work. GP5 in action.
+**Why.** A subset of organizations — Content Development firms like GP Strategies — don't fit the direct ACV audience × adoption model. They don't have their own products; they build learning programs for other companies. Running the holistic ACV prompt on them produces meaningless numbers because the five-motion framework doesn't apply. Skillable's opportunity with them is a **partnership motion** (labs embedded in the programs they build for clients) that is fundamentally downstream-dependent.
+
+**What.** For org types in `ACV_PARTNERSHIP_ONLY_ORG_TYPES` (currently: `CONTENT DEVELOPMENT`), the holistic ACV function short-circuits before calling Claude and returns a fixed-shape partnership result:
+
+| Field | Value |
+|---|---|
+| `acv_type` | `"partnership"` |
+| `acv_low` / `acv_high` | `0` |
+| `confidence` | `"partnership"` |
+| `rationale` | Explains why this is a partnership motion, not a direct ACV motion |
+| `key_drivers` | Up to 5 partnership-relevant signals from the discovery data |
+
+**How it surfaces.** Prospector displays "Partnership" in the ACV Potential column with a distinct purple chip (`--sk-classify-purple`) instead of a dollar range. CSV exports include an `acv_type` column so Marketing can filter partnership rows separately from direct-ACV rows. The company still gets ranked, scored, and researched — the partnership framing just replaces the dollar-range UX.
+
+### Common Estimation Pitfalls — Built into the Prompt
+
+**Why.** In early runs the model made the same mistakes repeatedly — not because the prompt was vague, but because the common pitfalls weren't named. After diagnosing the Parkway / Multiverse / Zero-Point / New Horizons low-estimate cluster against their rationales, five recurring anti-patterns were identified (A, B, D, E, F — G and C were deferred as structural) and explicitly called out in the prompt. Each pattern had been shaving estimates downward in ways that stacked on top of the calibrated adoption rates.
+
+| Pattern | What Claude was doing wrong | What the prompt now tells it |
+|---|---|---|
+| **A — Fraction deflator** | Applying "minority subset actually consumes labs" on top of already-calibrated adoption rates | Adoption rates are already the realistic consumption view. Do not add a second discount. |
+| **B — Cumulative vs. annual** | Silently substituting cumulative/lifetime user counts for annual enrollments (3–8× over-estimate in the wrong direction) | Prefer annual. If only cumulative is available, divide by program lifespan (2–3 yrs tech, 4 yrs academic). |
+| **D — Known-customer floor collapse** | Clamping both low and high to the floor when Claude's original range was below it (zero-width ranges) | Floor informs the low bound. High preserves width via Claude's original high, stage ceiling, or 2× floor for very-early. Python-enforced, not prompt-dependent. |
+| **E — DIY as discount** | Treating "they already run in-house labs" as a displacement discount ("partial before scaling") | In-house lab = POSITIVE ICP signal (existing demand, budget proven). Current DIY spend is a floor, not a ceiling. |
+| **F — Rate tier by deployment label** | Defaulting "SaaS/cloud-delivered" programs to the $6-$8/hr cloud rate even when the content required VM-class labs | Rate tier is determined by workload complexity, not deployment label. Cybersecurity / networking / platform eng need VM rates even when delivered "via cloud." |
+
+Pattern C (K-12 / district budget-signal audience) is deferred as a structural change — it needs a new researcher field and a routing rule, not a prompt tweak. Pattern G (parent-entity dedup — "Deloitte" vs. "Deloitte Consulting LLP" vs. "Grand Canyon University" vs. "Grand Canyon Education") is deferred as "probably has to stay separate" — organization-by-organization entity resolution is too fragile to automate at this scale.
+
+### Sharpening: Discovery-Level → Deep Dive
+
+**Intelligence sharpens automatically.** If a company in the Prospector list has had a Deep Dive in Inspector, Prospector shows the sharpened Deep Dive ACV instead of the discovery-level holistic estimate. GP5 in action.
 
 | Company state | What Prospector shows |
 |---|---|
-| **Discovery only** | Rough estimates — discovery-level ACV, labability tiers, company signals |
-| **Deep Dive cached** | Sharpened data — actual Fit Score, scored Pillar readings, precise ACV |
+| **Discovery only** | Option 2 holistic ACV — range, confidence, rationale, drivers, caveats |
+| **Deep Dive cached** | Full five-motion ACV Potential — actual per-motion audience × adoption × hours × rate with product-level precision |
+| **Partnership-only org type** | Partnership chip — no dollar range |
 
 ### Prospector Results Table
 
@@ -1358,21 +1419,22 @@ Company classification badge uses purple — same color as product subcategory b
 
 | Column | What it shows | Why marketing needs it |
 |---|---|---|
-| **Rank** | Auto-numbered by ACV potential | Where this company falls |
-| **Company** | Name + badge (Cybersecurity, Enterprise Software, Industry Authority, etc.) | What kind of company — immediately sets context |
-| **Estimated ACV** | Rough range from discovery data (sharpened if Deep Dive exists) | The primary sort — how big is this opportunity |
+| **Rank** | Auto-numbered by ACV midpoint | Where this company falls |
+| **Company** | Name + classification badge (Cybersecurity, Enterprise Software, Industry Authority, etc.) | What kind of company — immediately sets context |
+| **ACV Potential** | Range + confidence chip (`LOW` / `MEDIUM` / `HIGH` / `PARTNERSHIP`). Click opens docs-mode modal with full rationale + drivers + caveats. | The primary sort — how big is this opportunity, and how much to trust it |
+| **Deep Dives** | `N/M` coverage pill — how many of M discovered products have been Deep-Dive'd. Colored: green if full, amber if partial, muted if none. | Signals Inspector investment at a glance — which rows already have rich data behind them |
 | **Top Product** | Flagship product name + subcategory | The lead story — what's the biggest opportunity at this company |
-| **Why** | One line — "14M users, installable, strong API surface" | The rationale — why this product is the lead |
-| **Promising Products** | Count of products in this tier | Portfolio breadth at a glance |
-| **Potential Products** | Count | |
-| **Uncertain Products** | Count | |
-| **Unlikely Products** | Count | |
-| **Lab Platform** | Current platform or "None" | Competitive signal — expansion vs displacement vs greenfield |
-| **Key Signal** | Strongest CF signal — "Global ATP network" or "No training program" | The one thing that most affects whether this deal happens |
+| **Top Signal** | One line — "14M users, installable, strong API surface" | Why the top product is the lead. (Previously labeled "Why" — renamed 2026-04-14 to avoid the word-collision with "Rationale" in the ACV column's modal.) |
+| **Prom.** / **Pot.** / **Unc.** / **Unl.** | Product tier counts (Promising / Potential / Uncertain / Unlikely) | Portfolio breadth at a glance. Tooltips read "Promising Products — strong pre-Deep-Dive labability signals," etc. |
+| **Lab Platform** | Current lab platform or "None" | Competitive signal — expansion vs. displacement vs. greenfield |
 
-Column headers use "Promising Products" (not just "Promising") for clarity in spreadsheet context where the labability tier labels lack surrounding UX context. GP4 — self-evident even outside the tool.
+**Every column header carries a tooltip.** Column labels are short for table scannability (Prom. / Pot. / Unc. / Unl.); tooltips carry the full meaning. GP1 applied to the table header row.
 
-**Partnership flags.** Content Development firms show as "Content Development Partner" with no products — partnership assessment only, no Deep Dive available. LMS companies show normally but with an additional "Distribution Partner" flag. See org-type models above for the full logic.
+**Partnership rows.** Content Development firms show **"Partnership"** in the ACV Potential column with a purple chip (`--sk-classify-purple`) instead of a dollar range. CSV exports include an `acv_type` column (`direct` or `partnership`) so Marketing can filter. LMS companies show normally with a "Distribution Partner" flag in addition to their direct ACV. See ACV Potential Model → Partnership-Only ACV above.
+
+**Running batch dot.** When a batch is processing, the Recent Batches panel shows a pulsing **amber** dot (`--sk-score-mid`). Completed batches show a green dot. The color difference is deliberate — running and complete should be visually distinguishable at a glance. (Amber-pulse locked 2026-04-14.)
+
+**Retired column — "Key Signal."** Earlier versions had a "Key Signal" column that auto-picked from ATP / events / training_programs signals without a clear rule. Retired 2026-04-13 when the holistic ACV rationale replaced it — rationale explains WHY the company is ranked where it is, with full grounding, on the ACV column click-through instead.
 
 ### Prospector for Marketing Documentation
 
@@ -1482,10 +1544,11 @@ Rough cost estimates per operation. These will be updated with actual measuremen
 
 | Operation | What it does | AI Calls |
 |---|---|---|
-| **Discovery** (Inspector + Prospector) | Find products, build the product list, populate three-tier discovery data | 1 discovery call per company. Prospector runs this in batch across all input companies. |
+| **Discovery** (Inspector + Prospector) | Find products, build the product list, populate three-tier discovery data (call 1), then produce the holistic ACV estimate (call 2) | **2 Claude calls per company** — the discovery research call + the Option 2 holistic ACV call. Prospector runs both in batch across all input companies. Rough unit economics: ~$0.30–$0.45 per company, ~2–3 minutes wall time per company. |
+| **Holistic ACV retrofit** (`scripts/retrofit_acv.py --mode holistic`) | Re-runs just the holistic ACV call against an already-cached discovery. No re-research, no rescore — cheap way to apply prompt / guardrail updates across the entire cache without throwing away per-product work. | 1 Claude call per company. ~$0.20–$0.50 per company at 5-way parallelism; ~10–12s per company wall-time at 5 concurrent. |
 | **Deep Dive** (Inspector full analysis) | Three parallel fact extractors per product + rubric grader calls for Pillars 2 / 3 + three parallel briefcase calls per product (Opus KTQ + Haiku Conv + Haiku Intel) | ~3 extractors × N products + 8 grader calls × N products + 3 briefcase calls × N products |
 | **Cache reload** (re-visit a saved analysis) | Recompute ACV, reassign verdict, sort | **Zero AI calls** — pure Python |
-| **Re-score after logic change** (`SCORING_LOGIC_VERSION` bump) | Fresh Deep Dive on next load | Same as Deep Dive |
+| **Re-score after logic change** (`SCORING_LOGIC_VERSION` bump) | Fresh Deep Dive on next load. For ACV-only logic changes, retrofit runs instead and avoids the rescore cost entirely. | Same as Deep Dive (full); retrofit is cheaper |
 
 Pillar 1 scoring is zero-Claude by design. Pillar 2 and Pillar 3 scoring is zero-Claude *after* the rubric grader runs — the scorers themselves are pure Python reading cached `GradedSignal` records. The rubric grader is the only Claude call the Score layer is allowed to make.
 

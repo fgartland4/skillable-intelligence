@@ -1005,6 +1005,100 @@ When annual exam volume IS available from the researcher, use that × 3 instead 
 
 ---
 
+## Discovery-Level Holistic ACV (Option 2) — Guardrails
+
+The strategic framing, calibration philosophy, and Prospector-facing behavior for Option 2 Holistic ACV live in `Platform-Foundation.md → Discovery-Level ACV Estimation (Option 2 — Holistic)`. This document owns the **operational constants** that enforce trust on the Claude call.
+
+### Sanity guardrails
+
+Applied post-Claude in `researcher.estimate_holistic_acv()`. Each constant is Define-Once in `scoring_config.py`.
+
+| Guardrail | Constant | Default | Behavior |
+|---|---|---|---|
+| Company hard cap | `cfg.HOLISTIC_ACV_COMPANY_HARD_CAP` | $30M | If `acv_high` exceeds it, clamp to cap AND drop confidence to `low` (model was reasoning beyond supportable scale). Lowered from $50M → $30M 2026-04-14 after audit showed handful of mid-market companies getting unjustifiable $40M+ outputs. |
+| Range-width ratio | `cfg.HOLISTIC_ACV_MAX_RANGE_RATIO` | varies | If `acv_high / acv_low > ratio` at `high` confidence, drop to `medium`. If `> ratio × 1.5` at `medium`, drop to `low`. Wider range = less trust. |
+| Per-user ceiling sanity check | `cfg.HOLISTIC_ACV_PER_USER_CEILING` | varies | If `midpoint > total_users × per_user_ceiling`, drop confidence to `low`. Catches cases where Claude returned a plausible-looking number that implies a dollar-per-user value the platform has never seen. |
+
+### Known-customer floor / ceiling
+
+Customer revenue data is **confidentiality-critical**. The file `backend/known_customers.json` is gitignored. Production deployments mount the real file; a committed `known_customers.template.json` documents the schema. `cfg.KNOWN_CUSTOMER_CURRENT_ACV` loads lazily from the JSON at startup — empty dict when the file is absent (development / open-source).
+
+**Schema per entry:**
+
+| Key | Type | Meaning |
+|---|---|---|
+| `current_acv` | int (dollars) | Current annual contract value |
+| `stage` | string | Customer lifecycle stage (drives ceiling multiplier) |
+
+**Stage-derived ceiling multipliers** (`cfg.KNOWN_CUSTOMER_STAGE_CEILING_MULT`):
+
+| Stage | Multiplier | Growth plausibility |
+|---|---:|---|
+| `saturated` | 1.3× | Mature customer near ceiling — limited upside |
+| `mature-small` | 1.5× | Established smaller customer — modest upside |
+| `mid` | 3× | Mid-stage, real upside path |
+| `first-year` | 8× | New customer in first year — significant ramp ahead |
+| `early` | 15× | Very early relationship — large upside uncapped at deal-stage norms |
+| `very-early` | `None` | No ceiling — reason from company scale, current is floor only |
+
+**Enforcement rule (Pattern D fix, 2026-04-14).** Floor informs the low bound but does NOT collapse range-width:
+
+```
+if claude_low < floor:      acv_low = floor          # cannot undersell relationship
+if claude_high >= floor:    acv_high = claude_high   # trust upside
+else:                       acv_high = ceiling_or_2x_floor   # preserve width
+if ceiling is not None:     acv_high = min(acv_high, ceiling)
+if confidence == 'low':     confidence = 'medium'    # we have ground truth
+```
+
+Before this rule shipped, when Claude returned `(low, high)` both below floor the old logic clamped both to floor → zero-width range. Multiple known customers with duplicate records (New Horizons had three) all pinned at the identical floor and the list looked artificially uniform.
+
+### Output scrubber (defense-in-depth)
+
+`researcher._scrub_customer_data(text)` runs over rationale / drivers / caveats before they reach the user. Redacts any dollar figure matching a known-customer `current_acv` in common formats (`$123,000`, `$123k`, `$0.12M`, etc.) → replaces with `"<peer comparable>"`. Protects against the prompt directive being ignored.
+
+### Anonymized calibration block
+
+`researcher._format_anonymized_calibration_block()` builds the prompt's magnitude-anchor block from `KNOWN_CUSTOMER_CURRENT_ACV`. Customer **names never enter the prompt** — the block emits stage-grouped magnitude ranges only:
+
+```
+Stage 'saturated' (3 reference customers): current ACV $2.1M-$5.5M
+Stage 'mature-small' (4 reference customers): current ACV $243k-$624k
+Stage 'mid' (5 reference customers): current ACV $255k-$2M
+...
+```
+
+Claude is instructed never to name or identify reference customers. The scrubber + stage grouping + prompt directive form three layers of defense.
+
+### Partnership-only org types
+
+`cfg.ACV_PARTNERSHIP_ONLY_ORG_TYPES` (frozenset) lists org types where the five-motion framework doesn't apply:
+
+| Value | Why |
+|---|---|
+| `CONTENT DEVELOPMENT` | Firms like GP Strategies build programs for other companies — Skillable's opportunity is a partnership motion, not a direct ACV motion |
+
+`estimate_holistic_acv()` short-circuits before the Claude call when the target matches, returning the partnership result shape:
+
+```
+{
+  "acv_type": "partnership",
+  "acv_low": 0, "acv_high": 0,
+  "confidence": "partnership",
+  "rationale": "...downstream-partnership-dependent...",
+  "key_drivers": [up to 5 partnership-relevant signals from the discovery data],
+  "caveats": [standard partnership caveats]
+}
+```
+
+Prospector renders this as a purple **PARTNERSHIP** chip instead of a dollar range.
+
+### Common pitfalls — built into the prompt (Patterns A/B/D/E/F)
+
+The strategic framing lives in Platform-Foundation. The operational contribution here is that each pattern is **explicitly named in the prompt** so the researcher avoids it. Source: `researcher._HOLISTIC_ACV_PROMPT` → "COMMON PITFALLS — AVOID THESE" section. Each pattern is written as a directive with a "do not" + "instead" pair so Claude can self-check. Pattern D is additionally enforced in Python (the floor rule above) since prompt directives alone don't guarantee the range-width behavior.
+
+---
+
 ## Cache Versioning — SCORING_LOGIC_VERSION
 
 ### Why
@@ -1013,7 +1107,7 @@ Scoring logic evolves. When a Pillar weight changes, a penalty is retuned, a bas
 
 ### What
 
-`cfg.SCORING_LOGIC_VERSION` is a string stamped on every saved analysis and every saved discovery at write time. Format: `"YYYY-MM-DD.short-description"`. Current value: `"2026-04-13.iv-badges-penalties-orphan-mfa"`.
+`cfg.SCORING_LOGIC_VERSION` is a string stamped on every saved analysis and every saved discovery at write time. Format: `"YYYY-MM-DD.short-description"`. The live value is maintained in `scoring_config.py` — do not hard-reference a specific value in this doc (it goes stale between every bump). Check the config file for current.
 
 ### How
 
