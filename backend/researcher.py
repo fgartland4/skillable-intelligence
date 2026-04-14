@@ -2057,3 +2057,244 @@ def estimate_holistic_acv(
         "key_drivers": _list_str(raw.get("key_drivers"))[:5],
         "caveats": _list_str(raw.get("caveats"))[:3],
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Retrofit gap-fills — targeted Claude calls for cached records
+#
+# These fill specific missing fields on records that were researched before
+# the ACV refresh landed. Narrower than a full re-research (one call per
+# company, small prompt, reads existing cached context). Used by the
+# scripts/retrofit_acv.py runner.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_ANNUAL_ENROLLMENTS_PROMPT = """You are a research analyst estimating per-program annual enrollments for a wrapper organization.
+
+CONTEXT — {company_name} ({org_type_label}):
+{company_block}
+
+PROGRAMS / COURSES / PRACTICE AREAS (the wrapper's offerings):
+{programs_block}
+
+TASK:
+For EACH program listed above, produce a single estimated number: how many learners THIS organization serves in THIS specific program per year. This is the wrapper's own audience, NOT the underlying technology's global market. Use these heuristics:
+
+  - ILT Training Org: students per year in this classroom course. A mid-size ILT with 10-20 classes per year at ~15 students each for a given technology → 150-300 annual. A small regional shop might run 3-5 classes → 50-100 annual.
+  - Academic institution: students enrolled in this technology-facing program per year (not total enrollment, not cumulative graduates). "BS Cybersecurity" at ASU → ~500-1,000/year; at a small liberal arts college → ~50-100/year.
+  - Enterprise Learning Platform: subscribers taking THIS technology slice per year. A major ELP's Azure catalog might serve 30,000-100,000 learners/year; a niche course bundle 5,000-20,000.
+  - GSI / VAR / Distributor: practitioners in this practice area at this org per year. Accenture AWS Practice ~60,000 consultants; a regional VAR's security practice ~50-200.
+  - Industry Authority: annual training candidates for this cert program (people taking training, NOT cumulative lifetime cert holders). CompTIA Security+ ~50,000/year.
+
+Anchor to the wrapper's overall scale (from the company block) + how prominently this specific program features in the research. A flagship program at a large ILT carries more enrollments than a minor program at the same ILT.
+
+Return ONLY a JSON array (no commentary, no markdown, no code fence):
+
+[
+  {{
+    "program_name": "<exact program name from the input>",
+    "annual_enrollments_estimate": <int>,
+    "annual_enrollments_evidence": "<1-2 sentences explaining what signals informed the estimate>",
+    "annual_enrollments_confidence": "confirmed|indicated|inferred"
+  }}
+]
+
+CRITICAL:
+  - One entry per program in the input (same order, same program_name strings).
+  - Single integer estimate, not a range. Better to be approximately right than precisely uncertain.
+  - Leave annual_enrollments_estimate = 0 ONLY when research truly doesn't support any estimate (extremely rare — wrapper orgs almost always have directional signals).
+"""
+
+
+def estimate_annual_enrollments(company_name: str, discovery: dict) -> list[dict]:
+    """Estimate annual_enrollments_estimate for each wrapper-org program.
+
+    Targeted gap-fill for cached wrapper-org discoveries that predate the
+    `annual_enrollments_estimate` field. One Claude call per company that
+    returns per-program estimates. Caller merges results into each
+    discovery product record.
+
+    Returns a list of dicts, one per program. Empty list on failure.
+    """
+    from scorer import _call_claude
+    products = discovery.get("products") or []
+    if not products:
+        return []
+    org_type_raw = (discovery.get("organization_type") or "").upper()
+    badge = discovery.get("company_badge") or ""
+    desc = discovery.get("company_description") or ""
+
+    company_lines = []
+    if badge:
+        company_lines.append(f"  Classification: {badge}")
+    if desc:
+        company_lines.append(f"  Description: {desc[:400]}")
+    signals = discovery.get("company_signals") or {}
+    for key in ("training_programs", "atp_program", "delivery_partners",
+                "events", "sales_channel", "partnership_pattern",
+                "training_breadth"):
+        val = signals.get(key)
+        if val and str(val).strip().lower() not in ("no", "none", "n/a", ""):
+            company_lines.append(f"  {key}: {str(val)[:300]}")
+
+    program_lines = []
+    for p in products:
+        name = p.get("name") or "?"
+        cat = p.get("category") or ""
+        sub = p.get("subcategory") or ""
+        desc_p = (p.get("description") or "")[:200]
+        program_lines.append(f"  - {name}" + (f" ({cat} / {sub})" if cat or sub else "") + (f": {desc_p}" if desc_p else ""))
+
+    prompt = _ANNUAL_ENROLLMENTS_PROMPT.format(
+        company_name=company_name,
+        org_type_label=org_type_raw or "WRAPPER ORG",
+        company_block="\n".join(company_lines) or "  (no company signals captured)",
+        programs_block="\n".join(program_lines),
+    )
+
+    try:
+        raw = _call_claude("", prompt, max_tokens=2500)
+    except Exception as e:
+        log.warning("Annual enrollments call failed for %s: %s", company_name, e)
+        return []
+
+    # The prompt asks for a JSON array but _call_claude returns a dict when
+    # Claude wraps it or a list if it returns an array directly.
+    if isinstance(raw, dict):
+        # Some wrappers put arrays under a key — try common ones.
+        for k in ("programs", "results", "data", "items"):
+            if isinstance(raw.get(k), list):
+                raw = raw[k]
+                break
+    if not isinstance(raw, list):
+        return []
+
+    out = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        try:
+            ann = int(item.get("annual_enrollments_estimate") or 0)
+        except (TypeError, ValueError):
+            ann = 0
+        out.append({
+            "program_name": str(item.get("program_name") or "").strip(),
+            "annual_enrollments_estimate": max(0, ann),
+            "annual_enrollments_evidence": str(item.get("annual_enrollments_evidence") or ""),
+            "annual_enrollments_confidence": str(item.get("annual_enrollments_confidence") or "inferred"),
+        })
+    return out
+
+
+_CF_AUDIENCE_GAP_FILL_PROMPT = """You are a research analyst filling two specific missing audience fields on a cached company analysis.
+
+CONTEXT — {company_name}:
+{company_block}
+
+TASK:
+Produce best-available estimates for Motion 2 (channel/sales partner SE population) and Motion 5 (annual attendance at the vendor's flagship events), using the company signals above. These are the same fields the researcher populates at Deep Dive time — heuristics below apply.
+
+Motion 2 — `channel_partner_se_population`:
+  CHANNEL / SALES partner SEs (GSIs, VARs, distributors, resellers who SELL the product). NOT ATPs (training delivery). NOT total partner headcount — the subset whose job requires hands-on product skill. Heuristics:
+{partner_heuristic}
+  Research shows no channel partners or direct sales only → low=high=0.
+  Produce a single-number estimate (low==high).
+
+Motion 5 — `events_attendance`:
+  Map of event name → attendance estimate, for flagship events the company itself runs. NOT third-party conferences they sponsor. Heuristics:
+{event_heuristic}
+
+Return ONLY this JSON shape (no commentary, no markdown, no code fence):
+
+{{
+  "channel_partner_se_population": {{
+    "low": <int>, "high": <int>,
+    "source_url": "",
+    "confidence": "confirmed|indicated|inferred",
+    "notes": "<1 sentence naming the basis>"
+  }},
+  "events_attendance": {{
+    "<event_name>": {{
+      "low": <int>, "high": <int>,
+      "source_url": "",
+      "confidence": "confirmed|indicated|inferred",
+      "notes": "<1 sentence>"
+    }}
+  }}
+}}
+
+  - If no events are named in the company signals, return events_attendance as an empty object {{}}.
+  - If no channel ecosystem exists, return channel_partner_se_population with low=0, high=0, confidence=confirmed.
+"""
+
+
+def gap_fill_cf_audience_facts(company_name: str, discovery: dict) -> dict:
+    """Fill channel_partner_se_population + events_attendance from cached signals.
+
+    Targeted gap-fill for analyses whose Pillar 3 fact drawer was populated
+    before the prompt fix landed. One Claude call per company. Caller merges
+    the result into the analysis's `_customer_fit_facts` drawer.
+    """
+    from scorer import _call_claude
+    signals = discovery.get("company_signals") or {}
+    company_lines = []
+    badge = discovery.get("company_badge") or ""
+    if badge:
+        company_lines.append(f"  Classification: {badge}")
+    for key in ("atp_program", "sales_channel", "partnership_pattern",
+                "delivery_partners", "events", "training_programs"):
+        val = signals.get(key)
+        if val and str(val).strip().lower() not in ("no", "none", "n/a", ""):
+            company_lines.append(f"  {key}: {str(val)[:400]}")
+    if not company_lines:
+        # Nothing to reason from — return empty result, caller will skip.
+        return {}
+
+    prompt = _CF_AUDIENCE_GAP_FILL_PROMPT.format(
+        company_name=company_name,
+        company_block="\n".join(company_lines),
+        partner_heuristic=_PARTNER_SE_HEURISTIC_TEXT,
+        event_heuristic=_EVENT_ATTENDANCE_HEURISTIC_TEXT,
+    )
+
+    try:
+        raw = _call_claude("", prompt, max_tokens=1500)
+    except Exception as e:
+        log.warning("CF audience gap-fill failed for %s: %s", company_name, e)
+        return {}
+
+    if not isinstance(raw, dict):
+        return {}
+    # Defensive shape validation
+    out = {}
+    cp = raw.get("channel_partner_se_population")
+    if isinstance(cp, dict):
+        try:
+            lo = int(cp.get("low") or 0)
+            hi = int(cp.get("high") or 0)
+        except (TypeError, ValueError):
+            lo = hi = 0
+        out["channel_partner_se_population"] = {
+            "low": max(0, lo), "high": max(lo, hi),
+            "source_url": str(cp.get("source_url") or ""),
+            "confidence": str(cp.get("confidence") or "inferred"),
+            "notes": str(cp.get("notes") or ""),
+        }
+    ev = raw.get("events_attendance")
+    if isinstance(ev, dict):
+        cleaned = {}
+        for name, payload in ev.items():
+            if not isinstance(payload, dict):
+                continue
+            try:
+                lo = int(payload.get("low") or 0)
+                hi = int(payload.get("high") or 0)
+            except (TypeError, ValueError):
+                lo = hi = 0
+            cleaned[str(name)] = {
+                "low": max(0, lo), "high": max(lo, hi),
+                "source_url": str(payload.get("source_url") or ""),
+                "confidence": str(payload.get("confidence") or "inferred"),
+                "notes": str(payload.get("notes") or ""),
+            }
+        out["events_attendance"] = cleaned
+    return out
