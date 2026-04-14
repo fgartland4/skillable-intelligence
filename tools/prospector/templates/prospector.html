@@ -669,7 +669,9 @@
             var subHtml = r.top_product_subcategory ? '<div class="product-cell-sub">' + r.top_product_subcategory + '</div>' : '';
             html += '<tr>' +
                 '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
-                '<td class="rank-num">' + (i + 1) + '</td>' +
+                '<td class="rank-num" style="position:relative;">' +
+                    (r.deep_dive_complete ? '<span title="Deep Dive complete" style="color: var(--sk-accent); font-size: 0.6rem; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);">&#9679;</span>' : '') +
+                    (i + 1) + '</td>' +
                 '<td title="' + (r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
                 '<td class="acv-cell" title="' + (r.estimated_acv||'') + '">' + (r.estimated_acv||'&mdash;') + '</td>' +
                 '<td title="' + (r.top_product_name||'') + '"><div class="product-cell-name">' + (r.top_product_name||'&mdash;') + '</div>' + subHtml + '</td>' +

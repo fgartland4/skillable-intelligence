@@ -925,7 +925,7 @@ def prospector_api_companies():
     All Companies tab. Called via fetch after the page renders so the
     Prospector home loads instantly."""
     from datetime import date
-    all_results = _deduped_all_discoveries()
+    all_results = _deduped_all_discoveries_cached()
     return jsonify({
         "companies": all_results,
         "count": len(all_results),
@@ -1286,6 +1286,22 @@ def _build_prospector_row(disc: dict) -> dict:
     hours = org_hours_overrides.get(
         "Customer Training & Enablement", _cfg.DISCOVERY_ACV_HOURS)
 
+    # Detect company-level training signals for open source tiering + maturity multipliers
+    company_signals = disc.get("company_signals", {}) or {}
+    _has_atp = False
+    _atp_large = False
+    _has_training_programs = False
+    atp_val = company_signals.get("atp_program", "") or ""
+    if atp_val and atp_val.lower() not in ("no", "none", "n/a", ""):
+        _has_atp = True
+        for token in ("50+", "100+", "200+", "500+", "1000+", "1,000+"):
+            if token in atp_val:
+                _atp_large = True
+                break
+    tp_val = company_signals.get("training_programs", "") or ""
+    if tp_val and tp_val.lower() not in ("no", "none", "n/a", ""):
+        _has_training_programs = True
+
     for p in products:
         ub_str = p.get("estimated_user_base", "")
         if not ub_str:
@@ -1293,16 +1309,51 @@ def _build_prospector_row(disc: dict) -> dict:
         user_count = _parse_user_base_for_sort(ub_str)
         if user_count <= 0:
             continue
+
+        # Industry Authority / Training Org deflation — deflate inflated user bases
+        if normalized_org in ("INDUSTRY AUTHORITY", "TRAINING ORG"):
+            from acv_calculator import _apply_industry_authority_deflation
+            user_count = _apply_industry_authority_deflation(user_count)
+
         # Tiered caps — inflated user bases get capped per product
         for threshold, cap in _cfg.DISCOVERY_ACV_USER_BASE_TIERS:
             if user_count > threshold:
                 if cap is not None:
                     user_count = cap
                 break
+
+        # Three-tier open source classification per product
+        product_adoption = adoption
+        training_license = (p.get("training_license") or "").lower()
+        cert_inclusion = (p.get("cert_inclusion") or "").lower()
+        is_product_open_source = training_license == "none"
+
+        # Track per-product cert signal
+        product_has_cert = cert_inclusion not in ("", "no", "none", "n/a")
+        has_training_org = _has_atp or _has_training_programs or product_has_cert
+
+        if is_product_open_source:
+            if has_training_org:
+                product_adoption *= _cfg.OPEN_SOURCE_WITH_TRAINING_MULTIPLIER
+            else:
+                product_adoption *= _cfg.OPEN_SOURCE_PURE_MULTIPLIER
+
+        # Training maturity multipliers
+        maturity_mult = _cfg.ACV_TRAINING_MATURITY_MULTIPLIERS
+        if training_license == "blocked":
+            product_adoption *= maturity_mult["license_blocked"]
+        elif _atp_large:
+            product_adoption *= maturity_mult["atp_large"]
+        elif product_has_cert:
+            product_adoption *= maturity_mult["cert_active"]
+        elif not _has_atp and not _has_training_programs and not product_has_cert:
+            product_adoption *= maturity_mult["no_signals"]
+        product_adoption = min(product_adoption, _cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP)
+
         deployment = (p.get("deployment_model") or "").lower()
         rate = _cfg.DISCOVERY_ACV_RATE_BY_DEPLOYMENT.get(
             deployment, _cfg.DISCOVERY_ACV_DEFAULT_RATE)
-        company_acv += int(user_count * adoption * hours * rate)
+        company_acv += int(user_count * product_adoption * hours * rate)
     # Hard cap — no discovery estimate exceeds the ceiling
     company_acv = min(company_acv, _cfg.DISCOVERY_ACV_CAP)
     sort_acv = company_acv
@@ -1498,6 +1549,29 @@ def _normalize_company_name(name: str) -> str:
     function in storage.py — Define-Once for name normalization."""
     from storage import _normalize_company_name as _normalize
     return _normalize(name)
+
+
+# ── Prospector in-memory cache ──────────────────────────────────────────
+# Avoids recomputing the full discovery list on every /prospector/api/companies
+# call. TTL of 60 seconds balances freshness with responsiveness.
+_PROSPECTOR_CACHE: dict = {"data": None, "timestamp": 0}
+_PROSPECTOR_CACHE_TTL = 60  # magic-allowed: cache TTL in seconds for Prospector API
+
+
+def _deduped_all_discoveries_cached() -> list[dict]:
+    """Cached wrapper around _deduped_all_discoveries().
+
+    Returns cached results if fresh (within TTL), otherwise recomputes.
+    """
+    import time
+    now = time.time()
+    if (_PROSPECTOR_CACHE["data"] is not None
+            and (now - _PROSPECTOR_CACHE["timestamp"]) < _PROSPECTOR_CACHE_TTL):
+        return _PROSPECTOR_CACHE["data"]
+    result = _deduped_all_discoveries()
+    _PROSPECTOR_CACHE["data"] = result
+    _PROSPECTOR_CACHE["timestamp"] = now
+    return result
 
 
 def _deduped_all_discoveries() -> list[dict]:

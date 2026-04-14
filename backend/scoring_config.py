@@ -2392,6 +2392,10 @@ ORG_TYPE_NORMALIZATION: dict[str, str] = {
     "content_development": "CONTENT DEVELOPMENT",
     "lms_company": "LMS PROVIDER",
     "lms_provider": "LMS PROVIDER",
+    "industry_authority": "INDUSTRY AUTHORITY",
+    "ilt_training_org": "ILT TRAINING ORG",
+    "ilt_training_organization": "ILT TRAINING ORG",
+    "enterprise_learning_platform": "LMS PROVIDER",
 }
 
 
@@ -2826,43 +2830,73 @@ CERT_SIT_DERIVATION_PCT = 0.02
 # Per Platform-Foundation → "How Adoption Patterns Vary by Organization Type"
 ACV_ORG_ADOPTION_OVERRIDES: dict[str, dict[str, float]] = {
     "ACADEMIC": {
-        "Customer Training & Enablement": 0.90,   # coursework is assigned, not optional
-        "Employee Training & Enablement": 0.30,    # faculty training
-        "Certification (PBT)": 1.00,               # exams are required
+        "Customer Training & Enablement": 0.25,    # 25% — ~half enrolled in lab courses, not all courses have labs yet
+        "Employee Training & Enablement": 0.30,    # faculty & staff development
         "Events & Conferences": 0.30,
+        # Certification (PBT) removed — course exams bundled into Student Training
     },
     "TRAINING ORG": {
         "Customer Training & Enablement": 0.04,    # training candidates
         "Certification (PBT)": 1.00,               # exam sitters — 100% by definition
         "Events & Conferences": 0.30,
     },
+    "INDUSTRY AUTHORITY": {
+        "Customer Training & Enablement": 0.05,    # 5% — cert seekers are motivated, slightly above software baseline
+        "Certification (PBT)": 1.00,               # exam sitters — 100% by definition
+        "Events & Conferences": 0.30,
+    },
     "LMS PROVIDER": {
-        "Customer Training & Enablement": 0.04,    # self-directed learners, low uptake
+        "Customer Training & Enablement": 0.03,    # 3% — blended platform & ILT learners
+        "Events & Conferences": 0.30,
+    },
+    "ILT TRAINING ORG": {
+        "Customer Training & Enablement": 0.25,    # 25% — percentage of courses that currently have labs
+        "Employee Training & Enablement": 0.30,    # instructor training
         "Events & Conferences": 0.30,
     },
     "SYSTEMS INTEGRATOR": {
-        "Customer Training & Enablement": 0.04,    # client end users
-        "Employee Training & Enablement": 0.30,    # internal consultants — employer-driven
-        "Partner Training & Enablement": 0.15,
+        "Customer Training & Enablement": 0.05,    # 5% — internal consultants
         "Events & Conferences": 0.30,
     },
-    # ILT training orgs — intensive classroom, high per-student consumption
-    # but adoption handled via the audience estimate (students in classes)
-    # rather than overriding adoption rate. Default 4% customer is fine
-    # because the audience IS the classroom students, not total prospects.
+    "TECH DISTRIBUTOR": {
+        "Customer Training & Enablement": 0.03,    # 3% — training is emerging, not core
+        "Events & Conferences": 0.30,
+    },
 }
 
 # Org-type motion LABEL overrides. Different org types use different
 # language for the same economic motions. The math is the same — only the
 # display label changes so the seller reads language appropriate to the
 # org type. Per Platform-Foundation → org-type sections.
-# Open source adoption discount. Open source products have fundamentally
-# different training economics — most users learn from free docs, YouTube,
-# and Stack Overflow. The percentage who pay for structured hands-on labs
-# is much smaller than for commercial enterprise software. Applied as a
-# multiplier on the Customer Training adoption rate when the product is
-# detected as open source. Per Frank 2026-04-13.
-OPEN_SOURCE_ADOPTION_MULTIPLIER = 0.25  # 1/4 of normal adoption rate
+# Three-tier open source classification — replaces the single multiplier.
+# Commercial = baseline (no multiplier). Open source with training org = 0.75.
+# Pure open source = 0.25. Detection: training_license + training signals.
+# Per Platform-Foundation → unified ACV model. Frank 2026-04-13.
+OPEN_SOURCE_WITH_TRAINING_MULTIPLIER = 0.75  # 3% effective (0.75 × 4%)
+OPEN_SOURCE_PURE_MULTIPLIER = 0.25           # 1% effective (0.25 × 4%)
+
+# Training maturity multipliers — nudge adoption up or down from baseline
+# based on researcher-captured signals. Apply to all org types.
+# Per Platform-Foundation → unified ACV model. Frank 2026-04-13.
+ACV_TRAINING_MATURITY_MULTIPLIERS = {
+    "atp_large": 1.5,      # ATP program with 50+ partners
+    "cert_active": 1.25,   # Active cert exams for this product
+    "no_signals": 0.75,    # No training programs, no ATPs, no certs
+    "license_blocked": 0.5, # Training license is blocked
+}
+
+# Training maturity adoption ceiling — prevents runaway multipliers
+# from exceeding a realistic maximum adoption rate for software companies.
+ACV_TRAINING_MATURITY_ADOPTION_CAP = 0.35  # 35% ceiling
+
+# Industry Authority user base deflation — researcher numbers are inflated
+# (lifetime cert holders, not annual training candidates).
+# Per Platform-Foundation → unified ACV model. Frank 2026-04-13.
+INDUSTRY_AUTHORITY_DEFLATION_TIERS = [
+    (500_000, 10),   # >500K reported → divide by 10
+    (100_000, 5),    # 100K-500K → divide by 5
+    (0, 2),          # <100K → divide by 2
+]
 
 # ── ACV audience guardrails (R1–R5 from 2026-04-13 ACV audit) ─────────
 # Wrapper org types (GSI, university, training org, etc.) report the
@@ -2872,7 +2906,7 @@ OPEN_SOURCE_ADOPTION_MULTIPLIER = 0.25  # 1/4 of normal adoption rate
 ACV_WRAPPER_ORG_TYPES = frozenset({
     "SYSTEMS INTEGRATOR", "ACADEMIC", "TRAINING ORG",
     "TECH DISTRIBUTOR", "PROFESSIONAL SERVICES", "LMS PROVIDER",
-    "CONTENT DEVELOPMENT",
+    "CONTENT DEVELOPMENT", "INDUSTRY AUTHORITY", "ILT TRAINING ORG",
 })
 # For wrapper orgs: Motion 1 audience capped at this fraction of total_employees
 ACV_WRAPPER_ORG_AUDIENCE_CAP_FRACTION = 0.25
@@ -2897,17 +2931,29 @@ ACV_ORG_MOTION_LABELS: dict[str, dict[str, str]] = {
     "ACADEMIC": {
         "Customer Training & Enablement": "Student Training",
         "Partner Training & Enablement": "Research Partnerships",
-        "Employee Training & Enablement": "Faculty Development",
-        "Certification (PBT)": "Course Exams",
+        "Employee Training & Enablement": "Faculty & Staff Development",
         "Events & Conferences": "Campus Events",
     },
     "TRAINING ORG": {
         "Customer Training & Enablement": "Training Participants",
         "Employee Training & Enablement": "Internal Trainers",
     },
+    "INDUSTRY AUTHORITY": {
+        "Customer Training & Enablement": "Training Participants",
+        "Certification (PBT)": "Cert Exam Sitters",
+    },
+    "ILT TRAINING ORG": {
+        "Customer Training & Enablement": "Classroom Students",
+        "Employee Training & Enablement": "Instructor Training",
+    },
+    "LMS PROVIDER": {
+        "Customer Training & Enablement": "Platform & ILT Learners",
+    },
     "SYSTEMS INTEGRATOR": {
-        "Customer Training & Enablement": "Client End Users",
-        "Employee Training & Enablement": "Internal Consultants",
+        "Customer Training & Enablement": "Internal Consultants",
+    },
+    "TECH DISTRIBUTOR": {
+        "Customer Training & Enablement": "Internal Practitioners",
     },
 }
 
@@ -2916,8 +2962,19 @@ ACV_ORG_MOTION_LABELS: dict[str, dict[str, str]] = {
 # Per Platform-Foundation → "How Adoption Patterns Vary by Organization Type"
 ACV_ORG_HOURS_OVERRIDES: dict[str, dict[str, float]] = {
     "ACADEMIC": {
-        "Customer Training & Enablement": 8.0,    # assigned coursework — multiple lab sessions
-        "Certification (PBT)": 2.0,               # exam practice labs
+        "Customer Training & Enablement": 15.0,   # 15hrs — realistic semester lab consumption including practice labs
+    },
+    "ILT TRAINING ORG": {
+        "Customer Training & Enablement": 18.0,   # 18hrs — intensive multi-day classroom format (4-5 day courses)
+    },
+    "LMS PROVIDER": {
+        "Customer Training & Enablement": 3.0,    # 3hrs — average across on-demand (1-2hrs) and ILT (15+hrs) weighted toward on-demand
+    },
+    "INDUSTRY AUTHORITY": {
+        "Customer Training & Enablement": 10.0,   # 10hrs — cert prep is intensive, structured lab time
+    },
+    "TECH DISTRIBUTOR": {
+        "Customer Training & Enablement": 5.0,    # 5hrs — services arm, emerging training
     },
 }
 

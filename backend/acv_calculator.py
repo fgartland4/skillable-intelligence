@@ -285,6 +285,115 @@ def _discovery_install_base_fallback(product: Any) -> int:
         return 0
 
 
+def _apply_industry_authority_deflation(pop: int) -> int:
+    """Deflate Industry Authority user base from lifetime holders to annual candidates.
+
+    Researcher-reported numbers for Industry Authorities (CompTIA, EC-Council,
+    SANS, ISACA) are inflated — they represent lifetime cert holders, not
+    annual training candidates. This applies tiered deflation from
+    cfg.INDUSTRY_AUTHORITY_DEFLATION_TIERS before the adoption math.
+
+    Per Platform-Foundation → unified ACV model.
+    """
+    if pop <= 0:
+        return pop
+    for threshold, divisor in cfg.INDUSTRY_AUTHORITY_DEFLATION_TIERS:
+        if pop > threshold:
+            deflated = pop // divisor
+            log.info(
+                "Industry Authority deflation: %d > %d → ÷%d = %d",
+                pop, threshold, divisor, deflated,
+            )
+            return deflated
+    return pop
+
+
+def _detect_training_signals(product: object, company_analysis: object) -> dict:
+    """Detect training maturity signals from the fact drawer.
+
+    Returns a dict with boolean flags:
+      atp_large: ATP program with 50+ partners
+      cert_active: Active cert exams for this product
+      no_signals: No training programs, no ATPs, no certs
+      license_blocked: Training license is blocked
+      has_training_org: Open source product with commercial training signals
+    """
+    signals = {
+        "atp_large": False,
+        "cert_active": False,
+        "no_signals": True,  # assume no signals until proven otherwise
+        "license_blocked": False,
+        "has_training_org": False,
+    }
+
+    # Check company-level signals
+    cf_facts = getattr(company_analysis, "customer_fit_facts", None) if company_analysis else None
+    disc_data = getattr(company_analysis, "discovery_data", None) if company_analysis else None
+    if isinstance(disc_data, dict):
+        company_signals = disc_data.get("company_signals", {}) or {}
+    else:
+        company_signals = {}
+
+    # ATP program check
+    atp = ""
+    if cf_facts:
+        atp = getattr(cf_facts, "atp_program", "") or ""
+    if not atp and company_signals:
+        atp = company_signals.get("atp_program", "") or ""
+    if atp:
+        atp_lower = atp.lower()
+        if atp_lower not in ("no", "none", "n/a", ""):
+            signals["no_signals"] = False
+            signals["has_training_org"] = True
+            # Check for large ATP (50+ partners)
+            for token in ("50+", "100+", "200+", "500+", "1000+", "1,000+"):
+                if token in atp:
+                    signals["atp_large"] = True
+                    break
+
+    # Training programs check
+    training_programs = ""
+    if cf_facts:
+        training_programs = getattr(cf_facts, "training_programs", "") or ""
+    if not training_programs and company_signals:
+        training_programs = company_signals.get("training_programs", "") or ""
+    if training_programs and training_programs.lower() not in ("no", "none", "n/a", ""):
+        signals["no_signals"] = False
+        signals["has_training_org"] = True
+
+    # Cert inclusion check (product-level)
+    pl_facts = getattr(product, "product_labability_facts", None)
+    if pl_facts:
+        cert = getattr(pl_facts, "cert_inclusion", None)
+        if cert is None:
+            la = getattr(pl_facts, "lab_access", None)
+            if la:
+                cert = getattr(la, "cert_inclusion", "") or ""
+        if cert and str(cert).lower() not in ("no", "none", "n/a", ""):
+            signals["cert_active"] = True
+            signals["no_signals"] = False
+            signals["has_training_org"] = True
+
+    # Also check product-level discovery data for cert
+    disc = getattr(product, "discovery_data", None) or {}
+    if isinstance(disc, dict):
+        cert_inc = disc.get("cert_inclusion", "") or ""
+        if cert_inc and cert_inc.lower() not in ("no", "none", "n/a", ""):
+            signals["cert_active"] = True
+            signals["no_signals"] = False
+            signals["has_training_org"] = True
+
+    # Training license blocked check
+    if pl_facts:
+        la = getattr(pl_facts, "lab_access", None)
+        if la:
+            license_val = getattr(la, "training_license", "") or ""
+            if license_val == "blocked":
+                signals["license_blocked"] = True
+
+    return signals
+
+
 def _apply_wrapper_org_audience_cap(
     pop_low: int, pop_high: int,
     normalized_org: str,
@@ -376,9 +485,9 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     label_overrides = cfg.ACV_ORG_MOTION_LABELS.get(normalized_org, {})
     hours_overrides = cfg.ACV_ORG_HOURS_OVERRIDES.get(normalized_org, {})
 
-    # Detect open source — training_license "none" (OSS, no license needed)
-    # or "low_friction" (free tier / dev tier available). Open source products
-    # have lower paid training demand. Per Frank 2026-04-13.
+    # Detect open source — training_license "none" (OSS, no license needed).
+    # Three-tier classification: commercial / open source with training / pure open source.
+    # Per Platform-Foundation → unified ACV model. Frank 2026-04-13.
     is_open_source = False
     pl_facts = getattr(product, "product_labability_facts", None)
     if pl_facts:
@@ -387,6 +496,9 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
             license_val = getattr(la, "training_license", "") or ""
             if license_val == "none":
                 is_open_source = True
+
+    # Detect training maturity signals for multipliers + open source tiering
+    training_signals = _detect_training_signals(product, company_analysis)
 
     motions: list[ModelMotion] = []
     customer_motion_pop = 0  # Track for R4 cert cap
@@ -409,6 +521,13 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
                 log.info("ACV R3 fallback: using discovery install_base %d for %s",
                          fallback, getattr(product, "name", "?"))
 
+        # ── Industry Authority / Training Org deflation ──
+        # Researcher numbers for these org types are inflated (lifetime holders,
+        # not annual training candidates). Deflate before adoption math.
+        if is_customer_motion and normalized_org in ("INDUSTRY AUTHORITY", "TRAINING ORG"):
+            pop_low = _apply_industry_authority_deflation(pop_low)
+            pop_high = _apply_industry_authority_deflation(pop_high)
+
         # ── R1: Wrapper org audience cap ──
         # For GSIs, universities, etc., cap Motion 1 audience to a fraction
         # of the org's total employees. The researcher often reports the
@@ -424,9 +543,28 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
         display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
         hrs = hours_overrides.get(cfg_motion.label, cfg_motion.hours_low)
 
-        # Open source discount on Customer Training adoption
+        # ── Three-tier open source classification (Customer Training only) ──
         if is_open_source and cfg_motion.label == "Customer Training & Enablement":
-            adoption *= cfg.OPEN_SOURCE_ADOPTION_MULTIPLIER
+            if training_signals["has_training_org"]:
+                adoption *= cfg.OPEN_SOURCE_WITH_TRAINING_MULTIPLIER
+            else:
+                adoption *= cfg.OPEN_SOURCE_PURE_MULTIPLIER
+
+        # ── Training maturity multipliers (Customer Training only) ──
+        # Nudge adoption up or down from baseline based on researcher signals.
+        # Multipliers stack multiplicatively but cap at the ceiling.
+        if cfg_motion.label == "Customer Training & Enablement":
+            maturity_mult = cfg.ACV_TRAINING_MATURITY_MULTIPLIERS
+            if training_signals["license_blocked"]:
+                adoption *= maturity_mult["license_blocked"]
+            elif training_signals["atp_large"]:
+                adoption *= maturity_mult["atp_large"]
+            elif training_signals["cert_active"]:
+                adoption *= maturity_mult["cert_active"]
+            elif training_signals["no_signals"]:
+                adoption *= maturity_mult["no_signals"]
+            # Cap adoption to prevent runaway
+            adoption = min(adoption, cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP)
 
         motions.append(ModelMotion(
             label=display_label,

@@ -1035,15 +1035,34 @@ The grid and definitions are configured in `scoring_config.VERDICT_GRID`. This d
 
 The five consumption motions below are the categories. The funnel is the logic. The org type provides the context for estimating each step. One framework, applied everywhere.
 
-**What — five consumption motions.** Each motion reflects both a reason people take labs AND a path for reaching them:
+**What — five consumption motions (software company baseline).** Each motion reflects both a reason people take labs AND a path for reaching them. These are the defaults for software companies; org-type overrides follow.
 
 | # | Motion | Audience | Adoption | Hours | Zero when... |
 |---|---|---|---:|---:|---|
-| **1** | **Customer Training & Enablement** | End learners — anyone taking a lab to learn the product, regardless of whether they enrolled directly or through an ATP. This is the total user population of the product. Do NOT double-count people who train through ATPs — they are customers, not partners. | ~4% | 2 | Never (every product has users) |
-| **2** | **Partner Training & Enablement** | People at CHANNEL PARTNER organizations (GSIs, VARs, distributors, resellers) who need product knowledge to sell, deploy, implement, or support it. The partner's own consultants, SEs, solution architects — NOT the end customers who learn through partners (those are Motion 1). | ~15% | 5 | Company doesn't sell through a channel |
-| **3** | **Employee Training & Enablement** | People at the COMPANY BEING ANALYZED who work on the product — product team, SEs, support engineers, CS, trainers. **Not total headcount. Not people at customer companies (those are Motion 1).** Always a small number relative to company size. | ~30% | 8 | Never in practice |
-| **4** | **Certification (PBT)** | People in the world who sit for the certification exam | **100%** | 1 | Product has no cert, or the cert has no lab component |
-| **5** | **Events & Conferences** | Total attendees at the company's events (e.g., ~15,000 at Tableau Conference) | ~30% | 1 | Company doesn't run events. Events without labs today are the *opportunity*, not zero. |
+| **1** | **Customer Training & Enablement** | End learners — anyone taking a lab to learn the product, regardless of whether they enrolled directly or through an ATP. This is the total user population of the product. Do NOT double-count people who train through ATPs — they are customers, not partners. | **4%** | **2** | Never (every product has users) |
+| **2** | **Partner Training & Enablement** | People at CHANNEL PARTNER organizations (GSIs, VARs, distributors, resellers) who need product knowledge to sell, deploy, implement, or support it. The partner's own consultants, SEs, solution architects — NOT the end customers who learn through partners (those are Motion 1). | **15%** | **5** | Company doesn't sell through a channel |
+| **3** | **Employee Training & Enablement** | People at the COMPANY BEING ANALYZED who work on the product — product team, SEs, support engineers, CS, trainers. **Not total headcount. Not people at customer companies (those are Motion 1).** Always a small number relative to company size. | **30%** | **8** | Never in practice |
+| **4** | **Certification (PBT)** | People in the world who sit for the certification exam | **100%** | **1** | Product has no cert, or the cert has no lab component |
+| **5** | **Events & Conferences** | Total attendees at the company's events (e.g., ~15,000 at Tableau Conference) | **30%** | **1** | Company doesn't run events. Events without labs today are the *opportunity*, not zero. |
+
+**Three-tier open source classification (software companies only):**
+
+| Tier | Effective adoption | Detection |
+|---|---|---|
+| **Commercial** | 4% (baseline) | training_license is not "none" |
+| **Open source with commercial training** | 3% (0.75x baseline) | training_license = "none" AND (training programs OR certs OR ATPs exist) |
+| **Pure open source** | 1% (0.25x baseline) | training_license = "none" AND no training programs, certs, or ATPs |
+
+**Training maturity multipliers (apply to ALL org types):**
+
+| Condition | Multiplier | Source signal |
+|---|---|---|
+| ATP program with 50+ partners | 1.5x | atp_program |
+| Active cert exams for this product | 1.25x | cert_inclusion |
+| No training programs, no ATPs, no certs | 0.75x | absence of signals |
+| Training license blocked | 0.5x | training_license = "blocked" |
+
+Multipliers stack multiplicatively but cap the final adoption at 35% (ceiling for software companies to prevent runaway).
 
 **Motion 1 is the big one.** The total user population of the product is typically the largest audience. ATPs and training partners are delivery channels for reaching these users — the users themselves are counted once in Motion 1, not again in Motion 2.
 
@@ -1057,20 +1076,32 @@ The five consumption motions below are the categories. The funnel is the logic. 
 
 **Why.** The flat adoption rates above are defaults for software companies. Different org types have fundamentally different relationships between their audiences and lab experiences. A university student doesn't choose whether to take the lab — it's assigned coursework. A software user decides whether to bother with training. This changes the math.
 
-**What — the adoption funnel by org type:**
+**What — the unified model by org type:**
 
-| Org type | Motion 1 audience | Motion 1 adoption | Motion 4 audience | Motion 4 adoption | Why the pattern is different |
-|---|---|---|---|---|---|
-| **Software company** | Product users worldwide | ~4% | Annual exam sitters (~2% of training population) | 100% of sitters | Voluntary — users choose to train and certify |
-| **Industry Authority** | Training candidates per year (interested in cert) | ~4% | Annual exam sitters (~10% of training population) | 100% of sitters | Intentional — candidates pursue a career credential |
-| **Academic** | Students enrolled in technology programs | ~90% | Students taking exams (~95% of enrolled) | 100% | Required — coursework is assigned, not optional |
-| **GSI** | Consultants in practice area | ~30% | Practice-specific cert sitters | 100% of sitters | Employer-driven — firm invests in consultant skills |
-| **ILT Training Org** | Students per year in classes | ~80% | N/A (they deliver training, not certifications) | — | High — every student in a class does the labs |
-| **Enterprise Learning Platform** | Subscribers taking technology courses | ~4% | Cert prep subset who sit exams | 100% of sitters | Varies — assigned learners higher than self-directed |
+| Org type | Primary motion label | Audience | Adoption | Hours | Additional motions |
+|---|---|---|---:|---:|---|
+| **Software company** | Customer Training | Product users worldwide | **4%** | **2** | Partner 15%/5hrs, Employee 30%/8hrs, Cert (PBT) 100%/1hr, Events 30%/1hr |
+| **Academic** | Student Training | Students in tech programs | **25%** | **15** | Faculty & Staff Dev 30%/8hrs, Campus Events 30%/1hr. Course Exams bundled into Student Training. |
+| **Industry Authority** | Training Participants | Deflated user_base (see deflation tiers) | **5%** | **10** | Cert (PBT) 100%/1hr. Partner Training removed (ATPs are delivery channels). |
+| **Enterprise Learning Platform** | Platform & ILT Learners | Technology subscribers + classroom students | **3%** | **3** | Events 30%/1hr. One blended motion (on-demand + ILT). |
+| **ILT Training Org** | Classroom Students | Students per year in tech classes | **25%** | **18** | Instructor Training 30%/8hrs. Highest per-learner consumption. |
+| **GSI** | Internal Consultants | Practice area headcount | **5%** | **8** | Events 30%/1hr. Client-side opportunity noted in Seller Briefcase, not modeled. |
+| **VAR** | Internal Practitioners | Practice area headcount | **5%** | **8** | Same model as GSI at smaller scale. |
+| **Tech Distributor** | Internal Practitioners | Services arm headcount | **3%** | **5** | Lower adoption and hours — training is emerging, not core. |
+
+**Industry Authority user base deflation:** Researcher numbers for Industry Authorities are inflated (lifetime cert holders, not annual training candidates). Apply deflation before the adoption math:
+
+| Researcher user_base | Deflation factor |
+|---|---|
+| > 500K | divide by 10 |
+| 100K - 500K | divide by 5 |
+| < 100K | divide by 2 |
+
+When annual exam volume IS available from the researcher, use that x 3 instead of deflation.
 
 **The critical insight for Industry Authorities:** ~250,000 people may be interested in CEH. ~50,000 actually take training. ~5,000 sit the exam. The install_base (Motion 1) is the training candidate population. The cert_annual_sit_rate (Motion 4) is the exam sitters. These are very different numbers — putting 250,000 in both fields double-counts the audience.
 
-**The critical insight for academics:** Adoption is near-100% because the professor assigns the lab. If 500 students are enrolled in a cybersecurity course with 10 labs, ~475 of them complete all 10 labs. The "adoption" question barely applies — it's coursework.
+**The critical insight for academics:** 25% adoption = ~half of enrolled students are in a lab course in any given year, ~90% of those complete labs — but 25% accounts for the fact that not all courses have labs yet. 15 hours = realistic semester lab consumption including practice labs outside class. Course Exams removed as a separate motion — bundled into Student Training (exams are part of tuition, not separate).
 
 **How — per-motion calculation:**
 
