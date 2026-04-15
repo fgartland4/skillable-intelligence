@@ -1,52 +1,6 @@
 # Skillable Intelligence — Claude Working Context
 
-This file loads automatically every session. Read the documents it points to — not this summary.
-
----
-
-## MANDATORY — File Storage Rule
-
-**NEVER save documents, memory files, or any persistent content to the local hard drive.** All documentation, notes, decisions, and reference material must be stored in the repo (`docs/` or appropriate location) so it is on OneDrive and GitHub. No exceptions. Nothing important lives only on this machine.
-
----
-
-## Startup Sequence — Three Passes, Every Session
-
-**This is not a skim. This is how the documents become operational.** Frank has found through experience that the collaboration rules and Guiding Principles land differently on the second read, after the full context is in your head. Honor that pattern.
-
-### Pass 1 — Working mode + thinking system
-
-| Step | Document | Why |
-|---|---|---|
-| **1** | `docs/collaboration-with-frank.md` (full) | How Frank thinks, how to work together, what matters. Working mode goes in first. |
-| **2** | `docs/Platform-Foundation.md` → **Guiding Principles** section only (GP1 through GP5 + Define-Once + End-to-End Thinking) | The thinking system that shapes every decision — code, UX, collaboration, communication. You cannot apply what you have not internalized. |
-
-### Pass 2 — Full context
-
-| Step | Document | Why |
-|---|---|---|
-| **3** | `docs/Platform-Foundation.md` (in full) | Strategic authority — Three Layers of Intelligence, Layer Discipline, Define-Once, personas, scoring framework at a glance, Fit Score composition, Verdict Grid, ACV Potential model, Inspector UX, Designer pipeline. |
-| **4** | `docs/Badging-and-Scoring-Reference.md` (in full) | Operational detail — every Pillar, every dimension, every scoring signal, every strength tier, every baseline, every penalty, Technical Fit Multiplier table, risk cap reduction rules, rate tier lookup, badge naming rules, locked vocabulary. The math. |
-| **5** | `docs/next-session-todo.md` | What's active. §1 names the first action of THIS session. |
-| **6** | `docs/roadmap.md` | The long arc inventory — reference only, not cover-to-cover. |
-
-### Pass 3 — Re-read collaboration-with-frank + Guiding Principles
-
-Go back to `docs/collaboration-with-frank.md` AND the Guiding Principles section of `docs/Platform-Foundation.md`. Read them a second time, with all the Pass 2 context in your head. **They land differently the second time.** Frank's exact phrasing: "they really land better with context the second time around."
-
-The interrelation is the point. A rule in collaboration-with-frank traces back to a GP in Platform-Foundation. A badge in Badging-and-Scoring-Reference traces back to a dimension, which traces back to a Pillar, which traces back to the 70/30 split, which traces back to GP4 and Define-Once. Nothing stands alone. The second pass is where the documents become operational.
-
-### Then — present ONE thing and stop
-
-State what you read, where the project stands, and what is next (the first action from next-session-todo.md §1). Then **stop. Wait for Frank.** Do not present a plan. Do not suggest work. Do not start coding. Step 5 of the collaboration doc is non-negotiable.
-
----
-
-### About the core docs
-
-The two core docs (`Platform-Foundation.md` + `Badging-and-Scoring-Reference.md`) are rewritten whole, not appended, to stay Best Current Thinking. They have a hard **no-duplication rule**: Platform-Foundation owns the framework at a glance + Verdict Grid + ACV model + Fit Score composition concepts; B&S owns the operational math and the per-Pillar / per-dimension detail. Where one doc names a concept the other owns, it refers back without restating.
-
-For the **complete inventory** of everything we know we want to do or have done — across every tool, every area, every status — see `docs/roadmap.md`. Reference, not a read-first.
+This file loads automatically every session. It contains project-specific rules only. For how we work together, the startup sequence, and the thinking system, see `docs/collaboration-with-frank.md` — that is the single source of truth. Start there. Follow its instructions exactly.
 
 ---
 
