@@ -3722,47 +3722,104 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SCORING LOGIC VERSION
+# SCORING LOGIC VERSIONS — three tiers
 #
-# Bumped manually whenever scoring math, rubrics, ceiling flags, or canonical
-# badge vocabulary change in a way that would invalidate cached analyses.
-# Storage layer stamps this on every saved analysis/discovery; cache loaders
-# treat older versions as stale and force a re-score on next access.
+# Frank's Rule #1 (2026-04-16): research is immutable. Logic changes never
+# force re-research. To make that true in practice, version stamps are split
+# into three tiers so cache invalidation can pick the cheapest path that
+# satisfies the change:
+#
+#   SCORING_MATH_VERSION — bump when point values, dimension weights,
+#     pillar weights, multiplier tables, penalty values, ACV rate tiers,
+#     Verdict Grid thresholds, or any deterministic math change. Invalidation
+#     path: pure-Python rescore against saved facts + saved rubric grades.
+#     **Zero Claude calls. Milliseconds.**
+#
+#   RUBRIC_VERSION — bump when rubric tier definitions, signal categories,
+#     grading criteria, or rubric_grader prompts change. Invalidation path:
+#     re-run rubric_grader against saved raw facts, then pure-Python rescore.
+#     **Paid Claude calls for grading (1 per dimension per product) but
+#     zero re-research.**
+#
+#   RESEARCH_SCHEMA_VERSION — bump ONLY when the shape of the fact drawer
+#     itself changes (fields added/removed, types changed). Invalidation
+#     path: full re-research. **This is the only bump that burns research
+#     dollars — deliberate human decision, rare.**
+#
+# Stamping contract:
+#   Every saved discovery and analysis carries all three version fields.
+#   The legacy `_scoring_logic_version` stamp is preserved for backwards
+#   compatibility with existing caches stamped before this split.
 #
 # Bump format: "YYYY-MM-DD.short-description"
-# Bump policy: any commit that touches scoring_config.py (badges, signals,
-# rubrics), the per-pillar scorers, fit_score_composer, or rubric_grader
-# should bump this. Comment-only changes don't require a bump.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_LOGIC_VERSION = "2026-04-14.saturated-only-cap-plus-potential-calibration"
+SCORING_MATH_VERSION = "2026-04-16.tiered-version-split-initial"
+RUBRIC_VERSION = "2026-04-16.tiered-version-split-initial"
+RESEARCH_SCHEMA_VERSION = "2026-04-16.tiered-version-split-initial"
+
+# Legacy single-string version — retained for backwards-compat reading of
+# caches stamped before the three-tier split landed. New writes carry this
+# field set to SCORING_MATH_VERSION so any consumer still reading the old
+# field sees a current-looking value that tracks with the math tier.
+SCORING_LOGIC_VERSION = SCORING_MATH_VERSION
+
+
+# Sentinel returned by is_cached_logic_current_tiered() to describe exactly
+# which tier of work is needed to bring a cached record current.
+class CacheStatus:
+    """What a cached record needs to be current.
+
+    Returned by `is_cached_logic_current_tiered`. The caller uses this to
+    pick the cheapest path that restores freshness.
+    """
+    CURRENT = "current"                    # All three versions match — cache hit, no work
+    MATH_STALE = "math_stale"              # Math bump only — pure-Python recompute
+    RUBRIC_STALE = "rubric_stale"          # Rubric bump — re-grade + recompute (no re-research)
+    RESEARCH_STALE = "research_stale"      # Schema bump — re-research required
+    UNSTAMPED = "unstamped"                # Legacy record, no tiered stamps — treat as research stale
+                                           # to be safe (this should be rare after one-time migration)
 
 
 def is_cached_logic_current(cached_data: dict | None) -> bool:
-    """Check whether a cached analysis or discovery was scored with the
-    current scoring logic version.
+    """Legacy single-bit check — kept for backwards compatibility.
+
+    Returns True when the cached record is fully current across all three
+    tiers (MATH, RUBRIC, RESEARCH_SCHEMA). Returns False when any tier is
+    stale OR when the record carries no version stamp at all.
+
+    Prefer `is_cached_logic_current_tiered()` for new code — it returns
+    fine-grained status so the caller can pick the cheapest invalidation
+    path. This function remains the drop-in replacement for the legacy
+    single-version check.
+    """
+    status = is_cached_logic_current_tiered(cached_data)
+    return status == CacheStatus.CURRENT
+
+
+def is_cached_logic_current_tiered(cached_data: dict | None) -> str:
+    """Fine-grained version check — returns a CacheStatus string.
+
+    Compares the three stamped versions (`_scoring_math_version`,
+    `_rubric_version`, `_research_schema_version`) against the current
+    constants and returns which (if any) tier is stale. The caller uses
+    this to decide: pure-Python recompute (math), re-grade + recompute
+    (rubric), or re-research (schema).
 
     Returns:
-        True  if cached_data is None (caller handles None separately as a
-              cache miss), OR if cached_data carries the current
-              SCORING_LOGIC_VERSION.
-        False if cached_data is a dict missing the version field, OR if
-              the version field is older than the current version.
+        CacheStatus.CURRENT        — all three match, no work needed
+        CacheStatus.MATH_STALE     — math differs; rubric + schema current
+        CacheStatus.RUBRIC_STALE   — rubric (and maybe math) differs; schema current
+        CacheStatus.RESEARCH_STALE — schema differs; re-research required
+        CacheStatus.UNSTAMPED      — legacy record with no tiered stamps
 
-    Used by intelligence.discover() and intelligence.score() to
-    invalidate cached analyses after scoring logic changes — closes the
-    cache versioning gap that allowed stale Cohesity/Trellix analyses
-    to render with degraded scores after the Pillar 1/2/3 refactors.
+    Precedence: research > rubric > math. Schema drift implies everything
+    downstream is also stale, so we return RESEARCH_STALE even if math is
+    also different. Same logic for rubric.
     """
     if cached_data is None:
-        return True  # Caller handles None separately as a cache miss
-    cached_version = cached_data.get("_scoring_logic_version", "")
-    if cached_version == SCORING_LOGIC_VERSION:
-        return True
-    # HIGH-8 in code-review-2026-04-07.md: log the mismatch with enough
-    # context that the breadcrumb survives in production logs. The previous
-    # version returned False silently — when investigation needed to figure
-    # out WHY a record was rejected, there was no trail.
+        return CacheStatus.CURRENT  # Caller handles None separately as a cache miss
+
     import logging
     _log = logging.getLogger(__name__)
     record_id = (
@@ -3770,18 +3827,53 @@ def is_cached_logic_current(cached_data: dict | None) -> bool:
         or cached_data.get("discovery_id")
         or "<unknown>"
     )
-    if not cached_version:
+
+    cached_math = cached_data.get("_scoring_math_version", "")
+    cached_rubric = cached_data.get("_rubric_version", "")
+    cached_schema = cached_data.get("_research_schema_version", "")
+
+    # Legacy record path: if none of the tiered stamps are present BUT the
+    # old single-string stamp is, treat as UNSTAMPED so the caller can
+    # apply a one-time migration (stamp with current versions, optionally
+    # trigger rescoring paths).
+    if not (cached_math or cached_rubric or cached_schema):
+        legacy = cached_data.get("_scoring_logic_version", "")
+        if legacy:
+            _log.info(
+                "is_cached_logic_current_tiered: record %s carries legacy "
+                "_scoring_logic_version=%r but no tiered stamps — UNSTAMPED",
+                record_id, legacy,
+            )
+            return CacheStatus.UNSTAMPED
         _log.info(
-            "is_cached_logic_current: record %s has NO _scoring_logic_version "
-            "stamp — treating as stale (current version %r)",
-            record_id, SCORING_LOGIC_VERSION,
+            "is_cached_logic_current_tiered: record %s has NO version stamps "
+            "at all — UNSTAMPED", record_id,
         )
-    else:
+        return CacheStatus.UNSTAMPED
+
+    # Precedence: schema drift wins (most expensive), then rubric, then math.
+    if cached_schema != RESEARCH_SCHEMA_VERSION:
         _log.info(
-            "is_cached_logic_current: record %s stamped with %r, current is %r — stale",
-            record_id, cached_version, SCORING_LOGIC_VERSION,
+            "is_cached_logic_current_tiered: record %s research_schema stamped "
+            "%r, current %r — RESEARCH_STALE (re-research required)",
+            record_id, cached_schema, RESEARCH_SCHEMA_VERSION,
         )
-    return False
+        return CacheStatus.RESEARCH_STALE
+    if cached_rubric != RUBRIC_VERSION:
+        _log.info(
+            "is_cached_logic_current_tiered: record %s rubric stamped %r, "
+            "current %r — RUBRIC_STALE (re-grade + recompute, no re-research)",
+            record_id, cached_rubric, RUBRIC_VERSION,
+        )
+        return CacheStatus.RUBRIC_STALE
+    if cached_math != SCORING_MATH_VERSION:
+        _log.info(
+            "is_cached_logic_current_tiered: record %s math stamped %r, "
+            "current %r — MATH_STALE (pure-Python recompute, no Claude)",
+            record_id, cached_math, SCORING_MATH_VERSION,
+        )
+        return CacheStatus.MATH_STALE
+    return CacheStatus.CURRENT
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

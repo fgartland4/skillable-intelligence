@@ -766,22 +766,30 @@ def recompute_analysis(analysis: dict) -> None:
 
 
 def _stamp_for_save(data: dict, timestamp_field: str = "analyzed_at") -> dict:
-    """Stamp an analysis or discovery dict with the current SCORING_LOGIC_VERSION
+    """Stamp an analysis or discovery dict with the current version stamps
     and a fresh timestamp.
 
     The intelligence layer is the ONLY place that should ever set the version
-    stamp + the scoring/discovery timestamp. Storage layer (save_analysis,
+    stamps + the scoring/discovery timestamp. Storage layer (save_analysis,
     save_discovery) now requires both fields to be present and rejects writes
     that don't have them.
 
-    This helper exists so the score() and discover() functions stamp the same
-    way every time and can never accidentally save a record with a stale or
-    missing stamp. Briefcase generation does NOT call this — briefcase preserves
-    the existing stamps from the loaded dict because it isn't a scoring change.
+    **Three-tier version stamps** (Frank's Rule #1, 2026-04-16):
+      - `_scoring_math_version`: bumps on math-only changes (pure Python rescore)
+      - `_rubric_version`: bumps on rubric vocabulary changes (re-grade, no re-research)
+      - `_research_schema_version`: bumps on fact drawer shape changes (re-research)
+      - `_scoring_logic_version`: retained for backwards-compat with pre-split caches.
+        Always mirrors `_scoring_math_version` going forward.
 
     timestamp_field: "analyzed_at" for analyses, "created_at" for discoveries.
     """
     import scoring_config as cfg
+    data["_scoring_math_version"] = cfg.SCORING_MATH_VERSION
+    data["_rubric_version"] = cfg.RUBRIC_VERSION
+    data["_research_schema_version"] = cfg.RESEARCH_SCHEMA_VERSION
+    # Backwards-compat — legacy readers still look at this field. Kept in
+    # lockstep with the math version so any existing consumer sees a sensible
+    # "current" marker. Remove once all readers are migrated.
     data["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
     data[timestamp_field] = _now_iso()
     return data
