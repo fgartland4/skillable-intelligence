@@ -135,7 +135,10 @@
             border-bottom: 1px solid var(--sk-border);
             background: rgba(36,237,155,0.02);
         }
-        .results-table th.col-num { width: 36px; text-align: center; }
+        /* # column — right-aligned so multi-digit ranks line up cleanly.
+           Sized to fit four characters so 1000+ entries render without clipping. */
+        .results-table th.col-num { width: 44px; text-align: right; padding-right: 10px; }
+        .results-table td.col-num { text-align: right; padding-right: 10px; font-variant-numeric: tabular-nums; }
         .results-table th.col-acv { width: 130px; }
         .results-table th.col-fit { width: 78px; text-align: center; }
         .results-table th.col-dd { width: 72px; text-align: center; }
@@ -173,7 +176,10 @@
         .results-table th.col-lab { width: 140px; }
         .results-table th.col-cert { width: 130px; }
         .results-table th.col-channel { width: 130px; }
-        .results-table th.col-check { width: 36px; text-align: center; }
+        /* Checkbox column — narrowest possible. The checkbox itself is ~13px;
+           keep just enough padding that it isn't flush against the # column. */
+        .results-table th.col-check { width: 24px; text-align: center; padding-left: 4px; padding-right: 4px; }
+        .results-table td.check-cell { padding-left: 4px; padding-right: 4px; }
         .results-table td {
             padding: 10px 10px; font-size: 0.82rem;
             border-bottom: 1px solid var(--sk-border);
@@ -386,7 +392,7 @@
                     <input type="checkbox" class="row-checkbox" data-discovery-id="{{ r.discovery_id }}" onchange="handleCheckbox(this)">
                     {% endif %}
                 </td>
-                <td class="rank-num">{{ r.rank or loop.index }}</td>
+                <td class="rank-num col-num">{{ r.rank or loop.index }}</td>
                 <td title="{{ r.company_name }}" style="white-space: normal; overflow: visible;">
                     <div class="company-cell-name">{{ r.company_name }}</div>
                     {% if r.company_badge %}
@@ -835,7 +841,7 @@
 
             html += '<tr>' +
                 '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
-                '<td class="rank-num" style="position:relative;">' +
+                '<td class="rank-num col-num" style="position:relative;">' +
                     (r.deep_dive_complete ? '<span title="Deep Dive complete" style="color: var(--sk-accent); font-size: 0.6rem; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);">&#9679;</span>' : '') +
                     (i + 1) + '</td>' +
                 '<td title="' + escapeAttr(r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +

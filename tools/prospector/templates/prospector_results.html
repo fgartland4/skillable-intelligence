@@ -111,7 +111,9 @@
             border-bottom: 1px solid var(--sk-border);
             background: rgba(36,237,155,0.02);
         }
-        .results-table th.col-num { width: 36px; text-align: center; }
+        /* # column — right-aligned, sized for 4-digit ranks. See UX-A 2026-04-16. */
+        .results-table th.col-num { width: 44px; text-align: right; padding-right: 10px; }
+        .results-table td.col-num { text-align: right; padding-right: 10px; font-variant-numeric: tabular-nums; }
         .results-table th.col-acv { width: 100px; }
         .results-table th.col-tier { width: 44px; text-align: center; }
         .results-table th.col-company { width: 260px; }
@@ -121,7 +123,9 @@
         .results-table th.col-lab { width: 140px; }
         .results-table th.col-cert { width: 130px; }
         .results-table th.col-channel { width: 130px; }
-        .results-table th.col-check { width: 36px; text-align: center; }
+        /* Checkbox column — narrowest possible. See UX-A 2026-04-16. */
+        .results-table th.col-check { width: 24px; text-align: center; padding-left: 4px; padding-right: 4px; }
+        .results-table td.check-cell { padding-left: 4px; padding-right: 4px; }
         .results-table td {
             padding: 10px 10px; font-size: 0.82rem;
             border-bottom: 1px solid var(--sk-border);
@@ -208,7 +212,7 @@
                 <input type="checkbox" class="row-checkbox" data-discovery-id="{{ r.discovery_id }}" onchange="handleCheckbox(this)">
                 {% endif %}
             </td>
-            <td class="rank-num">{{ r.rank or loop.index }}</td>
+            <td class="rank-num col-num">{{ r.rank or loop.index }}</td>
             <td title="{{ r.company_name }}" style="white-space: normal; overflow: visible;">
                 <div class="company-cell-name">{{ r.company_name }}</div>
                 {% if r.company_badge %}
