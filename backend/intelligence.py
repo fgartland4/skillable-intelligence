@@ -277,6 +277,113 @@ def _apply_customer_fit_to_products(products: list[dict], customer_fit: dict) ->
         p["fit_score"]["customer_fit"] = copy.deepcopy(customer_fit)
 
 
+def aggregate_product_labability_to_discovery(analysis: dict) -> bool:
+    """Write Deep Dive Pillar 1 scores back onto the parent discovery so
+    Prospector's tier labels reflect real scoring, not the pre-Deep-Dive
+    rough guess.
+
+    Mirrors the Phase F pattern used for Customer Fit, extended to PL
+    per Frank's Rule 2026-04-16 ("Deep Dive findings should sharpen
+    discovery-level data"). Prospector's tier columns (Prom./Pot./Unc./
+    Unl.) count products by `rough_labability_score` thresholds. Without
+    this write-back, a product scored PL 75 in Deep Dive would still be
+    counted in whatever tier its rough guess landed in.
+
+    Behavior per product:
+      - If the product has a Deep Dive PL score, save the original rough
+        guess as `_rough_labability_score_initial` (first time only — never
+        overwrite so we preserve the original estimate for diagnostics) and
+        replace `rough_labability_score` with the real Deep Dive score.
+      - If the product lacks a Deep Dive score, leave the rough score
+        alone.
+
+    Re-runs `enrich_discovery` after the write so `_tier` and `_tier_label`
+    reflect the sharpened numbers.
+
+    Called by intelligence.score() at the end of every score boundary,
+    alongside `aggregate_customer_fit_to_discovery`. Pure Python. Zero
+    Claude calls. Zero re-research.
+
+    Returns True if at least one product got a sharpened PL score written
+    back, False otherwise.
+    """
+    discovery_id = analysis.get("discovery_id")
+    if not discovery_id:
+        return False
+
+    analysis_products = analysis.get("products") or []
+    if not analysis_products:
+        return False
+
+    discovery = load_discovery(discovery_id)
+    if not discovery:
+        return False
+
+    disc_products = discovery.get("products") or []
+    if not disc_products:
+        return False
+
+    # Build a name → real-PL-score lookup from the analysis's scored products
+    name_to_pl: dict[str, int] = {}
+    for p in analysis_products:
+        name = (p.get("name") or "").strip()
+        if not name:
+            continue
+        pl = (p.get("fit_score") or {}).get("product_labability") or {}
+        pl_score = pl.get("score")
+        if pl_score is None:
+            continue
+        try:
+            name_to_pl[name] = int(pl_score)
+        except (TypeError, ValueError):
+            continue
+
+    if not name_to_pl:
+        return False
+
+    # Write back onto the discovery products that have matches
+    sharpened = 0
+    for dp in disc_products:
+        name = (dp.get("name") or "").strip()
+        if not name or name not in name_to_pl:
+            continue
+        real_pl = name_to_pl[name]
+        original_rough = dp.get("rough_labability_score", 0)
+        # Preserve the original rough guess once, never overwrite it on
+        # subsequent write-backs — this keeps diagnostic history.
+        if "_rough_labability_score_initial" not in dp:
+            dp["_rough_labability_score_initial"] = original_rough
+        dp["rough_labability_score"] = real_pl
+        sharpened += 1
+
+    if sharpened == 0:
+        return False
+
+    # Re-enrich the discovery so _tier / _tier_label reflect the sharpened
+    # scores. enrich_discovery only overwrites _tier if it isn't already
+    # set, so clear the derived fields on products we just touched to force
+    # a fresh tier derivation.
+    for dp in disc_products:
+        if (dp.get("name") or "").strip() in name_to_pl:
+            dp.pop("_tier", None)
+            dp.pop("_tier_label", None)
+    enrich_discovery(discovery)
+
+    # Preserve created_at + version stamps on re-save (adding derived fields
+    # is not a re-discovery — see aggregate_customer_fit_to_discovery for
+    # the same rule).
+    import scoring_config as cfg
+    if not discovery.get("_scoring_logic_version"):
+        discovery["_scoring_logic_version"] = cfg.SCORING_LOGIC_VERSION
+    save_discovery(discovery_id, discovery)
+
+    log.info(
+        "Product Labability aggregated to discovery %s (%d products sharpened)",
+        discovery_id, sharpened,
+    )
+    return True
+
+
 def aggregate_customer_fit_to_discovery(analysis: dict) -> bool:
     """Build the unified company-level Customer Fit from an analysis's
     products and store it on the parent discovery as `_customer_fit`.
@@ -1040,6 +1147,14 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         except Exception:
             log.exception("Phase F aggregate_customer_fit_to_discovery failed for %s",
                           existing.get("analysis_id"))
+        # Phase F-PL: write Deep Dive PL scores back onto the discovery so
+        # Prospector tier columns reflect real scoring. Cheap no-op on the
+        # all-cached fast path since nothing new was scored.
+        try:
+            aggregate_product_labability_to_discovery(existing)
+        except Exception:
+            log.exception("aggregate_product_labability_to_discovery failed for %s",
+                          existing.get("analysis_id"))
         return existing.get("analysis_id"), []
 
     new_product_names = []
@@ -1389,6 +1504,13 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         except Exception:
             log.exception("Phase F aggregate_customer_fit_to_discovery failed for %s",
                           existing_dict.get("analysis_id"))
+        # Phase F-PL: sharpen per-product rough_labability_score with real
+        # Deep Dive PL scores so Prospector tier counts reflect reality.
+        try:
+            aggregate_product_labability_to_discovery(existing_dict)
+        except Exception:
+            log.exception("aggregate_product_labability_to_discovery failed for %s",
+                          existing_dict.get("analysis_id"))
         return existing_dict.get("analysis_id"), new_product_names
 
     # First-ever analysis for this discovery — save fresh with all new products
@@ -1412,6 +1534,13 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         aggregate_customer_fit_to_discovery(fresh_dict)
     except Exception:
         log.exception("Phase F aggregate_customer_fit_to_discovery failed for %s", analysis_id)
+    # Phase F-PL: sharpen per-product rough_labability_score on the parent
+    # discovery with the real Deep Dive PL scores. Enables Prospector's tier
+    # columns to reflect Deep Dive reality instead of the AI's pre-DD guess.
+    try:
+        aggregate_product_labability_to_discovery(fresh_dict)
+    except Exception:
+        log.exception("aggregate_product_labability_to_discovery failed for %s", analysis_id)
     return analysis_id, new_product_names
 
 
