@@ -501,7 +501,7 @@ class ProvisioningFacts:
     # Set by the extractor when the product is Microsoft 365-dependent.
     # The scorer picks M365 Tenant / M365 Admin as the primary fabric
     # BEFORE walking the VM/Cloud/Sandbox priority order. See
-    # backend/knowledge/skillable_capabilities.json → m365_tenants for the
+    # scoring_config.SKILLABLE_CAPABILITIES → M365 Tenant / M365 Admin entries for the
     # full capability context.
     m365_scenario: str = ""           # "" | "end_user" | "administration"
 

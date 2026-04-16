@@ -96,8 +96,10 @@ def _load_knowledge(filename: str) -> dict:
 
 
 _COMPETITORS = _load_knowledge("competitors.json")
-_CAPABILITIES = _load_knowledge("skillable_capabilities.json")
 _CONTACT_GUIDANCE = _load_knowledge("contact_guidance.json")
+# Note: skillable_capabilities.json was retired 2026-04-16 — it was loaded here
+# but never read, and the active source of truth is scoring_config.SKILLABLE_CAPABILITIES
+# (Python tuple). Single source of truth. See Architecture Reality in Platform-Foundation.md.
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -339,13 +339,13 @@ _provisioning_badges = (
     # Frank 2026-04-08 additions:
     Badge("M365 Tenant", (
         BadgeColor("green", "Microsoft 365 End User scenario — Skillable's automated tenant provisioning applies. Low-friction learner experience: no credit card, no MFA, Skillable-owned tenant with the right M365 tier (Base/Full/Full+AI)."),
-    ), notes="Frank 2026-04-08 — M365 as a first-class Provisioning fabric peer to VM/Azure/AWS/Container. Fires when m365_scenario == 'end_user'. See backend/knowledge/skillable_capabilities.json → m365_tenants → scenarios → end_user for the capability detail."),
+    ), notes="Frank 2026-04-08 — M365 as a first-class Provisioning fabric peer to VM/Azure/AWS/Container. Fires when m365_scenario == 'end_user'. See scoring_config.SKILLABLE_CAPABILITIES → m365_tenants → scenarios → end_user for the capability detail."),
     Badge("M365 Admin", (
         BadgeColor("amber", "Microsoft 365 Administration scenario — requires Global Admin tenant. Path is either MOC-provided tenant (Learning Partners only) or learner-signed-up M365 Trial account (may require credit card / MFA identity verification by Microsoft)."),
-    ), notes="Frank 2026-04-08 — M365 Administration fires amber because tenant path has identity verification friction. Evidence text should explain the MOC vs trial distinction. See backend/knowledge/skillable_capabilities.json → m365_tenants → scenarios → administration."),
+    ), notes="Frank 2026-04-08 — M365 Administration fires amber because tenant path has identity verification friction. Evidence text should explain the MOC vs trial distinction. See scoring_config.SKILLABLE_CAPABILITIES → m365_tenants → scenarios → administration."),
     Badge("Custom Cloud", (
         BadgeColor("gray", "Skillable's Custom Cloud Labs (BYOC) pattern orchestrates this product's vendor API through Lifecycle Actions + Automated Activities + Custom Start Page. Named operational pattern for SaaS/cloud products with per-learner provisioning APIs."),
-    ), notes="Frank 2026-04-08 — Skillable-strength context badge that fires alongside Sandbox API (when Sandbox API is green or amber). Zero scoring points (strength context only, credit lives on Sandbox API itself). Multi-badge pattern: Sandbox API names the vendor finding, Custom Cloud names the Skillable operational capability. See backend/knowledge/skillable_capabilities.json → byoc_custom_cloud_labs."),
+    ), notes="Frank 2026-04-08 — Skillable-strength context badge that fires alongside Sandbox API (when Sandbox API is green or amber). Zero scoring points (strength context only, credit lives on Sandbox API itself). Multi-badge pattern: Sandbox API names the vendor finding, Custom Cloud names the Skillable operational capability. See scoring_config.SKILLABLE_CAPABILITIES → byoc_custom_cloud_labs."),
     Badge("No GCP Path", (
         BadgeColor("amber", "Product runs on GCP AND has another viable fabric — GCP is a limitation but we can route around it via the alternative path. SE validates the alternative path."),
         BadgeColor("red", "GCP is required or preferred by the vendor AND no native Skillable GCP path exists — either the product is GCP-only, or the vendor's preferred deployment is GCP and going against their grain means real friction."),
