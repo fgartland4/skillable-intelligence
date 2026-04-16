@@ -1178,7 +1178,7 @@ def prospector_export(batch_id):
     for r in results:
         dd = r.get("deep_dive_count", 0)
         tp = r.get("total_products", 0)
-        coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
+        coverage = f"{dd} of {tp}" if tp else f"{dd} of 0"
         bfs = r.get("best_fit_score", 0) or 0
         writer.writerow([
             r.get("rank", ""),
@@ -1510,7 +1510,7 @@ def _save_prospector_batch(batch_id: str, results: list[dict],
     throughout the run. Results accumulate as companies complete.
     """
     import json
-    batch_dir = Path("data/prospector_batches")
+    batch_dir = Path("backend/data/prospector_batches")
     batch_dir.mkdir(parents=True, exist_ok=True)
     payload = {"results": results}
     if metadata:
@@ -1534,7 +1534,7 @@ def _load_prospector_batch(batch_id: str, rehydrate: bool = True) -> list[dict] 
     tunes propagate to every past batch view automatically.
     """
     import json
-    batch_path = Path("data/prospector_batches") / f"{batch_id}.json"
+    batch_path = Path("backend/data/prospector_batches") / f"{batch_id}.json"
     if not batch_path.exists():
         return None
     with open(batch_path) as f:
@@ -1573,6 +1573,17 @@ def _load_prospector_batch(batch_id: str, rehydrate: bool = True) -> list[dict] 
         disc_id = disc.get("discovery_id") or ""
         analysis = analyses_by_disc.get(disc_id) if disc_id else None
         if analysis:
+            # Recompute to ensure `_company_acv` + live-config Fit Score
+            # exist before row build. See companion comment in
+            # _deduped_all_discoveries. Pure Python, no Claude calls.
+            from intelligence import recompute_analysis as _recompute
+            try:
+                _recompute(analysis)
+            except Exception:
+                log.exception(
+                    "recompute_analysis failed in batch rehydrate for %s",
+                    analysis.get("analysis_id"),
+                )
             fresh_row = _build_prospector_row_from_analysis(disc, analysis, fresh_row)
         # Preserve the batch-specific rank so the list order matches the
         # original batch run. Everything else — ACV, badges, signals — is
@@ -1585,7 +1596,7 @@ def _load_prospector_batch(batch_id: str, rehydrate: bool = True) -> list[dict] 
 def _load_prospector_batch_metadata(batch_id: str) -> dict | None:
     """Load just the metadata for a batch."""
     import json
-    batch_path = Path("data/prospector_batches") / f"{batch_id}.json"
+    batch_path = Path("backend/data/prospector_batches") / f"{batch_id}.json"
     if not batch_path.exists():
         return None
     with open(batch_path) as f:
@@ -1598,7 +1609,7 @@ def _load_prospector_batch_metadata(batch_id: str) -> dict | None:
 def _list_recent_batches(limit: int = 0) -> list[dict]:
     """List recent Prospector batches with metadata, sorted by started_at descending."""
     import json
-    batch_dir = Path("data/prospector_batches")
+    batch_dir = Path("backend/data/prospector_batches")
     if not batch_dir.exists():
         return []
     batches = []
@@ -1705,11 +1716,27 @@ def _deduped_all_discoveries() -> list[dict]:
             analyses_by_disc[did] = analysis
 
     results = []
+    from intelligence import recompute_analysis as _recompute
     for disc in best.values():
         row = _build_prospector_row(disc)
         disc_id = disc.get("discovery_id", "")
         analysis = analyses_by_disc.get(disc_id) if disc_id else None
         if analysis:
+            # Recompute so `_company_acv` + live-config Fit Score are populated
+            # before the row build. Without this, the Prospector list falls
+            # back to the capped holistic ACV even when a Deep Dive has
+            # produced a real scored total — Frank reported Microsoft
+            # showing ~$22-30M in Prospector while Inspector showed $608M,
+            # caused by `_company_acv` missing on the serialized dict
+            # (only populated at Inspector page-load time, never saved).
+            # Pure-Python recompute; no Claude calls, no research.
+            try:
+                _recompute(analysis)
+            except Exception:
+                log.exception(
+                    "recompute_analysis failed in Prospector list for %s",
+                    analysis.get("analysis_id"),
+                )
             row = _build_prospector_row_from_analysis(disc, analysis, row)
         results.append(row)
 
@@ -1758,7 +1785,7 @@ def prospector_export_all():
     for i, r in enumerate(all_results, 1):
         dd = r.get("deep_dive_count", 0)
         tp = r.get("total_products", 0)
-        coverage = f"{dd}/{tp}" if tp else f"{dd}/0"
+        coverage = f"{dd} of {tp}" if tp else f"{dd} of 0"
         bfs = r.get("best_fit_score", 0) or 0
         writer.writerow([
             i, r.get("company_name", ""), r.get("company_domain", ""), r.get("company_badge", ""),
