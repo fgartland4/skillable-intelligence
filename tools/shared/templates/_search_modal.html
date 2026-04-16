@@ -544,12 +544,25 @@
 }
 
 /* Anchor sections (when section.id is set) — used by pillar modals that
-   nav-link between dimensions.  Light top rule for visual separation. */
+   nav-link between dimensions.  Clear visual separation between one
+   dimension and the next: generous breathing room plus a distinct rule. */
 .search-modal-docs-section[data-anchor] {
   scroll-margin-top: 20px;
-  padding-top: 16px;
-  margin-top: 8px;
-  border-top: 1px solid var(--sk-modal-border-light);
+  padding-top: 32px;
+  margin-top: 32px;
+  border-top: 2px solid var(--sk-modal-border);
+  position: relative;
+}
+/* A thin accent bar at the top-left of each dimension section reinforces
+   the "new dimension starts here" cue beyond just the rule. */
+.search-modal-docs-section[data-anchor]::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 48px;
+  height: 2px;
+  background: var(--sk-modal-accent);
 }
 
 /* Body copy */
@@ -729,6 +742,40 @@
   margin-top: 8px;
 }
 .search-modal-card.is-docs .info-modal-back-top:hover { text-decoration: underline; }
+
+/* Mini-heading used to introduce the closing exec rationale at the end
+   of each dimension ("In practice").  Visually distinct from bold inline
+   text — thin top rule, uppercase accent color, own line.  Gives readers
+   a clear break between mechanics (tables + penalties) and interpretation. */
+.search-modal-card.is-docs .info-modal-in-practice {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--sk-modal-accent);
+  font-weight: 800;
+  margin: 20px 0 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sk-modal-border-light);
+}
+
+/* Footer strip of cross-navigation links at the very bottom of each
+   dimension section — siblings, back to pillar overview, platform link. */
+.search-modal-card.is-docs .info-modal-dim-footer {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--sk-modal-border-light);
+  font-size: 0.78rem;
+  color: var(--sk-modal-text-muted);
+}
+.search-modal-card.is-docs .info-modal-dim-footer .info-modal-nav-label {
+  color: var(--sk-modal-text-dim);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  margin-right: 6px;
+}
 
 .search-modal-card.is-docs .info-modal-section { margin-bottom: 24px; }
 .search-modal-card.is-docs .info-modal-section:last-child { margin-bottom: 0; }

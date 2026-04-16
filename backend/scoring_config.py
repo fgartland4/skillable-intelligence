@@ -3875,6 +3875,20 @@ def _build_modal_content() -> dict:
     # Helper: back-to-top link after each dimension section
     _back_top = '<a href="javascript:document.querySelector(\'.info-modal\').scrollTop=0" class="info-modal-back-top">↑ Back to top</a>'
 
+    # Helper: richer navigation footer at the end of each dimension section.
+    # Produces a compact strip of cross-links: siblings in the same pillar,
+    # back to the pillar overview (top of this modal), and a link to the
+    # platform overview.  The seller or exec can jump between dimensions
+    # without closing and re-opening a different help modal.
+    def _dim_footer(siblings: list[tuple[str, str]], pillar_label: str = "pillar overview") -> str:
+        sib_links = " · ".join(_dim_scroll(k, n) for k, n in siblings)
+        parts = []
+        if sib_links:
+            parts.append(f'<span class="info-modal-nav-label">Related dimensions:</span> {sib_links}')
+        parts.append(f'<a href="javascript:document.querySelector(\'.info-modal\').scrollTop=0" class="info-modal-dim-link">↑ Back to {pillar_label}</a>')
+        parts.append('<a href="javascript:openInfoModal(\'platform_overview\')" class="info-modal-dim-link">Platform overview</a>')
+        return '<div class="info-modal-dim-footer">' + ' &nbsp;·&nbsp; '.join(parts) + '</div>'
+
     # ── Pillar 1 dimensions ──
     p1_dims = [
         ("dim_provisioning", "Provisioning", 35),  # magic-allowed: dimension weight display
@@ -3898,6 +3912,48 @@ def _build_modal_content() -> dict:
     ]
 
     content = {}
+
+    # ═══════════════════════════════════════════════════════════════════
+    # PLATFORM OVERVIEW — tool-level WHY / WHAT / HOW
+    #
+    # Executive entry point.  Linked from every dimension footer so any
+    # reader can zoom out from a specific number to the whole story of
+    # what Skillable Intelligence does, who it serves, and how the three
+    # tools compose.  Content sourced from Platform-Foundation.md.
+    # ═══════════════════════════════════════════════════════════════════
+
+    content["platform_overview"] = {
+        "eyebrow": "SKILLABLE INTELLIGENCE · PLATFORM OVERVIEW",
+        "title": "What this platform is, and why it matters",
+        "sections": [
+            {"label": "Why", "body":
+                "<strong>Two questions decide every Skillable pursuit: should we pursue this, and how big is it if we win?</strong> For years those questions have been answered by gut feel, company size, and industry hype — none of which predict whether a product can actually be delivered as a lab or whether the customer is a training buyer. Skillable Intelligence replaces that guesswork with evidence. Every answer traces back to a specific product fact, a specific organizational signal, and a specific Skillable capability — so a seller, a marketer, or an exec can defend the recommendation end-to-end."
+                "<br><br>"
+                "The platform is <strong>product-up</strong>, not company-down. A product's fit with Skillable determines whether we can help a company at all. Start anywhere else and you get answers that look right and don't hold up."
+            },
+            {"label": "What", "body":
+                "One shared intelligence layer feeds three tools. Each tool serves a different audience and a different moment in the pursuit."
+                '<table class="info-modal-table"><thead><tr><th>Tool</th><th>Audience</th><th>Purpose</th></tr></thead><tbody>'
+                '<tr><td><strong>Prospector</strong></td><td>Marketing · RevOps</td><td>Take a target-company list and re-rank by ACV potential with evidence-based rationale. Ship the sharpened list into HubSpot.</td></tr>'
+                '<tr><td><strong>Inspector</strong></td><td>Sellers · SEs · CSMs · TSMs</td><td>Deep-dive any single company. See the Fit Score, the three pillars, the Seller Briefcase, the ACV by use case.</td></tr>'
+                '<tr><td><strong>Designer</strong></td><td>Program owners · IDs · ProServ</td><td>Turn product intelligence into a buildable lab program — series, activities, scoring, bill of materials.</td></tr>'
+                '</tbody></table>'
+                "Customers never see Prospector or Inspector. Designer is the only customer-facing surface. This is an <em>architectural</em> wall, not a permission setting."
+            },
+            {"label": "How", "body":
+                "Three layers of intelligence, each with a different job:"
+                '<table class="info-modal-table"><thead><tr><th>Layer</th><th>Role</th><th>Refreshable?</th></tr></thead><tbody>'
+                '<tr><td><strong>Research</strong></td><td>Pull raw, contextual facts about the company and its products — what it is, who uses it, how it installs, what APIs exist. Evidence + source + confidence.</td><td>Only when source data changes</td></tr>'
+                '<tr><td><strong>Skillable capabilities</strong></td><td>The separate knowledge of what Skillable can do — fabrics, Sandbox API, AI Vision, Script Scoring, M365 tenants, rate tiers.</td><td>When capabilities evolve</td></tr>'
+                '<tr><td><strong>Scoring + badges</strong></td><td>Apply the capabilities to the raw facts. Produce the Fit Score, the ACV, the Verdict, and the evidence badges that defend each number.</td><td>Any time — pure Python, milliseconds</td></tr>'
+                '</tbody></table>'
+                "Two hero numbers — <a href=\"javascript:openInfoModal('fit_score')\" class=\"info-modal-dim-link\">Fit Score</a> and <a href=\"javascript:openInfoModal('acv_potential')\" class=\"info-modal-dim-link\">ACV Potential</a> — compose into a single <a href=\"javascript:openInfoModal('verdict')\" class=\"info-modal-dim-link\">Verdict</a>. Three pillars make up the Fit Score: <a href=\"javascript:openInfoModal('product_labability')\" class=\"info-modal-dim-link\">Product Labability</a>, <a href=\"javascript:openInfoModal('instructional_value')\" class=\"info-modal-dim-link\">Instructional Value</a>, and <a href=\"javascript:openInfoModal('customer_fit')\" class=\"info-modal-dim-link\">Customer Fit</a>. Click any of them to see how the score is built from evidence."
+            },
+            {"label": "In practice", "body":
+                "<strong>Reading the platform at a glance:</strong> the right rank in Prospector surfaces the company that matters. The right Fit Score in Inspector tells the seller whether to invest. The right ACV tells them how much the deal is worth if they win. The right Verdict tells them what to do — pursue, assess, watch, or walk. Nothing on any screen is opinion. Every score, every tier, every badge traces back to a specific fact, a specific capability, and a specific rule. That's what makes it defensible in a deal review, a board conversation, or a marketing brief."
+            },
+        ],
+    }
 
     # ═══════════════════════════════════════════════════════════════════
     # HERO METRICS
@@ -3997,7 +4053,11 @@ def _build_modal_content() -> dict:
                 '<tr><td>4</td><td>Sandbox API (BYOC)</td><td>Sandbox API</td><td>+22</td></tr>'
                 '<tr><td>5</td><td>Simulation</td><td>Simulation (gray)</td><td>Hard override: PL = 42</td></tr>'
                 '</tbody></table>'
-                "Penalties: GPU Required (-5), Socket Licensing (-2). Multi-fabric optionality: +3 per extra fabric, capped at +6." + _back_top
+                "Penalties: GPU Required (-5), Socket Licensing (-2). Multi-fabric optionality: +3 per extra fabric, capped at +6."
+                "<br><br>The order matters. The scorer picks the FIRST viable path, not the 'best' — by design. A datacenter VM is almost always easier to operate than a vendor's Sandbox API, even when both work, because everything downstream (identity, scoring, teardown) stays within Skillable's control. Cloud Slice sits third because it brings an extra vendor dependency. Sandbox API is a legitimate fourth because 'bring your own cloud' puts environment control in the vendor's hands. Simulation is last because nothing about it is a real environment — it's a narrative with points where an environment used to be."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 28 means Skillable has a native deployment path — the seller can commit to build without architectural improvisation. 18 to 28 means viable with real SE work to resolve (licensing, API coverage, partner coordination). Below 18 means the product fights against lab delivery today — either the underlying fabric isn't a fit or the vendor hasn't built the surfaces a per-learner environment needs. A Simulation fallback is a directional signal, not a commitment."
+                + _dim_footer([("dim_lab_access", "Lab Access"), ("dim_scoring", "Scoring"), ("dim_teardown", "Teardown")], "Product Labability")
             },
             {"id": "dim_lab_access", "label": "Lab Access", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
                 "<strong>Can each learner get an isolated environment with their own identity?</strong> Provisioning gets the environment built. Lab Access gets the <em>learner</em> into the environment — with their own credentials, reliably, without manual intervention at scale. A product can provision perfectly and still fail Lab Access if there's no way to give 500 learners their own credential path. This is where identity lifecycle, credential management, training licenses, and learner isolation live."
@@ -4009,7 +4069,11 @@ def _build_modal_content() -> dict:
                 '<tr><td>Credential Pool / Training License</td><td>+16</td><td>Training License defaults to amber</td></tr>'
                 '<tr><td>Manual SSO</td><td>+12</td><td>Azure SSO with manual learner login</td></tr>'
                 '</tbody></table>'
-                "Penalties: MFA Required (-15), Rate Limits (-5), Anti-Automation Controls (-5). Training License defaults to amber — real SE conversations happen around almost every licensing arrangement." + _back_top
+                "Penalties: MFA Required (-15), Rate Limits (-5), Anti-Automation Controls (-5). Training License defaults to amber — real SE conversations happen around almost every licensing arrangement."
+                "<br><br>The defaults are worth understanding. Training License defaulting to amber isn't a warning that the license is necessarily a problem — it's an acknowledgment that there's always a tier choice (Base vs Full vs Full+AI for M365, Commercial vs Training for most vendors), a concurrent-user count, or a regional restriction worth confirming. Green is reserved for truly zero-friction cases: open source with no concurrent-user model, or native SSO where identity is automatic. Everything in between deserves the SE's eyes."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Strong Lab Access (above 20) means every learner gets their own identity reliably at scale — zero manual intervention per run. Middle scores (12 to 20) mean an identity path exists but carries friction the SE needs to validate before committing to a cohort size. Low scores (below 12) mean shared credentials, MFA walls, or rate limits will drag every cohort — this is usually the blocker sellers hear about three weeks into implementation, not on day one."
+                + _dim_footer([("dim_provisioning", "Provisioning"), ("dim_scoring", "Scoring"), ("dim_teardown", "Teardown")], "Product Labability")
             },
             {"id": "dim_scoring", "label": "Scoring", "subtitle": "DIMENSION · 15 / 100 POINTS", "body":
                 "<strong>Can Skillable assess what the learner actually did?</strong> A lab that can't be scored isn't a lab — it's a guided tour. Without scoring, there's no proof the learner practiced, no certification evidence, and no way to measure learning outcomes. Scoring is about OPTIONS — full marks require more than one viable assessment path, because no single method covers every lab scenario. When a dimension shows 0/15 with no badges, the seller knows immediately: we have no way to validate learner work on this product."
@@ -4021,7 +4085,11 @@ def _build_modal_content() -> dict:
                 '<tr><td>AI Vision alone</td><td>10</td></tr>'
                 '<tr><td>Nothing (only MCQ or zero methods)</td><td>0</td></tr>'
                 '</tbody></table>'
-                "AI Vision is a peer to API/Script, not a fallback. GUI-driven products where state is visually evident. A real Skillable differentiator." + _back_top
+                "AI Vision is a peer to API/Script, not a fallback. GUI-driven products where state is visually evident. A real Skillable differentiator."
+                "<br><br>The Grand Slam rule isn't arbitrary. Script Scoring covers what can be verified from inside a VM — files, services, configs, the real state of the machine. Scoring API covers what requires an external call because the environment doesn't give you shell access (cloud services, SaaS products). AI Vision covers what's only visible in the UI and can't be introspected any other way. Each method covers scenarios the others can't, which is why a single-method product caps below 15 — the coverage gap is real even when the one method works well."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "A full 15 means we can prove the learner did the work — API, script, or vision validating actual state. 10 to 14 means one path (AI Vision alone or Scoring API alone) — scorable but narrower, and the seller should know which scenarios won't be covered. Zero means we can only test knowledge via multiple-choice, not performance. MCQ-only training isn't hands-on training — it's a quiz, and the seller should reframe the deal shape accordingly."
+                + _dim_footer([("dim_provisioning", "Provisioning"), ("dim_lab_access", "Lab Access"), ("dim_teardown", "Teardown")], "Product Labability")
             },
             {"id": "dim_teardown", "label": "Teardown", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
                 "<strong>Can we clean it up when it's over?</strong> Every lab has to end cleanly. Environment left behind = cost left behind, orphaned credentials left behind, data left behind, and the next learner contaminating the previous learner's session. Teardown failure is a Day 2 operational cost that outweighs Day 1 convenience. At 25 points, Teardown carries the same weight as Lab Access — cleanup is as important as setup."
@@ -4030,7 +4098,23 @@ def _build_modal_content() -> dict:
                 '<tr><td>Teardown API</td><td>+22</td><td>Vendor API covers cleanup</td></tr>'
                 '<tr><td>Simulation Reset</td><td>0 (display only)</td><td>Nothing to tear down — no credit for work that isn\'t real</td></tr>'
                 '</tbody></table>'
-                "Penalties: Manual Teardown (-10 red). Orphan Risk spectrum: Low Orphan Risk (green, 0 — rich API with minor gaps), Orphan Risk (-5 amber — partial API, gaps remain), High Orphan Risk (-15 red — no API or major cleanup gaps)." + _back_top
+                "Penalties: Manual Teardown (-10 red). Orphan Risk spectrum: Low Orphan Risk (green, 0 — rich API with minor gaps), Orphan Risk (-5 amber — partial API, gaps remain), High Orphan Risk (-15 red — no API or major cleanup gaps)."
+                "<br><br>Orphan Risk is a spectrum, not a flag. Rich teardown APIs with minor gaps don't deduct — they're acknowledged as low-risk context. Partial API coverage with meaningful gaps (amber -5) means residue is likely if the SE doesn't build manual cleanup steps. No API at all or major cleanup gaps (red -15) means Skillable carries the operational cost every cohort. Every orphan-risk tier represents real Day-2 work and real Day-2 dollars — teardown isn't a feature checklist, it's a commitment to show up cleanly every session."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "A clean Teardown score (above 20) means every cohort ends without leftover state — no orphaned tenants, no resource spend leaking, no previous-learner data bleeding into the next session. Middle scores mean some residue risk the SE needs to plan around. Low or zero means manual teardown between every learner — prohibitive at cohort scale, fatal at 1000-plus learners. High Orphan Risk is the deal sign that the customer will call us angry six months after go-live."
+                + _dim_footer([("dim_provisioning", "Provisioning"), ("dim_lab_access", "Lab Access"), ("dim_scoring", "Scoring")], "Product Labability")
+            },
+            # ── Pillar-level closing rationale ──
+            {"label": "In practice", "body":
+                "<strong>Reading a Product Labability score:</strong> 70 and up means the product is genuinely lab-ready — the seller can commit to timeline without hedging. 50 to 69 means labable with known SE work to do; call the gaps out but don't walk away. 30 to 49 means the product fights us somewhere meaningful — a licensing wall, a missing API, or a fabric mismatch — and the deal conversation needs to shape around what the customer can change. Below 30 means the product isn't Skillable-addressable today without the customer changing something fundamental."
+                "<br><br>"
+                "Because Product Labability is the gatekeeper (50% of Fit Score, with asymmetric coupling), a weak PL score drags the whole deal — the Technical Fit Multiplier scales down Instructional Value and Customer Fit contributions. A strong training story and a training-mature customer cannot rescue an unlabable product. That's why this pillar carries the heaviest weight: the product truth is the hard constraint."
+                "<br><br>"
+                "<strong>Where to next?</strong> "
+                "<a href=\"javascript:openInfoModal('instructional_value')\" class=\"info-modal-dim-link\">Instructional Value</a> — does this product warrant hands-on training at all? &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('customer_fit')\" class=\"info-modal-dim-link\">Customer Fit</a> — is the organization a training buyer? &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('fit_score')\" class=\"info-modal-dim-link\">Fit Score</a> — how the three pillars compose. &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('platform_overview')\" class=\"info-modal-dim-link\">Platform overview</a>."
             },
         ],
     }
@@ -4064,7 +4148,11 @@ def _build_modal_content() -> dict:
                 '<tr><td>Collaboration, Content Management</td><td>24 / 40 (60%)</td></tr>'
                 '<tr><td>Social / Entertainment</td><td>4 / 40 (10%)</td></tr>'
                 '</tbody></table>'
-                "Positive signals: multi_vm_architecture, deep_configuration, multi_phase_workflow, role_diversity, troubleshooting_depth, complex_networking, integration_complexity, ai_practice_required. Strong = +6, Moderate = +3." + _back_top
+                "Positive signals: multi_vm_architecture, deep_configuration, multi_phase_workflow, role_diversity, troubleshooting_depth, complex_networking, integration_complexity, ai_practice_required. Strong = +6, Moderate = +3."
+                "<br><br>The baselines aren't arbitrary. Cybersecurity, Cloud, Networking, and AI Platforms sit at 80% because these categories are inherently multi-component, cross-role, and deeply configured — practice is how competence is built, not an optional supplement. ERP, CRM, Healthcare, FinTech sit at 70% because workflow depth varies widely product to product. Collaboration and Content Management sit at 60% because the workflow is real but the stakes and complexity are narrower. Social and entertainment sit at 10% because there is rarely a professional training market at all."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 32 means this product genuinely demands hands-on practice — the seller can anchor the deal on labs being necessary, not optional. 24 to 32 means practice matters but the customer might accept a lighter-touch curriculum. Below 24 means the product's complexity does not justify labs for most audiences — keep the conversation focused on specialist subsets where complexity does apply. A dimension this heavy carries the weight it does because every pillar below it leans on 'does practice matter here at all?'"
+                + _dim_footer([("dim_mastery_stakes", "Mastery Stakes"), ("dim_lab_versatility", "Lab Versatility"), ("dim_market_demand", "Market Demand")], "Instructional Value")
             },
             {"id": "dim_mastery_stakes", "label": "Mastery Stakes", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
                 "<strong>What are the consequences of getting it wrong?</strong> A product can be simple with high stakes (don't press the big red button) or complex with low stakes (a CI/CD pipeline where mistakes cost time, not money). Mastery Stakes asks whether getting it wrong in production has real consequences — breach, data loss, compliance failure, patient harm, financial damage. High stakes transform 'it's hard to learn' into 'they MUST be competent before they touch production.' This is why hands-on practice in a safe environment isn't just useful — it's necessary."
@@ -4074,14 +4162,22 @@ def _build_modal_content() -> dict:
                 '<tr><td>CRM, Collaboration</td><td>16 / 25 (64%)</td></tr>'
                 '<tr><td>Social / Entertainment</td><td>2 / 25 (8%)</td></tr>'
                 '</tbody></table>'
-                "Strong tier credit = <strong>+9</strong> (higher than Product Complexity's +6) because a single high-stakes finding carries more weight." + _back_top
+                "Strong tier credit = <strong>+9</strong> (higher than Product Complexity's +6) because a single high-stakes finding carries more weight."
+                "<br><br>Stakes and complexity are distinct questions, and the framework treats them separately for a reason. Categories at 88% (cybersecurity, healthcare, fintech, legal, AI) get the highest baseline because a production mistake has consequences that cascade — regulatory, reputational, sometimes physical. Categories at 80% (ERP, data protection, industrial/OT) have serious business consequences but are usually recoverable. Categories at 64% have real consequences that are typically recoverable with work. The 8% floor for social and entertainment reflects the reality that mistakes there cost brand moments, not business continuity."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 20 means the stakes alone justify hands-on practice — the seller can anchor on 'prepare them before they touch production.' 14 to 20 means stakes are meaningful but recoverable — practice helps but isn't strictly necessary. Below 14 means a mistake costs time or inconvenience, not damage — the deal has to rest on Product Complexity or Market Demand, not consequence. When Mastery Stakes is high and Product Complexity is low (simple-but-dangerous products), the training story is 'procedure discipline.' When both are high, the story is 'deep competence.'"
+                + _dim_footer([("dim_product_complexity", "Product Complexity"), ("dim_lab_versatility", "Lab Versatility"), ("dim_market_demand", "Market Demand")], "Instructional Value")
             },
             {"id": "dim_lab_versatility", "label": "Lab Versatility", "subtitle": "DIMENSION · 15 / 100 POINTS", "body":
                 "<strong>What kinds of high-value hands-on experiences could we build?</strong> Lab Versatility is the bridge from Inspector to Designer. It asks whether the product naturally supports diverse lab types — adversarial scenarios, break/fix, migration labs, compliance audits, performance tuning. A product that only supports one kind of lab is less commercially valuable than one that supports many. The lab types identified here become starting points for Designer's program recommendations and give sellers specific conversational competence points."
                 '<table class="info-modal-table"><thead><tr><th>Lab Types (from the Lab Type Menu)</th></tr></thead><tbody>'
                 '<tr><td>Red vs Blue · Simulated Attack · Incident Response · Break/Fix · Team Handoff · Bug Bounty · Cyber Range · Performance Tuning · Migration Lab · Architecture Challenge · Compliance Audit · Disaster Recovery · CTF</td></tr>'
                 '</tbody></table>'
-                "Cybersecurity, Cloud Infra, Networking = 14/15 (93%). Data Science = 13/15. ERP, Healthcare = 12/15. Social = 1/15. Strong = +5, Moderate = +3." + _back_top
+                "Cybersecurity, Cloud Infra, Networking = 14/15 (93%). Data Science = 13/15. ERP, Healthcare = 12/15. Social = 1/15. Strong = +5, Moderate = +3."
+                "<br><br>Versatility isn't about supporting every lab type — it's about supporting some lab type naturally, without forcing the design. Cybersecurity products support Red vs Blue, Incident Response, CTF, and Cyber Range out of the box. Cloud products support Migration, Architecture Challenge, and Disaster Recovery. A product that only fits one lab type is less commercially valuable than one that fits many — because the same product can then serve different learners in different ways. This dimension also bridges Inspector to Designer: the lab types identified here seed Designer's program recommendations."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 12 means the product offers rich program variety — the seller can pitch multi-course curricula and different learner audiences. 9 to 12 means a solid core set of lab types. Below 9 means the product supports one or two lab patterns — still valuable for that one motion, but the deal has to be shaped around a focused story rather than a broad program. Versatility is where a strong Fit Score turns into a strong Designer brief."
+                + _dim_footer([("dim_product_complexity", "Product Complexity"), ("dim_mastery_stakes", "Mastery Stakes"), ("dim_market_demand", "Market Demand")], "Instructional Value")
             },
             {"id": "dim_market_demand", "label": "Market Demand", "subtitle": "DIMENSION · 20 / 100 POINTS", "body":
                 "<strong>How big is the worldwide population of people who need to learn this product?</strong> Market Demand is the legitimacy check — does the outside world validate that training on this product is worth delivering? A product can be complex and high-stakes but if nobody's building training for it, the market may not be ready. ATP networks, cert exams, conference presence, and the independent training market (Coursera, Pluralsight, LinkedIn Learning) are strong signals. A perfect 20/20 is rare — reserved for products with demonstrably massive training demand like CrowdStrike or AWS."
@@ -4092,7 +4188,23 @@ def _build_modal_content() -> dict:
                 '<tr><td>CRM, Collaboration, Content Management</td><td>8 / 20 (40%)</td></tr>'
                 '<tr><td>Social / Entertainment</td><td>0 / 20 (0%)</td></tr>'
                 '</tbody></table>'
-                "Signals: install base scale, cert ecosystem, independent training market (Coursera/Pluralsight/LinkedIn Learning counts), competitor labs. Important: user population is NOT training population — 2 billion casual users with 200 admins = small Market Demand. Strong = +5, Moderate = +3." + _back_top
+                "Signals: install base scale, cert ecosystem, independent training market (Coursera/Pluralsight/LinkedIn Learning counts), competitor labs. Important: user population is NOT training population — 2 billion casual users with 200 admins = small Market Demand. Strong = +5, Moderate = +3."
+                "<br><br>User population is not training population, and this dimension enforces the distinction. A product with 2 billion casual users and 200 administrators has a small Market Demand — the seller's audience is the 200 admins, not the 2 billion users. ATP networks, cert programs, independent training catalogs, and conference presence are the signals that a product already has a training market worth serving. A 20 of 20 is rare by design — reserved for products with demonstrably massive training demand like AWS, Azure, or CrowdStrike."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 16 means there's a validated training market — the seller doesn't have to justify demand, just capture share. 11 to 16 means real demand but narrower — niche-specialist audiences with clear buying signals. Below 11 means the platform can lab the product, but the question 'who actually wants this training?' hasn't been answered. A gap between a high Product Complexity score and a low Market Demand score is a tell: the product is interesting, but not commercial."
+                + _dim_footer([("dim_product_complexity", "Product Complexity"), ("dim_mastery_stakes", "Mastery Stakes"), ("dim_lab_versatility", "Lab Versatility")], "Instructional Value")
+            },
+            # ── Pillar-level closing rationale ──
+            {"label": "In practice", "body":
+                "<strong>Reading an Instructional Value score:</strong> 80 and up means this product genuinely warrants hands-on training — complex, high-stakes, versatile lab opportunities, real market demand. The seller can pitch broad, multi-audience programs with confidence. 60 to 79 means a solid instructional case with one or two dimensions softer than the rest; know which one and shape the pitch accordingly. 40 to 59 means the case exists for specialist audiences but the broad training story is strained. Below 40 means the product doesn't earn hands-on training today — it might be labable, but the 'should we' answer is thin."
+                "<br><br>"
+                "Like Customer Fit, Instructional Value contributes through the Technical Fit Multiplier — strong IV cannot rescue weak Product Labability, and weak IV drags a strong PL deal the same way. This pillar answers the commercial question every exec asks: 'is the training market for this product worth Skillable's effort?'"
+                "<br><br>"
+                "<strong>Where to next?</strong> "
+                "<a href=\"javascript:openInfoModal('product_labability')\" class=\"info-modal-dim-link\">Product Labability</a> — can we actually build the lab? &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('customer_fit')\" class=\"info-modal-dim-link\">Customer Fit</a> — is the organization a training buyer? &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('fit_score')\" class=\"info-modal-dim-link\">Fit Score</a> — how the three pillars compose. &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('platform_overview')\" class=\"info-modal-dim-link\">Platform overview</a>."
             },
         ],
     }
@@ -4127,7 +4239,11 @@ def _build_modal_content() -> dict:
                 '<tr><td>Software / Systems Integrator</td><td>16 / 25 (64%)</td></tr>'
                 '<tr><td>Tech Distributor</td><td>9 / 25 (36%)</td></tr>'
                 '</tbody></table>'
-                "Audiences served: employees, customers, partners, end-users at scale. An organization that trains ONE audience is making some commitment. All three = highest level. Strong = +6, Moderate = +3. Penalties: no_customer_training (-4), thin_cert_program (-3)." + _back_top
+                "Audiences served: employees, customers, partners, end-users at scale. An organization that trains ONE audience is making some commitment. All three = highest level. Strong = +6, Moderate = +3. Penalties: no_customer_training (-4), thin_cert_program (-3)."
+                "<br><br>An organization that trains only one audience (employees, or customers, or partners) is making a real but partial commitment. An organization that trains employees AND customers AND partners AND delivers at scale is operating at the highest level — this is what separates Salesforce, Microsoft, and CompTIA from companies that publish a training catalog as marketing. Named enablement leadership, formal customer success investment, and a culture of continuous learning are the durable signals. Penalties fire when external evidence of customer training is thin — vendor marketing doesn't count as proof."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 20 means a training-mature organization — the seller is talking to a buyer who already believes in the investment. 15 to 20 means commitment is real but uneven; expect a longer education cycle. Below 15 means the customer is not yet a training buyer — the deal requires someone inside the company to champion the category itself, not just the Skillable-vs-alternative decision. Training Commitment is the first dimension to check because a weak score here predicts a longer, harder sell on everything downstream."
+                + _dim_footer([("dim_build_capacity", "Build Capacity"), ("dim_delivery_capacity", "Delivery Capacity"), ("dim_organizational_dna", "Organizational DNA")], "Customer Fit")
             },
             {"id": "dim_build_capacity", "label": "Build Capacity", "subtitle": "DIMENSION · 20 / 100 POINTS · LOWEST WEIGHT — PROSERV CAN FILL THIS GAP", "body":
                 "<strong>Can they create the labs?</strong> Build Capacity carries the lowest weight in Pillar 3 (20 points) because Skillable Professional Services can fill this gap — if a company has strong Training Commitment and Delivery Capacity but weak Build Capacity, that's a ProServ opportunity, not a dead end. The dimension is also inward-facing and hard to verify from external research, so baselines are cautious and penalties fire only with direct evidence."
@@ -4137,7 +4253,11 @@ def _build_modal_content() -> dict:
                 '<tr><td>Systems Integrator / Enterprise Software</td><td>11 / 20 (55%)</td></tr>'
                 '<tr><td>Software / Unknown</td><td>10 / 20 (50%)</td></tr>'
                 '</tbody></table>'
-                "Strongest signal: <strong>DIY Labs</strong> — already building hands-on labs today. CREATE roles, not delivery roles. Cautious penalties only: confirmed_outsourcing (-3), no_authoring_roles_found (-3, requires explicit evidence). Strong = +5, Moderate = +3." + _back_top
+                "Strongest signal: <strong>DIY Labs</strong> — already building hands-on labs today. CREATE roles, not delivery roles. Cautious penalties only: confirmed_outsourcing (-3), no_authoring_roles_found (-3, requires explicit evidence). Strong = +5, Moderate = +3."
+                "<br><br>The strongest positive signal is DIY Labs — if the organization already builds hands-on labs today (internal platforms like Qwiklabs for Google, CML for Cisco, iLabs for EC-Council), they understand the value and the work. That same signal is also an amber risk: we're pitching Skillable against something the customer already invested in. Build Capacity is also the dimension where 'absence of evidence is not evidence of absence' applies strongest — internal authoring teams rarely show up in public research, so baselines cluster in the middle and penalties require explicit signals (case studies of outsourcing, documented absence of authoring roles)."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 16 means the customer can build with us or even author independently — ProServ scope is limited, the customer is the co-pilot. 12 to 16 means middle capacity — ProServ scope is moderate, some handoff to internal teams is possible. Below 12 means the customer lacks the roles to build; ProServ becomes the full engagement. A low Build Capacity score isn't a deal-killer, it's a scope signal — it tells the Skillable team how big the ProServ attach needs to be."
+                + _dim_footer([("dim_training_commitment", "Training Commitment"), ("dim_delivery_capacity", "Delivery Capacity"), ("dim_organizational_dna", "Organizational DNA")], "Customer Fit")
             },
             {"id": "dim_delivery_capacity", "label": "Delivery Capacity", "subtitle": "DIMENSION · 30 / 100 POINTS · HEAVIEST IN PILLAR 3", "body":
                 "<strong>Can they get labs to learners at scale?</strong> Delivery Capacity is the heaviest dimension in Customer Fit (30 of 100 points) because having labs = cost, but delivering labs to learners = value. Without delivery infrastructure — ATPs, partner networks, ILT calendar, conference presence — labs are a cost center that never reaches the audience. This dimension is where commercial value lives. Penalties are aggressive: no training partners or no classroom delivery are both red blockers (-10 each)."
@@ -4147,7 +4267,11 @@ def _build_modal_content() -> dict:
                 '<tr><td><strong>2. Third-Party-Delivered</strong></td><td>Independent training market + cert body curricula</td><td>Bonus</td></tr>'
                 '<tr><td><strong>3. Auth-Partner-Delivered</strong></td><td>Formal ATP/ALP program at scale</td><td>Top bonus</td></tr>'
                 '</tbody></table>'
-                "Strong = <strong>+8</strong>, Moderate = +4 (highest tier credits in the framework). Aggressive penalties: no_training_partners (-10 red), no_classroom_delivery (-10 red), no_independent_training_market (-4 amber, cross-pillar with Market Demand)." + _back_top
+                "Strong = <strong>+8</strong>, Moderate = +4 (highest tier credits in the framework). Aggressive penalties: no_training_partners (-10 red), no_classroom_delivery (-10 red), no_independent_training_market (-4 amber, cross-pillar with Market Demand)."
+                "<br><br>The three delivery layers stack, and each additional layer is a real multiplier on reach. Vendor-Delivered is the base — official ILT, self-paced portals, and vendor-run labs. Third-Party-Delivered adds Coursera, Pluralsight, LinkedIn Learning counts, plus cert body curricula — evidence that independent training markets have formed around the product. Authorized-Partner-Delivered adds formal ATP or ALP programs at scale, multiplying geographic reach. Penalties fire aggressively here because outward-facing delivery infrastructure is public — if we can't find it, that's strong evidence it doesn't exist at the scale the deal needs."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 24 means the customer has real reach — ATP networks, independent training markets, conference scale. The seller doesn't have to build distribution. 18 to 24 means one or two delivery layers but not all three; know which layer is missing and how that shapes the deal. Below 18 means the customer can buy labs but has limited ability to reach learners — every seat has to be sold one at a time. Red blockers (no training partners, no classroom delivery) collapse this dimension fastest and signal the deal will struggle to scale even if it closes."
+                + _dim_footer([("dim_training_commitment", "Training Commitment"), ("dim_build_capacity", "Build Capacity"), ("dim_organizational_dna", "Organizational DNA")], "Customer Fit")
             },
             {"id": "dim_organizational_dna", "label": "Organizational DNA", "subtitle": "DIMENSION · 25 / 100 POINTS", "body":
                 "<strong>If Skillable proposes a strategic relationship, will they see it as a partnership or a procurement line item?</strong> Organizational DNA is the most consequential partnership question. Some companies see outside platforms as strategic assets (Salesforce for CRM, Workday for HR, Okta for identity). Others see every vendor as a cost to control. The first kind makes a great Skillable customer. The second kind makes a painful one. This dimension captures the cultural pattern, not individual partnerships."
@@ -4157,7 +4281,23 @@ def _build_modal_content() -> dict:
                 '<tr><td>Enterprise Software / Tech Distributor</td><td>17 / 25 (68%)</td></tr>'
                 '<tr><td>Software / LMS Provider</td><td>16 / 25 (64%)</td></tr>'
                 '</tbody></table>'
-                "Positive: many_partnership_types, strategic_asset_partnerships, platform_buyer_behavior, named_alliance_leadership. Penalties: long_rfp_process (-4), build_everything_culture (-4), heavy_procurement (-3), hard_to_engage (-6 red)." + _back_top
+                "Positive: many_partnership_types, strategic_asset_partnerships, platform_buyer_behavior, named_alliance_leadership. Penalties: long_rfp_process (-4), build_everything_culture (-4), heavy_procurement (-3), hard_to_engage (-6 red)."
+                "<br><br>This is the partnership question, not the product question. Some companies treat outside platforms as strategic assets and work with them accordingly — joint roadmap sessions, executive sponsorship, named alliance leadership. Others treat every vendor as a procurement line to squeeze — long RFPs, heavy legal cycles, a build-everything culture that sees external partners as cost centers. The first kind becomes a reference customer; the second kind becomes a painful one, and the pattern usually doesn't change inside a single deal cycle. This dimension captures the cultural pattern, not any single partnership."
+                '<span class="info-modal-in-practice">In practice</span>'
+                "Above 20 means a partnership-culture organization — expect a strategic conversation, joint planning, and real executive engagement. 15 to 20 means partnerships are possible but transactional — the seller will do more of the relationship-building work. Below 15 means a procurement-culture organization — the deal will be commoditized fast and the seller should either accept commodity terms or decline the cycle. A red Blocker here (hard-to-engage, -6) is usually a sign the deal isn't worth the time."
+                + _dim_footer([("dim_training_commitment", "Training Commitment"), ("dim_build_capacity", "Build Capacity"), ("dim_delivery_capacity", "Delivery Capacity")], "Customer Fit")
+            },
+            # ── Pillar-level closing rationale ──
+            {"label": "In practice", "body":
+                "<strong>Reading a Customer Fit score:</strong> 75 and up means a training-mature, partnership-oriented organization — the seller is talking to a buyer, not a browser. 55 to 74 means real fit with some dimensions softer than others; know which one (Build Capacity? Delivery Capacity?) and shape the deal accordingly. 35 to 54 means the customer isn't yet ready for the category, for Skillable, or for both — the cycle needs to start with category education, not vendor differentiation. Below 35 means the customer is fundamentally misaligned with Skillable today; revisit when something structural changes (new training leadership, new buying center, public partnership announcement)."
+                "<br><br>"
+                "Because Customer Fit measures the organization rather than the product, every product from the same company receives the same Customer Fit reading — one organization, one reading. This is why a strong Product Labability score on product X and a weak Customer Fit score on that same company means: we can build the lab, but they can't buy it. The seller's job then is either to find the right buying center inside the organization or to accept that this isn't a Skillable cycle yet."
+                "<br><br>"
+                "<strong>Where to next?</strong> "
+                "<a href=\"javascript:openInfoModal('product_labability')\" class=\"info-modal-dim-link\">Product Labability</a> — can we actually build the lab? &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('instructional_value')\" class=\"info-modal-dim-link\">Instructional Value</a> — does this product warrant hands-on training? &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('fit_score')\" class=\"info-modal-dim-link\">Fit Score</a> — how the three pillars compose. &nbsp;·&nbsp; "
+                "<a href=\"javascript:openInfoModal('platform_overview')\" class=\"info-modal-dim-link\">Platform overview</a>."
             },
         ],
     }
