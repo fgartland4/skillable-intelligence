@@ -75,8 +75,12 @@
     --sk-hover-bg:       #163a28;
     --sk-hover-bg-active: #1a4a30;
     --sk-accent-soft:    #1cc87a;
-    --sk-accent-pale:    var(--sk-accent-pale);
+    --sk-accent-pale:    #5fe5b0;
     --sk-link-slate:     #7e9cc4;
+
+    /* Modal docs-mode accent — AA contrast (6.7:1) on white surface.
+       Use inside .is-docs anywhere --sk-accent would land on white. */
+    --sk-modal-accent:   #136945;
 
     /* Scoring badge chip backgrounds/borders (used in dark theme) */
     --sk-badge-green-bg:     #0d3d25;
@@ -203,4 +207,45 @@
     height: 100%; border-radius: 3px;
     background: linear-gradient(90deg, var(--sk-accent), var(--sk-score-mid));
     transition: width 0.4s ease;
+}
+
+/* ── Accessibility utilities (WCAG AA) ──────────────────────────── */
+
+/* Visually-hidden but available to screen readers.  Standard 1px clip-rect pattern. */
+.sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Visible focus rings — keyboard only. Plain :focus rings are suppressed
+   so mouse clicks don't leave a halo, but keyboard navigation always
+   shows a 2px outline. WCAG 2.4.7 Focus Visible. */
+:focus { outline: none; }
+:focus-visible {
+    outline: 2px solid var(--sk-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+/* Inside the white docs-mode modal surface, use the darker modal accent
+   so the focus ring meets AA contrast against the white background. */
+.search-modal-card.is-docs :focus-visible {
+    outline-color: var(--sk-modal-accent);
+}
+
+/* Respect the user's motion preference — WCAG 2.3.3.
+   Any animation or transition collapses to a near-instant duration so
+   users with vestibular conditions don't get hit by spinning, pulsing,
+   or sliding content. */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

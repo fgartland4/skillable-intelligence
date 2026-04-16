@@ -469,7 +469,7 @@
   box-shadow: 0 24px 80px rgba(0,0,0,0.35);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--sk-accent) var(--sk-modal-border-light);
+  scrollbar-color: var(--sk-modal-accent) var(--sk-modal-border-light);
 }
 
 /* Close button is sticky-top, light chrome to match white surface. */
@@ -499,7 +499,7 @@
   font-size: 0.62rem;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--sk-accent);
+  color: var(--sk-modal-accent);
   font-weight: 700;
 }
 .search-modal-card.is-docs .search-modal-title {
@@ -509,7 +509,7 @@
   color: var(--sk-modal-text);
   line-height: 1.2;
   letter-spacing: -0.01em;
-  border-bottom: 2px solid var(--sk-accent);
+  border-bottom: 2px solid var(--sk-modal-accent);
 }
 
 /* Docs body — the content region inside the white card. */
@@ -528,11 +528,11 @@
   font-size: 0.68rem;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--sk-accent);
+  color: var(--sk-modal-accent);
   font-weight: 800;
   margin: 0 0 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(36,237,155,0.2);
+  border-bottom: 1px solid var(--sk-modal-border-nav);
 }
 .search-modal-docs-section-subtitle {
   font-size: 0.72rem;
@@ -621,7 +621,7 @@
 }
 .search-modal-docs-section-body ul.dim-nav li:hover {
   background: var(--sk-modal-bg-hover);
-  border-color: var(--sk-accent);
+  border-color: var(--sk-modal-accent);
 }
 
 /* ──────────────────────────────────────────────────────────────────
@@ -685,7 +685,7 @@
 }
 .search-modal-card.is-docs .info-modal-dim-nav li:hover {
   background: var(--sk-modal-bg-hover);
-  border-color: var(--sk-accent);
+  border-color: var(--sk-modal-accent);
 }
 .search-modal-card.is-docs .info-modal-dim-link {
   color: var(--sk-modal-link);
@@ -724,7 +724,7 @@
 .search-modal-card.is-docs .info-modal-back-top {
   display: inline-block;
   font-size: 0.72rem;
-  color: var(--sk-accent);
+  color: var(--sk-modal-accent);
   text-decoration: none;
   margin-top: 8px;
 }
@@ -736,11 +736,11 @@
   font-size: 0.68rem;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--sk-accent);
+  color: var(--sk-modal-accent);
   font-weight: 800;
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(36,237,155,0.2);
+  border-bottom: 1px solid var(--sk-modal-border-nav);
 }
 .search-modal-card.is-docs .info-modal-section-text {
   font-size: 0.92rem;
@@ -775,7 +775,7 @@
     {# Middle section — simple variant (default): status line + dots.
        Used by Product Search (discovery) and simple refresh flows.
        Hidden when the card has .is-stages class. #}
-    <div class="search-modal-status" id="searchModalStatus">Starting...</div>
+    <div class="search-modal-status" id="searchModalStatus" aria-live="polite" aria-atomic="true">Starting...</div>
     <div class="search-modal-dots">
       <div class="search-modal-dot"></div>
       <div class="search-modal-dot"></div>
@@ -787,7 +787,7 @@
        (set by openSearchModal when opts.middle === 'stages').
        Five research stages + one Claude scoring stage with a cycling
        hint line.  Stage labels are locked — Define-Once lives here. #}
-    <div class="search-modal-stages" id="searchModalStages">
+    <div class="search-modal-stages" id="searchModalStages" aria-live="polite" aria-atomic="false">
       <div class="search-modal-stage">
         <div class="search-modal-stage-icon" id="searchModalStageIcon0">⟳</div>
         <div class="search-modal-stage-label" id="searchModalStageLabel0">Scouring technical docs, APIs &amp; deployment guides</div>
@@ -823,10 +823,16 @@
        the progress bar and celebrates on SSE `done:`. #}
     <div class="search-modal-bottom">
       <div class="search-modal-bottom-left">
-        <div class="search-modal-progress-track">
+        <div class="search-modal-progress-track"
+             id="searchModalProgressTrack"
+             role="progressbar"
+             aria-label="Operation progress"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuenow="0">
           <div class="search-modal-progress-fill" id="searchModalProgressFill"></div>
         </div>
-        <div class="search-modal-counter" id="searchModalCounter">&nbsp;</div>
+        <div class="search-modal-counter" id="searchModalCounter" aria-live="polite" aria-atomic="true">&nbsp;</div>
         <div class="search-modal-timer" id="searchModalTimer">running for <strong>0:00</strong></div>
       </div>
       <svg class="search-modal-mark-svg" xmlns="http://www.w3.org/2000/svg"
@@ -877,7 +883,7 @@
        (set by openSearchModalDocs()). #}
     <div class="search-modal-docs" id="searchModalDocsBody"></div>
 
-    <div class="search-modal-error" id="searchModalError">
+    <div class="search-modal-error" id="searchModalError" role="alert" aria-live="assertive">
       <div class="search-modal-error-msg" id="searchModalErrorMsg"></div>
       <button type="button" class="search-modal-error-btn" id="searchModalErrorBtn">Close</button>
     </div>
@@ -931,6 +937,8 @@ window.openSearchModal = function(opts) {
   document.getElementById('searchModalTitle').textContent   = opts.title || '';
   document.getElementById('searchModalStatus').textContent  = 'Starting...';
   document.getElementById('searchModalProgressFill').style.width = '0%';
+  const _pbTrackReset = document.getElementById('searchModalProgressTrack');
+  if (_pbTrackReset) _pbTrackReset.setAttribute('aria-valuenow', '0');
   document.getElementById('searchModalCounter').innerHTML    = '&nbsp;';
   document.getElementById('searchModalTimer').innerHTML      = 'running for <strong>0:00</strong>';
   document.getElementById('searchModalError').style.display  = 'none';
@@ -1165,6 +1173,8 @@ window.openSearchModal = function(opts) {
   const progressInterval = setInterval(function() {
     pct = Math.min(pct + 0.4, 85);  // magic-allowed: progress bar visual creep rate
     document.getElementById('searchModalProgressFill').style.width = pct + '%';
+    const _pbTrack = document.getElementById('searchModalProgressTrack');
+    if (_pbTrack) _pbTrack.setAttribute('aria-valuenow', Math.round(pct));
     if (stage === 0 && pct >= 28) {
       litMark('searchModalMarkI');
       activeMark('searchModalMarkL1');
@@ -1295,6 +1305,8 @@ window.openSearchModal = function(opts) {
       cleanup();
       document.getElementById('searchModalStatus').textContent = 'Complete';
       document.getElementById('searchModalProgressFill').style.width = '100%';
+      const _pbTrackDone = document.getElementById('searchModalProgressTrack');
+      if (_pbTrackDone) _pbTrackDone.setAttribute('aria-valuenow', '100');
       // Make sure all three bars are lit before the check celebrates.
       litMark('searchModalMarkI');
       litMark('searchModalMarkL1');
@@ -1616,6 +1628,82 @@ window.transitionSearchModalToProgress = function(opts) {
     onError:    opts.onError,
   });
 };
+
+
+// ── Accessibility: focus trap + restore ──────────────────────────
+//
+// WCAG 2.4.3 (Focus Order) + 2.1.2 (No Keyboard Trap): while the modal
+// is open, Tab cycles only within the modal; on close, focus returns
+// to whatever element triggered the modal. Implemented once via a
+// MutationObserver on the backdrop's is-open class so every open/close
+// path (openSearchModal, openSearchModalDecision, openSearchModalInfo,
+// openSearchModalDocs, transitionSearchModalToProgress) benefits
+// automatically — no per-call wiring, no duplicated code.
+(function installSearchModalFocusTrap() {
+  const backdrop = document.getElementById('searchModalBackdrop');
+  if (!backdrop) return;
+
+  const FOCUSABLE_SELECTOR = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled]):not([type="hidden"])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(',');
+
+  let previousFocus = null;
+  let trapHandler = null;
+
+  function visibleFocusables() {
+    return Array.from(backdrop.querySelectorAll(FOCUSABLE_SELECTOR))
+      .filter(el => el.offsetParent !== null && !el.hasAttribute('disabled'));
+  }
+
+  function onOpen() {
+    previousFocus = document.activeElement;
+    // Defer focus by one frame so the modal is rendered and focusable.
+    requestAnimationFrame(() => {
+      const cancelBtn = document.getElementById('searchModalCancel');
+      if (cancelBtn) cancelBtn.focus();
+    });
+    trapHandler = function(e) {
+      if (e.key !== 'Tab') return;
+      const items = visibleFocusables();
+      if (items.length === 0) { e.preventDefault(); return; }
+      const first = items[0];
+      const last  = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', trapHandler, true);
+  }
+
+  function onClose() {
+    if (trapHandler) {
+      document.removeEventListener('keydown', trapHandler, true);
+      trapHandler = null;
+    }
+    if (previousFocus && typeof previousFocus.focus === 'function') {
+      try { previousFocus.focus(); } catch (e) { /* element may be gone */ }
+    }
+    previousFocus = null;
+  }
+
+  let wasOpen = backdrop.classList.contains('is-open');
+  const observer = new MutationObserver(function() {
+    const isOpen = backdrop.classList.contains('is-open');
+    if (isOpen && !wasOpen) onOpen();
+    else if (!isOpen && wasOpen) onClose();
+    wasOpen = isOpen;
+  });
+  observer.observe(backdrop, { attributes: true, attributeFilter: ['class'] });
+})();
 {% endmacro %}
 </content>
 </invoke>
