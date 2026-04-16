@@ -3875,6 +3875,56 @@ def _build_modal_content() -> dict:
     # Helper: back-to-top link after each dimension section
     _back_top = '<a href="javascript:document.querySelector(\'.info-modal\').scrollTop=0" class="info-modal-back-top">↑ Back to top</a>'
 
+    # Helper: framework map at the top of every pillar modal.
+    # Produces a 3-column × 4-row table showing all three pillars and
+    # their four dimensions in one glance.  The current pillar's column
+    # is highlighted (accent color, "YOU ARE HERE" eyebrow, accent top
+    # rule).  Pillar headers are clickable — jumping to a sibling pillar
+    # opens that modal; the current pillar's header stays inert.  Current
+    # dimensions link via in-modal scroll; sibling dimensions are passive
+    # display (orientation only, not cross-modal navigation).
+    #
+    # This view is repeated at the top of every pillar modal so the reader
+    # always sees where the current pillar sits inside the whole framework
+    # — one document, connected to the overall structure.
+    def _framework_map(current: str) -> str:
+        pillars = [
+            ("product_labability", "Product Labability", pl.weight, p1_dims),
+            ("instructional_value", "Instructional Value", iv.weight, p2_dims),
+            ("customer_fit", "Customer Fit", cf.weight, p3_dims),
+        ]
+        # Header row
+        head_cells = []
+        for key, name, weight, _dims in pillars:
+            is_current = (key == current)
+            klass = ' class="current"' if is_current else ""
+            you_here = '<span class="fw-you-here">You are here</span>' if is_current else ""
+            if is_current:
+                pname = f'<span class="fw-pillar-name">{name}</span>'
+            else:
+                pname = f'<span class="fw-pillar-name"><a href="javascript:openInfoModal(\'{key}\')">{name}</a></span>'
+            head_cells.append(f'<th{klass}>{pname}<span class="fw-weight">{weight}% of Fit Score</span>{you_here}</th>')
+        # Body rows — 4 rows of dimensions, one cell per pillar per row
+        body_rows = []
+        for row_i in range(4):
+            row_cells = []
+            for key, _name, _weight, dims in pillars:
+                is_current = (key == current)
+                dim_key, dim_name, dim_weight = dims[row_i]
+                if is_current:
+                    # Current pillar's dimensions scroll within this modal
+                    cell = f'{_dim_scroll(dim_key, dim_name)} <span class="fw-weight">({dim_weight} pts)</span>'
+                    row_cells.append(f'<td class="current">{cell}</td>')
+                else:
+                    # Sibling pillar's dimensions — passive display; the pillar
+                    # header above is already a clickable jump point.
+                    row_cells.append(f'<td>{dim_name} <span class="fw-weight">({dim_weight} pts)</span></td>')
+            body_rows.append("<tr>" + "".join(row_cells) + "</tr>")
+        return ('<table class="info-modal-framework">'
+                '<thead><tr>' + "".join(head_cells) + '</tr></thead>'
+                '<tbody>' + "".join(body_rows) + '</tbody>'
+                '</table>')
+
     # Helper: richer navigation footer at the end of each dimension section.
     # Produces a compact strip of cross-links: siblings in the same pillar,
     # back to the pillar overview (top of this modal), and a link to the
@@ -4030,9 +4080,13 @@ def _build_modal_content() -> dict:
         "eyebrow": f"PILLAR · GATEKEEPER · {pl.weight}% OF FIT SCORE",
         "title": pl.name,
         "sections": [
-            {"label": "Why", "body": "<strong>Can we actually build a hands-on lab for this product?</strong> If Skillable cannot provision it, give every learner an isolated environment, automatically score what they do, and tear it down between sessions, nothing else matters. Product Labability is the gatekeeper — it carries the heaviest weight in the Fit Score because the product truth is the hard constraint."},
-            {"label": "What", "body": "Four dimensions, each answering one step of the lab lifecycle:" + _dim_nav(p1_dims)},
-            {"label": "How", "body":
+            {"label": "Where Product Labability sits in the framework", "body":
+                "Three pillars compose the Fit Score. Product Labability is the heaviest because it's the gatekeeper — if Skillable cannot deliver the lab, nothing else matters. The four dimensions below are the lab lifecycle in sequence."
+                + _framework_map("product_labability")
+            },
+            {"label": "Why Product Labability matters", "body": "<strong>Can we actually build a hands-on lab for this product?</strong> If Skillable cannot provision it, give every learner an isolated environment, automatically score what they do, and tear it down between sessions, nothing else matters. Product Labability is the gatekeeper — it carries the heaviest weight in the Fit Score because the product truth is the hard constraint."},
+            {"label": "What Product Labability measures", "body": "Four dimensions, each answering one step of the lab lifecycle:" + _dim_nav(p1_dims)},
+            {"label": "How the Product Labability score is built", "body":
                 "Product Labability uses the <strong>canonical scoring model</strong> — fixed badge vocabulary, deterministic point lookup, color-aware credit (green = full points, amber = half, red = penalty). Zero AI in the scoring math."
                 '<table class="info-modal-table"><thead><tr><th>Color</th><th>Meaning</th><th>Credit</th></tr></thead><tbody>'
                 '<tr><td><strong>Green</strong></td><td>Works — confident, no action needed</td><td>Full points</td></tr>'
@@ -4127,9 +4181,13 @@ def _build_modal_content() -> dict:
         "eyebrow": f"PILLAR · {iv.weight}% OF FIT SCORE",
         "title": iv.name,
         "sections": [
-            {"label": "Why", "body": "Product Labability tells us <em>can</em> we lab this product. Instructional Value tells us <strong>should</strong> we — does this product genuinely warrant hands-on lab experiences, or is it a read-the-manual product? Combined with Product Labability, Instructional Value makes up 70% of the Fit Score."},
-            {"label": "What", "body": "Four dimensions:" + _dim_nav(p2_dims)},
-            {"label": "How", "body":
+            {"label": "Where Instructional Value sits in the framework", "body":
+                "Three pillars compose the Fit Score. Instructional Value sits alongside Product Labability on the product side of the 70 / 30 split — together they answer whether this product is worth a hands-on training investment at all."
+                + _framework_map("instructional_value")
+            },
+            {"label": "Why Instructional Value matters", "body": "Product Labability tells us <em>can</em> we lab this product. Instructional Value tells us <strong>should</strong> we — does this product genuinely warrant hands-on lab experiences, or is it a read-the-manual product? Combined with Product Labability, Instructional Value makes up 70% of the Fit Score."},
+            {"label": "What Instructional Value measures", "body": "Four dimensions:" + _dim_nav(p2_dims)},
+            {"label": "How the Instructional Value score is built", "body":
                 "Instructional Value uses the <strong>rubric scoring model</strong> — category-aware baselines, AI-synthesized variable badge names, strength tiers (strong +6, moderate +3, informational 0). The posture is <em>default-positive</em>: most real software has instructional value for the right audience."
                 '<table class="info-modal-table"><thead><tr><th>Strength Tier</th><th>Points (typical)</th><th>What it means</th></tr></thead><tbody>'
                 '<tr><td><strong>Strong</strong></td><td>+5 to +9</td><td>Clear, compelling evidence</td></tr>'
@@ -4217,9 +4275,13 @@ def _build_modal_content() -> dict:
         "eyebrow": f"PILLAR · {cf.weight}% OF FIT SCORE",
         "title": cf.name,
         "sections": [
-            {"label": "Why", "body": "Even the most labable product with the highest instructional value goes nowhere if the customer isn't a training buyer. <strong>Is this organization actually the kind of place Skillable can help?</strong> Customer Fit measures the organization, not the product — every product from the same company gets the same Customer Fit reading."},
-            {"label": "What", "body": "Four dimensions, in the order a seller naturally thinks about a customer's training maturity:" + _dim_nav(p3_dims)},
-            {"label": "How", "body":
+            {"label": "Where Customer Fit sits in the framework", "body":
+                "Three pillars compose the Fit Score. Customer Fit is the 30% organizational side of the 70 / 30 split — a great product still needs a training buyer, and every product from the same company shares this one Customer Fit reading."
+                + _framework_map("customer_fit")
+            },
+            {"label": "Why Customer Fit matters", "body": "Even the most labable product with the highest instructional value goes nowhere if the customer isn't a training buyer. <strong>Is this organization actually the kind of place Skillable can help?</strong> Customer Fit measures the organization, not the product — every product from the same company gets the same Customer Fit reading."},
+            {"label": "What Customer Fit measures", "body": "Four dimensions, in the order a seller naturally thinks about a customer's training maturity:" + _dim_nav(p3_dims)},
+            {"label": "How the Customer Fit score is built", "body":
                 "Customer Fit uses the <strong>rubric scoring model</strong> with organization-type baselines (not product category baselines like Pillar 2)."
                 '<table class="info-modal-table"><thead><tr><th>Organization Type</th><th>Typical Baseline Range</th></tr></thead><tbody>'
                 '<tr><td>Training Org / Industry Authority</td><td>80–92%</td></tr>'

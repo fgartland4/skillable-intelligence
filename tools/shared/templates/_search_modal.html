@@ -743,6 +743,89 @@
 }
 .search-modal-card.is-docs .info-modal-back-top:hover { text-decoration: underline; }
 
+/* Framework map at the top of each pillar modal — the 3 × 4 matrix so
+   the reader can see where "Instructional Value → Mastery Stakes" sits
+   inside the whole scoring framework at a glance.  The current pillar's
+   column is highlighted (accent background, accent left border) so the
+   reader knows where they are and which sibling pillars are one click
+   away.  Names are clickable links — pillars open sibling modals, current
+   dimensions scroll within the modal. */
+.search-modal-card.is-docs .info-modal-framework {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 8px 0 18px;
+  font-size: 0.82rem;
+  table-layout: fixed;
+}
+.search-modal-card.is-docs .info-modal-framework th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sk-modal-text-muted);
+  background: var(--sk-modal-bg-table);
+  border-bottom: 2px solid var(--sk-modal-border);
+  border-right: 1px solid var(--sk-modal-border-light);
+  vertical-align: top;
+}
+.search-modal-card.is-docs .info-modal-framework th:last-child { border-right: none; }
+.search-modal-card.is-docs .info-modal-framework th.current {
+  background: var(--sk-modal-bg-nav);
+  color: var(--sk-modal-accent);
+  border-bottom-color: var(--sk-modal-accent);
+  border-top: 3px solid var(--sk-modal-accent);
+  padding-top: 7px;
+}
+.search-modal-card.is-docs .info-modal-framework th .fw-pillar-name {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--sk-modal-text);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  margin-bottom: 2px;
+}
+.search-modal-card.is-docs .info-modal-framework th.current .fw-pillar-name { color: var(--sk-modal-accent); }
+.search-modal-card.is-docs .info-modal-framework th .fw-you-here {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--sk-modal-accent);
+  margin-top: 3px;
+}
+.search-modal-card.is-docs .info-modal-framework td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--sk-modal-border-light);
+  border-right: 1px solid var(--sk-modal-border-light);
+  color: var(--sk-modal-text-body);
+  vertical-align: top;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+.search-modal-card.is-docs .info-modal-framework td:last-child { border-right: none; }
+.search-modal-card.is-docs .info-modal-framework td.current {
+  background: var(--sk-modal-bg-hover);
+  border-right-color: var(--sk-modal-border);
+  color: var(--sk-modal-text);
+  font-weight: 600;
+}
+.search-modal-card.is-docs .info-modal-framework tr:last-child td { border-bottom: none; }
+.search-modal-card.is-docs .info-modal-framework td a {
+  color: var(--sk-modal-link);
+  text-decoration: none;
+}
+.search-modal-card.is-docs .info-modal-framework td a:hover { text-decoration: underline; }
+.search-modal-card.is-docs .info-modal-framework .fw-weight {
+  color: var(--sk-modal-text-dim);
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
 /* Mini-heading used to introduce the closing exec rationale at the end
    of each dimension ("In practice").  Visually distinct from bold inline
    text — thin top rule, uppercase accent color, own line.  Gives readers
