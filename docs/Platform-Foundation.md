@@ -317,7 +317,7 @@ Cache reloads go through `intelligence.recompute_analysis()`, which trusts saved
 
 **Why.** Every time a drifted custom progress UI has been built, the platform has ended up with different timer behavior, different error handling, different cancel semantics, inconsistent status updates, and users who can't tell which Skillable tool they're in. Trust (GP3) requires consistency. Self-Evident Design (GP4) requires one way to do it.
 
-**What.** There is **ONE** search / progress modal in this entire platform. It lives in `tools/inspector/templates/_search_modal.html` and is used for every long-running operation across Inspector today, and Prospector and Designer when they come online.
+**What.** There is **ONE** search / progress modal in this entire platform. It lives in `tools/shared/templates/_search_modal.html` and is used for every long-running operation across Inspector and Prospector today, and Designer when it comes online.
 
 | Mode | Surface | Use |
 |---|---|---|

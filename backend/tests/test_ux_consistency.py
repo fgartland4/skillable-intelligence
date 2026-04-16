@@ -208,6 +208,52 @@ def test_classification_badges_never_use_scoring_colors():
 # SSE), decision (Refresh / Ignore for now choice prompt), and a transition
 # from decision to progress in place.
 
+
+def test_search_modal_lives_at_shared_path_only():
+    """STRUCTURAL GUARD — the search modal must live at exactly ONE location:
+    `tools/shared/templates/_search_modal.html`.
+
+    Moved 2026-04-16 from the Inspector-owned templates dir to the shared
+    templates dir because the modal is the universal progress + docs
+    surface for every tool (Inspector, Prospector, Designer).  This test
+    fails if the file ever drifts back to a tool-specific location or if
+    a second copy appears anywhere in the tools tree — the platform rule
+    is ONE modal, ONE file, ONE place.
+    """
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[2]
+    canonical = repo_root / "tools" / "shared" / "templates" / "_search_modal.html"
+    forbidden = [
+        repo_root / "tools" / "inspector"  / "templates" / "_search_modal.html",
+        repo_root / "tools" / "prospector" / "templates" / "_search_modal.html",
+        repo_root / "tools" / "designer"   / "templates" / "_search_modal.html",
+    ]
+
+    assert canonical.exists(), (
+        f"The shared search modal must live at {canonical}. "
+        "Do not move it to a tool-specific templates directory — "
+        "it is the ONE modal shared by every tool."
+    )
+
+    for path in forbidden:
+        assert not path.exists(), (
+            f"Found a duplicate or forked search modal at {path}. "
+            "There is exactly ONE search modal in the platform and it lives at "
+            f"{canonical}. Delete the copy or merge the changes back into "
+            "the shared file."
+        )
+
+    # Additional sweep — no unexpected copies anywhere under tools/
+    tools_dir = repo_root / "tools"
+    all_copies = list(tools_dir.rglob("_search_modal.html"))
+    assert len(all_copies) == 1, (
+        f"Expected exactly 1 _search_modal.html under {tools_dir}, "
+        f"found {len(all_copies)}: {all_copies}"
+    )
+    assert all_copies[0] == canonical
+
+
 def test_search_modal_partial_parses():
     """The _search_modal.html partial must parse cleanly under Jinja with
     the project's standard custom filters stubbed in.
@@ -215,7 +261,7 @@ def test_search_modal_partial_parses():
     from pathlib import Path
     from jinja2 import Environment, FileSystemLoader
 
-    template_dir = Path(__file__).resolve().parents[2] / "tools" / "inspector" / "templates"
+    template_dir = Path(__file__).resolve().parents[2] / "tools" / "shared" / "templates"
     env = Environment(loader=FileSystemLoader(str(template_dir)))
     # Stub the project's custom filters that templates expect at runtime
     for fname in ["score_color", "format_analyzed_date", "badge_color_class",
@@ -234,7 +280,7 @@ def test_search_modal_macros_exist():
     from pathlib import Path
     from jinja2 import Environment, FileSystemLoader
 
-    template_dir = Path(__file__).resolve().parents[2] / "tools" / "inspector" / "templates"
+    template_dir = Path(__file__).resolve().parents[2] / "tools" / "shared" / "templates"
     env = Environment(loader=FileSystemLoader(str(template_dir)))
     for fname in ["score_color", "format_analyzed_date", "badge_color_class",
                   "inline_md", "bold_label", "deployment_display", "deployment_color"]:
@@ -305,7 +351,7 @@ def test_no_eventsource_outside_shared_search_modal():
     repo_root = Path(__file__).resolve().parents[2]
     tools_dir = repo_root / "tools"
     backend_dir = repo_root / "backend"
-    shared_modal = repo_root / "tools" / "inspector" / "templates" / "_search_modal.html"
+    shared_modal = repo_root / "tools" / "shared" / "templates" / "_search_modal.html"
     self_path = Path(__file__).resolve()
 
     offenders: list[str] = []
@@ -381,7 +427,7 @@ def test_shared_search_modal_is_flow_agnostic():
     should appear inside the macros.
     """
     shared_modal = (Path(__file__).resolve().parents[2]
-                    / "tools" / "inspector" / "templates" / "_search_modal.html")
+                    / "tools" / "shared" / "templates" / "_search_modal.html")
     src = shared_modal.read_text(encoding="utf-8")
 
     # The functional code inside the macros (CSS rules, markup, JS) must

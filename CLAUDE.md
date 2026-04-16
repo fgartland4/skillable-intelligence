@@ -39,7 +39,7 @@ After completing any code changes, automatically stage, commit, and push without
 
 ### The Standard Search Modal — THE ONE AND ONLY
 
-**There is ONE search / progress modal in this entire platform. It lives in `tools/inspector/templates/_search_modal.html` and is used for every long-running operation across Inspector, and will be used by Prospector and Designer when those tools are built.**
+**There is ONE search / progress modal in this entire platform. It lives in `tools/shared/templates/_search_modal.html` and is used for every long-running operation across Inspector and Prospector today, and will be used by Designer when that tool is built.**
 
 Before you build ANY new progress UI, loading spinner, overlay, decision prompt, or "wait while we search" experience — STOP. The answer is always the same shared modal. No exceptions.
 

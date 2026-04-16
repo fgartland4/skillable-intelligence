@@ -325,7 +325,7 @@ def api_cached_companies():
 #
 # THE RULE (platform-wide, Inspector + Prospector + Designer): every long-
 # running operation renders its progress through the SHARED search modal
-# defined in `tools/inspector/templates/_search_modal.html`.  There is ONE
+# defined in `tools/shared/templates/_search_modal.html`.  There is ONE
 # progress UI in the platform — no per-flow custom pages, no per-tool
 # bespoke overlays.
 #
