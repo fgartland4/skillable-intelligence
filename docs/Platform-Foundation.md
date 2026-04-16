@@ -66,7 +66,7 @@ Every interaction makes the data sharper. No update loses prior knowledge. The p
 - Every analysis enriches what came before
 - Deeper research (a full Deep Dive) automatically sharpens lighter data (a discovery-level record used by Prospector and the Inspector product chooser)
 - Cache updates preserve and sharpen, not wipe and restart
-- Prompt and logic changes trigger smart cache invalidation via `SCORING_LOGIC_VERSION`, not silent drift
+- Prompt and logic changes trigger tiered cache invalidation via `SCORING_MATH_VERSION` / `RUBRIC_VERSION` / `RESEARCH_SCHEMA_VERSION`, never silent drift and never forced re-research on math-only changes (see Architecture Reality)
 - **One persistent analysis per company.** Each company has a single stable URL. Every Deep Dive run accumulates products into the same analysis without breaking the URL. Re-running with the same products is instant (cached). Re-running with new products scores only the new ones and appends them.
 
 ### GP6: Slow Down to Go Faster
@@ -86,6 +86,80 @@ Truly understanding a problem and answering it once is dramatically faster than 
 
 ---
 
+## Architecture Reality — Where the Code Deviates from the Ideal (and Why)
+
+The rest of this document describes the architecture as a uniform system: research extracts raw facts, scoring applies Skillable capabilities to those facts, badges surface evidence. That framing is mostly true. But there are **intentional, bounded variations** between what the prose implies and what the code actually does. Without this section, every new reader (human or AI) hits those variations, reads them as drift, and launches into "fix everything" work that then gets reverted.
+
+This section names every such variation we know about, with the reason each exists. If you're looking at the code and something reads like it contradicts a rule below, check here first.
+
+### The three hard rules (Frank, 2026-04-16)
+
+Everything in this section is scaffolding around three non-negotiable rules:
+
+1. **Research is immutable.** The researcher extracts raw facts with evidence, source, and confidence. It never grades, never picks a Skillable fabric, never labels friction, never declares viability. Stored research can never be forced to refresh by a scoring logic change.
+2. **Discovery must display trustworthy-yet-directional data.** Marketing and Prospector need real signals at discovery time — tier labels, rough ACV, rankings — good enough to prioritize ICP without overpromising.
+3. **Each Deep Dive improves #2 without violating #1.** Deep Dive adds richer raw facts. The deterministic derivations layer reads the richer facts and sharpens the directional signals automatically. Free, instant, GP5.
+
+These three rules are enforced structurally by the three-tier version stamps described under "Version invalidation" below.
+
+### Three scoring models in the code, not one
+
+The "Research → Store → Score → Badge" pipeline is uniform across all three Pillars, but **two scoring models** coexist inside the Score layer — by design, not drift.
+
+| Pillar | Scoring model | What's in the fact drawer | Where grading happens |
+|---|---|---|---|
+| **Pillar 1 — Product Labability** | **Canonical** (fixed badge vocabulary, deterministic point lookup) | Raw fact primitives PLUS extractor-graded labels (`preferred_fabric`, `sandbox_api_granularity`, `credential_lifecycle`, `training_license`) — graded at extract time because the canonical model takes graded inputs directly | Inside the research prompt (Claude grades as part of fact extraction) |
+| **Pillar 2 — Instructional Value** | **Rubric** (category baselines + strength tiers) | Raw `SignalEvidence` (truth-only: `present`, `observation`, `source_url`, `confidence` — no strength field) | Separate Claude call via `rubric_grader.py`; output stored as `GradedSignal` records on `Product.rubric_grades`, **separate from the fact drawer** |
+| **Pillar 3 — Customer Fit** | **Rubric** (org-type baselines + strength tiers) | Same pattern as Pillar 2 | Same pattern as Pillar 2; grades live on `CompanyAnalysis.customer_fit_rubric_grades` |
+
+**Why Pillar 1 is intentionally different.** Its dimension facts are binary or enumerable (does it run as installable? is the Sandbox API rich / partial / none?). Trying to rubric-grade them would be theater — the "grade" is a direct lookup, not a qualitative judgment. Keeping Pillar 1's canonical model simple and fast was a deliberate choice.
+
+**What this means for the "no judgments in research" rule.** Pillar 2/3 honor the rule literally — their fact drawers store truth only; all grades live in a separate store. Pillar 1 stores graded labels in the drawer but only because those labels ARE the facts the canonical scorer needs. Rule #1 is still honored in substance — no re-research is ever required when scoring math changes, because the research prompt doesn't encode scoring math.
+
+### Version invalidation is tiered, not binary
+
+The code stamps three independent version fields on every saved discovery and analysis:
+
+| Version | Bumps when... | Invalidation path | Cost |
+|---|---|---|---|
+| `SCORING_MATH_VERSION` | Point values, weights, multiplier tables, penalty values, ACV rates, Verdict thresholds change | Pure-Python rescore from saved facts + saved rubric grades | **Free** |
+| `RUBRIC_VERSION` | Rubric tier definitions, signal categories, grading criteria, rubric grader prompts change | Re-run `rubric_grader` against saved raw facts; then pure-Python rescore | **~$0.30–0.50 per company** for grader calls. Zero re-research. |
+| `RESEARCH_SCHEMA_VERSION` | Fact drawer shape itself changes — fields added, removed, or re-typed | Full re-research | **~$2.00–2.50 per product**. Deliberate human bump only — rare. |
+
+Legacy `SCORING_LOGIC_VERSION` is preserved as a backwards-compat alias pointing at `SCORING_MATH_VERSION`. Records stamped before the split exist in the cache as "UNSTAMPED" records; the invalidation path treats them safely without forcing re-research.
+
+**What this invalidates historically.** Before 2026-04-16 a `SCORING_LOGIC_VERSION` bump wiped the cached products and triggered full re-research. That was the Rule #1 violation we closed. The tiered model is the structural enforcement of Rule #1.
+
+### Sharpening: Deep Dive writes back to Discovery
+
+Intelligence compounds across layers, not just within a single analysis:
+
+- **Customer Fit** — `aggregate_customer_fit_to_discovery()` writes the unified Pillar 3 back to the parent discovery so every tool (Inspector, Prospector, Designer) reads it from one canonical place.
+- **Product Labability** — `aggregate_product_labability_to_discovery()` writes real Deep Dive PL scores back onto the parent discovery's per-product `rough_labability_score` so Prospector's tier columns (Promising / Potential / Uncertain / Unlikely) reflect real scoring, not the pre-Deep-Dive guess. Original rough guess preserved on `_rough_labability_score_initial` for diagnostics.
+- **ACV** — `recompute_analysis()` recomputes `_company_acv` (scored + extrapolated + capped) on every page load in both Inspector and Prospector. Math retunes propagate instantly; rate-table changes apply to every view without re-research.
+
+Pillar 2 Instructional Value discovery-level hints (`api_surface`, `complexity_signals`, `target_personas`, `cert_inclusion`) are **not** sharpened back to discovery today. This is a known gap, not a contradiction of the pattern — the row-level Fit Score IS sharpened; only the discovery-level lightweight hints lag.
+
+### Skillable capabilities live in Python, not JSON
+
+Until 2026-04-16 the repo had two parallel sources of Skillable's capability knowledge: `scoring_config.SKILLABLE_CAPABILITIES` (Python tuple, consumed by the scoring layer) and `backend/knowledge/skillable_capabilities.json` (read-at-runtime knowledge file — a vision that never shipped). The JSON file is gone. The Python tuple is the single source of truth. Prompts sent to Claude render capability context from the Python tuple at prompt-build time, so when a new Skillable fabric ships we update the tuple once and both the Python scorer and the Claude-facing prompts see the change on the next call.
+
+### The Simulation hard override is intentional
+
+When `preferred_fabric == "simulation"` in the Pillar 1 fact drawer, `pillar_1_scorer.score_product_labability()` returns four fixed dimension values (12 / 12 / 0 / 12 = **PL 36**) instead of scoring each dimension on its raw facts. This looks like a bug at first reading — two very different SaaS products both landing at identical PL 36 reads as flattening — but it's a deliberate design:
+
+- Simulation is a genuinely different fabric with genuinely different economics
+- Symmetric middle credit is the honest answer when the researcher has determined no real per-learner provisioning path exists
+- The distinctness sellers care about shows up in badges and in the briefcase, not in the PL score
+
+What Workday variability revealed separately was **researcher non-determinism** on Sandbox API detection — the same product detected as `has_sandbox_api: true, granularity: partial` on one run and `has_sandbox_api: false` on another. That's addressed by compound-research merge (fact convergence across runs), not by removing the Simulation override.
+
+### Badge floor and evidence fidelity
+
+The locked rule is 2–4 badges per dimension. Pillar 1's Simulation override and Pillar 2/3's thin-grade cases can legitimately produce 1 badge per dimension today — not because the 2–4 rule is wrong but because the badge selector has no synthesis fallback. When scoring produces fewer than 2 badges, the badge selector should emit specific fact-driven context badges ("Simulation Fabric Chosen", "SaaS-Only No Per-Learner API", "Category Baseline: Cybersecurity") that explain the score without inventing evidence. Teardown is the one dimension where 1 badge can be legitimate (it's more binary).
+
+---
+
 ## How the GPs Show Up in the Platform
 
 After reading the GPs, scan this table. It is the key that makes the rest of the document operational — every architectural choice below traces back to one or more of these principles.
@@ -96,7 +170,7 @@ After reading the GPs, scan this table. It is the key that makes the rest of the
 | **GP2** — Why → What → How | Every Pillar card leads with the question · Seller Briefcase opens with Why · conversational competence starts with Why |
 | **GP3** — Explainably Trustworthy | Confidence levels · evidence on hover · documentation is the in-app explainability layer · traceable from conclusion back to source |
 | **GP4** — Self-Evident Design | Variable names carry meaning · Pillar / Dimension / fact drawer hierarchy is explicit · `scoring_config.py` is the Define-Once source · names you can read without a glossary |
-| **GP5** — Intelligence Compounds | One persistent analysis per company · cache sharpens, never wipes · `SCORING_LOGIC_VERSION` triggers smart invalidation · every Deep Dive enriches what came before |
+| **GP5** — Intelligence Compounds | One persistent analysis per company · cache sharpens, never wipes · tiered version stamps (math / rubric / research schema) pick the cheapest invalidation path · Deep Dive writes back to parent discovery for PL + CF + ACV |
 | **GP6** — Slow Down to Go Faster | Read ground truth before theorizing · one grounded diagnosis, not a branching maybe-list · trace signals end-to-end before editing · name structural questions when you see them |
 
 ---
@@ -281,7 +355,7 @@ researcher extracts facts → fact drawers stored on Product / CompanyAnalysis
   → intelligence.score() persists and returns
 ```
 
-Cache reloads go through `intelligence.recompute_analysis()`, which trusts saved pillar scores, recomputes ACV (so a rate-table retune propagates instantly), reassigns verdict, and sorts. No pillar scorer re-runs on cache reload — if scoring logic changed, `SCORING_LOGIC_VERSION` triggers a fresh Deep Dive instead.
+Cache reloads go through `intelligence.recompute_analysis()`, which trusts saved pillar scores, recomputes ACV (so a rate-table retune propagates instantly), reassigns verdict, and sorts. No pillar scorer re-runs on cache reload. When scoring logic changes, the tiered versioning model (see Architecture Reality) picks the cheapest invalidation path — pure-Python rescore for math bumps, re-grade for rubric bumps, re-research only on schema bumps.
 
 **The collapse rule.** No layer may collapse into another.
 
@@ -1558,7 +1632,7 @@ Rough cost estimates per operation. These will be updated with actual measuremen
 | **Holistic ACV retrofit** (`scripts/retrofit_acv.py --mode holistic`) | Re-runs just the holistic ACV call against an already-cached discovery. No re-research, no rescore — cheap way to apply prompt / guardrail updates across the entire cache without throwing away per-product work. | 1 Claude call per company. ~$0.20–$0.50 per company at 5-way parallelism; ~10–12s per company wall-time at 5 concurrent. |
 | **Deep Dive** (Inspector full analysis) | Three parallel fact extractors per product + rubric grader calls for Pillars 2 / 3 + three parallel briefcase calls per product (Opus KTQ + Haiku Conv + Haiku Intel) | ~3 extractors × N products + 8 grader calls × N products + 3 briefcase calls × N products |
 | **Cache reload** (re-visit a saved analysis) | Recompute ACV, reassign verdict, sort | **Zero AI calls** — pure Python |
-| **Re-score after logic change** (`SCORING_LOGIC_VERSION` bump) | Fresh Deep Dive on next load. For ACV-only logic changes, retrofit runs instead and avoids the rescore cost entirely. | Same as Deep Dive (full); retrofit is cheaper |
+| **Re-score after logic change** — tiered | Depends on which version bumped. `SCORING_MATH_VERSION` → pure-Python rescore against saved facts + saved rubric grades, **zero Claude calls**. `RUBRIC_VERSION` → re-run rubric_grader against saved raw facts then rescore, **~$0.30-0.50 per company** for grader calls. `RESEARCH_SCHEMA_VERSION` → full re-research, **only on deliberate schema changes**. | Math bump free; rubric bump cheap; schema bump same as full Deep Dive |
 
 Pillar 1 scoring is zero-Claude by design. Pillar 2 and Pillar 3 scoring is zero-Claude *after* the rubric grader runs — the scorers themselves are pure Python reading cached `GradedSignal` records. The rubric grader is the only Claude call the Score layer is allowed to make.
 
