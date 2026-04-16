@@ -1,12 +1,11 @@
 """Storage layer for the Skillable Intelligence Platform.
 
-Three data domains, stored separately from day one (GP1, architectural separation):
-  - product_data/    — what products are, labability assessments
-  - company_intel/   — fit scores, badges, contacts, ACV (internal-only)
-  - program_data/    — Designer lab programs (scoped per program)
+Three data domains, stored separately (GP1, architectural separation):
+  - company_intel/        — discoveries, analyses, fit scores, badges, contacts, ACV
+  - program_data/         — Designer lab programs (scoped per program, not yet active)
+  - prospector_batches/   — batch run results + metadata (managed by app.py)
 
-Each domain is a separate directory. No mixing. When auth comes later,
-it's access control on clean boundaries — not a retrofit.
+All data lives under backend/data/. One location, no exceptions.
 
 All writes use atomic temp-file + os.replace() pattern.
 Read-modify-write operations protected by threading.Lock().
@@ -25,12 +24,11 @@ from typing import Optional
 log = logging.getLogger(__name__)
 
 _BASE_DIR = os.path.join(os.path.dirname(__file__), "data")
-_PRODUCT_DIR = os.path.join(_BASE_DIR, "product_data")
 _COMPANY_DIR = os.path.join(_BASE_DIR, "company_intel")
 _PROGRAM_DIR = os.path.join(_BASE_DIR, "program_data")
 
-# Create all three domain directories
-for _d in (_PRODUCT_DIR, _COMPANY_DIR, _PROGRAM_DIR):
+# Create domain directories
+for _d in (_COMPANY_DIR, _PROGRAM_DIR):
     os.makedirs(_d, exist_ok=True)
 
 _write_lock = threading.Lock()
@@ -97,9 +95,29 @@ def save_discovery(discovery_id: str, data: dict) -> str:
 
 
 def load_discovery(discovery_id: str) -> Optional[dict]:
-    """Load a discovery record by ID."""
+    """Load a discovery record by ID.
+
+    If the exact file doesn't exist, checks for an archived version and
+    resolves to the canonical merged record. The canonical record stores
+    _merged_from (list of IDs that were folded in), so we scan active
+    discoveries for one that claims this ID. This prevents "Discovery
+    not found" errors when Prospector batches reference pre-merge IDs.
+    """
     filepath = os.path.join(_COMPANY_DIR, f"discovery_{discovery_id}.json")
-    return _read_json(filepath)
+    data = _read_json(filepath)
+    if data:
+        return data
+
+    # ID not found as active — check if it was merged into a canonical record
+    for filename in os.listdir(_COMPANY_DIR):
+        if not filename.startswith("discovery_") or ".archived-" in filename:
+            continue
+        candidate = _read_json(os.path.join(_COMPANY_DIR, filename))
+        if candidate and discovery_id in (candidate.get("_merged_from") or []):
+            log.info("load_discovery: resolved archived %s → canonical %s",
+                     discovery_id, candidate.get("discovery_id"))
+            return candidate
+    return None
 
 
 def _normalize_company_name(name: str) -> str:
@@ -133,7 +151,7 @@ def find_discovery_by_company_name(company_name: str) -> Optional[dict]:
     best = None
     best_time = ""
     for filename in os.listdir(_COMPANY_DIR):
-        if not filename.startswith("discovery_"):
+        if not filename.startswith("discovery_") or ".archived-" in filename:
             continue
         filepath = os.path.join(_COMPANY_DIR, filename)
         data = _read_json(filepath)
@@ -291,7 +309,7 @@ def list_discoveries() -> list[dict]:
     """
     discoveries = []
     for filename in os.listdir(_COMPANY_DIR):
-        if not filename.startswith("discovery_"):
+        if not filename.startswith("discovery_") or ".archived-" in filename:
             continue
         filepath = os.path.join(_COMPANY_DIR, filename)
         data = _read_json(filepath)
