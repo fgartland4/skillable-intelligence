@@ -58,11 +58,15 @@ Badge: Enterprise Learning Platform
 CRITICAL — ELPs produce BOTH kinds of product entries:
 
   (a) Their OWN software products/platforms (legitimate licensed software):
-      Pluralsight Skills, Skillsoft Percipio, Coursera for Business, Cengage MindTap.
-      For these: estimated_user_base = total subscribers. annual_enrollments_estimate = 0.
-      DO NOT include features/themes of the main platform as separate products
-      (Pluralsight "Skill IQ", Skillsoft "AI Academy", Pluralsight "SecureReady"
-      are features inside the platform, not products).
+      Pluralsight Skills, Skillsoft Percipio, Coursera for Business, Cengage MindTap,
+      Skillsoft Codecademy, Skillsoft CAISY, Pluralsight AI Academy, Pluralsight
+      SecureReady. These are real products that customers license and that
+      Skillable could build labs for — include them in the product list. For
+      these: estimated_user_base = total subscribers or learners of that specific
+      product. annual_enrollments_estimate = 0 (these aren't wrapper-style per-
+      program offerings; they're the platform itself).
+      ONLY filter out clear competitive lab platforms owned by the ELP (see
+      "LAB PLATFORMS OWNED BY THE ELP" below) — not every themed sub-product.
 
   (b) Their CATALOG TECH-SLICES — one product entry per major technology area
       the catalog covers. THIS is where the Skillable lab opportunity lives.
