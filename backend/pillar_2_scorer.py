@@ -347,6 +347,7 @@ def score_market_demand(
 def score_instructional_value(
     product_category: str | None,
     rubric_grades_by_dim: dict[str, list[GradedSignal]],
+    archetype: str = "",
 ) -> PillarScore:
     """Compose the four Pillar 2 dimensions into a PillarScore.
 
@@ -354,8 +355,19 @@ def score_instructional_value(
         product_category: top-level product category (drives baseline lookup)
         rubric_grades_by_dim: {dim_key: [GradedSignal, ...]} as produced
             by rubric_grader.grade_all_for_product
+        archetype: Skillable-labability archetype from archetype_classifier.
+            Applies an IV CEILING — products with archetypes where
+            hands-on Skillable labs are not the right delivery mechanism
+            (ic_productivity, creative_professional, consumer_app) cannot
+            score above their ceiling regardless of rubric-graded signals.
+            Empty string disables the cap (conservative default). Frank
+            2026-04-16.
 
-    Returns a PillarScore with four DimensionScores attached.
+    Returns a PillarScore with four DimensionScores attached. When the
+    archetype ceiling is below the composed pillar score, the override
+    is applied via score_override — dimension scores retain their raw
+    graded values (useful for debugging + UX transparency) while the
+    composed total respects the ceiling.
     """
     pc = score_product_complexity(product_category, rubric_grades_by_dim.get(_DIM_KEY_PC, []))
     ms = score_mastery_stakes(product_category, rubric_grades_by_dim.get(_DIM_KEY_MS, []))
@@ -375,4 +387,16 @@ def score_instructional_value(
     # Populate the stored `score` field so it survives asdict() serialization.
     from models import recompute_pillar_score
     recompute_pillar_score(pillar)
+
+    # ── Archetype IV ceiling (Frank 2026-04-16) ──────────────────────────
+    # Apply the ceiling for products where Skillable-style labs aren't
+    # the right delivery mechanism. A creative_professional product can't
+    # ring up the same IV as an enterprise_admin product no matter how
+    # generously the rubric grades signals — the archetype caps the output.
+    if archetype:
+        from archetype_classifier import get_iv_ceiling
+        ceiling = get_iv_ceiling(archetype)
+        if pillar.score > ceiling:
+            pillar.score_override = ceiling
+            pillar.score = ceiling
     return pillar

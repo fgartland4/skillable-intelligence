@@ -522,39 +522,52 @@ def grade_lab_versatility(product: Product, company: CompanyAnalysis) -> list[Gr
 def grade_market_demand(product: Product, company: CompanyAnalysis) -> list[GradedSignal]:
     """Grade Market Demand signals for one product.
 
-    Cross-reads Pillar 3 CustomerFitFacts for ATP/ALP presence
-    (ATPs prove demand exists — partners wouldn't invest without demand)
-    and channel partner SE population. Also includes the shared
-    product shape context (description + Pillar 1 facts) so the grader
-    has a reliable floor when the Pillar 2 fact extractor comes back
-    empty for this product.
+    CRITICAL DESIGN RULE (Frank 2026-04-16): Market Demand is PER-PRODUCT,
+    not per-company. Company-level signals (HPE has an ATP program, HPE
+    has F500 customers, HPE is global) cannot anchor a 'strong' tier on
+    any single product — otherwise every product in a strong-company
+    portfolio inherits the same 20/20 score (HPE OneView, Aruba Central,
+    SimpliVity all landed at 20/20 Market Demand because the grader read
+    company-level facts as strong evidence for every product).
+
+    The grader receives two sections:
+      - PRIMARY (product-specific facts) — drives the tier directly
+      - COMPANY CONTEXT (informational only) — can reinforce a product-
+        specific finding but cannot, on its own, justify a strong rating
+
+    The prompt explicitly instructs the grader: "signals found only in
+    COMPANY CONTEXT and not corroborated by PRODUCT-SPECIFIC evidence
+    are at most 'moderate' or 'informational' — never 'strong'."
     """
     iv_facts = product.instructional_value_facts
     cf_facts = company.customer_fit_facts
     facts_context = "\n\n".join([
         _format_facts_section(
-            "Market Demand facts (primary)",
+            "PRIMARY — Market Demand facts for THIS PRODUCT (drive the tier)",
             _json_dumps_dataclass(iv_facts.market_demand),
         ),
+        _product_shape_context(product),
         _format_facts_section(
-            "Cross-pillar read: Customer Fit shared facts (ATPs, channel partners)",
+            "COMPANY CONTEXT — informational only; cannot alone justify 'strong' tier",
             _json_dumps_dataclass({
+                "_note": (
+                    "These are company-level signals shared across ALL products "
+                    "in this portfolio. They MUST NOT drive a strong Market Demand "
+                    "tier on this product unless corroborated by product-specific "
+                    "evidence in the PRIMARY section above. Otherwise every "
+                    "product in a strong-company portfolio would inherit the same "
+                    "Market Demand score, which is the bug we're preventing."
+                ),
                 "channel_partners_size": asdict(cf_facts.channel_partners_size),
                 "channel_partner_se_population": asdict(cf_facts.channel_partner_se_population),
                 "named_channel_partners": cf_facts.named_channel_partners,
                 "enterprise_reference_customers": cf_facts.enterprise_reference_customers,
                 "geographic_reach_regions": cf_facts.geographic_reach_regions,
-            }),
-        ),
-        _format_facts_section(
-            "Cross-pillar read: Delivery Capacity ATP program (ATPs prove demand)",
-            _json_dumps_dataclass({
                 "authorized_training_program_name": cf_facts.delivery_capacity.authorized_training_program_name,
                 "authorized_training_partners_count": asdict(cf_facts.delivery_capacity.authorized_training_partners_count),
                 "named_authorized_training_partners": cf_facts.delivery_capacity.named_authorized_training_partners,
             }),
         ),
-        _product_shape_context(product),
     ])
     return grade_dimension(
         _MARKET_DEMAND_DIM,

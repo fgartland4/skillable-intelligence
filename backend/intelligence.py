@@ -600,6 +600,16 @@ def rescore_products_from_saved_facts(
             )
             continue
 
+        # Archetype classification — deterministic Python, zero Claude.
+        # Drives IV ceiling in Pillar 2 + ACV floors. Frank 2026-04-16.
+        try:
+            from archetype_classifier import classify_archetype
+            product.archetype, product.archetype_rationale = classify_archetype(
+                product, analysis,
+            )
+        except Exception:
+            log.exception("rescore: classify_archetype failed for %r", product.name)
+
         # Pillar 2 — regrade or reuse saved grades
         if regrade:
             try:
@@ -618,6 +628,7 @@ def rescore_products_from_saved_facts(
         try:
             product.fit_score.instructional_value = score_instructional_value(
                 product.category, p_grades,
+                archetype=product.archetype or "",
             )
         except Exception:
             log.exception("rescore: pillar_2_scorer failed for %r", product.name)
@@ -2089,12 +2100,27 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                     product.name,
                 )
 
+            # Archetype classification — deterministic Python, zero Claude.
+            # Drives IV ceiling in Pillar 2 + ACV floors. Frank 2026-04-16.
+            try:
+                from archetype_classifier import classify_archetype
+                _disc = discovery_data if isinstance(discovery_data, dict) else {}
+                product.archetype, product.archetype_rationale = classify_archetype(
+                    product, _disc,
+                )
+            except Exception:
+                log.exception(
+                    "Intelligence.score: classify_archetype failed for %r",
+                    product.name,
+                )
+
             try:
                 p_grades = grade_all_for_product(product, new_analysis)
                 product.rubric_grades = p_grades
                 product.fit_score.instructional_value = score_instructional_value(
                     product.category,
                     p_grades,
+                    archetype=product.archetype or "",
                 )
             except Exception:
                 log.exception(

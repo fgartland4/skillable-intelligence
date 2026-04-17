@@ -481,6 +481,24 @@ def compute_acv_potential(product: dict) -> dict:
     acv_low_dollars = total_hours_low * rate
     acv_high_dollars = total_hours_high * rate
 
+    # ── Labability gate (Frank 2026-04-16, Rule) ─────────────────────────
+    # ACV scales linearly with Product Labability (PL) score. If Skillable
+    # can only partially deliver labs for this product (low PL), ACV is
+    # proportionally lower. Applied uniformly to every motion's total.
+    # Linear: gated_acv = raw_acv × (PL / 100). Applied at the product-
+    # level total, not per-motion, because the linear multiplier commutes.
+    pl_score = 0
+    try:
+        fs = product.get("fit_score") or {}
+        pl_dict = fs.get("product_labability") or {}
+        pl_score = int(pl_dict.get("score") or 0)
+    except (TypeError, ValueError, AttributeError):
+        pl_score = 0
+    if pl_score > 0:
+        pl_factor = pl_score / 100  # magic-allowed: linear labability factor denominator (percentage)
+        acv_low_dollars *= pl_factor
+        acv_high_dollars *= pl_factor
+
     acv["annual_hours_low"] = round(total_hours_low)
     acv["annual_hours_high"] = round(total_hours_high)
     acv["acv_low"] = round(acv_low_dollars)
@@ -488,6 +506,7 @@ def compute_acv_potential(product: dict) -> dict:
     acv["rate_per_hour"] = rate
     acv["rate_tier_name"] = tier_name
     acv["acv_tier"] = _resolve_acv_tier(acv_high_dollars)
+    acv["labability_factor"] = round(pl_score / 100, 2) if pl_score > 0 else 0.0  # magic-allowed: percentage denominator
 
     return acv
 
@@ -972,6 +991,24 @@ def compute_acv_on_product(product: Any, company_analysis: Any) -> None:
 
     acv_low_dollars = total_hours_low * rate
     acv_high_dollars = total_hours_high * rate
+
+    # ── Labability gate (Frank 2026-04-16) ───────────────────────────────
+    # ACV scales linearly with Product Labability score. Low PL = low ACV,
+    # proportionally. gated_acv = raw_acv × (PL / 100). Applied uniformly
+    # across every motion (Skillable-can't-deliver-lab → Cert/Events
+    # motions also shrink, per Frank's rule). Honest expression of the
+    # engagement math.
+    pl_score = 0
+    try:
+        pl_pillar = getattr(product.fit_score, "product_labability", None)
+        if pl_pillar is not None:
+            pl_score = int(getattr(pl_pillar, "score", 0) or 0)
+    except (TypeError, ValueError, AttributeError):
+        pl_score = 0
+    if pl_score > 0:
+        pl_factor = pl_score / 100  # magic-allowed: linear labability factor denominator (percentage)
+        acv_low_dollars *= pl_factor
+        acv_high_dollars *= pl_factor
 
     acv.annual_hours_low = round(total_hours_low)
     acv.annual_hours_high = round(total_hours_high)

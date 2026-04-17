@@ -862,6 +862,21 @@ class Product:
     # dossier UX can prompt a human to verify the classification.
     classification_review_needed: bool = False
 
+    # ── Product archetype (Frank 2026-04-16) ───────────────────────────────
+    # "What kind of product is this from a Skillable-labability standpoint."
+    # Orthogonal to market category — a "Document Management" product can be
+    # an enterprise admin tool (SharePoint → enterprise_admin) or an IC tool
+    # (Acrobat → ic_productivity). Inferred deterministically by the scorer
+    # from facts already in the fact drawer (category, deployment_model,
+    # target_personas, api_surface, complexity_signals). Drives:
+    #   - IV ceiling in Pillar 2 composition (creative_professional caps ~65)
+    #   - ACV adoption/hours floors in the calculator
+    #   - Badge selector archetype-aware filters (future)
+    # Honors Rule #1 — research-layer untouched, scoring-only field.
+    # See docs/Platform-Foundation.md → "Product archetype".
+    archetype: str = ""        # see backend/archetype_classifier.py for enum
+    archetype_rationale: str = ""  # short text explaining the inference
+
     # People
     owning_org: Optional[OrgUnit] = None
     contacts: list[Contact] = field(default_factory=list)

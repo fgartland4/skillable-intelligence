@@ -3754,8 +3754,8 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # Bump format: "YYYY-MM-DD.short-description"
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_MATH_VERSION = "2026-04-16.tiered-version-split-initial"
-RUBRIC_VERSION = "2026-04-16.tiered-version-split-initial"
+SCORING_MATH_VERSION = "2026-04-16.archetype-ceilings-acv-labability-gate"
+RUBRIC_VERSION = "2026-04-16.market-demand-per-product-tightening"
 RESEARCH_SCHEMA_VERSION = "2026-04-16.tiered-version-split-initial"
 
 # Legacy single-string version — retained for backwards-compat reading of
