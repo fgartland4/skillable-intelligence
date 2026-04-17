@@ -1720,35 +1720,85 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
     # Look up existing analysis for this discovery — stable URL principle
     existing = find_analysis_by_discovery_id(discovery_id)
     existing_product_names = set()
+    # Phase C (2026-04-16): tiered stale dispatch.  True when we rescored
+    # existing products in-place via the cheap paths — the fast-return block
+    # below must stamp + save before returning, otherwise the rescore is
+    # lost.  False for wipe paths (there's new work to do, the normal
+    # save at function tail handles it) and for the CURRENT path (no change).
+    rescored_in_place = False
     if existing:
-        # Cache versioning — if the existing analysis was scored with an
-        # older SCORING_LOGIC_VERSION, treat ALL its products as stale and
-        # force re-score. The analysis_id is preserved (stable URL principle)
-        # but every product gets fresh scoring against the current logic.
-        # Same behavior when the caller explicitly asks for force_refresh.
-        if force_refresh or not cfg.is_cached_logic_current(existing):
-            stale_count = len(existing.get("products", []) or [])
-            reason = "force_refresh requested" if force_refresh else (
-                f"stale logic version "
-                f"({existing.get('_scoring_logic_version', '<missing>')!r} "
-                f"vs current {cfg.SCORING_LOGIC_VERSION!r})"
-            )
+        # Tiered cache versioning (Frank's Rule #1 — research is immutable).
+        # Pick the cheapest path that restores freshness:
+        #   CURRENT        → no work, append new products normally
+        #   MATH_STALE     → pure-Python rescore of saved facts (zero Claude)
+        #   RUBRIC_STALE   → re-grade Pillar 2/3 + rescore (partial Claude)
+        #   RESEARCH_STALE → fact drawer shape changed, must re-research
+        #   UNSTAMPED      → legacy record w/o tiered stamps — re-research to be safe
+        # force_refresh always wipes, regardless of tier state.
+        status = cfg.is_cached_logic_current_tiered(existing)
+        stale_count = len(existing.get("products", []) or [])
+
+        if force_refresh:
             log.info(
-                "Intelligence.score: existing analysis %s — %s — wiping %d products",
-                existing.get("analysis_id"), reason, stale_count,
+                "Intelligence.score: analysis %s — force_refresh=True — wiping %d products",
+                existing.get("analysis_id"), stale_count,
             )
             # CRITICAL: wipe the legacy products list so they don't survive
-            # the cache-and-append below. Previously this code only blanked
-            # existing_product_names, leaving the legacy products in place
-            # to be appended onto by new scores — that's how Trellix ended
-            # up with 11 products (7 unique + 4 duplicates) all stamped with
-            # a current version they were never actually scored under.
-            # See investigation 2026-04-06 evening for the full root cause.
+            # the cache-and-append below. See investigation 2026-04-06.
             existing["products"] = []
-            # Don't pre-stamp here — _stamp_for_save below at the actual
-            # save boundary is the only place that should set the stamps.
-            # Pre-stamping here would lie about when the data was scored.
+        elif status in (cfg.CacheStatus.RESEARCH_STALE, cfg.CacheStatus.UNSTAMPED):
+            log.info(
+                "Intelligence.score: analysis %s — %s — wiping %d products (re-research required)",
+                existing.get("analysis_id"), status, stale_count,
+            )
+            existing["products"] = []
+        elif status == cfg.CacheStatus.RUBRIC_STALE:
+            # Rubric vocabulary changed — re-grade Pillar 2/3 qualitative
+            # findings + rescore. Research (facts) preserved.
+            log.info(
+                "Intelligence.score: analysis %s — RUBRIC_STALE — re-grading + rescoring %d products",
+                existing.get("analysis_id"), stale_count,
+            )
+            try:
+                n = rescore_products_from_saved_facts(existing, regrade=True)
+                rescored_in_place = True
+                log.info(
+                    "Intelligence.score: RUBRIC_STALE rescore completed %d/%d products",
+                    n, stale_count,
+                )
+            except Exception:
+                log.exception(
+                    "Intelligence.score: RUBRIC_STALE rescore failed for %s — "
+                    "falling back to full wipe",
+                    existing.get("analysis_id"),
+                )
+                existing["products"] = []
+            for p in existing.get("products", []):
+                existing_product_names.add(p.get("name", ""))
+        elif status == cfg.CacheStatus.MATH_STALE:
+            # Pure-Python rescore — zero Claude calls, milliseconds.
+            log.info(
+                "Intelligence.score: analysis %s — MATH_STALE — pure-Python rescore of %d products",
+                existing.get("analysis_id"), stale_count,
+            )
+            try:
+                n = rescore_products_from_saved_facts(existing, regrade=False)
+                rescored_in_place = True
+                log.info(
+                    "Intelligence.score: MATH_STALE rescore completed %d/%d products",
+                    n, stale_count,
+                )
+            except Exception:
+                log.exception(
+                    "Intelligence.score: MATH_STALE rescore failed for %s — "
+                    "falling back to full wipe",
+                    existing.get("analysis_id"),
+                )
+                existing["products"] = []
+            for p in existing.get("products", []):
+                existing_product_names.add(p.get("name", ""))
         else:
+            # CURRENT — cache hit, append any new products selected
             for p in existing.get("products", []):
                 existing_product_names.add(p.get("name", ""))
             log.info("Intelligence.score: existing analysis %s has %d products cached",
@@ -1762,6 +1812,17 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
 
     # Fast path: nothing new to score — return the existing analysis as-is
     if existing and not new_to_score:
+        # Phase C: if we rescored in-place via MATH_STALE / RUBRIC_STALE
+        # dispatch above, we must stamp + save before returning so the
+        # fresh scores persist. Without this, rescored values live only
+        # in memory for this request and disappear on the next load.
+        if rescored_in_place:
+            _stamp_for_save(existing)
+            _save(existing)
+            log.info(
+                "Intelligence.score: rescored analysis %s saved via tiered-stale dispatch",
+                existing.get("analysis_id"),
+            )
         log.info("Intelligence.score: ALL selected products cached — returning existing analysis %s",
                  existing.get("analysis_id"))
         # Phase F: backfill the unified Customer Fit onto the discovery if
