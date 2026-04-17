@@ -1192,3 +1192,398 @@ def compute_acv_on_product(product: Any, company_analysis: Any) -> None:
     acv.methodology_note = (
         f"{len(acv.motions)} motion ACV · rate tier {tier_name} @ ${rate:.0f}/hr"
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Discovery-time company ACV — unified framework (Frank 2026-04-17)
+#
+# Replaces the legacy `researcher.estimate_holistic_acv` Claude shortcut.
+# Deterministic Python.  Reads per-product audience data and runs the framework:
+#
+#   1. Estimate COMPANY TOTAL trainable audience via org-type-aware formula.
+#   2. Distribute that total across products weighted by per-product audience ×
+#      archetype multiplier.
+#   3. Per-product Motion 1 ACV = allocated_share × adoption × hours × rate.
+#   4. Motions 2-5 come from existing company-level signals (unchanged).
+#   5. Sum across products → company ACV.  Bounded by construction.
+#
+# Full architecture spec: docs/Platform-Foundation.md → ACV Potential Model
+# + docs/decision-log.md → 2026-04-17 late entry.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _get_product_audience(product: dict) -> int:
+    """Return the single "humans who'd take training" count for a product.
+
+    Spec requires `estimated_user_base` as the universal field for every
+    org type (Frank 2026-04-17).  Until field migration completes for the
+    cached corpus, fall back to `annual_enrollments_estimate` when
+    `estimated_user_base` is empty/0 — this preserves wrapper-org numbers
+    while the retrofit runs.
+
+    Parses "~14M", "~50K", "14,000,000", plain integers.  Returns 0 on any
+    parse failure.
+    """
+    # Prefer estimated_user_base (post-consolidation target field)
+    raw = product.get("estimated_user_base") or ""
+    if isinstance(raw, int) and raw > 0:
+        return raw
+    if isinstance(raw, str) and raw.strip():
+        s = raw.replace("~", "").replace(",", "").strip().upper()
+        try:
+            if s.endswith("M"):
+                return int(float(s[:-1]) * 1_000_000)  # magic-allowed: million multiplier
+            if s.endswith("K"):
+                return int(float(s[:-1]) * 1_000)  # magic-allowed: thousand multiplier
+            if s.endswith("B"):
+                return int(float(s[:-1]) * 1_000_000_000)  # magic-allowed: billion multiplier
+            if s:
+                return int(float(s))
+        except (ValueError, IndexError):
+            pass
+
+    # Fallback: annual_enrollments_estimate (legacy wrapper-org field,
+    # migrating to estimated_user_base).  Already an integer when populated.
+    try:
+        ae = int(product.get("annual_enrollments_estimate") or 0)
+        if ae > 0:
+            return ae
+    except (ValueError, TypeError):
+        pass
+    return 0
+
+
+def _get_product_archetype(product: dict, discovery: dict) -> str:
+    """Return the product's archetype, classifying on-the-fly if not present."""
+    archetype = product.get("archetype") or ""
+    if archetype:
+        return archetype
+    try:
+        from archetype_classifier import classify_archetype
+        arch_val, arch_rationale = classify_archetype(product, discovery)
+        # Write back for next caller — small perf win, avoids re-classifying.
+        product["archetype"] = arch_val
+        product["archetype_rationale"] = arch_rationale
+        return arch_val
+    except Exception:
+        log.exception(
+            "acv_calculator._get_product_archetype: classify_archetype failed for %r",
+            product.get("name"),
+        )
+        return ""
+
+
+def _get_per_product_capped_audience(product: dict, archetype: str) -> int:
+    """Apply archetype-aware audience cap to a product's raw user base.
+
+    Same `get_audience_tiers_for_archetype` helper that governs the scored +
+    unscored paths — one source of truth.
+    """
+    raw = _get_product_audience(product)
+    if raw <= 0:
+        return 0
+    for threshold, cap in cfg.get_audience_tiers_for_archetype(archetype):
+        if raw > threshold:
+            return cap if cap is not None else raw
+    return raw
+
+
+def compute_company_total_audience(discovery: dict) -> int:
+    """Compute the company's total realistic trainable audience.
+
+    Org-type-aware Python formula over per-product data.  No Claude call,
+    no new researcher field.  Accounts for realistic audience overlap
+    across products within a single company.
+
+    Formulas (decisions captured in docs/decision-log.md 2026-04-17 late):
+      - Hyperscaler / software_company: max(capped) + 15% of second-largest
+        → shared admin audience across products
+      - ELP / LMS: sum(capped) → catalogs mostly distinct
+      - Academic / ILT / Industry Authority: sum(capped) → programs / classes
+        / certs mostly different humans
+      - GSI / Professional Services / VAR / Tech Distributor:
+        max(capped) + 30% of sum(others) → partial cross-training
+      - Content Development: 0 (partnership-only, handled upstream)
+
+    Returns 0 when no products have a positive audience — honest signal
+    that the company needs re-research.
+    """
+    products = discovery.get("products") or []
+    if not products:
+        return 0
+
+    org_type_raw = (discovery.get("organization_type") or "").lower().replace(" ", "_")
+    normalized_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type_raw, "")
+    if normalized_org in cfg.ACV_PARTNERSHIP_ONLY_ORG_TYPES:
+        return 0
+
+    # Build per-archetype lists of capped audiences.  Architectural insight:
+    # audiences OVERLAP WITHIN an archetype (same admin learns Azure + Intune
+    # + Entra — all enterprise_admin products for Microsoft IT) but are mostly
+    # DISTINCT ACROSS archetypes (Azure admins ≠ GitHub developers ≠ Power BI
+    # analysts ≠ Defender security ops).  This is what prevents overcounting
+    # when a company has many products across many archetypes.
+    by_archetype: dict[str, list[int]] = {}
+    for p in products:
+        archetype = _get_product_archetype(p, discovery)
+        val = _get_per_product_capped_audience(p, archetype)
+        if val > 0:
+            by_archetype.setdefault(archetype or "_unclassified", []).append(val)
+
+    if not by_archetype:
+        return 0
+
+    # Org-type routing
+    SHARED_ADMIN_ORG_TYPES = {"SOFTWARE", "ENTERPRISE SOFTWARE"}
+    DISTINCT_AUDIENCE_ORG_TYPES = {
+        "ACADEMIC", "ILT TRAINING ORG", "LMS PROVIDER",
+        "TRAINING ORG",
+    }
+    INDUSTRY_AUTHORITY_ORG_TYPES = {"INDUSTRY AUTHORITY"}
+    PARTIAL_OVERLAP_ORG_TYPES = {
+        "SYSTEMS INTEGRATOR", "PROFESSIONAL SERVICES",
+        "VAR", "TECH DISTRIBUTOR",
+    }
+
+    if normalized_org in SHARED_ADMIN_ORG_TYPES:
+        # Max per archetype (within-archetype overlap), summed across
+        # archetypes (between-archetype distinct).  Microsoft →
+        # enterprise_admin:3M + developer_platform:1M + data_platform:500K
+        # + security_ops:300K = 4.8M — within realistic Microsoft trainable
+        # admin/dev population.
+        return sum(max(vals) for vals in by_archetype.values())
+
+    if normalized_org in DISTINCT_AUDIENCE_ORG_TYPES:
+        # Each product is a distinct catalog / program / class → sum all.
+        return sum(sum(vals) for vals in by_archetype.values())
+
+    if normalized_org in INDUSTRY_AUTHORITY_ORG_TYPES:
+        # Different certs are for different career tracks; within-track
+        # audiences overlap somewhat (Security+ and CySA+ share candidates).
+        # Use max-per-archetype-sum-across, same shape as hyperscaler.
+        return sum(max(vals) for vals in by_archetype.values())
+
+    if normalized_org in PARTIAL_OVERLAP_ORG_TYPES:
+        # GSIs, VARs, Distributors — consultants often cross-trained WITHIN
+        # practice areas but each practice has distinct people.  Use
+        # max-per-archetype-sum-across with a modest dampener.
+        return int(sum(max(vals) for vals in by_archetype.values()) * 0.70)  # magic-allowed: partial-overlap dampener
+
+    # Unknown org type — conservative: use max-per-archetype-sum-across.
+    return sum(max(vals) for vals in by_archetype.values())
+
+
+def allocate_audience_to_products(
+    company_total: int,
+    discovery: dict,
+) -> dict[str, int]:
+    """Distribute the company total across products weighted by:
+        weight = raw_audience × archetype_multiplier
+    where archetype_multiplier = IV_CEILING / 100 (enterprise_admin = 1.0,
+    consumer_app = 0.25, etc.).
+
+    Returns a {product_name: allocated_audience} dict.  Products whose
+    weight is zero (no audience, unclassified archetype) get zero share —
+    they contribute 0 to company ACV.
+    """
+    if company_total <= 0:
+        return {}
+
+    from archetype_classifier import IV_CEILING_BY_ARCHETYPE
+
+    products = discovery.get("products") or []
+    weights: dict[str, float] = {}
+    for p in products:
+        name = (p.get("name") or "").strip()
+        if not name:
+            continue
+        raw = _get_product_audience(p)
+        if raw <= 0:
+            weights[name] = 0
+            continue
+        archetype = _get_product_archetype(p, discovery)
+        # IV ceiling → archetype multiplier (100 → 1.0; 25 → 0.25).
+        # Unknown archetype defaults to 1.0 (no bias).
+        iv_ceiling = IV_CEILING_BY_ARCHETYPE.get(archetype, 100)
+        archetype_multiplier = iv_ceiling / 100.0  # magic-allowed: IV ceiling to multiplier
+        weights[name] = raw * archetype_multiplier
+
+    total_weight = sum(weights.values())
+    if total_weight <= 0:
+        return {name: 0 for name in weights}
+
+    allocation: dict[str, int] = {}
+    for name, w in weights.items():
+        share = company_total * (w / total_weight)
+        allocation[name] = round(share)
+    return allocation
+
+
+def compute_discovery_company_acv(discovery: dict) -> dict:
+    """Compute company ACV at discovery time via the unified framework.
+
+    Replaces the retired `researcher.estimate_holistic_acv` Claude call.
+    Pure Python.  Uses per-product audience data allocated from a Python-
+    computed company total.
+
+    Returns a dict matching the historical `_holistic_acv` shape so
+    templates (Inspector hero, Prospector row, CSV export) keep reading
+    the same keys:
+
+        {
+          "acv_low": <int dollars>,
+          "acv_high": <int dollars>,
+          "confidence": "low" | "medium" | "high",
+          "rationale": "<one paragraph>",
+          "key_drivers": [<short sentences>],
+          "caveats": [<0-3 caveats>],
+          "_source": "framework"
+        }
+
+    For CONTENT DEVELOPMENT org types (partnership-only), delegates to
+    `researcher._build_partnership_acv_result` to preserve the
+    partnership-vs-direct distinction in the UI.
+    """
+    org_type_raw = (discovery.get("organization_type") or "").lower().replace(" ", "_")
+    normalized_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type_raw, "")
+
+    # Partnership-only short-circuit
+    if normalized_org in cfg.ACV_PARTNERSHIP_ONLY_ORG_TYPES:
+        try:
+            from researcher import _build_partnership_acv_result
+            company_name = discovery.get("company_name", "")
+            return _build_partnership_acv_result(company_name, discovery, normalized_org)
+        except Exception:
+            log.exception(
+                "compute_discovery_company_acv: partnership result builder failed for %r",
+                discovery.get("company_name"),
+            )
+            # Fall through to normal path if the builder errors — not ideal
+            # but keeps discovery from crashing.
+
+    org_is_wrapper = normalized_org in cfg.ACV_WRAPPER_ORG_TYPES
+    products = discovery.get("products") or []
+
+    # Step 1: company total audience
+    company_total = compute_company_total_audience(discovery)
+
+    # Step 2: allocate to products
+    allocation = allocate_audience_to_products(company_total, discovery)
+
+    # Step 3-4: per-product Motion 1 math + sum
+    default_motion = cfg.CONSUMPTION_MOTIONS[0]  # Customer Training & Enablement
+    total_acv = 0.0
+    contributing = 0
+    archetype_counts: dict[str, int] = {}
+
+    for p in products:
+        name = (p.get("name") or "").strip()
+        audience = allocation.get(name, 0)
+        if audience <= 0:
+            continue
+
+        archetype = _get_product_archetype(p, discovery)
+        archetype_counts[archetype] = archetype_counts.get(archetype, 0) + 1
+
+        # Adoption: category tier for software, org-override for wrappers
+        if normalized_org in cfg.CATEGORY_TIER_ELIGIBLE_ORG_TYPES:
+            adopt = cfg.get_customer_training_adoption_for_category(
+                p.get("category", "") or ""
+            )
+        else:
+            adopt = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(normalized_org, {}).get(
+                default_motion.label, default_motion.adoption_pct
+            )
+
+        # Scale-aware adoption ceiling (non-wrapper only)
+        if not org_is_wrapper:
+            ceiling = cfg.get_scale_aware_adoption_ceiling(audience)
+            if ceiling is not None and adopt > ceiling:
+                adopt = ceiling
+
+        # Hours: wrapper override > archetype-aware > default
+        hours_overrides = cfg.ACV_ORG_HOURS_OVERRIDES.get(normalized_org, {})
+        if default_motion.label in hours_overrides:
+            hrs = hours_overrides[default_motion.label]
+        else:
+            hrs = cfg.get_hours_for_archetype_motion(
+                archetype, default_motion.label, default_motion.hours_low
+            )
+
+        # Rate: orchestration_method → tier, else deployment_model heuristic
+        orch = (p.get("orchestration_method") or "").strip()
+        if orch:
+            _, rate = _resolve_rate(orch)
+        else:
+            deploy = (p.get("deployment_model") or "").strip().lower()
+            if deploy in ("cloud", "saas-only"):
+                rate = cfg.CLOUD_LABS_RATE
+            elif deploy == "installable":
+                rate = cfg.VM_MID_RATE
+            else:
+                rate = cfg.VM_LOW_RATE
+
+        product_acv = audience * adopt * hrs * rate
+        total_acv += product_acv
+        contributing += 1
+
+    acv_point = round(total_acv)
+
+    # Confidence based on product coverage
+    if contributing >= 5:  # magic-allowed: high-confidence threshold = 5+ products contributed
+        confidence = "high"
+    elif contributing >= 2:  # magic-allowed: medium-confidence threshold = 2+ products contributed
+        confidence = "medium"
+    else:
+        confidence = "low"
+
+    # Narrative — describes the computation so the output is inspectable
+    org_label = normalized_org or (org_type_raw.replace("_", " ").upper() or "UNKNOWN")
+    top_archetypes = sorted(
+        archetype_counts.items(), key=lambda x: x[1], reverse=True
+    )[:3]
+    arch_summary = ", ".join(
+        f"{name or 'unclassified'} ({cnt})" for name, cnt in top_archetypes
+    ) if top_archetypes else "mixed"
+    rationale = (
+        f"Deterministic framework ACV across {contributing} of {len(products)} "
+        f"discovered products ({org_label}).  Company-level trainable audience: "
+        f"{company_total:,} humans.  Allocated across products by "
+        f"archetype-weighted share of per-product user bases.  Archetype "
+        f"mix: {arch_summary}.  Per-product math applies archetype-aware "
+        f"audience caps, scale-aware adoption ceiling, wrapper-org hours "
+        f"overrides, and rate-tier lookup — same machinery as scored ACV.  "
+        f"Tightens as products are Deep-Dived (scored facts replace rough "
+        f"signals)."
+    )
+    drivers: list[str] = [
+        f"Company total trainable audience: {company_total:,}",
+        f"{contributing} products contributed via framework allocation",
+    ]
+    if top_archetypes:
+        top_name, top_cnt = top_archetypes[0]
+        drivers.append(
+            f"Dominant archetype: {top_name or 'unclassified'} ({top_cnt} products)"
+        )
+    if org_is_wrapper:
+        drivers.append(
+            f"{org_label} wrapper — hours from ACV_ORG_HOURS_OVERRIDES"
+        )
+
+    caveats: list[str] = []
+    skipped = len(products) - contributing
+    if skipped > 0:
+        caveats.append(
+            f"{skipped} discovered products contributed 0 — missing audience "
+            "(needs re-research to populate estimated_user_base)"
+        )
+
+    return {
+        "acv_low": acv_point,
+        "acv_high": acv_point,
+        "confidence": confidence,
+        "rationale": rationale,
+        "key_drivers": drivers,
+        "caveats": caveats,
+        "_source": "framework",
+    }
