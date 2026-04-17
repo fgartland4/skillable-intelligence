@@ -498,12 +498,40 @@ def inspector_product_selection(discovery_id: str):
     # add more products before clicking Deep Dive — the score() path is
     # cache-and-append, so cached products are re-used and only NEW selections
     # actually trigger fresh scoring.
+    #
+    # Also build a name → fit_score map so the Product Selection page can
+    # display the REAL Fit Score on Deep-Dived products (instead of the pre-
+    # Deep-Dive tier label like "Promising"/"Potential"). Once we know the
+    # actual score, that's the sharper info — no reason to keep showing
+    # the coarser pre-score tier. Frank 2026-04-16.
     cached_product_names: set[str] = set()
+    cached_product_fit_scores: dict[str, int] = {}
     if existing:
+        # Recompute once so fit_score.total reflects the current math for
+        # cached products. recompute_analysis is cheap/idempotent and
+        # already runs on other Inspector / Prospector surfaces; running
+        # here keeps the Product Selection page consistent with what
+        # Inspector will show after the user clicks Deep Dive.
+        try:
+            from intelligence import recompute_analysis as _recompute_pr
+            _recompute_pr(existing)
+        except Exception:
+            log.exception("product_selection: recompute_analysis failed for %s",
+                          existing.get("analysis_id"))
         for p in existing.get("products", []) or []:
             n = (p.get("name") or "").strip()
-            if n:
-                cached_product_names.add(n)
+            if not n:
+                continue
+            cached_product_names.add(n)
+            fs = p.get("fit_score") or {}
+            fit_total = int(
+                fs.get("total_override")
+                or fs.get("total")
+                or fs.get("_total")
+                or 0
+            )
+            if fit_total > 0:
+                cached_product_fit_scores[n] = fit_total
 
     # Stale-cache decision: if there's an existing analysis AND it was scored
     # with an older logic version, surface a confirmation modal when the user
@@ -516,6 +544,7 @@ def inspector_product_selection(discovery_id: str):
                           discovery=disc,
                           existing_analysis=existing,
                           cached_product_names=cached_product_names,
+                          cached_product_fit_scores=cached_product_fit_scores,
                           cached_is_stale=cached_is_stale,
                           deep_dive_max_new=cfg.DEEP_DIVE_MAX_NEW_PRODUCTS,
                           show_family_picker=show_family_picker,

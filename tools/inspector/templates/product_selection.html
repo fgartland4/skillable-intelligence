@@ -384,9 +384,23 @@
                 <div class="product-cards">
                     {% for p in non_tc_prods %}
                     {% set is_cached = p.name in cached_product_names %}
+                    {% set fit_score = cached_product_fit_scores.get(p.name, 0) %}
                     {% set tier_key = p._tier or 'uncertain' %}
                     {% set tier_label = p._tier_label or 'Uncertain' %}
                     {% set tier_css = {'promising':'t-pr','potential':'t-po','uncertain':'t-u','unlikely':'t-ul'}.get(tier_key, 't-u') %}
+                    {# Frank 2026-04-16: when a product has been Deep Dived,
+                       show the real Fit Score (0-100) instead of the pre-score
+                       tier label. Real data beats rough guess. The color scale
+                       maps Fit Score to the same badge styles as tiers:
+                         ≥65 → green (promising)
+                         45-64 → green-pale (potential)
+                         25-44 → amber (uncertain)
+                         <25 → red (unlikely) #}
+                    {% if fit_score >= 65 %}{% set fit_css = 't-pr' %}
+                    {% elif fit_score >= 45 %}{% set fit_css = 't-po' %}
+                    {% elif fit_score >= 25 %}{% set fit_css = 't-u' %}
+                    {% else %}{% set fit_css = 't-ul' %}
+                    {% endif %}
                     <label class="product-card{% if is_cached %} card-cached{% endif %}">
                         <input type="checkbox" name="products" value="{{ p.name }}"
                                form="diveForm" class="product-cb"
@@ -410,11 +424,18 @@
                             <span class="badge-deploy {{ p.deployment_model | deployment_color }}">{{ p.deployment_model | deployment_display }}</span>
                             {% endif %}
                         </div>
-                        {# Right: Skillable's judgment + cache status #}
+                        {# Right: Skillable's judgment + cache status.
+                           When Deep Dive exists (fit_score > 0), show the real
+                           Fit Score. Otherwise fall back to the pre-Deep-Dive
+                           tier label ("Promising" / "Potential" / etc.). #}
                         {% if is_cached %}
                         <span class="badge-cached" title="Already scored — cached result will be reused">In cache</span>
                         {% endif %}
-                        <span class="badge-tier {{ tier_css }}">{{ tier_label }}</span>
+                        {% if fit_score > 0 %}
+                        <span class="badge-tier {{ fit_css }}" title="Fit Score from Deep Dive">Fit {{ fit_score }}</span>
+                        {% else %}
+                        <span class="badge-tier {{ tier_css }}" title="Pre-Deep-Dive labability tier">{{ tier_label }}</span>
+                        {% endif %}
                     </label>
                     {% endfor %}
                 </div>
