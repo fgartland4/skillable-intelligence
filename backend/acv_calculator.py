@@ -252,6 +252,33 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
                 # Software / Enterprise Software / Industry Authority:
                 # use install_base from the Pillar 2 fact drawer.
                 pop_low, pop_high = _nr(md.get("install_base"))
+                # Fallback: when P2 research didn't populate install_base
+                # (null values on cached analyses or thin research runs),
+                # use the product's discovery-level estimated_user_base.
+                # Never leave Customer Training audience at 0 when
+                # discovery already has a number. Frank's Rule #1 — don't
+                # regress what prior research knew. GitHub Enterprise case.
+                if pop_low == 0 and pop_high == 0:
+                    eub = product.get("estimated_user_base")
+                    eub_int = 0
+                    if isinstance(eub, (int, float)):
+                        eub_int = int(eub)
+                    elif isinstance(eub, str) and eub:
+                        # Parse "~500K", "~2M", "~1B" etc.
+                        s = eub.replace("~", "").replace(",", "").strip().upper()
+                        try:
+                            if s.endswith("M"):
+                                eub_int = int(float(s[:-1]) * 1_000_000)  # magic-allowed: million multiplier
+                            elif s.endswith("K"):
+                                eub_int = int(float(s[:-1]) * 1_000)  # magic-allowed: thousand multiplier
+                            elif s.endswith("B"):
+                                eub_int = int(float(s[:-1]) * 1_000_000_000)  # magic-allowed: billion multiplier
+                            else:
+                                eub_int = int(float(s))
+                        except (ValueError, IndexError):
+                            eub_int = 0
+                    if eub_int > 0:
+                        pop_low = pop_high = eub_int
         elif source == "product:employee_subset_size":
             pop_low, pop_high = _nr(md.get("employee_subset_size"))
         elif source == "product:cert_annual_sit_rate":
