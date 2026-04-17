@@ -1497,24 +1497,62 @@ def recompute_analysis(analysis: dict) -> None:
     from fit_score_composer import get_technical_fit_multiplier
 
     unscored_acv = 0
+    # Wrapper orgs must use annual_enrollments_estimate (the wrapper's actual
+    # program audience), not estimated_user_base (the underlying technology's
+    # global market). Bug confirmed 2026-04-17 — ASU was inflating 10x+ because
+    # estimated_user_base was reading the workforce-scale number when the real
+    # audience is the per-program enrollment count.
+    # Rule #1 honored: no re-research, just correct field selection.
+    org_is_wrapper = norm_org in cfg.ACV_WRAPPER_ORG_TYPES
     for dp in all_discovered:
         dp_name = (dp.get("name") or "").strip()
         if dp_name in scored_product_names:
             continue  # already counted via real scoring
         user_base = 0
-        try:
-            user_base = int(dp.get("estimated_user_base") or 0)
-        except (ValueError, TypeError):
-            pass
+        if org_is_wrapper:
+            # Wrapper orgs: use annual_enrollments_estimate — the wrapper's
+            # actual program enrollment, populated by the researcher for
+            # ACADEMIC / ILT / ELP / GSI / VAR / Distributor / Industry Authority
+            # / Content Development products. If 0 or missing, this product
+            # contributes 0 — signal to re-research rather than fall back to
+            # the wrong field. Per Platform-Foundation → "Wrapper organizations
+            # — product vs. audience".
+            try:
+                user_base = int(dp.get("annual_enrollments_estimate") or 0)
+            except (ValueError, TypeError):
+                pass
+        else:
+            # Software / Enterprise Software / Unknown: estimated_user_base
+            # IS the correct audience (product users who would take training).
+            # Parse the discovery format: "~14M", "~50K", "~2000", "14,000,000".
+            raw = dp.get("estimated_user_base") or ""
+            if isinstance(raw, int):
+                user_base = raw
+            else:
+                s = str(raw).replace("~", "").replace(",", "").strip().upper()
+                try:
+                    if s.endswith("M"):
+                        user_base = int(float(s[:-1]) * 1_000_000)  # magic-allowed: million multiplier
+                    elif s.endswith("K"):
+                        user_base = int(float(s[:-1]) * 1_000)  # magic-allowed: thousand multiplier
+                    elif s.endswith("B"):
+                        user_base = int(float(s[:-1]) * 1_000_000_000)  # magic-allowed: billion multiplier
+                    elif s:
+                        user_base = int(float(s))
+                except (ValueError, IndexError):
+                    user_base = 0
         if user_base <= 0:
             continue
 
         # Apply tiered user base cap — same rule used for scored products.
-        for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
-            if user_base > threshold:
-                if cap is not None:
-                    user_base = cap
-                break
+        # Wrapper orgs skip this cap because annual_enrollments is already
+        # the wrapper's real audience (no global-workforce inflation to cap).
+        if not org_is_wrapper:
+            for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+                if user_base > threshold:
+                    if cap is not None:
+                        user_base = cap
+                    break
 
         # Motion 1 default audience × adoption × hours, using category-tier
         # adoption when available for Software / Enterprise Software.
@@ -1526,7 +1564,12 @@ def recompute_analysis(analysis: dict) -> None:
         else:
             org_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(norm_org, {})
             adopt = org_overrides.get(_default_motion.label, _default_motion.adoption_pct)
-        hrs = _default_motion.hours_low
+        # Hours: use org-specific override from ACV_ORG_HOURS_OVERRIDES if
+        # present (Academic 15, ILT 18, Industry Authority 10, etc.), else
+        # the software baseline. Bug confirmed 2026-04-17 — unscored path was
+        # hardcoded to software baseline (2 hrs) for all org types.
+        hours_overrides = cfg.ACV_ORG_HOURS_OVERRIDES.get(norm_org, {})
+        hrs = hours_overrides.get(_default_motion.label, _default_motion.hours_low)
 
         deploy = (dp.get("deployment_model") or "").strip().lower()
         if deploy in ("cloud", "saas-only"):

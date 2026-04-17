@@ -889,17 +889,55 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
     motions: list[ModelMotion] = []
     customer_motion_pop = 0  # Track for R4 cert cap
 
+    org_is_wrapper = normalized_org in cfg.ACV_WRAPPER_ORG_TYPES
+
     for cfg_motion in cfg.CONSUMPTION_MOTIONS:
         pop_low, pop_high = _read_population(
             cfg_motion.population_source, product, company_analysis,
         )
 
+        is_customer_motion = cfg_motion.label == "Customer Training & Enablement"
+
+        # ── Wrapper-org audience override (Frank 2026-04-17) ──
+        # For wrapper orgs, Motion 1 (Customer Training) audience MUST come
+        # from annual_enrollments_estimate (the wrapper's actual program
+        # enrollment). Reading install_base / estimated_user_base was the
+        # "declared but not implemented" bug — the code had a comment saying
+        # wrapper orgs use annual_enrollments but no code path that read it.
+        # ASU's $57M was the symptom.
+        #
+        # If annual_enrollments is populated, use it directly (and skip the
+        # null-install-base fallback + R1 employee cap — this IS the real
+        # audience). If annual_enrollments is 0, fall through to the
+        # existing install_base + fallback chain (Skillsoft-class — will
+        # contribute low until the ELP researcher prompt upgrade ships).
+        wrapper_audience_used = False
+        if is_customer_motion and org_is_wrapper:
+            disc = getattr(company_analysis, "discovery_data", None) or {}
+            disc_products = (disc.get("products") if isinstance(disc, dict) else None) or []
+            pname = (getattr(product, "name", "") or "").strip()
+            for dp in disc_products:
+                if isinstance(dp, dict) and (dp.get("name") or "").strip() == pname:
+                    try:
+                        ae = int(dp.get("annual_enrollments_estimate") or 0)
+                    except (ValueError, TypeError):
+                        ae = 0
+                    if ae > 0:
+                        pop_low = ae
+                        pop_high = ae
+                        wrapper_audience_used = True
+                        log.info(
+                            "ACV wrapper-org audience: using annual_enrollments_estimate=%d "
+                            "for %r (%s)", ae, pname, normalized_org,
+                        )
+                    break
+
         # ── R3: Null install_base fallback ──
         # When the Deep Dive fact extractor returned null for install_base
         # but discovery already has the number, use it. GP5 — intelligence
         # compounds, lighter research enriches deeper research.
-        is_customer_motion = cfg_motion.label == "Customer Training & Enablement"
-        if is_customer_motion and pop_low == 0 and pop_high == 0:
+        # Skipped for wrapper orgs where annual_enrollments was already used.
+        if is_customer_motion and pop_low == 0 and pop_high == 0 and not wrapper_audience_used:
             fallback = _discovery_install_base_fallback(product)
             if fallback > 0:
                 pop_low = fallback
@@ -940,10 +978,15 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
         # For GSIs, universities, etc., cap Motion 1 audience to a fraction
         # of the org's total employees. The researcher often reports the
         # underlying technology's global audience, not the org's own.
-        if is_customer_motion:
+        # Skipped when wrapper_audience_used=True: we already used the
+        # real annual_enrollments, capping that to % of employees would
+        # clamp legitimate program audiences downward.
+        if is_customer_motion and not wrapper_audience_used:
             pop_low, pop_high = _apply_wrapper_org_audience_cap(
                 pop_low, pop_high, normalized_org, company_analysis,
             )
+            customer_motion_pop = max(pop_low, pop_high)
+        elif is_customer_motion:
             customer_motion_pop = max(pop_low, pop_high)
 
         # Apply org-type overrides: adoption, label, hours
