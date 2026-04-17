@@ -1,141 +1,151 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-15 (environment cleanup session)
-
-**What happened this session (2026-04-15):**
-
-| Item | Status |
-|---|---|
-| Worktree cleanup | **Done.** Deleted `claude/elated-mccarthy` branch (local + remote). `claude/competent-feistel` worktree exited and cleaned. |
-| A11y branch assessed | **Done.** `elated-mccarthy` had untested a11y work (never merged, never run against live app). Deleted branch; wrote detailed redo instructions in §1a below. |
-| Worktree default | **Known issue.** Claude Code desktop defaults worktree checkbox to ON. No setting to change the default (open issue anthropics/claude-code#27616). Uncheck manually each session. |
-
-**What happened prior session (2026-04-14):**
-
-| Item | Status |
-|---|---|
-| `~/.claude/CLAUDE.md` rewritten | **Done.** Small pointer + hard rules only. No duplicated content. |
-| Repo `CLAUDE.md` cleaned | **Done.** Project-specific rules only. Points to `docs/collaboration-with-frank.md` as single source of truth. |
-| Memory files deleted | **Done.** All 5 memory files removed from local `~/.claude/projects/`. |
-| Settings fixed | **Done.** `bypassPermissions` set in both global and project settings. |
-| Dead files removed | **Done.** `storage/`, `wireframe.html`, `discovery_v1_backup.txt`. |
+**Last updated:** 2026-04-17 (ACV architecture alignment session)
 
 ---
 
 ## §1 — START HERE NEXT SESSION
 
-**Architecture cleanup: move tool code out of the intelligence layer.**
+**Build the unified ACV architecture.** Full spec written.  Decisions made.  Every detail captured.  A new Claude picks this up cold and executes.
 
-`backend/` currently mixes intelligence layer code with tool-layer code. Two files need to move:
+### Read these first, in this order
 
-| File | What it is | Move to |
-|---|---|---|
-| `backend/app.py` | Flask routes for Inspector, Prospector, Designer | `tools/` (tool-layer code) |
-| `backend/designer_engine.py` | Designer-specific logic | `tools/designer/` (tool-layer code) |
+1. **`docs/decision-log.md`** — the 2026-04-17 DECIDED entries at the top.  Nine decisions captured in full.  No interpretation required.
+2. **`docs/Platform-Foundation.md` → ACV Potential Model section** — the rewritten authoritative spec with the full architecture (company total → allocate to products → per-product math × ACV-specific gate).  Read end to end.
+3. **`docs/collaboration-with-frank.md`** — the standard startup pass, not skipped.
 
-After this move, `backend/` becomes purely the intelligence layer. This enforces layer discipline physically — if it's in `backend/`, any tool can call it; if it's in `tools/`, it's tool-specific.
+### What's been shipped already this session (do NOT redo)
 
-**Before moving anything:**
-1. Do the full three-pass startup sequence from `docs/collaboration-with-frank.md`
-2. Review all import paths in `app.py` and `designer_engine.py` to understand the blast radius
-3. Confirm the plan with Frank before touching any files
-4. Run all 118 tests before AND after to verify nothing breaks
-
----
-
-## §1a — Accessibility Pass (redo from scratch)
-
-**Context:** A previous worktree session (`elated-mccarthy`) attempted a11y work but was never merged or tested against the running app. That branch was deleted 2026-04-15. The concepts were sound but the implementation was untested. Below are the exact gaps to fix, fresh, with the Flask app running and verified in-browser.
-
-**Important:** Do the full startup sequence first. Run the app. Test each change in the browser as you go — do not batch untested changes.
-
-### Known bugs (fix first — these are broken right now)
-
-| Bug | File | What's wrong | Fix |
-|---|---|---|---|
-| `--sk-accent-pale` self-reference | `tools/shared/templates/_theme.html:78` | Value is `var(--sk-accent-pale)` — references itself. Breaks `.t-po` (Potential tier badge) and `.badge-deploy-green`. | Set to `#5fe5b0` (10.4:1 contrast on dark bg). Verify both badge types render in the browser. |
-| `--sk-text-dim` fails AA | `_theme.html:31` | Current `#4a7060` is ~3.0:1 on dark bg. Needs 4.5:1 for AA normal text. | Change to `#6b9585` (4.97:1). Check muted labels across Inspector and Prospector pages. |
-| `--sk-text-faint` fails AA | `_theme.html:62` | Current `#4a5550` is ~2.15:1. | Change to `#868f8a` (5.01:1). Check any "faint" text elements. |
-
-### Accessibility infrastructure to add (after bugs are fixed)
-
-| Item | WCAG ref | Where | What to do |
-|---|---|---|---|
-| `--sk-modal-accent` | 1.4.3 Contrast | `_theme.html` | Add `--sk-modal-accent: #136945` (6.7:1 on white). In `_search_modal.html`, anywhere `--sk-accent` is used on the white `.is-docs` modal surface, swap to `--sk-modal-accent`. There are ~6 usages (eyebrow, section headings, hover borders, back-to-top link). |
-| `:focus-visible` outlines | 2.4.7 Focus Visible | `_theme.html` | Add universal `:focus-visible { outline: 2px solid var(--sk-accent); outline-offset: 2px; }` and suppress plain `:focus` outlines. Inside `.is-docs` modals, override outline color to `--sk-modal-accent`. |
-| `prefers-reduced-motion` | 2.3.3 | `_theme.html` | Add `@media (prefers-reduced-motion: reduce)` that sets `animation-duration: 0.01ms`, `transition-duration: 0.01ms`, `scroll-behavior: auto` on `*, *::before, *::after`. |
-| `.sr-only` utility | 1.3.1 | `_theme.html` | Standard visually-hidden class (1px clip rect pattern). Needed by skip link and heading hierarchy items below. |
-| Skip-to-main link | 2.4.1 Bypass Blocks | `_nav.html` | Add `<a href="#main-content" class="skip-to-main">Skip to main content</a>` as first child. Style: visible only on `:focus-visible`, positioned absolute. Add `id="main-content" tabindex="-1"` to the main content container on every page template (Inspector: 4 pages, Prospector: 6 pages). |
-| Modal ARIA | 4.1.3 Status Messages | `_search_modal.html` | Add `aria-live="polite"` to `#searchModalStatus`, `#searchModalCounter`, `#searchModalStages`. Add `role="progressbar"` + `aria-valuemin/max/now` to progress track (keep `aria-valuenow` in sync at open/creep/done in JS). Add `role="alert" aria-live="assertive"` to `#searchModalError`. |
-| Modal focus trap | 2.4.3 + 2.1.2 | `_search_modal.html` | On modal open: capture `document.activeElement`, move focus to cancel button. While open: Tab cycles within modal only. On close: restore focus to captured element. Use a MutationObserver on the backdrop's `is-open` class to handle all open/close paths. |
-| Heading hierarchy | 1.3.1 + 2.4.6 | Various templates | Company name in `_company_header.html` should be `<h1>` not `<span>`. Pages without visible h1 get a `.sr-only` h1. |
-| Form labels | 1.3.1 + 3.3.2 | Prospector templates | Every `<input>` needs an associated `<label>`. Add `sr-only` labels where the visual design already communicates purpose. Add `aria-describedby` for hint text. |
-| Expand/collapse keyboard access | 2.1.1 + 4.1.2 | Prospector templates | Any `onclick` expand/collapse `<div>` needs `role="button" tabindex="0" aria-expanded="false"` + `onkeydown` for Enter/Space + toggle `aria-expanded` on click. |
-
-### After implementing — verify live
-
-- Tab through every page with keyboard only. Every interactive element should have a visible focus ring.
-- Open and close the search modal with keyboard. Focus should trap inside and restore on close.
-- Check the Potential tier badge and deploy-green badge render correctly (the `--sk-accent-pale` fix).
-- Resize browser to check no contrast regressions on dark surfaces.
-
----
-
-## §2 — Then resume prior work
-
-### Force-refresh Commvault and Trellix
-
-- **Commvault** — force-refresh discovery. Current cache only has 2 products; should have more.
-- **Trellix** — confirm merge resolution fix works correctly in the UI after restart.
-
-### Validate 10 diverse ACV numbers with Frank
-
-The full 549-record ACV retrofit (shipped 2026-04-14) completed cleanly, but Frank has not yet done a human pass. This is the gate before Marketing gets a CSV export.
-
-**Suggested 10-company spot-check (mix of org types + sizes):**
-
-| Company | Org type | Expect |
-|---|---|---|
-| CompTIA | Industry Authority (saturated) | ~$5M (current) — 1.3x cap binding |
-| SANS Institute | Industry Authority (saturated) | ~$624k-$810k |
-| Skillsoft | Enterprise Learning Platform (saturated) | ~$5.5M-$7.2M |
-| Microsoft | Software (mid) | ~$22M-$30M — hard cap binding |
-| Cisco (known customer view) | Software (first-year) | Sharp up from $255k |
-| Deloitte | Systems Integrator (very-early) | ~$12M-$22M |
-| Multiverse | ILT Training Org (early) | ~$350k-$950k (finally above floor) |
-| Parkway School District | K-12 (Pattern C deferred) | ~$18k-$55k — EXPECTED low |
-| Nutanix | Software prospect | ~$6M-$12M |
-| GP Strategies | Content Development (partnership) | "Partnership" chip, no dollar range |
-
-**After validation:** CSV export to Marketing.
-
-### Prospector UX fixes (identified 2026-04-14)
-
-| # | Issue | Expected behavior |
-|---|---|---|
-| **UX-1** | View Results — no loading indicator | Visual spinner or progress indicator |
-| **UX-2** | Export CSV — no visual feedback | Button changes state during export |
-| **UX-3** | Batch results tab — no column sorting | Click column header to sort |
-| **UX-4** | Batch results tab — no search/filter | Search filter for company names |
-| **UX-5** | Sticky header | Pin tab bar and action buttons to top of page |
-
-### Badge-to-Score Consistency Investigation
-
-Badges are not consistently defending the scores they accompany. This is a pipeline investigation, not a badge selector problem. See `docs/roadmap.md` for full detail.
-
----
-
-## Backlog
-
-| Item | Why deferred |
+| Commit | What |
 |---|---|
-| **Pattern C — K-12 district budget-signal audience** | Structural work (~1 day). Parkway has a ~$750k CTE/PD budget line that never enters the math. |
-| **Pattern G — parent/subsidiary entity dedup** | Manual merge via `scripts/merge_companies.py` when needed. |
-| **LLPA-class federating associations** | Rare pattern. Punted. |
-| **Lightweight Pillar rescore for rubric-text changes** | `rescore_pillars.py` handles weight/tier/baseline/penalty changes. Text changes still need Claude calls. |
+| `1b23f94` | Capability wiring (Layer-2 `skillable_knowledge.py` + prompt-build-time rendering + scoped Pillar 1 context).  Unified rebalancing machinery across scored + unscored paths — `get_audience_tiers_for_archetype`, `get_scale_aware_adoption_ceiling`, `get_hours_for_archetype_motion`. |
+
+These landed clean, tests pass, push confirmed.  **Do not touch these.  The remaining work builds on top of them.**
+
+### What's in-memory and NOT yet committed
+
+During the design conversation I made in-memory edits to `backend/acv_calculator.py` (added `compute_discovery_company_acv`), `backend/intelligence.py` (swapped the `estimate_holistic_acv` call), and created `scripts/retrofit_discovery_acv.py`.  These were design-exploration only and were built BEFORE the architecture was fully agreed.  **Revert these in-memory edits at session start** — they don't match the final agreed architecture and need to be rewritten cleanly from the spec.  `git diff` + `git checkout` to reset `backend/acv_calculator.py`, `backend/intelligence.py`, and delete `scripts/retrofit_discovery_acv.py`.
+
+### What to build, in order
+
+Two commits, in sequence.  Full spec in `docs/Platform-Foundation.md` → ACV Potential Model.  Decisions summarized here for quick reference.
+
+#### BUILD 1 — Unified audience allocation + field consolidation + legacy cleanup + retrofit (one coherent commit)
+
+**Goal:** replace the legacy Claude holistic shortcut with deterministic Python that computes company-level total trainable audience, allocates it across products, and runs per-product motion math.
+
+**Scope:**
+
+1. **Field consolidation.** Retire `annual_enrollments_estimate`.  `estimated_user_base` becomes the universal field for every org type, semantic = "humans who'd take training for this product."  Update researcher prompts (discovery + per-product fact extractors) to populate `estimated_user_base` with the right value per org type:
+   - Software company → global user count (as today)
+   - Wrapper org (Academic / ILT / ELP / GSI / VAR / Distributor / LMS / Industry Authority) → enrollments / students / class attendees / practitioners (the actual human count who'd take THIS product's training)
+2. **Company total audience estimator** in `backend/acv_calculator.py`.  New function: `compute_company_total_audience(discovery: dict) -> int`.  Org-type-aware formulas:
+   - **Hyperscaler / software_company:** `max(per-product capped audiences) + 0.15 × second-largest`.  Shared admin audience across products.
+   - **enterprise_learning_platform / lms_company:** `sum(per-product audiences)`.  Catalogs are mostly distinct.
+   - **academic_institution:** `sum(per-program audiences)`.  Programs mostly different students.
+   - **ilt_training_organization:** `sum(per-class audiences)`.  Classes mostly different attendees.
+   - **industry_authority:** `sum(per-cert audiences)`.  Different certs, different candidates.
+   - **systems_integrator / professional_services:** `max(per-practice) + 0.30 × sum(others)`.  Consultants often cross-trained.
+   - **var / technology_distributor:** `max(per-product) + 0.30 × sum(others)`.  Some cross-training.
+   - **content_development:** partnership-only, skip.
+
+   Per-product capped audiences use the existing `get_audience_tiers_for_archetype` — the archetype-aware caps that were validated on 2026-04-16.
+3. **Allocation logic** in `backend/acv_calculator.py`.  New function: `allocate_audience_to_products(company_total, products) -> dict[str, int]`.  For each product:
+   - `weight = raw_audience × archetype_multiplier`
+   - `archetype_multiplier = IV_CEILINGS_BY_ARCHETYPE[archetype] / 100` (enterprise_admin = 1.0, creative_professional = 0.65, consumer_app = 0.25, etc.)
+   - `product_share = company_total × (weight / sum_of_weights)`
+4. **Per-product Motion 1 ACV uses `product_share` as audience.**  Motions 2-5 use existing sources (partner count, employee subset, cert sitters, events).  No change to the math — just the audience input to Motion 1 changes.
+5. **Sum across products = company ACV.**  Bounded by construction.  Adding or removing products re-divides the same pie.
+6. **Discovery-time company ACV function** in `backend/acv_calculator.py`.  New function: `compute_discovery_company_acv(discovery: dict) -> dict`.  Runs allocation + per-product math over discovery data.  Returns a dict matching the historical `_holistic_acv` shape (field name stays; content becomes the framework output).
+7. **Wire into `intelligence.discover()`.**  Replace the `estimate_holistic_acv(...)` Claude call with `compute_discovery_company_acv(discovery)`.
+8. **Legacy cleanup — exhaustive sweep.**  Delete:
+   - `researcher.estimate_holistic_acv`
+   - `researcher._HOLISTIC_ACV_PROMPT`
+   - `researcher._format_anonymized_calibration_block`
+   - `researcher._build_holistic_acv_context`
+   - `scoring_config.HOLISTIC_ACV_COMPANY_HARD_CAP`, `HOLISTIC_ACV_MAX_RANGE_RATIO`, `HOLISTIC_ACV_PER_USER_CEILING`
+   - Any helper only these referenced (`_scrub_customer_data`, `_build_partnership_acv_result`, etc. — audit before deleting)
+   - Grep for `_raw_claude` — retire wherever the holistic call was the source.
+   - `docs/unified-acv-model.md` — fold remaining useful content into Platform-Foundation, then delete the file.  One source of truth for the architecture.
+   - Doc references: grep every doc for `holistic_acv`, `estimate_holistic_acv`, `_HOLISTIC_ACV_PROMPT`, `calibration_block`, `hard_cap`, etc.  Update or remove.
+9. **Retrofit script** `scripts/retrofit_discovery_acv.py`.  Pure Python.  Walks every `discovery_*.json` under `backend/data/company_intel/`.  For each:
+   - Migrate `annual_enrollments_estimate` → `estimated_user_base` for wrapper-org products (copy, don't delete — until validation passes).
+   - Recompute `_holistic_acv` via `compute_discovery_company_acv`.
+   - Save.
+   - Flag any company with 0 contributing products (thin data — needs re-research; do NOT zero out their `_holistic_acv` in that case, leave legacy).
+10. **Bump `SCORING_MATH_VERSION`** to `2026-04-17.audience-allocation-unified`.  Triggers pure-Python rescore on next page load for all cached analyses.
+11. **Modal help text** in `scoring_config.py` — update the ACV modal content to describe the new architecture.  No separate commit; include in this one.
+12. **Validation against anchors:**
+    - Microsoft ~$42M
+    - Trellix $750K current / $3M potential
+    - Skillsoft ~$5M (known customer, is the floor)
+    - Pluralsight — fair for a company larger than Skillsoft ($5-10M range)
+    - ASU $2-4M
+    - Spot-check 3 more: Workday, CompTIA, NVIDIA
+13. **Docs aligned:**
+    - Rewrite `docs/Platform-Foundation.md` → ACV Potential Model section with the unified architecture.  (Done in the spec-writing commit.)
+    - DECIDED entry in `decision-log.md`.  (Done in the spec-writing commit.)
+14. **Commit message** captures all of the above with rationale + anchor numbers produced.
+
+**Build 1 produces:** one green commit with all the audience-allocation work + field consolidation + legacy cleanup + retrofit + docs + modal + validation.  Pushed.
+
+#### BUILD 2 — ACV-specific dimension weights (separate commit right after Build 1)
+
+**Goal:** the ACV gate (the multiplier applied to per-product raw ACV) currently uses the standard Fit Score (50% PL + 20% IV + 30% CF with standard dimension weights).  Replace with ACV-specific dimension weights.
+
+**Scope:**
+
+1. **New scoring_config constants:**
+   ```
+   ACV_GATE_PILLAR_WEIGHTS = {"product_labability": 50, "instructional_value": 20, "customer_fit": 30}  # same as Fit Score at pillar level
+   ACV_GATE_CF_DIMENSION_WEIGHTS = {"training_commitment": 40, "delivery_capacity": 60, "build_capacity": 0, "organizational_dna": 0}
+   ACV_GATE_IV_DIMENSION_WEIGHTS = {"market_demand": 40, "product_complexity": 25, "mastery_stakes": 25, "lab_versatility": 0}
+   # PL unchanged (uses existing dimension weights)
+   ```
+   (Final MD weight 40 vs 50 — start at 40, tune if needed.)
+2. **New composer function** `backend/acv_calculator.py::compose_acv_gate_score(product, company_analysis) -> int`.  Composes an ACV-specific 0-100 score from the three pillars using the weights above.  Returns the score; per-product ACV math multiplies by `acv_gate_score / 100`.
+3. **Gate always applies.**  Uses real scores where we have them (Deep-Dived products), rough heuristic values where we don't (pre-Deep-Dive or partially-scored companies).  Quality tracks data quality.  Consistent logic throughout.
+4. **Rough ACV gate at discovery.**  For products without fact drawers, compute rough dimension values from discovery signals (same spirit as `_compute_rough_iv_score` in intelligence.py).  One rough helper per dimension that needs it.
+5. **Replace Fit Score gate with ACV gate** in `compute_acv_potential` and `compute_acv_on_product`.
+6. **Retrofit** — same SCORING_MATH_VERSION bump triggers rescore.  If needed, add a new retrofit to propagate the gate change to cached analyses.
+7. **Validate again** against the same 5+ anchors.  Numbers should tighten or stay the same — the ACV-specific gate weights what we think MATTERS for ACV (delivery + market demand) rather than the standard Fit Score.
+8. **Commit + push.**
+
+**Build 2 produces:** one additional commit for the gate-weight change, cleanly validated.
+
+#### Definition of done (both commits together)
+
+- All 5 anchors land in reasonable range of target
+- Full retrofit runs clean across 600 discoveries (no exceptions)
+- Prospector + Inspector both render correctly
+- Platform-Foundation ACV section is best current thinking
+- decision-log entries captured
+- unified-acv-model.md retired
+- Both commits pushed to main
 
 ---
 
-## Full Priority List
+## §2 — What was in-flight this session that didn't ship
 
-**See `docs/roadmap.md`** — the single consolidated inventory of everything active, backlog, decisions needed, and done.
+| Item | State | Why parked |
+|---|---|---|
+| Holistic ACV retirement (the Build 1 above) | Design agreed, spec written, NOT built | End-of-session; needs fresh head |
+| Accenture Cloud Practice $0 motion audiences | Parked | Deeper trace needed after Build 1 retrofits; the allocation fix may resolve this |
+| Run-in-Background link + Toast | Design discussed | Separate UX change; after Build 1/2 ship |
+| Pluralsight $18-30M holistic pinning | Rolls into Build 1 | New framework replaces the Claude pinning |
+
+---
+
+## §3 — Session context that shouldn't get lost
+
+- **Frank's "best current thinking" principle is the highest-order rule.**  We synthesize and rewrite documentation, we don't append.  `unified-acv-model.md` is retired because it fragments the central doc (Platform-Foundation).  If any ACV content lives elsewhere after Build 1, something's wrong.
+- **Frank's "one standard" rule.**  The unified architecture means all ACV views (Prospector list, Inspector hero, CSV export, modals) read from the same framework output.  No parallel paths, no special cases.
+- **Layer discipline.**  Capability data is Layer 2 (`skillable_knowledge.py`), scoring is Layer 3 (pillar scorers, rubric grader, ACV calculator).  Don't mix.
+- **Field consolidation was the outcome of a direct challenge from Frank.**  My first instinct was a helper function that reads both fields — Frank called that a hack.  The right answer is one field with correct semantic for each org type.  Keep that intuition: when something sounds like a workaround, ask if there's a single clean answer.
+- **The ACV gate is NOT the Fit Score.**  Separate architectural concept with different dimension weights (Build 2).  Bundled because "Fit Score gates ACV" was the pattern Platform-Foundation claimed, which turned out to be wrong per Frank's memory.  The ACV gate uses ACV-specific weights (delivery-capacity-heavy, zero build-capacity, market-demand-heavy).  Build 2 makes this real.
+
+---
+
+## §4 — Completed backlog items (prior session reference)
+
+Archived earlier items from `next-session-todo.md` pre-2026-04-17 have been folded into `docs/roadmap.md` as appropriate.  The 2026-04-15 worktree cleanup and 2026-04-14 file cleanup references are no longer actionable.

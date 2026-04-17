@@ -1183,6 +1183,22 @@ The grid and definitions are configured in `scoring_config.VERDICT_GRID`. This d
 
 ## ACV Potential Model
 
+> **⚠ 2026-04-17 — Architecture alignment in progress.**
+>
+> A design walkthrough on 2026-04-17 surfaced a drift between this section and the actual ACV the platform SHOULD compute.  Decisions captured in `docs/decision-log.md` (Session 2026-04-17 late — ACV architecture alignment).  Build plan captured in `docs/next-session-todo.md` §1.
+>
+> **Short summary of the agreed architecture** — this section will be rewritten to match when Build 1 lands.  Until then, read decision-log + next-session-todo for the authoritative spec:
+>
+> 1. **Company-level total trainable audience first.**  Computed from per-product `estimated_user_base` via org-type formula (hyperscaler: `max + 0.15 × second-largest`; ELP / academic / ILT: `sum`; GSI / VAR: `max + 0.30 × sum(others)`).
+> 2. **Allocate that total across products** weighted by `raw_audience × archetype_multiplier` (IV ceiling / 100).
+> 3. **Per-product Motion 1 ACV uses the allocated slice** as audience.  Motions 2-5 unchanged (partner, employee, cert, events from their existing sources).
+> 4. **Sum across products = company ACV.**  Bounded by construction — adding or removing products re-divides the same pie, doesn't inflate.
+> 5. **ACV-specific dimension weight gate** replaces the Fit Score gate.  Pillar weights PL 50 / IV 20 / CF 30.  Dimension weights (ACV only): CF — Training Commitment 40, Delivery Capacity 60, Build Capacity 0, Org DNA 0.  IV — Market Demand 40, Product Complexity 25, Mastery Stakes 25, Lab Versatility 0.  PL unchanged.  Gate always runs; quality tracks data quality (rough heuristics pre-Deep-Dive; real scores post-Deep-Dive).
+> 6. **One audience field:** `estimated_user_base` for every org type.  `annual_enrollments_estimate` is retired (migrated to `estimated_user_base` for wrappers).
+> 7. **Legacy Claude holistic shortcut** (`estimate_holistic_acv`, `_HOLISTIC_ACV_PROMPT`, calibration block, hard cap, range ratio, per-user ceiling) is **retired entirely** in Build 1.  `_holistic_acv` field stays; contents become the framework output.
+>
+> Sections below this header describe the PRE-alignment model.  They remain accurate as a description of what's currently in the code (which Build 1 replaces), but are NOT the authoritative spec going forward.  When Build 1 ships the full rewrite of this section lands with it.
+
 **Why.** A product sold through a global channel with a large certification ecosystem and a flagship event has fundamentally different annual revenue potential than a niche product with a regional footprint — even if both score identically on fit. ACV Potential answers "how big is this if we win?" — expressed as the estimated annual contract value if the customer standardized on Skillable across all training and enablement motions for the product. Mark Mangelson's (CRO) labability estimation prompt identified nine audience/revenue categories that shaped the consumption motions below — the intelligence platform builds on Mark's commercial framing with product-level precision and technology-specific rate tiers (see "Relationship to Mark's Labability Prompt" below for the full mapping). This is the Define-Once home for the ACV model; `Badging-and-Scoring-Reference.md` references this section rather than restating it.
 
 **The universal unit: lab hours consumed.** Across every org type — software companies, universities, GSIs, Industry Authorities, enterprise learning platforms, ILT organizations — the ACV calculation bottoms out at the same unit: **lab hours consumed**. The funnel is universal:

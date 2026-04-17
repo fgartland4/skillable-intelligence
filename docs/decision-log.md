@@ -4,6 +4,83 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-17 (late) — ACV architecture alignment (design-only, no build yet)
+
+**Context:** Frank ran Prospector after shipping commit `1b23f94` (capability wiring + unified rebalancing across scored and unscored paths).  Microsoft showed $99M (inflated), and the non-analyzed hyperscalers + ELPs (Salesforce, ServiceNow, Pluralsight, Skillsoft) still showed the Claude holistic $18-30M range.  A full design walkthrough surfaced that the agreed ACV architecture had never actually been implemented in the code.  This entry captures the decisions agreed in that walkthrough.  Build lands next session (see `docs/next-session-todo.md` §1).
+
+### DECIDED — Option B allocation architecture
+- **DECIDED:** ACV at the company level is computed by:
+  1. Estimating the COMPANY's total trainable audience as a single number per company.
+  2. Distributing that total across products proportionally by per-product audience weight, adjusted by archetype multiplier.
+  3. Running per-product Motion 1 ACV math using the allocated share (not the raw or per-product-capped audience).
+  4. Summing across products to get company ACV — bounded by construction.
+- **Rationale:** Adding or removing products re-divides the same pie.  Prevents the N-products × capped-audience overcounting that was inflating Microsoft to $99M.  Matches Frank's stated intent from the very first architectural conversation.
+
+### DECIDED — Company total audience formula by org type
+- **DECIDED:** Python-only formula from existing per-product data.  No new researcher field.
+  | Org type | Formula | Rationale |
+  |---|---|---|
+  | software_company (hyperscaler) | `max(per-product capped) + 0.15 × second-largest` | Shared admin audience |
+  | enterprise_learning_platform | `sum(per-product audiences)` | Catalogs mostly distinct |
+  | lms_company | `sum(per-product audiences)` | Similar to ELP |
+  | academic_institution | `sum(per-program audiences)` | Programs mostly different students |
+  | ilt_training_organization | `sum(per-class audiences)` | Classes mostly different attendees |
+  | industry_authority | `sum(per-cert audiences)` | Different certs, different candidates |
+  | systems_integrator / professional_services | `max + 0.30 × sum(others)` | Consultants cross-trained |
+  | var / technology_distributor | `max + 0.30 × sum(others)` | Some cross-training |
+  | content_development | skip (partnership-only) | Not direct-ACV |
+- Per-product "capped" uses the existing `get_audience_tiers_for_archetype` (validated 2026-04-16).
+- Starting coefficients are tunable; documented with these values to start.
+
+### DECIDED — One audience field, field consolidation
+- **DECIDED:** `estimated_user_base` is the universal audience field for every org type.  Semantic = "humans who'd take training for this product."
+- **DECIDED:** `annual_enrollments_estimate` is retired.  For wrapper-org cached discoveries, copy the field into `estimated_user_base` via pure-Python retrofit.
+- Researcher prompts (discovery + per-product fact extractors) updated to populate `estimated_user_base` with the right number per org type — software → global users, wrapper → program enrollments / classroom students / practitioners.
+- **Rationale:** Frank directly called out the two-field split as a hack during the walkthrough.  Same semantic, same field.  Helper-function workaround would have preserved the drift.
+
+### DECIDED — Gate always applies; quality tracks data quality
+- **DECIDED:** The ACV gate (per-product multiplier) always runs, not just at Deep Dive.  At discovery time it uses rough dimension heuristics; at Deep Dive it uses real scores; partial-Deep-Dive uses a mix.  Best current thinking with best available data.
+- **Rationale:** Consistency > ambition.  One logic everywhere, results refine as data improves.  A product with no Deep Dive gets a rough gate; the same product after Deep Dive gets a real gate; the architecture doesn't change.
+
+### DECIDED — ACV-specific dimension weights (separate commit, Build 2)
+- **DECIDED:** The ACV gate does NOT use the standard Fit Score.  It uses ACV-specific pillar-weights and dimension-weights:
+  - Pillar weights: PL 50 / IV 20 / CF 30 (same as Fit Score at pillar level).
+  - **Customer Fit dimension weights for ACV:** Training Commitment 40, **Delivery Capacity 60**, **Build Capacity 0**, Organizational DNA 0.
+  - **Instructional Value dimension weights for ACV:** **Market Demand 40**, Product Complexity 25, Mastery Stakes 25, **Lab Versatility 0**.
+  - **Product Labability:** unchanged (standard dimension weights).
+- **Rationale:** What predicts ACV is different from what predicts fit.  Partners / ProServ can BUILD labs — so Build Capacity zero-weights out.  Delivery Capacity matters more than Training Commitment because ACV is about whether they can ship training at scale.  Market Demand (does anyone buy paid training for this?) is the biggest IV driver of ACV.  Lab Versatility zero-weights because we already addressed that through Product Labability.
+- **Builds as separate commit** immediately after Build 1 to keep validation clean.
+
+### DECIDED — Full retrofit of cached discoveries
+- **DECIDED:** Pure-Python retrofit script runs over every cached discovery and recomputes `_holistic_acv` via the new framework.  No Claude calls.
+- Companies with genuinely thin data (missing `estimated_user_base` across all products) keep their legacy `_holistic_acv` value — honest signal that they need re-research, not a zero.
+- **Rationale:** Consistency.  If some cached numbers use the legacy Claude path and some use the framework, the "one standard" principle breaks.
+
+### DECIDED — Full legacy cleanup, exhaustive sweep
+- **DECIDED:** Delete `researcher.estimate_holistic_acv`, `_HOLISTIC_ACV_PROMPT`, `_format_anonymized_calibration_block`, `_build_holistic_acv_context`, `HOLISTIC_ACV_COMPANY_HARD_CAP`, `HOLISTIC_ACV_MAX_RANGE_RATIO`, `HOLISTIC_ACV_PER_USER_CEILING`, related helpers.  Grep exhaustively — code + docs + templates + comments + decision-log references.  `_raw_claude` preservation retires with the Claude call.
+- **Rationale:** Dead code creates drift.  Git preserves history if we ever need to look back.  One path, one standard.
+
+### DECIDED — Documentation layer
+- **DECIDED:** Rewrite the ACV section in `docs/Platform-Foundation.md` as best current thinking.  Retire `docs/unified-acv-model.md` — fold anything still useful into Platform-Foundation, then delete.  One source of truth for the architecture.
+- Decision-log captures the DECIDED list (this entry).  Platform-Foundation is the spec.  No parallel or derivative docs.
+- **Rationale:** Frank's "synthesize and rewrite, don't append" rule.  Doc sprawl is the symptom; centralization is the cure.
+
+### DECIDED — Validation anchors and Definition of Done
+- **DECIDED:** Validate Builds 1+2 against the following anchors:
+  - Microsoft ~$42M (April 16 validated anchor)
+  - Trellix $750K current / $3M potential (Frank's direct anchor)
+  - Skillsoft ~$5M (known customer, floor)
+  - Pluralsight — fair for a company larger than Skillsoft ($5-10M range target)
+  - ASU $2-4M
+  - Plus spot-check: Workday, CompTIA, NVIDIA
+- **Definition of done:** all anchors in range + full retrofit runs clean (600 discoveries, no exceptions) + Prospector and Inspector render correctly + Platform-Foundation rewritten + decision-log updated + both commits pushed.
+
+### What shipped in THIS session vs. what ships NEXT session
+- **Shipped:** commit `1b23f94` — capability wiring (Layer-2 extraction + prompt-build-time rendering + unified rebalancing machinery across scored + unscored paths).  Permanent record on main.
+- **Next session:** Build 1 (allocation + field consolidation + legacy cleanup + retrofit) + Build 2 (ACV-specific dimension weights).  See `docs/next-session-todo.md` §1 for the step-by-step build plan.
+
+---
+
 ## Session: 2026-04-17 — Skillable capabilities wired into research prompts
 
 ### Finding: SKILLABLE_CAPABILITIES tuple was orphaned documentation
