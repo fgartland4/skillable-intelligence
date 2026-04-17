@@ -1205,6 +1205,64 @@ def enrich_discovery(discovery: dict) -> None:
         discovery["_org_color"] = org_badge_color_group(org_type)
 
 
+def _compute_rough_iv_score(dp: dict) -> int:
+    """Rough Instructional Value score for an unscored discovered product.
+
+    Deterministic Python from discovery signals — zero Claude. Used by
+    the unscored-product ACV path to compose a rough Fit Score, which
+    gates the rough ACV contribution. Honest when research is thin;
+    sharpens to real IV when the product eventually gets Deep Dived.
+
+    Frank 2026-04-16 — the "simple logic over what we know" rule.
+
+    Signals consumed:
+      - category           → base IV from category tier (high/moderate/low)
+      - api_surface        → adjustment (+ for rich, - for none/minimal)
+      - cert_inclusion     → small bonus when present
+      - complexity_signals → small bonus when populated (non-empty narrative)
+
+    Returns 0-100 integer, clamped.
+    """
+    import scoring_config as cfg
+
+    # Category baseline: use CATEGORY_PRIORS tier as a rough IV anchor.
+    # High-demand categories (Cybersecurity, Cloud Infra) → 80.
+    # Moderate → 55. Low → 25. Unknown → 50 (neutral).
+    category = (dp.get("category") or "").strip()
+    tier = cfg.CATEGORY_TO_TIER.get(category, "")
+    if tier == "High":
+        base = 80  # magic-allowed: rough IV anchor for high-demand category
+    elif tier == "Moderate":
+        base = 55  # magic-allowed: rough IV anchor for moderate category
+    elif tier == "Low":
+        base = 25  # magic-allowed: rough IV anchor for low-demand category
+    else:
+        base = 50  # magic-allowed: rough IV anchor for unknown/uncategorized
+
+    # API surface adjustment — indicates training depth
+    api = (dp.get("api_surface") or "").strip().lower()
+    if api.startswith("comprehensive"):
+        base += 10  # magic-allowed: rough IV adjustment for comprehensive API
+    elif api.startswith("moderate"):
+        base += 5  # magic-allowed: rough IV adjustment for moderate API
+    elif api.startswith("minimal"):
+        base -= 5  # magic-allowed: rough IV adjustment for minimal API
+    elif api.startswith("none"):
+        base -= 15  # magic-allowed: rough IV adjustment for no API
+
+    # Cert inclusion — training market validation
+    cert = (dp.get("cert_inclusion") or "").strip().lower()
+    if cert and cert not in ("no", "none", "n/a", "no known cert inclusion"):
+        base += 5  # magic-allowed: rough IV bonus when cert ecosystem exists
+
+    # Complexity signals populated — narrative presence suggests real depth
+    complexity = (dp.get("complexity_signals") or "").strip()
+    if len(complexity) > 40:  # magic-allowed: complexity signal minimum length
+        base += 3  # magic-allowed: rough IV bonus for populated complexity narrative
+
+    return max(0, min(100, base))
+
+
 def recompute_analysis(analysis: dict) -> None:
     """Cache-reload revalidation against a saved analysis dict.
 
@@ -1389,13 +1447,34 @@ def recompute_analysis(analysis: dict) -> None:
             scored_with_acv += 1
             scored_product_names.add(p.get("name", ""))
 
-    # ── Per-product ACV extrapolation (replaces flat multiplier) ──────
-    # Instead of assuming unscored products have the same average ACV as
-    # scored ones, estimate each unscored product's ACV from its discovery
-    # data: estimated_user_base × conservative adoption × hours × rate.
-    # GP3: every number is traceable to a per-product estimate.
+    # ── Per-product unscored ACV with rough Fit Score gate ────────────
+    # Frank's rule (2026-04-16): no extrapolation multiplier. Each
+    # unscored product computes its OWN ACV from its own discovery signals,
+    # gated by a ROUGH Fit Score composed from rough_PL + rough_IV + real_CF.
+    # A labable unscored product with a strong audience contributes
+    # meaningfully; a weak-labability product contributes minimally.
+    # No uniform "if we scored 3 of 22, multiply by 22/3" uplift.
+    #
+    # Real CF is available at company level (same for every product).
+    # We pull it from any scored product's CF pillar (Phase F broadcast
+    # makes it uniform across products). If no product is scored yet,
+    # CF defaults to 50 (neutral — discovery-only anchor).
     discovery_data = analysis.get("_discovery_data") or {}
     all_discovered = discovery_data.get("products") or []
+
+    # Resolve real CF once — shared across all products
+    real_cf = 50  # neutral default
+    for p_scored in products:
+        cf_pillar = ((p_scored.get("fit_score") or {}).get("customer_fit") or {})
+        cf_val = int(cf_pillar.get("score") or 0)
+        if cf_val > 0:
+            real_cf = cf_val
+            break
+
+    org_type = (discovery_data.get("organization_type") or "").lower().replace(" ", "_")
+    norm_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type, "")
+    from fit_score_composer import get_technical_fit_multiplier
+
     unscored_acv = 0
     for dp in all_discovered:
         dp_name = (dp.get("name") or "").strip()
@@ -1408,28 +1487,25 @@ def recompute_analysis(analysis: dict) -> None:
             pass
         if user_base <= 0:
             continue
-        # Conservative estimate using the default Customer Training motion
-        # config (adoption_pct + hours) × rate from deployment model.
-        # Org-type overrides apply to scored products via populate_acv_motions;
-        # unscored rough estimates use the default motion as a floor.
-        _default_motion = cfg.CONSUMPTION_MOTIONS[0]  # Customer Training & Enablement
-        adopt = _default_motion.adoption_pct
-        hrs = _default_motion.hours_low
 
-        # Org-type adoption override if available
-        org_type = (discovery_data.get("organization_type") or "").lower().replace(" ", "_")
-        norm_org = cfg.ORG_TYPE_NORMALIZATION.get(org_type, "")
-        org_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(norm_org, {})
-        if _default_motion.label in org_overrides:
-            adopt = org_overrides[_default_motion.label]
-
-        # Apply tiered user base caps — same as discovery-level ACV.
-        # Prevents inflated user bases from blowing up the company total.
+        # Apply tiered user base cap — same rule used for scored products.
         for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
             if user_base > threshold:
                 if cap is not None:
                     user_base = cap
                 break
+
+        # Motion 1 default audience × adoption × hours, using category-tier
+        # adoption when available for Software / Enterprise Software.
+        _default_motion = cfg.CONSUMPTION_MOTIONS[0]  # Customer Training & Enablement
+        if norm_org in cfg.CATEGORY_TIER_ELIGIBLE_ORG_TYPES:
+            adopt = cfg.get_customer_training_adoption_for_category(
+                dp.get("category", "") or "",
+            )
+        else:
+            org_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(norm_org, {})
+            adopt = org_overrides.get(_default_motion.label, _default_motion.adoption_pct)
+        hrs = _default_motion.hours_low
 
         deploy = (dp.get("deployment_model") or "").strip().lower()
         if deploy in ("cloud", "saas-only"):
@@ -1438,8 +1514,29 @@ def recompute_analysis(analysis: dict) -> None:
             rate = cfg.VM_MID_RATE
         else:
             rate = cfg.VM_LOW_RATE
-        rough_acv = user_base * adopt * hrs * rate
-        unscored_acv += rough_acv
+        raw_acv = user_base * adopt * hrs * rate
+
+        # ── Rough Fit Score gate (Frank 2026-04-16) ──────────────────
+        # Compose a rough Fit Score from discovery signals + real CF.
+        # Same PL/IV/CF weighting + Technical Fit Multiplier as scored
+        # products — no parallel model, just rougher inputs.
+        rough_pl = int(dp.get("rough_labability_score") or 0)
+
+        # Rough IV heuristic: category tier baseline adjusted by api_surface
+        # and cert_inclusion signals. Simple Python, no Claude.
+        rough_iv = _compute_rough_iv_score(dp)
+
+        # Compose rough Fit Score
+        mult = get_technical_fit_multiplier(rough_pl, deploy or "")
+        rough_fit = (
+            rough_pl * 0.50  # magic-allowed: PL pillar weight fraction
+            + rough_iv * 0.20 * mult  # magic-allowed: IV pillar weight fraction
+            + real_cf * 0.30 * mult  # magic-allowed: CF pillar weight fraction
+        )
+        rough_fit = max(0, min(100, int(round(rough_fit))))
+
+        gated_rough_acv = raw_acv * (rough_fit / 100.0)  # magic-allowed: percentage denominator
+        unscored_acv += gated_rough_acv
 
     company_acv_low = round(scored_acv_low + unscored_acv)
     company_acv_high = round(scored_acv_high + unscored_acv)
@@ -1473,6 +1570,26 @@ def recompute_analysis(analysis: dict) -> None:
                      total_employees, cfg.ACV_PER_EMPLOYEE_ANNUAL_CAP)
             company_acv_high = min(company_acv_high, round(employee_cap))
             company_acv_low = min(company_acv_low, company_acv_high)
+
+    # ── Last-resort universal hard cap (Frank 2026-04-16) ─────────────
+    # $30M 3-Year ACV Potential is the defensible ceiling for any
+    # single prospect we've never worked with. Established relationships
+    # (Microsoft today at $22M, Cisco at $255K but $30M potential) sit
+    # at or near this line. For brand-new prospects, anything above
+    # $30M signals the model has run off the rails — cap and log so
+    # we notice if it fires too often.
+    # The cap is a SAFETY NET, not a primary governor: changes 1-5
+    # (audience cap, Fit Score gate, per-product unscored, etc.) are
+    # expected to keep the math inside $30M naturally. This is the
+    # last line of defense.
+    hard_cap = cfg.HOLISTIC_ACV_COMPANY_HARD_CAP
+    if company_acv_high > hard_cap:
+        log.info(
+            "ACV universal hard cap fired: $%d → $%d for analysis %s",
+            company_acv_high, hard_cap, analysis.get("analysis_id", "?"),
+        )
+        company_acv_high = hard_cap
+        company_acv_low = min(company_acv_low, company_acv_high)
 
     analysis["_company_acv"] = {
         "company_low": company_acv_low,
