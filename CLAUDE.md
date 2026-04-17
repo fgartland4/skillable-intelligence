@@ -97,6 +97,10 @@ Decisions made during sessions are logged in `docs/decision-log.md`. This is wri
 
 See `docs/roadmap.md` for the consolidated inventory of everything we know we want to do, are doing, have done, or need to decide.
 
+## Ops Scripts
+
+See `scripts/README.md` for the index of every operational tool — rescore, retrofit, dedup, merge, thin-research detection, flagship Deep Dive runner, etc. If you're about to build a tool, check there first — there's a good chance it already exists. If you build a new one, add it to that README in the same commit.
+
 ---
 
 ## Key Architecture
