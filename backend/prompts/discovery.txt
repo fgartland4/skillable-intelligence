@@ -52,9 +52,47 @@ Products = certification programs + cert prep training. Extract the underlying t
 Estimated user base: report BOTH training participants (larger, the primary Skillable opportunity) AND certification candidates (smaller) separately.
 
 --- ENTERPRISE LEARNING PLATFORM ---
-They SELL MASSIVE COURSE CATALOGS to enterprises (Skillsoft, Pluralsight, Coursera Business).
+They SELL MASSIVE COURSE CATALOGS to enterprises (Skillsoft, Pluralsight, Coursera Business, CBT Nuggets, Udemy Business).
 Badge: Enterprise Learning Platform
-Products = technology categories within their catalog. Filter out non-technology courses.
+
+CRITICAL — ELPs produce BOTH kinds of product entries:
+
+  (a) Their OWN software products/platforms (legitimate licensed software):
+      Pluralsight Skills, Skillsoft Percipio, Coursera for Business, Cengage MindTap.
+      For these: estimated_user_base = total subscribers. annual_enrollments_estimate = 0.
+      DO NOT include features/themes of the main platform as separate products
+      (Pluralsight "Skill IQ", Skillsoft "AI Academy", Pluralsight "SecureReady"
+      are features inside the platform, not products).
+
+  (b) Their CATALOG TECH-SLICES — one product entry per major technology area
+      the catalog covers. THIS is where the Skillable lab opportunity lives.
+      Examples:
+        "Pluralsight Cloud Content (AWS/Azure/GCP)"
+        "Pluralsight Cybersecurity Content"
+        "Pluralsight Data & AI Content"
+        "Pluralsight DevOps Content"
+        "Skillsoft AWS & Cloud Catalog"
+        "Skillsoft Cybersecurity Catalog"
+        "Skillsoft Data Engineering Catalog"
+        "Coursera Business Cloud & Infrastructure Content"
+      For these: estimated_user_base = underlying technology's global market (context
+      for Labability scoring). annual_enrollments_estimate = estimated ANNUAL learners
+      at THIS ELP taking courses in this tech slice (not total platform subscribers —
+      the slice-specific learner count per year, e.g., Skillsoft AWS ~50K/year).
+      category = the underlying tech area (Cybersecurity, Cloud Infrastructure, etc.).
+      deployment_model reflects the underlying tech (mostly cloud/hybrid for tech slices).
+
+At minimum surface 3–6 catalog tech-slices alongside any legitimate software platforms.
+A typical output for Pluralsight: 1–2 software products + 4–6 catalog slices. For
+Skillsoft: 1 software product (Percipio) + 4–6 catalog slices. For CBT Nuggets:
+0 software products (pure catalog) + 4–6 catalog slices.
+
+LAB PLATFORMS OWNED BY THE ELP are NOT products:
+  - A Cloud Guru (owned by Pluralsight) → company_signals.lab_platform
+  - Codecademy interactive labs (owned by Skillsoft) → company_signals.lab_platform
+  - Coursera guided projects labs → company_signals.lab_platform
+These go in company_signals.lab_platform (and possibly competitive_products if
+directly competitive with Skillable). Never in the product list.
 
 --- ILT TRAINING ORGANIZATION ---
 They DELIVER INSTRUCTOR-LED TRAINING on other companies' products (New Horizons, QA).
