@@ -1771,40 +1771,24 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                 existing.get("analysis_id"), stale_count,
             )
             existing["products"] = []
-        elif status == cfg.CacheStatus.RUBRIC_STALE:
+        elif status in (cfg.CacheStatus.RUBRIC_STALE, cfg.CacheStatus.UNSTAMPED):
             # Rubric vocabulary changed — re-grade Pillar 2/3 qualitative
             # findings + rescore. Research (facts) preserved.
+            #
+            # UNSTAMPED legacy records land here too (Frank 2026-04-16):
+            # we don't know what rubric version they were graded under,
+            # and the research is still on disk. Regrading against the
+            # current rubric + rescoring against the current math is the
+            # honest expression of "cached data gets the latest scoring
+            # for free". The only cost is the focused rubric grader
+            # Claude calls (cents per company, not dollars) — research
+            # is never re-run. Honors Rule #1.
             log.info(
-                "Intelligence.score: analysis %s — RUBRIC_STALE — re-grading + rescoring %d products",
-                existing.get("analysis_id"), stale_count,
-            )
-            try:
-                n = rescore_products_from_saved_facts(existing, regrade=True)
-                rescored_in_place = True
-                log.info(
-                    "Intelligence.score: RUBRIC_STALE rescore completed %d/%d products",
-                    n, stale_count,
-                )
-            except Exception:
-                log.exception(
-                    "Intelligence.score: RUBRIC_STALE rescore failed for %s — "
-                    "falling back to full wipe",
-                    existing.get("analysis_id"),
-                )
-                existing["products"] = []
-            for p in existing.get("products", []):
-                existing_product_names.add(p.get("name", ""))
-        elif status in (cfg.CacheStatus.MATH_STALE, cfg.CacheStatus.UNSTAMPED):
-            # Pure-Python rescore — zero Claude calls, milliseconds.
-            # UNSTAMPED legacy records land here too: fact drawers on disk
-            # match current RESEARCH_SCHEMA_VERSION, only the math needs
-            # refreshing. Honors Rule #1 (research is immutable).
-            log.info(
-                "Intelligence.score: analysis %s — %s — pure-Python rescore of %d products",
+                "Intelligence.score: analysis %s — %s — re-grading + rescoring %d products",
                 existing.get("analysis_id"), status, stale_count,
             )
             try:
-                n = rescore_products_from_saved_facts(existing, regrade=False)
+                n = rescore_products_from_saved_facts(existing, regrade=True)
                 rescored_in_place = True
                 log.info(
                     "Intelligence.score: %s rescore completed %d/%d products",
@@ -1816,11 +1800,35 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                     # downstream path re-researches; otherwise we'd carry
                     # unscored products forward with stale scores.
                     log.info(
-                        "Intelligence.score: analysis %s — UNSTAMPED with no "
+                        "Intelligence.score: analysis %s — %s with no "
                         "fact drawers — wiping to trigger re-research",
-                        existing.get("analysis_id"),
+                        existing.get("analysis_id"), status,
                     )
                     existing["products"] = []
+            except Exception:
+                log.exception(
+                    "Intelligence.score: %s rescore failed for %s — "
+                    "falling back to full wipe",
+                    status, existing.get("analysis_id"),
+                )
+                existing["products"] = []
+            for p in existing.get("products", []):
+                existing_product_names.add(p.get("name", ""))
+        elif status == cfg.CacheStatus.MATH_STALE:
+            # Pure-Python rescore — zero Claude calls, milliseconds.
+            # Math-only bump; rubric + research stamps are current, so
+            # saved rubric grades are trustworthy. No regrade needed.
+            log.info(
+                "Intelligence.score: analysis %s — MATH_STALE — pure-Python rescore of %d products",
+                existing.get("analysis_id"), stale_count,
+            )
+            try:
+                n = rescore_products_from_saved_facts(existing, regrade=False)
+                rescored_in_place = True
+                log.info(
+                    "Intelligence.score: MATH_STALE rescore completed %d/%d products",
+                    n, stale_count,
+                )
             except Exception:
                 log.exception(
                     "Intelligence.score: rescore failed for %s — "
