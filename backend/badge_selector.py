@@ -147,6 +147,13 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
                         confidence="indicated",
                     )],
                 ))
+                # Emit ONE SaaS-context badge, not two. The "No API" and
+                # "Partial API" variants already imply SaaS-Only Deployment
+                # (they're the reason Simulation was chosen). The bare
+                # "SaaS-Only Deployment" badge only fires when neither API
+                # badge applies — i.e., SaaS + API exists but something
+                # else drove Simulation selection. Frank 2026-04-16.
+                saas_api_badge_emitted = False
                 if p.runs_as_saas_only and not p.has_sandbox_api:
                     badges.append(Badge(
                         name="SaaS-Only, No API", color="amber", qualifier="Risk",
@@ -158,6 +165,7 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
                             confidence="confirmed",
                         )],
                     ))
+                    saas_api_badge_emitted = True
                 elif p.runs_as_saas_only and p.has_sandbox_api and p.sandbox_api_granularity == "partial":
                     badges.append(Badge(
                         name="Partial API", color="amber", qualifier="Risk",
@@ -168,7 +176,8 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
                             confidence="indicated",
                         )],
                     ))
-                if p.runs_as_saas_only:
+                    saas_api_badge_emitted = True
+                if p.runs_as_saas_only and not saas_api_badge_emitted:
                     badges.append(Badge(
                         name="SaaS-Only Deployment", color="gray", qualifier="Context",
                         evidence=[_evidence(
@@ -440,7 +449,7 @@ def _pillar_1_lab_access_badges(product: Product) -> list[Badge]:
                 # Real-product facts still matter as "what was skipped because of Simulation"
                 if la.has_mfa_blocker:
                     badges.append(Badge(
-                        name="Real-Product MFA", color="amber", qualifier="Risk",
+                        name="Real Product: MFA Barrier", color="amber", qualifier="Risk",
                         evidence=[_evidence(
                             "Real product requires MFA — contributed to the Simulation fabric "
                             "decision (MFA blocks automated learner provisioning). Simulation "
@@ -659,9 +668,14 @@ def _pillar_1_scoring_badges(product: Product) -> list[Badge]:
             ))
             # If the real product would have offered scoring surfaces, surface that —
             # simulation elides them but it's still useful context about what we're missing.
+            # "Real Product:" prefix makes the contrast story readable —
+            # these badges describe what the REAL product has that
+            # Simulation elides. Without the prefix, "Real Scoring API
+            # Present" sitting next to "No Scoring in Simulation" read as
+            # a contradiction. Frank 2026-04-16.
             if sc.state_validation_api_granularity in ("rich", "partial"):
                 badges.append(Badge(
-                    name="Real Scoring API Present", color="gray", qualifier="Context",
+                    name="Real Product: Scoring API", color="gray", qualifier="Context",
                     evidence=[_evidence(
                         "The real product exposes a state-validation API (" +
                         sc.state_validation_api_granularity +
@@ -672,7 +686,7 @@ def _pillar_1_scoring_badges(product: Product) -> list[Badge]:
                 ))
             if sc.scriptable_via_shell_granularity in ("full", "partial"):
                 badges.append(Badge(
-                    name="Real Script Surface", color="gray", qualifier="Context",
+                    name="Real Product: Script Surface", color="gray", qualifier="Context",
                     evidence=[_evidence(
                         "The real product has a shell scripting surface — unused under "
                         "Simulation. Would drive Grand Slam scoring if we had a VM fabric.",
@@ -681,7 +695,7 @@ def _pillar_1_scoring_badges(product: Product) -> list[Badge]:
                 ))
             if sc.gui_state_visually_evident_granularity in ("full", "partial"):
                 badges.append(Badge(
-                    name="AI Vision Candidate", color="gray", qualifier="Context",
+                    name="Real Product: AI Vision Candidate", color="gray", qualifier="Context",
                     evidence=[_evidence(
                         "GUI-evident state reported — AI Vision could score the real product "
                         "but Simulation doesn't expose a real GUI to inspect.",
@@ -807,7 +821,7 @@ def _pillar_1_teardown_badges(product: Product) -> list[Badge]:
             ))
             if td.has_orphan_risk:
                 badges.append(Badge(
-                    name="Real-Product Orphan Risk", color="amber", qualifier="Risk",
+                    name="Real Product: Orphan Risk", color="amber", qualifier="Risk",
                     evidence=[_evidence(
                         "If this product were promoted off Simulation to a real fabric, "
                         "documented orphan-risk signals would apply — vendor teardown API "
