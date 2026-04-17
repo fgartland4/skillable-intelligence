@@ -1467,19 +1467,20 @@ def _build_prospector_row_from_analysis(
         row["deep_dive_count"] = scored_count
         row["deep_dive_complete"] = scored_count >= row.get("total_products", 0) and row.get("total_products", 0) > 0
 
-        # Sharpen ACV with Deep Dive scored subtotal when present.
-        # The Option 2 holistic ACV stays in rationale/drivers/caveats —
-        # the Deep Dive total replaces only the displayed dollar figure.
+        # Sharpen ACV with the new pillar-aware company ACV (Frank 2026-04-16).
+        # Single value per company, not a range. Reads _company_acv.company_low
+        # which is the sum of (scored per-product ACVs, each Fit-Score-gated)
+        # + (unscored per-product ACVs, each rough-Fit-Score-gated). Capped
+        # by employee cap + universal $30M safety. One source of truth.
         acv = analysis.get("_company_acv") or {}
-        if acv.get("scored_low"):
+        company_low = acv.get("company_low") or acv.get("scored_low") or 0
+        if company_low > 0:
             from app import _format_acv_value
-            row["estimated_acv"] = f"~{_format_acv_value(acv['scored_low'])}"
-            row["_sort_acv"] = acv["scored_low"]
-            row["acv_low"] = acv["scored_low"]
-            row["acv_high"] = acv.get("scored_high") or acv["scored_low"]
-            row["acv_midpoint"] = (row["acv_low"] + row["acv_high"]) // 2  # magic-allowed: midpoint of ACV range
-            # Deep Dive ACV is more trustworthy — confidence stays whatever
-            # the holistic call said, since it's still the rationale source.
+            row["estimated_acv"] = f"~{_format_acv_value(company_low)}"
+            row["_sort_acv"] = company_low
+            row["acv_low"] = company_low
+            row["acv_high"] = company_low  # single value, no range
+            row["acv_midpoint"] = company_low
     return row
 
 

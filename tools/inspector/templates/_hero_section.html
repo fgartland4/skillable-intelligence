@@ -48,7 +48,7 @@
      — template just reads and renders. No math here. GP4 Layer Discipline. #}
   {% set acv = analysis._company_acv or {} %}
   {% if acv.company_high and acv.company_high > 0 %}
-    <div class="hero-acv-label">ACV Potential <span class="info-icon" onclick="openInfoModal('acv_potential')" title="How is ACV Potential calculated?">?</span></div>
+    <div class="hero-acv-label">3-Year ACV Potential <span class="info-icon" onclick="openInfoModal('acv_potential')" title="How is 3-Year ACV Potential calculated?">?</span></div>
     <div class="hero-acv-num">~{{ acv.company_low | format_acv }}</div>
     <div class="hero-acv-detail">
       Estimated across all <strong>{{ acv.discovered_count }}</strong> discovered products
