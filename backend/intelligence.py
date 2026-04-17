@@ -1855,27 +1855,31 @@ def discover(company_name: str, known_products: list[str] | None = None,
     # the same function. See HIGH-1 in code-review-2026-04-07.md.
     enrich_discovery(discovery)
 
-    # Discovery Option 2 — holistic ACV estimate (one Claude call, replaces
-    # the retired per-product Python ACV math). Reads the cached discovery
-    # we just built and produces a defendable range + confidence + rationale.
-    # Safe to call here because the discovery dict already has products,
-    # company_signals, and badge populated by the discover prompt above.
-    _progress("Estimating ACV potential…")
+    # Discovery-time company ACV via unified framework (Frank 2026-04-17).
+    # Retires the legacy `estimate_holistic_acv` Claude shortcut.
+    # Deterministic Python: per-product archetype-capped audience →
+    # company total audience (org-type-aware) → allocate back to products
+    # by archetype-weighted share → per-product Motion 1 ACV → sum.
+    # Known-customer floor applies for existing Skillable customers.
+    # Returns the same `_holistic_acv` shape so all templates (Inspector
+    # hero, Prospector row, CSV export) read unchanged keys.
+    # Full spec: docs/Platform-Foundation.md → ACV Potential Model.
+    _progress("Computing ACV potential (unified framework)…")
     try:
-        from researcher import estimate_holistic_acv
-        holistic = estimate_holistic_acv(company_name, discovery)
+        from acv_calculator import compute_discovery_company_acv
+        holistic = compute_discovery_company_acv(discovery)
         discovery["_holistic_acv"] = holistic
         log.info(
-            "Intelligence.discover: holistic ACV for %s = $%s-$%s (%s)",
-            company_name, f"{holistic.get('acv_low', 0):,}",
-            f"{holistic.get('acv_high', 0):,}",
+            "Intelligence.discover: framework ACV for %s = $%s (%s, %d drivers)",
+            company_name, f"{holistic.get('acv_high', 0):,}",
             holistic.get("confidence", "?"),
+            len(holistic.get("key_drivers") or []),
         )
     except Exception as e:
-        log.warning("Intelligence.discover: holistic ACV failed for %s: %s",
+        log.warning("Intelligence.discover: framework ACV failed for %s: %s",
                     company_name, e)
-        # Don't block discovery on holistic ACV failure — display layer
-        # will show "—" and a retry hint when _holistic_acv is missing.
+        # Don't block discovery on ACV failure — display layer will show
+        # "—" and a retry hint when _holistic_acv is missing.
         discovery["_holistic_acv"] = {}
 
     _progress("Categorizing offerings against Skillable taxonomy…")
