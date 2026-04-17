@@ -277,6 +277,217 @@ def _apply_customer_fit_to_products(products: list[dict], customer_fit: dict) ->
         p["fit_score"]["customer_fit"] = copy.deepcopy(customer_fit)
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Compound-research merge — best-of-best across discovery runs
+#
+# Frank 2026-04-16: when a second research run for the same company finds
+# less than a prior run (thinner search results, missed docs page, AI
+# non-determinism), the new discovery should NOT regress the prior findings.
+# Persistent signals (has_api, is_flagship, confirmed estimated_user_base)
+# stay carried forward; freshness signals (rough_labability_score, holistic
+# ACV, organization_type classification) prefer the newer run.
+#
+# Mirrors the `_build_unified_customer_fit` best-of-best pattern already in
+# use inside a single analysis — extended to "best of best across discovery
+# runs of the same company".
+# ─────────────────────────────────────────────────────────────────────────
+
+_CONFIDENCE_RANK = {"confirmed": 3, "indicated": 2, "inferred": 1, "": 0}
+_RELATIONSHIP_RANK = {"flagship": 3, "secondary": 2, "satellite": 2, "standalone": 1, "": 0}
+
+
+def _merge_product_entry(existing: dict, new: dict) -> dict:
+    """Merge one product's discovery-level fields — best-of-best per field.
+
+    Returns a merged dict. Neither input is mutated. The new dict's field
+    values win when they're non-empty and the existing is empty; otherwise
+    per-field rules (confidence rank, longer narrative wins, persistent-
+    truth preservation) apply.
+    """
+    merged: dict = dict(new)  # start from the new research
+
+    # Product identity — new wins unless empty, then fall back to existing
+    for key in ("name", "category", "subcategory"):
+        if not merged.get(key) and existing.get(key):
+            merged[key] = existing[key]
+
+    # Narrative fields — prefer the longer/richer text so we never lose
+    # detail a prior run surfaced. Applies to description, complexity_signals,
+    # target_personas, cert_inclusion, api_surface, user_base_evidence.
+    for key in (
+        "description", "complexity_signals", "target_personas",
+        "cert_inclusion", "api_surface", "user_base_evidence",
+    ):
+        old = (existing.get(key) or "").strip()
+        new_val = (merged.get(key) or "").strip()
+        if len(old) > len(new_val):
+            merged[key] = old
+
+    # Persistent truth — is_core_product: once flagged True, never regress
+    if existing.get("is_core_product") and not merged.get("is_core_product"):
+        merged["is_core_product"] = True
+
+    # Relationship — flagship > secondary/satellite > standalone > ""
+    old_rel = existing.get("product_relationship", "")
+    new_rel = merged.get("product_relationship", "")
+    if _RELATIONSHIP_RANK.get(old_rel, 0) > _RELATIONSHIP_RANK.get(new_rel, 0):
+        merged["product_relationship"] = old_rel
+
+    # deployment_model — prefer non-empty; if both set, prefer new (freshest)
+    if not merged.get("deployment_model") and existing.get("deployment_model"):
+        merged["deployment_model"] = existing["deployment_model"]
+
+    # estimated_user_base — prefer the higher-confidence source
+    old_ub_conf = existing.get("user_base_confidence", "")
+    new_ub_conf = merged.get("user_base_confidence", "")
+    if _CONFIDENCE_RANK.get(old_ub_conf, 0) > _CONFIDENCE_RANK.get(new_ub_conf, 0):
+        for key in ("estimated_user_base", "user_base_confidence", "user_base_evidence"):
+            if existing.get(key):
+                merged[key] = existing[key]
+
+    # annual_enrollments_estimate — wrapper-org audience; same confidence rule
+    old_ae_conf = existing.get("annual_enrollments_confidence", "")
+    new_ae_conf = merged.get("annual_enrollments_confidence", "")
+    if _CONFIDENCE_RANK.get(old_ae_conf, 0) > _CONFIDENCE_RANK.get(new_ae_conf, 0):
+        for key in (
+            "annual_enrollments_estimate", "annual_enrollments_confidence",
+            "annual_enrollments_evidence",
+        ):
+            if existing.get(key):
+                merged[key] = existing[key]
+
+    # rough_labability_score — prefer the newer value (fresher scoring
+    # heuristic), but if new has no score and existing does, keep the old.
+    if not merged.get("rough_labability_score") and existing.get("rough_labability_score"):
+        merged["rough_labability_score"] = existing["rough_labability_score"]
+
+    # _rough_labability_score_initial — preserve if already set on either side
+    # (diagnostic history from earlier Phase F-PL write-backs)
+    for key in ("_rough_labability_score_initial", "_tier", "_tier_label"):
+        if existing.get(key) and not merged.get(key):
+            merged[key] = existing[key]
+
+    # underlying_technologies (list of dicts) — union by name
+    old_techs = existing.get("underlying_technologies") or []
+    new_techs = merged.get("underlying_technologies") or []
+    if old_techs or new_techs:
+        seen = {t.get("name", "").strip().lower(): t for t in new_techs if isinstance(t, dict)}
+        for t in old_techs:
+            if not isinstance(t, dict):
+                continue
+            key = t.get("name", "").strip().lower()
+            if key and key not in seen:
+                seen[key] = t
+        merged["underlying_technologies"] = list(seen.values())
+
+    return merged
+
+
+def _merge_company_signals(existing: dict, new: dict) -> dict:
+    """Merge the `company_signals` block. Prefer non-empty over empty."""
+    if not isinstance(existing, dict):
+        return new or {}
+    if not isinstance(new, dict):
+        return existing or {}
+    merged = dict(new)
+    for key, old_val in existing.items():
+        if not merged.get(key) and old_val:
+            merged[key] = old_val
+    return merged
+
+
+def merge_discovery_facts(existing: dict, new: dict) -> dict:
+    """Merge `existing` discovery's best-of-best findings into `new`.
+
+    Returns `new` (mutated in place) with fields carried forward from
+    `existing` where doing so preserves richer evidence. Keys preserved:
+      - per-product narrative fields (longer wins)
+      - per-product confidence-ranked numeric facts (higher-confidence wins)
+      - product list (union by name — don't lose products seen before)
+      - company_signals (non-empty wins)
+      - _customer_fit (Phase F aggregation already saved on existing)
+      - _rough_labability_score_initial and tier fields (Phase F-PL history)
+
+    Keys that always take from `new` (fresh research wins):
+      - organization_type / company_badge (freshest classification)
+      - _holistic_acv (reflects current config / anchors)
+      - rough_labability_score (per product, when new has a non-zero value)
+
+    The intent is compound-research per GP5: re-running discovery never
+    regresses prior findings — it augments them.
+    """
+    if not isinstance(existing, dict) or not existing:
+        return new
+    if not isinstance(new, dict):
+        return new
+
+    # ── Merge product list (union by normalized name) ──
+    old_products = existing.get("products") or []
+    new_products = new.get("products") or []
+
+    def _norm(name: str) -> str:
+        return (name or "").strip().lower()
+
+    old_by_name: dict[str, dict] = {}
+    for p in old_products:
+        if isinstance(p, dict):
+            key = _norm(p.get("name", ""))
+            if key:
+                old_by_name[key] = p
+
+    merged_products: list[dict] = []
+    seen_new_keys: set[str] = set()
+    for np in new_products:
+        if not isinstance(np, dict):
+            continue
+        key = _norm(np.get("name", ""))
+        if not key:
+            merged_products.append(np)
+            continue
+        seen_new_keys.add(key)
+        if key in old_by_name:
+            merged_products.append(_merge_product_entry(old_by_name[key], np))
+        else:
+            merged_products.append(np)
+
+    # Products only in existing (missing from the new run) — keep them.
+    # This is the "don't lose what we found before" rule.
+    for key, op in old_by_name.items():
+        if key not in seen_new_keys:
+            merged_products.append(op)
+
+    new["products"] = merged_products
+
+    # ── Merge company_signals ──
+    new["company_signals"] = _merge_company_signals(
+        existing.get("company_signals") or {},
+        new.get("company_signals") or {},
+    )
+
+    # ── Preserve Phase F customer_fit if new run didn't produce one ──
+    if not new.get("_customer_fit") and existing.get("_customer_fit"):
+        new["_customer_fit"] = existing["_customer_fit"]
+
+    # ── organization_type / company_badge — prefer new (fresher) unless empty ──
+    for key in ("organization_type", "company_badge", "company_description", "company_url"):
+        if not new.get(key) and existing.get(key):
+            new[key] = existing[key]
+
+    # ── _holistic_acv — prefer new (reflects current anchors) unless empty ──
+    if not new.get("_holistic_acv") and existing.get("_holistic_acv"):
+        new["_holistic_acv"] = existing["_holistic_acv"]
+
+    # ── Track merge provenance so archival + audit works ──
+    merged_from = list(new.get("_merged_from") or [])
+    old_id = existing.get("discovery_id")
+    if old_id and old_id != new.get("discovery_id") and old_id not in merged_from:
+        merged_from.append(old_id)
+    if merged_from:
+        new["_merged_from"] = merged_from
+
+    return new
+
+
 def aggregate_product_labability_to_discovery(analysis: dict) -> bool:
     """Write Deep Dive Pillar 1 scores back onto the parent discovery so
     Prospector's tier labels reflect real scoring, not the pre-Deep-Dive
@@ -1052,6 +1263,33 @@ def discover(company_name: str, known_products: list[str] | None = None,
         discovery["_holistic_acv"] = {}
 
     _progress("Categorizing offerings against Skillable taxonomy…")
+
+    # ── Compound-research merge (Frank 2026-04-16) ────────────────────────
+    # Before saving this fresh discovery, check if an earlier discovery for
+    # the same company exists. If so, merge best-of-best findings from the
+    # existing record into the new one so this run never regresses prior
+    # research. Persistent signals carry forward; freshness signals (holistic
+    # ACV, rough_labability_score) take the new values. See
+    # merge_discovery_facts above for the full merge rules.
+    try:
+        existing_for_merge = find_discovery_by_company_name(company_name)
+        # Skip the merge if the existing record IS this new record (only
+        # happens when force_refresh reuses an id path — defensive check).
+        if existing_for_merge and existing_for_merge.get("discovery_id") != discovery["discovery_id"]:
+            old_id = existing_for_merge.get("discovery_id", "<unknown>")
+            log.info(
+                "Intelligence.discover: merging prior discovery %s into fresh "
+                "research for %s (best-of-best)",
+                old_id, company_name,
+            )
+            merge_discovery_facts(existing_for_merge, discovery)
+    except Exception:
+        log.exception(
+            "merge_discovery_facts failed for %s — proceeding with unmerged "
+            "fresh discovery (no data loss; just missing prior-run enrichment)",
+            company_name,
+        )
+
     # Stamp the discovery with version + created_at right before save.
     # save_discovery will reject the write if either field is missing.
     _stamp_for_save(discovery, timestamp_field="created_at")
