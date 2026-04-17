@@ -100,9 +100,15 @@
         .btn-export.btn-disabled:hover { background: transparent; color: var(--sk-text-muted); }
 
         /* ── Tabs + actions row ── */
+        /* Sticky so the Deep Dive / Export buttons stay clickable while
+           scrolling a long list (Frank 2026-04-16). Solid background so
+           table rows scrolling behind don't bleed through. */
         .results-tabs {
             display: flex; align-items: center; gap: 0; margin-bottom: 18px;
             border-bottom: 1px solid var(--sk-border);
+            position: sticky; top: 0; z-index: 20;
+            background: var(--sk-bg);
+            padding-top: 12px;
         }
         .results-tabs .results-actions { margin-left: auto; border-bottom: none; }
         .results-tab {
@@ -122,10 +128,13 @@
         .results-tab .tab-close:hover { color: var(--sk-accent); }
 
         /* ── Results table ── */
+        /* `overflow: hidden` removed 2026-04-16 — it breaks sticky thead.
+           `border-collapse: separate` keeps the rounded-corner aesthetic
+           while allowing position: sticky on th cells. */
         .results-table {
-            width: 100%; border-collapse: collapse;
+            width: 100%; border-collapse: separate; border-spacing: 0;
             background: var(--sk-surface); border: 1px solid var(--sk-border);
-            border-radius: 10px; overflow: hidden;
+            border-radius: 10px;
             table-layout: fixed;
         }
         .results-table th {
@@ -134,6 +143,17 @@
             text-transform: uppercase; color: var(--sk-text-dim);
             border-bottom: 1px solid var(--sk-border);
             background: rgba(36,237,155,0.02);
+            /* Sticky below the results-tabs bar (Frank 2026-04-16). Column
+               headers follow the scroll so user always knows what each
+               column is while paging through long lists. Background needs
+               to be opaque so rows scrolling behind don't bleed through. */
+            position: sticky; top: 62px; z-index: 10;
+        }
+        /* Solid backdrop for th cells — the 0.02 alpha background above
+           is too transparent to hide scrolling rows. Layered here so the
+           existing accent tint still shows on top. */
+        .results-table thead {
+            background: var(--sk-bg);
         }
         /* # column — right-aligned so multi-digit ranks line up cleanly.
            Sized to fit four characters so 1000+ entries render without clipping. */
@@ -363,7 +383,6 @@
                 onclick="switchTab('batch', this)">Batch Results ({{ batch_results | length }}) <span class="tab-close" onclick="event.stopPropagation(); closeBatchTab();">&times;</span></button>
         {% endif %}
         <div class="results-actions">
-            <a href="#" class="btn-deep-dive" id="btnResearch">Research &rarr;</a>
             <a href="#" class="btn-deep-dive" id="btnDeepDive">Deep Dive &rarr;</a>
             <a href="#" class="btn-export" id="btnExportCsv">Export CSV &darr;</a>
             <span class="btn-export btn-disabled" title="Coming Soon — HubSpot integration is planned">Send to HubSpot &rarr;</span>
@@ -637,23 +656,20 @@
         }
     }
 
-    // ── Checkbox logic (single-select) — lights up both Research and Deep Dive ──
+    // ── Checkbox logic (single-select) — lights up Deep Dive button ──
+    // Research button removed (Frank 2026-04-16): both buttons went to the
+    // same URL; Deep Dive is the single canonical action.
     window.handleCheckbox = function(cb) {
         // Uncheck all others
         document.querySelectorAll('.row-checkbox').forEach(function(other) {
             if (other !== cb) other.checked = false;
         });
-        var btnResearch = document.getElementById('btnResearch');
         var btnDeepDive = document.getElementById('btnDeepDive');
         if (cb.checked) {
             var discId = cb.getAttribute('data-discovery-id');
-            btnResearch.href = '/inspector/product-selection/' + discId;
-            btnResearch.classList.add('visible');
             btnDeepDive.href = '/inspector/product-selection/' + discId;
             btnDeepDive.classList.add('visible');
         } else {
-            btnResearch.classList.remove('visible');
-            btnResearch.href = '#';
             btnDeepDive.classList.remove('visible');
             btnDeepDive.href = '#';
         }
@@ -661,9 +677,7 @@
 
     function uncheckAll() {
         document.querySelectorAll('.row-checkbox').forEach(function(cb) { cb.checked = false; });
-        var btnResearch = document.getElementById('btnResearch');
         var btnDeepDive = document.getElementById('btnDeepDive');
-        if (btnResearch) { btnResearch.classList.remove('visible'); btnResearch.href = '#'; }
         if (btnDeepDive) { btnDeepDive.classList.remove('visible'); btnDeepDive.href = '#'; }
     }
 
