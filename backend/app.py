@@ -533,22 +533,70 @@ def inspector_product_selection(discovery_id: str):
             if fit_total > 0:
                 cached_product_fit_scores[n] = fit_total
 
-    # Stale-cache decision: if there's an existing analysis AND it was scored
-    # with an older logic version, surface a confirmation modal when the user
-    # clicks Deep Dive instead of silently re-using the cached scores. Frank
-    # 2026-04-07: "it would be nice maybe to have that modal saying, hey,
-    # there's newer stuff. Do you wanna just go, or do you want the newer stuff?"
-    cached_is_stale = bool(existing) and not cfg.is_cached_logic_current(existing)
+    # Cache-decision UX — two-scenario design (Frank 2026-04-17).
+    #   - Free paths (CURRENT + MATH_STALE): no modal, Deep Dive runs quietly
+    #     and the free pure-Python rescore applies the latest math.
+    #   - Not-free paths (RUBRIC_STALE + UNSTAMPED + RESEARCH_STALE): modal
+    #     shows cost + time and lets the user apply the update or keep the
+    #     cached scores as-is.
+    # See _compute_cache_decision_context below for the rule + labels.
+    cache_decision = _compute_cache_decision_context(existing)
 
     return render_template("product_selection.html",
                           discovery=disc,
                           existing_analysis=existing,
                           cached_product_names=cached_product_names,
                           cached_product_fit_scores=cached_product_fit_scores,
-                          cached_is_stale=cached_is_stale,
+                          cache_needs_decision=cache_decision["needs_decision"],
+                          cache_update_cost=cache_decision["cost_label"],
+                          cache_update_time=cache_decision["time_label"],
                           deep_dive_max_new=cfg.DEEP_DIVE_MAX_NEW_PRODUCTS,
                           show_family_picker=show_family_picker,
                           modal_content_json=json.dumps(cfg.MODAL_CONTENT))
+
+
+def _compute_cache_decision_context(cached_data) -> dict:
+    """Decide whether Deep Dive should prompt the user, and what labels to show.
+
+    Two-scenario design (Frank 2026-04-17):
+      - Free paths (CURRENT + MATH_STALE) → no modal. Deep Dive runs normally
+        and applies the free pure-Python rescore quietly.
+      - Not-free paths (RUBRIC_STALE + UNSTAMPED + RESEARCH_STALE) → modal
+        with user-language cost + time so the user can make an informed call.
+
+    Returns a dict:
+      needs_decision: bool — True if modal should fire
+      tier:           str  — the tier name (for logs / debug)
+      cost_label:     str  — user-facing cost string ("~50¢", "~$2-3 per product")
+      time_label:     str  — user-facing time string ("under a minute", "a few minutes")
+
+    The scoring math that applies on CURRENT + MATH_STALE is free by design
+    (`intelligence.score` runs rescore_products_from_saved_facts with regrade=
+    False — pure Python, zero Claude). RUBRIC_STALE and UNSTAMPED spend a
+    handful of rubric grader Claude calls per product (~cents). RESEARCH_STALE
+    is the rare deliberate schema bump — full re-research cost per product.
+    """
+    import scoring_config as cfg
+    empty = {"needs_decision": False, "tier": "none", "cost_label": "", "time_label": ""}
+    if not cached_data:
+        return empty
+    tier = cfg.is_cached_logic_current_tiered(cached_data)
+    if tier in (cfg.CacheStatus.CURRENT, cfg.CacheStatus.MATH_STALE):
+        return {"needs_decision": False, "tier": tier, "cost_label": "", "time_label": ""}
+    if tier == cfg.CacheStatus.RESEARCH_STALE:
+        return {
+            "needs_decision": True,
+            "tier": tier,
+            "cost_label": "~$2-3 per product",
+            "time_label": "a few minutes",
+        }
+    # RUBRIC_STALE + UNSTAMPED → small rubric grader cost per product
+    return {
+        "needs_decision": True,
+        "tier": tier,
+        "cost_label": "~50¢",
+        "time_label": "under a minute",
+    }
 
 
 @app.route("/inspector/score", methods=["POST"])
@@ -853,14 +901,17 @@ def inspector_full_analysis(analysis_id: str):
     # (renders the cached page as-is). Closes the gap that allowed Workday
     # cached scores to render with degraded math after the Pillar 1/2/3 refactor.
     import scoring_config as cfg
-    is_cache_stale = not cfg.is_cached_logic_current(analysis)
-    if is_cache_stale:
+    # Two-scenario cache decision — see _compute_cache_decision_context.
+    # Free paths (CURRENT, MATH_STALE) don't need a modal; they'll apply the
+    # latest math automatically via recompute_analysis on render.
+    cache_decision = _compute_cache_decision_context(analysis)
+    cache_needs_decision = cache_decision["needs_decision"]
+    if cache_needs_decision:
         log.info(
-            "inspector_full_analysis: analysis %s is stale (cached version %r vs current %r) — "
-            "page will prompt user to refresh",
+            "inspector_full_analysis: analysis %s needs user decision (tier %r) — "
+            "page will prompt user to apply update",
             analysis_id,
-            analysis.get("_scoring_logic_version", "<missing>"),
-            cfg.SCORING_LOGIC_VERSION,
+            cache_decision["tier"],
         )
 
     _prepare_analysis_for_render(analysis)
@@ -895,7 +946,9 @@ def inspector_full_analysis(analysis_id: str):
                           analysis=analysis,
                           selected_product=selected_product,
                           default_index=default_idx,
-                          is_cache_stale=is_cache_stale,
+                          cache_needs_decision=cache_needs_decision,
+                          cache_update_cost=cache_decision["cost_label"],
+                          cache_update_time=cache_decision["time_label"],
                           # Modal content lives in scoring_config so the
                           # pillar weights inside the eyebrows can never
                           # drift from the actual config. HIGH-4 in

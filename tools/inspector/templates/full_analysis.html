@@ -857,17 +857,20 @@ body { background: var(--sk-bg-page); color: var(--sk-text); font-family: 'Segoe
 {{ sm.js() }}
 </script>
 
-{% if is_cache_stale %}
-{# Stale cache detected on page load — prompt the user with the decision modal.
-   Refresh: kicks off the existing /refresh endpoint, transitions modal to
-            progress mode, reloads page when scoring completes.
-   Ignore for now: closes the modal; the user sees the cached page as-is. #}
+{% if cache_needs_decision %}
+{# Scoring update modal — only fires when applying the update actually costs
+   money (tier is RUBRIC_STALE / UNSTAMPED / RESEARCH_STALE).  Free rescore
+   paths (CURRENT + MATH_STALE) skip this entirely — the page renders with
+   the current math applied via recompute_analysis.  Two buttons:
+     Apply update: POST /refresh, transition to progress, reload on complete.
+     Keep current scores: close the modal; the user sees the cached page as-is.
+   Frank 2026-04-17. #}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     openSearchModalDecision({
-        eyebrow: 'Cache check',
+        eyebrow: 'Scoring update available',
         title:   {{ analysis.company_name | tojson }},
-        message: 'Data refresh recommended — this analysis was scored with an older version of the scoring logic. Refresh now for current scoring, or ignore and continue with the cached view.',
+        message: 'The way we score this has improved. Applying the update costs about {{ cache_update_cost }} and takes {{ cache_update_time }}. Or you can keep the current scores — they still look good.',
         onRefresh: function() {
             // Re-use the same path as the manual refresh button: hit the
             // refresh endpoint, then transition the SHARED modal in
@@ -877,20 +880,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(function(r) { return r.json(); })
                 .then(function(d) {
                     if (!d.ok) {
-                        alert('Refresh failed: ' + (d.error || 'unknown error'));
+                        alert('Update failed: ' + (d.error || 'unknown error'));
                         return;
                     }
                     transitionSearchModalToProgress({
-                        eyebrow: 'Refreshing',
+                        eyebrow: 'Applying update',
                         title:   {{ analysis.company_name | tojson }},
                         middle:  'stages',  // refresh re-runs the Deep Dive pipeline
                         sseUrl:  '/inspector/score/progress/' + d.job_id,
                         onComplete: function() { window.location.reload(); }
                     });
                 })
-                .catch(function(err) { alert('Refresh failed: ' + err); });
+                .catch(function(err) { alert('Update failed: ' + err); });
         }
     });
+    // User-language button labels.
+    const refreshBtn = document.getElementById('searchModalRefreshBtn');
+    const ignoreBtn  = document.getElementById('searchModalIgnoreBtn');
+    if (refreshBtn) refreshBtn.textContent = 'Apply update';
+    if (ignoreBtn)  ignoreBtn.textContent  = 'Keep current scores';
 });
 </script>
 {% endif %}

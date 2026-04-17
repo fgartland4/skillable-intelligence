@@ -807,37 +807,27 @@ function closeInfoModal() {
             .catch(function(e) { alert('Deep Dive failed: ' + e); });
     }
 
-    // Single Deep Dive submit handler.  Stale-cache decision fires first
-    // (if applicable), then falls through to openDeepDiveModal() which
-    // opens the shared search modal in progress mode.  There is only
-    // ONE submit listener on this form — no race between decision and
-    // progress paths.
-    let staleCachePromptHandled = {% if cached_is_stale and existing_analysis %}false{% else %}true{% endif %};
+    // Single Deep Dive submit handler.  Cache-decision modal fires ONLY
+    // when applying the scoring update would actually cost money (tier is
+    // RUBRIC_STALE / UNSTAMPED / RESEARCH_STALE).  Free rescore paths
+    // (CURRENT + MATH_STALE) skip the modal entirely — the normal Deep
+    // Dive path applies the latest math quietly.  Frank 2026-04-17: two
+    // scenarios, free = just do it, not-free = quick choice.
+    let cacheDecisionHandled = {% if cache_needs_decision and existing_analysis %}false{% else %}true{% endif %};
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        {% if cached_is_stale and existing_analysis %}
-        // Stale-cache decision modal — Frank 2026-04-07.
-        //
-        // When the user clicks Deep Dive on a company whose cached analysis
-        // was scored with an older logic version, show a decision modal:
-        //
-        //   • Refresh first — POST to the refresh endpoint, transition the
-        //     SAME shared modal to progress mode, redirect to Full Analysis
-        //     when the rescore finishes.
-        //
-        //   • Use cached — mark the prompt handled and kick off the normal
-        //     Deep Dive path (openDeepDiveModal) so cached products re-use
-        //     existing scores while any newly-checked products get freshly
-        //     scored.  Uses the SAME shared modal for progress.
-        //
+        {% if cache_needs_decision and existing_analysis %}
+        // Scoring update modal — only fires when applying the update costs
+        // actual money.  Two buttons:
+        //   • Apply update — POST to /refresh, transition the SAME shared
+        //     modal to progress mode, redirect when the rescore finishes.
+        //   • Keep current scores — mark the prompt handled and kick off
+        //     the normal Deep Dive path (openDeepDiveModal) so the user
+        //     continues with the current scores as-is.
         //   • Cancel — close the modal, no action taken.
-        //
-        // Once the user has made a choice on this page load, the flag is
-        // set so subsequent Deep Dive clicks go straight to the normal
-        // shared-modal path without re-prompting.
-        if (!staleCachePromptHandled) {
-            openStaleCacheDecisionModal();
+        if (!cacheDecisionHandled) {
+            openScoringUpdateModal();
             return;
         }
         {% endif %}
@@ -845,25 +835,25 @@ function closeInfoModal() {
         openDeepDiveModal();
     });
 
-    {% if cached_is_stale and existing_analysis %}
-    function openStaleCacheDecisionModal() {
+    {% if cache_needs_decision and existing_analysis %}
+    function openScoringUpdateModal() {
         openSearchModalDecision({
-            eyebrow: 'Cache check',
+            eyebrow: 'Scoring update available',
             title:   {{ discovery.company_name | tojson }},
-            message: 'There is newer scoring logic available. Refresh the cached analysis with current scoring, or continue with the cached scores as-is?',
+            message: 'The way we score this has improved. Applying the update costs about {{ cache_update_cost }} and takes {{ cache_update_time }}. Or you can keep the current scores — they still look good.',
             onRefresh: function() {
                 fetch({{ ('/inspector/analysis/' + existing_analysis.analysis_id + '/refresh') | tojson }}, { method: 'POST' })
                     .then(function(r) { return r.json(); })
                     .then(function(d) {
                         if (!d.ok) {
-                            alert('Refresh failed: ' + (d.error || 'unknown error'));
+                            alert('Update failed: ' + (d.error || 'unknown error'));
                             return;
                         }
                         // Transition the SAME shared modal in-place from
                         // decision mode to progress mode.  One modal, one
                         // SSE subscription, zero flicker.
                         transitionSearchModalToProgress({
-                            eyebrow: 'Refreshing',
+                            eyebrow: 'Applying update',
                             title:   {{ discovery.company_name | tojson }},
                             middle:  'stages',  // refresh re-runs the Deep Dive pipeline
                             sseUrl:  '/inspector/score/progress/' + d.job_id,
@@ -872,24 +862,19 @@ function closeInfoModal() {
                             }
                         });
                     })
-                    .catch(function(err) { alert('Refresh failed: ' + err); });
+                    .catch(function(err) { alert('Update failed: ' + err); });
             },
             onIgnore: function() {
-                staleCachePromptHandled = true;
-                // Re-fire the submit handler in the "cached" path.  The
-                // submit listener sees staleCachePromptHandled=true and
-                // falls through to openDeepDiveModal(), which opens the
-                // shared search modal in progress mode.
+                cacheDecisionHandled = true;
+                // Re-fire the submit handler in the "keep-current" path.
                 form.requestSubmit();
             }
         });
-        // Relabel the default buttons for the Deep Dive submit-intercept
-        // context — "Ignore for now" reads ambiguously here when it actually
-        // proceeds with the cached Deep Dive.
+        // User-language button labels.
         const refreshBtn = document.getElementById('searchModalRefreshBtn');
         const ignoreBtn  = document.getElementById('searchModalIgnoreBtn');
-        if (refreshBtn) refreshBtn.textContent = 'Refresh first';
-        if (ignoreBtn)  ignoreBtn.textContent  = 'Use cached';
+        if (refreshBtn) refreshBtn.textContent = 'Apply update';
+        if (ignoreBtn)  ignoreBtn.textContent  = 'Keep current scores';
     }
     {% endif %}
 })();
