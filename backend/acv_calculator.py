@@ -1333,16 +1333,22 @@ def compute_company_total_audience(discovery: dict) -> int:
     if not by_archetype:
         return 0
 
-    # Org-type routing
+    # Org-type routing (2026-04-17 late — ILT moved out of DISTINCT after
+    # LLPA / New Horizons / LearnQuest showed catastrophic inflation under
+    # sum(all) with 18 hrs × 25% adoption).  ILT students cross-train across
+    # classes and the researcher's per-product `estimated_user_base` is
+    # globally-scoped ("people in the world who might take this training"),
+    # not the ILT org's actual attendance — sum-all compounds both problems.
+    # Use partial-overlap shape instead: max per archetype × 0.70 dampener.
     SHARED_ADMIN_ORG_TYPES = {"SOFTWARE", "ENTERPRISE SOFTWARE"}
     DISTINCT_AUDIENCE_ORG_TYPES = {
-        "ACADEMIC", "ILT TRAINING ORG", "LMS PROVIDER",
-        "TRAINING ORG",
+        "ACADEMIC", "LMS PROVIDER", "TRAINING ORG",
     }
     INDUSTRY_AUTHORITY_ORG_TYPES = {"INDUSTRY AUTHORITY"}
     PARTIAL_OVERLAP_ORG_TYPES = {
         "SYSTEMS INTEGRATOR", "PROFESSIONAL SERVICES",
         "VAR", "TECH DISTRIBUTOR",
+        "ILT TRAINING ORG",
     }
 
     if normalized_org in SHARED_ADMIN_ORG_TYPES:

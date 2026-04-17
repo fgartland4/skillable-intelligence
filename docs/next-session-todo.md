@@ -42,12 +42,118 @@ Recommend **(A)** — consistency with the "one standard" principle — AFTER IL
 
 ### What ships next session (in order)
 
-1. **Fix the ILT formula.**  ~30 min.  Validate against AXcademy, Skillhouse, LLPA, New Horizons, ONLC.  All should land < $5M discovery-time ACV.
-2. **Full non-customer retrofit.**  Run `scripts/retrofit_discovery_acv.py` across the remaining ~550 non-customer discoveries.  Spot-check on Workday, MongoDB, Stripe, Tanium, CompTIA.
-3. **Re-retrofit the 13 zeroed known customers** (LLPA, New Horizons, Cisco, Siemens, Zero-Point) now that ILT is fixed.  Should produce numbers within sanity bounds.
-4. **Rewrite `docs/Platform-Foundation.md` → ACV Potential Model section** with best current thinking.  Remove the "architecture alignment in progress" header added in commit e2461f6.  Document the per-archetype max / sum-across-archetypes rule, allocation logic, known-customer floor.
-5. **Bump `SCORING_MATH_VERSION`.**
-6. **BUILD 2 — ACV-specific dimension weights** (separate commit).  CF: TC 40 / DC 60 / BC 0 / OrgDNA 0; IV: MD 40-50 / PC 25 / MS 25 / LV 0; PL unchanged.  Replaces Fit Score gate in `compute_acv_potential` + `compute_acv_on_product` with an ACV gate using these weights.  Rough gate at discovery; real gate at Deep Dive.  Validate against Microsoft / Trellix / Skillsoft / Pluralsight / ASU.
+**Updates 2026-04-17 end of session:** Items 1, 2, 3, 5 from the previous list ALL SHIPPED TONIGHT (ILT formula fix moved ILT into partial-overlap branch; full non-customer retrofit ran across 397 discoveries; 13 zeroed customers partially re-retrofitted — 2 came back with numbers, 11 remain zeroed due to data-quality issues in `known_customers.json`; `SCORING_MATH_VERSION` bumped).  Only items 4 (Platform-Foundation rewrite) and 6 (Build 2) remain.  Details below:
+
+#### Remaining Item A — Rewrite `docs/Platform-Foundation.md` → ACV Potential Model section
+
+**Current state of that section:** Has a prominent "⚠ 2026-04-17 — Architecture alignment in progress" header at the top pointing to decision-log + next-session-todo.  The rest of the section describes the PRE-alignment model (Claude holistic call, calibration block, hard cap) which is now fully retired in code but still exists as doc content.
+
+**What to do:**
+1. Read the existing section (Platform-Foundation.md lines ~1184 through ~1600 — the entire "ACV Potential Model" section).
+2. Delete the "⚠ 2026-04-17" header block at the top (no longer "in progress" — the architecture is shipped).
+3. Rewrite the section with best current thinking.  The new content should describe:
+   - **The universal unit** (lab hours consumed = audience × adoption × hours × rate) — KEEP this framing, it's still correct.
+   - **The five consumption motions** table — KEEP, unchanged.
+   - **Company-level audience allocation (NEW — this is the 2026-04-17 architecture):**
+     - Every product has one `estimated_user_base` field = humans who'd take training for this product (universal definition across org types).
+     - `compute_company_total_audience(discovery)` produces a single company-level trainable audience using org-type-aware Python formula.  Document the four cases:
+       - SHARED_ADMIN (software / enterprise software): `sum(max per archetype)` — enterprise_admin users overlap across Azure + Intune + Entra, but are distinct from developer_platform users.
+       - DISTINCT_AUDIENCE (academic / LMS / TRAINING ORG): `sum(all capped)` — programs / catalogs are mostly different humans.
+       - INDUSTRY_AUTHORITY: `sum(max per archetype)` — career-track-scoped overlap.
+       - PARTIAL_OVERLAP (GSI / VAR / tech distributor / ILT training org): `0.70 × sum(max per archetype)` — cross-trained practitioners.
+     - ILT was moved to PARTIAL_OVERLAP on 2026-04-17 late because `sum(all)` produced catastrophic inflation (LLPA $227M).
+   - **Allocation to products** — company total × (raw_audience × archetype_multiplier) / sum_of_weights.  Archetype multiplier = IV_CEILING / 100.
+   - **Per-product Motion 1 ACV** = allocated_share × adoption × hours × rate.
+   - **Motions 2-5** remain per-product from fact drawers at Deep Dive time.
+   - **Known-customer floor** — `max(framework, KNOWN_CUSTOMER_CURRENT_ACV[name])` so customers can't display below their actual ACV.
+   - **Partnership-only** (Content Development firms) — delegates to `_build_partnership_acv_result` for partnership-shape output.
+4. Delete the sections on "Discovery-Level ACV Estimation (Option 2 — Holistic)" — that describes the retired Claude call.
+5. Delete references to `_HOLISTIC_ACV_PROMPT`, `HOLISTIC_ACV_COMPANY_HARD_CAP`, `HOLISTIC_ACV_MAX_RANGE_RATIO`, `HOLISTIC_ACV_PER_USER_CEILING`, `KNOWN_CUSTOMER_STAGE_CEILING_MULT`, `_format_anonymized_calibration_block`, `estimate_holistic_acv`, `_scrub_customer_data`, `_build_known_customer_constraints` — all retired.
+6. Delete the "Relationship to Mark's Labability Prompt" sub-section if it's no longer relevant (Mark's framework informed the motions — still relevant — but not the holistic Claude call).
+7. Keep "How Adoption Patterns Vary by Organization Type" table — the org-type overrides (Academic 25%/15hrs, ILT 25%/18hrs, etc.) are still correct.
+8. Also update `docs/Badging-and-Scoring-Reference.md` — remove references to the retired constants (lines ~1049-1078 have table entries about hard cap / range ratio / per-user ceiling / stage ceiling mult — delete those rows).
+9. Commit with a message that explains what changed and that this replaces the "in progress" header.
+
+**Existing helpful signposts for the rewrite:**
+- `backend/acv_calculator.py` lines 1197 onward — the `compute_discovery_company_acv` function is heavily commented.  Read those comments; they describe the architecture cleanly in function-level docstring form.
+- `decision-log.md` 2026-04-17 late entry — has the full DECIDED list with rationale.
+- This file's §1 block — the Build 1 summary.
+
+**Estimated time:** 45-90 min depending on how thorough the rewrite is.  Don't rush; this is the authoritative spec.
+
+#### Remaining Item B — Build 2: ACV-specific dimension weights
+
+**Why:**  The ACV gate (per-product multiplier applied to `raw_acv`) currently uses the standard Fit Score (composed of PL 50 / IV 20 / CF 30 with each pillar's standard dimension weights).  Frank's agreed design is that ACV should use ACV-specific dimension weights that reflect what actually predicts ACV:
+  - **CF for ACV:** Training Commitment 40, **Delivery Capacity 60**, **Build Capacity 0**, Org DNA 0.  Partners / ProServ can BUILD labs — Build Capacity shouldn't drag ACV down.  Delivery Capacity (can they ship training at scale) is the real CF driver of ACV.
+  - **IV for ACV:** **Market Demand 40-50**, Product Complexity 25, Mastery Stakes 25, **Lab Versatility 0**.  Market Demand (does anyone buy paid training for this?) dominates.  Lab Versatility is already handled by Product Labability — zero-weight here to avoid double-counting.
+  - **PL for ACV:** unchanged from Fit Score — same dimension weights.
+  - Pillar weights: PL 50 / IV 20 / CF 30 (same as Fit Score at pillar level).
+
+**What to build:**
+1. **New constants in `backend/scoring_config.py`:**
+   ```python
+   ACV_GATE_PILLAR_WEIGHTS = {"product_labability": 50, "instructional_value": 20, "customer_fit": 30}
+   ACV_GATE_CF_DIMENSION_WEIGHTS = {"training_commitment": 40, "delivery_capacity": 60, "build_capacity": 0, "organizational_dna": 0}
+   ACV_GATE_IV_DIMENSION_WEIGHTS = {"market_demand": 40, "product_complexity": 25, "mastery_stakes": 25, "lab_versatility": 0}
+   # PL unchanged — uses existing PILLAR_1_DIMENSION_WEIGHTS
+   ```
+   Start with MD=40.  Can tune to 50 later based on validation.
+2. **New composer function in `backend/acv_calculator.py`:**
+   ```python
+   def compose_acv_gate_score(product, company_analysis) -> int:
+       """Compose the ACV gate score (0-100) from the three pillars using ACV-specific dimension weights."""
+       # PL — use product.fit_score.product_labability.score (already uses Fit-Score dimension weights; unchanged)
+       # IV — recompute from product.fit_score.instructional_value.dimensions using ACV_GATE_IV_DIMENSION_WEIGHTS
+       # CF — recompute from product.fit_score.customer_fit.dimensions using ACV_GATE_CF_DIMENSION_WEIGHTS
+       # Compose: PL * 0.50 + IV * 0.20 * tech_fit_multiplier + CF * 0.30 * tech_fit_multiplier
+       # Return 0-100 integer, clamped
+   ```
+3. **Replace Fit Score gate in `compute_acv_potential` (dict path) and `compute_acv_on_product` (dataclass path):**
+   ```python
+   # OLD:
+   fit_score = fs.total_override or fs.total or 0
+   if fit_score > 0:
+       fit_factor = fit_score / 100
+       acv_low_dollars *= fit_factor
+       acv_high_dollars *= fit_factor
+   
+   # NEW:
+   acv_gate_score = compose_acv_gate_score(product, company_analysis)
+   if acv_gate_score > 0:
+       acv_factor = acv_gate_score / 100
+       acv_low_dollars *= acv_factor
+       acv_high_dollars *= acv_factor
+   # Also persist acv.acv_gate_score = acv_gate_score for transparency.
+   ```
+4. **Rough ACV gate at discovery time.**  For products without fact drawers, compute rough dimension values from discovery signals.  Same spirit as `intelligence._compute_rough_iv_score` (which composes a rough IV from category / api_surface / cert).  You'll need rough versions for each dimension the ACV gate needs:
+   - Rough IV dimensions: `rough_market_demand`, `rough_product_complexity`, `rough_mastery_stakes`, `rough_lab_versatility` (zero-weight, skip).
+   - Rough CF dimensions: `rough_training_commitment`, `rough_delivery_capacity`, `rough_build_capacity` (zero-weight, skip), `rough_organizational_dna` (zero-weight, skip).
+   - CF dimensions come from COMPANY-level signals (`company_signals.atp_program`, `company_signals.training_programs`, etc.) — same signals the existing rough-CF composition uses.
+5. **Wire the rough ACV gate into `compute_discovery_company_acv`** so per-product discovery-time ACV also gets the gate applied.  This is what will make the discovery-time Motion-1-only number MORE useful — gate reduces the number where PL / IV / CF rough values signal weak fit.
+6. **Update `SCORING_MATH_VERSION`** again after Build 2 lands.
+7. **Validate against anchors** — Microsoft / Trellix / Skillsoft / Pluralsight / ASU.  Should tighten numbers slightly (gate reduces) — known-customer floor will still protect customers.
+8. **Docs — update Platform-Foundation ACV section** with the ACV gate description (separate from the allocation architecture).  The gate is its own bullet: "ACV scales linearly with ACV gate score; ACV gate is composed from ACV-specific dimension weights that differ from Fit Score weights."
+9. **Commit separately from Build 1 docs rewrite** — two commits for two conceptual changes.
+
+**Files to touch for Build 2:**
+- `backend/scoring_config.py` — new constants
+- `backend/acv_calculator.py` — `compose_acv_gate_score` function, call sites in `compute_acv_potential` + `compute_acv_on_product` + `compute_discovery_company_acv`
+- `backend/intelligence.py` — may need rough CF signal composition if not already present
+- `docs/Platform-Foundation.md` — ACV gate section (after the Build 1 rewrite lands)
+- `docs/decision-log.md` — DECIDED entry for Build 2
+
+**Estimated time:** 60-90 min if the existing dimension-scoring signatures are clean; more if there's refactoring needed.
+
+### Remaining Build 1 defect — Non-customer numbers feel low
+
+After tonight's full retrofit, some non-customer prospects show smaller-than-intuitive numbers:
+  - Workday $66K (major HR SaaS, real opportunity is bigger)
+  - Anaplan $115K (enterprise planning, real is bigger)
+  - Adobe $941K (multi-product creative company)
+
+**Reason:** discovery-time ACV is Motion-1-only (Customer Training).  Motions 2-5 (Partner, Employee, Cert, Events) only activate when products are Deep-Dived.  A large software company's Motion-1-only number systematically undersells them.
+
+**Potential fix (backlog):** add discovery-time rough estimates for Motions 2-5 from `company_signals` (partner count from atp_program, events from events signal, etc.).  More math, more accurate discovery-time numbers.  Not urgent — Deep Dive sharpens these — but worth backlogging as a V2 enhancement.
 
 ### Tonight's cautionary tale (lesson for next Claude)
 
