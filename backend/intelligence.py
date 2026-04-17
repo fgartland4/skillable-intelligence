@@ -1311,19 +1311,16 @@ def recompute_analysis(analysis: dict) -> None:
             pillar_scores[pillar_key] = pillar_score
             pillar_weights[pillar_key] = int(pillar_dict.get("weight") or 0)
 
-        # Rebuild ACV motions from the fact drawer using the unified
-        # model, then recompute the math. This ensures every page load
-        # reflects the current org-type overrides, deflation tiers,
-        # training maturity multipliers, and rate tables — even for
-        # analyses scored under an older SCORING_LOGIC_VERSION.
-        # Pure Python. Zero Claude calls. Zero research.
-        acv_calculator.rebuild_acv_motions_from_facts(p, analysis)
-        acv_calculator.compute_acv_potential(p)
-
         # Fit Score total — ALWAYS recalculate from saved pillar scores
         # using the live composer config (weights, multiplier table).
         # Never trust a cached total_override — weight or multiplier
         # retunes must propagate instantly on every page load.
+        #
+        # IMPORTANT (Frank 2026-04-16): Fit Score is computed BEFORE the
+        # ACV rebuild so the ACV math can gate on it. The Fit Score is
+        # the canonical "how good is this opportunity" number; ACV then
+        # expresses the dollar expression of that opportunity. Order
+        # matters — pillar scores → Fit Score → ACV.
         pl = pillar_scores.get("product_labability", 0)
         iv = pillar_scores.get("instructional_value", 0)
         cf = pillar_scores.get("customer_fit", 0)
@@ -1344,9 +1341,21 @@ def recompute_analysis(analysis: dict) -> None:
             + cf * (cf_w / 100) * mult
         )
         fit_total = max(0, min(100, round(weighted)))
-        # Write back so the cached data stays current
+        # Write back so the cached data stays current — must happen BEFORE
+        # compute_acv_potential reads fit_score.total for the Fit Score gate.
         fs["total_override"] = int(fit_total)
         fs["technical_fit_multiplier"] = float(mult)
+        fs["total"] = int(fit_total)
+        fs["_total"] = int(fit_total)
+
+        # Rebuild ACV motions from the fact drawer using the unified
+        # model, then recompute the math. This ensures every page load
+        # reflects the current org-type overrides, deflation tiers,
+        # training maturity multipliers, and rate tables — even for
+        # analyses scored under an older SCORING_LOGIC_VERSION.
+        # Pure Python. Zero Claude calls. Zero research.
+        acv_calculator.rebuild_acv_motions_from_facts(p, analysis)
+        acv_calculator.compute_acv_potential(p)
 
         acv_tier = (p.get("acv_potential") or {}).get("acv_tier") or "low"
         new_verdict = assign_verdict(int(fit_total), acv_tier)
@@ -1356,11 +1365,6 @@ def recompute_analysis(analysis: dict) -> None:
             "fit_label": new_verdict.fit_label,
             "acv_label": new_verdict.acv_label,
         }
-
-        # Mirror the authoritative total into the display fields the
-        # template reads for sort + hero rendering.
-        fs["total"] = int(fit_total)
-        fs["_total"] = int(fit_total)
 
     # Sort by Fit Score, descending
     products.sort(key=lambda p: (p.get("fit_score") or {}).get("_total", 0), reverse=True)

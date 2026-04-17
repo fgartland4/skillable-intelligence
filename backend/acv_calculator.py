@@ -279,6 +279,25 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
                             eub_int = 0
                     if eub_int > 0:
                         pop_low = pop_high = eub_int
+
+                # ── Scale-aware audience cap (Frank 2026-04-16) ──────────
+                # Frank's rule: at enormous audience scales, Skillable's
+                # realistic training-population share collapses. Microsoft
+                # 365 has 400M seats but Skillable's realistic hands-on lab
+                # audience is the admin/operator/developer layer — a few
+                # hundred thousand, not hundreds of millions.
+                #
+                # DISCOVERY_ACV_USER_BASE_TIERS encodes exactly this rule.
+                # It was previously applied ONLY to unscored product
+                # extrapolation in recompute_analysis. Applying it here
+                # means scored products get the same reality check —
+                # consistency across scored and unscored paths.
+                for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+                    if pop_high > threshold:
+                        if cap is not None:
+                            pop_low = min(pop_low, cap)
+                            pop_high = cap
+                        break
         elif source == "product:employee_subset_size":
             pop_low, pop_high = _nr(md.get("employee_subset_size"))
         elif source == "product:cert_annual_sit_rate":
@@ -481,23 +500,32 @@ def compute_acv_potential(product: dict) -> dict:
     acv_low_dollars = total_hours_low * rate
     acv_high_dollars = total_hours_high * rate
 
-    # ── Labability gate (Frank 2026-04-16, Rule) ─────────────────────────
-    # ACV scales linearly with Product Labability (PL) score. If Skillable
-    # can only partially deliver labs for this product (low PL), ACV is
-    # proportionally lower. Applied uniformly to every motion's total.
-    # Linear: gated_acv = raw_acv × (PL / 100). Applied at the product-
-    # level total, not per-motion, because the linear multiplier commutes.
-    pl_score = 0
+    # ── Fit Score gate (Frank 2026-04-16, replaces PL-only gate) ─────────
+    # ACV scales linearly with the three-pillar Fit Score. Fit Score
+    # already combines Product Labability (50%) + Instructional Value
+    # (20%) + Customer Fit (30%) with the asymmetric Technical Fit
+    # Multiplier that drags IV+CF when PL is low.
+    # Using Fit Score as the gate means:
+    #   - Low PL → Fit Score drops → ACV drops (previous PL-only behavior)
+    #   - Low CF (weak training infrastructure) → Fit Score drops → ACV drops
+    #     (new — "$10M from a company with no training infra isn't real")
+    #   - Low IV (no training market) → Fit Score drops → ACV drops
+    #     (new — Acrobat-class consumer tools)
+    # One formula, three pillars, consistent with Fit Score composition.
+    # Linear: gated_acv = raw_acv × (Fit_Score / 100).
+    fit_score = 0
     try:
         fs = product.get("fit_score") or {}
-        pl_dict = fs.get("product_labability") or {}
-        pl_score = int(pl_dict.get("score") or 0)
+        # Prefer authoritative total_override (recomputed with live config)
+        # over cached .total. recompute_analysis computes Fit Score BEFORE
+        # ACV so total_override is populated when this function runs.
+        fit_score = int(fs.get("total_override") or fs.get("total") or fs.get("_total") or 0)
     except (TypeError, ValueError, AttributeError):
-        pl_score = 0
-    if pl_score > 0:
-        pl_factor = pl_score / 100  # magic-allowed: linear labability factor denominator (percentage)
-        acv_low_dollars *= pl_factor
-        acv_high_dollars *= pl_factor
+        fit_score = 0
+    if fit_score > 0:
+        fit_factor = fit_score / 100  # magic-allowed: linear fit score factor denominator (percentage)
+        acv_low_dollars *= fit_factor
+        acv_high_dollars *= fit_factor
 
     acv["annual_hours_low"] = round(total_hours_low)
     acv["annual_hours_high"] = round(total_hours_high)
@@ -506,7 +534,10 @@ def compute_acv_potential(product: dict) -> dict:
     acv["rate_per_hour"] = rate
     acv["rate_tier_name"] = tier_name
     acv["acv_tier"] = _resolve_acv_tier(acv_high_dollars)
-    acv["labability_factor"] = round(pl_score / 100, 2) if pl_score > 0 else 0.0  # magic-allowed: percentage denominator
+    acv["fit_score_factor"] = round(fit_score / 100, 2) if fit_score > 0 else 0.0  # magic-allowed: percentage denominator
+    # Preserve the labability_factor for backwards-compat readers (briefcase,
+    # old templates). Now mirrors fit_score_factor since the gate moved.
+    acv["labability_factor"] = acv["fit_score_factor"]
 
     return acv
 
@@ -852,6 +883,30 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
                 log.info("ACV R3 fallback: using discovery install_base %d for %s",
                          fallback, getattr(product, "name", "?"))
 
+        # ── Scale-aware audience cap (Frank 2026-04-16) ──
+        # Apply universally to Customer Training audience on Software /
+        # Enterprise Software / Industry Authority paths (the ones that
+        # use install_base). For wrapper orgs the audience is
+        # annual_enrollments_estimate — that's already the wrapper's
+        # real audience, don't cap. Industry Authority has its own
+        # deflation pass below which handles lifetime-holder inflation.
+        #
+        # Rule: at enormous audience scales, Skillable's realistic
+        # training-population share collapses. Microsoft 365 has 400M
+        # seats but the lab-trainable admin/operator layer is ~200K.
+        # DISCOVERY_ACV_USER_BASE_TIERS encodes this rule — applied here
+        # for consistency with the dict path (rebuild_acv_motions_from_facts).
+        if is_customer_motion and normalized_org not in ("INDUSTRY AUTHORITY", "TRAINING ORG"):
+            # Only apply to Software / Enterprise Software (install_base audience).
+            # Wrapper orgs use annual_enrollments_estimate which is already realistic.
+            if normalized_org in ("SOFTWARE", "ENTERPRISE SOFTWARE", ""):
+                for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+                    if pop_high > threshold:
+                        if cap is not None:
+                            pop_low = min(pop_low, cap)
+                            pop_high = cap
+                        break
+
         # ── Industry Authority / Training Org deflation ──
         # Researcher numbers for these org types are inflated (lifetime holders,
         # not annual training candidates). Deflate before adoption math.
@@ -992,23 +1047,23 @@ def compute_acv_on_product(product: Any, company_analysis: Any) -> None:
     acv_low_dollars = total_hours_low * rate
     acv_high_dollars = total_hours_high * rate
 
-    # ── Labability gate (Frank 2026-04-16) ───────────────────────────────
-    # ACV scales linearly with Product Labability score. Low PL = low ACV,
-    # proportionally. gated_acv = raw_acv × (PL / 100). Applied uniformly
-    # across every motion (Skillable-can't-deliver-lab → Cert/Events
-    # motions also shrink, per Frank's rule). Honest expression of the
-    # engagement math.
-    pl_score = 0
+    # ── Fit Score gate (Frank 2026-04-16, replaces PL-only gate) ─────────
+    # ACV scales linearly with the three-pillar Fit Score (PL 50% + IV 20%
+    # + CF 30%, with Technical Fit Multiplier asymmetric PL drag).
+    # Matches compute_acv_potential (dict path). Fit Score is set by
+    # fit_score_composer.compose_fit_score BEFORE this runs in score() and
+    # rescore_products_from_saved_facts.
+    fit_score = 0
     try:
-        pl_pillar = getattr(product.fit_score, "product_labability", None)
-        if pl_pillar is not None:
-            pl_score = int(getattr(pl_pillar, "score", 0) or 0)
+        # Prefer total_override (composer's authoritative value) over .total
+        fs = product.fit_score
+        fit_score = int(getattr(fs, "total_override", None) or getattr(fs, "total", 0) or 0)
     except (TypeError, ValueError, AttributeError):
-        pl_score = 0
-    if pl_score > 0:
-        pl_factor = pl_score / 100  # magic-allowed: linear labability factor denominator (percentage)
-        acv_low_dollars *= pl_factor
-        acv_high_dollars *= pl_factor
+        fit_score = 0
+    if fit_score > 0:
+        fit_factor = fit_score / 100  # magic-allowed: linear fit score factor denominator (percentage)
+        acv_low_dollars *= fit_factor
+        acv_high_dollars *= fit_factor
 
     acv.annual_hours_low = round(total_hours_low)
     acv.annual_hours_high = round(total_hours_high)
