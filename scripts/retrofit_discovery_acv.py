@@ -59,9 +59,20 @@ def main() -> int:
                         help="compute but don't write files")
     parser.add_argument("--only", default="",
                         help="substring match on company name (case-insensitive)")
+    parser.add_argument("--include-org-types", default="",
+                        help="comma-separated list of org_types to include "
+                             "(e.g. 'software_company,enterprise_learning_platform'). "
+                             "If set, all other org types are skipped.")
+    parser.add_argument("--exclude-org-types", default="",
+                        help="comma-separated list of org_types to EXCLUDE "
+                             "(e.g. 'ilt_training_organization'). "
+                             "Applied after --include-org-types if both are set.")
     parser.add_argument("--verbose", action="store_true",
                         help="log rationale per company")
     args = parser.parse_args()
+
+    include_types = {s.strip() for s in args.include_org_types.split(",") if s.strip()}
+    exclude_types = {s.strip() for s in args.exclude_org_types.split(",") if s.strip()}
 
     _load_backend()
     from acv_calculator import compute_discovery_company_acv
@@ -92,6 +103,14 @@ def main() -> int:
 
         name = data.get("company_name") or "(unnamed)"
         if args.only and args.only.lower() not in name.lower():
+            skipped_filter += 1
+            continue
+
+        org_type = data.get("organization_type") or ""
+        if include_types and org_type not in include_types:
+            skipped_filter += 1
+            continue
+        if org_type in exclude_types:
             skipped_filter += 1
             continue
 
