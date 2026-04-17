@@ -195,6 +195,29 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
             low, high = high, low
         return low, high
 
+    # ── Preserve-legacy-populations snapshot ──────────────────────────────
+    # Frank's Rule #1: research is immutable. Older analyses (pre-fact-drawer
+    # era) have real motion populations saved on the product — produced by
+    # the original scoring run — but empty `instructional_value_facts` and
+    # `customer_fit_facts` drawers. Rebuilding purely from null facts would
+    # wipe those populations to zero, zeroing the product's ACV and making
+    # it look like no Deep Dive exists. Capture the existing populations
+    # BEFORE the rebuild so we can restore them when the fact drawer has
+    # nothing new to say.
+    #
+    # Rule: fact-drawer value wins when present (facts are the new truth);
+    # saved value preserved when fact is null/0 (never regress knowledge).
+    _existing_populations: dict[str, tuple[int, int]] = {}
+    _existing_motions = (product.get("acv_potential") or {}).get("motions") or []
+    for _m in _existing_motions:
+        try:
+            _existing_populations[_m.get("label", "")] = (
+                int(_m.get("population_low") or 0),
+                int(_m.get("population_high") or 0),
+            )
+        except (TypeError, ValueError):
+            pass
+
     # Build motions
     motions = []
     customer_pop = 0
@@ -241,6 +264,22 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
                 lo, hi = _nr(evt_range)
                 pop_low += lo
                 pop_high += hi
+
+        # Preserve-legacy-populations: if the fact drawer yielded nothing
+        # for this motion but we have a non-zero saved population from an
+        # older scoring run, restore it. Honors Rule #1 — research is
+        # immutable; we never regress what prior runs knew.
+        if pop_low == 0 and pop_high == 0:
+            # Look up by the canonical motion label (the org-type label
+            # rewrite happens later, so we key off cfg_motion.label as the
+            # saved motions may also be under the rewritten label — check
+            # both)
+            saved = _existing_populations.get(cfg_motion.label) or \
+                    _existing_populations.get(
+                        label_overrides.get(cfg_motion.label, cfg_motion.label)
+                    )
+            if saved and (saved[0] > 0 or saved[1] > 0):
+                pop_low, pop_high = saved
 
         is_customer_motion = cfg_motion.label == "Customer Training & Enablement"
 
