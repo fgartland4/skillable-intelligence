@@ -1529,6 +1529,29 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
 
     acv_point = round(total_acv)
 
+    # ── Known-customer floor (Frank 2026-04-17) ──────────────────────────
+    # A company we are actively charging $X cannot show a discovery-time
+    # estimate below $X.  Discovery math is Motion-1-only (Motions 2-5
+    # require Deep Dive facts) and will systematically under-estimate for
+    # known customers until their products are Deep-Dived.  The floor
+    # ensures the displayed number never drops below ground truth.
+    #
+    # Only raises; never lowers.  If the framework produces a number
+    # already above the customer's current_acv, leave it alone — that's
+    # the customer's upside.
+    floor_applied = False
+    floor_value = 0
+    try:
+        company_name = discovery.get("company_name") or ""
+        rec = cfg.get_known_customer_record(company_name)
+        if rec:
+            floor_value = int(rec.get("current_acv") or 0)
+    except Exception:
+        floor_value = 0
+    if floor_value > 0 and acv_point < floor_value:
+        floor_applied = True
+        acv_point = floor_value
+
     # Confidence based on product coverage
     if contributing >= 5:  # magic-allowed: high-confidence threshold = 5+ products contributed
         confidence = "high"
@@ -1536,6 +1559,9 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
         confidence = "medium"
     else:
         confidence = "low"
+    # Known customers get medium confidence at minimum — we have ground truth.
+    if floor_applied and confidence == "low":
+        confidence = "medium"
 
     # Narrative — describes the computation so the output is inspectable
     org_label = normalized_org or (org_type_raw.replace("_", " ").upper() or "UNKNOWN")
@@ -1576,6 +1602,12 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
         caveats.append(
             f"{skipped} discovered products contributed 0 — missing audience "
             "(needs re-research to populate estimated_user_base)"
+        )
+    if floor_applied:
+        caveats.append(
+            f"Known-customer floor applied — framework result was below current "
+            f"ACV ground truth (${floor_value:,}); floor raises discovery estimate "
+            f"to match.  Deep-Diving products will grow the number above the floor."
         )
 
     return {
