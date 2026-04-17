@@ -1436,14 +1436,28 @@ def _build_prospector_row_from_analysis(
         # surface verified numbers.  More Deep Dives → stronger anchor.
         best_fit = 0
         best_fit_product = ""
+        best_fit_subcategory = ""
         for p in products:
             fs = p.get("fit_score") or {}
             total = fs.get("total") or fs.get("_total") or 0
             if total > best_fit:
                 best_fit = total
                 best_fit_product = p.get("name", "")
+                best_fit_subcategory = p.get("subcategory", "") or ""
         row["best_fit_score"] = best_fit                    # 0 when no Deep Dives yet
         row["best_fit_product"] = best_fit_product          # product that earned it
+
+        # Top Product sharpening — Frank's rule (2026-04-16):
+        # Once any Deep Dive exists, "TOP PRODUCT" in marketing surfaces
+        # must follow the highest actual Fit Score, not discovery's rough
+        # guess. A non-flagship product can displace the flagship when
+        # the actual scoring says so. Only sharpen when a real Deep Dive
+        # exists (best_fit > 0) — otherwise keep discovery's rough pick
+        # so rows without any Deep Dive still show a reasonable best-guess
+        # top product.
+        if best_fit > 0 and best_fit_product:
+            row["top_product_name"] = best_fit_product
+            row["top_product_subcategory"] = best_fit_subcategory
 
         # Deep Dive coverage — count products with scored ACV vs total in portfolio
         scored_count = sum(
