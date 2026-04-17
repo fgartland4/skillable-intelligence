@@ -3284,6 +3284,76 @@ ACV_TIER_HIGH_THRESHOLD   = 250_000  # ACV high >= $250K  → "high"
 ACV_TIER_MEDIUM_THRESHOLD = 50_000   # ACV high >= $50K   → "medium"
                                      # else                → "low"
 
+
+# ─────────────────────────────────────────────────────────────────────────
+# Motion rates — annual dollar-per-human across the five ACV motions.
+#
+# These are the FLAT rates applied per motion in the new company-level
+# ACV model (Frank 2026-04-17):
+#
+#     audience × rate = motion ACV    (per motion)
+#     sum of motion ACVs × PL harness = company ACV
+#
+# Define-Once: the ACV by Use Case widget and the audience_grader prompt
+# both reference these constants. Change here, next page render picks it
+# up — no rescore, no retrofit.
+#
+# Rates are grounded in Skillable economics (Mark Mangelson's CRO
+# framework, calibrated for this model):
+#   - $200/person/year for Customer / Partner / Employee Training captures
+#     a blended "cert + enablement" training relationship on Skillable.
+#   - $10/sitter/year for Certification reflects the ~1 lab hour of a PBT
+#     exam delivery at platform-fee rates.
+#   - $50/attendee/year for Events reflects conference-scale lab tracks.
+# ─────────────────────────────────────────────────────────────────────────
+MOTION_RATE_CUSTOMER_TRAINING = 200   # $/person/year — humans being trained on the company's products
+MOTION_RATE_PARTNER_TRAINING  = 200   # $/person/year — channel partner SEs / consultants / resellers
+MOTION_RATE_EMPLOYEE_TRAINING = 200   # $/person/year — the company's own technical employees
+MOTION_RATE_CERTIFICATION     = 10    # $/person/year — annual exam sitters
+MOTION_RATE_EVENTS            = 50    # $/attendee/year — event / conference lab-track attendees
+
+# Five motion keys — stable identifiers used by audience_grader output,
+# acv_calculator math, and the ACV by Use Case widget. Ordering is the
+# display order (customer first, events last).
+MOTION_KEYS = (
+    "customer_training",
+    "partner_training",
+    "employee_training",
+    "certification",
+    "events",
+)
+
+# Motion key → (display label, rate dollars, rate unit label).
+# Single source of truth for motion metadata. Widget reads display label
+# and rate unit; calculator reads the rate dollars.
+MOTION_METADATA: dict[str, dict] = {
+    "customer_training": {
+        "label": "Customer Training",
+        "rate": MOTION_RATE_CUSTOMER_TRAINING,
+        "rate_unit": "person/year",
+    },
+    "partner_training": {
+        "label": "Partner Training",
+        "rate": MOTION_RATE_PARTNER_TRAINING,
+        "rate_unit": "person/year",
+    },
+    "employee_training": {
+        "label": "Employee Training",
+        "rate": MOTION_RATE_EMPLOYEE_TRAINING,
+        "rate_unit": "person/year",
+    },
+    "certification": {
+        "label": "Certification",
+        "rate": MOTION_RATE_CERTIFICATION,
+        "rate_unit": "person/year",
+    },
+    "events": {
+        "label": "Events",
+        "rate": MOTION_RATE_EVENTS,
+        "rate_unit": "attendee/year",
+    },
+}
+
 # Default rate tier when an orchestration_method is empty, unknown, or
 # doesn't map to any known tier. Conservatively neither the cheap nor the
 # expensive end of the table — the everyday admin lab default.
@@ -4274,16 +4344,38 @@ def _build_modal_content() -> dict:
         "eyebrow": "HERO METRIC · DEAL SIZE",
         "title": "ACV Potential",
         "sections": [
-            {"label": "Why", "body": "<strong>How big is this if we win?</strong> The Fit Score tells you whether to pursue. ACV Potential tells you how much the pursuit is worth. A product with a high Fit Score and low ACV is a real opportunity but a small one. A product with high ACV and low Fit Score is big but blocked. The seller needs both numbers to prioritize."},
-            {"label": "What", "body": "ACV Potential is the estimated annual contract value if the customer standardized on Skillable across all training motions for the product. It's built from five consumption motions: Customer Training, Partner Training, Employee Training, Certification, and Events. Each motion has an audience (the people), an adoption rate (what percentage engage), and lab hours per learner. The bottom line is always <strong>lab hours consumed</strong>."},
-            {"label": "How", "body": "Audience × Adoption × Hours = Annual Lab Hours. Annual Lab Hours × Rate = ACV."
-                '<table class="info-modal-table"><thead><tr><th>Delivery Path</th><th>Rate</th><th>When it applies</th></tr></thead><tbody>'
-                f'<tr><td>Cloud Labs</td><td>~${CLOUD_LABS_RATE:.0f}/hr</td><td>Azure-native, AWS-native, or Sandbox API products</td></tr>'
-                f'<tr><td>Small VM / Container / Simulation</td><td>~${VM_LOW_RATE:.0f}/hr</td><td>Single VM, container-native, or simulation</td></tr>'
-                f'<tr><td>Typical VM</td><td>~${VM_MID_RATE:.0f}/hr</td><td>1–3 VMs, standard footprint</td></tr>'
-                f'<tr><td>Large / Complex VM</td><td>~${VM_HIGH_RATE:.0f}/hr</td><td>Multi-VM labs, complex topology, networking</td></tr>'
+            {"label": "What question are we answering?", "body":
+                "<strong>How big is this opportunity if we win?</strong> The Fit Score tells you whether to pursue. ACV Potential tells you how much the pursuit is worth. A strong Fit Score with small ACV is a real but small opportunity. A large ACV with a weak Fit Score is big but blocked. The seller needs both numbers to prioritize."
+            },
+            {"label": "What is ACV Potential?", "body":
+                "The estimated annual revenue if this company standardized on Skillable for their hands-on training delivery. It's a <strong>company-level number</strong> — one estimate for the whole company, built from five use-case motions:"
+                '<table class="info-modal-table"><thead><tr><th>Use Case</th><th>Who that is</th></tr></thead><tbody>'
+                '<tr><td><strong>Customer Training</strong></td><td>Humans being trained on the company\'s products this year — directly or through ATPs</td></tr>'
+                '<tr><td><strong>Partner Training</strong></td><td>Channel partner employees — GSI / VAR consultants, SEs, solution architects who need to sell and implement</td></tr>'
+                '<tr><td><strong>Employee Training</strong></td><td>The company\'s own technical employees who work on the product</td></tr>'
+                '<tr><td><strong>Certification</strong></td><td>Humans who sit the product\'s certification exam each year</td></tr>'
+                '<tr><td><strong>Events</strong></td><td>Attendees at the company\'s flagship events with hands-on lab tracks</td></tr>'
                 '</tbody></table>'
-                "Every input is a single estimated number, not a range. The rate is determined once during Product Labability scoring — the ACV calculation looks it up, never redefines it. Rate tier is driven by workload complexity (what the lab actually needs), not by the deployment label — a SaaS-delivered cybersecurity course still runs on VMs."
+                "Every motion counts a specific, countable human population — not a percentage of something bigger."
+            },
+            {"label": "How do we arrive at the number?", "body":
+                "Two steps. First, a focused AI judgment estimates <strong>how many humans</strong> will be in each motion for this company this year — based on the product portfolio, the company's training infrastructure (ATP programs, delivery partners, events, cert programs), and anonymized calibration against real Skillable customers. Second, deterministic math applies a flat annual rate per motion and sums to the company total:"
+                '<table class="info-modal-table"><thead><tr><th>Use Case</th><th>Rate</th></tr></thead><tbody>'
+                f'<tr><td>Customer Training</td><td>~${MOTION_RATE_CUSTOMER_TRAINING}/person/year</td></tr>'
+                f'<tr><td>Partner Training</td><td>~${MOTION_RATE_PARTNER_TRAINING}/person/year</td></tr>'
+                f'<tr><td>Employee Training</td><td>~${MOTION_RATE_EMPLOYEE_TRAINING}/person/year</td></tr>'
+                f'<tr><td>Certification</td><td>~${MOTION_RATE_CERTIFICATION}/person/year</td></tr>'
+                f'<tr><td>Events</td><td>~${MOTION_RATE_EVENTS}/attendee/year</td></tr>'
+                '</tbody></table>'
+                "A single Product Labability harness then trims the total for what Skillable can actually deliver — if a company's labable portfolio is small, the harness reduces the estimate proportionally."
+            },
+            {"label": "What anchors the number", "body":
+                "Known-customer magnitudes (anonymized). Microsoft is the ceiling benchmark — Skillable's largest and longest customer. Most companies land in the <strong>$500K–$5M range</strong>. A handful reach $5M–$20M. Non-Microsoft numbers above $20M should trigger skepticism, not confidence — only a few existing relationships have realistic three-year paths to that tier."
+            },
+            {"label": "What this doesn't try to be", "body":
+                "<strong>Not per-product.</strong> The ACV is the company's total opportunity across their portfolio. The per-product card shows labability and fit, not dollars. "
+                "<strong>Not a range.</strong> A single estimated number the seller can quote. Uncertainty surfaces in confidence level + caveats, not by widening the number. "
+                "<strong>Not a prediction.</strong> This is Potential — the realistic upper bound if the relationship fully lands over time. We don't claim we'll capture it."
             },
         ],
     }
@@ -4639,10 +4731,29 @@ def _build_modal_content() -> dict:
         "eyebrow": "WIDGET · DEAL STORY BY MOTION",
         "title": "ACV by Use Case",
         "sections": [
-            {"label": "Why", "body": "A single ACV number hides the real story. <strong>Where does the deal actually live?</strong> Is it driven by partner channel training? Annual conference events? Certification? Internal enablement? The motions that make up the total are not interchangeable — sellers need to know which one to talk about first."},
-            {"label": "What", "body": "Five consumption motions: <strong>Customer Training</strong> (total product users × ~4% × 2 hrs — the big one, includes learners who train through ATPs), <strong>Partner Training</strong> (channel partner employees — GSI/VAR consultants and SEs who sell, deploy, implement × ~15% × 5 hrs), <strong>Employee Training</strong> (the company's own product team, support, SEs × ~30% × 8 hrs — always small), <strong>Certification</strong> (exam candidates × 100% × 1 hr), <strong>Events</strong> (conference attendees × ~30% × 1 hr). Each row: Audience × Adoption × Hours = Annual Lab Hours."},
-            {"label": "How", "body": "Every input is a single estimated number — not a range. The rate comes from the product's delivery path (determined during Pillar 1 scoring). Audiences are concrete research signals: partner program size, conference attendance, certification volume, employee count, install base. The total should match the ACV Potential in the hero section."
-                "<br><br><strong>Adoption varies by org type.</strong> Software companies: voluntary (~4% training adoption). Industry Authorities: intentional (~4% training, but cert exam audience is much smaller than training audience — ~10% of trainees sit the exam). Academic: required (~90%+ adoption — coursework is assigned). The audience numbers in each row reflect these patterns — the adoption rate is applied to the right-sized audience for this organization type."},
+            {"label": "What question are we answering?", "body":
+                "A single ACV number hides the real deal story. <strong>Where does the revenue actually live?</strong> Is it driven by customer training at scale? Partner enablement? Certification volume? Conference events? The five motions are not interchangeable — the seller needs to know which one leads the conversation."
+            },
+            {"label": "What is the breakdown?", "body":
+                "Five use-case motions, each broken out as <em>audience × rate = motion ACV</em>. Each audience is a specific human population the company serves this year. Each rate is a flat annual figure grounded in Skillable economics:"
+                '<table class="info-modal-table"><thead><tr><th>Use Case</th><th>Audience</th><th>Rate</th></tr></thead><tbody>'
+                f'<tr><td><strong>Customer Training</strong></td><td>Humans being trained on this company\'s products this year</td><td>~${MOTION_RATE_CUSTOMER_TRAINING}/person/year</td></tr>'
+                f'<tr><td><strong>Partner Training</strong></td><td>Partner employees (GSI / VAR consultants, SEs) being trained this year</td><td>~${MOTION_RATE_PARTNER_TRAINING}/person/year</td></tr>'
+                f'<tr><td><strong>Employee Training</strong></td><td>Technical employees at this company being trained on their own products</td><td>~${MOTION_RATE_EMPLOYEE_TRAINING}/person/year</td></tr>'
+                f'<tr><td><strong>Certification</strong></td><td>Humans who sit the product\'s certification exam this year</td><td>~${MOTION_RATE_CERTIFICATION}/person/year</td></tr>'
+                f'<tr><td><strong>Events</strong></td><td>Attendees at the company\'s events with hands-on lab tracks</td><td>~${MOTION_RATE_EVENTS}/attendee/year</td></tr>'
+                '</tbody></table>'
+                "The total at the bottom matches the ACV Potential in the hero section — it's the same number, surfaced two ways."
+            },
+            {"label": "How do we arrive at each audience?", "body":
+                "A focused AI judgment at discovery time looks at the whole company — its product portfolio, Market Demand signals, training infrastructure, calibration against anonymized known customers — and estimates each audience directly. It's one Claude call per company that produces five numbers with rationale. Deterministic Python then applies the rates and sums. Numbers sharpen as products get Deep-Dived and as researched signals (partner counts, event attendance, cert sit rates) replace early estimates."
+            },
+            {"label": "What the rates represent", "body":
+                f"The ${MOTION_RATE_CUSTOMER_TRAINING}/person/year figure for Customer / Partner / Employee Training captures a blended training relationship — multiple lab hours per year, covering certification prep, enablement, and ongoing skill development. The ${MOTION_RATE_CERTIFICATION}/person/year for Certification reflects the single lab hour typical of a performance-based exam delivery. The ${MOTION_RATE_EVENTS}/attendee/year for Events reflects conference-scale lab tracks. Rates are grounded in Skillable's real economics and tuned against known-customer revenue."
+            },
+            {"label": "What this doesn't try to be", "body":
+                "Not a per-product breakdown — ACV is company-level, not product-level. Not a range — single estimated numbers. Not a prediction — we estimate Potential, the realistic upper bound if the relationship fully lands."
+            },
         ],
     }
 

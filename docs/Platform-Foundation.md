@@ -1127,12 +1127,12 @@ The multiplier lookup lives in `scoring_config.TECHNICAL_FIT_MULTIPLIERS`. Full 
 
 **What — two separate outputs:**
 
-| Metric | What it answers | Type |
-|---|---|---|
-| **Fit Score** | Should we pursue this? | Qualitative composite of three Pillars (0–100) |
-| **ACV Potential** | How big is this if we win? | Calculated business metric — dollars per year. Built on Mark Mangelson's (CRO) labability prompt framework, refined with product-level precision. See `ACV Potential Model` below. |
+| Metric | What it answers | Scope | Type |
+|---|---|---|---|
+| **Fit Score** | Should we pursue this? | **Per-product** — each product in the portfolio gets its own Fit Score | Qualitative composite of three Pillars (0–100) |
+| **ACV Potential** | How big is this if we win? | **Per-company** — one ACV number for the whole company, broken out by use case | Calculated business metric — dollars per year. Five use-case motions × flat rates, sized by an AI audience judgment. See `ACV Potential Model` below. |
 
-**How.** Both render in the hero section at the top of every company view and caseboard entry. The Fit Score is per-product; the ACV Potential hero widget is **company-level** and does not change as the user switches products in the dropdown. ACV values use lowercase `k` for thousands and uppercase `M` for millions (e.g., `$250k`, `$1.2M`).
+**How.** Both render in the hero section at the top of every company view and Prospector row. The Fit Score swaps as the user switches products in the dropdown. The ACV Potential hero is **company-level** and does not change across product selections — the five use-case breakdown below the hero is also company-level, not per-product. ACV values use lowercase `k` for thousands and uppercase `M` for millions (e.g., `$250k`, `$1.2M`).
 
 ---
 
@@ -1183,191 +1183,162 @@ The grid and definitions are configured in `scoring_config.VERDICT_GRID`. This d
 
 ## ACV Potential Model
 
-> **⚠ 2026-04-17 — Architecture alignment in progress.**
->
-> A design walkthrough on 2026-04-17 surfaced a drift between this section and the actual ACV the platform SHOULD compute.  Decisions captured in `docs/decision-log.md` (Session 2026-04-17 late — ACV architecture alignment).  Build plan captured in `docs/next-session-todo.md` §1.
->
-> **Short summary of the agreed architecture** — this section will be rewritten to match when Build 1 lands.  Until then, read decision-log + next-session-todo for the authoritative spec:
->
-> 1. **Company-level total trainable audience first.**  Computed from per-product `estimated_user_base` via org-type formula (hyperscaler: `max + 0.15 × second-largest`; ELP / academic / ILT: `sum`; GSI / VAR: `max + 0.30 × sum(others)`).
-> 2. **Allocate that total across products** weighted by `raw_audience × archetype_multiplier` (IV ceiling / 100).
-> 3. **Per-product Motion 1 ACV uses the allocated slice** as audience.  Motions 2-5 unchanged (partner, employee, cert, events from their existing sources).
-> 4. **Sum across products = company ACV.**  Bounded by construction — adding or removing products re-divides the same pie, doesn't inflate.
-> 5. **ACV-specific dimension weight gate** replaces the Fit Score gate.  Pillar weights PL 50 / IV 20 / CF 30.  Dimension weights (ACV only): CF — Training Commitment 40, Delivery Capacity 60, Build Capacity 0, Org DNA 0.  IV — Market Demand 40, Product Complexity 25, Mastery Stakes 25, Lab Versatility 0.  PL unchanged.  Gate always runs; quality tracks data quality (rough heuristics pre-Deep-Dive; real scores post-Deep-Dive).
-> 6. **One audience field:** `estimated_user_base` for every org type.  `annual_enrollments_estimate` is retired (migrated to `estimated_user_base` for wrappers).
-> 7. **Legacy Claude holistic shortcut** (`estimate_holistic_acv`, `_HOLISTIC_ACV_PROMPT`, calibration block, hard cap, range ratio, per-user ceiling) is **retired entirely** in Build 1.  `_holistic_acv` field stays; contents become the framework output.
->
-> Sections below this header describe the PRE-alignment model.  They remain accurate as a description of what's currently in the code (which Build 1 replaces), but are NOT the authoritative spec going forward.  When Build 1 ships the full rewrite of this section lands with it.
+**Why.** Sellers and marketing ask two questions about every opportunity: *how big is this deal if we win?* and *where does the revenue actually come from?* ACV Potential answers both — a single company-level dollar figure, broken into five use-case motions. It's the sizing number that pairs with the Fit Score's "should we pursue this" question.
 
-**Why.** A product sold through a global channel with a large certification ecosystem and a flagship event has fundamentally different annual revenue potential than a niche product with a regional footprint — even if both score identically on fit. ACV Potential answers "how big is this if we win?" — expressed as the estimated annual contract value if the customer standardized on Skillable across all training and enablement motions for the product. Mark Mangelson's (CRO) labability estimation prompt identified nine audience/revenue categories that shaped the consumption motions below — the intelligence platform builds on Mark's commercial framing with product-level precision and technology-specific rate tiers (see "Relationship to Mark's Labability Prompt" below for the full mapping). This is the Define-Once home for the ACV model; `Badging-and-Scoring-Reference.md` references this section rather than restating it.
+**What — company-level by construction.** ACV Potential is one number per company. Per-product ACV does not exist in this model. Five use-case motions × flat annual rates per human × a Product Labability harness equals the company total. This is the Define-Once home for the ACV model; `Badging-and-Scoring-Reference.md` references this section rather than restating it.
 
-**The universal unit: lab hours consumed.** Across every org type — software companies, universities, GSIs, Industry Authorities, enterprise learning platforms, ILT organizations — the ACV calculation bottoms out at the same unit: **lab hours consumed**. The funnel is universal:
+### The Five Use-Case Motions
 
-| Step | Universal question | What changes by org type |
+Each motion counts a specific, countable human population for the coming year — not a percentage of something bigger. One flat rate per motion applies across all organization types. Define-Once source: `scoring_config.MOTION_METADATA`.
+
+| Motion | Who that is | Rate |
 |---|---|---|
-| **Who are the learners?** | Always the first question | Software company = users of the product (not customers — Bank of America is one customer, but 10,000 engineers using Azure are the learners). University = students in technology programs. GSI = consultants + client staff. Industry Authority = training participants + cert candidates. Enterprise Learning Platform = subscribers taking technology courses. ILT org = students in classrooms. |
-| **How many would encounter a lab?** | Always a subset of the total | Depends on the product/program/catalog and how labs are embedded |
-| **How many lab hours per learner?** | Always the multiplier | Assigned learners consume more than self-directed. ILT students consume 20–30 hours in a week. On-demand learners may touch a lab for 30 minutes. |
-| **Lab hours × rate = ACV** | Always the math | Rate comes from the technology's delivery path (standard rate tier lookup) |
+| **Customer Training** | Humans being trained on the company's products this year — directly or through ATPs. The person consuming labs where someone pays Skillable for the lab hours. | ~$200/person/year |
+| **Partner Training** | Partner employees — GSI / VAR / distributor consultants, SEs, solution architects being trained to sell, deploy, or support the products. | ~$200/person/year |
+| **Employee Training** | Technical employees at this company, trained on their own products — product team, SEs, support engineers, trainers. Always a fraction of total headcount. | ~$200/person/year |
+| **Certification** | Humans who sit the product's certification exam each year. Not training candidates — actual exam sitters. | ~$10/person/year |
+| **Events** | Attendees at the company's flagship events (conferences, summits) with hands-on lab tracks. | ~$50/attendee/year |
 
-The five consumption motions below are the categories. The funnel is the logic. The org type provides the context for estimating each step. One framework, applied everywhere.
+The $200/person/year figure for Customer / Partner / Employee Training represents a blended training relationship — multiple lab hours across cert prep + enablement + ongoing skill development. The $10/person/year for Certification reflects the ~1 lab hour of a PBT exam delivery. The $50/attendee/year for Events reflects conference-scale lab tracks. Rates are grounded in Skillable economics, calibrated against known-customer revenue.
 
-**What — five consumption motions (software company baseline).** Each motion reflects both a reason people take labs AND a path for reaching them. These are the defaults for software companies; org-type overrides follow.
+### How the Number Is Produced
 
-| # | Motion | Audience | Adoption | Hours | Zero when... |
-|---|---|---|---:|---:|---|
-| **1** | **Customer Training & Enablement** | End learners — anyone taking a lab to learn the product, regardless of whether they enrolled directly or through an ATP. This is the total user population of the product. Do NOT double-count people who train through ATPs — they are customers, not partners. | **Category-tier driven: High 8% · Moderate 4% · Low 1%** (see Category Tier below) | **2** | Never (every product has users) |
-| **2** | **Partner Training & Enablement** | People at CHANNEL PARTNER organizations (GSIs, VARs, distributors, resellers) who need product knowledge to sell, deploy, implement, or support it. The partner's own consultants, SEs, solution architects — NOT the end customers who learn through partners (those are Motion 1). | **15%** | **5** | Company doesn't sell through a channel |
-| **3** | **Employee Training & Enablement** | People at the COMPANY BEING ANALYZED who work on the product — product team, SEs, support engineers, CS, trainers. **Not total headcount. Not people at customer companies (those are Motion 1).** Always a small number relative to company size. | **30%** | **8** | Never in practice |
-| **4** | **Certification (PBT)** | People in the world who sit for the certification exam | **100%** | **1** | Product has no cert, or the cert has no lab component |
-| **5** | **Events & Conferences** | Total attendees at the company's events (e.g., ~15,000 at Tableau Conference) | **30%** | **1** | Company doesn't run events. Events without labs today are the *opportunity*, not zero. |
+**Step 1 — Judgment call (one narrow Claude turn per company).** A focused AI grader (sibling pattern to `rubric_grader.py`, living in `backend/audience_grader.py`) reads the discovery data and produces five audience integers plus per-motion rationale and confidence.
 
-**Customer Training adoption by category tier (Software / Enterprise Software only).** A Nutanix infrastructure admin is roughly twice as likely to take formal training as a Salesforce end user. Flat 4% undercounts specialist categories systematically. Tiers derive from `CATEGORY_PRIORS` in `scoring_config.py` — the same tiering that feeds Market Demand ACV rate hints. Define-Once: one category judgment, two uses.
+**Inputs** — entirely from the discovery data already captured:
+- Per-product Tier 1/2 facts: name, category, deployment_model, `estimated_user_base`, target_personas, api_surface, cert_inclusion, complexity_signals, rough_labability_score
+- Per-company Tier 3 facts: training_programs, training_leadership, atp_program, delivery_partners, events, partnership_pattern, engagement_model, lab_platform, org_type
+- Anonymized calibration block: known-customer magnitudes grouped by stage, with customer names redacted
 
-| Tier | Adoption | Categories |
-|---|---:|---|
-| **High** | **8%** | Cybersecurity, Cloud Infrastructure, Networking/SDN, Data Science & Engineering, Data & Analytics, DevOps, AI Platforms & Tooling |
-| **Moderate** | **4%** | Data Protection, Infrastructure/Virtualization, App Development, ERP, CRM, Healthcare IT, FinTech, Collaboration, Content Management, Legal Tech, Industrial/OT |
-| **Low** | **1%** | Social / Entertainment |
-| **Unknown** | 4% | Fallback to Moderate tier |
+**Output:**
 
-The tier applies only to Software and Enterprise Software org types. Wrapper orgs (Academic, ILT Training Org, Enterprise Learning Platform, GSI/VAR/Distributor) use their own org-level overrides because their adoption dynamics come from delivery model, not product category.
-
-**Three-tier open source classification (software companies only):**
-
-| Tier | Effective adoption | Detection |
-|---|---|---|
-| **Commercial** | 4% (baseline) | training_license is not "none" |
-| **Open source with commercial training** | 3% (0.75x baseline) | training_license = "none" AND (training programs OR certs OR ATPs exist) |
-| **Pure open source** | 1% (0.25x baseline) | training_license = "none" AND no training programs, certs, or ATPs |
-
-**Training maturity multipliers (apply to ALL org types):**
-
-| Condition | Multiplier | Source signal |
-|---|---|---|
-| ATP program with 50+ partners | 1.5x | atp_program |
-| Active cert exams for this product | 1.25x | cert_inclusion |
-| No training programs, no ATPs, no certs | 0.75x | absence of signals |
-| Training license blocked | 0.5x | training_license = "blocked" |
-
-Multipliers stack multiplicatively but cap the final adoption at 35% (ceiling for software companies to prevent runaway).
-
-**Motion 1 is the big one.** The total user population of the product is typically the largest audience. ATPs and training partners are delivery channels for reaching these users — the users themselves are counted once in Motion 1, not again in Motion 2.
-
-**Motion 2 is channel partner employees.** For Tanium, this is a few hundred GSI/VAR SEs. For a product like SAP analyzed through Deloitte's lens, this is thousands of Deloitte consultants. The size depends on how many partners sell and implement the product.
-
-**Motion 3 is always small.** The company's own people who build, support, sell, and train on the product. Tanium has ~500-1,000 such employees. Microsoft's Azure team might be 5,000-10,000. Never a large fraction of total headcount.
-
-**Motion 4 framing:** 100% adoption is exact — if a lab is in the exam, everyone who sits takes the lab. But the AUDIENCE must be the actual annual exam sitters, not the training population. The funnel drops dramatically at each step.
-
-### How Adoption Patterns Vary by Organization Type
-
-**Why.** The flat adoption rates above are defaults for software companies. Different org types have fundamentally different relationships between their audiences and lab experiences. A university student doesn't choose whether to take the lab — it's assigned coursework. A software user decides whether to bother with training. This changes the math.
-
-**What — the unified model by org type:**
-
-| Org type | Primary motion label | Audience | Adoption | Hours | Additional motions |
-|---|---|---|---:|---:|---|
-| **Software company** | Customer Training | Product users worldwide (`estimated_user_base`) | **Category tier: 8/4/1%** | **2** | Partner 15%/5hrs, Employee 30%/8hrs, Cert (PBT) 100%/1hr, Events 30%/1hr |
-| **Enterprise Software** | Customer Training | Product users worldwide (`estimated_user_base`) | **Category tier: 8/4/1%** | **2** | Same as Software; category tier applied per product |
-| **Academic** | Student Training | Students enrolled in the program per year (`annual_enrollments_estimate`) | **25%** | **15** | Faculty & Staff Dev 30%/8hrs, Campus Events 30%/1hr. Course Exams bundled into Student Training. |
-| **Industry Authority** | Training Participants | Deflated `estimated_user_base` (see deflation tiers) | **5%** | **10** | Cert (PBT) 100%/1hr. Partner Training removed (ATPs are delivery channels). |
-| **Enterprise Learning Platform** | Platform & ILT Learners | Subscribers taking this tech slice per year (`annual_enrollments_estimate`) | **3%** | **3** | Events 30%/1hr. One blended motion (on-demand + ILT). |
-| **ILT Training Org** | Classroom Students | Classroom students per year in this course (`annual_enrollments_estimate`) | **25%** | **18** | Instructor Training 30%/8hrs. Highest per-learner consumption. |
-| **GSI** | Internal Consultants | Practitioners in practice area per year (`annual_enrollments_estimate`) | **5%** | **8** | Events 30%/1hr. Client-side opportunity noted in Seller Briefcase, not modeled. |
-| **VAR** | Internal Practitioners | Practitioners in practice per year (`annual_enrollments_estimate`) | **5%** | **8** | Same model as GSI at smaller scale. |
-| **Tech Distributor** | Internal Practitioners | Services arm headcount per year (`annual_enrollments_estimate`) | **3%** | **5** | Lower adoption and hours — training is emerging, not core. |
-
-**The audience-source split is architectural.** Software and Enterprise Software use `estimated_user_base` — total product users — because the thing the platform assesses (the product) and the audience for ACV (its users) are the same thing. Wrapper orgs use `annual_enrollments_estimate` — a separate, distinct field the researcher populates — because the thing assessed for Labability (the underlying vendor technology) and the audience for ACV (the wrapper's delivered program) are different things. This is Define-Once at the data-model level: one field, one meaning, one home per concept. See "Wrapper organizations — product vs. audience" below.
-
-**Industry Authority user base deflation:** Researcher numbers for Industry Authorities are inflated (lifetime cert holders, not annual training candidates). Apply deflation before the adoption math:
-
-| Researcher user_base | Deflation factor |
-|---|---|
-| > 500K | divide by 10 |
-| 100K - 500K | divide by 5 |
-| < 100K | divide by 2 |
-
-When annual exam volume IS available from the researcher, use that x 3 instead of deflation.
-
-**The critical insight for Industry Authorities:** ~250,000 people may be interested in CEH. ~50,000 actually take training. ~5,000 sit the exam. The install_base (Motion 1) is the training candidate population. The cert_annual_sit_rate (Motion 4) is the exam sitters. These are very different numbers — putting 250,000 in both fields double-counts the audience.
-
-**The critical insight for academics:** 25% adoption = ~half of enrolled students are in a lab course in any given year, ~90% of those complete labs — but 25% accounts for the fact that not all courses have labs yet. 15 hours = realistic semester lab consumption including practice labs outside class. Course Exams removed as a separate motion — bundled into Student Training (exams are part of tuition, not separate).
-
-### Wrapper organizations — product vs. audience
-
-**Why.** For a software company the product is Azure; Azure's users are the audience for ACV; one number covers both. For a wrapper organization — ILT Training Org, Academic institution, Enterprise Learning Platform, GSI/VAR/Distributor — the thing the platform assesses for Labability and the thing that drives ACV audience are **different**. Collapsing them into one field was a root-cause bug that produced both dramatic under-counts (Nutanix — the real lab opportunity wasn't being modeled) and dramatic over-counts (LLPA — the entire Azure market was being treated as if it were LLPA's classroom audience). The fix is architectural: two fields, two purposes, two homes.
-
-**The split:**
-
-| Purpose | Data field | Example (LLPA's Azure training program) |
-|---|---|---|
-| **Product Labability assessment** | Underlying vendor technology — general knowledge about the technology | Microsoft Azure — labability characteristics of Azure itself |
-| **ACV audience** | `annual_enrollments_estimate` on the wrapper's per-program record — how many learners THIS organization serves in THIS program per year | LLPA's classroom throughput for their Azure course (a small fraction of Azure's global user base) |
-
-**How the researcher populates it.** For wrapper org types the researcher treats each discovered item as a delivered program (course, practice area, curriculum, catalog slice). It captures two distinct numbers per item: the underlying technology name (used for Labability assessment and rate tier lookup) and the `annual_enrollments_estimate` (the wrapper's actual audience for this program — classroom students per year, enrollees per year, practitioners in this practice area per year).
-
-**What this replaces.** Before this rule, the researcher returned a single `estimated_user_base` for each discovered item, and for wrapper orgs that number was ambiguous — sometimes vendor market size, sometimes classroom throughput, never reliably either. The ACV math then applied wrapper-org adoption rates (25% / 18 hrs for ILT, 25% / 15 hrs for Academic) to whatever number the researcher produced, and the magnitude of the error depended entirely on which interpretation the researcher happened to pick.
-
-**How — per-motion calculation:**
-
-```
-Audience × Adoption × Hours = Annual Hours
-Annual Hours × Rate = Annual Potential
+```python
+{
+  "audiences": {
+    "customer_training":  int,
+    "partner_training":   int,
+    "employee_training":  int,
+    "certification":      int,
+    "events":             int,
+  },
+  "confidence": "low" | "medium" | "high",
+  "rationale": str,
+  "per_motion_rationale": dict[str, str],
+  "per_motion_confidence": dict[str, str],
+  "key_drivers": list[str],
+  "caveats": list[str],
+  "market_demand_story": str,
+}
 ```
 
-**Single values everywhere — including audience.** Every input is one estimated number, not a range. One number per motion, one number out. The seller can quote the result without caveats. Better to be approximately right with a single defensible number than to hedge with a range that communicates uncertainty.
+The call is narrow — one Claude turn, ~$0.05 on Sonnet. It never does dollar math; it outputs audience integers and reasoning only.
 
-**Rate tier lookup — derived from Product Labability:**
+**Step 2 — Deterministic Python math.** For each motion: `motion_acv = audience × rate`. Sum: `raw_company_acv = Σ motion_acv`. Rates come from config; the math is trivial and fully inspectable.
 
-| Delivery path (from Pillar 1) | Badges / facts that trigger this tier | Rate |
-|---|---|---|
-| **Cloud labs** | `Runs in Azure`, `Runs in AWS`, `Sandbox API` (green) | **~$6/hr** |
-| **Small VM, Container, or Simulation** | `Runs in VM` alone (no Multi-VM / Complex Topology / is_large_lab), `Runs in Container`, `Simulation` | **~$8/hr** |
-| **Typical VM** | `Runs in VM` with 1–3 VMs, standard footprint | **~$14/hr** |
-| **Large or complex VM** | `Multi-VM Lab` OR `Complex Topology` fires on top of `Runs in VM` / `ESX Required`, OR `ProvisioningFacts.is_large_lab` is set | **~$45/hr** |
+**Step 3 — Product Labability harness.** Filters the total for what Skillable can actually deliver as labs. The judgment call estimates total training demand (which exists regardless of whether Skillable can deliver it); the harness filters that demand for Skillable addressability.
 
-Rates use `~` to signal estimate. **One number per tier** — the final ACV range comes from audience variation, not from the rate. Rate ranges compound noise without adding precision and are forbidden here. Delivery path is determined once during Pillar 1 scoring — the ACV calculation looks it up, never redefines it. This is Define-Once: one source of truth for how a product gets delivered.
+```
+popularity_weighted_pl = Σ(product.rough_pl × product.user_base) / Σ(product.user_base)
+harness = popularity_weighted_pl / 100
+company_acv = raw_company_acv × harness
+```
 
-**Install base and partner community are Define-Once.** The same install base estimate feeds both Motion 1 audience AND Pillar 2 Market Demand. The researcher produces one install base number per product, and that number is used everywhere. Same rule applies to the global partner community size (feeds Motion 2 and Pillar 3 Delivery Capacity) and the delivery path (feeds the rate tier lookup and Pillar 1 badge display). Three Define-Once facts power the ACV model — all computed once, referenced everywhere.
+Popularity-weighted PL prevents broad portfolios from being punished by niche products: a company where the flagships are labable and the niche tools aren't keeps most of the harness credit. A company where the flagships aren't labable (Workday, ServiceNow) loses most of it regardless of niche-product breadth.
 
-**Estimation discipline.** Single estimated numbers, not ranges. "~14M users" is something a seller can quote. "2,000–40,000 users" signals "we have no idea." The researcher produces one directionally right number per product — the total people using the product, not double-counted, not missing any. Better to be approximately right than precisely uncertain.
+Pre-Deep-Dive uses `rough_labability_score` per product (researcher's directional estimate). Post-Deep-Dive uses the real PL score for products that have been scored, rough for the rest. The harness sharpens naturally as more products get Deep-Dived.
 
-**The ACV Potential hero widget has three lines:**
+### When the Judgment Call Fires
 
-| Line | Content |
+| Event | Fires? |
 |---|---|
-| **1. `ACV POTENTIAL`** | Big range — company-level ACV across ALL discovered products (extrapolated from the scored sample) |
-| **2. Descriptor** | `Estimated across all N discovered products` |
-| **3. Scored subtotal** | `Estimate for ONLY the N scored products: $X – $Y` |
+| Fresh discovery | Always |
+| Discovery refresh (default 45 days after last run) | Always |
+| Deep Dive that merges new company-level signals (new ATP count, new event, changed partnership_pattern) | Yes — judgment re-fires with richer context |
+| Deep Dive with no new company-level signals | No — existing audience estimates reused, harness updates with the new product's real PL |
 
-The word `ONLY` on line 3 is intentional and uppercase — it signals to the seller that line 3 is a subset, not a competing total. The two ranges together answer "how big is the full opportunity" AND "what can we defend with evidence today."
+Result: company ACV is stable between events, re-grounded when new company-level information arrives or on the refresh cadence. Deep Dives sharpen the per-product Fit Score and the harness without churning the audience estimates.
 
-All ACV math is implemented in `acv_calculator.py`. Rate lookups come from `scoring_config.RATE_TABLES` + `ORCHESTRATION_TO_RATE_TIER`. Tier thresholds come from `ACV_TIER_HIGH_THRESHOLD` and `ACV_TIER_MEDIUM_THRESHOLD`.
+### Org-Type Framing
 
-### Relationship to Mark's Labability Prompt
+The judgment call prompt names what "audience" means for each organization type explicitly, so Claude interprets the same audience label correctly across very different business models:
 
-Mark Mangelson (CRO) developed a labability estimation prompt that identifies nine audience/revenue categories for any given company. The Skillable Intelligence ACV model was designed to cover every category Mark identified, with product-level precision on top.
+| Organization type | Customer Training audience = |
+|---|---|
+| Software / Enterprise Software | Customers worldwide who pay for training on the company's products this year |
+| Enterprise Learning Platform (Pluralsight, Skillsoft, CBT Nuggets) | Subscribers consuming the technology portion of the catalog this year — fraction of total platform learners |
+| ILT Training Organization (New Horizons, LLPA, AXcademy) | Students in this org's classrooms and virtual ILT courses this year — bounded by the org's own delivery capacity |
+| Academic Institution | Students enrolled in technology programs this year — not total enrollment |
+| Systems Integrator / VAR / Technology Distributor | Consultants in the practice area this year — internal practitioners, not the underlying technology's global market |
+| Industry Authority (CompTIA, SANS, EC-Council) | Annual training candidates — not lifetime cert holders |
 
-**How Mark's nine categories map to this framework:**
+The other four motions follow analogous per-org-type framing. Full prompt text lives in `backend/audience_grader.py`.
 
-| Mark's category | Our coverage | Why our approach sharpens it |
-|---|---|---|
-| **#1 — Technical employees** (engineers, IT, devs) at $100/person for general tech + AI training | **Motion 3: Employee Training** — relevant employee subset × adoption × hours × rate | Product-specific rate tiers ($6–$45/hr based on delivery path) replace the flat $100. A cloud lab and a multi-VM cybersecurity lab are different economics. |
-| **#2 — Total employees** at $20/person for general + AI training | **Intentionally narrower in our model** — we count the relevant subset, not total headcount | Counting all employees at a low rate inflates ACV for companies with large non-technical workforces. Our approach counts only people who would actually take labs. More defensible in a sales conversation. |
-| **#3 — B2B customers** trained on proprietary software at $100/customer for cert + enablement | **Motion 1: Customer Training + Motion 4: Certification** | We separate training volume (larger) from cert candidates (smaller, 100% adoption). Mark combines them. Our separation gives the seller two distinct talking points. |
-| **#4 — Technical SKUs** × $25/customer/year per SKU | **Per-product ACV model** — each product gets its own full ACV calculation | Mark multiplies a flat rate by SKU count. Our product definition filter ensures only real products are counted (Posit has 3–5 real products, not 48 SKUs). Each product gets a technology-specific rate tier. This is the biggest accuracy improvement over Mark's approach. |
-| **#5 — Partners** (GSIs, consultants) at $100/partner for cert + enablement | **Motion 2: Partner Training** | Direct match. Our discovery Tier 3 captures the sales channel and ATP program separately — channel partners who sell the product vs ATPs who train on it. Both feed ACV but through different motions. |
-| **#6 — Enterprise sales personnel** (SEs, AEs, CS) at $25/person for demo + cert | **Bundled into Motion 3 employee subset** | Mark breaks this out as a separate audience — smart, because SE demo training is a distinct Skillable use case. **Seller Briefcase opportunity:** "Trellix has ~200 SEs who need demo environments" is a conversation starter. The researcher captures this in `target_personas` even though the ACV math bundles it into Motion 3. |
-| **#7 — Customer support personnel** at $25/person for demo + cert | **Bundled into Motion 3 employee subset** | Same as #6 — Mark's breakout is useful for Seller Briefcase context ("500 support agents need product training") even though the ACV math doesn't need a separate motion for it. |
-| **#8 — Customer events** at $50/attendee | **Motion 5: Events & Conferences** | Direct match. Our discovery Tier 3 captures events with attendance estimates. |
-| **#9 — Enterprise SKU baseline** — flat $75K/year for TMS, Premium Support, Lab Dev Licenses | **Not modeled in the intelligence platform** | This is Skillable platform revenue (licensing, support, implementation) independent of lab hours consumed. It belongs in the sales/pricing layer, not in product fit intelligence. The intelligence platform's job is to estimate the lab opportunity; Skillable's pricing team layers platform fees on top. |
+### Partnership-Only Org Types — Content Development Firms
 
-**Why product-level precision matters more than flat rates (GP4 — Self-Evident Design applied to ACV; Define-Once — one install base number, used everywhere).** Mark's prompt applies the same dollar rate to every audience regardless of what product is being trained on. A $100/person rate makes sense as an enterprise average, but it hides real variation: a cloud lab costs ~$6/hr while a multi-VM cybersecurity range costs ~$45/hr. The intelligence platform's technology-specific rate tiers produce ACV estimates the seller can defend at the product level, not just the company level. When the seller says "your Endpoint Security training program is a $400K annual opportunity," the number is grounded in how that specific product would be delivered as labs.
+**Why.** Content Development firms (GP Strategies, Waypoint Ventures, NetLogon-class partners) build learning programs for other companies' clients. They have no products to score, no audience that fits the motion model, and no direct Skillable revenue story. Their opportunity is downstream — if they partner with Skillable to power their client lab builds, revenue flows through those client engagements.
 
-**Why we filter products before counting.** Mark's #4 multiplies a flat rate by SKU count. If the researcher returns 48 "products" for Posit (the old behavior before the product definition filter), that multiplier is wildly inflated. The product definition filter — only standalone licensed products with real user bases — ensures the SKU count reflects actual lab opportunities. Fewer products, higher confidence per product.
+**What.** Content Development is a short-circuit org type. Before the judgment call fires, the pipeline checks `org_type`. For `CONTENT_DEVELOPMENT`, it returns a partnership result shape (audiences all zero, `acv_type = "partnership"`) without calling Claude.
 
-**Where Mark's breakouts sharpen the Seller Briefcase.** Mark's #6 (sales personnel) and #7 (support personnel) identify audiences that are meaningful for Seller Briefcase even though they don't need separate ACV motions. "Trellix has ~200 SEs who need demo environments" and "Cohesity has ~500 support engineers who need product certification" are Conversation Starters (Pillar 2 briefcase) — they give the seller specific talking points grounded in the customer's own team structure. The discovery `target_personas` field captures these audiences at the product level; the Seller Briefcase synthesizes them into actionable bullets.
+| Surface | Display |
+|---|---|
+| Prospector row | Purple "Partnership" chip instead of a dollar range |
+| Inspector | Partnership-focused dossier: Build Capacity signals, technologies covered, no Fit Score, no Deep Dive button |
+
+### Calibration Anchors
+
+**Why.** Without calibration, Claude can produce plausible-sounding but commercially off numbers — $50M for mid-market prospects, $100K for enterprises. The judgment needs a sense of "what real customers look like" to keep grounded.
+
+**What.** `backend/known_customers.json` (gitignored — confidential revenue data) is the source of truth. It holds real Skillable customers with `current_acv`, `stage`, and optional `acv_potential_low/high`. A builder function assembles an **anonymized stage-grouped magnitude block** that the judgment call prompt includes:
+
+```
+Stage 'saturated' (N reference customers): current ACV $X–$Y, estimated Potential $A–$B
+Stage 'mid' (N reference customers): ...
+Stage 'first-year' (N reference customers): ...
+```
+
+Customer names never enter the prompt — the block shows only magnitudes and stage groupings. The committed `backend/known_customers.template.json` documents the schema; production deployments mount the real file.
+
+**Commercial reality the prompt names explicitly:**
+- Microsoft is the ceiling benchmark — ~15-year partnership, Skillable as their lab provider
+- Most companies land in the $500K–$5M range
+- A handful reach $5M–$20M
+- Non-Microsoft numbers above $20M should trigger skepticism — only Accenture and Deloitte have realistic three-year paths to that tier, and only because those relationships are in motion
+
+### Sharpening: Discovery → Deep Dive
+
+Company ACV is set at discovery by the judgment call. Deep Dive doesn't churn it. Specifically:
+
+| Deep Dive impact | Effect on company ACV |
+|---|---|
+| Real PL score replaces rough for one product | Harness shifts slightly (that product's weight × PL delta). Company ACV nudges. |
+| Real IV rubric grades produced | Feeds per-product Fit Score on Inspector card. No direct ACV effect. |
+| Real CF rubric grades produced | Feeds Fit Score. Company-unified (Phase F). No direct ACV effect. |
+| Deep Dive surfaces new company-level signals | Judgment call re-fires with richer context. New company ACV. |
+| Nothing company-level changed | Judgment cached. Company ACV stable. |
+
+The "Deep Dive makes it skyrocket" pattern that plagued earlier architectures is structurally impossible here: ACV comes from the company total, not from per-product numbers summed upward. A Deep Dive can only reshape the harness or re-ground audiences via new company-level context.
+
+### What Per-Product Still Tells You
+
+Per-product cards on Inspector carry Product Labability, Instructional Value, Customer Fit (shared per company), the composite Fit Score, competitive product pairings, and badges + evidence per dimension. They do **not** carry a dollar ACV — ACV is company-level only. Marketing's Prospector row surfaces the per-product labability tier counts (Promising / Potential / Uncertain / Unlikely) for portfolio scannability alongside the company-level dollar ACV.
+
+### Lineage — Mark Mangelson's CRO Framework
+
+The five-motion model derives from Mark Mangelson's (CRO) labability estimation prompt, which identified nine audience/revenue categories with flat per-head annual rates. This framework consolidates Mark's nine into five:
+
+| Mark's categories | Our motion |
+|---|---|
+| #3 — B2B customers being trained | Customer Training |
+| #5 — Partners | Partner Training |
+| #1 — Technical employees (also Mark's #6 sales personnel and #7 support personnel bundled in) | Employee Training |
+| Subset of #3 (exam sitters) | Certification |
+| #8 — Customer events | Events |
+
+**Intentionally excluded:** Mark's #2 (total employees × $20) — counting all employees at a low rate inflates for non-technical workforces. Mark's #4 (technical SKUs × $25/customer) — our product-level PL harness filters what's actually labable. Mark's #9 (enterprise SKU flat $75K) — Skillable platform revenue, out of scope for lab-hour ACV.
+
+**Intentionally simpler than Mark on rates:** Mark's flat rates without adoption or hours; ours is also flat (no per-product rate tiers, no adoption %, no hours multiplication) because flat rates across all orgs are consistent and trustworthy. Mark's own framework tested "close enough" on real customers. This framework should match or improve that calibration with richer signal input.
+
+All ACV math is implemented in `acv_calculator.py`. Rate constants come from `scoring_config.MOTION_METADATA`. Tier thresholds come from `ACV_TIER_HIGH_THRESHOLD` and `ACV_TIER_MEDIUM_THRESHOLD`.
 
 ---
 

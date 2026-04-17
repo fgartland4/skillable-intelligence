@@ -4,6 +4,150 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-17 (later) — ACV architecture simplification to company-level, Mark-style line items
+
+**Context:** Frank opened this session with concern that the Build 1 work shipped in commit `a34549c` (ILT formula fix + full retrofit) had drifted from intent and broken things. Requested a thorough review of the whole ACV + scoring path — "the way that Claude did it was was not following the requirements. At all. It really drifted, and it broke a lot of things." The session began with an exhaustive code-vs-docs audit (seven findings surfaced) and evolved into an architectural simplification far larger than Build 1's originally-scoped scope.
+
+### Session findings (Research Pass)
+
+1. **Discovery and Deep Dive used different audience models.** Discovery computed company-level allocation (framework from Build 1). Deep Dive read `install_base` per product directly. Two audience models producing different numbers for the same product. Root cause of the "Deep Dive skyrockets ACV" pattern.
+2. **Fit Score directly gated ACV.** `compute_acv_potential` and `compute_acv_on_product` multiplied the final ACV by `fit_score / 100`. Explicitly against Frank's stated rule ("ACV is how big, Fit Score is should we pursue — don't cross-contaminate"). Build 2 was queued to replace it but never started.
+3. **Two display fields for company ACV.** `_holistic_acv` on discovery (written by Path 1) vs `_company_acv` on analysis (written by Path 4). Prospector read one, Inspector read the other. Values diverged structurally. Violated the "Deep Dive overwrites discovery" pattern that CF and PL already followed.
+4. **Seventeen accumulated caps, floors, multipliers, and tiered heuristics.** Inventoried: archetype audience tiers, wrapper-org fractional caps, IA deflation tiers, scale-aware adoption ceiling, training maturity multipliers, open-source multipliers, cert caps, derivation percentages, per-employee caps, ILT 0.70 dampener, Technical Fit Multiplier 7-row table, rough-IV heuristic anchors (80/55/25/50), etc. Each one existed to paper over a place the underlying math wasn't producing the right answer on its own.
+5. **Build 1 scope not fully shipped.** `annual_enrollments_estimate` field retirement — specified in Build 1, alive in 11 files. Platform-Foundation ACV section rewrite — specified, not done. `backend/benchmarks.json` — rich calibration file, not referenced from any docs. Several smaller stale references.
+6. **Rough IV heuristic re-invented IV scoring with ungrounded anchors.** `_compute_rough_iv_score` in `intelligence.py` used its own scale (80/55/25/50) disconnected from the real `IV_CATEGORY_BASELINES` used by `pillar_2_scorer.py`.
+7. **Smaller drift items.** Microsoft note in `known_customers.json` referenced a $30M universal cap that was deleted. `scripts/README.md` referenced deleted scripts. Researcher module comment referenced deleted script. Badging doc retained ~110 lines describing retired `HOLISTIC_ACV_*` guardrails.
+
+### DECIDED — Frank's reframes that drove the simplification
+
+- **"Math is fine, logic is broken."** The five-motion framework, rate tiers, motion definitions are correct. The assembly around them (which audiences feed which motions, which gate filters which total, where caps sit) is where the drift lives. Fix the wiring, not the primitives.
+- **"Artificial floors/ceilings are a HUGE no-no."** Caps and multipliers that exist to bend a number toward a target value are the anti-pattern. Every cap in Finding #4 was Claude's (prior sessions and mine) shortcut to get an expected answer from a broken model. Remove them in concert with fixing what they masked.
+- **"Every aspect is counting humans who buy labs."** Motion 1 audience isn't "install base × some percentage." It's a specific countable population — the humans whose lab consumption generates Skillable revenue this year. Same framing for Motions 2–5.
+- **"Market Demand is the gating signal for all motions."** Not just Motion 1. If there's no paid training market, no partners will train, no one will certify, no events will have lab tracks. Market Demand bounds the whole ACV picture.
+- **"Mark's simpler framework is 'close enough' — we've been trying to be more precise and drifting instead."** Frank + Mark (CRO) tested Mark's nine-category flat-rate prompt on real customers; it produced defensible numbers. Our more-granular model has produced more drift. Simpler + consistent + trustworthy > theoretical accuracy we haven't achieved.
+
+### DECIDED — Company-level ACV only (no per-product ACV dollars)
+
+- **DECIDED:** ACV Potential is computed at the company level exclusively. One dollar figure per company. No per-product ACV exists under this architecture.
+- **DECIDED:** Per-product cards on Inspector surface Product Labability / Instructional Value / Customer Fit / Composite Fit Score / Competitors + badges. They do NOT carry a dollar ACV.
+- **DECIDED:** Marketing's Prospector row continues to carry per-product labability tier counts (Promising / Potential / Uncertain / Unlikely) alongside the company-level dollar ACV.
+- **Rationale:** Collapses four parallel ACV computation paths (discovery allocation, Deep Dive score-time per-product, cache-reload per-product, recompute unscored extrapolation) into one. Eliminates the "Deep Dive skyrockets" pattern by construction — the total is set at the company level, not summed from per-product numbers.
+
+### DECIDED — Five-motion Mark-style line items with flat rates
+
+- **DECIDED:** The five motions (Customer Training, Partner Training, Employee Training, Certification, Events) are each an audience count × a flat annual rate. Per Frank's calibration:
+  - Customer Training: $200/person/year
+  - Partner Training: $200/person/year
+  - Employee Training: $200/person/year
+  - Certification: $10/person/year
+  - Events: $50/attendee/year
+- **DECIDED:** No rate tiers per product. No adoption % multiplications. No hours-per-learner math. Flat rates across all org types. (Rate variations are baked into the blended annual rate per motion.)
+- **Rationale:** Mirrors Mark Mangelson's (CRO) labability estimation prompt, which tested "close enough" on real customers. Simpler math with fewer knobs to drift. Mark's $200 (= $100 cert + $100 enablement) for trained humans is the commercial baseline; $10 for cert sitters reflects ~1 lab hour at platform-fee rates; $50 for event attendees is Mark's direct figure.
+
+### DECIDED — New `audience_grader.py` module (narrow Claude slice)
+
+- **DECIDED:** A new intelligence-layer module, `backend/audience_grader.py`, sibling to `rubric_grader.py`. One Claude call per company, produces five audience integers + rationale + confidence (per-motion). Does NOT do dollar math.
+- **DECIDED:** Model = Sonnet 4.6. Cost ≈ $0.05/call.
+- **DECIDED:** Call fires at fresh discovery, at 45-day refresh, and at Deep Dives that merge new company-level signals (diff check in `company_signals_changed_materially`). Does NOT fire on every Deep Dive — product-only changes reuse cached audiences.
+- **DECIDED:** Short-circuits for `CONTENT_DEVELOPMENT` org types before calling Claude — returns partnership result shape.
+- **Rationale:** Judgment (audience reasoning grounded in commercial knowledge + calibration anchors) is Claude's job. Math (multiply by rate, sum) is Python's job. Changing a rate should never require re-calling Claude. Matches the `rubric_grader` pattern exactly.
+
+### DECIDED — Build 2 dropped (no separate ACV-specific dimension weight gate)
+
+- **DECIDED:** The Build 2 spec (ACV-specific dimension weights — Market Demand 40 / Delivery Capacity 60 / etc., separate from Fit Score weights) is NOT implemented.
+- **Rationale:** The judgment call's prompt instructs Claude to factor Market Demand (IV dimension) and Training Commitment + Delivery Capacity (CF dimensions) into the audience estimates. This does the work Build 2's dimension-weight gate was designed to do — implicitly, at the audience-estimation layer, rather than explicitly as a post-hoc multiplier. Simpler path wins.
+
+### DECIDED — Single Product Labability harness (popularity-weighted)
+
+- **DECIDED:** Company ACV gets ONE multiplier: a popularity-weighted average PL across the product portfolio.
+  - `weighted_pl = sum(product.rough_pl × product.user_base) / sum(product.user_base)`
+  - `harness = weighted_pl / 100`
+  - `company_acv = raw_acv × harness`
+- **Rationale:** The judgment call estimates total paid training demand (which exists regardless of Skillable deliverability). The harness filters that demand for what Skillable can actually ship as labs. Workday has a real training market; Skillable can't deliver most of it; harness catches that. Popularity weighting prevents broad portfolios (Microsoft) from being penalized by niche products. Flagship products drive the harness; niche products have less influence.
+- **DECIDED:** Term is "harness" (per Frank — "I hate using the word gate for some reason"). Consistent with the commercial-filter framing.
+
+### DECIDED — Retire artificial caps / multipliers (bulk)
+
+- **DECIDED:** The following constants are deleted (staged across implementation commits):
+  - `compute_company_total_audience()` and its org-type-routing constants (SHARED_ADMIN / DISTINCT_AUDIENCE / PARTIAL_OVERLAP / INDUSTRY_AUTHORITY_ORG_TYPES, ILT 0.70 dampener)
+  - `allocate_audience_to_products()` (no per-product allocation needed)
+  - Per-product ACV functions: `populate_acv_motions`, `compute_acv_on_product`, `rebuild_acv_motions_from_facts`, `compute_acv_potential`
+  - `AUDIENCE_TIERS_BY_ARCHETYPE` at the discovery path
+  - `ACV_WRAPPER_ORG_AUDIENCE_CAP_FRACTION` + floor
+  - `INDUSTRY_AUTHORITY_DEFLATION_TIERS`
+  - `DISCOVERY_ACV_USER_BASE_TIERS` legacy fallback
+  - `ADOPTION_CEILING_BY_AUDIENCE` (scale-aware adoption ceiling)
+  - `ACV_TRAINING_MATURITY_ADOPTION_CAP` (35%)
+  - `ACV_TRAINING_MATURITY_MULTIPLIERS`
+  - `OPEN_SOURCE_WITH_TRAINING_MULTIPLIER` + `OPEN_SOURCE_PURE_MULTIPLIER`
+  - `ACV_CERT_MAX_FRACTION_OF_INSTALL_BASE`
+  - `CERT_SIT_DERIVATION_PCT`
+  - `ACV_PER_EMPLOYEE_ANNUAL_CAP`
+  - `_compute_rough_iv_score` anchors (80/55/25/50) in intelligence.py
+  - Fit Score gate inside `compute_acv_potential` and `compute_acv_on_product`
+- **DECIDED:** Surviving caps (not removed in this change):
+  - Archetype IV ceilings (100 / 65 / 45 / 25) — still used in `pillar_2_scorer` for IV scoring, unrelated to ACV math
+  - Technical Fit Multiplier (7-row table) — kept for Fit Score composition; evaluation later (try removing and see if anchors hold)
+- **Rationale:** Every cap in the first list exists to paper over a place the underlying math was wrong. Under the new architecture, the judgment call handles what most of them were approximating. Remove them in concert with the architectural rewrite, not before.
+
+### DECIDED — Retire `annual_enrollments_estimate` field entirely
+
+- **DECIDED:** `annual_enrollments_estimate` is deleted from `models.py`, `researcher.py`, `discovery.txt` prompt, `acv_calculator.py`, `intelligence.py`. `estimated_user_base` becomes the universal audience field for every org type.
+- **Rationale:** The original Build 1 spec said retire it; Build 1 shipped without completing this step. Revisiting under the new architecture: the judgment call interprets `estimated_user_base` per org type (ILT → classroom students this year, Academic → program enrollment this year, Software → global user count, etc.) via explicit prompt framing. No two fields needed.
+
+### DECIDED — Canonical `_company_acv` field, overwritten on each qualifying event
+
+- **DECIDED:** The discovery record carries `discovery["_company_acv"]` as the single source of truth for company ACV. Written at discovery, overwritten on refresh and on qualifying Deep Dives.
+- **DECIDED:** The legacy `_holistic_acv` field is renamed / consolidated to `_company_acv`. Both Prospector and Inspector hero sections read this one canonical field.
+- **Rationale:** Matches the CF and PL sharpening patterns already documented in Platform-Foundation ("Deep Dive writes back to Discovery"). ACV finally follows the same rule.
+
+### DECIDED — In-app modal content rewritten with descriptive reframe pattern
+
+- **DECIDED:** The `acv_potential` and `acv_use_case` modals in `scoring_config.py` are rewritten to use descriptive reframe questions instead of literal "Why / What / How" headers:
+  - *What question are we answering?*
+  - *What is it?*
+  - *How do we arrive at the number?*
+  - *What anchors the number*
+  - *What this doesn't try to be*
+- **DECIDED:** This pattern extends to the Fit Score modal and any future modal rewrites (not done in this session; queued for follow-up).
+- **Rationale:** Frank: "That's what Mark, you know, and the and then our CEO our COO, our our chief marketing officer, all of our VPs, the sellers. Everyone's gonna be using those." The in-app modal IS the external-facing narrative of the platform to leadership. Descriptive questions ("What are we answering?") scan better than structural labels ("Why") for non-technical readers.
+
+### DECIDED — Documents-first principle, rewrite in place (not versioned)
+
+- **DECIDED:** `Platform-Foundation.md → ACV Potential Model` section rewritten in place. No v2 file, no legacy save-as. Git history + decision-log preserve the old thinking.
+- **DECIDED:** `Badging-and-Scoring-Reference.md` retired sections (~150 lines of `HOLISTIC_ACV_*` guardrails, calibration block specifics, Common Pitfalls Patterns A/B/D/E/F, etc.) deleted in place.
+- **Rationale:** GP5 ("Intelligence compounds, never resets") applied to documentation: rewrite synthesizes best current thinking, does not accumulate historical versions. "One source of truth" at the file level (GP4 + Define-Once).
+
+### Validation set (for implementation commits)
+
+11 companies spanning org types and customer/non-customer mix:
+
+| Customers | Non-customers |
+|---|---|
+| Microsoft, Commvault, Trellix, CompTIA, EC-Council, Skillsoft, Deloitte | Pluralsight, CBT Nuggets, Sage, Calix |
+
+Spot-check expected ranges (from the slide + `known_customers.json`) after each cleanup commit. Stop-and-diagnose if any anchor moves >30% from the expected range.
+
+### This session's outputs (docs + stubs)
+
+- Rewrote `Platform-Foundation.md → ACV Potential Model` section (in place).
+- Rewrote `Platform-Foundation.md → Two Hero Metrics` section for company-level ACV framing.
+- Rewrote `Badging-and-Scoring-Reference.md → ACV Calculation` section (compact operational detail; ~150 lines retired content deleted).
+- Rewrote `acv_potential` and `acv_use_case` modal content in `scoring_config.py` using descriptive reframe pattern.
+- Added `MOTION_RATE_*` constants and `MOTION_KEYS` / `MOTION_METADATA` to `scoring_config.py`. Define-Once source for motion metadata.
+- Created `backend/audience_grader.py` as a stub module: function signatures, output schema, partnership short-circuit, diff-check helper. Live Claude call lands in Commit 1 of the implementation pass.
+- Added `compute_company_acv()` and `compute_popularity_weighted_pl()` stubs to `acv_calculator.py`. Live implementation lands in Commit 2.
+- Drift touch-ups: `scripts/README.md`, `known_customers.json` Microsoft note (`$30M cap` reference), stale comment in `researcher.py`.
+- This decision-log entry.
+
+### Queued for next session (implementation)
+
+- **Commit 1:** Full `audience_grader.py` prompt + Claude call + wire into `intelligence.discover()`. Test on 3-4 companies via direct API before wiring. Validate against 11-company anchor set.
+- **Commit 2:** `compute_company_acv` + `compute_popularity_weighted_pl` live implementations. Replace Fit Score gate with nothing (judgment handles demand, harness handles supply).
+- **Commit 3+:** Strip caps commit-by-commit with validation between each. See next-session-todo.md for full sequence.
+
+---
+
 ## Session: 2026-04-17 (late) — ACV architecture alignment (design-only, no build yet)
 
 **Context:** Frank ran Prospector after shipping commit `1b23f94` (capability wiring + unified rebalancing across scored and unscored paths).  Microsoft showed $99M (inflated), and the non-analyzed hyperscalers + ELPs (Salesforce, ServiceNow, Pluralsight, Skillsoft) still showed the Claude holistic $18-30M range.  A full design walkthrough surfaced that the agreed ACV architecture had never actually been implemented in the code.  This entry captures the decisions agreed in that walkthrough.  Build lands next session (see `docs/next-session-todo.md` §1).

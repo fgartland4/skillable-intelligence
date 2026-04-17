@@ -1535,29 +1535,6 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
 
     acv_point = round(total_acv)
 
-    # ── Known-customer floor (Frank 2026-04-17) ──────────────────────────
-    # A company we are actively charging $X cannot show a discovery-time
-    # estimate below $X.  Discovery math is Motion-1-only (Motions 2-5
-    # require Deep Dive facts) and will systematically under-estimate for
-    # known customers until their products are Deep-Dived.  The floor
-    # ensures the displayed number never drops below ground truth.
-    #
-    # Only raises; never lowers.  If the framework produces a number
-    # already above the customer's current_acv, leave it alone — that's
-    # the customer's upside.
-    floor_applied = False
-    floor_value = 0
-    try:
-        company_name = discovery.get("company_name") or ""
-        rec = cfg.get_known_customer_record(company_name)
-        if rec:
-            floor_value = int(rec.get("current_acv") or 0)
-    except Exception:
-        floor_value = 0
-    if floor_value > 0 and acv_point < floor_value:
-        floor_applied = True
-        acv_point = floor_value
-
     # Confidence based on product coverage
     if contributing >= 5:  # magic-allowed: high-confidence threshold = 5+ products contributed
         confidence = "high"
@@ -1565,9 +1542,6 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
         confidence = "medium"
     else:
         confidence = "low"
-    # Known customers get medium confidence at minimum — we have ground truth.
-    if floor_applied and confidence == "low":
-        confidence = "medium"
 
     # Narrative — describes the computation so the output is inspectable
     org_label = normalized_org or (org_type_raw.replace("_", " ").upper() or "UNKNOWN")
@@ -1609,12 +1583,6 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
             f"{skipped} discovered products contributed 0 — missing audience "
             "(needs re-research to populate estimated_user_base)"
         )
-    if floor_applied:
-        caveats.append(
-            f"Known-customer floor applied — framework result was below current "
-            f"ACV ground truth (${floor_value:,}); floor raises discovery estimate "
-            f"to match.  Deep-Diving products will grow the number above the floor."
-        )
 
     return {
         "acv_low": acv_point,
@@ -1625,3 +1593,124 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
         "caveats": caveats,
         "_source": "framework",
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# NEW ARCHITECTURE (2026-04-17) — company-level ACV, Mark-style line items
+#
+# The functions below implement the simplified architecture documented in
+# docs/Platform-Foundation.md → ACV Potential Model. They replace the
+# per-product allocation model (compute_company_total_audience +
+# allocate_audience_to_products + per-product motion math) with:
+#
+#   1. Judgment call (backend/audience_grader.py) produces 5 audience integers
+#   2. compute_company_acv() applies flat rates per motion, sums
+#   3. compute_popularity_weighted_pl() computes the PL harness
+#   4. Harness × raw total = final company ACV
+#
+# Per-product ACV does NOT exist under this architecture. ACV is company-
+# level only. Per-product cards show PL / IV / Competitors / Fit Score.
+#
+# STATUS: STUBS. Live implementation lands in Commit 2 of the architecture
+# rewrite. Signatures and data shapes below are the contract callers
+# should build against.
+#
+# When Commit 2/3 ships, these functions replace:
+#   - compute_discovery_company_acv()       (function above)
+#   - compute_company_total_audience()      (org-type-aware routing)
+#   - allocate_audience_to_products()       (per-product distribution)
+#   - populate_acv_motions() + compute_acv_on_product()  (per-product score-time)
+#   - rebuild_acv_motions_from_facts() + compute_acv_potential()  (cache reload)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def compute_company_acv(discovery: dict) -> dict:
+    """Compute the canonical company-level ACV from discovery.
+
+    The single source of truth for the _company_acv field. Called at
+    discovery time, on refresh, and after a qualifying Deep Dive merges
+    new company-level signals.
+
+    Pipeline:
+      1. Call audience_grader.judge_training_audiences(discovery) →
+         five audience integers + rationale + confidence per motion
+      2. Apply flat rate per motion from cfg.MOTION_METADATA → motion_acv
+      3. Sum motion_acv across the five motions → raw_total
+      4. Compute popularity-weighted PL via compute_popularity_weighted_pl
+      5. Apply harness: company_acv = raw_total × (pl_weighted / 100)
+
+    STUB — live implementation lands in Commit 2. Output shape below is
+    the contract.
+
+    Args:
+        discovery: The discovery dict.
+
+    Returns:
+        A dict that mirrors the `_company_acv` field shape:
+
+            {
+                "acv": int,                 # Gated company ACV (single integer)
+                "raw_acv_before_harness": int,  # Pre-harness total for transparency
+                "harness": float,           # popularity_weighted_pl / 100
+                "popularity_weighted_pl": int,  # The PL value used for the harness
+                "motions": {
+                    "customer_training":  {"audience": int, "rate": int, "acv": int, "rationale": str, "confidence": str},
+                    "partner_training":   {...},
+                    "employee_training":  {...},
+                    "certification":      {...},
+                    "events":             {...},
+                },
+                "confidence":             "low" | "medium" | "high",
+                "rationale":              str,
+                "key_drivers":            list[str],
+                "caveats":                list[str],
+                "market_demand_story":    str,
+                "_source":                "framework-v2",
+            }
+
+        For partnership-only org types, returns the partnership result
+        shape (acv: 0, acv_type: "partnership", purple chip in UI).
+    """
+    # TODO(commit-2): implement pipeline
+    raise NotImplementedError(
+        "compute_company_acv is a stub. "
+        "Full implementation lands in Commit 2 of the ACV architecture rewrite."
+    )
+
+
+def compute_popularity_weighted_pl(discovery: dict) -> int:
+    """Compute the popularity-weighted average Product Labability across products.
+
+    The Product Labability harness that filters raw ACV for what Skillable
+    can actually deliver as labs. Weighting by estimated_user_base prevents
+    broad portfolios from being punished by niche products — flagships
+    drive the harness; niche products have less influence.
+
+    Formula:
+        Σ(product.rough_pl × product.user_base) / Σ(product.user_base)
+
+    Pre-Deep-Dive: uses rough_labability_score per product (researcher's
+    directional estimate at discovery).
+
+    Post-Deep-Dive: uses the real PL score for products that have been
+    Deep-Dived, rough for the rest. The harness sharpens as more
+    products get Deep-Dived. (Phase F-PL already writes real PL back
+    onto discovery-level rough_labability_score; this function reads
+    the sharpened value uniformly.)
+
+    STUB — live implementation lands in Commit 2.
+
+    Args:
+        discovery: The discovery dict.
+
+    Returns:
+        Integer 0-100 representing the popularity-weighted average PL.
+        Returns 50 as a neutral default when no products have positive
+        user_base (pathological case — should trigger a re-research
+        rather than a silent default).
+    """
+    # TODO(commit-2): implement weighted average
+    raise NotImplementedError(
+        "compute_popularity_weighted_pl is a stub. "
+        "Full implementation lands in Commit 2 of the ACV architecture rewrite."
+    )

@@ -1924,9 +1924,13 @@ def _build_partnership_acv_result(
 # Retrofit gap-fills — targeted Claude calls for cached records
 #
 # These fill specific missing fields on records that were researched before
-# the ACV refresh landed. Narrower than a full re-research (one call per
-# company, small prompt, reads existing cached context). Used by the
-# scripts/retrofit_acv.py runner.
+# newer fact-drawer requirements landed. Narrower than a full re-research
+# (one call per company, small prompt, reads existing cached context).
+# Historical note: the annual_enrollments_estimate field is retired under
+# the 2026-04-17 ACV architecture (company-level judgment call replaces
+# per-program audiences). The prompt below is preserved for reference /
+# backfill of pre-retirement caches; call-sites will be cleaned up when
+# the field is fully removed from models.py.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _ANNUAL_ENROLLMENTS_PROMPT = """You are a research analyst estimating per-program annual enrollments for a wrapper organization.

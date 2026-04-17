@@ -927,227 +927,76 @@ The multiplier applies ONLY to IV + CF contributions (the "downstream" pillars).
 
 ---
 
-## ACV Calculation — Rate Tier Lookup
+## ACV Calculation — Operational Detail
 
 ### Why this section is here
 
-The full ACV Potential model — the five consumption motions, the per-motion math, the three-line hero widget, the Define-Once install base rule, and estimation discipline (single numbers, not ranges) — lives in `Platform-Foundation.md → ACV Potential Model`. This document does not duplicate that content. What DOES live here is the operational detail of how the **rate tier** is computed from Pillar 1 facts, because the rate lookup is Pillar-aware and belongs with the scoring math.
+The full ACV Potential model — the five use-case motions, the audience grader, the Product Labability harness, the org-type framing, calibration anchors, partnership-only handling — lives in `Platform-Foundation.md → ACV Potential Model`. This document does not duplicate that content. What DOES live here is the operational detail of how the math is actually executed.
 
-### What — the rate tier table
+### Flat rates per motion
 
-| Delivery path | Triggered by | Rate |
+Source of truth: `scoring_config.MOTION_METADATA`. Rates are annual, per human.
+
+| Motion | Rate | Unit |
 |---|---|---|
-| **Cloud labs** | `Runs in Azure`, `Runs in AWS`, `Sandbox API` green | **~$6/hr** (`cfg.CLOUD_LABS_RATE`) |
-| **Small VM / Container / Simulation** | `Runs in VM` alone (no Multi-VM / Complex Topology / is_large_lab), `Runs in Container`, `Simulation` | **~$8/hr** (`cfg.VM_LOW_RATE`) |
-| **Typical VM** | `Runs in VM` with 1–3 VMs, standard footprint | **~$14/hr** (`cfg.VM_MID_RATE`) |
-| **Large or complex VM** | `Multi-VM Lab` OR `Complex Topology` fires on top of `Runs in VM` / `ESX Required`, OR `ProvisioningFacts.is_large_lab` is set | **~$45/hr** (`cfg.VM_HIGH_RATE`) |
+| Customer Training | $200 | person/year |
+| Partner Training | $200 | person/year |
+| Employee Training | $200 | person/year |
+| Certification | $10 | person/year |
+| Events | $50 | attendee/year |
 
-Simulation rate is pinned to `VM_LOW_RATE` — Sims are priced the same as VM Low ($8/hr per Frank).
+No rate tiers per product. No adoption %. No hours multiplication. Flat rates across all org types — one rate per motion, applied uniformly. Rates are grounded in Skillable economics (Mark Mangelson's CRO framework, calibrated against `known_customers.json`).
 
-### How
+### The five-motion math
 
-`acv_calculator.py`:
+For each motion:
 
-1. Reads `product.orchestration_method`.
-2. Looks up the tier name via `cfg.ORCHESTRATION_TO_RATE_TIER` (a dict keyed on lowercase orchestration method → delivery path name).
-3. Falls back to `cfg.DEFAULT_RATE_TIER_NAME` when the method is empty or unknown (the everyday admin-lab default — conservatively neither cheap nor pricey).
-4. Reads the rate from the matched entry in `cfg.RATE_TABLES`.
-5. Computes per-motion annual hours × rate, sums to total ACV, assigns the ACV tier from `cfg.ACV_TIER_HIGH_THRESHOLD` ($250k) and `cfg.ACV_TIER_MEDIUM_THRESHOLD` ($50k).
+    motion_acv = audience × rate
 
-Rates use `~` to signal estimate. **One number per tier.** Audience is also a single estimated number — not a range. Every input is one number, one number out. Rate ranges and audience ranges both compound noise without adding precision and are forbidden.
+Summed:
 
-### ACV × Product Labability — linear labability gate (Frank, 2026-04-16)
+    raw_company_acv = sum(motion_acv for motion in MOTION_KEYS)
 
-After all motion totals are summed, the ACV calculator applies a **uniform linear multiplier** based on Product Labability score:
+Implementation in `acv_calculator.compute_company_acv()`. Pure Python. Zero Claude. The audience integers are produced by one prior Claude call (`audience_grader.judge_training_audiences`); the multiplication and summation are trivial and inspectable.
 
-```
-gated_acv = raw_acv × (PL / 100)
-```
+### Popularity-weighted PL harness
 
-Applied to the total, which is mathematically equivalent to applying it per-motion because the linear factor commutes. The gate fires in both `compute_acv_on_product` (score-time, dataclass) and `compute_acv_potential` (cache-reload, dict).
+The harness filters raw ACV for what Skillable can actually deliver as labs.
 
-**The rule (Frank, 2026-04-16):** if Skillable can't produce a lab, none of the motions generate ACV — every motion requires Skillable to actually deliver a hands-on environment. So the multiplier applies uniformly, not per-motion. No carve-outs for Certification or Events.
+    weighted_pl = sum(product.rough_pl × product.user_base)
+                  / sum(product.user_base)
+    harness = weighted_pl / 100
+    company_acv = raw_company_acv × harness
 
-**Why linear:** simplest expression; every PL point translates proportionally to dollars; matches engagement economics (low-PL products can still deliver partial value, just with proportional payoff). Stepped or hard-cliff alternatives would introduce discontinuities or lie about zero value.
+Weighting by `estimated_user_base` prevents broad portfolios from being punished by niche products — flagships drive the harness; niche products have less influence. Pre-Deep-Dive uses `rough_labability_score` per product. Post-Deep-Dive uses real PL scores for Deep-Dived products (written back to the discovery record via Phase F-PL), rough for the rest. Implementation in `acv_calculator.compute_popularity_weighted_pl()`.
 
-**Stored for transparency:** `acv.labability_factor` on every computed ACV so the widget / templates / downstream consumers can render the multiplier without recomputing.
+### Partnership-only short-circuit
 
-### Customer Training adoption by category tier — locked 2026-04-13
+Org types in `cfg.ACV_PARTNERSHIP_ONLY_ORG_TYPES` (currently `CONTENT_DEVELOPMENT`) short-circuit before the audience grader runs. Returns the fixed shape from `audience_grader.PARTNERSHIP_RESULT_SHAPE` — all audiences = 0, `acv_type = "partnership"`, standard partnership caveats. Prospector renders this as a purple "Partnership" chip instead of a dollar range.
 
-For Software and Enterprise Software org types only, Motion 1 adoption is tier-driven rather than a flat 4%. Tiers derive from `CATEGORY_PRIORS` in `scoring_config.py` — the same tiering that feeds Market Demand ACV rate hints, now consolidated to also drive Motion 1 adoption deterministically (no longer just an AI prompt hint).
+### When the audience grader fires
 
-| Tier | Adoption | Categories |
-|---|---:|---|
-| **High** | **8%** (`cfg.CUSTOMER_TRAINING_ADOPTION_HIGH`) | Cybersecurity, Cloud Infrastructure, Networking/SDN, Data Science & Engineering, Data & Analytics, DevOps, AI Platforms & Tooling |
-| **Moderate** | **4%** (`cfg.CUSTOMER_TRAINING_ADOPTION_MODERATE`) | Data Protection, Infrastructure/Virtualization, App Development, ERP, CRM, Healthcare IT, FinTech, Collaboration, Content Management, Legal Tech, Industrial/OT |
-| **Low** | **1%** (`cfg.CUSTOMER_TRAINING_ADOPTION_LOW`) | Social / Entertainment |
-| **Unknown** | 4% | Fallback to Moderate |
-
-**Why tier rather than flat 4%:** specialist categories with career-gated training (a Nutanix infrastructure admin, a Splunk analyst, a Kubernetes operator) have roughly 2× the formal-training uptake of general-purpose categories (a Salesforce end user, a SharePoint contributor). Flat 4% was the average across the whole portfolio and systematically undercounted the categories that matter most for Skillable's pipeline. Source: `cfg.CATEGORY_PRIORS` + `cfg.CUSTOMER_TRAINING_ADOPTION_BY_TIER`.
-
-**Scope:** applies to Software and Enterprise Software org types. Wrapper org types (Academic, ILT Training Org, Enterprise Learning Platform, GSI/VAR/Distributor) use their existing org-level overrides in `ACV_ORG_ADOPTION_OVERRIDES` because their adoption dynamics come from delivery model, not product category.
-
-### Audience source by org type — locked 2026-04-13
-
-Software and Enterprise Software org types use `estimated_user_base` as the Motion 1 audience. Wrapper org types use `annual_enrollments_estimate` — a distinct per-program field populated by the researcher specifically for wrapper orgs, representing how many learners the organization actually serves in that program per year.
-
-| Org type | Motion 1 audience field | Source constant |
-|---|---|---|
-| Software, Enterprise Software | `estimated_user_base` | `cfg.ACV_AUDIENCE_SOURCE_USER_BASE` |
-| Industry Authority | `estimated_user_base` with deflation | `cfg.ACV_AUDIENCE_SOURCE_USER_BASE_DEFLATED` |
-| Academic, ILT Training Org, Enterprise Learning Platform, GSI, VAR, Tech Distributor | `annual_enrollments_estimate` | `cfg.ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS` |
-
-Full rationale in `Platform-Foundation.md → Wrapper organizations — product vs. audience`. This document does not duplicate that content.
-
-### Training maturity multipliers — locked 2026-04-13
-
-Researcher-captured signals nudge the baseline adoption rate up or down. Apply to all org types. Multipliers stack multiplicatively, capped at 35% adoption ceiling (`cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP`).
-
-| Condition | Multiplier | Source signal |
-|---|---|---|
-| ATP program with 50+ partners | 1.5× | `atp_program` |
-| Active cert exams for this product | 1.25× | `cert_inclusion` |
-| No training programs, no ATPs, no certs | 0.75× | Absence of signals |
-| Training license blocked | 0.5× | `training_license = "blocked"` |
-
-Source: `cfg.ACV_TRAINING_MATURITY_MULTIPLIERS`.
-
-### Three-tier open source classification — locked 2026-04-13
-
-Replaces the old binary open source discount. Detection keys off `training_license` plus the presence or absence of training programs, certs, and ATPs.
-
-| Tier | Effective adoption | Multiplier | Detection |
-|---|---|---|---|
-| Commercial | 4% (baseline) | 1.0× | `training_license` is not `"none"` |
-| Open source with commercial training (e.g. MongoDB, Red Hat) | 3% | 0.75× (`cfg.OPEN_SOURCE_WITH_TRAINING_MULTIPLIER`) | `training_license = "none"` AND training programs / certs / ATPs exist |
-| Pure open source (no organized training) | 1% | 0.25× (`cfg.OPEN_SOURCE_PURE_MULTIPLIER`) | `training_license = "none"` AND no training programs, certs, or ATPs |
-
-### Industry Authority user base deflation — locked 2026-04-13
-
-Researcher-reported user base numbers for Industry Authorities are inflated — they represent lifetime cert holders, not annual training candidates. Tiered deflation is applied before adoption math.
-
-| Researcher `user_base` | Deflation factor | Rationale |
-|---|---|---|
-| > 500K | ÷ 10 | Almost certainly lifetime holders |
-| 100K – 500K | ÷ 5 | Mix of lifetime and annual |
-| < 100K | ÷ 2 | Probably closer to reality for niche certs |
-
-When annual exam volume IS available from the researcher, use that × 3 instead of deflation. Source: `cfg.INDUSTRY_AUTHORITY_DEFLATION_TIERS`.
-
----
-
-## Discovery-Level Holistic ACV (Option 2) — Guardrails
-
-The strategic framing, calibration philosophy, and Prospector-facing behavior for Option 2 Holistic ACV live in `Platform-Foundation.md → Discovery-Level ACV Estimation (Option 2 — Holistic)`. This document owns the **operational constants** that enforce trust on the Claude call.
-
-### Sanity guardrails
-
-Applied post-Claude in `researcher.estimate_holistic_acv()`. Each constant is Define-Once in `scoring_config.py`.
-
-| Guardrail | Constant | Default | Behavior |
-|---|---|---|---|
-| Company hard cap | `cfg.HOLISTIC_ACV_COMPANY_HARD_CAP` | $30M | If `acv_high` exceeds it, clamp to cap AND drop confidence to `low` (model was reasoning beyond supportable scale). Lowered from $50M → $30M 2026-04-14 after audit showed handful of mid-market companies getting unjustifiable $40M+ outputs. |
-| Range-width ratio | `cfg.HOLISTIC_ACV_MAX_RANGE_RATIO` | varies | If `acv_high / acv_low > ratio` at `high` confidence, drop to `medium`. If `> ratio × 1.5` at `medium`, drop to `low`. Wider range = less trust. |
-| Per-user ceiling sanity check | `cfg.HOLISTIC_ACV_PER_USER_CEILING` | varies | If `midpoint > total_users × per_user_ceiling`, drop confidence to `low`. Catches cases where Claude returned a plausible-looking number that implies a dollar-per-user value the platform has never seen. |
-
-### Known-customer floor / ceiling
-
-Customer revenue data is **confidentiality-critical**. The file `backend/known_customers.json` is gitignored. Production deployments mount the real file; a committed `known_customers.template.json` documents the schema. `cfg.KNOWN_CUSTOMER_CURRENT_ACV` loads lazily from the JSON at startup — empty dict when the file is absent (development / open-source).
-
-**Schema per entry:**
-
-| Key | Type | Meaning |
-|---|---|---|
-| `current_acv` | int (dollars) | Current annual contract value |
-| `stage` | string | Customer lifecycle stage — drives ceiling enforcement (only for saturated) AND grouping in the anonymized calibration block |
-| `acv_potential_low` | int (optional) | Holistic "what could this be if we win fully" low bound — populated by `scripts/compute_customer_potentials.py` |
-| `acv_potential_high` | int (optional) | Holistic potential high bound |
-| `acv_potential_confidence` | string (optional) | Confidence in the potential computation |
-
-**Stage-derived ceiling cap** (`cfg.KNOWN_CUSTOMER_STAGE_CEILING_MULT` — locked 2026-04-14):
-
-| Stage | Ceiling cap | Rationale |
-|---|---:|---|
-| `saturated` | **1.3× current** | Mature customer close to ceiling by definition — a runaway holistic estimate for them is probably wrong |
-| `mature-small` | **no cap** | Growing customers are not artificially held down by a multiple of current spend |
-| `mid` | **no cap** | ditto |
-| `first-year` | **no cap** | ditto |
-| `early` | **no cap** | ditto |
-| `very-early` | **no cap** | ditto |
-
-Only `saturated` is in the dict; every other stage returns `None` from the lookup, which the enforcement treats as "no cap." The universal `HOLISTIC_ACV_COMPANY_HARD_CAP` still applies as the backstop.
-
-**Previous design (retired 2026-04-14).** The dict had six entries: `saturated 1.3× / mature-small 1.5× / mid 3× / first-year 8× / early 15× / very-early uncapped`. That "anchored small customers to their starting place" — a growing customer's potential is a function of their portfolio size, not a multiple of their current Skillable contract. Simplified per Frank 2026-04-14.
-
-**Enforcement rule — floor informs low, ceiling caps only saturated:**
-
-```
-if claude_low < floor:
-    acv_low = floor                             # hard floor for every stage
-if claude_high < floor:
-    acv_high = ceiling or (2 × floor)           # preserve width when Claude undersold
-if ceiling is not None:                         # only saturated has a ceiling
-    acv_high = min(acv_high, ceiling)
-    acv_low  = min(acv_low,  ceiling)
-if confidence == 'low':
-    confidence = 'medium'                        # we have ground truth
-```
-
-Before the floor-preserving rule shipped (Pattern D fix), when Claude returned `(low, high)` both below floor the old logic clamped both to floor → zero-width range. Multiple known customers with duplicate records (New Horizons had three) all pinned at the identical floor and the list looked artificially uniform. The new rule expands high to preserve range width.
-
-**`_raw_claude` preservation.** `estimate_holistic_acv` returns `_raw_claude: {acv_low, acv_high, confidence}` alongside the post-guardrail result. Future guardrail tuning (hard cap, range ratio, per-user ceiling, known-customer floor/ceiling rules) propagates across the cache via pure-Python re-application — zero additional Claude calls. Only prompt text changes or calibration block content changes require a retrofit run.
-
-### Output scrubber (defense-in-depth)
-
-`researcher._scrub_customer_data(text)` runs over rationale / drivers / caveats before they reach the user. Redacts any dollar figure matching a known-customer `current_acv` in common formats (`$123,000`, `$123k`, `$0.12M`, etc.) → replaces with `"<peer comparable>"`. Protects against the prompt directive being ignored.
-
-### Anonymized calibration block — two columns (current + Potential)
-
-`researcher._format_anonymized_calibration_block()` builds the prompt's magnitude-anchor block from `KNOWN_CUSTOMER_CURRENT_ACV`. Customer **names never enter the prompt** — the block emits stage-grouped magnitude ranges with both `current ACV` AND `estimated ACV Potential`:
-
-```
-Stage 'saturated' (4 reference customers): current ACV $624k-$5.5M, estimated ACV Potential $810k-$7.2M
-Stage 'first-year' (5 reference customers): current ACV $255k-$2M, estimated ACV Potential $1M-$16M
-Stage 'very-early' (5 reference customers): current ACV $129k-$671k, estimated ACV Potential $280k-$22M
-...
-```
-
-For saturated customers `current ≈ potential` (they're near ceiling). For growing customers `potential` is materially higher than `current` — that's the right anchor for the question "how big could a prospect similar to this be?" The prompt directive tells Claude to anchor prospects on Potential, not current revenue.
-
-**How `acv_potential` gets populated.** Computed once by `scripts/compute_customer_potentials.py` — runs the holistic prompt per non-saturated known customer with `disable_known_customer_caps=True` so the ceiling doesn't kick in, and saves the result as `acv_potential_low / _high / _confidence` into the known customer's entry. Re-run after major prompt changes; does not need to re-run per retrofit. Saturated customers are skipped (their current IS their potential for calibration purposes — the block falls back to `current_acv` for potential display).
-
-**De-duping aliases in the block.** When the same company has multiple normalized-name entries (e.g. `siemens` and `siemens aktiengesellschaft`), the block dedupes by `(current_acv, stage)` so the same company isn't counted twice. Edge case: two genuinely-different companies that happen to share `(current, stage)` get collapsed into one entry. Accepted floor-of-accuracy — one representative per `(current, stage)` is good enough for magnitude anchoring.
-
-Claude is instructed never to name or identify reference customers. The scrubber + stage grouping + prompt directive form three layers of defense.
-
-### Partnership-only org types
-
-`cfg.ACV_PARTNERSHIP_ONLY_ORG_TYPES` (frozenset) lists org types where the five-motion framework doesn't apply:
-
-| Value | Why |
+| Trigger | Fires? |
 |---|---|
-| `CONTENT DEVELOPMENT` | Firms like GP Strategies build programs for other companies — Skillable's opportunity is a partnership motion, not a direct ACV motion |
+| Fresh discovery | Always |
+| Discovery refresh (45-day default) | Always |
+| Deep Dive with new company-level signals (diff check in `audience_grader.company_signals_changed_materially`) | Yes |
+| Deep Dive with product-only changes | No — cached audiences reused; harness updates with the new product's real PL |
+| Content Development org type | Never — short-circuit |
 
-`estimate_holistic_acv()` short-circuits before the Claude call when the target matches, returning the partnership result shape:
+Judgment call cost: ~$0.05 per invocation on Sonnet 4.6. Company-level, not per-product. Math (rate multiplication, harness application) is pure Python and has no per-call cost.
 
-```
-{
-  "acv_type": "partnership",
-  "acv_low": 0, "acv_high": 0,
-  "confidence": "partnership",
-  "rationale": "...downstream-partnership-dependent...",
-  "key_drivers": [up to 5 partnership-relevant signals from the discovery data],
-  "caveats": [standard partnership caveats]
-}
-```
+### Calibration anchors (operational)
 
-Prospector renders this as a purple **PARTNERSHIP** chip instead of a dollar range.
+The anonymized calibration block built by `audience_grader.build_calibration_block()` pulls from `scoring_config.KNOWN_CUSTOMER_CURRENT_ACV` (loaded lazily from gitignored `backend/known_customers.json`). Customer names NEVER enter the prompt — the block emits only stage-grouped magnitude ranges. Platform-Foundation's "Calibration Anchors" subsection owns the design; this doc only names the operational modules.
 
-### Common pitfalls — built into the prompt (Patterns A/B/D/E/F)
+| Module / artifact | Responsibility |
+|---|---|
+| `backend/known_customers.json` | Confidential current ACV + stage per customer (gitignored) |
+| `backend/known_customers.template.json` | Committed schema reference |
+| `scoring_config.KNOWN_CUSTOMER_CURRENT_ACV` | Lazy-loaded dict; empty when file absent (dev / open-source) |
+| `audience_grader.build_calibration_block()` | Builds the anonymized stage-grouped block for the prompt |
 
-The strategic framing lives in Platform-Foundation. The operational contribution here is that each pattern is **explicitly named in the prompt** so the researcher avoids it. Source: `researcher._HOLISTIC_ACV_PROMPT` → "COMMON PITFALLS — AVOID THESE" section. Each pattern is written as a directive with a "do not" + "instead" pair so Claude can self-check. Pattern D is additionally enforced in Python (the floor rule above) since prompt directives alone don't guarantee the range-width behavior.
-
----
 
 ## Cache Versioning — Tiered Invalidation
 
