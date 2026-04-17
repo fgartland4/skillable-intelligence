@@ -1118,31 +1118,53 @@ The strategic framing lives in Platform-Foundation. The operational contribution
 
 ---
 
-## Cache Versioning — SCORING_LOGIC_VERSION
+## Cache Versioning — Tiered Invalidation
 
 ### Why
 
-Scoring logic evolves. When a Pillar weight changes, a penalty is retuned, a baseline shifts, or a new canonical badge ships, cached analyses scored under the old logic need to be re-scored under the new logic. Leaving old cache in place produces silent score drift — the dossier shows 74 but a fresh run would produce 68, and nobody knows which one to trust.
+Scoring logic evolves. When a Pillar weight changes, a penalty is retuned, a baseline shifts, or a new canonical badge ships, cached analyses scored under the old logic need to reflect the new logic. Leaving old cache in place produces silent score drift — the dossier shows 74 but a fresh run would produce 68, and nobody knows which one to trust.
+
+Until 2026-04-16 a single `SCORING_LOGIC_VERSION` bump triggered a full re-research of every stale company — expensive and a violation of Frank's Rule #1 (research is immutable). The tiered model replaces that single version stamp with three independent ones that pick the cheapest invalidation path the actual change requires.
 
 ### What
 
-`cfg.SCORING_LOGIC_VERSION` is a string stamped on every saved analysis and every saved discovery at write time. Format: `"YYYY-MM-DD.short-description"`. The live value is maintained in `scoring_config.py` — do not hard-reference a specific value in this doc (it goes stale between every bump). Check the config file for current.
+Three version stamps live in `scoring_config.py` and get written on every saved discovery and analysis:
+
+| Stamp | Bumps when... | Invalidation path |
+|---|---|---|
+| `SCORING_MATH_VERSION` | Point values, dimension/pillar weights, multiplier tables, penalty values, ACV rate tiers, Verdict Grid thresholds change | **Pure Python rescore** against saved facts + saved rubric grades. Zero Claude calls. |
+| `RUBRIC_VERSION` | Rubric tier definitions, signal categories, grading criteria, `rubric_grader` prompts change | **Re-run rubric_grader** against saved raw facts, then rescore. Paid Claude calls for grading (1 per dimension per product), but **zero re-research**. |
+| `RESEARCH_SCHEMA_VERSION` | Fact drawer shape changes — fields added, removed, or re-typed | **Full re-research.** The only path that burns research dollars. Deliberate human bump only. |
+
+Format: `"YYYY-MM-DD.short-description"`. Live values live in `scoring_config.py` — do not hard-reference specific strings in this doc (they go stale every bump). Check the config file for current.
+
+Legacy `SCORING_LOGIC_VERSION` is retained as a backwards-compat alias pointing at `SCORING_MATH_VERSION` so pre-split cached records continue to load.
 
 ### How
 
-On every cache read:
+On every cache read or Deep Dive request:
 
-1. `cfg.is_cached_logic_current(saved_data)` compares the cached version string to the live `SCORING_LOGIC_VERSION`.
-2. If they match, the cache is honored — `recompute_analysis` runs its slim ACV-and-verdict pass and the saved pillar scores are trusted.
-3. If they differ, the cache is treated as stale — `intelligence.score` forces a fresh Deep Dive on the next load, scoring every product through the current Python path.
+1. `cfg.is_cached_logic_current_tiered(saved_data)` returns one of `CURRENT`, `MATH_STALE`, `RUBRIC_STALE`, `RESEARCH_STALE`, or `UNSTAMPED`.
+2. `CURRENT` → cache hit, no work.
+3. `MATH_STALE` → pure Python rescore against saved facts + saved grades. Free, milliseconds.
+4. `RUBRIC_STALE` → re-run rubric_grader against saved raw facts, then pure Python rescore. No re-research.
+5. `RESEARCH_STALE` → full re-research. Only on deliberate schema bumps.
+6. `UNSTAMPED` → legacy record without tiered stamps. Handled by a one-time migration path (defaults to safe rescore, never forces re-research).
 
-**Bump policy.** Any commit that touches `scoring_config.py` (badges, signals, rubrics, baselines, penalties), the per-pillar scorers, `fit_score_composer`, or `rubric_grader` should bump `SCORING_LOGIC_VERSION`. Comment-only changes don't require a bump.
+`is_cached_logic_current()` is retained as a single-bit wrapper that returns True only when all three tiers are current — drop-in replacement for the pre-split API.
+
+**Bump policy.** Bump the tier that actually changed:
+- Retuning a penalty value or a rate → `SCORING_MATH_VERSION`
+- Adding a signal category or rewriting a rubric tier description → `RUBRIC_VERSION`
+- Changing a fact drawer field name or type → `RESEARCH_SCHEMA_VERSION`
+
+Comment-only or docstring changes don't require a bump.
 
 ---
 
 ## Worked Examples
 
-All examples assume `SCORING_LOGIC_VERSION = "2026-04-13.iv-badges-penalties-orphan-mfa"`. Values come from `scoring_config.py` — nothing is hardcoded in this doc.
+Values come from `scoring_config.py` — nothing is hardcoded in this doc. Cached records carry the tiered version stamps (`_scoring_math_version`, `_rubric_version`, `_research_schema_version`) introduced 2026-04-16; see "Cache Versioning — Tiered Invalidation" above.
 
 ### Trellix Endpoint Security (SOFTWARE, Cybersecurity)
 
