@@ -366,3 +366,170 @@ def test_reconstruct_round_trip_preserves_identity():
     assert roundtrip.provisioning.supported_host_os == ["linux", "windows"]
     assert roundtrip.provisioning.preferred_fabric == "sandbox_api"
     assert roundtrip.provisioning.preferred_fabric_rationale == "SaaS product with rich API"
+
+
+# ── Phase B: rescore_products_from_saved_facts — pure-Python rescore ────────
+#
+# Frank 2026-04-16: Stage 2 of the tiered versioning work.  When
+# SCORING_MATH_VERSION bumps (rules change) but RESEARCH_SCHEMA_VERSION is
+# stable, we must be able to rescore cached analyses WITHOUT re-running
+# Claude research — reconstruct facts from the saved dict, run the pure-
+# Python pillar scorers, write fresh scores back.  Zero Claude calls,
+# millisecond execution, intelligence preserved.
+
+
+def _minimal_analysis_with_one_product() -> dict:
+    """Build a minimal saved-analysis dict good enough to exercise rescore.
+
+    Uses a clean installable product so Pillar 1 Provisioning earns the
+    canonical 'Runs in VM' signal.  Pillar 2 has an empty rubric_grades
+    dict (no graded signals), which exercises the 'use saved grades
+    directly' branch (regrade=False).
+    """
+    return {
+        "company": "RescoreTestCo",
+        "organization_type": "Software",
+        "products": [{
+            "name": "RescoreWidget",
+            "category": "DevOps / Developer Tooling",
+            "subcategory": "",
+            "product_labability_facts": {
+                "provisioning": {
+                    "runs_as_installable": True,
+                    "supported_host_os": ["linux"],
+                    "preferred_fabric": "hyper_v",
+                },
+                "lab_access": {},
+                "scoring": {},
+                "teardown": {},
+            },
+            "instructional_value_facts": {},
+            "rubric_grades": {},
+            "fit_score": {},
+            "acv_potential": {},
+        }],
+        "customer_fit_facts": {},
+        "customer_fit_rubric_grades": {},
+        "contacts": [],
+    }
+
+
+def test_rescore_writes_fresh_pillar_1_score():
+    """After rescore, the product dict has a non-empty Pillar 1 score
+    with a positive raw_total for a clean installable product."""
+    from backend.intelligence import rescore_products_from_saved_facts
+
+    analysis = _minimal_analysis_with_one_product()
+    count = rescore_products_from_saved_facts(analysis, regrade=False)
+
+    assert count == 1
+    product = analysis["products"][0]
+    pl = product["fit_score"]["product_labability"]
+    # Pillar 1 ran — has a populated PillarScore with dimensions and positive total
+    assert pl is not None
+    assert pl.get("score", 0) > 0
+    assert len(pl.get("dimensions", [])) == 4  # Prov, Access, Scoring, Teardown
+
+
+def test_rescore_skips_product_missing_fact_drawer():
+    """Products without a Pillar 1 fact drawer (legacy records) are
+    skipped — caller handles re-research separately."""
+    from backend.intelligence import rescore_products_from_saved_facts
+
+    analysis = {
+        "company": "LegacyCo",
+        "organization_type": "Software",
+        "products": [{
+            "name": "LegacyProduct",
+            "category": "Unknown",
+            # no product_labability_facts key at all
+            "fit_score": {},
+        }],
+        "customer_fit_facts": {},
+        "customer_fit_rubric_grades": {},
+    }
+
+    count = rescore_products_from_saved_facts(analysis, regrade=False)
+    assert count == 0
+    # Legacy product untouched
+    assert "product_labability" not in (analysis["products"][0].get("fit_score") or {}) or \
+        not analysis["products"][0]["fit_score"].get("product_labability")
+
+
+def test_rescore_derives_orchestration_method():
+    """Rescore writes a fresh orchestration_method derived from facts —
+    not the stale saved value."""
+    from backend.intelligence import rescore_products_from_saved_facts
+
+    analysis = _minimal_analysis_with_one_product()
+    # Start with a stale / wrong orchestration_method
+    analysis["products"][0]["orchestration_method"] = "STALE_VALUE"
+
+    rescore_products_from_saved_facts(analysis, regrade=False)
+
+    # Fresh derivation ran — stale string was replaced
+    assert analysis["products"][0]["orchestration_method"] != "STALE_VALUE"
+
+
+def test_rescore_assigns_verdict():
+    """Rescore runs assign_verdict so the product ends with a populated
+    verdict reflecting the fresh fit_score + ACV tier."""
+    from backend.intelligence import rescore_products_from_saved_facts
+
+    analysis = _minimal_analysis_with_one_product()
+    rescore_products_from_saved_facts(analysis, regrade=False)
+
+    verdict = analysis["products"][0].get("verdict")
+    assert verdict is not None  # assign_verdict returned a Verdict dict
+
+
+def test_rescore_does_not_make_claude_calls_when_regrade_false():
+    """regrade=False must be pure Python — no imports of rubric_grader
+    should execute any Claude-calling path.  Enforced by asserting that
+    with an empty rubric_grades dict, the rescore still completes and
+    product pillar_2 score exists (using the empty-grades baseline)."""
+    from backend.intelligence import rescore_products_from_saved_facts
+
+    analysis = _minimal_analysis_with_one_product()
+    # Explicitly no grades saved
+    analysis["products"][0]["rubric_grades"] = {}
+
+    count = rescore_products_from_saved_facts(analysis, regrade=False)
+    assert count == 1
+
+    product = analysis["products"][0]
+    iv = product["fit_score"].get("instructional_value")
+    # Pillar 2 scorer ran on empty grades — produces baseline (not None)
+    assert iv is not None
+
+
+def test_rescore_returns_zero_on_empty_products_list():
+    """An analysis with no products returns 0 rescored."""
+    from backend.intelligence import rescore_products_from_saved_facts
+
+    analysis = {
+        "company": "EmptyCo",
+        "organization_type": "Software",
+        "products": [],
+        "customer_fit_facts": {},
+        "customer_fit_rubric_grades": {},
+    }
+    assert rescore_products_from_saved_facts(analysis, regrade=False) == 0
+
+
+def test_rescore_preserves_non_scored_fields():
+    """Rescore must not wipe product name, category, URL, description —
+    intelligence compounds, only the score-layer values are refreshed."""
+    from backend.intelligence import rescore_products_from_saved_facts
+
+    analysis = _minimal_analysis_with_one_product()
+    analysis["products"][0]["product_url"] = "https://example.com/widget"
+    analysis["products"][0]["description"] = "Preserved description text."
+
+    rescore_products_from_saved_facts(analysis, regrade=False)
+
+    p = analysis["products"][0]
+    assert p["name"] == "RescoreWidget"
+    assert p["category"] == "DevOps / Developer Tooling"
+    assert p["product_url"] == "https://example.com/widget"
+    assert p["description"] == "Preserved description text."

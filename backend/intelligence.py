@@ -398,6 +398,272 @@ def _coerce_value(field_type, val):
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Rescore from saved facts (Stage 2 of Frank's Rule #1 enforcement)
+#
+# When intelligence.score() detects a stale scored record (math or rubric
+# version differs from current) AND the fact drawers are intact, rescore
+# against the saved facts rather than wiping + re-researching. This is
+# the path that makes Rule #1 structurally true in practice — the saved
+# research investment is preserved across every logic retune.
+#
+# Two modes:
+#   regrade=False (MATH_STALE):
+#     Pure-Python rescore. Saved rubric grades reused as-is. Zero Claude.
+#   regrade=True  (RUBRIC_STALE):
+#     Re-run rubric_grader against saved raw facts. Then Python rescore.
+#     Paid Claude calls for grading; zero re-research.
+# ─────────────────────────────────────────────────────────────────────────
+
+
+def _reconstruct_product(p_dict: dict):
+    """Reconstruct a Product dataclass with its fact drawers + rubric grades
+    from the saved dict form. Used by the rescore path so the pillar
+    scorers can operate on typed objects.
+    """
+    from models import (
+        Product,
+        ProductLababilityFacts,
+        InstructionalValueFacts,
+        GradedSignal,
+    )
+
+    pl_facts = _dict_to_dataclass(
+        ProductLababilityFacts, p_dict.get("product_labability_facts") or {},
+    )
+    iv_facts = _dict_to_dataclass(
+        InstructionalValueFacts, p_dict.get("instructional_value_facts") or {},
+    )
+
+    rubric_grades: dict[str, list] = {}
+    raw_grades = p_dict.get("rubric_grades") or {}
+    if isinstance(raw_grades, dict):
+        for dim_key, raw_list in raw_grades.items():
+            if not isinstance(raw_list, list):
+                continue
+            rubric_grades[dim_key] = [
+                _dict_to_dataclass(GradedSignal, g)
+                for g in raw_list if isinstance(g, dict)
+            ]
+
+    return Product(
+        name=p_dict.get("name", ""),
+        category=p_dict.get("category", ""),
+        subcategory=p_dict.get("subcategory", ""),
+        description=p_dict.get("description", ""),
+        product_url=p_dict.get("product_url", ""),
+        deployment_model=p_dict.get("deployment_model", ""),
+        orchestration_method=p_dict.get("orchestration_method", ""),
+        vendor_official_acronym=p_dict.get("vendor_official_acronym", ""),
+        underlying_technologies=p_dict.get("underlying_technologies") or [],
+        annual_enrollments_estimate=int(p_dict.get("annual_enrollments_estimate") or 0),
+        annual_enrollments_evidence=p_dict.get("annual_enrollments_evidence", ""),
+        annual_enrollments_confidence=p_dict.get("annual_enrollments_confidence", ""),
+        user_personas=p_dict.get("user_personas") or [],
+        product_labability_facts=pl_facts,
+        instructional_value_facts=iv_facts,
+        rubric_grades=rubric_grades,
+    )
+
+
+def _reconstruct_company_analysis(analysis_dict: dict, products: list):
+    """Reconstruct a minimal CompanyAnalysis dataclass carrying the company-
+    level customer_fit_facts + rubric grades, plus the reconstructed
+    products. Used by the rescore path for Pillar 3 scoring and grading.
+    """
+    from models import CompanyAnalysis, CustomerFitFacts, GradedSignal
+
+    cf_facts = _dict_to_dataclass(
+        CustomerFitFacts, analysis_dict.get("customer_fit_facts") or {},
+    )
+
+    cf_grades: dict[str, list] = {}
+    raw_cf = analysis_dict.get("customer_fit_rubric_grades") or {}
+    if isinstance(raw_cf, dict):
+        for dim_key, raw_list in raw_cf.items():
+            if not isinstance(raw_list, list):
+                continue
+            cf_grades[dim_key] = [
+                _dict_to_dataclass(GradedSignal, g)
+                for g in raw_list if isinstance(g, dict)
+            ]
+
+    return CompanyAnalysis(
+        company_name=analysis_dict.get("company_name", ""),
+        company_url=analysis_dict.get("company_url"),
+        company_description=analysis_dict.get("company_description", ""),
+        organization_type=analysis_dict.get("organization_type", "software_company"),
+        products=products,
+        customer_fit_facts=cf_facts,
+        customer_fit_rubric_grades=cf_grades,
+        analyzed_at=analysis_dict.get("analyzed_at", ""),
+        analysis_id=analysis_dict.get("analysis_id", ""),
+        discovery_id=analysis_dict.get("discovery_id", ""),
+        total_products_discovered=int(analysis_dict.get("total_products_discovered") or 0),
+    )
+
+
+def rescore_products_from_saved_facts(
+    analysis: dict, regrade: bool = False,
+) -> int:
+    """Rescore every product in a cached analysis without re-researching.
+
+    Reconstructs Product + CompanyAnalysis dataclass objects from the
+    saved dict form, runs the pillar scorers against them, and writes
+    the fresh pillar scores + badges + ACV back onto the analysis dict.
+
+    Args:
+        analysis: the saved analysis dict (mutated in place)
+        regrade: when True, re-runs rubric_grader against saved raw
+            facts before scoring (paid Claude calls per Pillar 2/3
+            dimension). When False, saved rubric grades are reused
+            directly — pure Python rescore, zero Claude calls.
+
+    Returns the number of products successfully rescored. Products
+    with missing / malformed fact drawers are skipped (caller can
+    then decide whether to selectively re-research just those).
+
+    NOTE: this function does NOT save the analysis. The caller
+    (intelligence.score) is responsible for stamping versions via
+    _stamp_for_save and persisting via save_analysis.
+    """
+    from pillar_1_scorer import (
+        score_product_labability, derive_orchestration_method,
+    )
+    from pillar_2_scorer import score_instructional_value
+    from pillar_3_scorer import score_customer_fit
+    from fit_score_composer import compose_fit_score
+    from acv_calculator import compute_acv_on_product
+    from badge_selector import attach_badges_to_product
+    from core import assign_verdict
+    from dataclasses import asdict
+
+    products_dict = analysis.get("products") or []
+    if not products_dict:
+        return 0
+
+    # Skip products with no fact drawer at all — reconstruction would
+    # produce meaningless defaults. Caller handles these separately
+    # (selective re-research for legacy records without facts).
+    rescorable: list[tuple[int, dict]] = []
+    for idx, p_dict in enumerate(products_dict):
+        pl_facts = p_dict.get("product_labability_facts") or {}
+        if not pl_facts.get("provisioning"):
+            log.info(
+                "rescore: product %r has no Pillar 1 fact drawer — skipping",
+                p_dict.get("name"),
+            )
+            continue
+        rescorable.append((idx, p_dict))
+
+    if not rescorable:
+        return 0
+
+    # Reconstruct Product dataclasses
+    reconstructed = [(idx, _reconstruct_product(p)) for idx, p in rescorable]
+    company = _reconstruct_company_analysis(
+        analysis, [r[1] for r in reconstructed],
+    )
+
+    # ── Pillar 3 (company-level) — once per analysis ──
+    cf_pillar_score = None
+    if regrade:
+        try:
+            from rubric_grader import grade_all_for_company
+            cf_grades = grade_all_for_company(company)
+            company.customer_fit_rubric_grades = cf_grades
+        except Exception:
+            log.exception("rescore: Pillar 3 re-grade failed — using saved grades")
+            cf_grades = company.customer_fit_rubric_grades or {}
+    else:
+        cf_grades = company.customer_fit_rubric_grades or {}
+
+    try:
+        cf_pillar_score = score_customer_fit(company.organization_type, cf_grades)
+    except Exception:
+        log.exception("rescore: Pillar 3 score_customer_fit failed")
+
+    # ── Per-product: Pillar 1 + Pillar 2 + compose + ACV + badges ──
+    successes = 0
+    for idx, product in reconstructed:
+        try:
+            product.fit_score.product_labability = score_product_labability(
+                product.product_labability_facts,
+            )
+            product.orchestration_method = derive_orchestration_method(
+                product.product_labability_facts,
+                underlying_technologies=product.underlying_technologies,
+            )
+        except Exception:
+            log.exception(
+                "rescore: pillar_1_scorer failed for %r — skipping product",
+                product.name,
+            )
+            continue
+
+        # Pillar 2 — regrade or reuse saved grades
+        if regrade:
+            try:
+                from rubric_grader import grade_all_for_product
+                p_grades = grade_all_for_product(product, company)
+                product.rubric_grades = p_grades
+            except Exception:
+                log.exception(
+                    "rescore: Pillar 2 re-grade failed for %r — using saved",
+                    product.name,
+                )
+                p_grades = product.rubric_grades or {}
+        else:
+            p_grades = product.rubric_grades or {}
+
+        try:
+            product.fit_score.instructional_value = score_instructional_value(
+                product.category, p_grades,
+            )
+        except Exception:
+            log.exception("rescore: pillar_2_scorer failed for %r", product.name)
+
+        if cf_pillar_score is not None:
+            product.fit_score.customer_fit = cf_pillar_score
+
+        try:
+            compose_fit_score(
+                product.fit_score, product.orchestration_method or "",
+            )
+        except Exception:
+            log.exception("rescore: compose_fit_score failed for %r", product.name)
+
+        try:
+            compute_acv_on_product(product, company)
+        except Exception:
+            log.exception("rescore: compute_acv_on_product failed for %r", product.name)
+
+        try:
+            attach_badges_to_product(product, company)
+        except Exception:
+            log.exception("rescore: attach_badges failed for %r", product.name)
+
+        acv_tier = product.acv_potential.acv_tier or "medium"
+        product.verdict = assign_verdict(product.fit_score.total, acv_tier)
+
+        # Write the freshly scored Product back into the analysis dict form
+        products_dict[idx] = asdict(product)
+        successes += 1
+
+    # Also write back the re-graded customer fit facts + grades onto the
+    # analysis dict so downstream Phase F aggregation sees the fresh values.
+    if regrade:
+        analysis["customer_fit_rubric_grades"] = {
+            k: [asdict(g) for g in v] for k, v in (company.customer_fit_rubric_grades or {}).items()
+        }
+
+    log.info(
+        "rescore_products_from_saved_facts: rescored %d/%d products (regrade=%s)",
+        successes, len(rescorable), regrade,
+    )
+    return successes
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Compound-research merge — best-of-best across discovery runs
 #
 # Frank 2026-04-16: when a second research run for the same company finds
