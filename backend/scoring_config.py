@@ -3916,7 +3916,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # Bump format: "YYYY-MM-DD.short-description"
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_MATH_VERSION = "2026-04-16.wrapper-orgs-exempt-from-scale-adoption-cap"
+SCORING_MATH_VERSION = "2026-04-17.wrapper-org-audience-routing-fix"
 RUBRIC_VERSION = "2026-04-16.archetype-aware-iv-rubric"
 RESEARCH_SCHEMA_VERSION = "2026-04-16.tiered-version-split-initial"
 
