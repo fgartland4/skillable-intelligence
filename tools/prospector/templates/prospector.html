@@ -142,18 +142,17 @@
             font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
             text-transform: uppercase; color: var(--sk-text-dim);
             border-bottom: 1px solid var(--sk-border);
-            background: rgba(36,237,155,0.02);
             /* Sticky below the results-tabs bar (Frank 2026-04-16). Column
                headers follow the scroll so user always knows what each
-               column is while paging through long lists. Background needs
-               to be opaque so rows scrolling behind don't bleed through. */
-            position: sticky; top: 62px; z-index: 10;
-        }
-        /* Solid backdrop for th cells — the 0.02 alpha background above
-           is too transparent to hide scrolling rows. Layered here so the
-           existing accent tint still shows on top. */
-        .results-table thead {
+               column is while paging through long lists. Background MUST
+               be fully opaque so rows scrolling behind don't bleed through —
+               the previous 0.02 alpha tint was the transparency bug Frank
+               caught on 2026-04-16. Use the same page background as a
+               solid base, then layer the accent tint on top with a
+               second rgba background. */
             background: var(--sk-bg);
+            background-image: linear-gradient(rgba(36,237,155,0.05), rgba(36,237,155,0.05));
+            position: sticky; top: 62px; z-index: 10;
         }
         /* # column — right-aligned so multi-digit ranks line up cleanly.
            Sized to fit four characters so 1000+ entries render without clipping. */
@@ -855,9 +854,7 @@
 
             html += '<tr>' +
                 '<td class="check-cell">' + (r.discovery_id ? '<input type="checkbox" class="row-checkbox" data-discovery-id="' + r.discovery_id + '" onchange="handleCheckbox(this)">' : '') + '</td>' +
-                '<td class="rank-num col-num" style="position:relative;">' +
-                    (r.deep_dive_complete ? '<span title="Deep Dive complete" style="color: var(--sk-accent); font-size: 0.6rem; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);">&#9679;</span>' : '') +
-                    (i + 1) + '</td>' +
+                '<td class="rank-num col-num">' + (i + 1) + '</td>' +
                 '<td title="' + escapeAttr(r.company_name||'') + '" style="white-space:normal;overflow:visible;"><div class="company-cell-name">' + (r.company_name||'') + '</div>' + badgeHtml + '</td>' +
                 '<td class="acv-cell" title="' + escapeAttr(r.rationale || r.estimated_acv || '') + '"' + acvAttrs + '>' +
                     '<div class="' + acvValueClass + '">' + (r.estimated_acv||'&mdash;') + '</div>' + confChip + '</td>' +

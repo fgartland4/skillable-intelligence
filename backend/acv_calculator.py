@@ -399,13 +399,23 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
 
             # ── Scale-aware adoption cap (Frank 2026-04-16) ──
             # After all multipliers, cap effective adoption based on
-            # audience size. Skillable's realistic share shrinks as
-            # the training market grows — 1-3% of M365 admin market
-            # is a lot more defensible than 15%.
-            audience = max(pop_low, pop_high)
-            scale_ceiling = cfg.get_scale_aware_adoption_ceiling(audience)
-            if scale_ceiling is not None:
-                adoption = min(adoption, scale_ceiling)
+            # audience size. Skillable's realistic share of a giant
+            # software-company training market is 1-3%, not 15%.
+            # EXEMPT wrapper org types (ELP, ILT, Academic, GSI, etc.) —
+            # their calibrated rates already encode realistic Skillable
+            # share for their delivery model. See Skillsoft benchmark in
+            # unified-acv-model.md.
+            wrapper_org_types = (
+                "ENTERPRISE LEARNING PLATFORM", "TRAINING ORG",
+                "ACADEMIC", "SYSTEMS INTEGRATOR", "VAR",
+                "TECH DISTRIBUTOR", "CONTENT DEVELOPMENT",
+                "PROFESSIONAL SERVICES", "LMS PROVIDER",
+            )
+            if normalized_org not in wrapper_org_types:
+                audience = max(pop_low, pop_high)
+                scale_ceiling = cfg.get_scale_aware_adoption_ceiling(audience)
+                if scale_ceiling is not None:
+                    adoption = min(adoption, scale_ceiling)
 
         motions.append({
             "label": display_label,
@@ -976,13 +986,28 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
             # ── Scale-aware adoption cap (Frank 2026-04-16) ──
             # After all multipliers, cap effective adoption based on
             # audience size. Skillable's realistic share of a giant
-            # training market (e.g., M365 admin) is 1-3%, not 15%.
-            # For small audiences (cert prep candidates), the regular
-            # 35% cap still governs — no extra ceiling.
-            audience = max(pop_low, pop_high)
-            scale_ceiling = cfg.get_scale_aware_adoption_ceiling(audience)
-            if scale_ceiling is not None:
-                adoption = min(adoption, scale_ceiling)
+            # software-company training market (e.g., M365 admin) is
+            # 1-3%, not 15%.
+            #
+            # EXEMPT wrapper org types (Enterprise Learning Platform,
+            # ILT Training Org, Academic, GSI, VAR, Distributor). For
+            # these, audience IS the wrapper's own classroom/enrollment
+            # pop and Skillable can legitimately be the whole lab backend
+            # for that wrapper — the calibrated 3%/5%/25% adoption rates
+            # already encode the realistic share for their delivery model.
+            # Skillsoft 4M learners x 3% = $5M matches real $5M only when
+            # we don't secondarily cap 3% down to 2%. Frank's call.
+            wrapper_org_types = (
+                "ENTERPRISE LEARNING PLATFORM", "TRAINING ORG",
+                "ACADEMIC", "SYSTEMS INTEGRATOR", "VAR",
+                "TECH DISTRIBUTOR", "CONTENT DEVELOPMENT",
+                "PROFESSIONAL SERVICES", "LMS PROVIDER",
+            )
+            if normalized_org not in wrapper_org_types:
+                audience = max(pop_low, pop_high)
+                scale_ceiling = cfg.get_scale_aware_adoption_ceiling(audience)
+                if scale_ceiling is not None:
+                    adoption = min(adoption, scale_ceiling)
 
         motions.append(ModelMotion(
             label=display_label,
