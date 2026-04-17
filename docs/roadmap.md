@@ -59,7 +59,7 @@ Three Prospector `?` modals rewritten to reflect the full current design (Option
 
 ### Unified ACV Model (shipped 2026-04-13) ✓
 
-All 6 org types locked and implemented. See `docs/unified-acv-model.md` and Done section.
+All 6 org types locked and implemented. See `docs/Platform-Foundation.md` → ACV Potential Model and Done section.
 
 ### Prospector UX Overhaul (shipped 2026-04-13) ✓
 

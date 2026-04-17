@@ -2271,7 +2271,7 @@ CATEGORY_PRIORS: tuple[CategoryPrior, ...] = (
 # adoption dynamics come from delivery model, not product category.
 #
 # Per Platform-Foundation → "Customer Training adoption by category
-# tier" + unified-acv-model.md. Frank 2026-04-13.
+# tier". Frank 2026-04-13.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CUSTOMER_TRAINING_ADOPTION_BY_TIER: dict[str, float] = {
@@ -2974,8 +2974,7 @@ INDUSTRY_AUTHORITY_DEFLATION_TIERS = [
 # different things.
 #
 # Per Platform-Foundation → "Wrapper organizations — product vs.
-# audience" + unified-acv-model.md → "Audience Source by Org Type".
-# Frank 2026-04-13.
+# audience" section.  Frank 2026-04-13.
 ACV_AUDIENCE_SOURCE_USER_BASE = "estimated_user_base"
 ACV_AUDIENCE_SOURCE_USER_BASE_DEFLATED = "estimated_user_base_deflated"
 ACV_AUDIENCE_SOURCE_ANNUAL_ENROLLMENTS = "annual_enrollments_estimate"
@@ -3016,15 +3015,13 @@ def get_acv_audience_source_for_org_type(normalized_org: str | None) -> str:
 # customer names. See researcher._format_anonymized_calibration_block.
 
 
-# ── Holistic ACV guardrails ───────────────────────────────────────────
-# Range-width and sanity-check thresholds for Option 2 output.
-HOLISTIC_ACV_MAX_RANGE_RATIO = 2.0          # high <= low * 2 for High confidence
-HOLISTIC_ACV_PER_USER_CEILING = 20          # midpoint cannot exceed user_count * $20
-# Lowered 2026-04-14 from $50M after Frank's ground-truth data: Microsoft
-# at $22M current ACV is the largest active Skillable customer after 15
-# years. Realistic potential ceiling is ~$25-30M for any single account.
-# Anything above that loses defensibility — force Low confidence.
-HOLISTIC_ACV_COMPANY_HARD_CAP = 30_000_000
+# ── Holistic ACV guardrails — RETIRED 2026-04-17 ──────────────────────
+# HOLISTIC_ACV_MAX_RANGE_RATIO, HOLISTIC_ACV_PER_USER_CEILING, and
+# HOLISTIC_ACV_COMPANY_HARD_CAP guarded the legacy `estimate_holistic_acv`
+# Claude shortcut.  The Claude call + its entire calibration / guardrail
+# stack is retired — discovery-time company ACV is now computed by the
+# deterministic framework in acv_calculator.compute_discovery_company_acv.
+# See decision-log.md → 2026-04-17 late entry.
 
 
 # ── Known Skillable customers — ground-truth ACV anchors ──────────────
@@ -3034,32 +3031,14 @@ HOLISTIC_ACV_COMPANY_HARD_CAP = 30_000_000
 # is empty when the file is missing (development / fork / deploy without
 # secrets).
 #
-# Two purposes when populated:
-#   1. HARD FLOOR — ACV potential must be >= current actual ACV.
-#   2. STAGE-AWARE CEILING — practical upper bound from relationship
-#      maturity.  Design evolved 2026-04-14 — ONLY 'saturated' has a cap
-#      now.  Every other stage: Claude's holistic reasoning produces the
-#      high, subject only to the universal HOLISTIC_ACV_COMPANY_HARD_CAP.
-#
-# Previous design (2026-04-13 → 2026-04-14) capped every stage at a
-# multiple of current ACV — 1.3x saturated / 1.5x mature-small / 3x mid
-# / 8x first-year / 15x early / uncapped very-early.  That design was
-# "anchoring small customers to their starting place" per Frank: a
-# growing customer's ACV Potential is a function of their portfolio
-# size, not their current Skillable spend.  The floor rule still
-# protects against underselling an existing contract; the ceiling is
-# now Claude's job except where the company is genuinely at or near
-# ceiling (saturated).
-#
-# Stage taxonomy: saturated, mature-small, mid, first-year, early,
-# very-early.  Labels for non-saturated customers are descriptive —
-# they group the anonymized calibration block Claude sees so the
-# context is honest ("these comparables are growing, not mature").
-KNOWN_CUSTOMER_STAGE_CEILING_MULT: dict[str, float] = {
-    "saturated":     1.30,
-    # All other stages: NO ceiling cap.  Omitted from this dict on
-    # purpose; the Python enforcement treats "not in dict" as "no cap."
-}
+# Purpose (post 2026-04-17 ACV architecture):
+#   - HARD FLOOR — ACV estimate must be >= current actual ACV.  Applied
+#     in acv_calculator.compute_discovery_company_acv so a customer we
+#     are actively charging $X cannot show a discovery-time estimate
+#     below $X.  Accessed via get_known_customer_record() below.
+# The legacy KNOWN_CUSTOMER_STAGE_CEILING_MULT is retired with the Claude
+# holistic shortcut — the calibration / stage-ceiling machinery it fed
+# is gone.
 
 
 # ── Org types that skip direct ACV estimation (partnership-only ICPs) ──

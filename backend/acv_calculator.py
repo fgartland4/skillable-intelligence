@@ -420,8 +420,8 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
             # software-company training market is 1-3%, not 15%.
             # EXEMPT wrapper org types (ELP, ILT, Academic, GSI, etc.) —
             # their calibrated rates already encode realistic Skillable
-            # share for their delivery model. See Skillsoft benchmark in
-            # unified-acv-model.md.
+            # share for their delivery model. See Platform-Foundation.md
+            # → ACV Potential Model → How Adoption Patterns Vary by Org Type.
             wrapper_org_types = (
                 "ENTERPRISE LEARNING PLATFORM", "TRAINING ORG",
                 "ACADEMIC", "SYSTEMS INTEGRATOR", "VAR",
