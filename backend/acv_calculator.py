@@ -242,11 +242,28 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
             if using_annual_enrollments:
                 # Wrapper org: use the wrapper's per-program enrollment count,
                 # NOT the underlying technology's global user base.
+                # The annual_enrollments_estimate field lives on the DISCOVERY
+                # per-product record, not on the analysis scored-product dict —
+                # so look it up in disc_data["products"] by name. Bug fix
+                # 2026-04-17: was reading from product dict where it doesn't
+                # exist; ASU scored products showing 500K audience from legacy
+                # install_base instead of ~2500 enrollments per program.
                 ann_enr = product.get("annual_enrollments_estimate") or 0
                 try:
                     ae_int = int(ann_enr)
                 except (TypeError, ValueError):
                     ae_int = 0
+                if ae_int <= 0:
+                    # Fallback to discovery-level lookup by product name.
+                    pname = (product.get("name") or "").strip()
+                    disc_products = (disc_data.get("products") or []) if isinstance(disc_data, dict) else []
+                    for dp in disc_products:
+                        if isinstance(dp, dict) and (dp.get("name") or "").strip() == pname:
+                            try:
+                                ae_int = int(dp.get("annual_enrollments_estimate") or 0)
+                            except (TypeError, ValueError):
+                                ae_int = 0
+                            break
                 pop_low = pop_high = ae_int
             else:
                 # Software / Enterprise Software / Industry Authority:
