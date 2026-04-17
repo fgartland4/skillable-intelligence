@@ -467,6 +467,21 @@ Named penalties must ALWAYS be visible in the final score, even when positive co
 
 The cap clamps positives **only**. Penalties are subtracted AFTER the clamp so they are always visible in the final score. Under the old buggy math, a -4 penalty on a dimension where positives would have been 30 vs a cap of 25 silently became 25 / 25 — the penalty absorbed into the overflow. Under the correct math, the same dimension scores 25 - 4 = 21. The Trellix Org DNA regression test in `test_pillar_3_scorer.py` gates this against regression.
 
+### Product archetype ceiling (Frank, 2026-04-16)
+
+After the four Pillar 2 dimensions compose, `score_instructional_value` applies a **ceiling by product archetype** via `score_override`. The ceiling prevents IV inflation on products where Skillable-style hands-on labs aren't the right delivery mechanism, no matter how generously the rubric grades individual signals.
+
+| Archetype | IV ceiling | Rationale |
+|---|---|---|
+| `enterprise_admin`, `security_operations`, `developer_platform`, `data_platform`, `integration_middleware`, `deep_infrastructure`, `engineering_cad` | 100 | Full ceiling — hands-on labs are the right delivery |
+| `creative_professional` | 65 | Professional creative tools (Photoshop, Illustrator, Premiere) — real training value and cert programs, but generally IC workflows with shallower lab value than admin/security products |
+| `ic_productivity` | 45 | IC productivity tools (Word, Excel, Outlook, Acrobat, Teams IC side) — training happens via e-learning, not hands-on labs |
+| `consumer_app` | 25 | Pure end-user apps with no admin depth or cert program |
+
+The ceiling caps the **composed pillar score** — dimension scores retain their raw graded values for display/debugging, but `pillar.score_override` is set when the natural composition exceeds the ceiling. See `backend/archetype_classifier.py` for the full enum and `pillar_2_scorer.score_instructional_value(..., archetype=X)` for the application.
+
+**Concrete impact from validation:** Adobe Acrobat IV 94 → 45; Microsoft Teams IV 99 → 45; Photoshop IV 99 → 65. Adobe Commerce, GitHub Actions, HPE OneView unaffected (full ceiling).
+
 ### 2.1 Product Complexity (cap 40)
 
 **Why it measures hands-on appropriateness, not abstract difficulty.** Complexity here is not "sophisticated" — it's whether hands-on repetition, experimentation, and real-environment interaction are the difference between someone who can use the product and someone who can't. A product is complex in the sense this dimension measures when any of these are true: it requires configuring interrelated components; it has multi-phase workflows; it involves multiple distinct personas; it requires troubleshooting real failure scenarios; it has AI features requiring iterative practice; it has networking topology learned through manipulation; or integration with external systems IS the primary workflow.
@@ -940,6 +955,22 @@ Simulation rate is pinned to `VM_LOW_RATE` — Sims are priced the same as VM Lo
 5. Computes per-motion annual hours × rate, sums to total ACV, assigns the ACV tier from `cfg.ACV_TIER_HIGH_THRESHOLD` ($250k) and `cfg.ACV_TIER_MEDIUM_THRESHOLD` ($50k).
 
 Rates use `~` to signal estimate. **One number per tier.** Audience is also a single estimated number — not a range. Every input is one number, one number out. Rate ranges and audience ranges both compound noise without adding precision and are forbidden.
+
+### ACV × Product Labability — linear labability gate (Frank, 2026-04-16)
+
+After all motion totals are summed, the ACV calculator applies a **uniform linear multiplier** based on Product Labability score:
+
+```
+gated_acv = raw_acv × (PL / 100)
+```
+
+Applied to the total, which is mathematically equivalent to applying it per-motion because the linear factor commutes. The gate fires in both `compute_acv_on_product` (score-time, dataclass) and `compute_acv_potential` (cache-reload, dict).
+
+**The rule (Frank, 2026-04-16):** if Skillable can't produce a lab, none of the motions generate ACV — every motion requires Skillable to actually deliver a hands-on environment. So the multiplier applies uniformly, not per-motion. No carve-outs for Certification or Events.
+
+**Why linear:** simplest expression; every PL point translates proportionally to dollars; matches engagement economics (low-PL products can still deliver partial value, just with proportional payoff). Stepped or hard-cliff alternatives would introduce discontinuities or lie about zero value.
+
+**Stored for transparency:** `acv.labability_factor` on every computed ACV so the widget / templates / downstream consumers can render the multiplier without recomputing.
 
 ### Customer Training adoption by category tier — locked 2026-04-13
 

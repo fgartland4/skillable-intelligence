@@ -158,6 +158,78 @@ What Workday variability revealed separately was **researcher non-determinism** 
 
 The locked rule is 2–4 badges per dimension. Pillar 1's Simulation override and Pillar 2/3's thin-grade cases can legitimately produce 1 badge per dimension today — not because the 2–4 rule is wrong but because the badge selector has no synthesis fallback. When scoring produces fewer than 2 badges, the badge selector should emit specific fact-driven context badges ("Simulation Fabric Chosen", "SaaS-Only No Per-Learner API", "Category Baseline: Cybersecurity") that explain the score without inventing evidence. Teardown is the one dimension where 1 badge can be legitimate (it's more binary).
 
+### Product archetype — the Skillable-labability shape (Frank, 2026-04-16)
+
+Market category alone (Cybersecurity, Data & Analytics, Document Management) cannot discriminate between products that warrant hands-on lab training and products that don't. Inside one market category there's huge variance — SharePoint (enterprise admin, deep lab value) and Acrobat (individual-contributor doc tool, e-learning is the right delivery) are both "Document Management" but have nothing in common from a Skillable-labability perspective.
+
+The **product archetype** is a second, orthogonal classification dimension that answers: *what kind of product is this from a Skillable-labability standpoint?* It lives as two fields on `Product`:
+
+- `archetype` — the classification value (enum, see `backend/archetype_classifier.py`)
+- `archetype_rationale` — short text explaining the inference, so downstream Claude calls (rubric grader, badge selector, briefcase generator) can reason about the classification
+
+**10-archetype enum:**
+
+| Archetype | IV ceiling | Examples |
+|---|---|---|
+| `enterprise_admin` | 100 | Azure, Workday, ServiceNow, Entra, Intune, SharePoint admin |
+| `security_operations` | 100 | Defender, Sentinel, Splunk, CrowdStrike, Palo Alto, FortiGate |
+| `developer_platform` | 100 | GitHub Actions/Enterprise/Codespaces, GitLab, Visual Studio, Azure DevOps, Terraform, Kubernetes |
+| `data_platform` | 100 | Anaplan, Snowflake, Databricks, Power BI, SQL Server, GitHub Copilot (AI tooling) |
+| `integration_middleware` | 100 | Marketo, AEM, Adobe Commerce, Mulesoft, SAP CPI |
+| `deep_infrastructure` | 100 | NetApp, Quantum, Commvault, HPE Aruba/OneView/Alletra, Fortinet, VMware |
+| `engineering_cad` | 100 | Autodesk AutoCAD/Revit, Bentley MicroStation, SolidWorks, Dassault CATIA, PTC Creo, Ansys |
+| `creative_professional` | 65 | Photoshop, Illustrator, Premiere Pro, InDesign, After Effects |
+| `ic_productivity` | 45 | Word, Excel, Outlook, Acrobat, Teams (IC workflows), PowerPoint |
+| `consumer_app` | 25 | Pure end-user apps, no admin depth, no cert program |
+
+**Inference:** `archetype_classifier.classify_archetype(product, discovery_data)` — deterministic Python, reads existing fact drawer signals (category, subcategory, deployment_model, personas, description). Zero Claude calls. Rule #1 honored — this is a scoring-layer classification, research is untouched.
+
+**Short-acronym safety:** CAD-family acronyms (`bim`, `plm`, `fea`, `cfd`) use word-boundary matching to prevent false positives ('fea' matching 'feature'). Multi-word phrases ('3d modeling', 'finite element', 'civil engineering') use substring matching which is safe.
+
+**What the archetype drives:**
+
+1. **IV ceiling in Pillar 2.** `pillar_2_scorer.score_instructional_value(..., archetype=X)` caps the composed pillar score via `score_override` when the ceiling is below the natural score. Acrobat can't score above 45 IV no matter how generously the rubric grades signals, because hands-on Skillable labs aren't the right delivery for Acrobat.
+2. **ACV labability gate** (see below) — composed with PL via the linear gate.
+3. **Badge selector archetype-aware filters** — future work; today badges are archetype-agnostic.
+
+### ACV × Product Labability — linear labability gate (Frank, 2026-04-16)
+
+The ACV math today is `audience × adoption × hours × rate`. It did not know about Product Labability. That meant a product with PL 29 (Skillable can barely lab it) got the same ACV calculation as a product with PL 95 (Skillable delivers labs beautifully). Wrong — ACV should reflect what Skillable can actually deliver.
+
+**The rule:** `gated_acv = raw_acv × (PL / 100)`. Applied uniformly across every motion (Customer Training, Partner Training, Employee Training, Certification, Events). If we can't produce a lab, we can't produce a lab — none of those motions ring up ACV.
+
+**Why linear (not stepped or cliff):**
+- Simplest — one formula, no threshold tuning, no arbitrary cutoffs
+- Honest — every PL point translates proportionally to dollars
+- Matches engagement economics — Skillable can usually figure out SOMETHING for hard-to-lab products, but the payoff must match the effort. PL 29 means proportionally reduced payoff; PL 95 means near-full payoff.
+- Hard cliff would lie ("zero value at PL 39") — reality is we can still deliver partial value
+- Stepped would add arbitrary discontinuities — a PL 79 vs PL 81 swing shouldn't cause a 15% ACV jump at a threshold
+
+**Implementation:** both `compute_acv_on_product` (score-time, dataclass) and `compute_acv_potential` (cache-reload, dict) apply the multiplier at the final total dollar step. The `acv.labability_factor` field is stored for transparency.
+
+**Example impacts from 6-company validation:**
+
+| Product | PL | Pre-gate ACV | Gated ACV |
+|---|---|---|---|
+| Fortinet FortiGate | 97 | $162k | $157k (−3%) |
+| Visual Studio | 95 | $23.4M | $22.3M (−5%) |
+| Aruba Central (Sim override) | 36 | $430k | $155k (−64%) |
+| Anaplan Platform (Sim override) | 36 | $100k | $36k (−64%) |
+| GitHub Copilot | 36 | $7.4M | $2.7M (−64%) |
+| Quantum Scalar Tape | 5 | $21k | $1k (−95%) |
+
+Low-PL products with big audiences collapse to honest numbers. High-PL products with appropriate audiences barely move. The composition is self-consistent: the math says exactly what the rule says.
+
+### Market Demand is per-product, not per-company (Frank, 2026-04-16)
+
+Before 2026-04-16, `grade_market_demand` fed the rubric grader both product-specific and company-level facts (channel partners, ATPs, reference customers, geographic reach) as equal-weight evidence. That caused every product in a strong-company portfolio to inherit the same Market Demand score — HPE OneView, Aruba Central, SimpliVity all landed at 20/20 Market Demand because the grader read HPE's ATP program as evidence for each product.
+
+**The fix:** the grader now receives two clearly-separated sections:
+- **PRIMARY** — Market Demand facts for THIS product (install base for this product, cert mentions of this product, independent course counts for this product). Drives the tier directly.
+- **COMPANY CONTEXT** — informational only. Cannot alone justify a 'strong' tier. Must be corroborated by product-specific evidence in PRIMARY.
+
+The prompt explicitly instructs the grader that company-level signals can reinforce product-specific findings but cannot single-handedly drive a strong rating. Takes effect on the `RUBRIC_STALE` rescore path (`regrade=True`).
+
 ---
 
 ## How the GPs Show Up in the Platform
