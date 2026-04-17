@@ -4,6 +4,36 @@ Each entry captures decisions made during a working session. Newest entries firs
 
 ---
 
+## Session: 2026-04-17 — Skillable capabilities wired into research prompts
+
+### Finding: SKILLABLE_CAPABILITIES tuple was orphaned documentation
+- AST-scan audit: zero runtime consumers. The tuple in `scoring_config.py` was read by no code path. The Platform-Foundation.md line 145 claim ("prompts render capability context from the Python tuple at prompt-build time") described intended behavior that never shipped.
+- Same pattern as the retired `skillable_capabilities.json` — that file was also "loaded but never read." The retirement comment passed the unread baton to the Python tuple.
+
+### DECIDED: Extract to Layer 2 module
+- **DECIDED:** `SkillableCapability` dataclass and `SKILLABLE_CAPABILITIES` tuple moved to `backend/skillable_knowledge.py`. `scoring_config.py` re-exports for back-compat. New code imports from `skillable_knowledge` directly.
+- Rationale: three-layer discipline — Layer 1 customer intelligence, Layer 2 Skillable self-knowledge, Layer 3 scoring logic. Capability *content* (fabrics, services, patterns) and scoring *rules* (weights, penalties, baselines) are different concerns and were incorrectly co-located in `scoring_config.py`.
+
+### DECIDED: Schema extension for richer structured content
+- **DECIDED:** Extended `SkillableCapability` with optional fields: `fabric`, `supported_services`, `unsupported_services`, `considerations`, `authoritative_catalog_url`, `setup_prerequisites`, `templates_supported`, `roles`, `modes`, `related_capabilities`, `status`, `last_updated`. All optional with safe defaults — existing one-line entries remain valid.
+- Additive only — non-breaking.
+
+### DECIDED: Rich AWS + Azure entries, plus Cloud Credential Pool + Cloud Security Review
+- **DECIDED:** AWS entry captures the explicit ~65 supported + ~75 unsupported service lists (including SageMaker, Bedrock, Lightsail, EMR, Neptune, CodeBuild, STS, SSO, et al.), plus the three "considerations" notes (EC2 save/resume billing pause, ECS task auto-scaling, SNS unverified-subscription residue). Setup prerequisites captured (dedicated root account, IAM users, LabSecureAccess boundary policy, 10-account quota, CloudTrail log transfer).
+- **DECIDED:** Azure entry captures the three IaC paths (ARM JSON, Bicep, Terraform-via-LCA-Docker), CSR/CSS modes, Skillable Studio Policy Set, Resource Provider registration pattern, and the `azure.microsoft.com/en-us/products` authoritative catalog URL. No service list — Azure's answer is "ALL services supported after Security Review," so the security-review process is the gate, not a curated list.
+- **DECIDED:** Two new cross-fabric entries added — Cloud Credential Pool (right access mechanism for SaaS-login products) and Cloud Security Review (cross-fabric Low/Medium/High risk classification). Both follow the existing cross-fabric precedent set by Automated Scoring, Hyper-V Preference, and BIOS GUID Pinning.
+- **DECIDED:** Deprecated VHD-based Azure Virtualization NOT added to the tuple — convention is current-best-practice only. Compute Gallery is the current Azure VM method.
+
+### DECIDED: Wire the tuple into the research prompts
+- **DECIDED:** `backend/prompts/discovery.txt` now uses a `{SKILLABLE_CAPABILITY_CONTEXT}` marker. `backend.scorer.build_discovery_prompt()` substitutes the marker with rendered capability context at prompt-build time — a new service or capability edit flows to the next call without a process restart.
+- **DECIDED:** `backend.researcher.extract_product_labability_facts()` now builds its system prompt at call time by concatenating `_PRODUCT_LABABILITY_FACTS_PROMPT` with the full rendered capability context. The extractor is instructed to cross-check product AWS-service dependencies against the supported / unsupported lists and surface unsupported-service dependencies in `provisioning.description` / `lab_access.description` so downstream Pillar 1 scoring and badge selection can reason about them as amber (addressable on demand) — not red.
+- Pillar 1 scoring itself is still pure Python reading the fact drawer. The rubric grader is NOT touched because Pillar 1 does not use rubric grading. The capability-context effect on tightness happens via better-grounded facts produced by the research layer.
+
+### DECIDED: RUBRIC_VERSION bump
+- **DECIDED:** `RUBRIC_VERSION = "2026-04-17.capability-context-wired-into-research"`. Invalidates cached rubric grades across all analyzed companies; next open re-grades using the enriched capability-aware research narratives.
+
+---
+
 ## Session: 2026-04-13 (continued) — 14-fix batch, validation fixes, Prospector features, open source ACV
 
 ### Open source ACV discount + Market Demand reframing

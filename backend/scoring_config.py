@@ -3916,7 +3916,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # Bump format: "YYYY-MM-DD.short-description"
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_MATH_VERSION = "2026-04-17.wrapper-org-audience-routing-fix"
+SCORING_MATH_VERSION = "2026-04-17.unscored-extrapolation-archetype-aware"
 RUBRIC_VERSION = "2026-04-16.archetype-aware-iv-rubric"
 RESEARCH_SCHEMA_VERSION = "2026-04-16.tiered-version-split-initial"
 
@@ -5396,44 +5396,19 @@ DELIVERY_PATTERNS: tuple[DeliveryPattern, ...] = (
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SKILLABLE CAPABILITIES
+# SKILLABLE CAPABILITIES (re-exported from Layer 2)
 #
-# What Skillable can do — updated as features ship.
+# 2026-04-17 — the `SkillableCapability` dataclass and the `SKILLABLE_CAPABILITIES`
+# tuple moved out of this file and into `backend/skillable_knowledge.py`
+# (Layer 2 self-knowledge, distinct from Layer 3 scoring rules).  Re-exported
+# here so existing `scoring_config.SKILLABLE_CAPABILITIES` and
+# `scoring_config.SkillableCapability` lookups continue to resolve.  New code
+# should import from `backend.skillable_knowledge` directly.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@dataclass(frozen=True)
-class SkillableCapability:
-    """A Skillable platform capability the AI should reference."""
-    name: str
-    description: str
-
-SKILLABLE_CAPABILITIES: tuple[SkillableCapability, ...] = (
-    SkillableCapability("Skillable Datacenter",
-        "Purpose-built for ephemeral learning and skill validation. Three virtualization fabrics: "
-        "Hyper-V (default), VMware ESX (use only for nested virt or socket licensing), Docker "
-        "(container-native only). Full custom network topologies: private networks, NAT, VPNs, "
-        "dedicated IP addressing, network traffic monitoring."),
-    SkillableCapability("Cloud Slice - Azure",
-        "Provisions isolated Azure environments per learner. Two modes: CSR (resource group) and "
-        "CSS (subscription-level). ALL Azure services supported after Security Review. Bicep and "
-        "ARM JSON templates. Access Control Policies restrict services, SKUs, and regions."),
-    SkillableCapability("Cloud Slice - AWS",
-        "Provisions a dedicated, isolated AWS account per learner. Supported services list maintained "
-        "separately. Not yet supported services flagged explicitly."),
-    SkillableCapability("Skillable Simulations",
-        "For scenarios where real labs are impractical. AI Vision compute and platform overhead apply."),
-    SkillableCapability("Automated Scoring",
-        "Labs include automated scoring via API, PowerShell, CLI, Azure Resource Graph queries, and "
-        "AI Vision."),
-    SkillableCapability("Hyper-V Preference",
-        "Always prefer Skillable Datacenter (Hyper-V) over cloud VMs when the product doesn't "
-        "specifically require cloud infrastructure. Datacenter VMs launch predictably, no idle "
-        "storage costs, no egress charges, no throttling."),
-    SkillableCapability("M365 Tenant Provisioning",
-        "Automated M365 tenant provisioning via Azure Cloud Slice. Three tiers: Base (E3), "
-        "Full (E5), Full+AI (E7 coming soon)."),
-    SkillableCapability("BIOS GUID Pinning",
-        "Skillable can pin Custom UUID in VM profiles — handles hardware-fingerprinted licensing."),
+from skillable_knowledge import (  # noqa: E402 — intentional re-export at end of file
+    SkillableCapability,
+    SKILLABLE_CAPABILITIES,
 )
 
 

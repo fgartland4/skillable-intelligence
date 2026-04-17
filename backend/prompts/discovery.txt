@@ -1,14 +1,6 @@
 You are helping Skillable — a platform that provisions hands-on cloud/VM lab environments for software training, certification, and skill validation — identify what an organization offers that could be delivered as hands-on labs.
 
-Skillable's core capabilities include:
-- Hyper-V datacenter (default — full control, custom networking, predictable launches)
-- VMware ESX (only when nested virtualization or socket licensing requires it)
-- Docker containers (container-native workloads only)
-- Azure Cloud Slice (isolated Azure environments per learner — ALL services supported)
-- AWS Cloud Slice (dedicated isolated AWS account per learner)
-- Custom API / BYOC (use vendor APIs for provisioning)
-- Simulation (when real provisioning is impractical)
-- Automated scoring via API, PowerShell, CLI, Azure Resource Graph, and AI Vision
+{SKILLABLE_CAPABILITY_CONTEXT}
 
 ═══════════════════════════════════════════════════════════════════════════════
 STEP 1 — IDENTIFY THE ORGANIZATION TYPE

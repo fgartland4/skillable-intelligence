@@ -1007,6 +1007,7 @@ def extract_product_labability_facts(
     search_results: dict,
     page_contents: dict,
     underlying_technologies: list[dict] | None = None,
+    product: dict | None = None,
 ) -> ProductLababilityFacts:
     """Extract Pillar 1 facts for one product from raw research.
 
@@ -1026,14 +1027,52 @@ def extract_product_labability_facts(
     dedicated llm_client module if the cycle bites.
     """
     from scorer import _call_claude  # local import to avoid early cycle
+    from skillable_knowledge import (
+        render_capability_context_for_product,
+        render_capability_bullets_compact,
+        render_cross_fabric_context,
+    )
     context = _build_pillar_1_fact_context(
         product_name, search_results, page_contents,
         underlying_technologies=underlying_technologies,
     )
+    # Compose the system prompt at call time so capability-tuple edits flow
+    # through on the next extraction without a process restart.  The
+    # capability context grounds provisioning / access fact capture — e.g.
+    # an AWS product that depends on SageMaker should have that surfaced in
+    # provisioning.description so the Pillar 1 scorer can reason about it.
+    #
+    # SCOPED context: the full capability block (~11KB) is sent only when
+    # the product touches AWS or Azure.  Most products get compact bullets
+    # + cross-fabric capabilities only (~2KB).  Scoping keeps per-product
+    # extraction fast while preserving the SageMaker-style amber mechanism
+    # on products that actually need it.  When `product` is None (tests,
+    # legacy callers), fall back to the lean default.
+    if product is not None:
+        cap_context = render_capability_context_for_product(product)
+    else:
+        cap_context = (
+            render_capability_bullets_compact() + "\n\n"
+            + render_cross_fabric_context()
+        )
+    system_prompt = (
+        _PRODUCT_LABABILITY_FACTS_PROMPT
+        + "\n\n═══ SKILLABLE PLATFORM CAPABILITY CONTEXT ═══\n\n"
+        + "Use the Skillable capability information below to ground your "
+        + "provisioning and lab_access narratives.  If the product depends "
+        + "on specific AWS services, check them against the supported / "
+        + "unsupported lists and reflect specific unsupported dependencies "
+        + "in provisioning.description (e.g. 'Uses Amazon SageMaker — not "
+        + "currently supported by Skillable AWS Cloud Slice, addressable on "
+        + "demand').  If the product is SaaS-login only, note that Cloud "
+        + "Credential Pool is the right access mechanism.  Stay truth-only "
+        + "— no scoring, no good/bad judgments.\n\n"
+        + cap_context
+    )
     log.info("Pillar 1 fact extraction starting for %s", product_name)
     try:
         raw = _call_claude(
-            _PRODUCT_LABABILITY_FACTS_PROMPT,
+            system_prompt,
             context,
             max_tokens=4000,
         )

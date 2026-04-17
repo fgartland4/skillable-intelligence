@@ -140,9 +140,14 @@ Intelligence compounds across layers, not just within a single analysis:
 
 Pillar 2 Instructional Value discovery-level hints (`api_surface`, `complexity_signals`, `target_personas`, `cert_inclusion`) are **not** sharpened back to discovery today. This is a known gap, not a contradiction of the pattern — the row-level Fit Score IS sharpened; only the discovery-level lightweight hints lag.
 
-### Skillable capabilities live in Python, not JSON
+### Skillable capabilities live in Python, in a dedicated Layer-2 module
 
-Until 2026-04-16 the repo had two parallel sources of Skillable's capability knowledge: `scoring_config.SKILLABLE_CAPABILITIES` (Python tuple, consumed by the scoring layer) and `backend/knowledge/skillable_capabilities.json` (read-at-runtime knowledge file — a vision that never shipped). The JSON file is gone. The Python tuple is the single source of truth. Prompts sent to Claude render capability context from the Python tuple at prompt-build time, so when a new Skillable fabric ships we update the tuple once and both the Python scorer and the Claude-facing prompts see the change on the next call.
+Historical evolution:
+  - Pre-2026-04-16: Two parallel sources — `scoring_config.SKILLABLE_CAPABILITIES` (Python tuple, claimed to be consumed by the scoring layer) and `backend/knowledge/skillable_capabilities.json` (a richer JSON that was loaded at startup but never read by any code path).
+  - 2026-04-16: JSON file retired. Tuple kept in `scoring_config.py`.
+  - 2026-04-17: Tuple extracted to `backend/skillable_knowledge.py` (Layer 2 — self-knowledge, distinct from Layer 3 scoring rules) and enriched with AWS supported/unsupported service lists, Azure orchestration detail (CSR/CSS, Bicep/ARM/Terraform, Resource Providers, Managed ACPs), and cross-fabric entries (Cloud Credential Pool, Cloud Security Review). The prior one-line entries became richly structured. An audit at that time found zero runtime consumers — the tuple was orphaned documentation. Wiring landed in the same commit: the discovery prompt in `backend/prompts/discovery.txt` now contains a `{SKILLABLE_CAPABILITY_CONTEXT}` marker that `backend.scorer.build_discovery_prompt()` substitutes at prompt-build time, and `backend.researcher.extract_product_labability_facts()` now concatenates the full capability context to the Pillar 1 system prompt. A product that depends on an AWS service in the "not supported" list (e.g. SageMaker, Bedrock, Lightsail) will have that surfaced in `ProductLababilityFacts.provisioning.description` so the Pillar 1 scorer and badge selector can reason about it as amber — not red.
+
+Current state: `backend/skillable_knowledge.py` is the single source of truth. `scoring_config.py` re-exports `SkillableCapability` and `SKILLABLE_CAPABILITIES` for back-compat; new code imports directly from `skillable_knowledge`. Prompts render capability context at prompt-build time, so a single edit to the tuple (e.g. adding a new AWS service to the supported list, or a new fabric) flows to the next research call without a process restart.
 
 ### The Simulation hard override is intentional
 

@@ -41,9 +41,8 @@ def _get_framework_last_modified() -> str:
     """
     framework_files = [
         _Path(__file__).parent / "scoring_config.py",
+        _Path(__file__).parent / "skillable_knowledge.py",  # Layer-2 self-knowledge (2026-04-17 — extracted from scoring_config)
         _Path(__file__).parent / "prompts" / "discovery.txt",
-        # skillable_capabilities.json retired 2026-04-16 — SKILLABLE_CAPABILITIES
-        # now lives exclusively in scoring_config.py as the Python tuple.
         _Path(__file__).parent / "knowledge" / "delivery_patterns.json",
         _Path(__file__).parent / "knowledge" / "competitors.json",
         _Path(__file__).parent / "knowledge" / "contact_guidance.json",

@@ -1544,11 +1544,36 @@ def recompute_analysis(analysis: dict) -> None:
         if user_base <= 0:
             continue
 
-        # Apply tiered user base cap — same rule used for scored products.
+        # ── Archetype classification on the fly (Frank 2026-04-17) ───────
+        # The scored path classifies archetype once in recompute_analysis
+        # above (line 1416-1428) and writes it back to the product.  The
+        # unscored extrapolation reads discovery-product dicts directly,
+        # which may not carry `archetype` yet.  Classify on-the-fly so the
+        # archetype-aware audience tiers / adoption ceiling / hours
+        # helpers below can use it — same logic, same input signals as the
+        # scored path.  Write back so subsequent reads are cached.
+        archetype = dp.get("archetype") or ""
+        if not archetype:
+            try:
+                from archetype_classifier import classify_archetype
+                arch_val, arch_rationale = classify_archetype(dp, discovery_data)
+                dp["archetype"] = arch_val
+                dp["archetype_rationale"] = arch_rationale
+                archetype = arch_val
+            except Exception:
+                log.exception(
+                    "recompute_analysis unscored: classify_archetype failed for %r",
+                    dp.get("name"),
+                )
+
+        # Apply audience tier cap — archetype-aware, same machinery used by
+        # scored products (rebuild_acv_motions_from_facts).  Falls back to
+        # legacy DISCOVERY_ACV_USER_BASE_TIERS when archetype is empty.
         # Wrapper orgs skip this cap because annual_enrollments is already
         # the wrapper's real audience (no global-workforce inflation to cap).
         if not org_is_wrapper:
-            for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+            tiers = cfg.get_audience_tiers_for_archetype(archetype)
+            for threshold, cap in tiers:
                 if user_base > threshold:
                     if cap is not None:
                         user_base = cap
@@ -1564,12 +1589,32 @@ def recompute_analysis(analysis: dict) -> None:
         else:
             org_overrides = cfg.ACV_ORG_ADOPTION_OVERRIDES.get(norm_org, {})
             adopt = org_overrides.get(_default_motion.label, _default_motion.adoption_pct)
-        # Hours: use org-specific override from ACV_ORG_HOURS_OVERRIDES if
-        # present (Academic 15, ILT 18, Industry Authority 10, etc.), else
-        # the software baseline. Bug confirmed 2026-04-17 — unscored path was
-        # hardcoded to software baseline (2 hrs) for all org types.
+
+        # ── Scale-aware adoption ceiling (Frank 2026-04-17) ──────────────
+        # Same architectural machinery as the scored path — big audiences
+        # cap Skillable's realistic share (> 1M → 2%, 250K-1M → 4%, etc.).
+        # Wrapper orgs exempt — their calibrated rates (ELP 3%, Academic
+        # 25%, ILT 25%) already encode realistic share for the delivery
+        # model.  Per commit 4235404 (wrapper-exempt rule).
+        if not org_is_wrapper:
+            ceiling = cfg.get_scale_aware_adoption_ceiling(user_base)
+            if ceiling is not None and adopt > ceiling:
+                adopt = ceiling
+
+        # ── Archetype-aware hours (Frank 2026-04-17) ─────────────────────
+        # Same helper scored products use.  Deep-infra / security-ops / CAD
+        # get longer Customer Training hours (5), IC productivity gets
+        # shorter (1), defaults stay 2 for enterprise_admin.  Wrapper orgs
+        # prefer their ACV_ORG_HOURS_OVERRIDES (Academic 15, ILT 18, etc.)
+        # because wrapper-org hours represent program-length, not archetype-
+        # length.  The order here matches the scored path.
         hours_overrides = cfg.ACV_ORG_HOURS_OVERRIDES.get(norm_org, {})
-        hrs = hours_overrides.get(_default_motion.label, _default_motion.hours_low)
+        if _default_motion.label in hours_overrides:
+            hrs = hours_overrides[_default_motion.label]
+        else:
+            hrs = cfg.get_hours_for_archetype_motion(
+                archetype, _default_motion.label, _default_motion.hours_low,
+            )
 
         deploy = (dp.get("deployment_model") or "").strip().lower()
         if deploy in ("cloud", "saas-only"):
@@ -2148,6 +2193,7 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                     extract_product_labability_facts,
                     pname, search_results, page_contents,
                     underlying_technologies=p.get("underlying_technologies"),
+                    product=p,
                 )
                 futures[f1] = ("p1", pname)
                 f2 = ex.submit(

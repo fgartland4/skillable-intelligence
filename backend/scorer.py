@@ -34,12 +34,38 @@ with open(_BENCHMARKS_PATH, "r", encoding="utf-8") as _f:
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Discovery prompt (Phase 1 — fast product identification)
+#
+# 2026-04-17 — the prompt template contains a {SKILLABLE_CAPABILITY_CONTEXT}
+# marker that is substituted at prompt-build time from the Layer 2 self-knowledge
+# tuple (`backend.skillable_knowledge.SKILLABLE_CAPABILITIES`).  Editing
+# capability data in that module now flows to the prompt on the next call with
+# no change required here or in `discovery.txt`.
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 _DISCOVERY_PROMPT_PATH = os.path.join(_PROMPTS_DIR, "discovery.txt")
 with open(_DISCOVERY_PROMPT_PATH, "r", encoding="utf-8") as _f:
-    DISCOVERY_PROMPT = _f.read()
+    _DISCOVERY_PROMPT_TEMPLATE = _f.read()
+
+
+def build_discovery_prompt() -> str:
+    """Assemble the discovery system prompt with current Skillable capability
+    context rendered in.  Called at prompt-build time, so a new capability or
+    an update to the AWS supported-services list flows to the next research
+    call without restarting the server."""
+    from skillable_knowledge import render_full_capability_context
+    return _DISCOVERY_PROMPT_TEMPLATE.replace(
+        "{SKILLABLE_CAPABILITY_CONTEXT}",
+        render_full_capability_context(),
+    )
+
+
+# Back-compat: callers that still hold a reference to the module attribute
+# `DISCOVERY_PROMPT` get the rendered prompt.  This is a string, not a
+# function, so call sites do not need to change — but because capability
+# context is rendered ONCE at import, code that wants live edits should
+# switch to `build_discovery_prompt()`.
+DISCOVERY_PROMPT = build_discovery_prompt()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -147,7 +173,7 @@ def discover_products_with_claude(findings: dict) -> dict:
             lines.append(f"\n### {key}:")
             lines.append(content[:2000])
 
-    return _call_claude(DISCOVERY_PROMPT, "\n".join(lines), max_tokens=16000)  # magic-allowed: discovery needs room for enriched three-tier data shape
+    return _call_claude(build_discovery_prompt(), "\n".join(lines), max_tokens=16000)  # magic-allowed: discovery needs room for enriched three-tier data shape
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
