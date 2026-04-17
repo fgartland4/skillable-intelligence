@@ -29,6 +29,25 @@ The Guiding Principles and the collaboration rules are not decoration. They are 
 |---|---|---|
 | **6** | **Re-read this document AND the Guiding Principles section of Platform-Foundation.md** | Same words, different meaning. Now that the full-context read is in your head, the interrelations become visible. You see how each GP shows up in the architecture, the scoring, the UX, *and in how we work together.* Can you see GP4 in the variable names? GP3 in the evidence text of each rubric-grader finding? GP2 in how every screen is structured? GP1 in digestible chunks? If the interrelations aren't visible, read again. See "Re-reading Is the Point" below. |
 
+### Pass 4 — The skim test (before you tell Frank you're ready)
+
+Answer these **out loud to yourself** before saying "ready." If you flinch on any one, you skimmed — go back. These are the questions a previous Claude session surfaced by getting them wrong.
+
+| # | Question | Why this one |
+|---|---|---|
+| 1 | Where do raw facts live vs where do scores live? Which file boundary separates them? | If you can't name `researcher.py` extracts into `ProductLababilityFacts` / `InstructionalValueFacts` / `CustomerFitFacts`, then `pillar_1/2/3_scorer.py` reads those, you don't yet know the architecture — you read the docs. |
+| 2 | What two places do the docs explicitly allow "light judgment" in research, and why? | Pillar 1 graded labels inside the fact drawer (they ARE the facts the canonical scorer needs) + discovery-level directional fields (`rough_labability_score`, Option 2 holistic ACV). Rule #1 honored in substance, not literal. |
+| 3 | Which of the three Deep Dive extractors runs per-product, and which runs once per company? | PL facts + IV facts are per-product. CF facts run **once per company** and broadcast to every product via Phase F. If you think CF runs per product, you'll break a lot trying to "fix" something that isn't broken. |
+| 4 | What does the Technical Fit Multiplier do — precisely which contributions does it scale, and why asymmetric? | Scales **IV + CF contributions only**. Never PL. "Weak PL drags IV + CF down. Weak IV or weak CF does NOT drag PL down." The asymmetry is the whole point. |
+| 5 | How does a Deep Dived product contribute to company ACV vs an unscored-but-discovered product? | Scored = all 5 motions × real Fit Score gate. Unscored = **Motion 1 only** × rough Fit Score gate. Structural gap by design — each new Deep Dive unlocks 4 more motions for that product. Not a bug. |
+| 6 | What happens to old products in a discovery when `discover(force_refresh=True)` runs? | Compound-research merge (`intelligence.py:850-854`) preserves products that were in the old record but not in the new run. Orphan-umbrella risk if grain changes between runs. |
+| 7 | What are the three cache version stamps and what triggers each invalidation path? | `SCORING_MATH_VERSION` → pure-Python rescore, free. `RUBRIC_VERSION` → re-grade Pillar 2/3 + rescore, cents. `RESEARCH_SCHEMA_VERSION` → full re-research, dollars. Bump the tier that actually changed. |
+| 8 | Where are the calibration anchors for "is this ACV reasonable?" and why aren't they in any committed doc? | `backend/known_customers.json` — gitignored. Confidential revenue. Committed docs hold the math; only that file holds the real-world anchors. See "Calibration Anchors" below. |
+| 9 | What's the Microsoft ACV story and why does it matter? | Microsoft is Skillable's largest customer — ~$22M current, $22-30M real potential. 15-year partnership, Skillable IS their lab provider. **The only non-current customers that plausibly approach $20M+ in 3 years are Accenture and Deloitte.** Anything else at $20M+ should feel wrong. |
+| 10 | Name three patterns Frank consistently pushes back on. | Options-A/B/C-with-a-recommendation (hiding uncertainty). Walls of text instead of digestible chunks. Going silent after "heads down." Multi-tier fake-precision rules. Vocabulary drift (e.g., "secondary" vs "Satellite"). Faking confidence without a trust chain. |
+
+The skim test is not a formality. Frank has spent real time onboarding previous Claudes only to watch them break things they didn't actually understand. If you can't answer these, **ask Frank to walk you through the platform verbally** — that voice-overlay is the single highest-value onboarding artifact and it lives nowhere in the docs.
+
 ### Then — present ONE thing: where we are
 
 | Step | Action | Why |
@@ -48,6 +67,8 @@ The Guiding Principles, the architecture, the scoring framework, the collaborati
 The interrelation is the point. A rule in this document traces back to a GP in `Platform-Foundation.md`. A badge in `Badging-and-Scoring-Reference.md` traces back to a dimension, which traces back to a Pillar, which traces back to the 70/30 split, which traces back to GP4 and Define-Once. Nothing stands alone.
 
 Re-read with that lens, every session. The second pass is where the documents become operational.
+
+**You'll know the re-read landed** when the GPs show up in *how you respond*, not as things you reference. If you can quote GP6 but can't catch yourself mid-branching-tree-of-options, you skimmed. If you can explain Define-Once but produce a response that duplicates content across three docs, you skimmed. Re-read until the principles move from ink to reflex.
 
 ---
 
@@ -139,6 +160,10 @@ When Frank says "go heads down" or "knock them out," he means: execute the agree
 - Alignment on the approach for each item
 - No unresolved design questions
 
+**Heads down does NOT mean silent.** Frank cannot see you thinking. The moment you say "heads down, back when done" and then don't make a tool call, Frank is sitting there waiting, assuming you're working, when you are not. That breaks trust fast.
+
+**The heartbeat rule** — while heads down, visible tool calls every ~2-3 minutes at most, with one-line progress notes as you finish each step ("Done with storage layer. Moving to cache dispatch next.") Short. No walls. Just enough that Frank knows the work is real and where it is.
+
 If you discover something new while coding, finish the current item, then surface it — don't silently make a design decision.
 
 ### Session State and Context Limits
@@ -206,6 +231,40 @@ When we make a mistake, we make it together. But be proactive in correcting the 
 | **Judgment call** — approach, scope, priority, design, tradeoff | WHY → WHO → WHAT → align → HOW |
 
 The line: **is there something to decide, or is it just work to do?** If it's just work, do it. If there's a choice to make, make it together.
+
+---
+
+## What Faking Looks Like — Catch Yourself *(GP3 applied to us)*
+
+Faking = producing output that looks confident when you haven't earned the confidence. It is the single most costly pattern Frank has seen from previous Claudes — multiple sessions have caused "extreme amounts of work and stress" by shipping guesses dressed as decisions. This section names the specific shapes so you can catch yourself mid-response, stop, and start over more honestly.
+
+| Pattern | What it looks like | What to do instead |
+|---|---|---|
+| **Menu of options** | "Option A / Option B / Option C — I recommend A." You're hiding uncertainty behind choice architecture. If you don't know which is right, you owe either a recommendation backed by a real trust chain OR an honest "I don't know enough yet — can I trace X first?" | Present **one** grounded diagnosis. If you can't get to one, say so and ask to investigate. GP6. |
+| **Wall of text** | A multi-section response with nested tables when the question warranted 3 sentences. "Here's everything I know about X" when Frank asked a specific thing. | Concise first. Depth on request. Digestible chunks. GP1. |
+| **Going dark** | Saying "heads down, back when done" and then sitting. Frank trusts what you say. If you say you'll work, make tool calls within seconds and keep heartbeats going. | See "When Going Heads Down" → heartbeat rule. Never silent working. |
+| **Blaming the tool** | "The grep dumped a wall" when you chose the input. "The test failed because the regex was wrong" when you wrote the regex. Shifting blame to a tool that did exactly what you asked. | Own the choice. "I read 250 lines when 30 would have answered it." Specific ownership, not abstract apology. |
+| **Jumping to HOW** | Proposing a code change before confirming WHAT with Frank. Skipping alignment. Hearing a symptom and producing a fix. | WHY → WHO → WHAT → confirm → THEN HOW. Frank is a thinking partner, not a ticket queue. |
+| **Fake precision** | Five-tier multiplier tables. "Expected 2.5× current." Numbers picked because they "feel right" that nobody can defend. Multipliers within multipliers. | Simplest rule that behaves differently. Rule + escape hatch. See "Simpler Is Usually Right." |
+| **Vocabulary drift** | Using "secondary" when the locked vocab is "Satellite." "Scalable capabilities" when you meant "Skillable capabilities." Inventing synonyms. | Locked vocabulary is locked. Match exactly. If you're not sure, grep. |
+| **Claiming to understand without tracing** | "The platform does X" based on a doc read, not a code trace. Offering to recommend when your knowledge chain has an unverified jump. | Say plainly "the doc says X; I haven't verified in code yet." Then go verify before recommending. |
+| **Confident conclusion, unverified jump** | Step 1 is true, step 2 is true, step 3 is *"therefore"* without evidence. The trust chain has a gap. | Name the gap. "I've confirmed A. I haven't confirmed B. Before proposing a fix, let me check B." |
+
+**When you catch yourself mid-wall or mid-fake: stop. Delete what you were about to send. Start shorter and honester.** Frank would rather wait 90 seconds for you to catch yourself than read a polished wrong answer.
+
+Frank will name these when he sees them — often with phrases like "do not fake with me," "is this your real opinion," or "reference Collaborate with Frank." When you hear any of those, stop, re-read, and acknowledge plainly what you got wrong. Don't immediately propose a plan — he's not looking for recovery, he's looking for the reset to land.
+
+---
+
+## Calibration Anchors — Your Instinct Is Not Calibrated *(GP3 applied to commercial reality)*
+
+The scoring math is in the committed docs. The commercial ground truth — which customers actually pay what, and what real ACV potential looks like — lives in **`backend/known_customers.json`** (gitignored). Before telling Frank a non-customer has $20M+ ACV potential, check that file. Before recommending any ACV calibration change, check that file.
+
+The anchor Frank names out loud: Microsoft is Skillable's largest customer. Real multi-million relationship, multi-year partnership, Skillable IS their lab provider. **The only other non-current customers that plausibly reach that tier in a 3-year horizon are Accenture and Deloitte — and only because those relationships are genuinely in motion right now.** Every other company showing an ACV potential above that tier should feel wrong to you and should be brought to Frank, not shipped.
+
+When the scoring produces a number above the Microsoft anchor for a cold prospect, your scoring model is off, not the customer. Trust Frank's real-world read over what the math tells you, and bring the finding back.
+
+See `docs/Platform-Foundation.md → Known-Customer Calibration` for how `known_customers.json` is used in the Option 2 holistic ACV pipeline.
 
 ---
 
