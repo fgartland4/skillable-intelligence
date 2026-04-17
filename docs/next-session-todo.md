@@ -1,12 +1,59 @@
 # Next Session — Todo List
 
-**Last updated:** 2026-04-17 (ACV architecture alignment session)
+**Last updated:** 2026-04-17 (late-session — ACV Build 1 partial shipment)
 
 ---
 
 ## §1 — START HERE NEXT SESSION
 
-**Build the unified ACV architecture.** Full spec written.  Decisions made.  Every detail captured.  A new Claude picks this up cold and executes.
+**State of ACV architecture (2026-04-17 late):** Build 1 is ~80% shipped — framework code is live, legacy Claude holistic is fully retired, partial retrofit done on known customers.  Two known defects remain + Build 2 + Platform-Foundation rewrite.  A new Claude picks up from the "What ships next session" section below.
+
+### What's already shipped (do NOT redo)
+
+| Commit | What |
+|---|---|
+| `1b23f94` | Capability wiring + unified rebalancing machinery (scored + unscored paths) |
+| `e2461f6` | ACV architecture spec written across decision-log, next-session-todo, Platform-Foundation header |
+| `23df09e` | Framework functions: `compute_company_total_audience`, `allocate_audience_to_products`, `compute_discovery_company_acv` |
+| `60cc381` | Known-customer floor — `max(framework, current_acv)` for existing Skillable customers |
+| `38bab23` | Wire-up — `intelligence.discover()` now calls framework function.  `scripts/retrofit_discovery_acv.py` shipped. |
+| `d55cb90` | **Legacy cleanup** — deleted 575 lines of retired code: `estimate_holistic_acv`, `_HOLISTIC_ACV_PROMPT`, `_format_anonymized_calibration_block`, `_build_holistic_acv_context`, `_build_known_customer_constraints`, `_scrub_customer_data`, and the three guardrail constants.  Deleted obsolete `scripts/compute_customer_potentials.py` + `scripts/retrofit_acv.py`.  Deleted `docs/unified-acv-model.md` (to be folded into Platform-Foundation). |
+| `7608bb7` | Retrofit script `--include-org-types` / `--exclude-org-types` filters.  Known-customers retrofit partially run: 34 customers kept (framework-correct or floor-pinned), 13 zeroed (ILT inflation or data-quality outliers). |
+
+### KNOWN DEFECTS TO FIX FIRST NEXT SESSION
+
+**Defect 1 — ILT training org audience formula over-inflates.**
+For ILT training orgs (AXcademy, Skillhouse, Leading Learning Partners Association, New Horizons, ONLC, LearnQuest, etc.), the current `compute_company_total_audience` formula treats them as `DISTINCT_AUDIENCE_ORG_TYPES` with `sum(all capped per-product audiences)`.  Combined with org-type hours override (18 hrs classroom) and 25% adoption, this produces $15-250M discovery-time ACV for small ILT shops with a handful of class offerings.  Catastrophic inflation.
+
+**Fix (proposed):** Switch ILT org types from `sum(all)` to `sum(max per archetype)` like software_company uses.  This recognizes that if a training shop teaches Microsoft + AWS + Cisco courses, the same instructors and students often span archetypes — distinct-audience-per-product is wrong.  OR: apply a total-employee-proportional cap (training shop with 10 instructors can't train 500K students).
+
+**Files to edit:**
+- `backend/acv_calculator.py` → `compute_company_total_audience` → move `ILT TRAINING ORG` from `DISTINCT_AUDIENCE_ORG_TYPES` into the `sum(max per archetype)` case, OR add a separate ILT-specific formula.  Test against: AXcademy (3 products), Skillhouse (1), LLPA (7), New Horizons (7), ONLC (12), LearnQuest (13).  Target ACV: under $5M for each of these small ILT shops.
+
+**Defect 2 — Non-customer retrofit not run; Prospector shows mixed legacy/framework values.**
+For non-customer prospects, retrofit would write discovery-time Motion-1-only framework numbers that systematically undersell them (no known-customer floor applies).  Left legacy Claude values in place for those — consistency broken.
+
+**Fix options:**
+- **(A)** Once ILT defect is fixed, run the full retrofit via `scripts/retrofit_discovery_acv.py`.  Accept that non-customer prospects will look smaller in Prospector until Deep-Dived.  Semantically correct.
+- **(B)** Add discovery-time estimates for Motions 2-5 (partner / employee / cert / events) from company-level signals so non-customers get a more complete number.  More work, more accurate.
+- **(C)** Leave legacy in place for non-customers; framework applies only on fresh research.  Mixed paths but no shrinkage.
+
+Recommend **(A)** — consistency with the "one standard" principle — AFTER ILT defect fix.
+
+### What ships next session (in order)
+
+1. **Fix the ILT formula.**  ~30 min.  Validate against AXcademy, Skillhouse, LLPA, New Horizons, ONLC.  All should land < $5M discovery-time ACV.
+2. **Full non-customer retrofit.**  Run `scripts/retrofit_discovery_acv.py` across the remaining ~550 non-customer discoveries.  Spot-check on Workday, MongoDB, Stripe, Tanium, CompTIA.
+3. **Re-retrofit the 13 zeroed known customers** (LLPA, New Horizons, Cisco, Siemens, Zero-Point) now that ILT is fixed.  Should produce numbers within sanity bounds.
+4. **Rewrite `docs/Platform-Foundation.md` → ACV Potential Model section** with best current thinking.  Remove the "architecture alignment in progress" header added in commit e2461f6.  Document the per-archetype max / sum-across-archetypes rule, allocation logic, known-customer floor.
+5. **Bump `SCORING_MATH_VERSION`.**
+6. **BUILD 2 — ACV-specific dimension weights** (separate commit).  CF: TC 40 / DC 60 / BC 0 / OrgDNA 0; IV: MD 40-50 / PC 25 / MS 25 / LV 0; PL unchanged.  Replaces Fit Score gate in `compute_acv_potential` + `compute_acv_on_product` with an ACV gate using these weights.  Rough gate at discovery; real gate at Deep Dive.  Validate against Microsoft / Trellix / Skillsoft / Pluralsight / ASU.
+
+### Tonight's cautionary tale (lesson for next Claude)
+
+The known-customer retrofit overwrote 47 cached discoveries before we caught the LLPA ILT inflation.  Files in `backend/data/company_intel/` are gitignored — not git-revertable.  Surgical recovery was done (13 bad ones zeroed), but any retrofit that writes to that directory is a live-data operation, not a code change.
+
+**Rule for next session:** before running any retrofit at scale, dry-run and spot-check every org type against its anchor.  If ANY category looks off, fix the formula first, retrofit later.  The retrofit script has `--dry-run` and `--only` flags for exactly this.
 
 ### Read these first, in this order
 
