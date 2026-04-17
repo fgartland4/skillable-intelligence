@@ -120,9 +120,44 @@ def load_discovery(discovery_id: str) -> Optional[dict]:
     return None
 
 
+# ─────────────────────────────────────────────────────────────────────────
+# Entity-resolution alias map
+#
+# Cases where two legally-distinct names refer to the same practical
+# entity from Skillable's perspective and the regex cleanup below can't
+# collapse them (different words, not just corporate suffixes).
+#
+# Keys and values are ALREADY-NORMALIZED forms (lowercase, regex cleanup
+# already applied). Add an entry here when you see duplicate records for
+# the same practical entity and regex tuning can't catch it. Document WHY.
+#
+# Regex-solvable cases (e.g., "Accenture LLP" → "accenture") should NOT
+# live here — they belong in the corporate-suffix regex below. The alias
+# map is for the genuinely ambiguous pairs only.
+# ─────────────────────────────────────────────────────────────────────────
+_COMPANY_ALIASES: dict[str, str] = {
+    # Grand Canyon Education (for-profit parent that operates the platform)
+    # and Grand Canyon University (the school) are legally distinct entities
+    # but the same Skillable opportunity. Canonical: GCU.
+    # Frank 2026-04-16.
+    "grand canyon education": "grand canyon university",
+
+    # SAP Canada is a regional branch; SAP Ariba is a product line under
+    # the SAP umbrella. For discovery / Prospector dedup both fold to SAP.
+    # Frank 2026-04-16.
+    "sap canada": "sap",
+    "sap ariba": "sap",
+}
+
+
 def _normalize_company_name(name: str) -> str:
     """Normalize company name for matching — catches 'Cisco' vs 'Cisco Systems',
-    'Google' vs 'Google Cloud', 'VMware (by Broadcom)' vs 'VMware by Broadcom'.
+    'Google' vs 'Google Cloud', 'VMware (by Broadcom)' vs 'VMware by Broadcom',
+    'Accenture' vs 'Accenture LLP'.
+
+    After regex cleanup, applies the `_COMPANY_ALIASES` map for the
+    genuinely-ambiguous pairs (GCU/GCE, SAP Canada/SAP Ariba/SAP) that
+    regex rules can't collapse without overreach.
 
     Used by find_discovery_by_company_name and the Prospector dedup logic.
     Shared function — Define-Once for name normalization.
@@ -131,11 +166,12 @@ def _normalize_company_name(name: str) -> str:
     key = name.lower().strip()
     key = re.sub(r'\s*\(.*?\)', '', key)          # remove parentheticals
     key = re.sub(r'\s+by\s+\w+$', '', key)         # "VMware by Broadcom" → "VMware"
-    key = re.sub(r',?\s*(inc\.?|corp\.?|llc|ltd\.?|limited|plc|systems|technologies|group|corporation)\s*$', '', key)
+    key = re.sub(r',?\s*(inc\.?|corp\.?|llc|llp|ltd\.?|limited|plc|systems|technologies|group|corporation)\s*$', '', key)
     # Remove common product/division suffixes that differ between searches
     key = re.sub(r'\s+(cloud|platform|software|labs|digital|online|services)\s*$', '', key)
     key = re.sub(r'\s+', ' ', key).strip()
-    return key
+    # Explicit alias map for cases the regex can't catch
+    return _COMPANY_ALIASES.get(key, key)
 
 
 def find_discovery_by_company_name(company_name: str) -> Optional[dict]:
