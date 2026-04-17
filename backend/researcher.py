@@ -749,10 +749,17 @@ provisioning.runs_as_*: how the product can ACTUALLY be deployed BY A LEARNER fo
 
   Multiple NON-saas values may be true together (e.g. an installable product that also publishes a Docker image is runs_as_installable=true AND runs_as_container=true).
 
-provisioning.sandbox_api_granularity: does the product expose an API that can spin up an isolated sandbox/tenant on demand?
-  - "rich"    = full create/configure/delete cycle
-  - "partial" = some endpoints but missing pieces (e.g. create works, delete doesn't)
-  - "none"    = no documented sandbox provisioning API
+provisioning.has_sandbox_api: binary — does the product have ANY documented provisioning, administration, or management API that could plausibly support programmatic tenant / sandbox / user creation?
+  - TRUE when any such API exists (REST, SOAP, GraphQL, SCIM, admin SDK, etc.) — even if coverage for per-learner provisioning is uncertain. "Has an API at all" is the question.
+  - FALSE only when research finds no documented API at all, OR the product is hosted-only with zero programmatic access.
+  - **DO NOT set FALSE because a specific sandbox endpoint wasn't found.** If a general REST/admin API exists but you cannot confirm full sandbox provisioning coverage, has_sandbox_api is still TRUE. Set sandbox_api_granularity to "partial" for that case.
+  - This separation matters because research runs compound: once has_sandbox_api = TRUE is established, a later thinner research run that doesn't re-find the API should not flip it back to FALSE. The merge layer preserves TRUE when any prior run confirmed existence.
+
+provisioning.sandbox_api_granularity: judgment of how thoroughly that API covers per-learner provisioning for Skillable's needs. Only meaningful when has_sandbox_api is TRUE.
+  - "rich"    = full create / configure / delete cycle documented with specific endpoints — supports drop-in per-learner orchestration
+  - "partial" = API exists but coverage is uncertain or incomplete — some endpoints found, missing pieces, or undocumented gaps. **Partial is the honest default when has_sandbox_api is TRUE but specific sandbox-provisioning endpoint docs weren't located.**
+  - "none"    = has_sandbox_api is FALSE (no API exists at all)
+  Finding a general REST or admin console does NOT promote the grade to "rich" — that's "partial" until confirmed with specific user-provisioning endpoint documentation.
 
 provisioning.has_pre_instancing_opportunity: true ONLY when documentation explicitly indicates slow first-launch, slow cluster initialization, or slow tenant warm-up that would benefit from pre-warming environments.
 
@@ -803,12 +810,12 @@ lab_access.auth_model: how the END USER authenticates to the running product.
   - "api_key"             — Auth is via API key (developer-tool products)
   - "none"                — No documented auth model
 
-lab_access.user_provisioning_api_granularity: does the vendor expose an API to create per-learner users / roles?
+lab_access.user_provisioning_api_granularity: judgment of how thoroughly the vendor's API covers per-learner user / role management.
   - "rich"    = CONFIRMED: documented endpoints exist for creating users, assigning roles, AND managing lifecycle (update/delete) — with evidence from API reference docs, OpenAPI specs, or developer guides. If you cannot find specific endpoint documentation, this is NOT rich.
-  - "partial" = API exists but coverage is UNCERTAIN or incomplete — some endpoints documented but gaps in lifecycle management, undocumented areas, or you found general API mention without specific user-provisioning endpoint evidence. DEFAULT TO THIS when the product has an API but you cannot confirm full user lifecycle coverage.
+  - "partial" = API exists but coverage is UNCERTAIN or incomplete — some endpoints documented, gaps in lifecycle management, or general API presence without specific user-provisioning endpoint evidence. **Default to partial when an API exists but full user lifecycle coverage isn't confirmed** — but do NOT default to "none" just because the thorough search didn't find every endpoint.
   - "none"    = no documented user provisioning API at all
 
-  CRITICAL: For SaaS products, "partial" is the honest default unless you find SPECIFIC user-provisioning endpoint documentation. Finding a general REST API or admin console does NOT qualify as "rich" — that's "partial" until confirmed.
+  The existence / quality distinction matters: "does the API exist?" is a binary fact about the product (preserved across research runs via compound-research merge); "how rich is the coverage?" is the grade that sharpens with deeper research. A later thinner research run should never downgrade rich → none just because it didn't re-find what earlier runs confirmed.
 
 lab_access.credential_lifecycle:
   - "recyclable" — credentials can be reset and reused between learners
