@@ -1733,7 +1733,15 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
         #   MATH_STALE     → pure-Python rescore of saved facts (zero Claude)
         #   RUBRIC_STALE   → re-grade Pillar 2/3 + rescore (partial Claude)
         #   RESEARCH_STALE → fact drawer shape changed, must re-research
-        #   UNSTAMPED      → legacy record w/o tiered stamps — re-research to be safe
+        #   UNSTAMPED      → legacy record carrying only the old single-
+        #                    version stamp. Fact drawer shape is the same
+        #                    as current RESEARCH_SCHEMA_VERSION, so we
+        #                    treat it as MATH_STALE — pure-Python rescore
+        #                    against saved facts, zero Claude calls. Honors
+        #                    Rule #1 (research is immutable). The rescore
+        #                    function self-protects by skipping products
+        #                    missing fact drawers, so a truly-ancient
+        #                    record gracefully degrades to 0 rescored.
         # force_refresh always wipes, regardless of tier state.
         status = cfg.is_cached_logic_current_tiered(existing)
         stale_count = len(existing.get("products", []) or [])
@@ -1746,10 +1754,10 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
             # CRITICAL: wipe the legacy products list so they don't survive
             # the cache-and-append below. See investigation 2026-04-06.
             existing["products"] = []
-        elif status in (cfg.CacheStatus.RESEARCH_STALE, cfg.CacheStatus.UNSTAMPED):
+        elif status == cfg.CacheStatus.RESEARCH_STALE:
             log.info(
-                "Intelligence.score: analysis %s — %s — wiping %d products (re-research required)",
-                existing.get("analysis_id"), status, stale_count,
+                "Intelligence.score: analysis %s — RESEARCH_STALE — wiping %d products (re-research required)",
+                existing.get("analysis_id"), stale_count,
             )
             existing["products"] = []
         elif status == cfg.CacheStatus.RUBRIC_STALE:
@@ -1775,22 +1783,36 @@ def score(company_name: str, selected_products: list[dict], discovery_id: str,
                 existing["products"] = []
             for p in existing.get("products", []):
                 existing_product_names.add(p.get("name", ""))
-        elif status == cfg.CacheStatus.MATH_STALE:
+        elif status in (cfg.CacheStatus.MATH_STALE, cfg.CacheStatus.UNSTAMPED):
             # Pure-Python rescore — zero Claude calls, milliseconds.
+            # UNSTAMPED legacy records land here too: fact drawers on disk
+            # match current RESEARCH_SCHEMA_VERSION, only the math needs
+            # refreshing. Honors Rule #1 (research is immutable).
             log.info(
-                "Intelligence.score: analysis %s — MATH_STALE — pure-Python rescore of %d products",
-                existing.get("analysis_id"), stale_count,
+                "Intelligence.score: analysis %s — %s — pure-Python rescore of %d products",
+                existing.get("analysis_id"), status, stale_count,
             )
             try:
                 n = rescore_products_from_saved_facts(existing, regrade=False)
                 rescored_in_place = True
                 log.info(
-                    "Intelligence.score: MATH_STALE rescore completed %d/%d products",
-                    n, stale_count,
+                    "Intelligence.score: %s rescore completed %d/%d products",
+                    status, n, stale_count,
                 )
+                if n == 0 and stale_count > 0:
+                    # Truly-ancient record with no fact drawers at all —
+                    # rescore skipped everything. Fall back to wipe so the
+                    # downstream path re-researches; otherwise we'd carry
+                    # unscored products forward with stale scores.
+                    log.info(
+                        "Intelligence.score: analysis %s — UNSTAMPED with no "
+                        "fact drawers — wiping to trigger re-research",
+                        existing.get("analysis_id"),
+                    )
+                    existing["products"] = []
             except Exception:
                 log.exception(
-                    "Intelligence.score: MATH_STALE rescore failed for %s — "
+                    "Intelligence.score: rescore failed for %s — "
                     "falling back to full wipe",
                     existing.get("analysis_id"),
                 )
