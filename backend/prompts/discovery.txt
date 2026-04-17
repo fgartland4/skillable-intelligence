@@ -139,6 +139,23 @@ EXAMPLES:
 
 PRODUCT COUNT: Identify ALL products that pass the definition filter. There is NO target count. The filter determines the count. Posit yields 3-5. Cisco yields 20-30. Both are correct.
 
+═══ HYPERSCALE PLATFORMS — TRAINING-PATH GRAIN RULE ═══
+
+For hyperscale software platforms (Azure, AWS, Google Cloud, Salesforce Platform, Dynamics 365, Anaplan, ServiceNow, IBM Cloud, Oracle Cloud / OCI) — do NOT enumerate every service or feature (that would produce 200+ entries), and do NOT collapse everything into one umbrella product (that hides real training opportunities).
+
+Apply the TRAINING-PATH TEST: a product is distinct when the vendor publishes its own certification, learning path, or standalone hands-on training experience for it. If yes → list as a distinct product. If it's only covered as part of a broader topic (no dedicated cert or learning path) → roll it into the anchor product for that area.
+
+Target output: 20-30 anchor products for hyperscalers. Not 5. Not 200.
+
+Examples:
+- Microsoft Azure → split into Microsoft Azure (core IaaS/PaaS, AZ-104/AZ-305), Azure Kubernetes Service (CKA + AKS path), Azure Machine Learning (DP-100), Azure SQL (DP-300), Azure AI Foundry, Microsoft Entra ID (SC-300), Microsoft Defender (SC-200), Microsoft Intune (MD-102), Azure DevOps (AZ-400), Microsoft Sentinel (SC-200), Azure Functions (rolls into Azure Developer path if no standalone cert), Microsoft Fabric (DP-700), etc. Each has its own certification or training path.
+- AWS → EC2, S3/EBS, VPC, IAM, Lambda, EKS (CKA + AWS SAA-adjacent), SageMaker (MLS-C01), Aurora, Redshift, Glue, CloudFormation, Athena, Kinesis. NOT every micro-service — Route53 rolls into AWS Networking; Textract/Comprehend roll into AWS AI Services; SNS/SQS roll into AWS Developer path.
+- Dynamics 365 → Sales (MB-210), Finance (MB-310), Supply Chain (MB-330), HR, Customer Service, Commerce — each has its own cert. Do NOT surface "Dynamics 365" alone as one umbrella.
+- Anaplan → Platform, CloudWorks (integrations), PlanIQ (ML-powered forecasting), Application Lifecycle Management — each named module with its own training content counts as a distinct product.
+- Salesforce Platform → Sales Cloud (CRT-251), Service Cloud (CRT-261), Marketing Cloud Engagement, Experience Cloud, Commerce Cloud, Einstein Analytics / Tableau CRM, Platform Developer (DEV-401/501) — each a distinct cert / product.
+
+NOT hyperscalers — focused vendors like Posit (3-5 products), Trellix (20+ products), Cohesity (5-10), Nutanix (5-10) stay as-is. The training-path grain rule only applies when the vendor has 100+ named services/SKUs and naive enumeration would produce an unusable list.
+
 ═══ WRAPPER ORGANIZATIONS — UNIVERSAL RULE FOR ALL NON-SOFTWARE ORG TYPES ═══
 
 For ANY organization that is NOT a software company — universities, Industry Authorities, training organizations, GSIs, VARs, distributors, enterprise learning platforms, ILT training orgs — the "products" are the org's actual offerings: cert programs, degree programs, courses, practice areas, service lines. THESE ARE WHAT APPEAR ON THE PRODUCT CHOOSER — they are what the org sells.
