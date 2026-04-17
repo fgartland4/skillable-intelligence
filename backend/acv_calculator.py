@@ -280,19 +280,16 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
                     if eub_int > 0:
                         pop_low = pop_high = eub_int
 
-                # ── Scale-aware audience cap (Frank 2026-04-16) ──────────
-                # Frank's rule: at enormous audience scales, Skillable's
-                # realistic training-population share collapses. Microsoft
-                # 365 has 400M seats but Skillable's realistic hands-on lab
-                # audience is the admin/operator/developer layer — a few
-                # hundred thousand, not hundreds of millions.
-                #
-                # DISCOVERY_ACV_USER_BASE_TIERS encodes exactly this rule.
-                # It was previously applied ONLY to unscored product
-                # extrapolation in recompute_analysis. Applying it here
-                # means scored products get the same reality check —
-                # consistency across scored and unscored paths.
-                for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+                # ── Archetype-aware audience cap (Frank 2026-04-16) ──────
+                # Different product archetypes have different realistic
+                # training populations. Full-ceiling enterprise products
+                # (Azure, M365 admin, Workday) can legitimately have 1M+
+                # trainable admins. Specialists (Fortinet, Nutanix) tighter.
+                # IC / creative / consumer tighter still. See
+                # scoring_config.AUDIENCE_TIERS_BY_ARCHETYPE.
+                archetype = (product.get("archetype") or "").strip()
+                tiers = cfg.get_audience_tiers_for_archetype(archetype)
+                for threshold, cap in tiers:
                     if pop_high > threshold:
                         if cap is not None:
                             pop_low = min(pop_low, cap)
@@ -363,6 +360,13 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
         display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
         hrs = hours_overrides.get(cfg_motion.label, cfg_motion.hours_low)
 
+        # ── Archetype-aware hours override (Frank 2026-04-16) ──
+        # Deep infrastructure / CAD / security ops labs are longer;
+        # IC / creative / consumer shorter. Org-type override still wins.
+        if cfg_motion.label not in hours_overrides:
+            p_archetype = (product.get("archetype") or "").strip()
+            hrs = cfg.get_hours_for_archetype_motion(p_archetype, cfg_motion.label, hrs)
+
         # Customer Training adoption by category tier — Software / Enterprise
         # Software only. Specialist categories (cybersecurity, cloud infra,
         # networking) get higher adoption (8%) than general-purpose (4%) or
@@ -392,6 +396,16 @@ def rebuild_acv_motions_from_facts(product: dict, analysis: dict) -> None:
             if t_signals["license_blocked"]:
                 adoption *= cfg.ACV_TRAINING_MATURITY_MULTIPLIERS["license_blocked"]
             adoption = min(adoption, cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP)
+
+            # ── Scale-aware adoption cap (Frank 2026-04-16) ──
+            # After all multipliers, cap effective adoption based on
+            # audience size. Skillable's realistic share shrinks as
+            # the training market grows — 1-3% of M365 admin market
+            # is a lot more defensible than 15%.
+            audience = max(pop_low, pop_high)
+            scale_ceiling = cfg.get_scale_aware_adoption_ceiling(audience)
+            if scale_ceiling is not None:
+                adoption = min(adoption, scale_ceiling)
 
         motions.append({
             "label": display_label,
@@ -883,24 +897,22 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
                 log.info("ACV R3 fallback: using discovery install_base %d for %s",
                          fallback, getattr(product, "name", "?"))
 
-        # ── Scale-aware audience cap (Frank 2026-04-16) ──
-        # Apply universally to Customer Training audience on Software /
-        # Enterprise Software / Industry Authority paths (the ones that
-        # use install_base). For wrapper orgs the audience is
-        # annual_enrollments_estimate — that's already the wrapper's
-        # real audience, don't cap. Industry Authority has its own
-        # deflation pass below which handles lifetime-holder inflation.
+        # ── Archetype-aware audience cap (Frank 2026-04-16) ──
+        # Apply to Customer Training audience on Software / Enterprise
+        # Software paths (the ones that use install_base). For wrapper
+        # orgs the audience is annual_enrollments_estimate — that's
+        # already the wrapper's real audience, don't cap. Industry
+        # Authority has its own deflation pass below.
         #
-        # Rule: at enormous audience scales, Skillable's realistic
-        # training-population share collapses. Microsoft 365 has 400M
-        # seats but the lab-trainable admin/operator layer is ~200K.
-        # DISCOVERY_ACV_USER_BASE_TIERS encodes this rule — applied here
-        # for consistency with the dict path (rebuild_acv_motions_from_facts).
+        # See scoring_config.AUDIENCE_TIERS_BY_ARCHETYPE for the per-
+        # archetype tier tables. Enterprise_admin / developer_platform /
+        # data_platform get the biggest caps (realistic admin audiences
+        # span millions globally). Specialists tighter. IC tightest.
         if is_customer_motion and normalized_org not in ("INDUSTRY AUTHORITY", "TRAINING ORG"):
-            # Only apply to Software / Enterprise Software (install_base audience).
-            # Wrapper orgs use annual_enrollments_estimate which is already realistic.
             if normalized_org in ("SOFTWARE", "ENTERPRISE SOFTWARE", ""):
-                for threshold, cap in cfg.DISCOVERY_ACV_USER_BASE_TIERS:
+                archetype = (getattr(product, "archetype", "") or "").strip()
+                tiers = cfg.get_audience_tiers_for_archetype(archetype)
+                for threshold, cap in tiers:
                     if pop_high > threshold:
                         if cap is not None:
                             pop_low = min(pop_low, cap)
@@ -929,6 +941,15 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
         display_label = label_overrides.get(cfg_motion.label, cfg_motion.label)
         hrs = hours_overrides.get(cfg_motion.label, cfg_motion.hours_low)
 
+        # ── Archetype-aware hours override (Frank 2026-04-16) ──
+        # Deep infrastructure / CAD / security ops labs are longer (5 hr
+        # Customer Training); IC productivity / creative / consumer are
+        # shorter. Org-type overrides above win if both apply; archetype
+        # override only fires when there's no org-type override.
+        if cfg_motion.label not in hours_overrides:
+            archetype = (getattr(product, "archetype", "") or "").strip()
+            hrs = cfg.get_hours_for_archetype_motion(archetype, cfg_motion.label, hrs)
+
         # ── Three-tier open source classification (Customer Training only) ──
         if is_open_source and cfg_motion.label == "Customer Training & Enablement":
             if training_signals["has_training_org"]:
@@ -951,6 +972,17 @@ def populate_acv_motions(product: Any, company_analysis: Any) -> None:
                 adoption *= maturity_mult["no_signals"]
             # Cap adoption to prevent runaway
             adoption = min(adoption, cfg.ACV_TRAINING_MATURITY_ADOPTION_CAP)
+
+            # ── Scale-aware adoption cap (Frank 2026-04-16) ──
+            # After all multipliers, cap effective adoption based on
+            # audience size. Skillable's realistic share of a giant
+            # training market (e.g., M365 admin) is 1-3%, not 15%.
+            # For small audiences (cert prep candidates), the regular
+            # 35% cap still governs — no extra ceiling.
+            audience = max(pop_low, pop_high)
+            scale_ceiling = cfg.get_scale_aware_adoption_ceiling(audience)
+            if scale_ceiling is not None:
+                adoption = min(adoption, scale_ceiling)
 
         motions.append(ModelMotion(
             label=display_label,

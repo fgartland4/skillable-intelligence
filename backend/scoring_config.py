@@ -3357,11 +3357,173 @@ DISCOVERY_ACV_CAP = 5_000_000            # hard cap — no discovery estimate ex
 # but compliance varies. These tiers approximate real training populations.
 DISCOVERY_ACV_USER_BASE_TIERS = [
     # (threshold, effective_training_pop) — if user_base > threshold, use the fixed pop
-    (10_000_000, 200_000),   # 10M+ users → ~200K realistic training pop (Docker, GitHub)
-    (3_000_000, 150_000),    # 3-10M users → ~150K (Posit, MongoDB, NVIDIA)
-    (1_000_000, 100_000),    # 1-3M users → ~100K (Cisco, UiPath, Databricks)
-    (500_000, None),         # 500K-1M → no adjustment, likely already training pop
+    # LEGACY default tier (used when archetype is unknown). Frank 2026-04-16:
+    # archetype-aware tiers below are preferred; this default stays for the
+    # fall-through case and for unscored-extrapolation paths that don't have
+    # archetype resolved.
+    (10_000_000, 200_000),   # 10M+ users → ~200K realistic training pop
+    (3_000_000, 150_000),    # 3-10M users → ~150K
+    (1_000_000, 100_000),    # 1-3M users → ~100K
+    (500_000, None),         # 500K-1M → no adjustment
 ]
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Archetype-aware audience tiers (Frank 2026-04-16)
+#
+# The realistic Skillable-addressable training population depends on the
+# ARCHETYPE of the product — full-ceiling enterprise products can have
+# admin audiences of 1M+ (Microsoft 365 admin side, Azure admin, SAP),
+# specialist products are tighter (Fortinet, Nutanix), and IC productivity
+# / consumer tools tighter still. One-size-fits-all caps either undercount
+# big-portfolio admin vendors or over-count consumer tools.
+#
+# Tiers are applied the same way as DISCOVERY_ACV_USER_BASE_TIERS — the
+# first threshold the audience exceeds wins. A cap of None means no
+# adjustment at that size.
+# ─────────────────────────────────────────────────────────────────────────
+
+# Full-ceiling enterprise archetypes — biggest audience caps because the
+# admin/operator/developer training population for these products really
+# does span millions globally (Azure admin, M365 admin, Workday admin, etc.)
+_AUDIENCE_TIERS_ENTERPRISE = [
+    (100_000_000, 3_000_000),  # 100M+ seats → 3M trainable (M365-class)
+    (10_000_000, 1_000_000),   # 10M+ seats → 1M (Azure-class)
+    (3_000_000, 500_000),      # 3M+ seats → 500K (Power BI-class)
+    (1_000_000, 250_000),      # 1M+ seats → 250K
+    (500_000, None),           # below 1M → no cap
+]
+
+# Specialist archetypes (security ops, deep infrastructure, integration
+# middleware, engineering CAD) — tighter than enterprise because the
+# addressable training population is specialists, not broad admin layers.
+_AUDIENCE_TIERS_SPECIALIST = [
+    (10_000_000, 500_000),
+    (3_000_000, 300_000),
+    (1_000_000, 150_000),
+    (500_000, None),
+]
+
+# IC productivity / creative professional — narrow lab-training addressable
+# population, the rest of the audience trains via e-learning/video.
+_AUDIENCE_TIERS_IC = [
+    (10_000_000, 200_000),
+    (3_000_000, 150_000),
+    (1_000_000, 100_000),
+    (500_000, None),
+]
+
+# Consumer app — tightest, labs barely apply
+_AUDIENCE_TIERS_CONSUMER = [
+    (1_000_000, 50_000),
+    (100_000, 25_000),
+    (50_000, None),
+]
+
+AUDIENCE_TIERS_BY_ARCHETYPE: dict[str, list[tuple]] = {
+    "enterprise_admin":       _AUDIENCE_TIERS_ENTERPRISE,
+    "developer_platform":     _AUDIENCE_TIERS_ENTERPRISE,
+    "data_platform":          _AUDIENCE_TIERS_ENTERPRISE,
+    "security_operations":    _AUDIENCE_TIERS_SPECIALIST,
+    "deep_infrastructure":    _AUDIENCE_TIERS_SPECIALIST,
+    "integration_middleware": _AUDIENCE_TIERS_SPECIALIST,
+    "engineering_cad":        _AUDIENCE_TIERS_SPECIALIST,
+    "ic_productivity":        _AUDIENCE_TIERS_IC,
+    "creative_professional":  _AUDIENCE_TIERS_IC,
+    "consumer_app":           _AUDIENCE_TIERS_CONSUMER,
+}
+
+
+def get_audience_tiers_for_archetype(archetype: str) -> list[tuple]:
+    """Return the audience-tier table for the given archetype.
+
+    Falls back to the legacy DISCOVERY_ACV_USER_BASE_TIERS when the
+    archetype is empty or not in the map — conservative default.
+    """
+    if archetype and archetype in AUDIENCE_TIERS_BY_ARCHETYPE:
+        return AUDIENCE_TIERS_BY_ARCHETYPE[archetype]
+    return DISCOVERY_ACV_USER_BASE_TIERS
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Scale-aware adoption cap (Frank 2026-04-16)
+#
+# After all the training-maturity multipliers (ATP large 1.5x, cert active
+# 1.25x) compound the base category-tier adoption, the effective % can
+# hit 15-30%. That implies Skillable captures 15-30% of the global training
+# market for that product annually. For small-audience products this is
+# realistic (cert prep candidates are a motivated, small population).
+# For huge-audience products (Microsoft 365 admins, Azure admins), 15%
+# capture is not defensible — Skillable's global share of the enterprise-
+# admin training market is realistically 1-3%, not 15%.
+#
+# Graduated cap: the bigger the audience, the smaller Skillable's realistic
+# share. Applied AFTER all other adoption multipliers in the motion math.
+# ─────────────────────────────────────────────────────────────────────────
+
+ADOPTION_CEILING_BY_AUDIENCE = [
+    # (audience_threshold, max_effective_adoption_%)
+    (1_000_000, 0.02),    # > 1M trainable → max 2% Skillable share
+    (250_000, 0.04),      # 250K-1M → max 4%
+    (50_000, 0.08),       # 50K-250K → max 8%
+    # below 50K → no ceiling beyond the existing 35% overall cap
+]
+
+
+def get_scale_aware_adoption_ceiling(audience: int) -> float | None:
+    """Return the max effective adoption % for a given audience size.
+
+    Returns None when the audience is small enough that no scale-aware
+    ceiling applies (the overall 35% cap still governs).
+    """
+    if audience <= 0:
+        return None
+    for threshold, ceiling in ADOPTION_CEILING_BY_AUDIENCE:
+        if audience >= threshold:
+            return ceiling
+    return None
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Archetype-aware hours per motion (Frank 2026-04-16)
+#
+# Default motion hours are calibrated for enterprise admin products (2 hrs
+# Customer Training, 5 Partner, 8 Employee). Deep infrastructure / CAD /
+# security ops labs are meaningfully longer — setup is complex, full
+# workflow takes time. IC productivity tools the other way — shorter labs.
+# ─────────────────────────────────────────────────────────────────────────
+
+HOURS_BY_ARCHETYPE: dict[str, dict[str, int]] = {
+    # Full-ceiling enterprise — keep the defaults (2/5/8/1/1)
+    "enterprise_admin":       {},
+    "developer_platform":     {},
+    "data_platform":          {},
+    # Specialist — deep labs (5 hrs customer training)
+    "security_operations":    {"Customer Training & Enablement": 5},
+    "deep_infrastructure":    {"Customer Training & Enablement": 5},
+    "integration_middleware": {"Customer Training & Enablement": 4},
+    "engineering_cad":        {"Customer Training & Enablement": 5},
+    # IC / creative / consumer — shorter labs
+    "ic_productivity":        {"Customer Training & Enablement": 1,
+                               "Partner Training & Enablement": 2,
+                               "Employee Training & Enablement": 4},
+    "creative_professional":  {"Customer Training & Enablement": 2,
+                               "Partner Training & Enablement": 3,
+                               "Employee Training & Enablement": 4},
+    "consumer_app":           {"Customer Training & Enablement": 1,
+                               "Partner Training & Enablement": 0,
+                               "Employee Training & Enablement": 2},
+}
+
+
+def get_hours_for_archetype_motion(archetype: str, motion_label: str,
+                                    default_hours: int) -> int:
+    """Return hours for a given motion, archetype-aware."""
+    if archetype and archetype in HOURS_BY_ARCHETYPE:
+        overrides = HOURS_BY_ARCHETYPE[archetype]
+        if motion_label in overrides:
+            return overrides[motion_label]
+    return default_hours
 
 PRODUCT_CATEGORY_RATE_PRIORS = (
     {"category": "Networking", "typical_vms": "2-6", "rate_tier": "complex", "rate_range": "$45-55/hr", "seat_time": "60-90+ min",
@@ -3754,7 +3916,7 @@ SKILLABLE_DECISIVE_ADVANTAGES = (
 # Bump format: "YYYY-MM-DD.short-description"
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SCORING_MATH_VERSION = "2026-04-16.fit-score-gate-audience-cap-no-extrapolation"
+SCORING_MATH_VERSION = "2026-04-16.archetype-audience-scale-adoption-remove-30M-cap"
 RUBRIC_VERSION = "2026-04-16.archetype-aware-iv-rubric"
 RESEARCH_SCHEMA_VERSION = "2026-04-16.tiered-version-split-initial"
 

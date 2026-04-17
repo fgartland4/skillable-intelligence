@@ -1406,6 +1406,27 @@ def recompute_analysis(analysis: dict) -> None:
         fs["total"] = int(fit_total)
         fs["_total"] = int(fit_total)
 
+        # Archetype classification — deterministic Python from the product
+        # dict's discovery signals. Frank 2026-04-16: archetype drives
+        # audience tiers + hours per motion in the ACV math below, so it
+        # must be populated BEFORE rebuild_acv_motions_from_facts runs.
+        # For cached analyses that predate archetype, this is the first
+        # moment they get classified — same code as rescore uses, just
+        # called on the dict form.
+        if not p.get("archetype"):
+            try:
+                from archetype_classifier import classify_archetype
+                arch_val, arch_rationale = classify_archetype(
+                    p, analysis.get("_discovery_data") or {},
+                )
+                p["archetype"] = arch_val
+                p["archetype_rationale"] = arch_rationale
+            except Exception:
+                log.exception(
+                    "recompute_analysis: classify_archetype failed for %r",
+                    p.get("name"),
+                )
+
         # Rebuild ACV motions from the fact drawer using the unified
         # model, then recompute the math. This ensures every page load
         # reflects the current org-type overrides, deflation tiers,
@@ -1571,25 +1592,14 @@ def recompute_analysis(analysis: dict) -> None:
             company_acv_high = min(company_acv_high, round(employee_cap))
             company_acv_low = min(company_acv_low, company_acv_high)
 
-    # ── Last-resort universal hard cap (Frank 2026-04-16) ─────────────
-    # $30M 3-Year ACV Potential is the defensible ceiling for any
-    # single prospect we've never worked with. Established relationships
-    # (Microsoft today at $22M, Cisco at $255K but $30M potential) sit
-    # at or near this line. For brand-new prospects, anything above
-    # $30M signals the model has run off the rails — cap and log so
-    # we notice if it fires too often.
-    # The cap is a SAFETY NET, not a primary governor: changes 1-5
-    # (audience cap, Fit Score gate, per-product unscored, etc.) are
-    # expected to keep the math inside $30M naturally. This is the
-    # last line of defense.
-    hard_cap = cfg.HOLISTIC_ACV_COMPANY_HARD_CAP
-    if company_acv_high > hard_cap:
-        log.info(
-            "ACV universal hard cap fired: $%d → $%d for analysis %s",
-            company_acv_high, hard_cap, analysis.get("analysis_id", "?"),
-        )
-        company_acv_high = hard_cap
-        company_acv_low = min(company_acv_low, company_acv_high)
+    # Frank 2026-04-16: universal $30M cap removed. Microsoft already has
+    # line of sight past $30M today. A hard cap that bunches the top 25
+    # customers at the same number destroys trust — if the top of the list
+    # is "all $30M", the seller can't tell which opportunity is biggest.
+    # The employee-based cap (total_employees × ACV_PER_EMPLOYEE_ANNUAL_CAP)
+    # above stays as a scale-of-company safety. The audience tier caps +
+    # scale-aware adoption + Fit Score gate + archetype ceilings do the
+    # real governance work. Natural variance is what we want at the top.
 
     analysis["_company_acv"] = {
         "company_low": company_acv_low,
