@@ -436,16 +436,91 @@ def _company_context_label(company: CompanyAnalysis) -> str:
 # Pillar 2 — Instructional Value (per-product graders)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _archetype_context_for_grader(product: Product) -> str:
+    """Return an archetype-aware grading hint to prepend to each IV rubric.
+
+    Frank 2026-04-16: the rubric grader was over-crediting tenuous signals
+    for IC / creative / consumer archetypes because the grader only checked
+    "does this signal exist" not "is this signal meaningful for Skillable-
+    style hands-on lab training." An IC productivity tool like Acrobat has
+    features that sound strong on paper (compliance, role diversity, etc.)
+    but don't warrant a lab — users learn those by watching and clicking,
+    not by running instrumented lab exercises. This context tells the
+    grader what kind of product it's looking at and how to discipline
+    its strength-tier assignments accordingly.
+
+    Returns an empty string when archetype is not set (fallback is the
+    grader's default behavior).
+    """
+    archetype = (getattr(product, "archetype", "") or "").strip()
+    if not archetype:
+        return ""
+
+    # Capped-ceiling archetypes — grade conservatively
+    conservative = {
+        "ic_productivity":
+            "This product is archetyped as IC PRODUCTIVITY — individual-"
+            "contributor productivity tools (Word, Excel, Outlook, Acrobat, "
+            "PowerPoint-class). Signals only rate 'strong' if hands-on lab "
+            "practice MATERIALLY improves mastery (vs. watching a tutorial + "
+            "trying a feature). Compliance features, role diversity, deep "
+            "configuration options, etc. often EXIST but do not warrant "
+            "hands-on lab training — they're learned through documentation "
+            "and light practice, not instrumented labs. Default to 'moderate' "
+            "or 'informational' strength unless there is clear evidence that "
+            "labs are the right delivery mechanism.",
+        "creative_professional":
+            "This product is archetyped as CREATIVE PROFESSIONAL — professional "
+            "creative tools (Photoshop, Illustrator, Premiere, InDesign, After "
+            "Effects-class). Real training markets exist (Adobe Certified "
+            "Professional, design schools), but labs are typically 'workspace "
+            "with sample assets + guided exercises', not deep admin/security "
+            "workflows. Grade 'strong' only when a signal directly supports "
+            "hands-on lab delivery (not just: does this feature exist). "
+            "Individual-workflow depth is 'moderate' at best for this archetype.",
+        "consumer_app":
+            "This product is archetyped as CONSUMER APP — pure end-user "
+            "applications with no admin depth or cert program. Signals almost "
+            "never rate 'strong'. Treat 'moderate' as the realistic ceiling "
+            "for this archetype. If you find yourself wanting to rate 'strong', "
+            "reconsider — consumer apps don't need Skillable labs.",
+    }
+    if archetype in conservative:
+        body = conservative[archetype]
+        return (
+            f"## ARCHETYPE CONTEXT (critical for grading discipline)\n"
+            f"**Archetype:** {archetype}\n\n"
+            f"{body}\n\n"
+            f"**Rationale:** {(getattr(product, 'archetype_rationale', '') or '').strip()[:300]}"
+        )
+
+    # Full-ceiling archetypes — grade on merits, no conservative bias
+    permissive_note = (
+        f"## ARCHETYPE CONTEXT\n"
+        f"**Archetype:** {archetype}\n\n"
+        f"This product is a full-ceiling archetype for Skillable labability "
+        f"(enterprise admin / security operations / developer platform / "
+        f"data platform / integration middleware / deep infrastructure / "
+        f"engineering CAD class). Grade signals on their merits; hands-on "
+        f"lab training is the appropriate delivery mechanism for this kind "
+        f"of product. Don't over-correct."
+    )
+    return permissive_note
+
+
 def grade_product_complexity(product: Product, company: CompanyAnalysis) -> list[GradedSignal]:
     """Grade Product Complexity signals for one product.
 
     Reads the ProductComplexityFacts drawer plus cross-reads from
-    Pillar 1 ProvisioningFacts (multi-VM architecture signals fire in
-    both pillars per the CROSS_PILLAR_RULES pattern).
+    Pillar 1 ProvisioningFacts. Also receives archetype context so the
+    grader disciplines strength tiers — IC / creative / consumer
+    archetypes default to moderate/informational unless clear lab-worthy
+    evidence is present. Frank 2026-04-16.
     """
     iv_facts = product.instructional_value_facts
     pl_facts = product.product_labability_facts
-    facts_context = "\n\n".join([
+    sections = [_archetype_context_for_grader(product)] if _archetype_context_for_grader(product) else []
+    sections.extend([
         _format_facts_section(
             "Product Complexity facts (primary)",
             _json_dumps_dataclass(iv_facts.product_complexity),
@@ -461,6 +536,7 @@ def grade_product_complexity(product: Product, company: CompanyAnalysis) -> list
             }),
         ),
     ])
+    facts_context = "\n\n".join(sections)
     return grade_dimension(
         _PRODUCT_COMPLEXITY_DIM,
         facts_context,
@@ -471,22 +547,24 @@ def grade_product_complexity(product: Product, company: CompanyAnalysis) -> list
 def grade_mastery_stakes(product: Product, company: CompanyAnalysis) -> list[GradedSignal]:
     """Grade Mastery Stakes signals for one product.
 
-    Reads the MasteryStakesFacts drawer plus cross-reads product
-    description + Pillar 1 capability facts so the grader has a
-    reliable evidence floor when the Pillar 2 fact extractor comes
-    back empty for this product (intermittent — see Trellix
-    Endpoint Security 2026-04-08). Still honors TRUTH ONLY: the
-    grader will only emit signals whose evidence is visible in
-    the context, including the cross-pillar context.
+    Reads the MasteryStakesFacts drawer + archetype context (Frank
+    2026-04-16) + product description/Pillar 1 cross-reads.
+
+    Stakes = consequences of getting this product wrong. Archetype
+    shapes the realistic stakes ceiling: a consumer app's worst case
+    is "user makes ugly output", while an enterprise_admin product's
+    worst case is "outage / breach / compliance failure."
     """
     iv_facts = product.instructional_value_facts
-    facts_context = "\n\n".join([
+    sections = [_archetype_context_for_grader(product)] if _archetype_context_for_grader(product) else []
+    sections.extend([
         _format_facts_section(
             "Mastery Stakes facts (primary)",
             _json_dumps_dataclass(iv_facts.mastery_stakes),
         ),
         _product_shape_context(product),
     ])
+    facts_context = "\n\n".join(sections)
     return grade_dimension(
         _MASTERY_STAKES_DIM,
         facts_context,
@@ -497,21 +575,26 @@ def grade_mastery_stakes(product: Product, company: CompanyAnalysis) -> list[Gra
 def grade_lab_versatility(product: Product, company: CompanyAnalysis) -> list[GradedSignal]:
     """Grade Lab Versatility signals for one product.
 
-    Reads the LabVersatilityFacts drawer plus cross-reads product
-    description + Pillar 1 capability facts. Lab versatility is
-    particularly well-served by Pillar 1 cross-reads: a product with
-    Multi-VM + Complex Topology naturally supports Adversarial
-    Scenario, Cyber Range, and Incident Response lab types; a
-    container-native product supports Team Handoff and Break/Fix.
+    Reads the LabVersatilityFacts drawer + archetype context (Frank
+    2026-04-16) + Pillar 1 cross-reads.
+
+    Versatility = how many meaningfully-different lab types could be
+    built on this product. Multi-VM + Complex Topology products
+    support adversarial / cyber range / incident response labs;
+    container-native supports team handoff / break-fix. IC tools
+    typically support only one or two scenarios — archetype context
+    reminds the grader of this ceiling.
     """
     iv_facts = product.instructional_value_facts
-    facts_context = "\n\n".join([
+    sections = [_archetype_context_for_grader(product)] if _archetype_context_for_grader(product) else []
+    sections.extend([
         _format_facts_section(
             "Lab Versatility facts (primary)",
             _json_dumps_dataclass(iv_facts.lab_versatility),
         ),
         _product_shape_context(product),
     ])
+    facts_context = "\n\n".join(sections)
     return grade_dimension(
         _LAB_VERSATILITY_DIM,
         facts_context,
@@ -541,7 +624,9 @@ def grade_market_demand(product: Product, company: CompanyAnalysis) -> list[Grad
     """
     iv_facts = product.instructional_value_facts
     cf_facts = company.customer_fit_facts
-    facts_context = "\n\n".join([
+    archetype_ctx = _archetype_context_for_grader(product)
+    sections = [archetype_ctx] if archetype_ctx else []
+    sections.extend([
         _format_facts_section(
             "PRIMARY — Market Demand facts for THIS PRODUCT (drive the tier)",
             _json_dumps_dataclass(iv_facts.market_demand),
@@ -569,6 +654,7 @@ def grade_market_demand(product: Product, company: CompanyAnalysis) -> list[Grad
             }),
         ),
     ])
+    facts_context = "\n\n".join(sections)
     return grade_dimension(
         _MARKET_DEMAND_DIM,
         facts_context,
