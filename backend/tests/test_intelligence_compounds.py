@@ -205,3 +205,164 @@ def test_merge_no_op_when_existing_empty():
     merged = merge_discovery_facts({}, new)
     assert merged is new
     assert merged["products"][0]["name"] == "X"
+
+
+# ── Dict → dataclass reconstruction (Stage 2 foundation) ───────────────────
+#
+# When intelligence.score() enters the rescore-from-saved-facts path, it
+# needs to reconstruct typed dataclasses from the serialized-dict form
+# stored on disk. Tests here lock down the reconstruction behavior so
+# scorers can trust they're getting what they expect.
+
+
+def test_reconstruct_product_labability_facts_nested():
+    """Reconstructing ProductLababilityFacts walks all four sub-dataclasses
+    (provisioning, lab_access, scoring, teardown) and attribute-access
+    works end-to-end on the result."""
+    from backend.intelligence import _dict_to_dataclass
+    from models import ProductLababilityFacts
+
+    raw = {
+        "provisioning": {
+            "has_sandbox_api": True,
+            "sandbox_api_granularity": "partial",
+            "runs_as_saas_only": True,
+            "preferred_fabric": "sandbox_api",
+        },
+        "lab_access": {
+            "auth_model": "product_credentials",
+            "training_license": "medium_friction",
+        },
+        "scoring": {
+            "state_validation_api_granularity": "partial",
+        },
+        "teardown": {
+            "has_orphan_risk": True,
+        },
+    }
+    pl = _dict_to_dataclass(ProductLababilityFacts, raw)
+    assert pl.provisioning.has_sandbox_api is True
+    assert pl.provisioning.sandbox_api_granularity == "partial"
+    assert pl.lab_access.auth_model == "product_credentials"
+    assert pl.scoring.state_validation_api_granularity == "partial"
+    assert pl.teardown.has_orphan_risk is True
+
+
+def test_reconstruct_instructional_value_facts_with_numeric_range():
+    """InstructionalValueFacts.market_demand has nested NumericRange fields
+    and a signals dict of SignalEvidence. Reconstruction handles both."""
+    from backend.intelligence import _dict_to_dataclass
+    from models import InstructionalValueFacts, NumericRange, SignalEvidence
+
+    raw = {
+        "market_demand": {
+            "install_base": {
+                "low": 40_000, "high": 50_000,
+                "confidence": "confirmed",
+            },
+            "cert_bodies_mentioning": ["CompTIA", "SANS"],
+            "signals": {
+                "install_base_scale": {
+                    "present": True,
+                    "observation": "~50K specialists documented in vendor earnings call",
+                    "confidence": "confirmed",
+                },
+            },
+        },
+        "product_complexity": {
+            "description": "Multi-system cybersecurity platform.",
+            "signals": {},
+        },
+    }
+    iv = _dict_to_dataclass(InstructionalValueFacts, raw)
+    assert isinstance(iv.market_demand.install_base, NumericRange)
+    assert iv.market_demand.install_base.low == 40_000
+    assert iv.market_demand.install_base.confidence == "confirmed"
+    assert iv.market_demand.cert_bodies_mentioning == ["CompTIA", "SANS"]
+    assert isinstance(iv.market_demand.signals["install_base_scale"], SignalEvidence)
+    assert iv.market_demand.signals["install_base_scale"].present is True
+
+
+def test_reconstruct_graded_signal_list():
+    """list[GradedSignal] reconstruction — each dict in the list becomes
+    a GradedSignal dataclass instance."""
+    from backend.intelligence import _dict_to_dataclass
+    from models import GradedSignal
+
+    raw = [
+        {"signal_category": "multi_vm_architecture", "strength": "strong",
+         "evidence_text": "Multi-VM labs confirmed", "confidence": "confirmed",
+         "color": "green"},
+        {"signal_category": "deep_configuration", "strength": "moderate",
+         "evidence_text": "Many configuration options", "confidence": "indicated",
+         "color": "green"},
+    ]
+    # GradedSignal is flat; reconstruct each element directly
+    out = [_dict_to_dataclass(GradedSignal, g) for g in raw]
+    assert len(out) == 2
+    assert all(isinstance(g, GradedSignal) for g in out)
+    assert out[0].signal_category == "multi_vm_architecture"
+    assert out[0].strength == "strong"
+    assert out[1].strength == "moderate"
+
+
+def test_reconstruct_passes_unknown_keys():
+    """Extra keys in the dict that aren't fields of the dataclass must be
+    silently ignored so legacy caches don't crash reconstruction."""
+    from backend.intelligence import _dict_to_dataclass
+    from models import GradedSignal
+
+    raw = {
+        "signal_category": "x", "strength": "strong", "evidence_text": "",
+        "confidence": "inferred", "color": "green",
+        "_legacy_field_no_longer_in_schema": "oops",  # should not crash
+    }
+    g = _dict_to_dataclass(GradedSignal, raw)
+    assert g.signal_category == "x"
+    assert g.strength == "strong"
+
+
+def test_reconstruct_handles_none_and_missing():
+    """None input returns a default-constructed dataclass. Missing fields
+    get their default values."""
+    from backend.intelligence import _dict_to_dataclass
+    from models import ProductLababilityFacts
+
+    # None → defaults
+    pl = _dict_to_dataclass(ProductLababilityFacts, None)
+    assert pl.provisioning.has_sandbox_api is False
+
+    # Partial dict → missing fields default, present fields populated
+    pl = _dict_to_dataclass(ProductLababilityFacts, {
+        "provisioning": {"has_sandbox_api": True},
+    })
+    assert pl.provisioning.has_sandbox_api is True
+    assert pl.provisioning.sandbox_api_granularity == ""  # default
+    assert pl.lab_access.auth_model == ""  # untouched default
+
+
+def test_reconstruct_round_trip_preserves_identity():
+    """asdict() → _dict_to_dataclass() round-trip preserves every field
+    value. Confirms the reconstruction is lossless for the types the
+    Score layer consumes."""
+    from dataclasses import asdict
+    from backend.intelligence import _dict_to_dataclass
+    from models import ProductLababilityFacts, ProvisioningFacts
+
+    original = ProductLababilityFacts(
+        provisioning=ProvisioningFacts(
+            has_sandbox_api=True,
+            sandbox_api_granularity="rich",
+            runs_as_installable=False,
+            runs_as_saas_only=True,
+            supported_host_os=["linux", "windows"],
+            preferred_fabric="sandbox_api",
+            preferred_fabric_rationale="SaaS product with rich API",
+        ),
+    )
+    roundtrip = _dict_to_dataclass(ProductLababilityFacts, asdict(original))
+    assert roundtrip.provisioning.has_sandbox_api is True
+    assert roundtrip.provisioning.sandbox_api_granularity == "rich"
+    assert roundtrip.provisioning.supported_host_os == ["linux", "windows"]
+    assert roundtrip.provisioning.preferred_fabric == "sandbox_api"
+    assert roundtrip.provisioning.preferred_fabric_rationale == "SaaS product with rich API"

@@ -278,6 +278,126 @@ def _apply_customer_fit_to_products(products: list[dict], customer_fit: dict) ->
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Dict → dataclass reconstruction
+#
+# When intelligence.score() enters the "stale math/rubric, rescore from
+# saved facts" path (Frank 2026-04-16 Rule #1), it needs to reconstruct
+# typed dataclasses from the serialized-dict form stored on disk. The
+# pillar scorers + rubric grader expect dataclass objects (attribute
+# access: `facts.provisioning.has_sandbox_api`), not dicts.
+#
+# Standard `dataclasses` has asdict() but no from_dict(). This helper
+# closes that gap for the specific types the Score layer consumes.
+# Generic enough to walk nested dataclasses, list[dataclass], and
+# dict[str, dataclass] fields — sufficient for ProductLababilityFacts,
+# InstructionalValueFacts, CustomerFitFacts, and GradedSignal.
+# ─────────────────────────────────────────────────────────────────────────
+
+def _dict_to_dataclass(cls, data):
+    """Reconstruct a dataclass instance from a dict, walking nested types.
+
+    Handles:
+      - Plain dataclass fields (recurses)
+      - list[SomeDataclass] (reconstructs each element)
+      - dict[str, SomeDataclass] (reconstructs each value)
+      - Optional[SomeDataclass] (unwraps and recurses)
+      - Primitives (pass through)
+
+    Returns cls() with defaults if `data` is None or not a dict. Ignores
+    keys in `data` that aren't fields of `cls` — forward-compatible with
+    old caches that carry extra keys from legacy shapes.
+
+    On any coercion error, falls back to the default for that field so
+    one malformed field doesn't crash the whole reconstruction. A legacy
+    cache that predates a field addition returns a fresh default there.
+    """
+    import dataclasses
+    import typing
+    if data is None:
+        try:
+            return cls()
+        except TypeError:
+            return data
+    if not isinstance(data, dict):
+        return data
+    if not dataclasses.is_dataclass(cls):
+        return data
+
+    try:
+        hints = typing.get_type_hints(cls)
+    except Exception:
+        hints = {}
+
+    kwargs = {}
+    for f in dataclasses.fields(cls):
+        if f.name not in data:
+            continue
+        raw = data[f.name]
+        field_type = hints.get(f.name, f.type)
+        try:
+            kwargs[f.name] = _coerce_value(field_type, raw)
+        except Exception as exc:
+            log.debug(
+                "_dict_to_dataclass: field %s.%s coercion failed (%s); "
+                "using default", cls.__name__, f.name, exc,
+            )
+    try:
+        return cls(**kwargs)
+    except TypeError as exc:
+        log.warning(
+            "_dict_to_dataclass: instantiation failed for %s (%s); "
+            "falling back to defaults", cls.__name__, exc,
+        )
+        return cls()
+
+
+def _coerce_value(field_type, val):
+    """Coerce a raw (dict/list/primitive) value to its declared dataclass type."""
+    import dataclasses
+    import typing
+    if val is None:
+        return None
+
+    origin = typing.get_origin(field_type)
+    args = typing.get_args(field_type)
+
+    # Unwrap Optional[X] / Union[X, None]
+    if origin is typing.Union:
+        non_none = [a for a in args if a is not type(None)]
+        if len(non_none) == 1:
+            return _coerce_value(non_none[0], val)
+        # Unhandled multi-type unions — pass through as-is
+        return val
+
+    # list[X]
+    if origin is list:
+        inner = args[0] if args else None
+        if inner and dataclasses.is_dataclass(inner) and isinstance(val, list):
+            return [
+                _dict_to_dataclass(inner, v) if isinstance(v, dict) else v
+                for v in val
+            ]
+        return val if isinstance(val, list) else val
+
+    # dict[K, V]
+    if origin is dict:
+        inner_val = args[1] if len(args) >= 2 else None
+        if inner_val and dataclasses.is_dataclass(inner_val) and isinstance(val, dict):
+            return {
+                k: _dict_to_dataclass(inner_val, v) if isinstance(v, dict) else v
+                for k, v in val.items()
+            }
+        return val if isinstance(val, dict) else val
+
+    # Plain dataclass
+    if dataclasses.is_dataclass(field_type) and isinstance(val, dict):
+        return _dict_to_dataclass(field_type, val)
+
+    # Primitive or unknown — pass through
+    return val
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Compound-research merge — best-of-best across discovery runs
 #
 # Frank 2026-04-16: when a second research run for the same company finds
