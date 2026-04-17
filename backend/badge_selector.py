@@ -116,13 +116,15 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
     badges: list[Badge] = []
     tech_summary = _underlying_tech_summary(product)
 
-    # ── Simulation hard override — no badges fire, gray bar only ──
+    # ── Simulation hard override — emit fact-driven context badges ──
     # If the scorer picked Simulation as the fabric, Pillar 1 is in the hard
-    # override state (12 / 12 / 0 / 12 = 36). Provisioning, Lab Access, and
-    # Teardown all render as uniform gray bars with no badges — nothing was
-    # evidenced because simulation elides the real fabric entirely. Frank
-    # 2026-04-08: "treat Provisioning & Teardown exactly how we treat Lab
-    # Access — 12 points each = 36 and all gray bars."
+    # override state (12 / 12 / 0 / 12 = 36). Rather than render gray bars
+    # with a single "No Deployment Method" absence badge (which hides WHY
+    # Simulation was chosen), emit fact-driven context badges that explain
+    # the specific researcher facts that drove the override. Every badge
+    # below has a concrete fact trigger — no invention, no padding.
+    # Frank 2026-04-16: "at least two, ideally 3-4 badges with real evidence
+    # for why this dimension scored the way it did."
     if product.fit_score.product_labability is not None:
         prov_dim_score = next(
             (d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"),
@@ -135,7 +137,56 @@ def _pillar_1_provisioning_badges(product: Product) -> list[Badge]:
             td = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Teardown"), None)
             if (sc is not None and sc.score == cfg.SIMULATION_SCORING_POINTS and
                 td is not None and td.score == cfg.SIMULATION_TEARDOWN_POINTS):
-                # Simulation override: return empty — no Provisioning badges
+                # Simulation fabric chosen — emit context badges explaining why.
+                badges.append(Badge(
+                    name="Simulation Fabric", color="gray", qualifier="Context",
+                    evidence=[_evidence(
+                        "No real per-learner provisioning path found in research — Simulation "
+                        "is the honest fallback. Learners interact with a simulated UI and "
+                        "workflow instead of the actual product instance.",
+                        confidence="indicated",
+                    )],
+                ))
+                if p.runs_as_saas_only and not p.has_sandbox_api:
+                    badges.append(Badge(
+                        name="SaaS-Only, No API", color="amber", qualifier="Risk",
+                        evidence=[_evidence(
+                            "Product runs as a vendor-hosted SaaS with no documented provisioning API. "
+                            "No path to spin up per-learner environments programmatically. "
+                            "Something to explore: whether the vendor has an undocumented admin API "
+                            "or a partner-tier sandbox program that could unlock a real fabric.",
+                            confidence="confirmed",
+                        )],
+                    ))
+                elif p.runs_as_saas_only and p.has_sandbox_api and p.sandbox_api_granularity == "partial":
+                    badges.append(Badge(
+                        name="Partial API", color="amber", qualifier="Risk",
+                        evidence=[_evidence(
+                            "Partial vendor provisioning API indicated — some endpoints exist but coverage "
+                            "was uncertain enough that Simulation is the safer current fabric. Sharpening "
+                            "the API detection in future research runs may promote this to Sandbox API.",
+                            confidence="indicated",
+                        )],
+                    ))
+                if p.runs_as_saas_only:
+                    badges.append(Badge(
+                        name="SaaS-Only Deployment", color="gray", qualifier="Context",
+                        evidence=[_evidence(
+                            "Product is only available as a vendor-hosted managed service — "
+                            "learners cannot install their own instance.",
+                            confidence="confirmed",
+                        )],
+                    ))
+                if p.needs_gcp:
+                    badges.append(Badge(
+                        name="No GCP Path", color="amber", qualifier="Risk",
+                        evidence=[_evidence(
+                            "GCP dependency contributed to Simulation selection — Skillable has no "
+                            "native GCP fabric today. Alternative paths (VM, Azure, Sandbox API) "
+                            "might meet the learning objectives if the GCP affinity is flexible.",
+                            confidence="indicated",
+                        )],
+                    ))
                 return badges
 
     # ── M365 fabric (highest-priority Pillar 1 fabric) ──
@@ -366,13 +417,66 @@ def _pillar_1_lab_access_badges(product: Product) -> list[Badge]:
     p = product.product_labability_facts.provisioning
     badges: list[Badge] = []
 
-    # Simulation hard override skips the lab access dimension's normal badges
+    # Simulation hard override — emit fact-driven context badges instead of
+    # returning empty. Every badge has a concrete fact trigger. Frank
+    # 2026-04-16: 2–4 badges per dimension with real evidence for why it
+    # scored the way it did.
     if product.fit_score.product_labability is not None:
         la_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Lab Access"), None)
         if la_dim is not None and la_dim.score == cfg.SIMULATION_LAB_ACCESS_POINTS:
             prov_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"), None)
             if prov_dim is not None and prov_dim.score == cfg.SIMULATION_PROVISIONING_POINTS:
-                return []  # No Lab Access badges in Simulation override case
+                # Context badge — explain that simulation removes real-product auth
+                badges.append(Badge(
+                    name="Simulated Access", color="gray", qualifier="Context",
+                    evidence=[_evidence(
+                        "In Simulation mode learners log into Skillable's simulated UI — "
+                        "no vendor identity provisioning, no credential lifecycle, no training "
+                        "license needed. Trade-off: the simulated experience won't exercise "
+                        "real-product auth quirks the learner will encounter in production.",
+                        confidence="confirmed",
+                    )],
+                ))
+                # Real-product facts still matter as "what was skipped because of Simulation"
+                if la.has_mfa_blocker:
+                    badges.append(Badge(
+                        name="Real-Product MFA", color="amber", qualifier="Risk",
+                        evidence=[_evidence(
+                            "Real product requires MFA — contributed to the Simulation fabric "
+                            "decision (MFA blocks automated learner provisioning). Simulation "
+                            "sidesteps this, but the learner won't practice the real MFA workflow.",
+                            confidence="indicated",
+                        )],
+                    ))
+                if la.has_anti_automation:
+                    badges.append(Badge(
+                        name="Anti-Automation", color="amber", qualifier="Risk",
+                        evidence=[_evidence(
+                            "Real product has anti-automation controls (CAPTCHA or bot detection). "
+                            "Automated learner provisioning blocked — Simulation is the alternative.",
+                            confidence="indicated",
+                        )],
+                    ))
+                if la.training_license == "blocked":
+                    badges.append(Badge(
+                        name="Training License Blocked", color="red", qualifier="Blocker",
+                        evidence=[_evidence(
+                            "No documented non-production / NFR license path — real-product access "
+                            "blocked. Simulation is the only viable approach today.",
+                            confidence="confirmed",
+                        )],
+                    ))
+                elif la.training_license == "medium_friction":
+                    badges.append(Badge(
+                        name="License Path Unclear", color="amber", qualifier="Risk",
+                        evidence=[_evidence(
+                            "Real-product licensing exists but would need SE validation "
+                            "(partner tier, signup friction, or concurrent-user limits). "
+                            "Part of why Simulation was chosen.",
+                            confidence="indicated",
+                        )],
+                    ))
+                return badges
 
     # ── Identity / auth path badges ──
     if la.auth_model == "entra_native_tenant" and p.runs_as_azure_native:
@@ -538,13 +642,53 @@ def _pillar_1_scoring_badges(product: Product) -> list[Badge]:
     sc = product.product_labability_facts.scoring
     badges: list[Badge] = []
 
-    # Simulation override has no Scoring badges
+    # Simulation override — emit fact-driven context badges. Frank 2026-04-16.
     if product.fit_score.product_labability is not None:
         sc_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Scoring"), None)
         prov_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"), None)
         if (sc_dim is not None and sc_dim.score == cfg.SIMULATION_SCORING_POINTS and
             prov_dim is not None and prov_dim.score == cfg.SIMULATION_PROVISIONING_POINTS):
-            return []
+            badges.append(Badge(
+                name="No Scoring in Simulation", color="red", qualifier="Blocker",
+                evidence=[_evidence(
+                    "Skillable Simulations do not support automated scoring today. "
+                    "Without scoring, labs cannot validate learner work — feature request "
+                    "flagged; not a current capability.",
+                    confidence="confirmed",
+                )],
+            ))
+            # If the real product would have offered scoring surfaces, surface that —
+            # simulation elides them but it's still useful context about what we're missing.
+            if sc.state_validation_api_granularity in ("rich", "partial"):
+                badges.append(Badge(
+                    name="Real Scoring API Present", color="gray", qualifier="Context",
+                    evidence=[_evidence(
+                        "The real product exposes a state-validation API (" +
+                        sc.state_validation_api_granularity +
+                        " granularity). Simulation elides it — promoting this product "
+                        "off Simulation would unlock API-based scoring.",
+                        confidence="indicated",
+                    )],
+                ))
+            if sc.scriptable_via_shell_granularity in ("full", "partial"):
+                badges.append(Badge(
+                    name="Real Script Surface", color="gray", qualifier="Context",
+                    evidence=[_evidence(
+                        "The real product has a shell scripting surface — unused under "
+                        "Simulation. Would drive Grand Slam scoring if we had a VM fabric.",
+                        confidence="indicated",
+                    )],
+                ))
+            if sc.gui_state_visually_evident_granularity in ("full", "partial"):
+                badges.append(Badge(
+                    name="AI Vision Candidate", color="gray", qualifier="Context",
+                    evidence=[_evidence(
+                        "GUI-evident state reported — AI Vision could score the real product "
+                        "but Simulation doesn't expose a real GUI to inspect.",
+                        confidence="indicated",
+                    )],
+                ))
+            return badges
 
     if sc.state_validation_api_granularity == "rich":
         badges.append(Badge(
@@ -643,16 +787,34 @@ def _pillar_1_teardown_badges(product: Product) -> list[Badge]:
     p = product.product_labability_facts.provisioning
     badges: list[Badge] = []
 
-    # Simulation override — no Teardown badges, gray bar only. Frank 2026-04-08:
-    # the four Pillar 1 dimensions render symmetrically in the override state
-    # (12 / 12 / 0 / 12 = 36), with Provisioning, Lab Access, and Teardown all
-    # as uniform gray bars because no real fabric was evidenced.
+    # Simulation override — emit fact-driven context badges. Teardown under
+    # Simulation is legitimately simple (session ends, nothing persists), so
+    # 1-2 badges is honest here. Frank 2026-04-16: "Teardown is the one
+    # dimension where 1 badge can be legitimate (more boolean)."
     if product.fit_score.product_labability is not None:
         td_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Teardown"), None)
         prov_dim = next((d for d in product.fit_score.product_labability.dimensions if d.name == "Provisioning"), None)
         if (td_dim is not None and td_dim.score == cfg.SIMULATION_TEARDOWN_POINTS and
             prov_dim is not None and prov_dim.score == cfg.SIMULATION_PROVISIONING_POINTS):
-            # Simulation override: return empty — no Teardown badges
+            badges.append(Badge(
+                name="Simulation Reset", color="gray", qualifier="Context",
+                evidence=[_evidence(
+                    "Simulation sessions end with the learner session — no vendor-side "
+                    "infrastructure to tear down, no orphaned credentials, no resource leak. "
+                    "Clean by construction.",
+                    confidence="confirmed",
+                )],
+            ))
+            if td.has_orphan_risk:
+                badges.append(Badge(
+                    name="Real-Product Orphan Risk", color="amber", qualifier="Risk",
+                    evidence=[_evidence(
+                        "If this product were promoted off Simulation to a real fabric, "
+                        "documented orphan-risk signals would apply — vendor teardown API "
+                        "either has gaps or is missing. Something for the SE to validate.",
+                        confidence="indicated",
+                    )],
+                ))
             return badges
 
     # Normal Teardown path
