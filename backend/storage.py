@@ -147,6 +147,11 @@ _COMPANY_ALIASES: dict[str, str] = {
     # Frank 2026-04-16.
     "sap canada": "sap",
     "sap ariba": "sap",
+
+    # Confluent was acquired by IBM but keeps its brand identity.
+    # "Confluent, an IBM Company" is the same company as "Confluent".
+    # Frank 2026-04-16.
+    "confluent an ibm company": "confluent",
 }
 
 
@@ -166,9 +171,18 @@ def _normalize_company_name(name: str) -> str:
     key = name.lower().strip()
     key = re.sub(r'\s*\(.*?\)', '', key)          # remove parentheticals
     key = re.sub(r'\s+by\s+\w+$', '', key)         # "VMware by Broadcom" → "VMware"
-    key = re.sub(r',?\s*(inc\.?|corp\.?|llc|llp|ltd\.?|limited|plc|systems|technologies|group|corporation)\s*$', '', key)
+    # German corporate forms ("SE + Co. KG", "AG & Co. KG", "GmbH & Co. KG")
+    # — multi-token, strip before the general suffix regex runs
+    key = re.sub(r'\s+(se|ag|gmbh)\s*[+&]\s*co\.?\s*kg\s*$', '', key)
+    # Polish LLC ("Sp. z o.o.") — narrow, unambiguous
+    key = re.sub(r'\s+sp\.?\s*z\s*o\.?\s*o\.?\s*$', '', key)
+    key = re.sub(r',?\s*(inc\.?|corp\.?|llc|llp|ltd\.?|limited|plc|networks|international|systems|technologies|group|corporation)\s*$', '', key)
     # Remove common product/division suffixes that differ between searches
     key = re.sub(r'\s+(cloud|platform|software|labs|digital|online|services)\s*$', '', key)
+    # Regional/subsidiary suffixes — "Kaspersky USA", "Siemens UK", etc.
+    key = re.sub(r'\s+(usa|uk|canada|europe|asia|global|worldwide|americas|emea|apac)\s*$', '', key)
+    # Normalize punctuation for alias matching — ", an " becomes " an "
+    key = re.sub(r',\s+', ' ', key)
     key = re.sub(r'\s+', ' ', key).strip()
     # Explicit alias map for cases the regex can't catch
     return _COMPANY_ALIASES.get(key, key)
