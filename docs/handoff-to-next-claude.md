@@ -46,6 +46,12 @@ Then ask Frank what Session 2's first action is (likely: begin the codebase audi
 
 ## Part 3 — The Rewrite Framework (the lion's share)
 
+### The North Star (Frank, 2026-04-19)
+
+> *"If we do this rewrite correctly, the entire platform should be more dependable/trustworthy, faster, and easier to maintain — and likely able to provide better insights at the same time."*
+
+This is the success definition. The rewrite is successful if and only if we can defensibly claim all five: **dependable · trustworthy · faster · easier to maintain · better insights.** Any tradeoff that sacrifices one of these for convenience is worth pushing back on.
+
 ### Why We're Rewriting
 
 **Why #1 — Shipping driver (immediate).** IT cannot support Python/Flask in production. Skillable is a .NET/Azure/TypeScript shop. Python is not a code problem; it is a launch blocker for IT ownership.
@@ -73,6 +79,8 @@ If we rewrite badly: silent behavior regressions, translated-but-still-monolithi
 ## Part 4 — Specific Areas That Need to Be Better
 
 This is the concrete list of named pain points in the Python codebase that the rewrite addresses. Each one is a file / module / pattern that should be specifically improved, not just translated.
+
+> **Session 2 validation required.** Items below are mostly surfaced from Session 1 conversation and my (Claude's) synthesis of pain points observed during the ACV framework work. Session 2's audit will validate each against the actual codebase AND Frank will gut-check the list before the Requirements Document treats any of them as locked. Treat this as a strong starting point, not a final contract.
 
 ### 4.1 Monolithic files that need decomposition
 
@@ -197,6 +205,22 @@ Partial renames are drift. The systematic pass happens as part of the rewrite it
 
 ---
 
+## Part 6a — Additional Locked Rules from Session 1 Conversation
+
+Specific locked decisions that emerged during Session 1 discussion — each is already reflected somewhere in the framework, but grouped here so they don't get lost.
+
+- **Industry Authority has no Channel Enablement motion.** Frank's statement: "ATPs really don't train their channel partners. They pretty much buy kits and train themselves. So there's not really any revenue or any labs or anything there." IA motion set = ILT + On-demand + Instructors + Cert Candidates + Exam Prep Labs. No Channel Enablement. No Employee Training as a separate line (their employees are instructors, already counted).
+- **Training Partners have no Employee Training motion.** Frank: "they just really don't have hardly any employees. They got, you know, whoever owns it, they got some people, and then they've got... it's marketing people. It's instructional designers. It's not really... paying for labs." Training Partner motion set = ILT + On-demand + Instructors. Three motions only.
+- **GSI "Customers" audience is flagged "unquantifiable", not estimated.** Frank: "I don't think we have ANY way of counting this." GSIs embed training in client engagements in ways that are fundamentally not triangulable from public data. The column shows as a flag, not a number.
+- **Software Customer On-demand rate depends on catalog type.** `sw_paid` = $30/learner (Nutanix University, Hyland University paid content), `elp_paid` = $10/learner (CBT Nuggets, Pluralsight, Cloud Academy paid subscriptions), `free_big_library` = $5/learner (Microsoft Learn, AWS Skill Builder, Google Cloud Skills Boost — free to learner, vendor-subsidized).
+- **Events are NOT a single-event motion.** "Paid registrants SUMMED across ALL the company's hands-on conferences and summits annually." Large vendors may have 10+ events — flagship + product summits + regional tours + partner events + developer conferences. Sum them all.
+- **Faculty motion dropped from Software; kept only for Academic.** Context-only rate of $0 was considered, then dropped entirely for Software org type. Academic org type has Faculty at $30/person/yr (not context-only — real revenue motion for academic because faculty teaching on the institution's infrastructure is a real use case).
+- **Hyperscaler tier applies by name (Microsoft / Google / AWS), not by audience threshold.** Cisco is explicitly NOT hyperscaler — it's at Big tier. Oracle and Salesforce would join the hyperscaler list IF they became Skillable customers. The list is intentionally tight — 3–4 truly hyperscale learning environments.
+- **Velocity factor is NOT a growth multiplier.** Growth is already baked into honest current-state audience. Velocity reflects realistic 3-year capture GIVEN the relationship's starting point (current expand customer vs cold prospect). Applied only to compute 3-Year ACV from ACV Target, never to ACV Target itself.
+- **Specific hyperscaler rates are tunable, not final.** Tested values ($30 ILT, $2 free big library, $5 SW-paid on-demand, $3 ELP-paid on-demand, etc.) are starting points. Session 2/3 tuning may adjust — particularly $3 cert rate and $15 events rate which Frank flagged as possibly too low.
+
+---
+
 ## Part 7 — Known ACV Outliers from 2026-04-19 Calibration
 
 10 of 21 test companies within ±30% of target. Remaining outliers, mapped to the standard approach that addresses each:
@@ -213,6 +237,19 @@ Partial renames are drift. The systematic pass happens as part of the rewrite it
 | NVIDIA | −70% | audience places at Big tier but list rates more appropriate | threshold calibration |
 | Pluralsight | −60% | ELP Big rate too low for Pluralsight's positioning | rate-card refinement |
 | Trellix / Eaton / Milestone / Calix | mixed | small cos, limited public disclosure | better triangulation or accept |
+
+---
+
+## Part 7a — Session 1 Calibration Artifacts (Reference Material)
+
+Session 2 and 3 will use these Python files as reference for the calibration logic and as the basis for behavior tests:
+
+- **`backend/_test_paying_audience_by_motion.py`** — the 21-company test script. Contains the canonical motion-by-motion prompt for `audience_grader`, the per-org-type routing (`MOTIONS_BY_ORG_TYPE`), motion definitions, and the JSON output schema. Re-runnable; safe to delete after Session 3 ports its logic to TypeScript.
+- **`backend/_recompute_acv_with_big_tier.py`** — the three-tier rate-card logic (Mid < 100K / Big 100K–3M / Hyperscaler by name), applied as post-hoc math against the test output. This is the reference for `acvCalculator.ts` tier logic in the rewrite. Includes the audience data from the 2026-04-19 run for all 21 companies — useful as Session 2's baseline for structural tests.
+- **`backend/_test_paying_audience.py`** — earlier single-total-ACV test (superseded by the per-motion test). Kept as reference; can be deleted in Session 2 cleanup.
+- **`backend/_test_audience_grader.py`** — even earlier test script. Same — kept for reference, delete in Session 2 cleanup.
+
+**No behavior tests exist yet in `backend/tests/`** specifically for the ACV v2 framework. Deferred to Session 2/3 as structural tests that port to TypeScript.
 
 ---
 
