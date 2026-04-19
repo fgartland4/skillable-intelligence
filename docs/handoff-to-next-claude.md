@@ -80,7 +80,11 @@ If we rewrite badly: silent behavior regressions, translated-but-still-monolithi
 
 This is the concrete list of named pain points in the Python codebase that the rewrite addresses. Each one is a file / module / pattern that should be specifically improved, not just translated.
 
-> **Session 2 validation required.** Items below are mostly surfaced from Session 1 conversation and my (Claude's) synthesis of pain points observed during the ACV framework work. Session 2's audit will validate each against the actual codebase AND Frank will gut-check the list before the Requirements Document treats any of them as locked. Treat this as a strong starting point, not a final contract.
+> **Python is frozen.** Frank confirmed 2026-04-19: whatever was working on 2026-04-17 demo-code is good; zero Python patches between now and rewrite completion. Every item below is a **rewrite-time fix**, not a Python TODO.
+>
+> **→ For hyper-detailed Why/What/How per item (including Category D prompt-quality items, Category E UX items, Category G drift items, Category H performance items), see [`docs/rewrite-bugs-and-improvements-detail.md`](rewrite-bugs-and-improvements-detail.md).** The summary table below is the map; that doc is the deep reference.
+>
+> **Session 2 validation required.** Items below are mostly surfaced from Session 1 conversation and my (Claude's) synthesis of pain points. Session 2's audit will validate each against the actual codebase AND Frank will gut-check the list before the Requirements Document treats any of them as locked. Treat this as a strong starting point, not a final contract.
 
 ### 4.1 Monolithic files that need decomposition
 
