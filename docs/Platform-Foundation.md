@@ -1130,7 +1130,7 @@ The multiplier lookup lives in `scoring_config.TECHNICAL_FIT_MULTIPLIERS`. Full 
 | Metric | What it answers | Scope | Type |
 |---|---|---|---|
 | **Fit Score** | Should we pursue this? | **Per-product** — each product in the portfolio gets its own Fit Score | Qualitative composite of three Pillars (0–100) |
-| **ACV Target** | How big is this if we win? | **Per-company** — one ACV number for the whole company, broken out by use case | Calculated business metric — dollars per year. Five use-case motions × flat rates, sized by an AI audience judgment. See `ACV Target Model` below. |
+| **ACV Target** | How big is this if we win? | **Per-company** — one ACV number for the whole company, broken out by use case | Calculated business metric — dollars per year. Use-case motions per org type × three-tier rate card, sized by an AI audience judgment. See `ACV Target Model` below. |
 
 **How.** Both render in the hero section at the top of every company view and Prospector row. The Fit Score swaps as the user switches products in the dropdown. The ACV Target hero is **company-level** and does not change across product selections — the use-case breakdown below the hero is also company-level, not per-product. ACV values use lowercase `k` for thousands and uppercase `M` for millions (e.g., `$250k`, `$1.2M`).
 

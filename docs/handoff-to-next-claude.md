@@ -1,157 +1,263 @@
-# Handoff to Next Claude — Session Continuity Log
+# Handoff to Next Claude — Session Continuity + Rewrite Framework
 
-> **Why this doc exists.** Recurring failure mode: new Claude sessions don't know what recent Claude sessions decided, what subtle rules were hammered out in conversation, or what Frank has explicitly told Claude not to do. This doc bridges that gap. **Read this immediately after `collaboration-with-frank.md` and before touching any work.**
+> **Why this doc exists.** Recurring failure mode: new Claude sessions don't know what recent sessions decided, what subtle rules were hammered out in conversation, or the specific areas we've named as needing improvement in the upcoming rewrite. This doc bridges all of it. **Read immediately after `collaboration-with-frank.md` and before touching any work.**
 >
-> **Living doc.** Rewritten in place at the end of every session. Not append-only — stale context is actively pruned so this stays short and current.
+> **Living doc.** Rewritten in place at the end of every session. Not append-only — stale context is actively pruned so this stays short, specific, and current.
 
 ---
 
-## Last Session — 2026-04-19 (Session 1 of the Rewrite Prep Sequence)
+## Part 1 — Last Session Status
 
-### What this session accomplished
+### Session 1 (2026-04-19) accomplishments
 
-1. **Finalized the ACV framework v2.** Expanded from 5-motion / flat-rate to per-org-type × motion / three-tier rate card, with COG vs Enablement framing and velocity-factor-based 3-Year ACV. See `Platform-Foundation.md#acv-potential-model` (rewrote in place) and `docs/acv-framework-reference.md` (new standalone reference).
+1. **Finalized ACV framework v2.** Expanded from 5-motion flat-rate to per-org-type × motion × three-tier rate card with COG/Enablement framing. Documented in `Platform-Foundation.md` (in place) + new standalone `acv-framework-reference.md`. Primary metric renamed to **ACV Target** (go-get-it framing, vs "ACV Potential" which felt limiting to CRO).
+2. **Named 5 Hard Rules** at top of `collaboration-with-frank.md` — Slow Down / Standards / Assumptions / Why-What-How / Fixes Align.
+3. **Locked TypeScript rewrite decision.** Dev team spec captured in `rewrite-dev-team-spec.md`. Consolidated rewrite plan in `rewrite-plan.md`. Execution: Frank + Claude (not dev handoff) across Sessions 2 (audit + Requirements Doc) and 3+ (rewrite code).
+4. **21-company ACV calibration** run honestly (no target-patching). Results preserved in `backend/_test_paying_audience_by_motion.py` + `_recompute_acv_with_big_tier.py`.
+5. **Rule #5 self-catch.** I applied three audience overrides masquerading as "prompt refinements" — Frank caught it, all backed out.
 
-2. **Named the 5 Hard Rules** (Slow Down / Standards / Assumptions / Why-What-How / Fixes Align with Big Picture). Added to top of `collaboration-with-frank.md`. **Read those first.**
+### What's in good state entering Session 2
 
-3. **Locked in the rewrite decision.** Full rewrite of the platform from Python/Flask/Vanilla JS to **TypeScript / Node.js / Express / React / Ant Design / Redis / Azure B2C** per the dev team's specification. Rewrite happens in Session 3 after Session 2's audit + Requirements Document. Frank + Claude do the rewrite together (not a dev handoff).
-
-4. **Ran 21-company ACV calibration test.** Results committed as-is (honest state, no target-patching). 10 companies within ±30% of target; remaining outliers have documented Session 2 prompt-refinement directives.
-
-### What's in a good state
-
-- ✓ ACV framework documented comprehensively (Platform Foundation + standalone reference)
-- ✓ Rate card with 3 tiers (Mid / Big / Hyperscaler) locked
+- ✓ ACV framework documented end-to-end
 - ✓ 5 Hard Rules at top of collaboration doc
-- ✓ 21-company test output preserved (in `backend/_test_paying_audience_by_motion.py` plus the recompute script)
-- ✓ Org-type routing working correctly (Skillsoft cert=0, Microsoft channel counted, etc.)
-- ✓ COG vs Enablement framing locked
-
-### What's pending (Session 2 / Session 3)
-
-- **Session 2 scope:** comprehensive codebase + docs audit, draft Requirements Document for the rewrite
-- **Session 3+ scope:** the rewrite itself in TypeScript/Node/React
+- ✓ Dev team specification in repo
+- ✓ Consolidated rewrite plan
+- ✓ Platform-wide "ACV Potential" → "ACV Target" rename directive (systematic pass happens during rewrite)
+- ✓ 10 standard prompt-refinement approaches identified and documented
+- ✓ Known outliers from calibration documented honestly
 
 ---
 
-## Critical Context — Don't Repeat These Mistakes
-
-### Frank caught me doing X recently — don't repeat
-
-**Session 1, 2026-04-19:** I applied three audience overrides (Microsoft on_demand 22M→5M, QA ILT 55K→25K, Deloitte practice_leads 30K→75K) labeled as "prompt refinement pending" — but the numbers were picked to land near target, not from evidence. Frank asked "we're still doing every fix with standard logic and no artificial floors or ceilings, correct?" — caught the target-patching. **All three overrides were backed out.** If you feel the urge to "just tighten this number a bit to match expectation," STOP — that is a Rule #5 violation masquerading as a prompt refinement.
-
-**Prior sessions (captured in decision log):**
-- Adding "sanity-check ranges" to prompts to cap Microsoft at $X — banned
-- Using "saturated" vocabulary for non-current-customer ACV ceilings — CRO pushed back, replaced with "ACV Target"
-- Inventing caps in `scoring_config` to fix outliers — banned
-
-**The pattern to catch yourself:** target-patching often hides behind phrases like "prompt refinement pending," "tightened definition," "sanity check," "calibration to benchmark." All of these can be legitimate — but the test is whether you'd produce the same number without knowing the target. If the number changes because you know the target, it's a patch.
-
-### Non-grounded additions
-
-Frank has flagged repeatedly that I invent tiers, categories, or numbers that don't map to any real signal — then mask it as "research-informed." **Rule:** if you're about to add a tier / category / threshold / constant that didn't come from explicit user input or grounded research, flag it BEFORE writing it. "I'm considering adding X — is that right?"
-
-### Search modal
-
-**One modal, platform-wide.** `tools/shared/templates/_search_modal.html`. Don't build a second one. Don't copy-paste the markup to tweak. When in doubt, re-read the "Standard Search Modal" section in the project CLAUDE.md.
-
----
-
-## Read Order — Session 2 Startup
+## Part 2 — Read Order for Session 2
 
 1. **Project `CLAUDE.md`** (auto-loaded) — layer discipline, legacy boundary, search modal rule
-2. **`docs/collaboration-with-frank.md`** — especially the **5 Hard Rules at the top** (new this session)
+2. **`docs/collaboration-with-frank.md`** — especially the **5 Hard Rules at the top** (new)
 3. **This doc** (`docs/handoff-to-next-claude.md`) — right here
-4. **`docs/Platform-Foundation.md`** — with updated ACV Potential Model section (v2 framework)
-5. **`docs/acv-framework-reference.md`** — new standalone rate card + use case matrix
-6. **`docs/decision-log.md`** — last entry (2026-04-19) covers today's work
-7. **`docs/roadmap.md`** — what's inventory-of-everything
+4. **`docs/rewrite-plan.md`** — consolidated rewrite plan, non-negotiable requirements R1–R10, sequencing
+5. **`docs/rewrite-dev-team-spec.md`** — architectural contract (Node.js/TypeScript/React/Ant Design/Redis/Azure B2C)
+6. **`docs/Platform-Foundation.md`** — current architecture (ACV Target Model section is v2)
+7. **`docs/acv-framework-reference.md`** — standalone rate card + use case matrix
+8. **`docs/decision-log.md`** — last entry (2026-04-19) covers today's decisions
+9. **`docs/roadmap.md`** — inventory (some parts may be stale — audit will surface)
 
-Then ask Frank what Session 2's first action is (likely: begin the audit).
-
----
-
-## The 10 Standard Approaches — Session 2+ Prompt-Refinement Directives
-
-These are the agreed-upon approaches for closing the ACV audience-estimation outliers. **All are principle-level ("teach Claude how to look at the market"), not per-company patches.** Implementation happens in the rewrite (Session 3+) against the new TypeScript prompt, not against the current Python prompt.
-
-1. **Structural priors baked into the prompt.** Teach market facts, not numbers. E.g., "free massive libraries (Microsoft Learn, AWS Skill Builder, Google Cloud Skills Boost): annual hands-on lab COMPLETERS are typically 10–20% of registered users, not 100%."
-
-2. **Evidence-forcing discipline.** Only use a number if you can cite a specific public source (annual report, investor deck, press release, disclosed metric). If not, triangulate from disclosed revenue / unit price with reasoning shown.
-
-3. **Self-reflection / sanity-check pass.** After producing an estimate, validate: "does this estimate square with disclosed revenue ÷ typical per-unit price? With peer benchmarks?" Revise if implausible.
-
-4. **Multi-source triangulation for GSI audiences.** For GSIs, sum published practice sizes (Azure practice + AWS practice + Salesforce + ServiceNow + SAP) rather than starting from a single "lab-active fraction" guess.
-
-5. **Structural priors for GSI/VAR workforce composition.** "Tier-1 GSIs (Accenture, Deloitte, KPMG) typically have 8–15% of total workforce in technology consulting practices; lab-active fraction is 40–60% of that."
-
-6. **Disclosed-data prioritization.** Force the prompt to look for and cite specific disclosures (investor day materials, careers pages with role counts, earnings call transcripts) before synthesizing from vague descriptions.
-
-7. **Motion-level triangulation from revenue for training partners.** "Training partner ILT audience: triangulate from disclosed annual revenue ÷ average bootcamp tuition × lab-bearing course share. Compare against claimed 'trained annually' figures — the revenue-implied number is typically lower."
-
-8. **Training-partner-specific audience definition.** Explicitly exclude apprenticeships (often govt-funded, many are non-lab), short workshops, lecture-only courses. Multi-day cohort courses with 8+ labs only.
-
-9. **Cert issuer PBT-only scope.** "Count only PBT-format exam candidates, typically 30–50% of total exam volume. Multiple-choice-only candidates don't consume labs."
-
-10. **Confidence-weighted estimates.** When confidence is `thin_evidence`, the reported audience range should be wider and the midpoint should reflect the uncertainty. Consumers see the spread, not spurious precision.
-
-Each of these closes one of the outliers from the 2026-04-19 calibration run. Not implemented yet — belongs in the TypeScript rewrite prompts.
+Then ask Frank what Session 2's first action is (likely: begin the codebase audit per `rewrite-plan.md#session-2`).
 
 ---
 
-## Known ACV Outliers from 2026-04-19 Calibration
+## Part 3 — The Rewrite Framework (the lion's share)
 
-The 21-company run produced honest results (no target-patching). 10 within ±30% of Frank's targets. The remaining outliers, mapped to the standard approach that addresses each:
+### Why We're Rewriting
 
-| Company | Delta | Root cause | Standard approach |
-|---|---|---|---|
-| Microsoft | +54% | on_demand audience counts registered users, not hands-on completers | #1 (free library completion rate prior) |
-| CompTIA | +35% | cert audience counts all exam sitters, not PBT-only | #9 (PBT-only scope) |
-| Skillsoft | +18% | catalog audience counts broader Percipio base | close to range |
-| EC-Council | +92% | ILT audience likely includes ATP-delivered | ATP exclusion + #9 |
-| QA | +137% | ILT audience includes apprenticeships/workshops | #7 (revenue triangulation) + #8 (training-partner definition) |
-| Cisco | -5% | ✓ Big tier working correctly | — |
-| Deloitte | -60% | practice-leads audience under-counts | #4 (multi-source triangulation) + #5 (workforce composition prior) |
-| NVIDIA | -70% | 185K audience places NVIDIA at Big tier when list rates would be more appropriate | threshold calibration |
-| Pluralsight | -60% | catalog-only, ELP Big rate ($4) too low for Pluralsight's positioning | rate-card refinement |
-| Trellix / Eaton / Milestone / Calix | mixed | small software cos with limited public disclosure | better triangulation or accept |
+**Why #1 — Shipping driver (immediate).** IT cannot support Python/Flask in production. Skillable is a .NET/Azure/TypeScript shop. Python is not a code problem; it is a launch blocker for IT ownership.
+
+**Why #2 — Technical debt driver (deeper).** The Python codebase has accumulated real debt that the rewrite is the cleanest opportunity to address (see "Specific Areas That Need to Be Better" below for named pain points).
+
+**Why #3 — Insight-quality driver (opportunity).** This isn't a 1:1 port. We apply improvements to the intelligence layer WHILE translating — specifically the 10 standard prompt-refinement approaches. The rewrite produces *better* audience estimates, *better* confidence signals, and *better* rate application out of the gate.
+
+### What Success Looks Like
+
+If we rewrite correctly, the platform becomes:
+- **More dependable** — test coverage catches regressions before they ship
+- **More trustworthy** — no accumulated caps/floors; every number grounded in principle
+- **Faster** — Node.js + Redis out-performs Python + JSON file I/O
+- **Easier to maintain** — TypeScript strict + enforced layer discipline + Ant Design + typed APIs + module headers
+- **Better insights** — 10 standard approaches baked into prompts for the first time
+- **IT-ownable** — Skillable's dev team maintains it
+
+If we rewrite badly: silent behavior regressions, translated-but-still-monolithic files, lost ACV/scoring nuance, delayed launch, TypeScript version of the same drift problem.
+
+**The difference is discipline:** 5 Hard Rules + 10 standard approaches + Why/What/How everywhere + structural tests + the right pair at the keyboard (Frank + Claude, not a cold dev handoff).
 
 ---
 
-## Platform-Wide Naming Rename — Carry Throughout Docs > UX > Code
+## Part 4 — Specific Areas That Need to Be Better
 
-**Locked 2026-04-19:** the primary ACV metric is now called **"ACV Target"** (go-get-it framing), not "ACV Potential" (felt limiting to the CRO).
+This is the concrete list of named pain points in the Python codebase that the rewrite addresses. Each one is a file / module / pattern that should be specifically improved, not just translated.
 
-**Scope of the rename** — applied systematically during rewrite prep and execution, NOT piecemeal now:
+### 4.1 Monolithic files that need decomposition
+
+| Current (Python) | Problem | Target (TypeScript) |
+|---|---|---|
+| `backend/researcher.py` (~2000 lines) | All three per-pillar fact extractors + discovery + orchestration + prompt assembly in one file | `packages/intelligence/src/research/{product,pillar2,pillar3,discovery}.ts` — one concern per file |
+| `backend/scoring_config.py` (~4000 lines) | Everything in one mega-file; hard to find specific constants | Split into `packages/intelligence/src/config/{rates,thresholds,vocabulary,motions,organizationTypes,verdictGrid}.ts` |
+| `backend/intelligence.py` | Doing orchestration + some intelligence logic; name is misleading | Rename / split into `packages/intelligence/src/orchestration/{discover,score,recompute}.ts` — leave intelligence logic in dedicated modules |
+| `backend/app.py` (Flask) | Routes + business logic mixed | `apps/inspector/src/routes/` (thin) + `apps/inspector/src/services/` + shared `packages/intelligence/` |
+
+### 4.2 Prompts need a clean home
+
+**Today:** Prompt strings are inline f-strings inside Python functions — scattered across `researcher.py`, `audience_grader.py`, `rubric_grader.py`, etc. Hard to iterate; hard to version; hard to review.
+
+**Target:** `packages/intelligence/prompts/` directory with versioned text files. Prompts loaded at module init, composed via typed template functions. Each prompt file has a header with Why/What/How + its version + calibration data it depends on.
+
+Motion-specific prompts that need extraction:
+- `research/discovery.prompt.ts`
+- `research/product-pillar1.prompt.ts`
+- `research/product-pillar2.prompt.ts`
+- `research/product-pillar3.prompt.ts`
+- `scoring/rubric-grader.prompt.ts`
+- `acv/audience-grader.prompt.ts`
+- `acv/calibration-anchors.prompt.ts`
+
+### 4.3 Claude SDK calls need a single abstraction
+
+**Today:** Anthropic SDK calls happen in multiple places — `scorer.py:_call_claude`, various direct usages, sometimes bypassed for testing. Hard to mock; hard to swap endpoints; hard to add cross-cutting concerns like caching, telemetry, cost tracking.
+
+**Target:** `packages/intelligence/src/services/claude.ts` — single `ILLMClient` interface with `AnthropicDirectClient` and `AzureFoundryClient` implementations. All intelligence code calls through this interface. Swap by config, not code. Built-in prompt caching, retry with exponential backoff, telemetry to App Insights, typed request/response shapes.
+
+### 4.4 Configuration hierarchy needs to be formal
+
+**Today:** `ANTHROPIC_API_KEY` via env vars. Other config via Python module constants. No runtime override mechanism.
+
+**Target per dev team spec:** `.env` defaults → Redis overrides → UI settings panel. Formalize as `ConfigService` that resolves in precedence order. Typed config keys. UI settings panel is a first-class admin view (gated by RBAC role).
+
+### 4.5 Data layer needs abstraction
+
+**Today:** `backend/storage.py` reads/writes JSON files directly to disk. Mixed into business logic in places.
+
+**Target:** `IStore` interface with `RedisStore` (production) and `InMemoryStore` (tests/dev). All read/write goes through the interface. Typed key patterns (`discovery:{hash}`, `analysis:{id}`, etc.). Encrypted at rest (AES-256-GCM). TTL-based expiration for caches.
+
+### 4.6 Error handling is inconsistent
+
+**Today:** Mix of try/except, sometimes silent failures, sometimes unchecked exceptions bubbling up. Confidence values returned differently across modules (string enum, sometimes numeric, sometimes null).
+
+**Target:** `Result<T, E>` pattern (or similar) for operations that can fail. Typed error enums. Discriminated unions for variant outcomes. Confidence values standardized as string enum across all modules: `confirmed | indicated | inferred | thin_evidence | does_not_apply`.
+
+### 4.7 Test coverage is zero
+
+**Today:** No pytest suite. Silent regressions are common. Every change risks breaking something upstream.
+
+**Target:** Jest (or Vitest — dev team confirms) with coverage thresholds. Structural equivalence tests FIRST (port from Python in Session 2 as snapshot): per-org-type motion applicability, rate math determinism, ATP exclusion rules, cert attribution rules, layer boundaries. Unit tests per module. Integration tests for API routes. E2E smoke tests for discovery → score → render flow. CI gate on every PR.
+
+### 4.8 UI pattern inconsistency
+
+**Today:** Jinja2 templates + vanilla JS + custom CSS + ad-hoc modal markup per flow. One "shared search modal" exists but has been violated in practice.
+
+**Target:** Ant Design 6.x as the baseline. `ConfigProvider` theming. Dark/light mode via `ThemeContext`. Single `<ProgressModal />` component used platform-wide (long-running ops + decision prompts + errors all route through one component). `<DocsModal />` replacing `?` icon modals. `Statistic` for hero metrics. `Row/Col` grid with `gutter={16}`.
+
+### 4.9 RBAC is missing entirely
+
+**Today:** Single-user-single-machine assumption. No auth, no roles, no authorization checks.
+
+**Target:** RBAC baked in from commit #1, even though prod auth (Azure B2C) is IT's deploy-time config. `useAuth()` hook for identity, `usePermissions()` hook for authorization, `<PermissionGuard />` for UI gating, middleware for API routes. Role model in Requirements Document (Session 2): mapping of Skillable personas (admin, seller, marketer, sales engineer, content author) to permission sets. Data-domain access (product / program / company intelligence) honored at every layer.
+
+### 4.10 Legacy code still in the repo
+
+**Today:** `legacy-reference/` directory exists but is documented as off-limits. Retrofit scripts accumulate in `scripts/`. `_test_*.py` temporary files appear and disappear. Decision log has entries referencing retired concepts.
+
+**Target:** `legacy-reference/` deleted or moved to `docs/archive/` as part of the rewrite. `scripts/` cleaned up during Session 2 audit. No `_test_*.py` temp files in the Python codebase after Session 1; tests live in `backend/tests/` in Python, then port to `packages/*/tests/` in TypeScript. Decision log format standardized.
+
+### 4.11 Cache invalidation is ad-hoc
+
+**Today:** `SCORING_LOGIC_VERSION` as a string constant; mentioned in comments, checked in various places, bumped manually. Works but not typed, not enforced.
+
+**Target:** Typed version constants in `scoringConfig.ts`. Three-tier invalidation (pure-Python rescore / re-grade / full re-research) formalized as discriminated union. Cache entries store their version stamp alongside the data.
+
+### 4.12 Vocabulary drift across modules
+
+**Today:** Mix of legacy and current vocabulary in different files. "catalog_subscribers" vs "on_demand_learners" in some decision log entries; "partner_training" + "partner_channel_engineers" as separate motions pre-merge; "ACV Potential" in most docs, "ACV Target" in latest.
+
+**Target:** Vocabulary glossary locked in `packages/intelligence/src/config/vocabulary.ts`. All motion keys, org-type names, tier names, verdict labels Defined-Once. CI check for banned legacy vocabulary in code + docs (similar to the existing badge-vocabulary pre-commit hook). Legacy vocabulary in archival text (decision log, old docs) acceptable; active code and user-visible UI strings use the locked vocabulary only.
+
+### 4.13 Confidence communication to users is thin
+
+**Today:** Confidence values produced by research / scoring / ACV are sometimes surfaced, sometimes not. UI rarely exposes range/uncertainty.
+
+**Target:** Confidence badges on every estimate. `thin_evidence` treatments are visually distinct. `<ConfidenceBadge />` component with consistent styling. Users see the spread, not spurious precision.
+
+---
+
+## Part 5 — The 10 Standard Prompt Approaches (Session 2+ Directives)
+
+All principle-level ("teach Claude how to look at the market"), not per-company patches. Implementation happens in the TypeScript rewrite, not retrofitted to Python.
+
+1. **Structural priors in the prompt.** Teach market facts: "free massive libraries → 10–20% of registered users are annual hands-on lab completers"
+2. **Evidence-forcing discipline.** Cite public source or show triangulation reasoning
+3. **Self-reflection / sanity-check pass.** Validate estimate against revenue ÷ unit price
+4. **Multi-source triangulation for GSIs.** Sum published practice sizes (Azure + AWS + GCP + Salesforce + ServiceNow + SAP)
+5. **Structural priors for GSI/VAR workforce composition.** Tier-1 GSIs have 8–15% of total workforce in tech consulting
+6. **Disclosed-data prioritization.** Force the prompt to look for and cite specific disclosures (investor decks, careers pages, earnings transcripts)
+7. **Motion-level triangulation from revenue for training partners.** Revenue ÷ avg bootcamp tuition × lab-bearing course share
+8. **Training-partner-specific audience definition.** Exclude apprenticeships, short workshops, lecture-only
+9. **Cert issuer PBT-only scope.** Count only PBT-format exam candidates (30–50% of total volume)
+10. **Confidence-weighted estimates.** Wider ranges for thin evidence; midpoints reflect uncertainty
+
+---
+
+## Part 6 — Platform-Wide Rename Directive
+
+**Locked 2026-04-19.** Primary ACV metric is **"ACV Target"** (go-get-it), not "ACV Potential" (felt limiting to CRO).
 
 | Layer | Change |
 |---|---|
-| **Docs** | Section headings, prose, table rows, UI labels documented in docs all use "ACV Target." Historical references (e.g., "the 2026-04-14 design") and schema-field names (`acv_potential_low` / `acv_potential_high` in `known_customers.json`) can keep the legacy term until the schema migrates. |
-| **UX** | Inspector hero widget, Prospector column header, modals, info-mode displays, tooltips — all "ACV Target." 3-Year ACV is the parallel 3-year realistic metric. |
-| **Code** | Field names (`_holistic_acv`, `_company_acv`, `acv_potential`) migrate during the TypeScript rewrite. New fields use `acvTarget`, `acvTargetThreeYear`, `acvTargetVelocity`. Python field names stay as-is until rewrite — they're legacy data storage. |
+| **Docs** | Section headings, prose, UI labels all use "ACV Target." Historical/archival references and schema field names (`acv_potential_low/high` in JSON) stay as-is until the schema migrates during the rewrite. |
+| **UX** | Inspector hero widget, Prospector column, modals, tooltips, info-mode displays — all "ACV Target." 3-Year ACV is the parallel 3-year realistic metric. |
+| **Code** | New TypeScript uses `acvTarget`, `acvTargetThreeYear`, `acvTargetVelocity`. Python legacy names stay until rewrite. |
 
-Partial renames are a form of drift. The RIGHT execution is: during Session 2's Requirements Document, name this rename explicitly as a rewrite deliverable. During Session 3's rewrite, all field names / UI labels / prompt text use the new vocabulary.
-
----
-
-## Active Todos Carrying Forward
-
-1. Session 2: comprehensive codebase + docs audit
-2. Session 2: draft Requirements Document (with Why/What/How at every level) — incorporating the 10 standard approaches as prompt directives
-3. Session 2 or 3: write behavior tests (structural/logical, not number-snapshot — portable to TypeScript)
-4. Session 3: begin the rewrite itself
-5. Session 2 & 3: execute "ACV Potential" → "ACV Target" rename systematically across Docs > UX > Code
+Partial renames are drift. The systematic pass happens as part of the rewrite itself where field names / UI labels / prompts move together.
 
 ---
 
-## Session-Handoff Discipline
+## Part 7 — Known ACV Outliers from 2026-04-19 Calibration
 
-**Before closing any future session, update this doc in place** with:
-- What this session accomplished
-- What's in good state
-- What's pending
-- New "Frank caught me doing X" warnings
-- Updated read order if anything shifted
-- Active todos carrying forward
+10 of 21 test companies within ±30% of target. Remaining outliers, mapped to the standard approach that addresses each:
 
-Keep it short. Stale context hurts more than it helps.
+| Company | Delta | Root cause | Standard approach |
+|---|---|---|---|
+| Microsoft | +54% | on_demand audience counts registered users, not hands-on completers | #1 (completion-rate prior) |
+| CompTIA | +35% | cert audience counts all exam sitters, not PBT-only | #9 (PBT-only scope) |
+| Skillsoft | +18% | catalog audience counts broader Percipio base | close to range |
+| EC-Council | +92% | ILT audience likely includes ATP-delivered | ATP exclusion + #9 |
+| QA | +137% | ILT audience includes apprenticeships/workshops | #7 + #8 |
+| Cisco | −5% | ✓ Big tier working correctly | — |
+| Deloitte | −60% | practice-leads audience under-counts | #4 + #5 |
+| NVIDIA | −70% | audience places at Big tier but list rates more appropriate | threshold calibration |
+| Pluralsight | −60% | ELP Big rate too low for Pluralsight's positioning | rate-card refinement |
+| Trellix / Eaton / Milestone / Calix | mixed | small cos, limited public disclosure | better triangulation or accept |
+
+---
+
+## Part 8 — Failure Modes to Catch Yourself Before Repeating
+
+### Frank caught me doing X recently — don't repeat
+
+**Session 1, 2026-04-19:** I applied three audience overrides (Microsoft on_demand 22M→5M, QA ILT 55K→25K, Deloitte practice_leads 30K→75K) labeled as "prompt refinement pending" — but the numbers were picked to land near target, not from evidence. Frank asked "we're still doing every fix with standard logic and no artificial floors or ceilings, correct?" **All three overrides were backed out.** If you feel the urge to "just tighten this number a bit to match expectation," STOP — that is a Rule #5 violation masquerading as a prompt refinement. The test is: *would you produce the same number if you didn't know the target?* If no, it's a patch.
+
+### Prior-session patterns (captured in decision log)
+
+- Adding "sanity-check ranges" to prompts to cap Microsoft — banned
+- Using "saturated" vocabulary for non-current-customer ACV ceilings — CRO pushed back; replaced with "ACV Target"
+- Inventing caps in `scoring_config` to fix outliers — banned
+- Reconstructing deleted modules (`scoring_math.py`, `SCORING_PROMPT`) — route concept to new home, don't rebuild
+
+### Non-grounded additions
+
+Frank has flagged repeatedly: don't invent tiers, categories, or numbers that don't map to a real signal — then mask it as "research-informed." **Rule:** if you're about to add a tier / category / threshold / constant that didn't come from explicit user input or grounded research, flag it BEFORE writing it. "I'm considering adding X — is that right?"
+
+### Search modal
+
+One modal, platform-wide. `tools/shared/templates/_search_modal.html` (Python) → `<ProgressModal />` (TypeScript). Don't build a second one. Don't copy-paste markup to tweak.
+
+---
+
+## Part 9 — Active Todos Carrying Forward
+
+1. Session 2: comprehensive codebase + docs audit (produces `docs/rewrite-codebase-audit.md`)
+2. Session 2: draft Requirements Document (with Why/What/How at every level, incorporating the 10 standard approaches + Specific Areas from Part 4)
+3. Session 2 or 3: write structural behavior tests (port cleanly to Jest/Vitest)
+4. Session 2: resolve the 8 open questions with dev team (listed in `rewrite-dev-team-spec.md`)
+5. Session 3+: begin the rewrite itself — intelligence layer first
+6. Session 2 & 3: execute "ACV Potential" → "ACV Target" rename systematically across Docs > UX > Code (not piecemeal)
+
+---
+
+## Part 10 — Session Handoff Discipline
+
+Before closing any future session, update this doc in place:
+- What this session accomplished (replaces Part 1)
+- What's in good state (replaces Part 1)
+- New "Frank caught me doing X" warnings (add to Part 8)
+- Updated read order if anything shifted (Part 2)
+- Any shifts in the Rewrite Framework (Parts 3–7)
+- Active todos carrying forward (Part 9)
+
+Keep it short and specific. Stale context hurts more than it helps. When an improvement from Part 4 is fully implemented in the rewrite, move it to "done" or remove it.
