@@ -118,12 +118,29 @@ The 21-company run produced honest results (no target-patching). 10 within ±30%
 
 ---
 
+## Platform-Wide Naming Rename — Carry Throughout Docs > UX > Code
+
+**Locked 2026-04-19:** the primary ACV metric is now called **"ACV Target"** (go-get-it framing), not "ACV Potential" (felt limiting to the CRO).
+
+**Scope of the rename** — applied systematically during rewrite prep and execution, NOT piecemeal now:
+
+| Layer | Change |
+|---|---|
+| **Docs** | Section headings, prose, table rows, UI labels documented in docs all use "ACV Target." Historical references (e.g., "the 2026-04-14 design") and schema-field names (`acv_potential_low` / `acv_potential_high` in `known_customers.json`) can keep the legacy term until the schema migrates. |
+| **UX** | Inspector hero widget, Prospector column header, modals, info-mode displays, tooltips — all "ACV Target." 3-Year ACV is the parallel 3-year realistic metric. |
+| **Code** | Field names (`_holistic_acv`, `_company_acv`, `acv_potential`) migrate during the TypeScript rewrite. New fields use `acvTarget`, `acvTargetThreeYear`, `acvTargetVelocity`. Python field names stay as-is until rewrite — they're legacy data storage. |
+
+Partial renames are a form of drift. The RIGHT execution is: during Session 2's Requirements Document, name this rename explicitly as a rewrite deliverable. During Session 3's rewrite, all field names / UI labels / prompt text use the new vocabulary.
+
+---
+
 ## Active Todos Carrying Forward
 
 1. Session 2: comprehensive codebase + docs audit
 2. Session 2: draft Requirements Document (with Why/What/How at every level) — incorporating the 10 standard approaches as prompt directives
 3. Session 2 or 3: write behavior tests (structural/logical, not number-snapshot — portable to TypeScript)
 4. Session 3: begin the rewrite itself
+5. Session 2 & 3: execute "ACV Potential" → "ACV Target" rename systematically across Docs > UX > Code
 
 ---
 

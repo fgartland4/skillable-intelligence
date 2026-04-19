@@ -415,7 +415,7 @@ Company-level signals mapped to Customer Fit dimensions. Researched once during 
 |---|---|---|---|---|
 | **1. Research** | Going out to the world and extracting **structured facts** | Populated fact drawers | `researcher.py` + the three parallel fact extractors (Pillar 1 / 2 / 3) | **Yes** — the main place Claude runs |
 | **2. Store** | Holding facts in a **single canonical location** per fact | `Product.product_labability_facts`, `Product.instructional_value_facts`, `CompanyAnalysis.customer_fit_facts` | `models.py` (typed dataclasses), `storage.py` (JSON persistence) | No — it's a location, not a process |
-| **3. Score** | Applying **deterministic rules** to facts to produce scores | Per-dimension scores, per-pillar scores, composed Fit Score, ACV Potential | `pillar_1_scorer`, `pillar_2_scorer`, `pillar_3_scorer`, `rubric_grader`, `fit_score_composer`, `acv_calculator` | **Narrow slice only** — the rubric grader grades qualitative findings for Pillars 2 / 3. Everything else is pure Python. |
+| **3. Score** | Applying **deterministic rules** to facts to produce scores | Per-dimension scores, per-pillar scores, composed Fit Score, ACV Target | `pillar_1_scorer`, `pillar_2_scorer`, `pillar_3_scorer`, `rubric_grader`, `fit_score_composer`, `acv_calculator` | **Narrow slice only** — the rubric grader grades qualitative findings for Pillars 2 / 3. Everything else is pure Python. |
 | **4. Badge** | Selecting **2–4 contextual badges per dimension** to explain the score | Canonical badge names + evidence text attached to each `DimensionScore` | `badge_selector.py` | Currently deterministic. Step 6 full may add a tiny per-dimension call for evidence phrasing. |
 
 **How.** `intelligence.score()` wires them together:
@@ -427,7 +427,7 @@ researcher extracts facts → fact drawers stored on Product / CompanyAnalysis
   → pillar_2_scorer produces Pillar 2 PillarScore from facts + grades
   → pillar_3_scorer produces Pillar 3 PillarScore from facts + grades
   → fit_score_composer applies the Technical Fit Multiplier, writes FitScore.total_override
-  → acv_calculator recomputes ACV Potential from motion estimates + rate lookup
+  → acv_calculator recomputes ACV Target from motion estimates + rate lookup
   → badge_selector attaches display badges
   → intelligence.score() persists and returns
 ```
@@ -474,7 +474,7 @@ Cache reloads go through `intelligence.recompute_analysis()`, which trusts saved
 |---|---|---|
 | **Progress mode** — card overlay with eyebrow, title, animated status, progress bar, elapsed timer, cancel button, and SSE subscription | Dark progress chrome | Discovery research, Deep Dive scoring, cache refresh |
 | **Decision mode** — same card, different middle section: message + two buttons (primary / secondary) | Dark progress chrome | Stale-cache prompts, any "confirm before running" flow |
-| **Info mode** — rationale / drivers / caveats display triggered by clicking an ACV row | Dark progress chrome | Prospector ACV Potential click-through |
+| **Info mode** — rationale / drivers / caveats display triggered by clicking an ACV row | Dark progress chrome | Prospector ACV Target click-through |
 | **Docs mode** — full documentation surface with eyebrow, title, accent rule, WHY/WHAT/HOW section labels, tables, anchor-scroll support | **White — `--sk-modal-*` theme tokens**. 920px max width. Surface flips from dark to white for documentation readability. | Every `?` help icon across Inspector + Prospector (and Designer when it comes online) |
 | **In-place transition** — decision → progress without flicker | Same card, no teardown | Refresh flows where the user confirms and then watches the work happen |
 
@@ -1121,7 +1121,7 @@ The multiplier lookup lives in `scoring_config.TECHNICAL_FIT_MULTIPLIERS`. Full 
 
 ---
 
-## Two Hero Metrics — Fit Score + ACV Potential
+## Two Hero Metrics — Fit Score + ACV Target
 
 **Why.** Sellers and execs ask two questions about every opportunity: *should we pursue this?* and *how big is it if we win?* They are different questions with different answers, and forcing them into one number loses information.
 
@@ -1130,9 +1130,9 @@ The multiplier lookup lives in `scoring_config.TECHNICAL_FIT_MULTIPLIERS`. Full 
 | Metric | What it answers | Scope | Type |
 |---|---|---|---|
 | **Fit Score** | Should we pursue this? | **Per-product** — each product in the portfolio gets its own Fit Score | Qualitative composite of three Pillars (0–100) |
-| **ACV Potential** | How big is this if we win? | **Per-company** — one ACV number for the whole company, broken out by use case | Calculated business metric — dollars per year. Five use-case motions × flat rates, sized by an AI audience judgment. See `ACV Potential Model` below. |
+| **ACV Target** | How big is this if we win? | **Per-company** — one ACV number for the whole company, broken out by use case | Calculated business metric — dollars per year. Five use-case motions × flat rates, sized by an AI audience judgment. See `ACV Target Model` below. |
 
-**How.** Both render in the hero section at the top of every company view and Prospector row. The Fit Score swaps as the user switches products in the dropdown. The ACV Potential hero is **company-level** and does not change across product selections — the five use-case breakdown below the hero is also company-level, not per-product. ACV values use lowercase `k` for thousands and uppercase `M` for millions (e.g., `$250k`, `$1.2M`).
+**How.** Both render in the hero section at the top of every company view and Prospector row. The Fit Score swaps as the user switches products in the dropdown. The ACV Target hero is **company-level** and does not change across product selections — the use-case breakdown below the hero is also company-level, not per-product. ACV values use lowercase `k` for thousands and uppercase `M` for millions (e.g., `$250k`, `$1.2M`).
 
 ---
 
@@ -1181,7 +1181,7 @@ The grid and definitions are configured in `scoring_config.VERDICT_GRID`. This d
 
 ---
 
-## ACV Potential Model
+## ACV Target Model
 
 > **Updated 2026-04-19.** This is the v2 framework. It replaces the prior five-motion / single-rate model with a richer seven-org-type × motion-per-org-type × three-tier rate card, grounded in the COG vs Enablement lens. Outliers in the initial 21-company calibration are documented honestly at the end of this section; Session 2 prompt refinements will close them via standard approaches (no target-patching).
 
@@ -1192,7 +1192,7 @@ Sellers, marketers, and RevOps ask three questions about every opportunity:
 2. **Over what time horizon can we realistically capture it?** (3-Year ACV — the land-and-expand trajectory)
 3. **Where does the revenue actually come from?** (per-motion breakdown by use case)
 
-The ACV Potential Model answers all three in one company-level dollar figure, broken into the specific use cases that apply to the company's org type. It pairs with the Fit Score's "should we pursue this" question.
+The ACV Target Model answers all three in one company-level dollar figure, broken into the specific use cases that apply to the company's org type. It pairs with the Fit Score's "should we pursue this" question.
 
 ### What
 
@@ -1465,7 +1465,7 @@ The hero section is the star of the show. Layout:
 
 - **Left:** Product selector dropdown with verdict badge and "HIGH FIT · HIGH ACV" label
 - **Center:** Fit Score — large and prominent
-- **Right:** ACV Potential widget (three-line structure above)
+- **Right:** ACV Target widget (three-line structure above)
 
 No connector lines between hero and pillars. Pillar card padding balanced top/bottom.
 
@@ -1572,7 +1572,7 @@ Company classification badge uses purple — same color as product subcategory b
 1. **Name leak risk** — if Claude sees a customer's name in the prompt, it can echo it back in the user-visible rationale and leak revenue data.
 2. **Anchoring bug** — if we cap the ceiling at a multiple of current ACV for every customer, growing customers look small forever. Their current spend is not their potential; their portfolio size is.
 
-The right design, locked 2026-04-14: the list **informs** the floor without ever **naming** customers, the ceiling cap only applies to genuinely saturated customers, and the calibration block anchors Claude on **ACV Potential** (not current revenue) for the "what could this be" question that prospects are being asked.
+The right design, locked 2026-04-14: the list **informs** the floor without ever **naming** customers, the ceiling cap only applies to genuinely saturated customers, and the calibration block anchors Claude on **ACV Target** (not current revenue) for the "what could this be" question that prospects are being asked.
 
 **What — five distinct contributions to an estimate:**
 
@@ -1606,7 +1606,7 @@ The right design, locked 2026-04-14: the list **informs** the floor without ever
 | `rationale` | Explains why this is a partnership motion, not a direct ACV motion |
 | `key_drivers` | Up to 5 partnership-relevant signals from the discovery data |
 
-**How it surfaces.** Prospector displays "Partnership" in the ACV Potential column with a distinct purple chip (`--sk-classify-purple`) instead of a dollar range. CSV exports include an `acv_type` column so Marketing can filter partnership rows separately from direct-ACV rows. The company still gets ranked, scored, and researched — the partnership framing just replaces the dollar-range UX.
+**How it surfaces.** Prospector displays "Partnership" in the ACV Target column with a distinct purple chip (`--sk-classify-purple`) instead of a dollar range. CSV exports include an `acv_type` column so Marketing can filter partnership rows separately from direct-ACV rows. The company still gets ranked, scored, and researched — the partnership framing just replaces the dollar-range UX.
 
 ### Common Estimation Pitfalls — Built into the Prompt
 
@@ -1629,7 +1629,7 @@ Pattern C (K-12 / district budget-signal audience) is deferred as a structural c
 | Company state | What Prospector shows |
 |---|---|
 | **Discovery only** | Option 2 holistic ACV — range, confidence, rationale, drivers, caveats |
-| **Deep Dive cached** | Full five-motion ACV Potential — actual per-motion audience × adoption × hours × rate with product-level precision |
+| **Deep Dive cached** | Full multi-motion ACV Target — actual per-motion audience × rate with the latest org-type routing |
 | **Partnership-only org type** | Partnership chip — no dollar range |
 
 ### Prospector Results Table
@@ -1642,7 +1642,7 @@ Pattern C (K-12 / district budget-signal audience) is deferred as a structural c
 |---|---|---|
 | **Rank** | Auto-numbered by ACV midpoint | Where this company falls |
 | **Company** | Name + classification badge (Cybersecurity, Enterprise Software, Industry Authority, etc.) | What kind of company — immediately sets context |
-| **ACV Potential** | Range + confidence chip (`LOW` / `MEDIUM` / `HIGH` / `PARTNERSHIP`). Click opens docs-mode modal with full rationale + drivers + caveats. | The primary sort — how big is this opportunity, and how much to trust it |
+| **ACV Target** | Range + confidence chip (`LOW` / `MEDIUM` / `HIGH` / `PARTNERSHIP`). Click opens docs-mode modal with full rationale + drivers + caveats. | The primary sort — how big is this opportunity, and how much to trust it |
 | **Deep Dives** | `N/M` coverage pill — how many of M discovered products have been Deep-Dive'd. Colored: green if full, amber if partial, muted if none. | Signals Inspector investment at a glance — which rows already have rich data behind them |
 | **Top Product** | Flagship product name + subcategory | The lead story — what's the biggest opportunity at this company |
 | **Top Signal** | One line — "14M users, installable, strong API surface" | Why the top product is the lead. (Previously labeled "Why" — renamed 2026-04-14 to avoid the word-collision with "Rationale" in the ACV column's modal.) |
@@ -1651,7 +1651,7 @@ Pattern C (K-12 / district budget-signal audience) is deferred as a structural c
 
 **Every column header carries a tooltip.** Column labels are short for table scannability (Prom. / Pot. / Unc. / Unl.); tooltips carry the full meaning. GP1 applied to the table header row.
 
-**Partnership rows.** Content Development firms show **"Partnership"** in the ACV Potential column with a purple chip (`--sk-classify-purple`) instead of a dollar range. CSV exports include an `acv_type` column (`direct` or `partnership`) so Marketing can filter. LMS companies show normally with a "Distribution Partner" flag in addition to their direct ACV. See ACV Potential Model → Partnership-Only ACV above.
+**Partnership rows.** Content Development firms show **"Partnership"** in the ACV Target column with a purple chip (`--sk-classify-purple`) instead of a dollar range. CSV exports include an `acv_type` column (`direct` or `partnership`) so Marketing can filter. LMS companies show normally with a "Distribution Partner" flag in addition to their direct ACV. See ACV Target Model → Partnership-Only ACV above.
 
 **Running batch dot.** When a batch is processing, the Recent Batches panel shows a pulsing **amber** dot (`--sk-score-mid`). Completed batches show a green dot. The color difference is deliberate — running and complete should be visually distinguishable at a glance. (Amber-pulse locked 2026-04-14.)
 
@@ -1781,7 +1781,7 @@ Two authoritative documents, clean boundary, zero duplication:
 
 | Document | What it owns | Audience |
 |---|---|---|
-| **Platform-Foundation.md** (this doc) | Strategic authority — Guiding Principles, Three Layers of Intelligence, Layer Discipline, Define-Once, Search Modal rule, people and personas, motivation, scoring framework at a glance, Fit Score composition, Two Hero Metrics, Verdict Grid, **ACV Potential model**, Inspector UX, Designer pipeline, data architecture | Everyone — sellers, SEs, engineers, product, leadership |
+| **Platform-Foundation.md** (this doc) | Strategic authority — Guiding Principles, Three Layers of Intelligence, Layer Discipline, Define-Once, Search Modal rule, people and personas, motivation, scoring framework at a glance, Fit Score composition, Two Hero Metrics, Verdict Grid, **ACV Target model**, Inspector UX, Designer pipeline, data architecture | Everyone — sellers, SEs, engineers, product, leadership |
 | **Badging-and-Scoring-Reference.md** | Operational detail — every Pillar's dimensions, every scoring signal, every canonical badge, every strength tier, every penalty, every baseline, Technical Fit Multiplier table, risk cap reduction rules, penalty-visibility rule, Pillar 3 unification, badge naming rules, locked vocabulary | Developers, AI prompts, in-app help, anyone who needs to understand or modify the math |
 
 Where the two docs touch (verdict grid, ACV model, pillar structure), **this document is the home** and the reference doc points back. Where the reference doc touches concepts (pillar questions, 70/30 split), it names them and refers back here. Neither doc duplicates what the other owns.
