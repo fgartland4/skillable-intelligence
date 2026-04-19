@@ -4,6 +4,96 @@ This document reflects best current thinking. As thinking evolves, this document
 
 ---
 
+## 🚨 The Five Hard Rules — Read This Every Session
+
+These are the rules every Claude session must internalize before touching anything. They are named as rules, not guidelines — each one has been learned the hard way across multiple sessions. Violating any of them is how drift starts.
+
+> **Why/What/How applies to every level**, including these rules themselves.
+
+### Rule #1 — Slow down to go faster
+
+**Why.** Rework is the expensive path. Every architectural violation, every wrong implementation, every "you're literally doing the same things previous Claudes did" moment traces back to sprinting when reflecting would have taken 90 seconds.
+
+**What.** Before writing code, before proposing a solution, before making a non-trivial decision:
+- Reflect back your understanding
+- Confirm alignment on WHAT
+- Articulate Why/What/How
+- State your assumptions explicitly
+
+**How.**
+- Ask ONE clarifying question rather than make ONE wrong assumption
+- When Frank says "hold on," "wait," "slow down" — **stop fully, do not finish your current thought first**
+- If the urge to "just implement this real quick" shows up, it's a signal to slow down, not speed up
+
+### Rule #2 — Follow the standards already written
+
+**Why.** The docs say things for reasons. When you violate a standard, it's almost always because you skimmed the docs instead of internalizing them.
+
+**What.** Specific anti-patterns to catch yourself before:
+- Using retired vocabulary ("saturated" for non-current-customer ACV · "catalog_subscribers" instead of "on_demand_learners" · "secondary" instead of "Satellite")
+- Reconstructing deleted modules (`scoring_math.py`, `SCORING_PROMPT`, `prompt_generator.py` — check "Route the concept. Do not reconstruct the module." in CLAUDE.md)
+- Forking the search modal (`tools/shared/templates/_search_modal.html` is THE modal — there is only one)
+- Adding caps / floors / multipliers (Frank has banned these explicitly and repeatedly)
+- Putting intelligence logic in a tool layer (per CLAUDE.md Layer Discipline)
+
+**How.**
+- If you feel the urge to violate one of these, STOP and route the concept to its correct home
+- Standards are cached in the docs, not in Claude's default instincts — the docs are the tiebreaker
+
+### Rule #3 — Check before assuming
+
+**Why.** Claude's default mode is pattern-matching from training data. In this codebase, that pattern-match is often wrong. Real artifacts exist that the default instinct won't guess.
+
+**What.**
+- Before claiming something doesn't exist → **Grep first**
+- Before inventing a number → verify it's grounded in public data (cite source or triangulate with shown reasoning)
+- When there's ambiguity → ask ONE clarifying question rather than pick a path
+- Before saying "we should build X" → check if X already exists in `backend/`, `scripts/`, or `docs/`
+
+**How.**
+- `scripts/README.md` is the ops-tools index — look there before building any new script
+- `docs/` inventory: Platform Foundation, Badging-and-Scoring-Reference, Designer-Session-*, roadmap, decision-log, collaboration-with-frank, acv-framework-reference, customer-intelligence, labability-signals — know what exists before proposing to write
+- Grep is cheaper than rework
+
+### Rule #4 — Why/What/How at every level
+
+**Why.** Code or decisions without clear reasoning become legacy debt within a session. Every aspect of the platform should be able to answer: *what problem does this solve, what is it, why is it this way, how does it work?*
+
+**What.**
+- Every module/file: header with Why/What/How (3 lines minimum, non-negotiable)
+- Every function: docstring with purpose, inputs, outputs
+- Every non-trivial decision in conversation: articulate Why/What/How BEFORE writing code
+- Every doc section and subsection: Why/What/How
+- Commit messages: lead with WHY, not just WHAT changed
+
+**How.**
+- If you can't articulate Why/What/How for a change you're about to make — that's the signal to stop and think more, not push through
+- Doc sections without Why/What/How read as assertions; with Why/What/How they read as thinking partners
+
+### Rule #5 — Fixes must align with the bigger picture (this is where drift starts)
+
+**Why.** Architectural drift is hardest to catch at the bug-fix layer because each fix looks reasonable in isolation. They compound invisibly. Every architectural decay in this platform traces back to a bug fix that was treated as trivial. **This is the #1 source of drift — treat every fix as principle-level work by default.**
+
+**What.** Red flags that force STOP-and-think before any fix:
+- About to add a special case ("just for this one customer")
+- About to add a cap, floor, or multiplier not in `scoring_config`
+- About to duplicate existing logic
+- About to add a workaround without a decision log entry
+- About to commit a fix with a `TODO` or `HACK` comment
+- About to touch shared state without grep'ing callers
+- Fixing a symptom because a "weird number" came out — the weird number is probably telling you a principle needs refinement, not that a patch is needed
+- Overriding Claude-produced values manually to hit a target (target-patching masquerading as "pending prompt fix")
+
+**How.**
+- **Root cause, not symptom** — before coding, answer: *why did this happen?* A "weird" value in the output is often a principle needing refinement, not a bad value needing capping
+- **Right layer check** — fix at the intelligence layer if it's intelligence; at the tool layer if it's a view concern. Never the wrong way around
+- **Alignment check** — does the fix respect existing principles, or is it a hack? If it introduces a cap/floor/special-case where Frank has banned them — stop, find the principle-level fix
+- **Ripple check** — grep what else touches this code/data before changing it
+- **Architectural decision log entry** — if the fix reveals a design gap, write a decision log entry; don't bury it in commit noise
+- **Audience overrides to match targets is a Rule #5 violation** — "tightening pending prompt refinement" is often rationalization for target-patching. Back it out and accept the honest result or do the prompt refinement properly
+
+---
+
 ## Startup Sequence — Three Passes, Every Session
 
 The Guiding Principles and the collaboration rules are not decoration. They are a thinking system. The startup sequence is three passes because Frank has found through experience that these documents land differently on the second read, once the full context is in your head.

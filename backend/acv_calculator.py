@@ -1624,58 +1624,36 @@ def compute_discovery_company_acv(discovery: dict) -> dict:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def compute_company_acv(discovery: dict) -> dict:
-    """Compute the canonical company-level ACV from discovery.
+def _parse_user_base_v2(raw: Any) -> int:
+    """Parse an estimated_user_base value into an integer.
 
-    The single source of truth for the _company_acv field. Called at
-    discovery time, on refresh, and after a qualifying Deep Dive merges
-    new company-level signals.
+    Accepts: int, string formats "~14M" / "~50K" / "14,000,000" / "2B".
+    Returns 0 on any parse failure.
 
-    Pipeline:
-      1. Call audience_grader.judge_training_audiences(discovery) →
-         five audience integers + rationale + confidence per motion
-      2. Apply flat rate per motion from cfg.MOTION_METADATA → motion_acv
-      3. Sum motion_acv across the five motions → raw_total
-      4. Compute popularity-weighted PL via compute_popularity_weighted_pl
-      5. Apply harness: company_acv = raw_total × (pl_weighted / 100)
-
-    STUB — live implementation lands in Commit 2. Output shape below is
-    the contract.
-
-    Args:
-        discovery: The discovery dict.
-
-    Returns:
-        A dict that mirrors the `_company_acv` field shape:
-
-            {
-                "acv": int,                 # Gated company ACV (single integer)
-                "raw_acv_before_harness": int,  # Pre-harness total for transparency
-                "harness": float,           # popularity_weighted_pl / 100
-                "popularity_weighted_pl": int,  # The PL value used for the harness
-                "motions": {
-                    "customer_training":  {"audience": int, "rate": int, "acv": int, "rationale": str, "confidence": str},
-                    "partner_training":   {...},
-                    "employee_training":  {...},
-                    "certification":      {...},
-                    "events":             {...},
-                },
-                "confidence":             "low" | "medium" | "high",
-                "rationale":              str,
-                "key_drivers":            list[str],
-                "caveats":                list[str],
-                "market_demand_story":    str,
-                "_source":                "framework-v2",
-            }
-
-        For partnership-only org types, returns the partnership result
-        shape (acv: 0, acv_type: "partnership", purple chip in UI).
+    New-architecture helper (scoped to the compute_company_acv /
+    compute_popularity_weighted_pl pair). Keeps the new path clean and
+    separate from the legacy _get_product_audience helper which still
+    carries the annual_enrollments_estimate fallback for old code paths.
     """
-    # TODO(commit-2): implement pipeline
-    raise NotImplementedError(
-        "compute_company_acv is a stub. "
-        "Full implementation lands in Commit 2 of the ACV architecture rewrite."
-    )
+    if isinstance(raw, int):
+        return max(0, raw)
+    if isinstance(raw, float):
+        return max(0, int(raw))
+    if not isinstance(raw, str):
+        return 0
+    s = raw.replace("~", "").replace(",", "").strip().upper()
+    if not s:
+        return 0
+    try:
+        if s.endswith("M"):
+            return int(float(s[:-1]) * 1_000_000)  # magic-allowed: million multiplier
+        if s.endswith("K"):
+            return int(float(s[:-1]) * 1_000)  # magic-allowed: thousand multiplier
+        if s.endswith("B"):
+            return int(float(s[:-1]) * 1_000_000_000)  # magic-allowed: billion multiplier
+        return int(float(s))
+    except (ValueError, IndexError):
+        return 0
 
 
 def compute_popularity_weighted_pl(discovery: dict) -> int:
@@ -1693,12 +1671,9 @@ def compute_popularity_weighted_pl(discovery: dict) -> int:
     directional estimate at discovery).
 
     Post-Deep-Dive: uses the real PL score for products that have been
-    Deep-Dived, rough for the rest. The harness sharpens as more
-    products get Deep-Dived. (Phase F-PL already writes real PL back
-    onto discovery-level rough_labability_score; this function reads
-    the sharpened value uniformly.)
-
-    STUB — live implementation lands in Commit 2.
+    Deep-Dived, rough for the rest. (Phase F-PL already writes real PL
+    back onto discovery-level rough_labability_score; this function
+    reads the sharpened value uniformly.)
 
     Args:
         discovery: The discovery dict.
@@ -1706,11 +1681,190 @@ def compute_popularity_weighted_pl(discovery: dict) -> int:
     Returns:
         Integer 0-100 representing the popularity-weighted average PL.
         Returns 50 as a neutral default when no products have positive
-        user_base (pathological case — should trigger a re-research
-        rather than a silent default).
+        user_base (pathological case — signals a thin discovery that
+        should trigger re-research rather than mask with a number).
     """
-    # TODO(commit-2): implement weighted average
-    raise NotImplementedError(
-        "compute_popularity_weighted_pl is a stub. "
-        "Full implementation lands in Commit 2 of the ACV architecture rewrite."
+    products = discovery.get("products") or []
+    if not products:
+        return 50  # magic-allowed: neutral default for empty portfolio
+
+    total_weight = 0
+    weighted_sum = 0
+
+    for p in products:
+        user_base = _parse_user_base_v2(p.get("estimated_user_base"))
+        if user_base <= 0:
+            continue
+        try:
+            rough_pl = int(p.get("rough_labability_score") or 0)
+        except (TypeError, ValueError):
+            continue
+        # Clamp PL to 0-100 in case a malformed product slipped through
+        rough_pl = max(0, min(100, rough_pl))  # magic-allowed: PL range clamp
+        weighted_sum += rough_pl * user_base
+        total_weight += user_base
+
+    if total_weight <= 0:
+        log.warning(
+            "compute_popularity_weighted_pl: no products with positive user_base "
+            "for %r — returning neutral 50 default",
+            discovery.get("company_name"),
+        )
+        return 50  # magic-allowed: neutral default when no weight available
+
+    weighted_pl = round(weighted_sum / total_weight)
+    return max(0, min(100, weighted_pl))  # magic-allowed: final clamp
+
+
+def compute_company_acv(discovery: dict) -> dict:
+    """Compute the canonical company-level ACV from discovery.
+
+    The single source of truth for the _company_acv field. Called at
+    discovery time, on refresh, and after a qualifying Deep Dive merges
+    new company-level signals.
+
+    Pipeline:
+      1. Call audience_grader.judge_training_audiences(discovery) →
+         five audience integers + rationale + confidence per motion.
+         Short-circuits for CONTENT_DEVELOPMENT (partnership-only).
+      2. Apply flat rate per motion from cfg.MOTION_METADATA → motion_acv
+      3. Sum motion_acv across the five motions → raw_total
+      4. Compute popularity-weighted PL via compute_popularity_weighted_pl
+      5. Apply harness: company_acv = raw_total × (pl_weighted / 100)
+
+    Never raises. On any internal failure, returns a safe default shape
+    with acv=0 and the error surfaced in caveats.
+
+    Args:
+        discovery: The discovery dict.
+
+    Returns:
+        A dict mirroring the `_company_acv` field shape — see the
+        "return" below for the full schema.
+
+        For partnership-only org types, returns a partnership-shaped
+        result with acv=0 and acv_type="partnership".
+    """
+    company_name = discovery.get("company_name") or "UNKNOWN"
+
+    # Step 1: audience judgment (includes partnership short-circuit)
+    try:
+        from audience_grader import judge_training_audiences  # local import to keep layering clean
+        judgment = judge_training_audiences(discovery)
+    except Exception as e:
+        log.exception(
+            "compute_company_acv: judgment call failed for %r: %s",
+            company_name, e,
+        )
+        return _safe_company_acv_default(company_name, f"judgment call error: {e}")
+
+    # Partnership-only result — pass through with acv=0 and partnership marker.
+    if judgment.get("acv_type") == "partnership":
+        return {
+            "acv": 0,
+            "acv_type": "partnership",
+            "raw_acv_before_harness": 0,
+            "harness": 0.0,
+            "popularity_weighted_pl": 0,
+            "motions": {
+                m: {
+                    "audience": 0,
+                    "rate": cfg.MOTION_METADATA[m]["rate"],
+                    "acv": 0,
+                    "rationale": "N/A for partnership-only org types.",
+                    "confidence": "partnership",
+                }
+                for m in cfg.MOTION_KEYS
+            },
+            "confidence": "partnership",
+            "rationale": judgment.get("rationale", ""),
+            "key_drivers": judgment.get("key_drivers", []),
+            "caveats": judgment.get("caveats", []),
+            "market_demand_story": judgment.get("market_demand_story", ""),
+            "_source": "framework-v2",
+        }
+
+    audiences = judgment.get("audiences") or {}
+    per_motion_rationale = judgment.get("per_motion_rationale") or {}
+    per_motion_confidence = judgment.get("per_motion_confidence") or {}
+
+    # Steps 2-3: per-motion math + sum
+    motions: dict[str, dict] = {}
+    raw_total = 0
+    for motion_key in cfg.MOTION_KEYS:
+        meta = cfg.MOTION_METADATA[motion_key]
+        audience = int(audiences.get(motion_key) or 0)
+        rate = int(meta["rate"])
+        motion_acv = audience * rate
+        raw_total += motion_acv
+        motions[motion_key] = {
+            "audience": audience,
+            "rate": rate,
+            "rate_unit": meta["rate_unit"],
+            "label": meta["label"],
+            "acv": motion_acv,
+            "rationale": per_motion_rationale.get(motion_key, ""),
+            "confidence": per_motion_confidence.get(motion_key, "low"),
+        }
+
+    # Step 4: popularity-weighted PL harness
+    try:
+        weighted_pl = compute_popularity_weighted_pl(discovery)
+    except Exception as e:
+        log.exception(
+            "compute_company_acv: PL harness failed for %r: %s — defaulting to 50",
+            company_name, e,
+        )
+        weighted_pl = 50  # magic-allowed: neutral default on harness failure
+
+    harness = weighted_pl / 100.0  # magic-allowed: percentage → multiplier
+    gated_acv = round(raw_total * harness)
+
+    log.info(
+        "compute_company_acv: %r raw=$%d harness=%.2f (PL=%d) → company_acv=$%d",
+        company_name, raw_total, harness, weighted_pl, gated_acv,
     )
+
+    return {
+        "acv": gated_acv,
+        "acv_type": "direct",
+        "raw_acv_before_harness": raw_total,
+        "harness": round(harness, 3),  # magic-allowed: display precision (3 decimal places) for human-readable harness value
+        "popularity_weighted_pl": weighted_pl,
+        "motions": motions,
+        "confidence": judgment.get("confidence", "low"),
+        "rationale": judgment.get("rationale", ""),
+        "key_drivers": judgment.get("key_drivers", []),
+        "caveats": judgment.get("caveats", []),
+        "market_demand_story": judgment.get("market_demand_story", ""),
+        "_source": "framework-v2",
+    }
+
+
+def _safe_company_acv_default(company_name: str, reason: str) -> dict:
+    """Well-formed _company_acv shape for failure cases. Never raises."""
+    return {
+        "acv": 0,
+        "acv_type": "direct",
+        "raw_acv_before_harness": 0,
+        "harness": 0.0,
+        "popularity_weighted_pl": 0,
+        "motions": {
+            m: {
+                "audience": 0,
+                "rate": cfg.MOTION_METADATA[m]["rate"],
+                "rate_unit": cfg.MOTION_METADATA[m]["rate_unit"],
+                "label": cfg.MOTION_METADATA[m]["label"],
+                "acv": 0,
+                "rationale": "",
+                "confidence": "low",
+            }
+            for m in cfg.MOTION_KEYS
+        },
+        "confidence": "low",
+        "rationale": f"Company ACV computation failed: {reason}",
+        "key_drivers": [],
+        "caveats": [f"Could not compute company ACV: {reason}"],
+        "market_demand_story": "No estimate produced.",
+        "_source": "framework-v2",
+    }

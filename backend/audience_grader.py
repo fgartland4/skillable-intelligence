@@ -149,15 +149,65 @@ A training audience is humans whose lab consumption generates Skillable
 revenue. Concretely:
 
 - Humans who consume labs where someone pays Skillable for the lab hours.
-- The learner usually does NOT pay personally. The payer is an employer,
-  a customer organization, a training org, a certification body, a
-  university, a subscription learning platform, or a channel partner
-  program.
-- A user who watches free content or reads documentation is NOT in the
-  audience. Only people whose lab consumption generates revenue.
-- You are estimating ONE year — annual throughput, not lifetime anything.
-- The audience is a specific, countable human population. Not a fraction
-  of a bigger number.
+- The learner usually does NOT pay personally. Whether the learner pays
+  nothing, pays a subscription fee, or pays through an employer does not
+  determine whether they're in the audience — Skillable gets paid by the
+  builder/embedder regardless.
+- A user who watches free content, reads documentation, or takes a course
+  that has no embedded lab is NOT in the audience.
+- You are estimating ONE year. Annual throughput. Not cumulative,
+  not lifetime, not "across our history," not "total platform reach."
+
+═══ "THE CUSTOMER" = WHOEVER BUILDS AND EMBEDS THE LAB ═══
+
+This is the rule that determines which company's audience a given learner
+belongs to. Skillable's customer for any given lab is the organization
+that BUILT the lab and EMBEDDED it in their course/content. Not the
+vendor whose technology the lab covers. Not the platform where the
+learner accesses it. The BUILDER/EMBEDDER.
+
+Examples:
+- Microsoft builds labs on Microsoft products → Microsoft's audience.
+- Microsoft builds labs on Databricks running on Azure, embedded in a
+  Microsoft-built course → Microsoft's audience (they built it).
+- Databricks builds labs on Databricks → Databricks's audience.
+- Coursera builds labs on any vendor (Microsoft / AWS / etc.) and
+  embeds them in a Coursera course → Coursera's audience.
+- Pluralsight builds labs on AWS → Pluralsight's audience.
+- An ATP delivers a Microsoft MOC course using Microsoft-built labs →
+  Microsoft's audience (Microsoft built the labs; ATP just delivered).
+- A partner builds its own labs for a course it sells → the partner's
+  audience (the partner built them).
+
+For ELPs like Coursera / Pluralsight / Skillsoft / Udemy / Udacity /
+CBT Nuggets: the audience is learners consuming labs the ELP built,
+summed across ALL tech catalogs the ELP operates (Microsoft + AWS +
+Azure + cybersecurity + DevOps + data/AI + …). Not sliced by vendor.
+
+═══ ANNUAL THROUGHPUT vs. ECOSYSTEM / CUMULATIVE / LIFETIME ═══
+
+The single biggest error you can make: treating an ecosystem /
+cumulative / lifetime number as an annual training audience.
+
+- "30+ certifications" = catalog breadth, NOT this year's exam sitters.
+- "400,000 partner organizations" = network size, NOT partner employees
+  trained THIS YEAR.
+- "10 million Coursera catalog enrollments" = cumulative enrollments
+  across their entire catalog history, NOT this year's tech-catalog
+  learners.
+- "2 billion Windows users" = installed base, NOT annual Windows
+  training audience.
+- "500K lifetime cert holders" = everyone who ever passed this cert,
+  NOT this year's sitters.
+
+Annual paid training audiences are almost always a small fraction of
+cumulative / lifetime numbers. When the only number you can find is a
+cumulative or lifetime figure, translate: how many of those people are
+IN training or SITTING an exam with an embedded lab THIS YEAR? That is
+the audience. When in doubt, reason from the funnel: total ecosystem →
+active users → users in training → users in paid training → users in
+labbed paid training → users consuming labs the BUILDER/EMBEDDER owns.
+Each step drops by a large factor.
 """
 
 _FIVE_MOTIONS = """
@@ -244,80 +294,72 @@ framing that matches this company's org type:
     company's products this year. Scale with Market Demand — popular
     products with thin training markets have small audiences.
 
-- Enterprise Learning Platform (Pluralsight, Skillsoft, CBT Nuggets, Coursera Business)
-    customer_training = subscribers consuming the TECHNOLOGY portion of
-    the catalog this year. A fraction of total platform learners — not
-    every course is technology, and not every technology course needs labs.
+- Enterprise Learning Platform (Pluralsight, Skillsoft, CBT Nuggets,
+  Coursera Business, Udemy Business, Udacity, LinkedIn Learning)
+    customer_training = the ELP's own learners consuming labs the ELP
+    built and embedded in its courses this year, across ALL the ELP's
+    tech catalogs combined (Microsoft content + AWS content + Azure
+    content + cybersecurity content + DevOps content + data/AI content
+    + anything else they build labs for). The ELP owns the audience of
+    learners who consume ELP-built labs — regardless of what underlying
+    vendor's technology the labs cover. Do NOT carve the audience by
+    one vendor slice; it's cumulative across all catalogs the ELP labs.
+    Do NOT include leadership / compliance / soft-skills catalog learners
+    (non-labable). A fraction of total platform subscribers — how many
+    depends on how deep the tech catalog is and how many of the ELP's
+    learners take tech courses with embedded labs in a given year.
 
-- ILT Training Organization (New Horizons, LLPA, AXcademy, QA, ONLC, LearnQuest)
+- ILT Training Organization (New Horizons, LLPA, AXcademy, QA, ONLC,
+  LearnQuest, Global Knowledge pre-merger)
     customer_training = students in this org's classrooms and virtual
     ILT courses this year. BOUNDED by the org's own delivery capacity
-    (instructor count, schedule, locations). NOT the underlying
-    technology's global market. LLPA teaching Azure does not have all
-    Azure admins as their audience — they have their own classroom
-    throughput.
+    (instructor count, schedule, seats, locations). NOT the underlying
+    technology's global market.
 
 - Academic Institution
     customer_training = students enrolled in TECHNOLOGY programs this
-    year. Not total enrollment. Arizona State's 120K students do NOT all
-    count — only the ~15K in technology-facing programs do.
+    year. Not total institution enrollment — only the subset in
+    technology-facing programs (CS, engineering, cybersecurity, data
+    science, IT) with labbed curriculum.
 
 - Systems Integrator / VAR / Technology Distributor
     customer_training = consultants in the practice area this year.
     Internal practitioners being trained on the products the firm
-    deploys. NOT the underlying technology's global customer base.
-    Accenture's AWS practice has their own ~60K consultants — not all
-    AWS practitioners globally.
+    deploys. NOT the underlying technology's global customer base. The
+    firm's OWN practice-area consultants, not the population of people
+    using those technologies globally.
 
-- Industry Authority (CompTIA, SANS, EC-Council, ISACA)
+- Industry Authority (CompTIA, SANS, EC-Council, ISACA, (ISC)²)
     customer_training = ANNUAL training candidates for the cert programs.
-    NOT lifetime cert holders. CompTIA Security+ has ~50K-100K annual
-    training candidates, not the 500K+ lifetime holders.
-    certification = annual exam sitters (much smaller than training
-    candidates — the funnel drops at each step).
+    NOT lifetime cert holders. A person who got a cert years ago is
+    NOT in this year's audience unless they're renewing/continuing this
+    year.
+    certification = ANNUAL exam sitters this year (not lifetime holders
+    either). The funnel drops between training candidates and exam
+    sitters — many train without sitting; some sit without formal
+    training. Scale the two audiences independently.
 
 - LMS Provider
-    customer_training = learners on the platform consuming technology
-    courses this year.
+    customer_training = learners on the platform consuming labbed
+    technology courses this year.
 """
 
 _COMMERCIAL_CALIBRATION = """
-═══ COMMERCIAL CALIBRATION — ANCHOR AGAINST REALITY ═══
+═══ ANONYMIZED REFERENCE DATA — Skillable's real customers ═══
 
-Microsoft is Skillable's ceiling benchmark. A ~15-year partnership,
-Skillable is Microsoft's lab provider. Approximate company ACV: $22M
-current, $22-30M realistic potential over three years.
+The block below shows Skillable's actual customers grouped anonymously
+by relationship stage. Each stage groups current ACV ranges across the
+customers at that stage, and where known, estimated three-year Potential
+ranges. Customer names never appear — only magnitudes and stage
+groupings. You must NOT name any customer, anonymized or otherwise, in
+your rationale. Reference stage patterns only.
 
-Realistic shape for every other company:
-
-- Most companies land in the $500K-$5M range when Python multiplies your
-  audience estimates by the flat rates (~$200/person/year for
-  customer/partner/employee training, ~$10/person/year for cert, ~$50/
-  attendee/year for events).
-- A handful of very large companies reach $5M-$20M.
-- Only Microsoft exceeds $20M.
-- Non-Microsoft numbers implying $20M+ ACV should trigger skepticism, not
-  confidence. Only Accenture and Deloitte have realistic 3-year paths to
-  that tier, and only because those relationships are in motion.
-
-Work backward from the expected ACV shape: a mid-size software vendor
-with moderate training demand should yield an audience mix that
-multiplies to roughly $1-5M ACV, not $50M. If your audience numbers
-would imply ACV well above the ceiling for this company's size /
-market position, they are too high. Revise down and revisit.
-
-═══ ANONYMIZED REFERENCE MAGNITUDES ═══
-
-The calibration block below shows Skillable's actual customers grouped
-anonymously by relationship stage, with current ACV ranges AND estimated
-Potential ranges per stage. Anchor your estimate against the stage that
-fits this prospect's likely relationship shape:
+This is data, not a target. Use it to understand what real Skillable
+customer relationships look like at each stage, so your estimates for a
+given company can reference comparable relationships — but do NOT
+back-calculate your answer to force it into a stage's range.
 
 {CALIBRATION_BLOCK}
-
-Customer names never appear in this block — only magnitudes and stage
-groupings. You must not name any customer, anonymized or otherwise, in
-your rationale. Reference stage patterns only.
 """
 
 _ANTI_PITFALLS = """
@@ -354,9 +396,10 @@ _ANTI_PITFALLS = """
    customers", "first-year-stage customers"), not specific names.
 
 8. For Industry Authorities, keep training candidates (customer_training)
-   separate from exam sitters (certification). They are a funnel: ~250K
-   interested in a cert → ~50K take training → ~5K sit the exam.
-   certification = sitters only.
+   separate from exam sitters (certification). They are a funnel: the
+   interested population is larger than the training-candidate population
+   is larger than the annual exam-sitter population. certification =
+   sitters only; customer_training = training candidates only.
 
 9. When the audience would be zero for a motion (company runs no events,
    has no channel, has no cert), return 0. Do not return a nominal small
@@ -644,6 +687,130 @@ Return JSON only. No prose. No markdown fences.
 # The narrow Claude call
 # ═══════════════════════════════════════════════════════════════════════════════
 
+_SYSTEM_PROMPT = (
+    "You are a senior training-market analyst for Skillable. Follow the "
+    "instructions exactly. Return ONLY a JSON object — no prose, no markdown."
+)
+
+# Safe default when the Claude call fails or returns malformed output.
+# All audiences zero, low confidence, error surfaced in caveats. Callers
+# get a well-formed dict back — never an exception, never a silent miss.
+def _safe_default_result(reason: str) -> dict:
+    return {
+        "audiences": {
+            "customer_training":  0,
+            "partner_training":   0,
+            "employee_training":  0,
+            "certification":      0,
+            "events":             0,
+        },
+        "confidence": "low",
+        "rationale": f"Audience grader failed to produce a valid estimate: {reason}",
+        "per_motion_rationale": {
+            "customer_training":  "Grader failed; no estimate available.",
+            "partner_training":   "Grader failed; no estimate available.",
+            "employee_training":  "Grader failed; no estimate available.",
+            "certification":      "Grader failed; no estimate available.",
+            "events":             "Grader failed; no estimate available.",
+        },
+        "per_motion_confidence": {
+            "customer_training":  "low",
+            "partner_training":   "low",
+            "employee_training":  "low",
+            "certification":      "low",
+            "events":             "low",
+        },
+        "key_drivers": [],
+        "caveats": [f"Audience grader did not return a usable estimate: {reason}"],
+        "market_demand_story": "No estimate produced.",
+    }
+
+
+def _validate_and_normalize(raw: dict, company_name: str) -> dict:
+    """Validate Claude's raw JSON against the output schema and coerce defensively.
+
+    Every field is filled with a safe default if missing or malformed.
+    Audience integers are clamped at >= 0. String fields are coerced to
+    strings. Confidence values that aren't one of low/medium/high fall
+    back to low.
+
+    Raises no exceptions — callers always get a well-formed dict.
+    """
+    _valid_confidence = ("low", "medium", "high")
+
+    def _as_int(value: Any) -> int:
+        try:
+            n = int(value)
+            return max(0, n)
+        except (TypeError, ValueError):
+            return 0
+
+    def _as_confidence(value: Any, default: str = "low") -> str:
+        text = str(value or "").strip().lower()
+        return text if text in _valid_confidence else default
+
+    def _as_str(value: Any) -> str:
+        if value is None:
+            return ""
+        return str(value).strip()
+
+    def _as_list_of_str(value: Any, max_items: int) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        out: list[str] = []
+        for item in value[:max_items]:
+            text = _as_str(item)
+            if text:
+                out.append(text)
+        return out
+
+    # Audiences
+    raw_audiences = raw.get("audiences") if isinstance(raw, dict) else None
+    if not isinstance(raw_audiences, dict):
+        raw_audiences = {}
+    audiences = {
+        "customer_training":  _as_int(raw_audiences.get("customer_training")),
+        "partner_training":   _as_int(raw_audiences.get("partner_training")),
+        "employee_training":  _as_int(raw_audiences.get("employee_training")),
+        "certification":      _as_int(raw_audiences.get("certification")),
+        "events":             _as_int(raw_audiences.get("events")),
+    }
+
+    # Per-motion dicts
+    raw_pmr = raw.get("per_motion_rationale") if isinstance(raw, dict) else None
+    if not isinstance(raw_pmr, dict):
+        raw_pmr = {}
+    per_motion_rationale = {m: _as_str(raw_pmr.get(m)) for m in cfg.MOTION_KEYS}
+
+    raw_pmc = raw.get("per_motion_confidence") if isinstance(raw, dict) else None
+    if not isinstance(raw_pmc, dict):
+        raw_pmc = {}
+    per_motion_confidence = {m: _as_confidence(raw_pmc.get(m)) for m in cfg.MOTION_KEYS}
+
+    result = {
+        "audiences": audiences,
+        "confidence": _as_confidence(raw.get("confidence") if isinstance(raw, dict) else None),
+        "rationale": _as_str(raw.get("rationale") if isinstance(raw, dict) else None),
+        "per_motion_rationale": per_motion_rationale,
+        "per_motion_confidence": per_motion_confidence,
+        "key_drivers": _as_list_of_str(raw.get("key_drivers") if isinstance(raw, dict) else None, 5),
+        "caveats": _as_list_of_str(raw.get("caveats") if isinstance(raw, dict) else None, 3),
+        "market_demand_story": _as_str(raw.get("market_demand_story") if isinstance(raw, dict) else None),
+    }
+
+    # Sanity-check: a non-partnership company with ALL audiences at 0 and
+    # low confidence is an implicit grader failure — worth a log warning
+    # but still a valid result shape.
+    if all(v == 0 for v in audiences.values()):
+        log.warning(
+            "audience_grader: all five audiences returned 0 for %r — "
+            "likely a prompt or research gap, not a real zero company",
+            company_name,
+        )
+
+    return result
+
+
 def judge_training_audiences(discovery: dict) -> dict:
     """Judge the five motion audiences for a company.
 
@@ -654,10 +821,9 @@ def judge_training_audiences(discovery: dict) -> dict:
     Short-circuits for partnership-only org types (Content Development)
     and returns PARTNERSHIP_RESULT_SHAPE without calling Claude.
 
-    STUB — live Claude call lands in Commit 1 of the ACV architecture
-    rewrite. Prompt assembly (build_audience_grader_prompt) and
-    calibration block (build_calibration_block) are implemented and
-    safe to call.
+    On Claude call failure or malformed output, returns a safe default
+    result (all audiences zero, low confidence, error in caveats).
+    Callers always get a well-formed dict — this function never raises.
 
     Args:
         discovery: The discovery dict.
@@ -666,27 +832,57 @@ def judge_training_audiences(discovery: dict) -> dict:
         A dict matching AUDIENCE_GRADER_OUTPUT_SCHEMA. Strict format
         guaranteed — every key present.
     """
+    company_name = discovery.get("company_name") or "UNKNOWN"
+
     # Partnership-only short-circuit (no Claude call needed)
     if _is_partnership_only(discovery):
         log.info(
             "audience_grader.judge_training_audiences: partnership-only org_type "
             "for %r — returning PARTNERSHIP_RESULT_SHAPE without Claude call",
-            discovery.get("company_name"),
+            company_name,
         )
         return copy.deepcopy(PARTNERSHIP_RESULT_SHAPE)
 
-    # TODO(commit-1): live Claude call
-    #   1. prompt = build_audience_grader_prompt(discovery)   # implemented
-    #   2. response = call_claude(prompt, model="sonnet-4-6", response_format="json")
-    #   3. parse + validate against AUDIENCE_GRADER_OUTPUT_SCHEMA
-    #   4. defensive defaults for malformed fields (never fail silently)
-    #   5. return the validated dict
-    raise NotImplementedError(
-        "audience_grader.judge_training_audiences is a stub — live Claude call "
-        "lands in Commit 1. build_audience_grader_prompt(discovery) and "
-        "build_calibration_block() are implemented and safe to call directly "
-        "for prompt testing."
+    # Build prompt
+    try:
+        user_prompt = build_audience_grader_prompt(discovery)
+    except Exception as e:
+        log.exception(
+            "audience_grader: prompt construction failed for %r: %s",
+            company_name, e,
+        )
+        return _safe_default_result(f"prompt construction error: {e}")
+
+    # Live Claude call — imports scorer._call_claude locally to avoid
+    # circular imports (same pattern as rubric_grader.grade_dimension).
+    try:
+        from scorer import _call_claude  # local import to break cycle
+        raw = _call_claude(
+            _SYSTEM_PROMPT,
+            user_prompt,
+            max_tokens=3000,
+        )
+    except Exception as e:
+        log.warning(
+            "audience_grader: Claude call failed for %r: %s",
+            company_name, e,
+        )
+        return _safe_default_result(f"Claude call error: {e}")
+
+    # Validate and normalize defensively. Never raises — bad output
+    # surfaces as a low-confidence result with caveats, not a crash.
+    result = _validate_and_normalize(raw, company_name)
+    log.info(
+        "audience_grader: %r → customer=%d partner=%d employee=%d cert=%d events=%d (%s)",
+        company_name,
+        result["audiences"]["customer_training"],
+        result["audiences"]["partner_training"],
+        result["audiences"]["employee_training"],
+        result["audiences"]["certification"],
+        result["audiences"]["events"],
+        result["confidence"],
     )
+    return result
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

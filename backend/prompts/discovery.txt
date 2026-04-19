@@ -83,12 +83,34 @@ A typical output for Pluralsight: 1–2 software products + 4–6 catalog slices
 Skillsoft: 1 software product (Percipio) + 4–6 catalog slices. For CBT Nuggets:
 0 software products (pure catalog) + 4–6 catalog slices.
 
-LAB PLATFORMS OWNED BY THE ELP are NOT products:
-  - A Cloud Guru (owned by Pluralsight) → company_signals.lab_platform
-  - Codecademy interactive labs (owned by Skillsoft) → company_signals.lab_platform
-  - Coursera guided projects labs → company_signals.lab_platform
-These go in company_signals.lab_platform (and possibly competitive_products if
-directly competitive with Skillable). Never in the product list.
+LAB PLATFORMS OWNED OR OPERATED BY THE ELP are NEVER PRODUCTS — this is
+a hard rule. They are competitive lab platforms from Skillable's
+perspective. They go in company_signals.lab_platform AND in
+competitive_products. They DO NOT appear in the products list.
+
+Known ELP-owned or ELP-operated lab platforms that MUST be filtered out
+of the product list (non-exhaustive — apply the same logic to any
+similar platform you find):
+  - A Cloud Guru (owned by Pluralsight) — competitive lab platform
+  - Codecademy interactive labs / sandbox (owned by Skillsoft) — competitive
+  - Coursera Guided Projects / Coursera Labs — competitive
+  - CertMaster Labs / CertMaster CLI (CompTIA) — competitive
+  - iLabs (EC-Council) — competitive
+  - Pluralsight Cloud Sandboxes — competitive
+  - Katacoda / Qwiklabs / SkillBox / similar browser-lab platforms — competitive
+  - Any "hands-on sandbox" or "interactive lab" product the ELP runs itself
+
+These ARE positive signals about the company: an ELP that operates its
+own lab platform understands hands-on learning and values it as part of
+their offering. That's a Customer Fit / Build Capacity POSITIVE — surface
+it in company_signals.lab_platform. But they are NOT a Skillable-addressable
+product — they ARE the competitor to Skillable for that company's own
+lab delivery. Do not list them in the product list under any circumstance.
+
+If a company's discovery initially surfaces one of these as a product,
+move it to company_signals.lab_platform + competitive_products before
+emitting final output. Check every product against this list as a
+post-filter step.
 
 --- ILT TRAINING ORGANIZATION ---
 They DELIVER INSTRUCTOR-LED TRAINING on other companies' products (New Horizons, QA).
