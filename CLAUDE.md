@@ -1,6 +1,30 @@
-# Skillable Intelligence — Claude Working Context
+# Skillable Intelligence — LEGACY (Reference Only)
 
-This file loads automatically every session. It contains project-specific rules only. For how we work together, the startup sequence, and the thinking system, see `docs/collaboration-with-frank.md` — that is the single source of truth. Start there. Follow its instructions exactly.
+> ## ⚠️ LEGACY — Reference Only ⚠️
+>
+> **This repository is the Python/Flask proof-of-concept. Active development lives in [`../intelligence/`](../intelligence/).**
+>
+> Read [`../intelligence/CLAUDE.md`](../intelligence/CLAUDE.md) for the current project rules and [`../intelligence/docs/`](../intelligence/docs/) for the locked specs (platform, scoring, roadmap).
+>
+> **You are here only for:**
+> - Re-mining specific mechanics when the new specs cite legacy behavior (e.g., risk cap reduction formulas, CF merge logic, legacy signal-name translation)
+> - Reading `backend/known_customers.json` (gitignored — Frank's real-world calibration anchors)
+> - Studying legacy UX patterns that inform the rewrite (e.g., contact-pulling, competitive-products display, Standard Search Modal behavior)
+>
+> **You are NOT here to:**
+> - Build new features — that work happens in `../intelligence/`
+> - Edit legacy code to change behavior
+> - Treat anything here as current truth — the new specs supersede everything below this banner
+>
+> If a Claude session opens in this repo by mistake, switch to `../intelligence/` before doing any work beyond reference lookup.
+
+---
+
+## Historical Project-Specific Rules (Below)
+
+The content below was the active rulebook during the legacy proof-of-concept era. It is preserved for historical context and is referenced by the new specs where legacy mechanics carry forward. Do not treat it as current instruction — the new repo's `CLAUDE.md` and specs are authoritative.
+
+For how we work together, the startup sequence, and the thinking system, see the new repo's [`docs/collaboration-with-frank.md`](../intelligence/docs/collaboration-with-frank.md).
 
 ---
 
